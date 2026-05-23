@@ -16,7 +16,6 @@ REQUIRED_FILES = {
     "manifest": Path("zigux/tests/phase11_dw_wdt_manifest.json"),
     "registration_scaffold": Path("zigux/tests/phase11_dw_wdt_registration_scaffold.zig"),
     "restart": Path("drivers/watchdog/dw_wdt_restart.zig"),
-    "verify": Path("drivers/watchdog/dw_wdt_verify.zig"),
     "pm": Path("drivers/watchdog/dw_wdt_pm.zig"),
     "pm_scaffold": Path("drivers/watchdog/dw_wdt_pm_scaffold.zig"),
 }
@@ -26,7 +25,7 @@ ALIGNMENT_NOTE_MARKERS = [
     "- current authenticated contents no longer keep the older returned validation-matrix story directly readable through the same bridge that serves the rest of this packet",
     "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still records continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
-    "- `drivers/watchdog/dw_wdt_verify.zig` still keeps registration-blocking failure paths, MMIO-blocked registration handoff, imported-running shared-clock fallback, and teardown and failure-mode parity explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, live PM execution, or live MMIO validation",
+    "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
     "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
 ]
 
@@ -39,21 +38,20 @@ GAP_NOTE_MARKERS = [
 ]
 
 CLOCK_PLAN_MARKERS = [
-    "- current direct contents rereads now materialize `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
+    "- current direct contents rereads now materialize `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, `drivers/watchdog/dw_wdt_pm_scaffold.zig`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
     "- keep the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed as historical context until a future reread proves it returned",
-    "- keep the next code move bounded to one timer-clock acquisition helper inside the returned `drivers/watchdog/dw_wdt.zig` packet",
-    "- keep the returned direct helper trio, replay pair, validation matrix, teardown note, and checker pair explicit while the next helper stays pre-registration and host-free",
-    "- keep `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py` aligned with the returned helper, replay, reminder, scaffold, and checker packet before reopening driver-backed follow-through",
-    "- this note keeps the returned `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, and the paired DesignWare checkers explicit as current-head evidence",
+    "- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` keeps named-`tclk`, shared-clock fallback, blocked-no-clock preflight, optional APB clock handling, optional reset-control absence, and registration-order intent explicit without claiming live platform execution",
+    "- keep the next same-lane move bounded to one acquisition-facing scaffold or one coupled truthfulness surface inside the returned smaller DesignWare packet",
+    "- keep the returned registration scaffold, restart helper, bounded PM helper pair, and paired DesignWare checkers explicit while the broader direct driver, verify-helper, replay, validation-matrix, survey, slice, and teardown-note stack stays outside this direct contents bridge",
+    "- preserve the registration-scaffold proof that optional reset-control absence remains a ready-to-register branch rather than a fabricated blocker",
 ]
 
 PLATFORM_PLAN_MARKERS = [
-    "Keep the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed as historical context until a future reread proves it returned.",
-    "The live DesignWare packet is therefore no longer just a docs-only owner stack, but it is also not yet the broader direct-driver or replay-backed packet this note used to claim: it now truthfully centers the directly readable continuity notes, the manifest-backed registration scaffold, the returned restart helper, the bounded PM helper pair, and the two current DesignWare truthfulness checkers while leaving the wider driver, verify-helper, and replay stack unpromoted.",
-    "- the current starter-laned gap inventory in `zigux/tests/phase11_dw_wdt_manifest.json`",
-    "- the returned restart helper `drivers/watchdog/dw_wdt_restart.zig`, which keeps missing-drvdata and missing-timeout-image restart blocks explicit beside restart-priority registration, timeout-range and control-register writes, and reset-pulse expectations without widening into live MMIO execution",
+    "Current authenticated contents rereads in this run do not rematerialize",
+    "`drivers/watchdog/dw_wdt_verify.zig`,",
+    "the broader direct-driver or replay-backed packet this note used to claim",
+    "the two current DesignWare truthfulness checkers",
     "- the bounded PM helper pair `drivers/watchdog/dw_wdt_pm.zig` and `drivers/watchdog/dw_wdt_pm_scaffold.zig`",
-    "- the dedicated fail-closed companions `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py` and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
 ]
 
 REGISTRATION_SCAFFOLD_MARKERS = [
@@ -75,18 +73,6 @@ RESTART_MARKERS = [
     'try std.testing.expectEqualStrings("watchdog_set_restart_priority",',
     'test "phase11 dw_wdt restart summary preserves explicit in-scope replay overrides" {',
     "try std.testing.expect(summary.blocked_on_live_mmio);",
-]
-
-VERIFY_MARKERS = [
-    'const dw_wdt = @import("dw_wdt.zig");',
-    'test "phase11 dw_wdt verify keeps registration-blocking failure paths explicit" {',
-    "try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_timer_clock, missing_timer_clock.state);",
-    'test "phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit" {',
-    "try testing.expectEqual(dw_wdt.TeardownOutcome.continued_heartbeat, stop_summary.outcome);",
-    'test "phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct" {',
-    "try testing.expectEqual(dw_wdt.TeardownOutcome.reset_control_stop, stop_summary.outcome);",
-    'test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit" {',
-    "try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, stop_summary.outcome);",
 ]
 
 PM_MARKERS = [
@@ -142,7 +128,6 @@ MARKERS_BY_LABEL = {
     "platform_plan": PLATFORM_PLAN_MARKERS,
     "registration_scaffold": REGISTRATION_SCAFFOLD_MARKERS,
     "restart": RESTART_MARKERS,
-    "verify": VERIFY_MARKERS,
     "pm": PM_MARKERS,
     "pm_scaffold": PM_SCAFFOLD_MARKERS,
 }
@@ -272,32 +257,13 @@ def seed_fixture(root: Path) -> None:
             "dw_wdt_restart_helper_present": True,
         },
         "gaps": [
-            {
-                "id": VERIFY_GAP_ID,
-                "status": "starter_landed",
-                "zigux_destination": VERIFY_DESTINATION,
-            },
-            {
-                "id": RESTART_GAP_ID,
-                "status": "starter_landed",
-                "zigux_destination": RESTART_DESTINATION,
-            },
-            {
-                "id": PM_GAP_ID,
-                "status": "starter_landed",
-                "zigux_destination": PM_DESTINATION,
-            },
-            {
-                "id": NEXT_GAP_ID,
-                "status": "ready_next",
-                "zigux_destination": NEXT_DESTINATION,
-            },
+            {"id": VERIFY_GAP_ID, "status": "starter_landed", "zigux_destination": VERIFY_DESTINATION},
+            {"id": RESTART_GAP_ID, "status": "starter_landed", "zigux_destination": RESTART_DESTINATION},
+            {"id": PM_GAP_ID, "status": "starter_landed", "zigux_destination": PM_DESTINATION},
+            {"id": NEXT_GAP_ID, "status": "ready_next", "zigux_destination": NEXT_DESTINATION},
         ],
     }
-    (root / REQUIRED_FILES["manifest"]).write_text(
-        json.dumps(manifest, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    (root / REQUIRED_FILES["manifest"]).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -320,14 +286,15 @@ def run_self_test() -> None:
 
         marker_cases = [
             ("alignment_note", ALIGNMENT_NOTE_MARKERS[2]),
+            ("alignment_note", ALIGNMENT_NOTE_MARKERS[4]),
             ("clock_plan", CLOCK_PLAN_MARKERS[0]),
+            ("clock_plan", CLOCK_PLAN_MARKERS[4]),
             ("platform_plan", PLATFORM_PLAN_MARKERS[1]),
             ("gap_note", GAP_NOTE_MARKERS[1]),
             ("registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[0]),
             ("registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[4]),
             ("restart", RESTART_MARKERS[1]),
             ("restart", RESTART_MARKERS[5]),
-            ("verify", VERIFY_MARKERS[3]),
             ("pm", PM_MARKERS[8]),
             ("pm", PM_MARKERS[13]),
             ("pm_scaffold", PM_SCAFFOLD_MARKERS[5]),
@@ -380,9 +347,9 @@ def run_self_test() -> None:
         shutil.copytree(fixture, manifest_restart_gap_case)
         manifest_path = manifest_restart_gap_case / REQUIRED_FILES["manifest"]
         data = json.loads(read_text(manifest_path))
-        data["gaps"][1]["zigux_destination"] = "drivers/watchdog/dw_wdt_verify.zig"
+        data["gaps"][1]["zigux_destination"] = "drivers/watchdog/dw_wdt_pm.zig"
         manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-        expect_failure(manifest_restart_gap_case, "manifest_restart_destination:'drivers/watchdog/dw_wdt_verify.zig'")
+        expect_failure(manifest_restart_gap_case, "manifest_restart_destination:'drivers/watchdog/dw_wdt_pm.zig'")
         case_count += 1
 
         manifest_pm_case = root / "manifest_pm_case"
@@ -398,9 +365,9 @@ def run_self_test() -> None:
         shutil.copytree(fixture, manifest_next_case)
         manifest_path = manifest_next_case / REQUIRED_FILES["manifest"]
         data = json.loads(read_text(manifest_path))
-        data["gaps"][3]["zigux_destination"] = "drivers/watchdog/dw_wdt.zig"
+        data["gaps"][3]["zigux_destination"] = "drivers/watchdog/dw_wdt_pm.zig"
         manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-        expect_failure(manifest_next_case, "manifest_next_destination:'drivers/watchdog/dw_wdt.zig'")
+        expect_failure(manifest_next_case, "manifest_next_destination:'drivers/watchdog/dw_wdt_pm.zig'")
         case_count += 1
 
         print("PHASE11_DW_WDT_TEARDOWN_PACKET_SELF_TEST=pass")
