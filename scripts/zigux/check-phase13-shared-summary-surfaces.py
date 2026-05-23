@@ -30,6 +30,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
         "`Documentation/zigux/phase13-roadmap-traceability.md`",
         "`scripts/zigux/check-phase13-shared-summary-surfaces.py`",
+        "`scripts/zigux/validate-phase13-release.py`",
         "Keep broad release wording tied to that reminder packet while the missing validator-first helpers, adjacent notifier companion, and route surfaces stay explicit as repo-reality gaps.",
     ],
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
@@ -186,6 +187,7 @@ def run_self_test() -> int:
 
         populate_repo(tempdir)
         contributor_guide_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
+        contributor_guide_path.writeText = None
         contributor_guide_path.write_text(
             contributor_guide_path.read_text(encoding="utf-8").replace(
                 "Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.\n",
@@ -229,6 +231,22 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`Documentation/zigux/phase13-roadmap-traceability.md`",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        release_notes_path = tempdir / "Documentation/zigux/phase13-release-notes-survey.md"
+        release_notes_path.write_text(
+            release_notes_path.read_text(encoding="utf-8").replace(
+                "`scripts/zigux/validate-phase13-release.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`scripts/zigux/validate-phase13-release.py`",
         )
         checks_run += 1
 
