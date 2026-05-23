@@ -56,6 +56,18 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const SharedCompileShard = struct {
+    label: []const u8,
+    root_source: []const u8,
+    coverage: []const u8,
+};
+
+const SharedSmokeManifest = struct {
+    shared_smoke_surfaces: []const []const u8,
+    smoke_shard_commands: []const []const u8,
+    compile_shards: []const SharedCompileShard,
+};
+
 fn containsString(items: []const []const u8, needle: []const u8) bool {
     for (items) |item| {
         if (std.mem.eql(u8, item, needle)) return true;
@@ -82,6 +94,16 @@ fn hasDecisionChecklist(manifest: Manifest, id: []const u8, ownership: []const u
         if (std.mem.indexOf(u8, entry.summary, summary_fragment) == null) continue;
         if (!containsString(entry.anchor_symbols, anchor_symbol)) continue;
         if (std.mem.indexOf(u8, entry.rationale, rationale_fragment) == null) continue;
+        return true;
+    }
+    return false;
+}
+
+fn hasCompileShard(manifest: SharedSmokeManifest, label: []const u8, root_source: []const u8, coverage: []const u8) bool {
+    for (manifest.compile_shards) |entry| {
+        if (!std.mem.eql(u8, entry.label, label)) continue;
+        if (!std.mem.eql(u8, entry.root_source, root_source)) continue;
+        if (!std.mem.eql(u8, entry.coverage, coverage)) continue;
         return true;
     }
     return false;
@@ -142,6 +164,39 @@ test "phase14 ring-buffer manifest tracks the parked study packet with its full 
     try std.testing.expect(hasGap(manifest, "phase14-make-target", "resolved_as_drift_retired", "validation", "zigux/Makefile", "does not ship a dedicated `make -C zigux phase14` convenience route"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-maintenance-handoff", "starter_landed", "maintenance_handoff", "Documentation/zigux/phase14-ring-buffer-survey.md", "explicit reopen conditions"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-zig-port-blocker", "blocked_on_stay_in_c_evidence", "freeze_map", "kernel/trace/ring_buffer.zig", "years of evidence justify it"));
+}
+
+test "phase14 shared smoke manifest keeps the ring-buffer compile shard explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(SharedSmokeManifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    try std.testing.expect(containsString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_ring_buffer_survey.zig"));
+    try std.testing.expect(containsString(manifest.shared_smoke_surfaces, "zigux/tests/phase14_build.zig"));
+    try std.testing.expectEqual(@as(usize, 1), manifest.smoke_shard_commands.len);
+    try std.testing.expectEqualStrings(
+        "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig",
+        manifest.smoke_shard_commands[0],
+    );
+    try std.testing.expect(hasCompileShard(
+        manifest,
+        "phase14-ring-buffer-survey-tests",
+        "phase14_ring_buffer_survey.zig",
+        "full_bundle_only",
+    ));
 }
 
 test "phase14 ring-buffer survey note keeps the exact compile-route posture explicit" {
