@@ -87,7 +87,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
-    try std.testing.expectEqual(@as(usize, 18), manifest.handoff_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 22), manifest.handoff_required_markers.len);
     try std.testing.expectEqual(@as(usize, 26), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.shared_gap_expected_missing_paths.len);
 
