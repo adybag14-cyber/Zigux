@@ -119,7 +119,7 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
     ],
     VALIDATOR_PATH: [
-        'BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"',
+        "BUILD_ONLY_CHECKER_PATH = \"scripts/zigux/check-build-only-phase12-surface.py\"",
         "RELEASE_READINESS_CHECKER_PATH = (",
         "make -C zigux phase12-validate",
         "scripts-side support packet",
@@ -131,7 +131,11 @@ REQUIRED_MARKERS = {
         "phase12-test:",
         "phase12: phase12-validate phase12-smoke phase12-test",
     ],
-    TESTS_README_PATH: [],
+    TESTS_README_PATH: [
+        "Keep the directly readable validator-first support bundle explicit too: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the current shared build gate explicit from the tests root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` remain shipped wrapper evidence on current `master`.",
+        "Keep the active shared build packet explicit too: `zigux/tests/phase12_build.zig` keeps `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig` wired through the shared `smoke` and `test` route, so keep that six-file `virtio_net` packet explicit instead of widening it into deeper queue, DMA, throughput, or recovery claims.",
+        "Keep the adjacent driver-local split explicit too: `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` stay the rollback-lab `virtio_scsi` packet outside the shared route, `Documentation/zigux/phase12-nvme-pci-survey.md` plus `zigux/tests/phase12_nvme_pci_manifest.json` stay the bounded driver-local NVMe foothold, and `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` keep the parked libbpf packet explicit without promoting any of them into shared build outputs.",
+    ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 12 release-readiness packet checker",
         "run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
@@ -147,7 +151,6 @@ EXACT_COUNT_MARKERS = {
         "- exact coverage evidence checked on `2026-05-23`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` at blob `b34900db85b8872b5981b63839ab35583d340f0a`, `scripts/zigux/validate-phase12.py` at blob `de1e248f6688adf89b9f9edb3abd824ece6ddae5`, `scripts/zigux/check-phase12-release-readiness-packet.py` at blob `8007f57475bc5c173899c8fa88c0776b2f692e1f`, `.github/workflows/zigux-bootstrap.yml` at blob `5d07f69d341f667c96f59a26cd6957870c54997f`, `scripts/zigux/README.md` at blob `695f5ad4f0cf6c9b8b1faa063e60627f2c6e6eeb`, `zigux/Makefile` at blob `ad34a7346eac978fc6bb824778e408084d6af909`, and `zigux/tests/phase12_build.zig` at blob `c338d24f4d12317c6a58d25708bbc14a5006852c`": 1,
     },
 }
-
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
