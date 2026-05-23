@@ -56,19 +56,23 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     try std.testing.expectEqualStrings("P15-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-22", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-23", manifest.surveyed_commit);
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         manifest.readiness_packet_checker,
     );
-    try std.testing.expectEqual(@as(usize, 34), manifest.direct_packet_paths.len);
+    try std.testing.expectEqual(@as(usize, 35), manifest.direct_packet_paths.len);
     try std.testing.expectEqualStrings(
         "scripts/zigux/validate-phase15.py",
         manifest.direct_packet_paths[19],
     );
     try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_freeze_map_governance.zig",
+        manifest.direct_packet_paths[24],
+    );
+    try std.testing.expectEqualStrings(
         "zigux/tests/phase15_readiness_gate_manifest.json",
-        manifest.direct_packet_paths[33],
+        manifest.direct_packet_paths[34],
     );
     try std.testing.expectEqual(@as(usize, 1), manifest.still_missing_broader_paths.len);
     try std.testing.expectEqualStrings(
@@ -91,7 +95,7 @@ test "phase 15 readiness note stays aligned with the validator-first packet" {
 
     try expectContains(readiness_note, "PHASE15_LANE_KEY=P15-L02");
     try expectContains(readiness_note, "PHASE15_SLICE=validator_first_readiness_packet");
-    try expectContains(readiness_note, "current-master-readback-2026-05-22");
+    try expectContains(readiness_note, "current-master-readback-2026-05-23");
     try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
     try expectContains(readiness_note, "the dedicated validator now exists as a directly readable maintenance gate");
     try expectContains(
@@ -100,6 +104,7 @@ test "phase 15 readiness note stays aligned with the validator-first packet" {
     );
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
     try expectContains(readiness_note, "`scripts/zigux/validate-phase15.py`");
+    try expectContains(readiness_note, "`zigux/tests/phase15_freeze_map_governance.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_build.zig`");
     try expectContains(readiness_note, "`make -C zigux phase15-validate` remains blocked route vocabulary");
     try expectContains(readiness_note, "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route");
