@@ -176,6 +176,8 @@ def check_manifest(root: Path) -> list[str]:
             "dw_wdt_zig_present",
             "dw_wdt_test_present",
             "dw_wdt_registration_scaffold_present",
+            "dw_wdt_registration_order_present",
+            "dw_wdt_slice_note_present",
             "dw_wdt_survey_gate_present",
             "dw_wdt_survey_note_present",
             "dw_wdt_pm_helper_present",
@@ -262,6 +264,8 @@ def seed_fixture(root: Path) -> None:
             "dw_wdt_zig_present": True,
             "dw_wdt_test_present": True,
             "dw_wdt_registration_scaffold_present": True,
+            "dw_wdt_registration_order_present": True,
+            "dw_wdt_slice_note_present": True,
             "dw_wdt_survey_gate_present": True,
             "dw_wdt_survey_note_present": True,
             "dw_wdt_pm_helper_present": True,
@@ -343,6 +347,24 @@ def run_self_test() -> None:
         data["lane_key"] = "P11-L10"
         manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         expect_failure(manifest_lane_case, "manifest_lane_key:'P11-L10'")
+        case_count += 1
+
+        manifest_registration_order_flag_case = root / "manifest_registration_order_flag_case"
+        shutil.copytree(fixture, manifest_registration_order_flag_case)
+        manifest_path = manifest_registration_order_flag_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["survey_summary"]["dw_wdt_registration_order_present"] = False
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        expect_failure(manifest_registration_order_flag_case, "manifest_flag:dw_wdt_registration_order_present")
+        case_count += 1
+
+        manifest_slice_note_flag_case = root / "manifest_slice_note_flag_case"
+        shutil.copytree(fixture, manifest_slice_note_flag_case)
+        manifest_path = manifest_slice_note_flag_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["survey_summary"]["dw_wdt_slice_note_present"] = False
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        expect_failure(manifest_slice_note_flag_case, "manifest_flag:dw_wdt_slice_note_present")
         case_count += 1
 
         manifest_restart_flag_case = root / "manifest_restart_flag_case"
