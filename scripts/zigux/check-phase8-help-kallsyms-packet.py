@@ -66,6 +66,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
         "the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content",
+        "the focused replay still expects `startup_64\\r` on the chunked-reader path while the wrapper contract keeps that same raw carriage-return behavior below broader parser redesign work",
         "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names",
     ),
     TOOLING_LANE_SEQUENCE: (
