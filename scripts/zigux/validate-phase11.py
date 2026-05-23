@@ -352,7 +352,8 @@ def run_self_test() -> int:
                         shutil.rmtree(child)
                     else:
                         child.unlink()
-            build_sample_repo(root)
+            build_sampleRepo = build_sample_repo
+            build_sampleRepo(root)
             build_fake_zig(fake_zig, fail_build_file=fail_build_file)
 
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
@@ -366,7 +367,7 @@ def run_self_test() -> int:
         def expect_issue(fragment: str) -> None:
             issues = collect_issues(root)
             if fragment not in issues:
-                raise SystemExit("phase11-validate-self-test:missing_expected_issue:" + fragment + ":" + ",".join(issues or ["none"])))
+                raise SystemExit("phase11-validate-self-test:missing_expected_issue:" + fragment + ":" + ",".join(issues or ["none"]))
 
         for rel in (
             "Documentation/zigux/phase11-shared-replay-contract.md",
@@ -428,7 +429,7 @@ def run_self_test() -> int:
                 build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
             else:
                 build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec.name}:exit={completed.returncode}")
+            expect_issue(f"live_failed:{spec_name}:exit=1")
             case_count += 1
 
         for build_file, spec_name in (
