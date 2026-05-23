@@ -24,6 +24,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/phase15-study-only-anchor-accounting.md",
     "Documentation/zigux/review-checklist.md",
@@ -150,6 +151,9 @@ TEXT_MARKERS = {
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit",
+    ],
+    "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md": [
+        "keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family",
     ],
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
         "Keep the separate Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit",
@@ -331,6 +335,10 @@ def build_fixture_files() -> dict[str, str]:
             TEXT_MARKERS["Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"]
         )
         + "\n",
+        "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md": "\n".join(
+            TEXT_MARKERS["Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md"]
+        )
+        + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(
             TEXT_MARKERS["Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"]
         )
@@ -445,6 +453,12 @@ def run_self_test() -> int:
                 "Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit",
                 "Phase 10 owns kernel/workqueue.c directly",
                 "phase10-phase11-phase13-tests-root-review-companion.md:Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit",
+            ),
+            (
+                "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
+                "keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family",
+                "treat `kernel/workqueue.c` as active Phase 10 evidence",
+                "phase10-phase11-phase13-validator-first-review-guide.md:keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family",
             ),
             (
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
@@ -623,7 +637,7 @@ def run_self_test() -> int:
         reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=25")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
