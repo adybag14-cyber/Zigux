@@ -529,6 +529,7 @@ test "phase3 mmio helper keeps byte-policy shorthand access explicit" {
     try writeInteropPolicyByte(u32, mmio_scope, register_ptr, 0x1234_5678);
     try std.testing.expectEqual(@as(u32, 0x1234_5678), register);
     try std.testing.expectError(error.UnsafeScopeDenied, writeInteropPolicyByte(u32, raw_pointer_scope, register_ptr, 0));
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), register);
 
     try std.testing.expectEqual(
         @as(u32, 0x1234_5678),
@@ -539,6 +540,7 @@ test "phase3 mmio helper keeps byte-policy shorthand access explicit" {
         error.UnsafeScopeDenied,
         exchangeInteropPolicyByte(u32, no_unsafe_scope, register_ptr, 0),
     );
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), register);
 
     try std.testing.expectEqual(
         @as(u32, 0xCA0E_B00E),
@@ -549,6 +551,12 @@ test "phase3 mmio helper keeps byte-policy shorthand access explicit" {
         error.UnsafeScopeDenied,
         writeMaskedInteropPolicyByte(u32, raw_pointer_scope, register_ptr, 0xFFFF_0000, 0),
     );
+    try std.testing.expectEqual(@as(u32, 0xCA0E_B00E), register);
+    try std.testing.expectError(
+        error.InvalidInteropPolicy,
+        writeMaskedInteropPolicyBytes(u32, mmio_scope, 1, register_ptr, 0xFFFF_0000, 0),
+    );
+    try std.testing.expectEqual(@as(u32, 0xCA0E_B00E), register);
 }
 
 test "phase3 mmio helper keeps interop-policy reads and writes routed through require helpers" {
