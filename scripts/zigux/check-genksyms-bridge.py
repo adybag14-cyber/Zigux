@@ -71,6 +71,11 @@ CASE_FIXTURES = (
         "args": ["-", "-d"],
         "expected_file": "lone_dash_passthrough_expected.json",
     },
+    {
+        "name": "dash_prefixed_long_option_arguments_as_data",
+        "args": ["--reference", "--debug", "--dump-types", "--types"],
+        "expected_file": "dash_prefixed_long_option_arguments_as_data_expected.json",
+    },
 )
 
 EXPECTED_FIXTURES = tuple(
@@ -384,7 +389,7 @@ def validate_manifest_payload(payload: object) -> list[tuple[str, str]]:
         issues.append(("MANIFEST_BRIDGE_EXPECTED_PACKET_MISMATCH", MANIFEST_FIXTURE))
     if payload.get("help_packet") != expected["help_packet"]:
         issues.append(("MANIFEST_HELP_PACKET_MISMATCH", MANIFEST_FIXTURE))
-    if payload.get("standalone_proof_packet") != expected["standalone_proof_packet"]:
+    if payload.get("standalone_proof_packet") != expected["standalone_proOF_PACKET"]:
         issues.append(("MANIFEST_STANDALONE_PROOF_PACKET_MISMATCH", MANIFEST_FIXTURE))
     if payload.get("process_output_packet") != expected["process_output_packet"]:
         issues.append(("MANIFEST_PROCESS_OUTPUT_PACKET_MISMATCH", MANIFEST_FIXTURE))
