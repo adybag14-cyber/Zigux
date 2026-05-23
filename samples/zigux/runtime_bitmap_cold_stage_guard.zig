@@ -50,13 +50,20 @@ test "runtime bitmap sample keeps cold-stage mutation guards and source-lifecycl
     var destination = RuntimeBitmapSample{};
     try destination.initWithSetBits(&.{ 1, 65 });
 
+    const before_source = source.summary();
     const before_copy = destination.summary();
+    try std.testing.expectEqual(ModuleStage.cold, source.stage());
     try std.testing.expect(destination.isSet(1));
     try std.testing.expect(destination.isSet(65));
 
     try std.testing.expectError(error.InvalidSourceLifecycle, destination.copyFrom(&source));
 
+    const after_source = source.summary();
     const after_copy = destination.summary();
+    try std.testing.expectEqual(ModuleStage.cold, source.stage());
+    try expectSummaryStable(before_source, after_source);
+    try std.testing.expect(!source.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), source.nthSetBit(0));
     try std.testing.expectEqual(ModuleStage.initialized, destination.stage());
     try expectSummaryStable(before_copy, after_copy);
     try std.testing.expect(destination.isSet(1));
