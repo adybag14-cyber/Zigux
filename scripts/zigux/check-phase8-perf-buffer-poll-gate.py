@@ -219,6 +219,17 @@ PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS = [
     'test "phase8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns" {',
     'test "phase8 perf-buffer poll resolves typed mapped-size lookups without manual summary plumbing" {',
     "try std.testing.expectError(error.MissingWindow, resolveBufferWindowMappedSize(missing));",
+    'test "phase8 perf-buffer poll keeps ready-count return semantics and process totals separate" {',
+    'test "phase8 perf-buffer poll keeps the first processing failure tied to the ready-buffer slot" {',
+    'test "phase8 perf-buffer poll turns error-only ready-event observations into buffer-state failures" {',
+    'test "phase8 perf-buffer poll rejects impossible hand-built timeout summaries" {',
+    'test "phase8 perf-buffer poll rejects impossible hand-built failed summaries" {',
+    'test "phase8 perf-buffer poll rejects hand-built failures that point before the first ready slot" {',
+    'test "phase8 perf-buffer poll rejects later failures that still point at the first ready slot" {',
+    'test "phase8 perf-buffer poll lookup summaries keep slot metadata exact" {',
+    "PollReturnDisposition.buffer_state_failed",
+    "first_process_error_ready_index",
+    "PollError.InconsistentPollSummary",
 ]
 
 
