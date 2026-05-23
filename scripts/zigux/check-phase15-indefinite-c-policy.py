@@ -375,7 +375,7 @@ def _sample_manifest() -> str:
                 },
                 {
                     "id": "phase15-indefinite-c-roadmap-gap-restoration",
-                    "zigux_destination": "Documentation/zigux/phase15-indefinite_c_policy.md",
+                    "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
                 },
                 {
                     "id": "phase15-indefinite-c-review-process-companion-sync",
