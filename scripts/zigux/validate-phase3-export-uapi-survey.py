@@ -124,7 +124,9 @@ REQUIRED_MARKERS = {
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
         '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
+        '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
+        '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
         '"make -C zigux phase3-export-uapi-layout"',
         '"make -C zigux phase3-export-uapi-layout-test"',
     ),
@@ -329,8 +331,18 @@ def run_self_test() -> int:
         ),
         (
             MANIFEST_PATH,
+            '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+            "expected missing export/uapi dedicated manifest build route marker was not reported",
+        ),
+        (
+            MANIFEST_PATH,
             '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
             "expected missing export-shim manifest replay route marker was not reported",
+        ),
+        (
+            MANIFEST_PATH,
+            '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+            "expected missing export/uapi c-header smoke manifest replay route marker was not reported",
         ),
         (
             MANIFEST_PATH,
