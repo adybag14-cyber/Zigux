@@ -36,6 +36,7 @@ REQUIRED_SURVEY_SNIPPETS = [
     "`64B` at `iterations = 200_000` with `max_slowdown_pct = 150`",
     "`1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`",
     "`IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`",
+    "`IPV4_20B_UPDATED` with `iterations = 600_000` and `max_slowdown_pct = 100`",
     "`IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`",
     "`IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`",
     "`16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`",
@@ -90,10 +91,11 @@ EXPECTED_CHECKSUM_CASES = {
 }
 EXPECTED_CHECKSUM_IPV4_FAST_PATH_CASES = {
     "IPV4_20B": {"iterations": 600000, "max_slowdown_pct": 100},
+    "IPV4_20B_UPDATED": {"iterations": 600000, "max_slowdown_pct": 100},
     "IPV4_24B": {"iterations": 500000, "max_slowdown_pct": 100},
     "IPV4_60B": {"iterations": 250000, "max_slowdown_pct": 100},
 }
-EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
+EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS = ["IPV4_20B", "IPV4_20B_UPDATED", "IPV4_24B", "IPV4_60B"]
 EXPECTED_HEXDUMP_CASES = {
     "16B-plain-g1": {"reps": 40000, "max_slowdown_pct": 175},
     "32B-ascii-g2": {"reps": 10000, "max_slowdown_pct": 550},
@@ -377,6 +379,11 @@ def scaffold_repo(root: Path) -> None:
                             "ipv4_fast_path_cases": [
                                 {
                                     "label": "IPV4_20B",
+                                    "iterations": 600000,
+                                    "max_slowdown_pct": 100,
+                                },
+                                {
+                                    "label": "IPV4_20B_UPDATED",
                                     "iterations": 600000,
                                     "max_slowdown_pct": 100,
                                 },
@@ -813,7 +820,7 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
-                '"ipv4_fast_path_case_labels": [\n          "IPV4_20B",\n          "IPV4_24B",\n          "IPV4_60B"\n        ]',
+                '"ipv4_fast_path_case_labels": [\n          "IPV4_20B",\n          "IPV4_20B_UPDATED",\n          "IPV4_24B",\n          "IPV4_60B"\n        ]',
                 '"ipv4_fast_path_case_labels": ["IPV4_20B", "IPV4_24B", "IPV4_64B"]',
             ),
             "checksum evidence ipv4_fast_path_case_labels drifted",
