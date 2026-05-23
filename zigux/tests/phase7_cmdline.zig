@@ -55,11 +55,11 @@ test "phase 7 cmdline companion replays incomplete-hex and descending-range boun
     try std.testing.expectEqual(@as(i32, 0), incomplete_hex_value);
     try std.testing.expectEqualStrings("x", incomplete_hex);
 
-    var plus_hex_rest: []const u8 = "+0x";
-    var plus_hex_value: i32 = -1;
-    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&plus_hex_rest, &plus_hex_value));
-    try std.testing.expectEqual(@as(i32, 0), plus_hex_value);
-    try std.testing.expectEqualStrings("+0x", plus_hex_rest);
+    var plus_option_rest: []const u8 = "+7,tail";
+    var plus_option_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&plus_option_rest, &plus_option_value));
+    try std.testing.expectEqual(@as(i32, 7), plus_option_value);
+    try std.testing.expectEqualStrings("tail", plus_option_rest);
 
     var descending = [_]i32{ 0, 0, 0, 0 };
     const descending_rest = cmdline.getOptions("4-2,9", descending.len, &descending);
@@ -115,6 +115,16 @@ test "phase 7 cmdline companion replays quoted argument splitting and memparse b
     const negative_bare_hex = cmdline.memparse("-0xK");
     try std.testing.expectEqual(@as(u64, 0), negative_bare_hex.value);
     try std.testing.expectEqualStrings("xK", negative_bare_hex.rest);
+
+    const leading_plus = cmdline.memparse("+1K");
+    try std.testing.expectEqual(@as(u64, 1024), leading_plus.value);
+    try std.testing.expectEqualStrings("", leading_plus.rest);
+}
+
+test "phase 7 cmdline companion replays leading-plus fallback boundaries" {
+    const incomplete_hex = cmdline.memparse("+0x");
+    try std.testing.expectEqual(@as(u64, 0), incomplete_hex.value);
+    try std.testing.expectEqualStrings("x", incomplete_hex.rest);
 
     const no_conversion = cmdline.memparse("+nope");
     try std.testing.expectEqual(@as(u64, 0), no_conversion.value);
