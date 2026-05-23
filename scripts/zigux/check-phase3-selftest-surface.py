@@ -267,6 +267,7 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/run-phase3-checks.py")',
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
+    'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
     'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
     'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
@@ -277,6 +278,8 @@ SELFTEST_DRIVER_MARKERS = (
     "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT=",
     "PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass",
     "PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=",
+    "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass",
+    "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=",
     "PHASE3_WRAPPER_SELF_TEST=pass",
     "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
     "PHASE3_VALIDATE_SELFTEST=pass",
@@ -401,7 +404,7 @@ def run_self_test() -> int:
         (README_PATH, "scripts/zigux/validate-phase3-policy-unsafe-survey.py", "docs README"),
         (README_PATH, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "docs README"),
         (README_PATH, "zigux/tests/phase3_xarray_slot_starter_packet.zig", "docs README"),
-        (README_PATH, "zigux/tests/phase3_xarray_slot_starter_packet_build.zig", "docs README"),
+        (README_PATH, "zigux/tests/phase3_xarray-slot_starter_packet_build.zig", "docs README"),
         (README_PATH, "zigux/tests/phase3_xarray_slot_dump.zig", "docs README"),
         (README_PATH, "zigux/tests/phase3_xarray_slot_dump_build.zig", "docs README"),
         (README_PATH, "zigux/tests/fixtures/phase3_xarray_slot/expected.json", "docs README"),
@@ -708,6 +711,11 @@ def run_self_test() -> int:
         ),
         (
             SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
             "selftest driver",
         ),
@@ -765,6 +773,16 @@ def run_self_test() -> int:
         (
             SELFTEST_DRIVER_PATH,
             "PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=",
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass",
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=",
             "selftest driver",
         ),
         (
