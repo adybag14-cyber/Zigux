@@ -1,6 +1,6 @@
 # Phase 7 Rbtree Direct Anchor Note
 
-Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note, parity checker, and JSON fixture on current `master`: `Documentation/zigux/phase7-rbtree-slice.md`, `scripts/zigux/check-phase7-rbtree-parity.py`, and `zigux/tests/fixtures/phase7_rbtree.json` now sit beside the already returned `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, survey, and manifest, while the older `tools/lib/rbtree.zig` stays readable as legacy non-owner evidence and the dedicated C harness still does not publicly materialize there yet.
+Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note, parity checker, JSON fixture, and C harness on current `master`: `Documentation/zigux/phase7-rbtree-slice.md`, `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/fixtures/phase7_rbtree.json`, and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` now sit beside the already returned `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, survey, and manifest, while the older `tools/lib/rbtree.zig` stays readable as legacy non-owner evidence.
 
 In this slot, the directly readable same-lane truthfulness packet is limited to:
 
@@ -12,6 +12,7 @@ In this slot, the directly readable same-lane truthfulness packet is limited to:
 - `zigux/tests/phase7_rbtree_survey.zig`
 - `zigux/tests/phase7_rbtree_manifest.json`
 - `zigux/tests/fixtures/phase7_rbtree.json`
+- `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 
 Fresh authenticated GitHub reread in this slot directly returned:
 
@@ -23,6 +24,7 @@ Fresh authenticated GitHub reread in this slot directly returned:
 - `zigux/tests/phase7_rbtree_manifest.json`
 - `scripts/zigux/check-phase7-rbtree-parity.py`
 - `zigux/tests/fixtures/phase7_rbtree.json`
+- `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 
 Fresh current-master reread in this slot also confirmed these shared, legacy, or roadmap-adjacent non-owner surfaces:
 
@@ -37,7 +39,7 @@ Fresh current-master reread in this slot also confirmed these shared, legacy, or
 
 Machine-readable fallback provenance stays explicit through `public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, which currently names only `zigux/tests/phase7_build.zig` because the other listed legacy or shared non-owner surfaces still rematerialized through authenticated rereads in this slot.
 
-Fresh authenticated GitHub reread in this slot still returned `404` for this dedicated companion surface:
+The dedicated C harness now returns as a helper-local parity companion rather than a repo-reality gap:
 
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 
@@ -46,4 +48,4 @@ Repo-reality warning for the still-missing dedicated Phase 7 rbtree wrapper rout
 - `zigux/Makefile` now returns shared `phase7-validate`, but it still lacks dedicated `phase7-rbtree-test:`, `phase7-rbtree-survey:`, `phase7-test:`, and aggregate `phase7:` wrapper markers
 - `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps
 
-Keep the current Phase 7 rbtree reminder surface tied to the returned runtime-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, the returned JSON fixture, the readable legacy `tools/lib/rbtree.zig` companion, and the directly readable shared build, validator, and workflow evidence, while still not claiming the dedicated C harness as returned helper-local ownership.
+Keep the current Phase 7 rbtree reminder surface tied to the returned runtime-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, the returned JSON fixture, the returned C harness, the readable legacy `tools/lib/rbtree.zig` companion, and the directly readable shared build, validator, and workflow evidence.
