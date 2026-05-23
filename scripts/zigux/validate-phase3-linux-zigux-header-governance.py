@@ -41,6 +41,7 @@ REQUIRED_NOTE_MARKERS = {
     "keep the starter UAPI companions and canonical owner headers as the single source of truth for the underlying status semantics, limits, and field meaning": 1,
     "the current header keeps the starter header-family relay markers `ZIGUX_UAPI_ABI_MAJOR`, `ZIGUX_UAPI_ABI_MINOR`, `ZIGUX_UAPI_HEADER_FAMILY_REVISION`, `ZIGUX_UAPI_DEV_T_PACKET_PRESENT`, and `ZIGUX_UAPI_INVALID_ARGUMENT` reviewable as Linux-facing aggregation markers rather than second ownership roots": 1,
     "when this Linux-facing relay needs starter header-family macros, keep them as aggregation markers over the already-landed ABI and `dev_t` owner surfaces rather than treating `include/linux/zigux.h` as the new canonical owner": 1,
+    "when the Linux-facing relay needs `dev_t` validation helpers, keep `include/zigux/dev_t.h` as the single source of truth for the underlying limits and field meaning": 1,
 }
 HEADER_INCLUDE_MARKERS = (
     "#include <zigux/abi.h>",
@@ -248,6 +249,7 @@ keep them as thin named relays over the canonical ABI header and the shipped sta
 when this Linux-facing relay needs starter header-family macros, keep them as aggregation markers over the already-landed ABI and `dev_t` owner surfaces rather than treating `include/linux/zigux.h` as the new canonical owner
 keep the starter UAPI companions and canonical owner headers as the single source of truth for the underlying status semantics, limits, and field meaning
 the current header keeps the starter header-family relay markers `ZIGUX_UAPI_ABI_MAJOR`, `ZIGUX_UAPI_ABI_MINOR`, `ZIGUX_UAPI_HEADER_FAMILY_REVISION`, `ZIGUX_UAPI_DEV_T_PACKET_PRESENT`, and `ZIGUX_UAPI_INVALID_ARGUMENT` reviewable as Linux-facing aggregation markers rather than second ownership roots
+when the Linux-facing relay needs `dev_t` validation helpers, keep `include/zigux/dev_t.h` as the single source of truth for the underlying limits and field meaning
 
 `zigux_uapi_version_current()`
 `zigux_uapi_version_has_current_*()`
@@ -297,6 +299,22 @@ the current header keeps the starter header-family relay markers `ZIGUX_UAPI_ABI
     if expected not in broken:
         print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
         print("expected header-family macro scope drift was not reported")
+        return 1
+
+    broken = validate_text(
+        sample_note.replace(
+            "when the Linux-facing relay needs `dev_t` validation helpers, keep `include/zigux/dev_t.h` as the single source of truth for the underlying limits and field meaning\n",
+            "",
+            1,
+        ),
+        sample_header,
+    )
+    expected = (
+        "note marker count drift: when the Linux-facing relay needs `dev_t` validation helpers, keep `include/zigux/dev_t.h` as the single source of truth for the underlying limits and field meaning (expected 1, found 0)"
+    )
+    if expected not in broken:
+        print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=fail")
+        print("expected dev_t boundary note drift was not reported")
         return 1
 
     broken = validate_text(
@@ -355,7 +373,7 @@ the current header keeps the starter header-family relay markers `ZIGUX_UAPI_ABI
         return 1
 
     print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass")
-    print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
