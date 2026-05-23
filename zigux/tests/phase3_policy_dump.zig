@@ -78,15 +78,16 @@ fn rawBridgeReplay(policy: abi.InteropPolicy) RawBridgeReplay {
     };
 }
 
-fn printPolicy(name: []const u8, policy: abi.InteropPolicy) void {
+fn printPolicy(name: []const u8, policy: abi.InteropPolicy) !void {
     const panic_mode = panic_policy.modeFromInteropPolicy(policy);
     const allocator_mode = allocator_policy.modeFromInteropPolicy(policy);
     const init_flow = if (allocator_mode) |mode| allocator_policy.initFlowFor(mode) else null;
     const helper_scope = unsafe_policy.scopeFromInteropPolicy(policy);
     const narrow_scope = narrow_surface.scopeFromInteropPolicy(policy);
     const bridge_replay = rawBridgeReplay(policy);
+    const stdout = std.io.getStdOut().writer();
 
-    std.debug.print(
+    try stdout.print(
         "{s}|panic={s}|allocator={s}|init_flow={s}|explicit_caller={any}|owned_state={any}|reset_on_init={any}|unsafe={s}|typed_only={any}|global_fallback={any}|warn_only={any}|mmio={any}|raw_bridge={any}|audit={any}|bridge_read_ok={any}|bridge_write_ok={any}|narrow={s}\n",
         .{
             name,
@@ -122,6 +123,6 @@ pub fn main() !void {
     };
 
     for (policies) |entry| {
-        printPolicy(entry.name, entry.policy);
+        try printPolicy(entry.name, entry.policy);
     }
 }
