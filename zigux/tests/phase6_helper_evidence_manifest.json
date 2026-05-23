@@ -94,7 +94,7 @@
           "len1024"
         ],
         "query_count": 16,
-        "budget_formula": "std.math.log2_int_ceil(len) + 1",
+        "budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1",
         "linux_style_rerun_routes": [
           "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
           "make -C zigux phase6-bsearch-test",
