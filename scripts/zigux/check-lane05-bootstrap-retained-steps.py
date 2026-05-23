@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import sys
-import tempfile
 
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
@@ -12,6 +11,8 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 RETAINED_STEPS = (
     ("- name: Run Phase 4 artifact-diff contract make route", "run: make -C zigux phase4-artifact-diff-contract"),
     ("- name: Run focused Phase 8 libbpf segment tests", "run: make -C zigux phase8-libbpf-segments-test"),
+    ("- name: Self-test current Phase 9 build-only surface checker", "run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test"),
+    ("- name: Check current Phase 9 build-only surface packet", "run: python3 scripts/zigux/check-phase9-build-only-surface.py"),
     ("- name: Self-test current Phase 9 trace-events direct-summary checker", "run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test"),
     ("- name: Check current Phase 9 trace-events direct-summary packet", "run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py"),
     ("- name: Self-test current Phase 12 complex-driver lane packet checker", "run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test"),
@@ -30,6 +31,14 @@ ORDERED_STEP_PAIRS = (
     (
         "- name: Run focused Phase 8 exec-cmd tests",
         "- name: Run focused Phase 8 libbpf segment tests",
+    ),
+    (
+        "- name: Check current Phase 9 freeze-map study-boundaries packet",
+        "- name: Self-test current Phase 9 build-only surface checker",
+    ),
+    (
+        "- name: Check current Phase 9 build-only surface packet",
+        "- name: Self-test current Phase 9 trace-events runtime packet checker",
     ),
     (
         "- name: Check current Phase 9 trace-events runtime packet",
@@ -114,6 +123,14 @@ jobs:
         run: make -C zigux phase8-exec-cmd-test
       - name: Run focused Phase 8 libbpf segment tests
         run: make -C zigux phase8-libbpf-segments-test
+      - name: Check current Phase 9 freeze-map study-boundaries packet
+        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py
+      - name: Self-test current Phase 9 build-only surface checker
+        run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test
+      - name: Check current Phase 9 build-only surface packet
+        run: python3 scripts/zigux/check-phase9-build-only-surface.py
+      - name: Self-test current Phase 9 trace-events runtime packet checker
+        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test
       - name: Check current Phase 9 trace-events runtime packet
         run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
       - name: Self-test current Phase 9 trace-events direct-summary checker
@@ -177,11 +194,25 @@ def run_self_test() -> int:
     else:
         raise AssertionError("expected duplicate Phase 8 libbpf step failure")
 
+    missing_phase9_build_only = workflow.replace(
+        "      - name: Self-test current Phase 9 build-only surface checker\n        run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test\n"
+        "      - name: Check current Phase 9 build-only surface packet\n        run: python3 scripts/zigux/check-phase9-build-only-surface.py\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_phase9_build_only)
+    except SystemExit as exc:
+        assert "build-only surface" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing Phase 9 build-only surface failure")
+
     reordered_phase9 = workflow.replace(
-        "      - name: Check current Phase 9 trace-events runtime packet\n        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py\n"
-        "      - name: Self-test current Phase 9 trace-events direct-summary checker\n        run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test\n",
-        "      - name: Self-test current Phase 9 trace-events direct-summary checker\n        run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test\n"
-        "      - name: Check current Phase 9 trace-events runtime packet\n        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py\n",
+        "      - name: Check current Phase 9 freeze-map study-boundaries packet\n        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py\n"
+        "      - name: Self-test current Phase 9 build-only surface checker\n        run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test\n",
+        "      - name: Self-test current Phase 9 build-only surface checker\n        run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test\n"
+        "      - name: Check current Phase 9 freeze-map study-boundaries packet\n        run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py\n",
         1,
     )
     try:
@@ -190,7 +221,7 @@ def run_self_test() -> int:
         assert "workflow step order" in str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected reordered Phase 9 step failure")
+        raise AssertionError("expected reordered Phase 9 build-only step failure")
 
     missing_phase12 = workflow.replace(
         "      - name: Self-test current Phase 12 libbpf snapshot checker\n        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test\n"
