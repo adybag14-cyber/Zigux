@@ -122,7 +122,7 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     ));
     try std.testing.expect(hasEvidence(
         manifest.delivery_evidence_catalog,
-        "runtime-atomic64-phase9-build",
+        "runtime-atomic64-shared-build-boundary",
         "zigux/tests/phase9_build.zig",
     ));
     try std.testing.expect(hasEvidence(
