@@ -20,31 +20,35 @@ SELFTEST_MARKERS = (
     "part_count == math.ceil(len(payload) / 1024)",
     "manifest_path.exists()",
     'rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")',
-    "assert rebuilt == payload",
+    'assert (root / "rebuilt.tar.xz").read_bytes() == payload',
+    'assert rebuilt["sha256"] == expected_sha',
     "output directory must be empty",
-    'source.write_bytes(b"0" * len(payload))',
-    "to have sha256",
     "expected non-positive chunk_bytes failure",
     "expected missing shard failure",
     "expected invalid base64 failure",
+    'manifest["sha256"] = "0" * 64',
+    "expected reconstructed archive to have sha256",
+    "expected sha mismatch failure",
     "SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST=pass",
     "SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST_CASE_COUNT=",
 )
 
 EXACT_ONCE_MARKERS = (
     'def run_self_test() -> int:',
+    'manifest["sha256"] = "0" * 64',
     "SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST=pass",
-    'source.write_bytes(b"0" * len(payload))',
 )
 
 ORDERED_MARKERS = (
     ('payload = (b"lane05-archive-payload-" * 64)[:4097]', "manifest_path.exists()"),
     ("manifest_path.exists()", 'rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")'),
-    ('rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")', "assert rebuilt == payload"),
-    ("output directory must be empty", 'source.write_bytes(b"0" * len(payload))'),
-    ('source.write_bytes(b"0" * len(payload))', "expected non-positive chunk_bytes failure"),
+    ('rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")', 'assert (root / "rebuilt.tar.xz").read_bytes() == payload'),
+    ('assert (root / "rebuilt.tar.xz").read_bytes() == payload', 'assert rebuilt["sha256"] == expected_sha'),
+    ("output directory must be empty", "expected non-positive chunk_bytes failure"),
     ("expected non-positive chunk_bytes failure", "expected missing shard failure"),
     ("expected missing shard failure", "expected invalid base64 failure"),
+    ("expected invalid base64 failure", 'manifest["sha256"] = "0" * 64'),
+    ('manifest["sha256"] = "0" * 64', "expected sha mismatch failure"),
 )
 
 
@@ -211,13 +215,15 @@ def write_fixture(root: Path) -> None:
                 "    assert part_count == math.ceil(len(payload) / 1024)",
                 "    assert manifest_path.exists()",
                 '    rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")',
-                "    assert rebuilt == payload",
+                '    assert (root / "rebuilt.tar.xz").read_bytes() == payload',
+                '    assert rebuilt["sha256"] == expected_sha',
                 '    raise ValueError("output directory must be empty")',
-                '    source.write_bytes(b"0" * len(payload))',
-                '    raise AssertionError("to have sha256")',
                 '    raise AssertionError("expected non-positive chunk_bytes failure")',
                 '    raise AssertionError("expected missing shard failure")',
                 '    raise AssertionError("expected invalid base64 failure")',
+                '    manifest["sha256"] = "0" * 64',
+                '    assert "expected reconstructed archive to have sha256" in str(exc), str(exc)',
+                '    raise AssertionError("expected sha mismatch failure")',
                 '    print("SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST=pass")',
                 '    print("SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST_CASE_COUNT=7")',
             )
@@ -259,13 +265,13 @@ def run_self_test() -> int:
     expect_failure(
         lambda root: (root / SPLIT_HELPER).write_text(
             (root / SPLIT_HELPER).read_text(encoding="utf-8").replace(
-                "expected missing shard failure",
+                'manifest["sha256"] = "0" * 64\n',
                 "",
                 1,
             ),
             encoding="utf-8",
         ),
-        "expected missing shard failure",
+        'manifest["sha256"] = "0" * 64',
     )
     expect_failure(
         lambda root: (root / SPLIT_HELPER).write_text(
@@ -281,24 +287,13 @@ def run_self_test() -> int:
     expect_failure(
         lambda root: (root / SPLIT_HELPER).write_text(
             (root / SPLIT_HELPER).read_text(encoding="utf-8").replace(
-                '    assert manifest_path.exists()\n    rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")\n',
-                '    rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")\n    assert manifest_path.exists()\n',
+                '    assert (root / "rebuilt.tar.xz").read_bytes() == payload\n    assert rebuilt["sha256"] == expected_sha\n',
+                '    assert rebuilt["sha256"] == expected_sha\n    assert (root / "rebuilt.tar.xz").read_bytes() == payload\n',
                 1,
             ),
             encoding="utf-8",
         ),
         "self-test flow",
-    )
-    expect_failure(
-        lambda root: (root / SPLIT_HELPER).write_text(
-            (root / SPLIT_HELPER).read_text(encoding="utf-8").replace(
-                '    source.write_bytes(b"0" * len(payload))\n',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        ),
-        'source.write_bytes(b"0" * len(payload))',
     )
     expect_failure(
         lambda root: (root / TOOLCHAIN_POLICY).write_text(
