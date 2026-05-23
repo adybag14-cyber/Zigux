@@ -22,7 +22,8 @@
     "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
-    "scripts/zigux/check-phase3-policy-dump.py"
+    "scripts/zigux/check-phase3-policy-dump.py",
+    "zigux/Makefile"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
@@ -30,7 +31,9 @@
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py",
-    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"
+    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "make -C zigux phase3-policy-dump",
+    "make -C zigux phase3"
   ],
   "repo_reality_gaps": [],
   "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
