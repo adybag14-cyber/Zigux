@@ -64,6 +64,7 @@ TESTS_ROOT_REQUIRED_MARKERS = (
     "Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
+    "`drivers/virtio/virtio_ring_publish_readiness.zig`",
     "`zigux/tests/phase10_virtio_input_registration_preflight.zig`",
     "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
     "queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here",
@@ -168,7 +169,7 @@ The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux
 
 Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.
 
-Keep the bounded input packet explicit too through `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `zigux/tests/phase10_virtio_input_manifest.json`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig` so the tests-root reminder stays aligned with the same bounded input packet already carried by the survey, slice, module-slice, checker, closure manifest, and shared build gate instead of collapsing it back into core-only closure wording.
+Keep the bounded input packet explicit too through `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `zigux/tests/phase10_virtio_input_manifest.json`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig` so the tests-root reminder stays aligned with the same bounded input packet already carried by the survey, slice, module-slice, checker, closure manifest, and shared build gate instead of collapsing it back into core-only closure wording.
 
 Keep the queue-callback-preflight, registration-preflight, status-drain, and teardown-observation replays explicit here so the current tests-root packet still records queue-readiness ordering, registration blockers, in-memory status reclamation, and teardown-reset parity without widening into input registration lifecycle closure, transport callbacks, IRQ delivery, or DMA behavior.
 """
@@ -260,6 +261,18 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         assert "tests-root-readme" in str(exc)
     else:
         raise AssertionError("expected tests-root closure validator marker failure")
+
+    missing_tests_root_ring_publish_readiness = good_tests_root.replace(
+        "`drivers/virtio/virtio_ring_publish_readiness.zig`, ",
+        "",
+        1,
+    )
+    try:
+        check_tests_root_readme(missing_tests_root_ring_publish_readiness)
+    except SystemExit as exc:
+        assert "tests-root-readme" in str(exc)
+    else:
+        raise AssertionError("expected tests-root ring publish-readiness marker failure")
 
     bad_scripts_root = good_scripts_root.replace(
         "`scripts/zigux/check-phase10-input-packet.py`",
@@ -418,7 +431,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing ring publish-readiness scripts-root marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
