@@ -47,11 +47,17 @@ TOO_MANY_ARGUMENTS_ERROR = (
 HELPER_SELF_TEST_CASES = [
     "text_pass",
     "text_mismatch",
+    "text_invalid_utf8_expected",
+    "text_invalid_utf8_actual",
+    "text_invalid_utf8_both",
     "json_pass",
     "json_mismatch",
     "json_invalid_expected",
     "json_invalid_actual",
     "json_invalid_both",
+    "json_invalid_utf8_expected",
+    "json_invalid_utf8_actual",
+    "json_invalid_utf8_both",
     "json_missing_expected",
     "json_missing_actual",
     "json_missing_both",
@@ -85,6 +91,9 @@ BASE_CONTRACT_CASES = [
     "cli_extra_positional_args",
     "text_pass",
     "text_mismatch",
+    "text_invalid_utf8_expected",
+    "text_invalid_utf8_actual",
+    "text_invalid_utf8_both",
     "text_missing_expected",
     "text_missing_actual",
     "text_missing_both",
@@ -96,6 +105,9 @@ BASE_CONTRACT_CASES = [
     "json_invalid_expected",
     "json_invalid_actual",
     "json_invalid_both",
+    "json_invalid_utf8_expected",
+    "json_invalid_utf8_actual",
+    "json_invalid_utf8_both",
     "bytes_pass",
     "bytes_missing_expected",
     "bytes_missing_actual",
@@ -337,6 +349,10 @@ def run_check(root: Path) -> int:
         actual_json_mismatch = tmp / "actual-mismatch.json"
         invalid_expected_json = tmp / "expected-invalid.json"
         invalid_actual_json = tmp / "actual-invalid.json"
+        invalid_expected_text = tmp / "expected-invalid-utf8.txt"
+        invalid_actual_text = tmp / "actual-invalid-utf8.txt"
+        invalid_expected_json_utf8 = tmp / "expected-invalid-utf8.json"
+        invalid_actual_json_utf8 = tmp / "actual-invalid-utf8.json"
         blob_a = tmp / "blob-a.bin"
         blob_b = tmp / "blob-b.bin"
 
@@ -405,6 +421,45 @@ def run_check(root: Path) -> int:
             ],
         )
         write_text(actual, "alpha\nbeta\n")
+
+        invalid_expected_text.write_bytes(b"\xffalpha\n")
+        invalid_actual_text.write_bytes(b"alpha\xff\n")
+        run_case(
+            root,
+            ["--mode", "text", str(invalid_expected_text), str(actual)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=text",
+                f"EXPECTED={invalid_expected_text}",
+                f"ACTUAL={actual}",
+                f"EXPECTED_TEXT_UTF8_ERROR={invalid_expected_text}:1: invalid start byte",
+            ],
+        )
+        run_case(
+            root,
+            ["--mode", "text", str(expected), str(invalid_actual_text)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=text",
+                f"EXPECTED={expected}",
+                f"ACTUAL={invalid_actual_text}",
+                f"ACTUAL_TEXT_UTF8_ERROR={invalid_actual_text}:6: invalid start byte",
+            ],
+        )
+        run_case(
+            root,
+            ["--mode", "text", str(invalid_expected_text), str(invalid_actual_text)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=text",
+                f"EXPECTED={invalid_expected_text}",
+                f"ACTUAL={invalid_actual_text}",
+                f"EXPECTED_TEXT_UTF8_ERROR={invalid_expected_text}:1: invalid start byte",
+            ],
+        )
 
         run_case(
             root,
@@ -548,6 +603,45 @@ def run_check(root: Path) -> int:
                 f"EXPECTED={invalid_expected_json}",
                 f"ACTUAL={invalid_actual_json}",
                 expected_json_error("EXPECTED", invalid_expected_json),
+            ],
+        )
+
+        invalid_expected_json_utf8.write_bytes(b"\xff{}\n")
+        invalid_actual_json_utf8.write_bytes(b"{\"alpha\":\xff}\n")
+        run_case(
+            root,
+            ["--mode", "json", str(invalid_expected_json_utf8), str(actual_json)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=json",
+                f"EXPECTED={invalid_expected_json_utf8}",
+                f"ACTUAL={actual_json}",
+                f"EXPECTED_JSON_UTF8_ERROR={invalid_expected_json_utf8}:1: invalid start byte",
+            ],
+        )
+        run_case(
+            root,
+            ["--mode", "json", str(expected_json), str(invalid_actual_json_utf8)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=json",
+                f"EXPECTED={expected_json}",
+                f"ACTUAL={invalid_actual_json_utf8}",
+                f"ACTUAL_JSON_UTF8_ERROR={invalid_actual_json_utf8}:10: invalid start byte",
+            ],
+        )
+        run_case(
+            root,
+            ["--mode", "json", str(invalid_expected_json_utf8), str(invalid_actual_json_utf8)],
+            expected_exit=1,
+            expected_lines=[
+                "ARTIFACT_DIFF=fail",
+                "MODE=json",
+                f"EXPECTED={invalid_expected_json_utf8}",
+                f"ACTUAL={invalid_actual_json_utf8}",
+                f"EXPECTED_JSON_UTF8_ERROR={invalid_expected_json_utf8}:1: invalid start byte",
             ],
         )
 
