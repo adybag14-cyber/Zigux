@@ -50,7 +50,9 @@ REQUIRED_MARKERS = {
     VIRTIO_SCSI_SURVEY_PATH: [
         "PHASE12_STATUS=rollback-evidence-only-live-starter-missing",
         "PHASE12_LANE=P12-L13",
+        "scope: keep the virtio_scsi survey packet truthful when current `master` carries only survey, fallback, fixture, checker, and shared support-bundle evidence while the driver-local starter and replay gates are absent",
         "rollback-only split machine-checkable",
+        "rerun `python3 scripts/zigux/check-phase12-virtio-scsi-packet.py`, `zig test zigux/tests/phase12_virtio_scsi_survey.zig`, `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12-smoke` before claiming that any driver-local replay surface has returned",
     ],
     VIRTIO_SCSI_FIXTURE_MANIFEST_PATH: [
         '"lane_key": "P12-L13"',
@@ -165,7 +167,7 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
 def write_fixture_tree(root: Path) -> None:
     fixture_text = {
         VIRTIO_SCSI_SLICE_PATH: "# Phase 12 virtio_scsi Slice\n- `PHASE12_SLICE=virtio-scsi-rollback-evidence`\n",
-        VIRTIO_SCSI_SURVEY_PATH: "# Phase 12 Virtio SCSI Survey\nPHASE12_STATUS=rollback-evidence-only-live-starter-missing\nPHASE12_LANE=P12-L13\nrollback-only split machine-checkable\n",
+        VIRTIO_SCSI_SURVEY_PATH: "# Phase 12 Virtio SCSI Survey\nPHASE12_STATUS=rollback-evidence-only-live-starter-missing\nPHASE12_LANE=P12-L13\nscope: keep the virtio_scsi survey packet truthful when current `master` carries only survey, fallback, fixture, checker, and shared support-bundle evidence while the driver-local starter and replay gates are absent\nrollback-only split machine-checkable\nrerun `python3 scripts/zigux/check-phase12-virtio-scsi-packet.py`, `zig test zigux/tests/phase12_virtio_scsi_survey.zig`, `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12-smoke` before claiming that any driver-local replay surface has returned\n",
         VIRTIO_SCSI_FALLBACK_PATH: "# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog\n",
         VIRTIO_SCSI_FIXTURE_MANIFEST_PATH: '{\n  "lane_key": "P12-L13",\n  "fixture_kind": "rollback_evidence_presence_manifest",\n  "source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json",\n  "scope": "driver-local starter and replay gates are absent"\n}\n',
         VIRTIO_SCSI_MANIFEST_PATH: '{\n  "lane_key": "P12-L13",\n  "preexisting_phase12_direct_test_present": false,\n  "gaps": ["phase12-virtio-scsi-runtime-request-flow"]\n}\n',
@@ -186,6 +188,36 @@ def run_self_test() -> int:
         write_fixture_tree(tmp_root)
         if errors := check(tmp_root, source_text=MARKER):
             raise SystemExit(f"self-test expected success but failed: {errors!r}")
+
+        write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / VIRTIO_SCSI_SURVEY_PATH,
+            read_text(tmp_root / VIRTIO_SCSI_SURVEY_PATH).replace(
+                "shared support-bundle evidence",
+                "shared checker-only evidence",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in" in error and VIRTIO_SCSI_SURVEY_PATH in error
+            for error in check(tmp_root, source_text=MARKER)
+        ):
+            raise SystemExit("expected survey scope marker failure")
+
+        write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / VIRTIO_SCSI_SURVEY_PATH,
+            read_text(tmp_root / VIRTIO_SCSI_SURVEY_PATH).replace(
+                "make -C zigux phase12-validate",
+                "make -C zigux phase12-validate-missing",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in" in error and VIRTIO_SCSI_SURVEY_PATH in error
+            for error in check(tmp_root, source_text=MARKER)
+        ):
+            raise SystemExit("expected survey rollback-drill marker failure")
 
         write_fixture_tree(tmp_root)
         write_text(
@@ -246,7 +278,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=7")
+    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=9")
     return 0
 
 
