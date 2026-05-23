@@ -50,6 +50,12 @@ EXPECTED_DIRECT_COMPANIONS = [
     "lib/argv_split.zig",
     "lib/rbtree.zig",
 ]
+EXPECTED_ROADMAP_ANCHORS = [
+    "lib/string_helpers.c",
+    "lib/cmdline.c",
+    "lib/argv_split.c",
+    "lib/rbtree.c",
+]
 EXPECTED_HELPER_EVIDENCE = [
     {
         "key": "string_helpers",
@@ -225,7 +231,7 @@ RBTREE_REQUIRED_SNIPPETS = [
     "pub fn rb_find_add_cached(",
 ]
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 
 
 class ValidationError(RuntimeError):
@@ -290,6 +296,8 @@ def validate(root: Path) -> None:
         raise ValidationError("phase7 phase drift")
     if manifest.get("lane_scope") != EXPECTED_SCOPE:
         raise ValidationError("phase7 lane scope drift")
+    if manifest.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
+        raise ValidationError("phase7 roadmap anchor drift")
     if manifest.get("current_replay_inventory") != EXPECTED_REPLAYS:
         raise ValidationError("phase7 replay inventory drift")
     if manifest.get("current_direct_readback_companions") != EXPECTED_DIRECT_COMPANIONS:
@@ -332,6 +340,7 @@ def build_fixture_root(root: Path) -> None:
                 "packet": EXPECTED_PACKET,
                 "phase": EXPECTED_PHASE,
                 "lane_scope": EXPECTED_SCOPE,
+                "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
                 "current_direct_readback_companions": EXPECTED_DIRECT_COMPANIONS,
                 "current_direct_helper_evidence": EXPECTED_HELPER_EVIDENCE,
                 "current_build_wiring_evidence": EXPECTED_BUILD_WIRING_EVIDENCE,
@@ -390,6 +399,7 @@ def run_self_test() -> None:
             (BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
             (BUILD_PATH, 'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");', 'const test_step = b.step("phase7-test", "Run the Phase 7 runtime helper tests");'),
             (BUILD_PATH, "test_step.dependOn(&run_rbtree_survey_tests.step)", "test_step.dependOn(&run_rbtree_tests.step)"),
+            (MANIFEST_PATH, '"lib/rbtree.c"', '"tools/lib/rbtree.c"'),
         ]
         for rel, old, new in mutations:
             build_fixture_root(root)
