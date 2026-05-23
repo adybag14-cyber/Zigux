@@ -33,6 +33,24 @@ DIRECT_BUILD_READBACK_MARKER = (
     "so keep it explicit as returned shared non-owner build evidence without treating it as helper-local ownership."
 )
 
+SLICE_AUTHENTICATED_BUILD_MARKER = (
+    "public-fallback provenance stays explicit through the now-empty `public_fallback_non_owner_paths` field in "
+    "`zigux/tests/phase7_rbtree_manifest.json`, because `zigux/tests/phase7_build.zig` and the other listed legacy "
+    "or shared non-owner surfaces all rematerialized through authenticated rereads in this slot"
+)
+
+MANIFEST_BUILD_PROVENANCE_MARKER = (
+    "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig`, `tools/lib/rbtree.zig`, "
+    "`scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local "
+    "rbtree packet all rematerialized through authenticated rereads, so shared non-owner build evidence stays reviewable "
+    "without public-fallback caveats on current master"
+)
+
+MANIFEST_EMPTY_FALLBACK_MARKER = (
+    "machine-readable fallback provenance should stay empty in this packet while the readable non-owner surfaces all "
+    "rematerialize through authenticated rereads in this runtime"
+)
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_harness_anchor`",
@@ -42,6 +60,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
         "helper-local implementation now remains rooted at `lib/rbtree.zig`",
+        SLICE_AUTHENTICATED_BUILD_MARKER,
     ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "`zigux/tests/fixtures/phase7_rbtree.json`",
@@ -62,6 +81,9 @@ REQUIRED_MARKERS = {
         '"zigux/tests/fixtures/phase7_rbtree_c_harness.c": [',
         "NEXT_STEP_WRAPPER_MARKER = (",
         "DIRECT_BUILD_READBACK_MARKER = (",
+        "SLICE_AUTHENTICATED_BUILD_MARKER = (",
+        "MANIFEST_BUILD_PROVENANCE_MARKER = (",
+        "MANIFEST_EMPTY_FALLBACK_MARKER = (",
     ],
     "lib/rbtree.zig": [
         "pub const Node = struct {",
@@ -79,17 +101,23 @@ REQUIRED_MARKERS = {
         "phase 7 rbtree survey keeps the returned json fixture, C harness, and direct helper packet truthful",
         'try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree.json");',
         'try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");',
+        'try expectSliceContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");',
+        'try std.testing.expectEqual(@as(usize, 0), manifest.public_fallback_non_owner_paths.len);',
         'try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");',
         'try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");',
         'try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");',
         'try expectContains(makefile, "phase7-validate:");',
+        'try expectContains(slice_note, "public-fallback provenance stays explicit through the now-empty `public_fallback_non_owner_paths` field");',
         'try expectContains(fixture, "\\"packet\\": \\"phase7-rbtree-parity-fixture\\"");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
         '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"',
+        '"public_fallback_non_owner_paths": []',
         '"zigux/tests/fixtures/phase7_rbtree.json"',
         '"zigux/tests/fixtures/phase7_rbtree_c_harness.c"',
         "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence",
+        MANIFEST_BUILD_PROVENANCE_MARKER,
+        MANIFEST_EMPTY_FALLBACK_MARKER,
         NEXT_STEP_WRAPPER_MARKER,
     ],
     "zigux/tests/fixtures/phase7_rbtree.json": [
@@ -111,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(path: Path) -> str:
@@ -182,6 +210,11 @@ def run_self_test() -> None:
         )
 
         write_fixture_root(root)
+        slice_marker = SLICE_AUTHENTICATED_BUILD_MARKER
+        marker_path.write_text(read_text(marker_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}"])
+
+        write_fixture_root(root)
         survey_path = root / "zigux/tests/phase7_rbtree_survey.zig"
         survey_marker = 'try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");'
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
@@ -194,6 +227,16 @@ def run_self_test() -> None:
 
         write_fixture_root(root)
         survey_marker = 'try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
+
+        write_fixture_root(root)
+        survey_marker = 'try expectSliceContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
+
+        write_fixture_root(root)
+        survey_marker = 'try std.testing.expectEqual(@as(usize, 0), manifest.public_fallback_non_owner_paths.len);'
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
 
@@ -216,6 +259,11 @@ def run_self_test() -> None:
 
         write_fixture_root(root)
         manifest_marker = '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"'
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
+
+        write_fixture_root(root)
+        manifest_marker = '"public_fallback_non_owner_paths": []'
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
 
