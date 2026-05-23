@@ -35,7 +35,8 @@ Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-roadmap-traceability.md` for the broader Phase 13 roadmap-to-repo owner map and the remaining shared-build gap
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` for the broader Phase 13 owner split and lane routing
 - `Documentation/zigux/phase13-contributor-workflow-guide.md` for the contributor-facing workflow packet
-- adjacent notifier evidence under `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `include/zigux/notifier_abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, `zigux/helpers/notifier_chain_view.zig`, and `drivers/tty/hvc/hvc_console.h`; if direct companions such as `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/tests/phase13_notifier_list_manifest.json`, or `zigux/tests/phase13_notifier_list_reviewability.zig` cannot be materialized on current `master`, record them as repo-reality gaps instead of presenting them here as independently shipped evidence
+- shipped adjacent notifier evidence under `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`
+- adjacent notifier repo-reality gaps under `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/helpers/notifier_chain_view.zig`, and `include/zigux/notifier_abi.h`; record those as gaps rather than presenting them here as independently shipped evidence
 
 ## Owned Review Surface
 
