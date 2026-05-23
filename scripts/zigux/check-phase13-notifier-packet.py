@@ -91,11 +91,25 @@ REQUIRED_MARKERS = {
         "void notifier_del_irq(struct hvc_struct *hp, int irq);",
         "void notifier_hangup_irq(struct hvc_struct *hp, int irq);",
     ),
+    "scripts/zigux/validate-phase13-release.py": (
+        "Documentation/zigux/phase13-notifier-summary-gap.md",
+        "`scripts/zigux/check-phase13-notifier-packet.py`",
+        "`zigux/tests/phase13_notifier_list_manifest.json`",
+        "`zigux/tests/phase13_notifier_list_reviewability.zig`",
+    ),
+    "zigux/Makefile": (
+        "PYTHON ?= python3",
+        ".PHONY:",
+    ),
 }
 
 FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase13-notifier-list-survey.md": (
         "`zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`",
+    ),
+    "zigux/Makefile": (
+        "\nphase13-validate:",
+        "\nphase13:",
     ),
 }
 
@@ -351,6 +365,43 @@ def run_self_test() -> int:
             "missing_marker:drivers/tty/hvc/hvc_console.h:void notifier_hangup_irq(struct hvc_struct *hp, int irq);"
             in issues
         )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        release_validator_path = tempdir / "scripts/zigux/validate-phase13-release.py"
+        release_validator_path.write_text(
+            release_validator_path.read_text(encoding="utf-8").replace(
+                "Documentation/zigux/phase13-notifier-summary-gap.md\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:scripts/zigux/validate-phase13-release.py:Documentation/zigux/phase13-notifier-summary-gap.md"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        makefile_path = tempdir / "zigux/Makefile"
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8") + "\nphase13-validate:\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert "forbidden_marker:zigux/Makefile:\nphase13-validate:" in issues
+        populate_repo(tempdir)
+        checks_run += 1
+
+        makefile_path = tempdir / "zigux/Makefile"
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8") + "\nphase13:\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert "forbidden_marker:zigux/Makefile:\nphase13:" in issues
         populate_repo(tempdir)
         checks_run += 1
 
