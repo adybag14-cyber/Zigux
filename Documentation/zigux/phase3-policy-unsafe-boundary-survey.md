@@ -12,8 +12,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-plus-init-flow-owned-state-and-reset-gates`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=01a6b30ab444a9b6be66eb1fb3a0e3666f55863a`
 - `PHASE3_UNSAFE_POLICY_PATH=zigux/helpers/unsafe_policy.zig`
-- `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-permits-and-audit-aliases`
-- `PHASE3_UNSAFE_POLICY_SCOPE_DETAIL=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-access-boundary-surface-and-permit-audit-aliases`
+- `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-access-boundary-surface-and-permit-audit-aliases`
 - `PHASE3_UNSAFE_POLICY_BLOB_SHA=a39a2ca8b62783ce9b87c2dde5b8721126a2b2c3`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_BLOB_SHA=7dfaf2bf737cb744442ec8596bd93d277d05f092`
