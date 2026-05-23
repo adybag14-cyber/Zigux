@@ -187,6 +187,9 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "\"release_call_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"detach_cleanup_transition_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"zero_sized_request_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
+    try requireContains(manifest, "\"freed_release_record_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
+    try requireContains(manifest, "\"missing_release_record_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
+    try requireContains(manifest, "\"warn_on_release_miss_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"validation_guard\": \"scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py\"");
     try requireContains(manifest, "\"owner_map\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json\"");
     try requireContains(manifest, "\"adjacent_boundary_evidence_only\": [");
