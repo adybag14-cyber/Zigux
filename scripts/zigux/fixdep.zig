@@ -133,8 +133,8 @@ fn flushOutputPreservingPrimaryError(writer: anytype, primary_err: anyerror) any
 const Processor = struct {
     io: std.Io,
     arena: std.heap.ArenaAllocator,
-    config_seen: std.ArrayListUnmanaged([]const u8),
-    file_seen: std.ArrayListUnmanaged([]const u8),
+    config_seen: std.StringHashMapUnmanaged(void),
+    file_seen: std.StringHashMapUnmanaged(void),
     last_file_error_path: []const u8,
     last_file_error: ?anyerror,
 
@@ -155,15 +155,13 @@ const Processor = struct {
         self.arena.deinit();
     }
 
-    fn remember(self: *Processor, table: *std.ArrayListUnmanaged([]const u8), token: []const u8) !bool {
-        for (table.items) |existing| {
-            if (std.mem.eql(u8, existing, token)) {
-                return true;
-            }
+    fn remember(self: *Processor, table: *std.StringHashMapUnmanaged(void), token: []const u8) !bool {
+        if (table.contains(token)) {
+            return true;
         }
 
         const copy = try self.arena.allocator().dupe(u8, token);
-        try table.append(self.arena.allocator(), copy);
+        try table.put(self.arena.allocator(), copy, {});
         return false;
     }
 
