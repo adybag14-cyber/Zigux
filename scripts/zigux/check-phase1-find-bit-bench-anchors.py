@@ -14,7 +14,12 @@ REQUIRED_TEST_MARKERS = {
     "boundary_head_test": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
     "boundary_tail_test": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
     "single_word_tail_test": 'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start" {',
+    "single_word_partial_window_test": 'test "single-word next scans clamp partial windows before returning nbits" {',
+    "word_boundary_test": 'test "word-boundary next scans start fresh on the next word" {',
+    "zero_sized_scan_test": 'test "zero-sized scans ignore populated backing words" {',
     "past_end_no_read_test": 'test "next scans past nbits return without reading bitmap words" {',
+    "tail_mask_shared_test": 'test "tail mask ignores shared bits beyond nbits" {',
+    "clump8_untouched_test": 'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
     "clump8_no_read_test": 'test "clump8 past-end scans return without reading bitmap words" {',
     "last_bit_tail_test": 'test "find last bit clamps tail words to nbits" {',
 }
@@ -23,12 +28,19 @@ REQUIRED_SOURCE_MARKERS = {
     "find_next_boundary": "findNextBit(&set_map, nbits, boundary)",
     "find_next_and_boundary": "findNextAndBit(&and_lhs, &and_rhs, nbits, boundary)",
     "find_next_andnot_boundary": "findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)",
+    "find_next_or_boundary": "findNextOrBit(&or_lhs, &or_rhs, nbits, boundary)",
     "find_next_zero_boundary": "findNextZeroBit(&zero_map, nbits, boundary)",
     "find_last_tail_single_word": "findLastBit(&single_word, single_word_nbits)",
+    "find_last_zero_sized": "findLastBit(&populated, 0)",
     "find_next_past_end": "findNextBit(&empty, 7, 11)",
     "find_next_zero_past_end": "findNextZeroBit(&empty, 7, 11)",
     "find_next_and_past_end": "findNextAndBit(&empty, &empty, 7, 11)",
+    "find_next_or_past_end": "findNextOrBit(&empty, &empty, 7, 11)",
     "find_next_andnot_past_end": "findNextAndNotBit(&empty, &empty, 7, 11)",
+    "find_next_or_single_word_clamp": "findNextOrBit(&or_lhs, &or_rhs, nbits, 13)",
+    "find_next_and_tail_mask": "findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4)",
+    "find_first_clump8_zero_sized": "findFirstClump8(&clump, &populated, 0)",
+    "find_next_clump8_untouched": "findNextClump8(&clump, &populated, 8, 12)",
     "find_clump8_past_end": "findNextClump8(&clump, &empty, 8, 8)",
     "find_clump8_linux_alias_past_end": "find_next_clump8(&clump, &empty, 8, 12)",
     "find_clump8_low_level_alias_past_end": "_find_next_clump8(&clump, &empty, 8, 20)",
@@ -65,6 +77,7 @@ def build_sample_source(omit_label: str | None = None) -> str:
         "    _ = findNextBit(&set_map, nbits, boundary);",
         "    _ = findNextAndBit(&and_lhs, &and_rhs, nbits, boundary);",
         "    _ = findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary);",
+        "    _ = findNextOrBit(&or_lhs, &or_rhs, nbits, boundary);",
         "    _ = findNextZeroBit(&zero_map, nbits, boundary);",
         "}",
         'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
@@ -73,11 +86,28 @@ def build_sample_source(omit_label: str | None = None) -> str:
         'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start" {',
         "    _ = findNextBit(&set_map, nbits, boundary);",
         "}",
+        'test "single-word next scans clamp partial windows before returning nbits" {',
+        "    _ = findNextOrBit(&or_lhs, &or_rhs, nbits, 13);",
+        "}",
+        'test "word-boundary next scans start fresh on the next word" {',
+        "    _ = findNextOrBit(&or_lhs, &or_rhs, nbits, boundary);",
+        "}",
+        'test "zero-sized scans ignore populated backing words" {',
+        "    _ = findLastBit(&populated, 0);",
+        "}",
         'test "next scans past nbits return without reading bitmap words" {',
         "    _ = findNextBit(&empty, 7, 11);",
         "    _ = findNextZeroBit(&empty, 7, 11);",
         "    _ = findNextAndBit(&empty, &empty, 7, 11);",
+        "    _ = findNextOrBit(&empty, &empty, 7, 11);",
         "    _ = findNextAndNotBit(&empty, &empty, 7, 11);",
+        "}",
+        'test "tail mask ignores shared bits beyond nbits" {',
+        "    _ = findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4);",
+        "}",
+        'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
+        "    _ = findFirstClump8(&clump, &populated, 0);",
+        "    _ = findNextClump8(&clump, &populated, 8, 12);",
         "}",
         'test "clump8 past-end scans return without reading bitmap words" {',
         "    _ = findNextClump8(&clump, &empty, 8, 8);",
@@ -107,9 +137,14 @@ def run_self_test() -> None:
     assert payload == ["boundary_tail_test"]
     case_count += 1
 
-    kind, payload = validate_find_bit_source(build_sample_source("find_clump8_low_level_alias_past_end"))
+    kind, payload = validate_find_bit_source(build_sample_source("find_next_or_past_end"))
     assert kind == "missing_source_markers", (kind, payload)
-    assert payload == ["find_clump8_low_level_alias_past_end"]
+    assert payload == ["find_next_or_past_end"]
+    case_count += 1
+
+    kind, payload = validate_find_bit_source(build_sample_source("find_next_clump8_untouched"))
+    assert kind == "missing_source_markers", (kind, payload)
+    assert payload == ["find_next_clump8_untouched"]
     case_count += 1
 
     with tempfile.TemporaryDirectory(prefix="phase1-find-bit-bench-anchors-") as tmp:
