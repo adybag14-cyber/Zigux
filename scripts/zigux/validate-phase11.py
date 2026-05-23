@@ -391,11 +391,14 @@ def run_self_test() -> int:
 
         for rel in (
             "Documentation/zigux/phase11-shared-replay-contract.md",
+            "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+            "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
             "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
             "drivers/tty/hvc/hvc_console.h",
             "drivers/tty/hvc/hvc_console.zig",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+            "zigux/Makefile",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
             "zigux/tests/phase11_hvc_modem_control_proof.zig",
@@ -431,6 +434,13 @@ def run_self_test() -> int:
         expect_issue("manifest_phase_mismatch:zigux/tests/phase11_dw_wdt_manifest.json:expected='Phase 11':actual='Phase 12'")
         case_count += 1
 
+        reset_fixture()
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["gaps"] = []
+        write_text(manifest_path, json.dumps(payload) + "\n")
+        expect_issue("manifest_gaps_invalid:zigux/tests/phase11_dw_wdt_manifest.json")
+        case_count += 1
+
         for script_rel, spec_name in (
             ("scripts/zigux/validate-phase11.py", "phase11-validation-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
@@ -455,7 +465,7 @@ def run_self_test() -> int:
                 build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
             else:
                 build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec_name}:exit=1")
+            expect_issue(f"live_failed:{spec.name}:exit=1")
             case_count += 1
 
         for build_file, spec_name in (
