@@ -642,6 +642,40 @@ test "runtime bitmap sample rejects re-init without disturbing initialized summa
     try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
 }
 
+test "runtime bitmap sample rejects re-init after selftest without disturbing selftested summaries" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    const before_reinit = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_reinit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_reinit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_reinit.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 0), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));
+
+    const after_reinit = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try expectSummaryStable(before_reinit, after_reinit);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 0), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+}
+
 test "runtime bitmap sample keeps initialized summary stable across direct exit without selftest" {
     var module = RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
