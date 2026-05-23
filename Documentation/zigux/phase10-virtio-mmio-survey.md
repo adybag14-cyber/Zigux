@@ -46,6 +46,11 @@ This survey exists to make that current helper packet explicit and reviewable on
 
 ## Freeze boundary
 - `Documentation/zigux/freeze-map.md` remains the governing boundary note for this survey.
+- `freeze_boundary_status` stays `aligned` and `freeze_status_change_claimed` stays `false`.
+- `architecture_council_reopen_required` stays `true` and `architecture_council_reopen_attached` stays `false`.
+- allowed evidence kinds stay limited to `driver_local_lab_slices`, `survey_manifests`, and `shared_validation_gates`.
+- allowed roadmap destinations stay limited to `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`.
+- forbidden transport claims remain `queue_setup_reset_paths`, `queue_reset_execution`, `irq_parity`, `dma_paths`, `probe_remove_lifecycle`, and `freeze_restore_lifecycle`.
 - this survey stays inside `drivers/virtio/*.zig` and shared validation surfaces.
 - this survey does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain study-only anchors.
 - this survey also does not claim ownership of the freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`.
