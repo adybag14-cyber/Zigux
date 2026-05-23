@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const survey_note_source = @embedFile("../../Documentation/zigux/phase9-runtime-atomic64-survey.md");
+
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
     preexisting_runtime_test_files: usize,
@@ -81,6 +83,14 @@ fn hasOwnership(entries: []const OwnershipEntry, surface: []const u8, owner: []c
     return false;
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectLacks(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 test "phase 9 runtime atomic64 survey manifest records the visible shared-loader reminder packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -119,6 +129,16 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
         manifest.delivery_evidence_catalog,
         "runtime-atomic64-sample",
         "samples/zigux/runtime_atomic64.zig",
+    ));
+    try std.testing.expect(hasEvidence(
+        manifest.delivery_evidence_catalog,
+        "runtime-loader-command-env-boundary-guard",
+        "zigux/kernel/runtime_loader_command_env_boundary_guard.zig",
+    ));
+    try std.testing.expect(hasEvidence(
+        manifest.delivery_evidence_catalog,
+        "runtime-bitmap-loader-companion",
+        "samples/zigux/runtime_bitmap_loader.zig",
     ));
     try std.testing.expect(hasEvidence(
         manifest.delivery_evidence_catalog,
@@ -162,6 +182,8 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     const build_gap = findGap(manifest.gaps, "phase9-build-gate") orelse return error.MissingBuildGap;
     try std.testing.expectEqualStrings("visible_review_only_packet", build_gap.status);
     try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", build_gap.zigux_destination);
+    try std.testing.expect(std.mem.indexOf(u8, build_gap.why_now, "runtime_loader_command_env_boundary_guard.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_gap.why_now, "runtime_bitmap_loader.zig") != null);
 
     const survey_gap = findGap(manifest.gaps, "runtime-atomic64-survey-gate") orelse return error.MissingSurveyGap;
     try std.testing.expectEqualStrings("starter_landed", survey_gap.status);
@@ -169,4 +191,13 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     const blocked_gap = findGap(manifest.gaps, "runtime-atomic64-live-loader-binding") orelse return error.MissingBlockedGap;
     try std.testing.expectEqualStrings("blocked_on_runtime_substrate", blocked_gap.status);
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", blocked_gap.zigux_destination);
+}
+
+test "phase 9 runtime atomic64 survey note records the current shared-loader reminder packet" {
+    try expectContains(survey_note_source, "zigux/tests/runtime_loader_allocator_init_flow.zig");
+    try expectContains(survey_note_source, "zigux/kernel/runtime_loader_command_env_boundary_guard.zig");
+    try expectContains(survey_note_source, "samples/zigux/runtime_bitmap_loader.zig");
+    try expectContains(survey_note_source, "review-only evidence");
+    try expectLacks(survey_note_source, "zigux/tests/runtime_loader_gap_survey.zig");
+    try expectLacks(survey_note_source, "zigux/tests/runtime_loader_selftest_complete_exit_parity.zig");
 }
