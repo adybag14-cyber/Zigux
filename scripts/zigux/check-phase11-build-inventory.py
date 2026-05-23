@@ -48,6 +48,7 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 VALIDATE_PHASE11_PATH = Path("scripts/zigux/validate-phase11.py")
 HV_OPS_BUILD_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_build.zig")
 EXPORT_BUILD_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_build.zig")
+TARGETLESS_BUILD_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
 UAPI_SURVEY_PATH = Path("Documentation/zigux/phase11-uapi-header-parity-survey.md")
 HEADER_MATRIX_PATH = Path("Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md")
 
@@ -178,6 +179,12 @@ REQUIRED_EXPORT_BUILD_MARKERS = (
     '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig")',
     '.name = "phase11-hvc-export-surface-layout-proof"',
     'const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");',
+)
+
+REQUIRED_TARGETLESS_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig")',
+    '.name = "phase11-hvc-targetless-unregister-gap"',
+    'const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");',
 )
 
 REQUIRED_WORKFLOW_PHASE11_STEPS = (
@@ -399,6 +406,7 @@ def run_check(root: Path) -> None:
     require_text_markers(root / MAKEFILE_PATH, REQUIRED_MAKEFILE_ROUTE_MARKERS)
     require_text_markers(root / HV_OPS_BUILD_PATH, REQUIRED_HV_OPS_BUILD_MARKERS)
     require_text_markers(root / EXPORT_BUILD_PATH, REQUIRED_EXPORT_BUILD_MARKERS)
+    require_text_markers(root / TARGETLESS_BUILD_PATH, REQUIRED_TARGETLESS_BUILD_MARKERS)
     require_text_markers(root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_ROOT_MARKERS)
     require_text_markers(root / SHARED_REPLAY_CONTRACT_PATH, REQUIRED_SHARED_REPLAY_CONTRACT_MARKERS)
     require_text_markers(root / VALIDATE_PHASE11_PATH, REQUIRED_VALIDATE_PHASE11_MARKERS)
@@ -470,87 +478,110 @@ def fixture_inventory() -> dict[str, object]:
     }
 
 
-FIXTURE_BUILD_TEXT = """const std = @import("std");
+FIXTURE_BUILD_TEXT = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_cleanup_packet_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const proof_tests = b.addTest(.{
-        .name = "phase11-hvc-cleanup-packet-proof",
+        .name = \"phase11-hvc-cleanup-packet-proof\",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC cleanup packet proof\");
     test_step.dependOn(&run_proof_tests.step);
 }
 """
 
 
-FIXTURE_HV_OPS_BUILD_TEXT = """const std = @import("std");
+FIXTURE_HV_OPS_BUILD_TEXT = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const hv_ops_proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_hv_ops_layout_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const hv_ops_proof_tests = b.addTest(.{
-        .name = "phase11-hvc-hv-ops-layout-proof-tests",
+        .name = \"phase11-hvc-hv-ops-layout-proof-tests\",
         .root_module = hv_ops_proof_module,
     });
     const run_hv_ops_proof_tests = b.addRunArtifact(hv_ops_proof_tests);
 
     const export_surface_proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_export_surface_layout_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const export_surface_proof_tests = b.addTest(.{
-        .name = "phase11-hvc-export-surface-layout-proof-tests",
+        .name = \"phase11-hvc-export-surface-layout-proof-tests\",
         .root_module = export_surface_proof_module,
     });
     const run_export_surface_proof_tests = b.addRunArtifact(export_surface_proof_tests);
 
-    const test_step = b.step("test", "Run the focused Phase 11 exported-header proofs");
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 exported-header proofs\");
     test_step.dependOn(&run_hv_ops_proof_tests.step);
     test_step.dependOn(&run_export_surface_proof_tests.step);
 }
 """
 
 
-FIXTURE_EXPORT_BUILD_TEXT = """const std = @import("std");
+FIXTURE_EXPORT_BUILD_TEXT = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_export_surface_layout_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const proof_tests = b.addTest(.{
-        .name = "phase11-hvc-export-surface-layout-proof",
+        .name = \"phase11-hvc-export-surface-layout-proof\",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC exported-helper ABI proof\");
     test_step.dependOn(&run_proof_tests.step);
+}
+"""
+
+
+FIXTURE_TARGETLESS_BUILD_TEXT = """const std = @import(\"std\");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+    const root_module = b.createModule(.{
+        .root_source_file = b.path(\"phase11_hvc_targetless_unregister_gap.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const unit_tests = b.addTest(.{
+        .name = \"phase11-hvc-targetless-unregister-gap\",
+        .root_module = root_module,
+    });
+
+    const run_unit_tests = b.addRunArtifact(unit_tests);
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC targetless-unregister gap witness.\");
+    test_step.dependOn(&run_unit_tests.step);
 }
 """
 
@@ -584,24 +615,24 @@ FIXTURE_SCRIPTS_README_TEXT = """# scripts/zigux
 """
 
 FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
-    ("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-build-inventory.py"),
-    ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py"),
-    ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
-    ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
-    ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
-    ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"),
-    ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "--self-test"),
-    ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
-    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"),
+    (\"python\", \"scripts/zigux/check-phase11-build-inventory.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-build-inventory.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-matrix-gap-survey.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-matrix-gap-survey.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-validation-matrix-gap-survey.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-validation-matrix-gap-survey.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-hvc-cleanup-current-head.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-hvc-cleanup-current-head.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-teardown-packet.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-teardown-packet.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-verify-alignment.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-verify-alignment.py\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_hv_ops_layout_build.zig\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_export_surface_layout_build.zig\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_cleanup_packet_build.zig\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig\"),
 )
 """
 
@@ -646,6 +677,7 @@ def build_fixture(root: Path) -> None:
     write(root / BUILD_FILE_PATH, FIXTURE_BUILD_TEXT)
     write(root / HV_OPS_BUILD_PATH, FIXTURE_HV_OPS_BUILD_TEXT)
     write(root / EXPORT_BUILD_PATH, FIXTURE_EXPORT_BUILD_TEXT)
+    write(root / TARGETLESS_BUILD_PATH, FIXTURE_TARGETLESS_BUILD_TEXT)
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
     write(root / HVC_VALIDATION_MATRIX_PATH, FIXTURE_HVC_VALIDATION_MATRIX_TEXT)
     write(root / SHARED_REPLAY_CONTRACT_PATH, FIXTURE_SHARED_REPLAY_CONTRACT_TEXT)
@@ -712,6 +744,19 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_export_build_marker, "phase11-hvc-export-surface-layout-proof")
+        case_count += 1
+
+        missing_targetless_build_marker = tmpdir / "missing_targetless_build_marker"
+        shutil.copytree(fixture, missing_targetless_build_marker, dirs_exist_ok=True)
+        write(
+            missing_targetless_build_marker / TARGETLESS_BUILD_PATH,
+            read_text(missing_targetless_build_marker / TARGETLESS_BUILD_PATH).replace(
+                "phase11-hvc-targetless-unregister-gap",
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_targetless_build_marker, "phase11-hvc-targetless-unregister-gap")
         case_count += 1
 
         wrong_proof_command = tmpdir / "wrong_proof_command"
