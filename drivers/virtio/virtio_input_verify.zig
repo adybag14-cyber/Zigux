@@ -202,4 +202,55 @@ test "phase10 virtio input verify keeps teardown and status-drain wrapper parity
     );
     try std.testing.expect(!probe_preflight.queuePlanReady(probe_after_reset));
     try std.testing.expect(!probe_preflight.readyForProbeHandoff(probe_after_reset));
+
+    try device.configureEventQueue(16);
+    try device.configureStatusQueue(8);
+    const refill_after_reset = try device.refillEventBuffers(3);
+    try std.testing.expectEqual(@as(u16, 0), refill_after_reset.queued_event_buffer_count_before);
+    try std.testing.expectEqual(@as(u16, 3), refill_after_reset.queued_event_buffer_count_after);
+
+    const queue_rearmed_before_ready = queue_callback_preflight.summarize(&device);
+    try std.testing.expectEqualStrings(
+        "device_not_ready",
+        queue_callback_preflight.blockerTag(queue_rearmed_before_ready.blocker.?),
+    );
+    try std.testing.expect(queue_rearmed_before_ready.event_buffers_ready);
+    try std.testing.expectEqual(@as(u16, 3), queue_rearmed_before_ready.queued_event_buffer_count);
+
+    try device.markReady();
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 1,
+    });
+    _ = try device.planMultitouchSlots();
+
+    const queue_rearmed = queue_callback_preflight.summarize(&device);
+    try std.testing.expect(queue_rearmed.ready_for_queue_callbacks);
+    try std.testing.expect(queue_rearmed.blocker == null);
+    try std.testing.expectEqual(@as(u16, 3), queue_rearmed.queued_event_buffer_count);
+
+    const registration_rearmed = registration_preflight.summarize(&device);
+    try std.testing.expect(registration_preflight.queuePlanReady(registration_rearmed));
+    try std.testing.expect(registration_rearmed.device_ready);
+    try std.testing.expect(registration_preflight.capabilitySetupReady(registration_rearmed));
+    try std.testing.expect(registration_preflight.multitouchSlotsReady(registration_rearmed));
+    try std.testing.expect(registration_rearmed.blocker == null);
+    try std.testing.expect(registration_preflight.readyForRegistration(registration_rearmed));
+
+    const probe_rearmed = probe_preflight.summarize(&device);
+    try std.testing.expect(probe_preflight.identityReady(probe_rearmed));
+    try std.testing.expect(probe_preflight.queuePlanReady(probe_rearmed));
+    try std.testing.expect(probe_rearmed.device_ready);
+    try std.testing.expect(probe_preflight.capabilitySetupReady(probe_rearmed));
+    try std.testing.expect(probe_preflight.multitouchSlotsReady(probe_rearmed));
+    try std.testing.expect(probe_rearmed.blocker == null);
+    try std.testing.expect(probe_preflight.readyForProbeHandoff(probe_rearmed));
+
+    const rearmed_teardown = teardown_observation.summarize(&device);
+    try std.testing.expect(teardown_observation.runtimeStateArmed(rearmed_teardown));
+    try std.testing.expect(teardown_observation.capabilityStateArmed(rearmed_teardown));
+    try std.testing.expect(teardown_observation.readyBeforeReset(rearmed_teardown));
+    try std.testing.expect(teardown_observation.multitouchWasEnabled(rearmed_teardown));
+    try std.testing.expectEqual(@as(u16, 2), teardown_observation.plannedMultitouchSlots(rearmed_teardown));
 }
