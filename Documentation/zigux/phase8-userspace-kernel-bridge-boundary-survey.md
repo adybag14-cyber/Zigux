@@ -34,12 +34,16 @@ That broader deferred packet still includes `/sys/devices/system/cpu/online` rea
 
 Those setup-side routing and ring-ownership steps remain intentionally deferred even though the helper-local routing summaries are already reviewable on current `master`.
 
+The timing-adjacent poll reminder also stays explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and the shared `phase8` routes; that dedicated packet keeps no standalone timer helper behavior, no standalone clockevent helper behavior, and no broader timeout-sensitive routing behavior explicit while the surrounding setup-side bridge remains deferred.
+
 ## Non-goals
 This survey does not yet claim:
 - direct `perf_event_open()` parity beyond helper-local summaries
 - direct epoll wiring, `mmap()`-backed ring ownership, or broader timeout-sensitive routing behavior
 - token materialization or live `bpf_obj_get()` reopen flow
 - live procfs reads, live bpffs opens, or descriptor-ownership side effects
+- standalone timer helper behavior
+- standalone clockevent helper behavior
 - any direct Zig port of the full `tools/lib/bpf/libbpf.c` bridge-heavy setup path
 
 ## Next bounded step
