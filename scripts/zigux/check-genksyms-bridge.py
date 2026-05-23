@@ -68,6 +68,11 @@ CASE_FIXTURES = (
         "expected_file": "lone_dash_passthrough_expected.json",
     },
     {
+        "name": "dash_prefixed_short_option_arguments_as_data",
+        "args": ["-r", "-d", "-T", "--symtypes"],
+        "expected_file": "dash_prefixed_short_option_arguments_as_data_expected.json",
+    },
+    {
         "name": "dash_prefixed_long_option_arguments_as_data",
         "args": ["--reference", "--debug", "--dump-types", "--types"],
         "expected_file": "dash_prefixed_long_option_arguments_as_data_expected.json",
