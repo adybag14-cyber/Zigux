@@ -11,9 +11,11 @@ This note records the current bounded Phase 8 perf-buffer poll helper packet aga
 - scope: helper-local perf-buffer poll reviewability and timing-boundary truthfulness only
 
 ## Current helper packet
-Current `master` keeps the dedicated helper packet reviewable through `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-validate`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8-test`.
+Current `master` keeps the dedicated helper packet reviewable through `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-validate`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8-test`.
 
 That packet stays bounded to helper-local wait classification, poll summary bookkeeping, ready-buffer attempt routing, ready-buffer fd lookup, and ready-buffer mapped-window lookup behavior. It does not promote broader setup-side perf-event ownership, shared routing setup, or bridge-heavy reopen flow into shipped proof.
+
+The landed verifier companion keeps wait classification, poll summary, execution summary, and impossible-summary fail-closed outputs explicit beside that same bounded helper packet.
 
 ## Timing boundary
 The dedicated reminder stays explicit about no standalone timer helper behavior and no standalone clockevent helper behavior.
