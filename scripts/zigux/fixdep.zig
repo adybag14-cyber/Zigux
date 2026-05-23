@@ -66,8 +66,14 @@ fn describeFileReadError(err: anyerror) []const u8 {
         error.NoDevice => "No such device",
         error.FileTooBig => "File too large",
         error.InputOutput => "Input/output error",
+        error.EndOfStream => "Unexpected end of file",
         else => @errorName(err),
     };
+}
+
+fn expectExactReadSize(bytes: []const u8, expected_size: usize) ![]const u8 {
+    if (bytes.len != expected_size) return error.EndOfStream;
+    return bytes;
 }
 
 fn writePathError(writer: anytype, prefix: []const u8, path: []const u8, err: anyerror) !void {
@@ -228,20 +234,26 @@ const Processor = struct {
         };
         defer file.close(self.io);
 
-        _ = file.stat(self.io) catch |err| {
+        const file_stat = file.stat(self.io) catch |err| {
             self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
             self.last_file_error = err;
             return error.StatDependencyFile;
         };
+        const expected_size = std.math.cast(usize, file_stat.size) orelse return error.StreamTooLong;
 
         var file_reader = file.reader(self.io, &.{});
-        return file_reader.interface.allocRemaining(self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
+        const dependency_text = file_reader.interface.allocRemaining(self.arena.allocator(), .limited(expected_size)) catch |err| switch (err) {
             error.ReadFailed => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
                 self.last_file_error = file_reader.err.?;
                 return error.ReadDependencyFile;
             },
             error.OutOfMemory, error.StreamTooLong => |e| return e,
+        };
+        return expectExactReadSize(dependency_text, expected_size) catch |err| {
+            self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
+            self.last_file_error = err;
+            return error.ReadDependencyFile;
         };
     }
 
@@ -871,6 +883,15 @@ test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.PermissionDenied));
+}
+
+test "file read errors map short reads to unexpected end of file" {
+    try std.testing.expectEqualStrings("Unexpected end of file", describeFileReadError(error.EndOfStream));
+}
+
+test "exact read size helper rejects short reads" {
+    try std.testing.expectEqualStrings("abc", try expectExactReadSize("abc", 3));
+    try std.testing.expectError(error.EndOfStream, expectExactReadSize("abc", 4));
 }
 
 test "path error wording keeps the dedicated fstat prefix" {
