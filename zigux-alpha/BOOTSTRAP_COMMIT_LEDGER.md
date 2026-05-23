@@ -178,6 +178,7 @@ This ledger turns the roadmap into the first product commit train.
 - `Documentation/zigux/artifact-diff.md`
 - `scripts/zigux/README.md`
 - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
+- current direct-readback note: `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/artifact-diff.md`, `scripts/zigux/README.md`, and `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md` are directly readable on current `master`
 
 ## Scope Note
 
