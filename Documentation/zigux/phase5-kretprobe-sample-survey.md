@@ -4,7 +4,7 @@ This note tracks the bounded Phase 5 survey for the roadmap's `samples/kprobes/k
 ## Status
 
   * `PHASE5_STATUS=restored-direct-sample-packet`
-  * `PHASE5_LANE_KEY=P5-L18`
+  * `PHASE5_LANE_KEY=P5-L22`
   * `PHASE5_SLICE=kretprobe-sample-reviewability-packet`
   * `PHASE5_SURVEYED_COMMIT=4387decfa0a96506f8207b81f74c8ac794a006a6`
   * scope: keep the restored direct sample packet and its focused review guard aligned without widening into Phase 9 runtime work
