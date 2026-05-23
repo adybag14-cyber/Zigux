@@ -159,6 +159,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(manifest, "\"surveyed_commit\": \"e306440f579ded71e8441c1a513af6fd12bbbfdd\"");
     try expectContains(manifest, "\"sample_path\": \"samples/zigux/runtime_bitmap.zig\"");
     try expectContains(manifest, "\"loader_path\": \"samples/zigux/runtime_bitmap_loader.zig\"");
+    try expectContains(manifest, "\"cold_stage_guard_path\": \"samples/zigux/runtime_bitmap_cold_stage_guard.zig\"");
     try expectContains(manifest, "\"module_path\": \"zigux/tests/runtime_bitmap_module.zig\"");
     try expectContains(manifest, "\"diff_path\": \"zigux/tests/runtime_bitmap_diff.zig\"");
     try expectContains(manifest, "\"top_bit_path\": \"samples/zigux/runtime_bitmap_top_bit_contract.zig\"");
@@ -178,7 +179,10 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(manifest, "\"diff_exit_lifecycle_guards\"");
     try expectContains(manifest, "\"top_bit_contract\"");
     try expectContains(manifest, "\"sample_range_guard_non_destructive\"");
+    try expectContains(manifest, "\"cold_stage_selftest_and_exit_guards\"");
+    try expectContains(manifest, "\"cold_stage_mutation_and_source_lifecycle_guards\"");
     try expectContains(manifest, "Keep the direct sample zero-length and rejected range-mutation replay explicit when the manifest summarizes direct sample range, summary, and parse stability.");
+    try expectContains(manifest, "Keep the cold-stage selftest, exit, mutation, and source-lifecycle guard companion explicit when the manifest summarizes the sample-root runtime bitmap packet.");
     try expectContains(manifest, "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the direct sample re-init guards explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the loader empty-payload direct-exit guard explicit when the manifest summarizes runtime lifecycle evidence.");
@@ -195,6 +199,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_bitmap_cold_stage_guard") == null);
 
     try expectContains(sample_file, "pub const sample_review_focus = [_]SampleFocus");
     try expectContains(sample_file, ".top_bit_contract,");
