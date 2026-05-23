@@ -197,6 +197,10 @@ CHECKS = (
         ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
     ),
     CheckSpec(
+        "phase11-hvc-modem-control-proof-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig"),
+    ),
+    CheckSpec(
         "phase11-hvc-targetless-unregister-gap-build",
         ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"),
     ),
@@ -464,6 +468,7 @@ def run_self_test() -> int:
             ("zigux/tests/phase11_hvc_hv_ops_layout_build.zig", "phase11-hvc-hv-ops-layout-build"),
             ("zigux/tests/phase11_hvc_export_surface_layout_build.zig", "phase11-hvc-export-surface-layout-build"),
             ("zigux/tests/phase11_hvc_cleanup_packet_build.zig", "phase11-hvc-cleanup-packet-build"),
+            ("zigux/tests/phase11_hvc_modem_control_proof_build.zig", "phase11-hvc-modem-control-proof-build"),
             ("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig", "phase11-hvc-targetless-unregister-gap-build"),
         ):
             reset_fixture(fail_build_file=build_file)
