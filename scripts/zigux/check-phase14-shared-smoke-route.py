@@ -6,12 +6,12 @@ Fail-closed checker for the bounded Phase 14 shared smoke route.
 This guard exists for the lane-local executable path only. It validates that
 the current repo exposes a dedicated `phase14-validate` Makefile route, that
 the route reruns the shared smoke route checker plus the current tests-root
-smoke-summary checker, validator, rollback-threshold sequencing checker, and
-release-boundary checker packets, that the bootstrap workflow reruns that same
-route, and that the shared smoke manifest records the same single-route
-Makefile split plus the focused raw build-file smoke shard without claiming
-that the missing `phase14-smoke`, `phase14-test`, or full bundle wrappers have
-returned.
+smoke-summary checker, validator, rollback-threshold sequencing checker,
+dedicated RCU rollback guardrail, and release-boundary checker packets, that
+the bootstrap workflow reruns that same route, and that the shared smoke
+manifest records the same single-route Makefile split plus the focused raw
+build-file smoke shard without claiming that the missing `phase14-smoke`,
+`phase14-test`, or full bundle wrappers have returned.
 """
 
 from __future__ import annotations
@@ -40,6 +40,8 @@ MAKEFILE_MARKERS = [
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test",
+    "scripts/zigux/check-phase14-rcu-rollback-guardrail.py",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
 ]
@@ -65,6 +67,8 @@ REQUIRED_MANIFEST_VALUES = {
     ("survey_summary", "workflow_runs_phase14_validate"): True,
     ("survey_summary", "workflow_runs_phase14_build"): False,
     ("survey_summary", "workflow_runs_phase14_smoke_shard"): False,
+    ("survey_summary", "phase14_validate_runs_rollback_threshold_sequencing"): True,
+    ("survey_summary", "phase14_validate_runs_rcu_rollback_guardrail"): True,
 }
 
 
@@ -160,6 +164,8 @@ phase14-validate:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py
 """
@@ -191,6 +197,8 @@ def fixture_manifest() -> str:
             "workflow_runs_phase14_validate": True,
             "workflow_runs_phase14_build": False,
             "workflow_runs_phase14_smoke_shard": False,
+            "phase14_validate_runs_rollback_threshold_sequencing": True,
+            "phase14_validate_runs_rcu_rollback_guardrail": True,
         },
     }
     return json.dumps(payload, indent=2) + "\n"
@@ -261,6 +269,22 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         write_text(
             base,
+            MAKEFILE_PATH,
+            fixture_makefile().replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py\n",
+                "",
+                1,
+            ),
+        )
+        if not any("check-phase14-rcu-rollback-guardrail.py --self-test" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected RCU rollback guardrail marker failure")
+            return 1
+
+        write_fixture_tree(base)
+        write_text(
+            base,
             WORKFLOW_PATH,
             fixture_workflow() + "      - name: Wrong smoke route\n        run: make -C zigux phase14-smoke\n",
         )
@@ -280,15 +304,15 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         manifest = json.loads(fixture_manifest())
-        manifest["survey_summary"]["workflow_runs_phase14_build"] = True
+        manifest["survey_summary"]["phase14_validate_runs_rcu_rollback_guardrail"] = False
         write_fixture_manifest(base, manifest)
-        if not any("manifest_value_mismatch:survey_summary.workflow_runs_phase14_build" in error for error in check(base)):
+        if not any("manifest_value_mismatch:survey_summary.phase14_validate_runs_rcu_rollback_guardrail" in error for error in check(base)):
             print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
-            print("expected workflow summary manifest drift failure")
+            print("expected RCU guardrail manifest drift failure")
             return 1
 
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=6")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
