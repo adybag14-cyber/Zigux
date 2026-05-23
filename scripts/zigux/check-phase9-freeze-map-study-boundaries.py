@@ -16,6 +16,7 @@ LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
+MAKEFILE_PATH = "zigux/Makefile"
 
 
 def infer_repo_root() -> Path:
@@ -53,7 +54,7 @@ FREEZE_MAP_REQUIRED_MARKERS = [
     "`zigux/kernel/runtime_loader.zig`",
     "`zigux/kernel/runtime_loader_contract.zig`",
     "`samples/zigux/runtime_*_loader.zig`",
-    "`zigux/Makefile` explicit only as a readable non-owner surface whose live body still lacks dedicated `phase9-*` runtime-pilot routes",
+    "`zigux/Makefile` explicit only as a readable non-owner surface whose live body now exposes bounded `phase9-runtime-atomic64-test`, `phase9-runtime-bitmap-test`, `phase9-runtime-loader-shared-test`, `phase9-runtime-trace-events-test`, `phase9-first-loadable-runtime-module-parity-test`, and `phase9-test` routes",
 ]
 
 STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS = [
@@ -103,6 +104,21 @@ TESTS_README_REQUIRED_MARKERS = [
     "without implying any Architecture Council approval for a freeze-map status change",
 ]
 
+CURRENT_PHASE9_MAKE_ROUTES = [
+    "phase9-runtime-atomic64-test",
+    "phase9-runtime-bitmap-test",
+    "phase9-runtime-loader-shared-test",
+    "phase9-runtime-trace-events-test",
+    "phase9-first-loadable-runtime-module-parity-test",
+    "phase9-test",
+]
+
+FORBIDDEN_PHASE9_MAKE_ROUTES = [
+    "phase9",
+    "phase9-validate",
+    "phase9-runtime-trace-events-sample-tests",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -111,6 +127,34 @@ def read_text(root: Path, rel_path: str) -> str:
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def find_makefile_phase9_routes(text: str) -> list[str]:
+    routes: list[str] = []
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if not stripped or stripped.startswith("#") or stripped.startswith(".PHONY:"):
+            continue
+        if stripped.startswith("phase9") and ":" in stripped:
+            routes.append(stripped.split(":", 1)[0])
+    return routes
+
+
+def remove_makefile_route_definition(content: str, route: str) -> str:
+    lines = content.splitlines()
+    kept: list[str] = []
+    skipping = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith(f"{route}:"):
+            skipping = True
+            continue
+        if skipping:
+            if line.startswith("\t"):
+                continue
+            skipping = False
+        kept.append(line)
+    return "\n".join(kept) + "\n"
 
 
 def validate(root: Path) -> list[str]:
@@ -124,6 +168,7 @@ def validate(root: Path) -> list[str]:
         SCRIPTS_README_PATH,
         SAMPLES_README_PATH,
         TESTS_README_PATH,
+        MAKEFILE_PATH,
     ]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
@@ -170,6 +215,15 @@ def validate(root: Path) -> list[str]:
         if marker not in tests_readme:
             failures.append(f"missing_marker:{TESTS_README_PATH}:{marker}")
 
+    makefile = read_text(root, MAKEFILE_PATH)
+    makefile_routes = find_makefile_phase9_routes(makefile)
+    for route in CURRENT_PHASE9_MAKE_ROUTES:
+        if route not in makefile_routes:
+            failures.append(f"missing_phase9_route:{MAKEFILE_PATH}:{route}")
+    for route in FORBIDDEN_PHASE9_MAKE_ROUTES:
+        if route in makefile_routes:
+            failures.append(f"unexpected_phase9_route:{MAKEFILE_PATH}:{route}")
+
     return failures
 
 
@@ -179,7 +233,7 @@ def build_freeze_map_fixture_text() -> str:
 - `kernel/workqueue.c`
 - `kernel/trace/ring_buffer.c`
 - shared reminder surfaces that summarize freeze posture must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md`
-- shared Phase 9 runtime-pilot freeze-boundary packet must keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `.github/workflows/zigux-bootstrap.yml`, `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit together, keep `zigux/Makefile` explicit only as a readable non-owner surface whose live body still lacks dedicated `phase9-*` runtime-pilot routes, keep the returned shared runtime-loader allocator/init-flow packet explicit through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds, and must treat the still-missing `zigux/tests/runtime_loader_gap_manifest.json`, the broader shared `zigux/tests/runtime_*` replay family beyond the returned survey and allocator/init-flow packet, and blocked publication or install-root loader boundaries as historical blocked-boundary vocabulary unless a fresh repo reread proves they returned, so the surviving narrow trace-events packet and the neighboring returned loader packet do not imply that `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` has crossed the study-only boundary into delivery-ready runtime-substrate evidence
+- shared Phase 9 runtime-pilot freeze-boundary packet must keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `.github/workflows/zigux-bootstrap.yml`, `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit together, keep `zigux/Makefile` explicit only as a readable non-owner surface whose live body now exposes bounded `phase9-runtime-atomic64-test`, `phase9-runtime-bitmap-test`, `phase9-runtime-loader-shared-test`, `phase9-runtime-trace-events-test`, `phase9-first-loadable-runtime-module-parity-test`, and `phase9-test` routes without treating those wrappers as proof that blocked publication, install-root, or deeper runtime-substrate work is complete, keep the returned shared runtime-loader allocator/init-flow packet explicit through `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the `samples/zigux/runtime_*_loader.zig` scaffolds, and must treat the still-missing `zigux/tests/runtime_loader_gap_manifest.json`, the broader shared `zigux/tests/runtime_*` replay family beyond the returned survey and allocator/init-flow packet, and blocked publication or install-root loader boundaries as historical blocked-boundary vocabulary unless a fresh repo reread proves they returned, so the surviving narrow trace-events packet and the neighboring returned loader packet do not imply that `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` has crossed the study-only boundary into delivery-ready runtime-substrate evidence
 """
 
 
@@ -258,6 +312,41 @@ Tests-root reviewer prompt:
 """
 
 
+def build_makefile_fixture_text() -> str:
+    return """PYTHON ?= python3
+ZIG ?= zig
+ZIGUX_ROOT := ..
+
+.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
+
+phase8-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
+
+phase9-runtime-atomic64-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-bitmap-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-loader-shared-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-runtime-trace-events-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-first-loadable-runtime-module-parity-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-survey-tests --build-file zigux/tests/phase9_build.zig --summary all
+
+phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-first-loadable-runtime-module-parity-test
+
+phase10-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
+
+phase12-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
+"""
+
+
 def seed_fixture_tree(base: Path) -> None:
     write_text(base / FREEZE_MAP_PATH, build_freeze_map_fixture_text())
     write_text(base / STUDY_ONLY_ACCOUNTING_PATH, build_study_only_accounting_fixture_text())
@@ -267,6 +356,7 @@ def seed_fixture_tree(base: Path) -> None:
     write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text())
     write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
     write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
+    write_text(base / MAKEFILE_PATH, build_makefile_fixture_text())
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -347,6 +437,18 @@ def run_self_test() -> int:
             write_text(base / TESTS_README_PATH, current.replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{TESTS_README_PATH}:{marker}")
 
+        for route in CURRENT_PHASE9_MAKE_ROUTES:
+            seed_fixture_tree(base)
+            current = read_text(base, MAKEFILE_PATH)
+            write_text(base / MAKEFILE_PATH, remove_makefile_route_definition(current, route))
+            expect_failure(base, f"missing_phase9_route:{MAKEFILE_PATH}:{route}")
+
+        for route in FORBIDDEN_PHASE9_MAKE_ROUTES:
+            seed_fixture_tree(base)
+            current = read_text(base, MAKEFILE_PATH)
+            write_text(base / MAKEFILE_PATH, current + f"\n{route}:\n\t@true\n")
+            expect_failure(base, f"unexpected_phase9_route:{MAKEFILE_PATH}:{route}")
+
         for rel_path in [
             FREEZE_MAP_PATH,
             STUDY_ONLY_ACCOUNTING_PATH,
@@ -356,6 +458,7 @@ def run_self_test() -> int:
             SCRIPTS_README_PATH,
             SAMPLES_README_PATH,
             TESTS_README_PATH,
+            MAKEFILE_PATH,
         ]:
             seed_fixture_tree(base)
             (base / rel_path).unlink()
@@ -372,6 +475,8 @@ def run_self_test() -> int:
     print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REQUIRED_MAKE_ROUTE_COUNT={len(CURRENT_PHASE9_MAKE_ROUTES)}")
+    print(f"PHASE9_FORBIDDEN_MAKE_ROUTE_COUNT={len(FORBIDDEN_PHASE9_MAKE_ROUTES)}")
     return 0
 
 
@@ -380,7 +485,7 @@ def main() -> int:
         description=(
             "Check that the Phase 9 freeze-map boundary packet keeps the study-only anchors, "
             "the reviewer-facing checklist route-back wording, the shared runtime-trace-events reminder surfaces, "
-            "and the fuller Phase 15 study-only accounting posture explicit together."
+            "the bounded current Phase 9 Makefile route inventory, and the fuller Phase 15 study-only accounting posture explicit together."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
@@ -404,6 +509,8 @@ def main() -> int:
     print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REQUIRED_MAKE_ROUTE_COUNT={len(CURRENT_PHASE9_MAKE_ROUTES)}")
+    print(f"PHASE9_FORBIDDEN_MAKE_ROUTE_COUNT={len(FORBIDDEN_PHASE9_MAKE_ROUTES)}")
     print("PHASE9_FREEZE_MAP_STUDY_BOUNDARIES=pass")
     return 0
 
