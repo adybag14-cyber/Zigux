@@ -135,8 +135,12 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + 1
     + len(DOCS_ROOT_MARKERS)
+    + len(DOCS_ROOT_MARKERS)
+    + len(REVIEW_MARKERS)
     + len(REVIEW_MARKERS)
     + len(TESTS_MARKERS)
+    + len(TESTS_MARKERS)
+    + len(BOOTSTRAP_MARKERS)
     + len(BOOTSTRAP_MARKERS)
     + len(WORKFLOW_MARKERS)
     + len(WORKFLOW_MARKERS)
@@ -190,6 +194,10 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def count_marker_occurrences(text: str, marker: str) -> int:
+    return text.count(marker)
+
+
 def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -199,8 +207,20 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
+def collect_marker_issues(
+    text: str,
+    markers: tuple[str, ...],
+    missing_code: str,
+    duplicate_code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = count_marker_occurrences(text, marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
 
 
 def collect_exact_line_issues(
@@ -263,31 +283,35 @@ def validate_policy(payload: object) -> list[tuple[str, str]]:
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     issues.extend(
-        collect_missing_markers(
+        collect_marker_issues(
             read_text(resolve_path(root, DOCS_ROOT_README)),
             DOCS_ROOT_MARKERS,
             "MISSING_DOCS_ROOT_MARKERS",
+            "DUPLICATE_DOCS_ROOT_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_issues(
             read_text(resolve_path(root, REVIEW_CHECKLIST)),
             REVIEW_MARKERS,
             "MISSING_REVIEW_MARKERS",
+            "DUPLICATE_REVIEW_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_issues(
             read_text(resolve_path(root, TESTS_README)),
             TESTS_MARKERS,
             "MISSING_TESTS_MARKERS",
+            "DUPLICATE_TESTS_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_issues(
             read_text(resolve_path(root, BOOTSTRAP_NOTES)),
             BOOTSTRAP_MARKERS,
             "MISSING_BOOTSTRAP_MARKERS",
+            "DUPLICATE_BOOTSTRAP_MARKERS",
         )
     )
     issues.extend(
@@ -307,17 +331,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_issues(
             read_text(resolve_path(root, MAKEFILE)),
             MAKEFILE_VARIABLE_MARKERS,
             "MISSING_MAKEFILE_VARIABLE_MARKERS",
+            "DUPLICATE_MAKEFILE_VARIABLE_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_issues(
             read_text(resolve_path(root, TOOLCHAIN_CHECKER)),
             TOOLCHAIN_CHECKER_MARKERS,
             "MISSING_TOOLCHAIN_CHECKER_MARKERS",
+            "DUPLICATE_TOOLCHAIN_CHECKER_MARKERS",
         )
     )
 
@@ -420,11 +446,25 @@ def run_self_test() -> int:
             assert ("MISSING_DOCS_ROOT_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in DOCS_ROOT_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, DOCS_ROOT_README)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_DOCS_ROOT_MARKERS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
         for marker in REVIEW_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, REVIEW_CHECKLIST)
             path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_REVIEW_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in REVIEW_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_REVIEW_MARKERS", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for marker in TESTS_MARKERS:
@@ -434,11 +474,25 @@ def run_self_test() -> int:
             assert ("MISSING_TESTS_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in TESTS_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_TESTS_MARKERS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
         for marker in BOOTSTRAP_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
             path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_BOOTSTRAP_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in BOOTSTRAP_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, BOOTSTRAP_NOTES)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_BOOTSTRAP_MARKERS", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for marker in WORKFLOW_MARKERS:
