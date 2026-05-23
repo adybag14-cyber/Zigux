@@ -113,9 +113,9 @@ REQUIRED_MARKERS = {
     ),
     BRIDGE_TEST_PATH: (
         "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
-        '\\"slug\\": \\"fdinfo-map-info-helpers\\", \\"status\\": \\"starter_landed\\"',
-        '\\"slug\\": \\"map-reuse-compatibility\\", \\"status\\": \\"starter_landed\\"',
-        '\\"slug\\": \\"file-path-and-handle-bridge\\", \\"status\\": \\"deferred_high_risk\\", \\"kind\\": \\"resource_boundary\\"',
+        '\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"',
+        '\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"',
+        '\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"',
     ),
     MANIFEST_PATH: (
         '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
