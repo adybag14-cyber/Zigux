@@ -140,6 +140,8 @@ REQUIRED_MARKERS = {
     LIBBPF_SEGMENTS_TEST_PATH: (
         'test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {',
         'test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit" {',
+        'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
+        'test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier shards visible" {',
     ),
     LIBBPF_SEGMENTS_BUILD_PATH: (
         'b.path("../../tools/lib/bpf/zigux_segments/verify.zig")',
@@ -290,6 +292,7 @@ def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
     if marker not in text:
         raise SystemExit(f"self-test-fixture-missing:{rel_path}:{marker}")
 
+    (root / rel_path).writeText = None
     (root / rel_path).write_text(text.replace(marker, ""), encoding="utf-8")
     result = run_validator(root)
     expected = f"missing-marker:{rel_path}:{marker}"
