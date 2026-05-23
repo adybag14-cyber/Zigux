@@ -22,11 +22,29 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     defer std.testing.allocator.free(parity_note);
 
+    const atomic64_survey_note = try readRepoFileAlloc(
+        "../../Documentation/zigux/phase9-runtime-atomic64-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(atomic64_survey_note);
+
+    const atomic64_module_slice = try readRepoFileAlloc(
+        "../../Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(atomic64_module_slice);
+
     const atomic64_manifest = try readRepoFileAlloc(
         "runtime_atomic64_manifest.json",
         32 * 1024,
     );
     defer std.testing.allocator.free(atomic64_manifest);
+
+    const atomic64_survey_test = try readRepoFileAlloc(
+        "runtime_atomic64_survey.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(atomic64_survey_test);
 
     const manifest = try readRepoFileAlloc(
         "runtime_bitmap_manifest.json",
@@ -89,6 +107,45 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
         "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet without a returned family-local loader scaffold, and the still-partial bitmap reminder packet with restored module and diff proof but without broader shared runtime-loader parity.",
     );
 
+    try expectContains(atomic64_survey_note, "`PHASE9_STATUS=active`");
+    try expectContains(atomic64_survey_note, "`PHASE9_SLICE=runtime-atomic64-survey`");
+    try expectContains(atomic64_survey_note, "`PHASE9_LANE_KEY=P9-L04`");
+    try expectContains(atomic64_survey_note, "`samples/zigux/runtime_atomic64.zig`");
+    try expectContains(atomic64_survey_note, "`zigux/tests/runtime_atomic64_module.zig`");
+    try expectContains(atomic64_survey_note, "`zigux/tests/runtime_atomic64_diff.zig`");
+    try expectContains(atomic64_survey_note, "`zigux/tests/runtime_atomic64_survey.zig`");
+    try expectContains(atomic64_survey_note, "`zigux/tests/runtime_atomic64_manifest.json`");
+    try expectContains(
+        atomic64_survey_note,
+        "The shared-loader reminder surfaces visible here keep the broader runtime-substrate blocker explicit, so this packet is still not a completed loadable runtime-module path.",
+    );
+    try expectContains(
+        atomic64_survey_note,
+        "`phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-tests`, and `phase9-runtime-loader-shared-tests` explicit",
+    );
+
+    try expectContains(atomic64_module_slice, "`PHASE9_STATUS=active`");
+    try expectContains(atomic64_module_slice, "`PHASE9_SLICE=runtime-atomic64-module-starter`");
+    try expectContains(atomic64_module_slice, "`PHASE9_LANE_KEY=P9-L04`");
+    try expectContains(atomic64_module_slice, "`samples/zigux/runtime_atomic64.zig`");
+    try expectContains(atomic64_module_slice, "`zigux/tests/runtime_atomic64_module.zig`");
+    try expectContains(atomic64_module_slice, "`zigux/tests/runtime_atomic64_diff.zig`");
+    try expectContains(atomic64_module_slice, "`zigux/tests/runtime_atomic64_survey.zig`");
+    try expectContains(atomic64_module_slice, "`zigux/tests/runtime_atomic64_manifest.json`");
+    try expectContains(atomic64_module_slice, "`samples/zigux/runtime_bitmap_loader.zig`");
+    try expectContains(
+        atomic64_module_slice,
+        "the direct atomic64 packet is still narrower than full loader-backed parity",
+    );
+    try expectContains(
+        atomic64_module_slice,
+        "`phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-tests`, and `phase9-runtime-loader-shared-tests` explicit",
+    );
+    try expectContains(
+        atomic64_module_slice,
+        "No claim of full loadable module lifecycle parity before the shared runtime substrate lands.",
+    );
+
     try expectContains(atomic64_manifest, "\"phase\": \"Phase 9\"");
     try expectContains(atomic64_manifest, "\"lane_key\": \"P9-L04\"");
     try expectContains(atomic64_manifest, "\"surveyed_commit\": \"9f8c05368242414084e4bc94ea979604c2b6b712\"");
@@ -105,6 +162,35 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(
         atomic64_manifest,
         "the loader scaffold and survey gate remain direct packet evidence outside standalone shared-build route names",
+    );
+
+    try expectContains(
+        atomic64_survey_test,
+        "\"phase 9 runtime atomic64 survey manifest records the visible shared-loader reminder packet\"",
+    );
+    try expectContains(
+        atomic64_survey_test,
+        "\"runtime-atomic64-survey-note\"",
+    );
+    try expectContains(
+        atomic64_survey_test,
+        "\"Documentation/zigux/phase9-runtime-atomic64-survey.md\"",
+    );
+    try expectContains(
+        atomic64_survey_test,
+        "\"runtime-atomic64-module-slice-note\"",
+    );
+    try expectContains(
+        atomic64_survey_test,
+        "\"Documentation/zigux/phase9-runtime-atomic64-module-slice.md\"",
+    );
+    try expectContains(
+        atomic64_survey_test,
+        "\"starter_landed_with_visible_shared_loader_packet\"",
+    );
+    try expectContains(
+        atomic64_survey_test,
+        "\"runtime-atomic64-live-loader-binding\"",
     );
 
     try expectContains(manifest, "\"phase\": \"Phase 9\"");
