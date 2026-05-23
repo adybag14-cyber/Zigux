@@ -77,17 +77,25 @@ REQUIRED_SEQUENCING_SNIPPETS = [
     "- string_helpers packet, helper-local lane family:",
     "- cmdline packet, lane `P7-L08`:",
     "keep helper-local `string_helpers` slice, helper, dedicated replay, survey, manifest, sample-boundary, and checker drift out of `P7-Y05`; only route shared validator, Makefile, workflow, docs-root, tests-root, sample-root, or shared-build reminders back to the shared-control packet",
+    "scheduled anti-overlap note: recurring helper-local lane `P7-Y01` is same-family `string_helpers` follow-through, not a separate Phase 7 helper packet; keep it narrowed to `lib/string_helpers.zig` and its directly coupled slice, replay, survey, manifest, sample-boundary, or checker surfaces while shared validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build reminders stay with `P7-Y05`",
     "keep `Documentation/zigux/phase7-string-helpers-slice.md` with the string_helpers helper-local lane family instead of the shared-control packet while shared validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build reminders stay routed to `P7-Y05`.",
+    "Current lane evidence also keeps `P7-Y01` inside this same helper-local family, while `P7-L04` remains the shared-control workspace-bootstrap follow-through for validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build reminder drift rather than a second helper-local string_helpers packet.",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-shared-control-gap.py`",
     "- `scripts/zigux/validate-phase7.py`",
     "the readable non-owner shared-control files in this slot are still `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase7_build.zig`, and fresh reread now shows the workflow carries the current `check-phase7-shared-control-gap.py` and `check-phase7-make-wrapper-selftest-alignment.py` self-test hooks while the readable `zigux/Makefile` still exposes only the narrow `phase7-validate` foothold and still omits `phase7-test`, `phase7`, and the helper-local Phase 7 wrapper routes. Keep shared-control truthfulness anchored to that returned validator foothold, those returned checker hooks, the readable non-owner build shard, and the still-absent broader wrapper boundaries instead of claiming the older workflow-backed test routes have returned.",
     "so `P7-L08` should treat that helper-local packet as the current same-lane packet instead of widening into shared validator or Makefile follow-through.",
+    "Treat recurring lane `P7-L04` as the shared-control workspace-bootstrap follow-through; keep it narrowed to `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md`, `Documentation/zigux/phase7-shared-control-review-checkpoint.md`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-shared-control-gap.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `samples/zigux/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, or the readable non-owner `zigux/tests/phase7_build.zig` instead of reassigning that lane to helper-local string_helpers ownership.",
+    "treat recurring helper-local lane `P7-Y01` as same-family follow-through inside that one packet rather than as a separate helper family",
 ]
 
 FORBIDDEN_SEQUENCING_SNIPPETS = [
     "- cmdline packet, lane `P7-L10`:",
     "so `P7-L10` should treat that helper-local packet as the current same-lane packet instead of widening into shared validator or Makefile follow-through.",
+    "scheduled anti-overlap note: recurring helper-local lanes `P7-L04` and `P7-Y01` are same-family `string_helpers` follow-through, not separate Phase 7 helper packets; keep both lanes narrowed to `lib/string_helpers.zig` and its directly coupled slice, replay, survey, manifest, sample-boundary, or checker surfaces",
+    "Current lane evidence also keeps `P7-L04` and `P7-Y01` inside this same helper-local family rather than treating them as two separate helper packets.",
+    "Treat recurring helper-local lanes `P7-L04` and `P7-Y01` as same-family string_helpers follow-through inside that one helper packet, not as separate Phase 7 helper lanes; keep `P7-L04` narrowed to string_helpers slice, survey, manifest, sample-boundary, or checker drift and keep `P7-Y01` narrowed to `lib/string_helpers.zig` ownership or directly coupled helper-local truthfulness while both lanes still route shared validator, Makefile, workflow, docs-root, tests-root, sample-root, and shared-build drift back to `P7-Y05`.",
+    "treat recurring helper-local lanes `P7-L04` and `P7-Y01` as same-family sublanes of that one packet rather than as separate helper families",
 ]
 
 REQUIRED_REVIEW_SNIPPETS = [
@@ -133,7 +141,7 @@ REQUIRED_MAKEFILE_LINES = [
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 20
 
 
 class ValidationError(RuntimeError):
@@ -225,10 +233,7 @@ def scaffold_repo(root: Path) -> None:
 def expect_failure(root: Path, rel: Path, old: str, new: str) -> None:
     path = root / rel
     original = read_text(path)
-    if old:
-        updated = original.replace(old, new, 1)
-    else:
-        updated = original + new
+    updated = original.replace(old, new, 1) if old else original + new
     write(path, updated)
     try:
         validate(root)
@@ -245,39 +250,33 @@ def run_self_test() -> None:
 
         cases_run = 0
         cases = [
-            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[4], "returned narrow", ""),
-            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[9], "returned narrow", ""),
-            (REVIEW_CHECKPOINT_PATH, REQUIRED_REVIEW_SNIPPETS[2], "returned narrow", ""),
-            (STRING_HELPERS_SLICE_PATH, REQUIRED_STRING_HELPERS_SNIPPETS[2], "- do not count `scripts/zigux/check-phase7-build-wiring.py`", ""),
-            (CMDLINE_SLICE_PATH, REQUIRED_CMDLINE_SLICE_SNIPPETS[0], "PHASE7_LANE_KEY=P7-L10", ""),
-            (WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES[0], "run: true", ""),
-            (WORKFLOW_PATH, "", "run: make -C zigux phase7-test\n", ""),
-            (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[0], "phase7:\n", ""),
-            (MAKEFILE_PATH, "", "phase7-test:\n", ""),
-            (SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate", "make -C zigux phase7", ""),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[4], "recurring helper-local lane `P7-Y99`",),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[6], "Current lane evidence also keeps `P7-L04` and `P7-Y01` inside this same helper-local family rather than treating them as two separate helper packets.",),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[11], "Treat recurring lane `P7-L04` as helper-local drift.",),
+            (SEQUENCING_NOTE_PATH, REQUIRED_SEQUENCING_SNIPPETS[12], "treat recurring helper-local lanes `P7-L04` and `P7-Y01` as same-family sublanes of that one packet rather than as separate helper families",),
+            (REVIEW_CHECKPOINT_PATH, REQUIRED_REVIEW_SNIPPETS[2], "returned narrow",),
+            (STRING_HELPERS_SLICE_PATH, REQUIRED_STRING_HELPERS_SNIPPETS[2], "- do not count `scripts/zigux/check-phase7-build-wiring.py`",),
+            (CMDLINE_SLICE_PATH, REQUIRED_CMDLINE_SLICE_SNIPPETS[0], "PHASE7_LANE_KEY=P7-L10",),
+            (WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES[0], "run: true",),
+            (WORKFLOW_PATH, "", "run: make -C zigux phase7-test\n",),
+            (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[0], "phase7:\n",),
+            (MAKEFILE_PATH, "", "phase7-test:\n",),
+            (SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate", "make -C zigux phase7",),
         ]
-        for rel, old, new, _ in cases:
+        for rel, old, new in cases:
             scaffold_repo(root)
             expect_failure(root, rel, old, new)
             cases_run += 1
 
-        scaffold_repo(root)
-        write(root / SEQUENCING_NOTE_PATH, read_text(root / SEQUENCING_NOTE_PATH) + FORBIDDEN_SEQUENCING_SNIPPETS[0] + "\n")
-        try:
-            validate(root)
-        except ValidationError:
-            cases_run += 1
-        else:
-            raise AssertionError("expected validation failure")
-
-        scaffold_repo(root)
-        write(root / SEQUENCING_NOTE_PATH, read_text(root / SEQUENCING_NOTE_PATH) + FORBIDDEN_SEQUENCING_SNIPPETS[1] + "\n")
-        try:
-            validate(root)
-        except ValidationError:
-            cases_run += 1
-        else:
-            raise AssertionError("expected validation failure")
+        for forbidden in FORBIDDEN_SEQUENCING_SNIPPETS[:4]:
+            scaffold_repo(root)
+            write(root / SEQUENCING_NOTE_PATH, read_text(root / SEQUENCING_NOTE_PATH) + forbidden + "\n")
+            try:
+                validate(root)
+            except ValidationError:
+                cases_run += 1
+            else:
+                raise AssertionError("expected validation failure")
 
         scaffold_repo(root)
         write(root / PARKED_SHARED_CONTROL_PATHS[0], "# unexpectedly returned parked path\n")
