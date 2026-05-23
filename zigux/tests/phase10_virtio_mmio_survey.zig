@@ -187,6 +187,11 @@ test "phase10 virtio mmio survey note keeps risky transport work and freeze-boun
 
     try expectContains(survey_note, "transport-backed queue setup or queue reset execution");
     try expectContains(survey_note, "shared IRQ delivery parity");
+    try expectContains(survey_note, "DMA-facing behavior");
+    try expectContains(
+        survey_note,
+        "probe, remove, freeze, restore, or device-lifecycle closure",
+    );
     try expectContains(
         survey_note,
         "`freeze_boundary_status` stays `aligned` and `freeze_status_change_claimed` stays `false`.",
