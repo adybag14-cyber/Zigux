@@ -163,6 +163,15 @@ CHECK_COMMANDS = (
         (),
         ("PHASE3_ABI_MANIFEST_REPLAY_ROUTES=pass",),
     ),
+    (
+        Path("scripts/zigux/check-phase3-bitmap-cpumask.py"),
+        (),
+        (
+            "PHASE3_BITMAP_CPUMASK_PACKET=pass",
+            "validated zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json",
+            "validated zigux/tests/phase3_bitmap_cpumask_starter_packet.zig",
+        ),
+    ),
 )
 
 SELF_TEST_MISSING_CASES = (
@@ -188,6 +197,7 @@ SELF_TEST_MISSING_CASES = (
     (19, "expected linux-zigux header-governance script omission was not reported"),
     (20, "expected selftest-surface script omission was not reported"),
     (21, "expected abi manifest replay-routes script omission was not reported"),
+    (22, "expected bitmap-cpumask script omission was not reported"),
 )
 
 
@@ -534,10 +544,21 @@ def run_self_test() -> int:
             print("expected missing abi manifest replay-routes pass marker to fail the runner")
             return 1
 
+        bitmap_cpumask_path = root / CHECK_COMMANDS[22][0]
+        populate_repo()
+        _write_synthetic_script(
+            bitmap_cpumask_path,
+            ("PHASE3_BITMAP_CPUMASK_PACKET=pass",),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing bitmap-cpumask manifest output marker to fail the runner")
+            return 1
+
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 17}"
+            f"{len(SELF_TEST_MISSING_CASES) + 18}"
         )
         return 0
 
