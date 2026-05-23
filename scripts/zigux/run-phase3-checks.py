@@ -158,6 +158,11 @@ CHECK_COMMANDS = (
         (),
         ("validated scripts/zigux/README.md",),
     ),
+    (
+        Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py"),
+        (),
+        ("PHASE3_ABI_MANIFEST_REPLAY_ROUTES=pass",),
+    ),
 )
 
 SELF_TEST_MISSING_CASES = (
@@ -182,6 +187,7 @@ SELF_TEST_MISSING_CASES = (
     (18, "expected low-level-wrapper script omission was not reported"),
     (19, "expected linux-zigux header-governance script omission was not reported"),
     (20, "expected selftest-surface script omission was not reported"),
+    (21, "expected abi manifest replay-routes script omission was not reported"),
 )
 
 
@@ -501,10 +507,18 @@ def run_self_test() -> int:
             print("expected missing linux-zigux header-governance output marker to fail the runner")
             return 1
 
+        manifest_replay_routes_path = root / CHECK_COMMANDS[21][0]
+        populate_repo()
+        _write_synthetic_script(manifest_replay_routes_path, ())
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing abi manifest replay-routes pass marker to fail the runner")
+            return 1
+
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 14}"
+            f"{len(SELF_TEST_MISSING_CASES) + 15}"
         )
         return 0
 
