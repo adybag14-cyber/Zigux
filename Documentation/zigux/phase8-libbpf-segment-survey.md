@@ -5,7 +5,7 @@ This note records the current bounded Phase 8 libbpf segmentation reviewability 
 ## Status
 - `PHASE8_STATUS=parked`
 - `PHASE8_SURVEY=libbpf-segment-gap-readback`
-- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-21
+- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-23
 - roadmap anchor: `tools/lib/bpf/libbpf.c`
 - intended Zigux destination family: `tools/lib/bpf/zigux_segments/`
 - scope: current-tree reviewability and lane-safe next-step selection only
@@ -34,12 +34,12 @@ The directly readable verifier packet now also keeps dedicated stable-output wit
 
 The new dedicated cpu-mask verifier shard stays bounded to parse, summary, auto-count, and reader/validation witnesses and does not widen into setup-side routing or bridge-heavy setup.
 
-Current authenticated helper readback in this runtime is still narrower than the broader public-tree Phase 8 packet: the helper set above stays the exact authenticated anchor, while current public-tree rereads now rematerialize `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and the focused libbpf bridge-side build companions on `master`. Keep those bridge-facing paths explicit as mixed-source reminder and build-route evidence without folding them back into the exact authenticated helper set.
+Current authenticated helper readback in this runtime now also serves the bridge-side reminder packet directly: the helper set above stays the exact authenticated helper anchor, while the same contents path now returns `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and the focused libbpf bridge-side build companions on current `master`. Keep those bridge-facing paths explicit as direct-readback reminder and build-route evidence without folding them back into the exact helper set or promoting the deferred resource boundary into helper-first proof.
 
 ## Current bounded gap
 The current helper-plus-build survey packet is now truthful about the directly readable stable-output helper set, the helper-local routing evidence, the dedicated cpu-mask, perf-buffer poll, logging, ready-buffer, and type-name verifier shards, and the shared `phase8_build` companion route.
 
-The remaining repo-reality gap in this note is no longer a helper-local code omission. It is reminder-surface discipline: older bridge, manifest, and focused build names may still appear in shared Phase 8 vocabulary, but this survey should not describe those paths as mere authenticated-read flakiness or fold them back into the direct helper packet while they remain outside the same exact current-tree readback mode.
+The remaining repo-reality gap in this note is no longer a helper-local code omission. It is reminder-surface discipline: older bridge, manifest, and focused build names may still appear in shared Phase 8 vocabulary, but this survey should now treat the file-path-handle bridge packet as direct-readback companion evidence instead of as public-tree-only fallback while still keeping it outside the exact helper packet.
 
 Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.
 
@@ -69,6 +69,6 @@ Keep the libbpf survey packet parked after this readback truthfulness repair unl
 
 Preferred order:
 1. reread `Documentation/zigux/phase8-libbpf-segment-survey.md`, `tools/lib/bpf/zigux_segments/verify.zig`, `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/cpu_mask_verify.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, `tools/lib/bpf/zigux_segments/type_names_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, `tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`, and `tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`, `zigux/tests/phase8_verify_routing_gap.zig`, `zigux/tests/phase8_verify_routing_gap_only_build.zig`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile` together before treating any helper-first shard or build route as removed
-2. keep this survey aligned to the mixed direct-helper plus public-tree bridge packet unless a fresh repo reread proves one of those reminder or build companions disappeared again
+2. keep this survey aligned to the direct-helper plus direct-readback bridge packet unless a fresh repo reread proves one of those reminder or build companions disappeared again
 3. if sibling reminder surfaces drift again against the current helper-plus-build evidence, correct the smallest reminder sentence first and keep the focused bridge test plus manifest wording aligned to the current landed `why_now` strings for `fdinfo-map-info-helpers` and `map-reuse-compatibility`
-4. otherwise keep bridge, routing, manifest, and focused build references framed according to the current mixed direct-helper-plus-wrapper-route packet
+4. otherwise keep bridge, routing, manifest, and focused build references framed according to the current direct-helper-plus-wrapper-route packet
