@@ -148,7 +148,8 @@ test "phase4 test_fsmount survey manifest records the parked survey packet and r
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_test_fsmount_survey.zig") != null and
             std.mem.indexOf(u8, phase4_build, manifest.shared_build_replay) != null and
             std.mem.indexOf(u8, phase4_build, "phase4-test-fsmount-survey") != null,
-        .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_matrix, "phase4_test_fsmount_manifest.json") != null and
+        .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_matrix, manifest.shared_lab_and_ci_matrix_anchor) != null and
+            std.mem.indexOf(u8, phase4_matrix, "phase4_test_fsmount_manifest.json") != null and
             std.mem.indexOf(u8, phase4_matrix, "phase4_test_fsmount_survey.zig") != null and
             std.mem.indexOf(u8, phase4_matrix, manifest.validation_entrypoint) != null and
             std.mem.indexOf(u8, phase4_matrix, manifest.dedicated_linux_style_survey_wrapper) != null and
@@ -166,6 +167,7 @@ test "phase4 test_fsmount survey manifest records the parked survey packet and r
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
 
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.shared_lab_and_ci_matrix_anchor) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.reversible_delivery_evidence) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.next_bounded_evidence_step) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig") != null);
