@@ -23,6 +23,15 @@ VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
 VERIFY_STATUS = "starter_landed"
 PM_DESTINATION = "drivers/watchdog/dw_wdt_pm.zig"
 PM_GAP_ID = "phase11-dw-wdt-live-platform-pm"
+PM_WHY_NOW_MARKER = (
+    "The bounded PM helper now keeps suspend, resume, and shutdown handoff reviewable "
+    "across missing-drvdata blocks, running-hardware suspend stop intent with "
+    "stop-on-reboot unregister and restart-priority clear, idle suspend without "
+    "teardown hooks, imported-running resume recovery plus stop-on-reboot and "
+    "restart-priority restore, idle restore hooks, timeout-reprogram blocks, running "
+    "shutdown stop intent with pretimeout-mask teardown, and idle shutdown cleanup "
+    "before live MMIO-backed PM work lands."
+)
 NEXT_DESTINATION = "zigux/tests/phase11_dw_wdt.zig"
 NEXT_GAP_ID = "phase11-dw-wdt-live-mmio-validation"
 
@@ -35,10 +44,9 @@ NOTE_MARKERS = [
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still records archival continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- the active routing split now keeps owner-note truthfulness on `P11-Y03`, survey-only follow-through on `P11-L09`, and deeper platform-registration scaffold follow-through on `P11-L10`; do not reserve `P11-L05` unless the packet collapses back to the older survey-era shape",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge",
-    "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
-    "- `drivers/watchdog/dw_wdt_pm.zig` keeps `test \\\"phase11 dw_wdt pm suspend keeps missing drvdata explicit\\\"`",
-    "`test \\\"phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idle restore\\\"`",
+    "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`, but this note does not itself own that later implementation step",
+    "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
     "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` should keep this narrower current-head packet fail-closed instead of asserting direct readability for the broader returned validation-matrix or verify-helper stack",
 ]
 
@@ -150,6 +158,11 @@ def expect_manifest_state(manifest: dict[str, object]) -> None:
                     "manifest pm status mismatch: "
                     f"expected 'starter_landed', got {entry.get('status')!r}"
                 )
+            if entry.get("why_now") != PM_WHY_NOW_MARKER:
+                raise CheckError(
+                    "manifest pm why_now mismatch: "
+                    f"expected {PM_WHY_NOW_MARKER!r}, got {entry.get('why_now')!r}"
+                )
             found_pm = True
         if entry.get("id") == NEXT_GAP_ID:
             if entry.get("zigux_destination") != NEXT_DESTINATION:
@@ -209,6 +222,7 @@ def build_fixture(root: Path) -> None:
                         "id": PM_GAP_ID,
                         "status": "starter_landed",
                         "zigux_destination": PM_DESTINATION,
+                        "why_now": PM_WHY_NOW_MARKER,
                     },
                     {
                         "id": NEXT_GAP_ID,
@@ -315,7 +329,7 @@ def run_self_test() -> None:
         note_path = missing_note_teardown_route / FILES["note"]
         note_path.write_text(
             note_path.read_text(encoding="utf-8").replace(
-                NOTE_MARKERS[7] + "\n",
+                "- `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge\n",
                 "",
                 1,
             ),
@@ -323,7 +337,24 @@ def run_self_test() -> None:
         )
         expect_failure(
             missing_note_teardown_route,
-            f"missing marker in note: {NOTE_MARKERS[7]}",
+            "missing marker in note: - `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge",
+        )
+        case_count += 1
+
+        missing_note_pm_scope = root / "missing-note-pm-scope"
+        shutil.copytree(fixture, missing_note_pm_scope)
+        note_path = missing_note_pm_scope / FILES["note"]
+        note_path.write_text(
+            note_path.read_text(encoding="utf-8").replace(
+                "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_note_pm_scope,
+            "missing marker in note: - `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
         )
         case_count += 1
 
@@ -332,7 +363,7 @@ def run_self_test() -> None:
         note_path = missing_note_ready_next / FILES["note"]
         note_path.write_text(
             note_path.read_text(encoding="utf-8").replace(
-                NOTE_MARKERS[11] + "\n",
+                "- `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`, but this note does not itself own that later implementation step\n",
                 "",
                 1,
             ),
@@ -340,8 +371,19 @@ def run_self_test() -> None:
         )
         expect_failure(
             missing_note_ready_next,
-            f"missing marker in note: {NOTE_MARKERS[11]}",
+            "missing marker in note: - `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`, but this note does not itself own that later implementation step",
         )
+        case_count += 1
+
+        missing_manifest_pm_why_now = root / "missing-manifest-pm-why-now"
+        shutil.copytree(fixture, missing_manifest_pm_why_now)
+        manifest_path = missing_manifest_pm_why_now / FILES["manifest"]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for entry in manifest["gaps"]:
+            if entry.get("id") == PM_GAP_ID:
+                entry["why_now"] = "stale pm summary"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(missing_manifest_pm_why_now, "manifest pm why_now mismatch")
         case_count += 1
 
         print("PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELFTEST=pass")
