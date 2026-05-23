@@ -41,7 +41,7 @@ REQUIRED_SOURCE_MARKERS = {
         "static inline int zigux_hlist_first_broken_prev_link(",
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
         "static inline struct zigux_interop_policy zigux_default_interop_policy(void)",
-        "static inline struct zigux_export_status zigux_make_status(",
+        "static inline zigux_export_status zigux_make_status(",
     ),
     ABI_BINDINGS_PATH: (
         'const notifier_abi = @import("notifier_abi.zig");',
@@ -616,6 +616,20 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["packet_files"].remove("zigux/tests/phase3_export_shim_build.zig")
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "zigux/tests/phase3_export_shim_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected export-shim build packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
         manifest["replay_routes"].remove(
             "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"
         )
@@ -690,6 +704,22 @@ def run_self_test() -> int:
         if expected not in issues:
             print("PHASE3_VALIDATION_SELF_TEST=fail")
             print("expected policy-dump build route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(repo_root / ABI_MANIFEST_PATH))
+        manifest["replay_routes"].remove(
+            "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"
+        )
+        _write(repo_root / ABI_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected export-shim build replay-route drift was not reported")
             return 1
 
         _populate_repo(repo_root)
@@ -805,7 +835,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=26")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
