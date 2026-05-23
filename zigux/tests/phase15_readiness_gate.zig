@@ -4,6 +4,7 @@ const RepoEvidence = struct {
     phase15_readiness_packet_checker_present: bool,
     phase15_validator_script_present: bool,
     phase15_docs_readme_checker_present: bool,
+    phase15_scripts_readme_checker_present: bool,
     phase15_tests_readme_checker_present: bool,
     phase15_review_checklist_study_only_alignment_checker_present: bool,
     phase15_handoff_note_checker_present: bool,
@@ -81,6 +82,7 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     );
     try std.testing.expect(manifest.repo_evidence.phase15_readiness_packet_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_scripts_readme_checker_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_build_zig_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_test_target_present);
