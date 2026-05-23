@@ -174,13 +174,15 @@ REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES = (
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
     "third_party/README.md",
-    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
     "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/fixdep/cases.json",
+)
+REQUIRED_PHASE2_TOOL_MANIFEST_GAPS = (
+    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
 )
 
 
@@ -264,8 +266,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_forbidden_markers(tests_readme_text, FORBIDDEN_TESTS_README_MARKERS, "FORBIDDEN_TESTS_README_MARKERS"))
     issues.extend(collect_missing_markers(docs_root_text, REQUIRED_DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"))
     issues.extend(collect_missing_manifest_surfaces(manifest_strings))
-    if phase2_tool_manifest.get("repo_reality_gaps") != []:
-        issues.append(("NONEMPTY_PHASE2_TOOL_MANIFEST_GAPS", json.dumps(phase2_tool_manifest.get("repo_reality_gaps"), sort_keys=True)))
+    if phase2_tool_manifest.get("repo_reality_gaps") != list(REQUIRED_PHASE2_TOOL_MANIFEST_GAPS):
+        issues.append(("PHASE2_TOOL_MANIFEST_GAPS_MISMATCH", json.dumps(phase2_tool_manifest.get("repo_reality_gaps"), sort_keys=True)))
     return issues
 
 
@@ -296,7 +298,7 @@ def build_self_test_root(root: Path) -> None:
             {
                 "phase": "Phase 2",
                 "present_surfaces": {"all": list(REQUIRED_PHASE2_TOOL_MANIFEST_SURFACES)},
-                "repo_reality_gaps": [],
+                "repo_reality_gaps": list(REQUIRED_PHASE2_TOOL_MANIFEST_GAPS),
             },
             indent=2,
             sort_keys=True,
@@ -378,10 +380,10 @@ def run_self_test() -> int:
             manifest = read_manifest(manifest_path)
             checks_run += 1
 
-        manifest["repo_reality_gaps"] = ["gap"]
+        manifest["repo_reality_gaps"] = []
         write_text(manifest_path, json.dumps(manifest, indent=2, sort_keys=True) + "\n")
         issues = collect_issues(root)
-        assert ("NONEMPTY_PHASE2_TOOL_MANIFEST_GAPS", json.dumps(["gap"])) in issues, issues
+        assert ("PHASE2_TOOL_MANIFEST_GAPS_MISMATCH", json.dumps([], sort_keys=True)) in issues, issues
         checks_run += 1
 
         if checks_run != expected_case_count:
