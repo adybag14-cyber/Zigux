@@ -231,7 +231,7 @@ RBTREE_REQUIRED_SNIPPETS = [
     "pub fn rb_find_add_cached(",
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 class ValidationError(RuntimeError):
@@ -392,12 +392,14 @@ def run_self_test() -> None:
             (CATALOG_PATH, "- `lib/rbtree.zig`", "- `tools/lib/rbtree.zig`"),
             (CATALOG_PATH, "- none currently", "- `lib/rbtree.zig`"),
             (MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
+            (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test"),
             (BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
             (BUILD_PATH, "phase7-string-helpers-sample-boundary", "phase7-string-helpers-sample-gap"),
             (BUILD_PATH, "phase7-cmdline-survey", "phase7-cmdline-gap"),
             (BUILD_PATH, "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)", "cmdline_survey_step.dependOn(&run_cmdline_tests.step)"),
             (BUILD_PATH, "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)", "argv_split_survey_step.dependOn(&run_argv_split_tests.step)"),
             (BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
+            (BUILD_PATH, "phase7-rbtree-survey", "phase7-rbtree-gap"),
             (BUILD_PATH, 'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");', 'const test_step = b.step("phase7-test", "Run the Phase 7 runtime helper tests");'),
             (BUILD_PATH, "test_step.dependOn(&run_rbtree_survey_tests.step)", "test_step.dependOn(&run_rbtree_tests.step)"),
             (MANIFEST_PATH, '"lib/rbtree.c"', '"tools/lib/rbtree.c"'),
