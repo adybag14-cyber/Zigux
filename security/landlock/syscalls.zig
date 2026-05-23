@@ -2,6 +2,7 @@ const std = @import("std");
 const landlock_ruleset = @import("ruleset.zig");
 
 pub const LANDLOCK_CREATE_RULESET_VERSION: u32 = 1 << 0;
+pub const LANDLOCK_CREATE_RULESET_ERRATA: u32 = 1 << 1;
 pub const LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON: u32 = 1 << 0;
 pub const LANDLOCK_RESTRICT_SELF_TSYNC: u32 = 1 << 1;
 pub const O_RDWR: u32 = 0x2;
@@ -14,6 +15,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_create_ruleset_planning: bool,
     provides_abi_version_query_planning: bool,
+    provides_abi_errata_query_planning: bool,
     provides_restrict_self_planning: bool,
     provides_add_rule_planning: bool,
     provides_ruleset_fd_lookup_planning: bool,
@@ -47,6 +49,7 @@ pub const CreateRulesetInput = struct {
 pub const CreateRulesetMode = enum {
     create_handle,
     abi_version_query,
+    abi_errata_query,
 };
 
 pub const CreateRulesetPlan = struct {
@@ -227,6 +230,7 @@ pub const SyscallsHelperLab = struct {
             .anchor = "security/landlock/syscalls.c",
             .provides_create_ruleset_planning = true,
             .provides_abi_version_query_planning = true,
+            .provides_abi_errata_query_planning = true,
             .provides_restrict_self_planning = true,
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_lookup_planning = true,
@@ -247,11 +251,7 @@ pub const SyscallsHelperLab = struct {
     }
 
     pub fn planCreateRuleset(input: CreateRulesetInput) !CreateRulesetPlan {
-        if ((input.flags & ~LANDLOCK_CREATE_RULESET_VERSION) != 0) {
-            return error.UnsupportedCreateRulesetFlags;
-        }
-
-        if ((input.flags & LANDLOCK_CREATE_RULESET_VERSION) != 0) {
+        if (input.flags != 0) {
             if (input.attr_size != 0) {
                 return error.UnexpectedAttrPayload;
             }
@@ -259,9 +259,15 @@ pub const SyscallsHelperLab = struct {
                 return error.UnexpectedAttrPayload;
             }
 
+            const mode = switch (input.flags) {
+                LANDLOCK_CREATE_RULESET_VERSION => CreateRulesetMode.abi_version_query,
+                LANDLOCK_CREATE_RULESET_ERRATA => CreateRulesetMode.abi_errata_query,
+                else => return error.UnsupportedCreateRulesetFlags,
+            };
+
             return .{
                 .anchor = descriptor().anchor,
-                .mode = .abi_version_query,
+                .mode = mode,
                 .attr_size = input.attr_size,
                 .validates_flags = true,
                 .validates_attr_size = true,
@@ -313,7 +319,7 @@ pub const SyscallsHelperLab = struct {
             .create_handle => try planInstallRulesetFd(.{
                 .ruleset_fops_present = request.ruleset_fops_present,
             }),
-            .abi_version_query => null,
+            .abi_version_query, .abi_errata_query => null,
         };
 
         return .{
@@ -538,6 +544,7 @@ test "landlock syscalls descriptor stays within create, restrict-self, and add-r
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_create_ruleset_planning);
     try std.testing.expect(descriptor.provides_abi_version_query_planning);
+    try std.testing.expect(descriptor.provides_abi_errata_query_planning);
     try std.testing.expect(descriptor.provides_restrict_self_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_lookup_planning);
@@ -574,6 +581,24 @@ test "landlock syscalls version query stays before anon inode installation" {
     try std.testing.expectEqual(@as(?landlock_ruleset.CreationPlan, null), plan.ruleset_plan);
 }
 
+test "landlock syscalls errata query stays before anon inode installation" {
+    const plan = try SyscallsHelperLab.planCreateRuleset(.{
+        .attr_size = 0,
+        .flags = LANDLOCK_CREATE_RULESET_ERRATA,
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expectEqual(CreateRulesetMode.abi_errata_query, plan.mode);
+    try std.testing.expect(plan.validates_flags);
+    try std.testing.expect(plan.validates_attr_size);
+    try std.testing.expect(plan.validates_handled_access);
+    try std.testing.expect(!plan.performs_copy_from_user);
+    try std.testing.expect(!plan.delegates_ruleset_creation_planning);
+    try std.testing.expect(!plan.performs_anon_inode_getfd);
+    try std.testing.expect(!plan.returns_new_fd);
+    try std.testing.expectEqual(@as(?landlock_ruleset.CreationPlan, null), plan.ruleset_plan);
+}
+
 test "landlock syscalls version query rejects unexpected attr payload" {
     try std.testing.expectError(error.UnexpectedAttrPayload, SyscallsHelperLab.planCreateRuleset(.{
         .attr = .{ .handled_access_fs = 0x1 },
@@ -582,10 +607,29 @@ test "landlock syscalls version query rejects unexpected attr payload" {
     }));
 }
 
+test "landlock syscalls errata query rejects unexpected attr payload" {
+    try std.testing.expectError(error.UnexpectedAttrPayload, SyscallsHelperLab.planCreateRuleset(.{
+        .attr = .{ .handled_access_net = 0x1 },
+        .attr_size = @sizeOf(CreateRulesetAttr),
+        .flags = LANDLOCK_CREATE_RULESET_ERRATA,
+    }));
+}
+
 test "landlock syscalls create-ruleset rejects undersized attr copies" {
     try std.testing.expectError(error.AttrTooSmall, SyscallsHelperLab.planCreateRuleset(.{
         .attr = .{ .handled_access_fs = 0x2 },
         .attr_size = @sizeOf(CreateRulesetAttr) - 1,
+    }));
+}
+
+test "landlock syscalls create-ruleset rejects combined or unknown query flags" {
+    try std.testing.expectError(error.UnsupportedCreateRulesetFlags, SyscallsHelperLab.planCreateRuleset(.{
+        .attr_size = 0,
+        .flags = LANDLOCK_CREATE_RULESET_VERSION | LANDLOCK_CREATE_RULESET_ERRATA,
+    }));
+    try std.testing.expectError(error.UnsupportedCreateRulesetFlags, SyscallsHelperLab.planCreateRuleset(.{
+        .attr_size = 0,
+        .flags = 1 << 5,
     }));
 }
 
@@ -633,12 +677,12 @@ test "landlock syscalls top-level wrapper keeps version query nullable and expli
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
 }
 
-test "landlock syscalls top-level wrapper keeps version query install planning nullable and explicit" {
+test "landlock syscalls top-level wrapper keeps errata query nullable and explicit" {
     const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
         .attr_present = false,
         .input = .{
             .attr_size = 0,
-            .flags = LANDLOCK_CREATE_RULESET_VERSION,
+            .flags = LANDLOCK_CREATE_RULESET_ERRATA,
         },
     });
 
@@ -646,14 +690,34 @@ test "landlock syscalls top-level wrapper keeps version query install planning n
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(wrapper.reuses_create_ruleset_validation);
-    try std.testing.expect(!wrapper.reuses_ruleset_fd_install_planning);
-    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
+    try std.testing.expectEqual(CreateRulesetMode.abi_errata_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
-    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
 }
 
-test "landlock syscalls top-level wrapper ignores ruleset_fops for version query mode" {
-    const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+test "landlock syscalls top-level wrapper keeps version and errata queries install planning nullable and explicit" {
+    const version_query = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr_size = 0,
+            .flags = LANDLOCK_CREATE_RULESET_VERSION,
+        },
+    });
+    const errata_query = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr_size = 0,
+            .flags = LANDLOCK_CREATE_RULESET_ERRATA,
+        },
+    });
+
+    try std.testing.expect(!version_query.reuses_ruleset_fd_install_planning);
+    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), version_query.ruleset_fd_install_plan);
+    try std.testing.expect(!errata_query.reuses_ruleset_fd_install_planning);
+    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), errata_query.ruleset_fd_install_plan);
+}
+
+test "landlock syscalls top-level wrapper ignores ruleset_fops for create-ruleset query paths" {
+    const version_query = try SyscallsHelperLab.planLandlockCreateRuleset(.{
         .attr_present = false,
         .ruleset_fops_present = false,
         .input = .{
@@ -661,11 +725,21 @@ test "landlock syscalls top-level wrapper ignores ruleset_fops for version query
             .flags = LANDLOCK_CREATE_RULESET_VERSION,
         },
     });
+    const errata_query = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .ruleset_fops_present = false,
+        .input = .{
+            .attr_size = 0,
+            .flags = LANDLOCK_CREATE_RULESET_ERRATA,
+        },
+    });
 
-    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
-    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
-    try std.testing.expect(!wrapper.reuses_ruleset_fd_install_planning);
-    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
+    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, version_query.create_ruleset_plan.mode);
+    try std.testing.expect(!version_query.reuses_ruleset_fd_install_planning);
+    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), version_query.ruleset_fd_install_plan);
+    try std.testing.expectEqual(CreateRulesetMode.abi_errata_query, errata_query.create_ruleset_plan.mode);
+    try std.testing.expect(!errata_query.reuses_ruleset_fd_install_planning);
+    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), errata_query.ruleset_fd_install_plan);
 }
 
 test "landlock syscalls top-level wrapper threads ruleset fd install only for create path" {
@@ -706,26 +780,6 @@ test "landlock syscalls top-level wrapper requires attr presence for create path
             .attr = .{ .handled_access_fs = 0x4 },
         },
     }));
-}
-
-test "landlock syscalls top-level wrapper keeps version query pointer-free while create path alone reuses install planning" {
-    const version_query = try SyscallsHelperLab.planLandlockCreateRuleset(.{
-        .attr_present = false,
-        .input = .{
-            .attr_size = 0,
-            .flags = LANDLOCK_CREATE_RULESET_VERSION,
-        },
-    });
-    const create_handle = try SyscallsHelperLab.planLandlockCreateRuleset(.{
-        .input = .{
-            .attr = .{ .handled_access_fs = 0x4 },
-        },
-    });
-
-    try std.testing.expect(!version_query.reuses_ruleset_fd_install_planning);
-    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), version_query.ruleset_fd_install_plan);
-    try std.testing.expect(create_handle.reuses_ruleset_fd_install_planning);
-    try std.testing.expect(create_handle.ruleset_fd_install_plan != null);
 }
 
 test "landlock syscalls top-level wrapper rejects disabled boot before planning" {
