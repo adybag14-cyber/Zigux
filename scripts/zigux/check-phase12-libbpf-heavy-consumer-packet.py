@@ -42,6 +42,7 @@ RAW_GITHUB_COVERAGE_PATH = (
 RELEASE_COORDINATION_MATRIX_PATH = (
     "Documentation/zigux/phase12-release-coordination-matrix.md"
 )
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
 RELEASE_READINESS_CHECKER_PATH = (
@@ -64,6 +65,7 @@ REQUIRED_FILES = [
     RELEASE_READINESS_SURVEY_PATH,
     RAW_GITHUB_COVERAGE_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
+    WORKFLOW_PATH,
     BUILD_ONLY_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
@@ -116,6 +118,14 @@ REQUIRED_MARKERS = {
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
         "- Shared libbpf heavy-consumer packet: keep `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` aligned around the parked reviewability packet.",
     ],
+    WORKFLOW_PATH: [
+        "Self-test current Phase 12 libbpf heavy-consumer packet checker",
+        "run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test",
+        "Check current Phase 12 libbpf heavy-consumer packet",
+        "run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py",
+        "Validate current Phase 12 support bundle",
+        "run: python3 scripts/zigux/validate-phase12.py",
+    ],
     LIBBPF_SNAPSHOT_CHECKER_PATH: [
         "EXPECTED_SNAPSHOT_TRACKED_PATHS = [",
         "    \"Documentation/zigux/phase12-libbpf-segment-survey.md\",",
@@ -167,6 +177,11 @@ EXACT_COUNT_MARKERS = {
     },
     RELEASE_COORDINATION_MATRIX_PATH: {
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
+    },
+    WORKFLOW_PATH: {
+        "Self-test current Phase 12 libbpf heavy-consumer packet checker": 1,
+        "Check current Phase 12 libbpf heavy-consumer packet": 1,
+        "Validate current Phase 12 support bundle": 1,
     },
     LIBBPF_SNAPSHOT_CHECKER_PATH: {
         "EXPECTED_DETERMINISM_TRACKED_PATHS = [": 1,
@@ -230,6 +245,7 @@ def fixture_text(rel_path: str) -> str:
             RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
             RAW_GITHUB_COVERAGE_PATH: "# Phase 12 Raw GitHub Coverage Survey",
             RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
+            WORKFLOW_PATH: "name: zigux-bootstrap",
             LIBBPF_SNAPSHOT_CHECKER_PATH: "#!/usr/bin/env python3",
             SCRIPTS_README_PATH: "# scripts/zigux",
             TESTS_README_PATH: "# zigux/tests",
