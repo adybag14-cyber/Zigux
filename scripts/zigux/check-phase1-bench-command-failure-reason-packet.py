@@ -114,8 +114,8 @@ def run_self_test() -> None:
         bench_checker.write_text(
             bench_checker.read_text(encoding="utf-8").replace(
                 '        print("PHASE1_BENCH_CHECK_REASON=bench_command_failed")\n'
-                '        print(f"BENCH_COMMAND_EXIT={result.returncode})\n',
-                '        print(f"BENCH_COMMAND_EXIT={result.returncode})\n'
+                '        print(f"BENCH_COMMAND_EXIT={result.returncode}")\n',
+                '        print(f"BENCH_COMMAND_EXIT={result.returncode}")\n'
                 '        print("PHASE1_BENCH_CHECK_REASON=bench_command_failed")\n',
                 1,
             ),
