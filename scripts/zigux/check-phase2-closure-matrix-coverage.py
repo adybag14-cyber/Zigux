@@ -348,6 +348,14 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        manifest_path.write_text("{\n", encoding="utf-8")
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            f"invalid json in required file: {manifest_path}:",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
         validator_text = validator_path.read_text(encoding="utf-8")
         validator_path.write_text(
             validator_text.replace(
@@ -446,6 +454,46 @@ def run_self_test() -> int:
         assert_system_exit_contains(
             lambda: collect_issues(root),
             "matrix.DIRECT_MANIFEST_SURFACE_EXPECTATIONS must stay dict[str, tuple[str, ...]]",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    "policy": (\n'
+                '        "policy-a.json",\n'
+                "    ),\n",
+                "    7: (\n"
+                '        "policy-a.json",\n'
+                "    ),\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.DIRECT_MANIFEST_SURFACE_EXPECTATIONS keys must stay strings",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    "policy": (\n'
+                '        "policy-a.json",\n'
+                "    ),\n",
+                '    "policy": [\n'
+                '        "policy-a.json",\n'
+                "    ],\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.DIRECT_MANIFEST_SURFACE_EXPECTATIONS['policy'] must stay tuple[str, ...]",
         )
         checks_run += 1
 
