@@ -22,6 +22,8 @@ PROOF_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_proof.zig")
 BUILD_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 TARGETLESS_WITNESS_CHECKER_PATH = Path("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py")
+TARGETLESS_WITNESS_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap.zig")
+TARGETLESS_WITNESS_BUILD_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
 
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
@@ -148,6 +150,24 @@ TARGETLESS_WITNESS_CHECKER_MARKERS = (
     'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
 )
 
+TARGETLESS_WITNESS_MARKERS = (
+    'test "phase11 hvc notifier witness records current-head targetless unregister sanitizer" {',
+    'const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");',
+    'const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");',
+    'const survey = try readRepoFile("Documentation/zigux/phase11-hvc-console-survey.md");',
+    'const matrix = try readRepoFile("Documentation/zigux/phase11-hvc-console-validation-matrix.md");',
+    'try expectContains(boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge");',
+    'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");',
+    'try expectContains(survey, "without promoting itself into the shared three-entry build inventory");',
+    'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
+)
+
+TARGETLESS_WITNESS_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig"),',
+    '.name = "phase11-hvc-targetless-unregister-gap",',
+    'const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");',
+)
+
 
 class CheckError(RuntimeError):
     pass
@@ -178,6 +198,13 @@ def run_check(root: Path) -> None:
         TARGETLESS_WITNESS_CHECKER_PATH,
         "targetless witness checker",
         TARGETLESS_WITNESS_CHECKER_MARKERS,
+    )
+    require_markers(root, TARGETLESS_WITNESS_PATH, "targetless witness", TARGETLESS_WITNESS_MARKERS)
+    require_markers(
+        root,
+        TARGETLESS_WITNESS_BUILD_PATH,
+        "targetless witness build",
+        TARGETLESS_WITNESS_BUILD_MARKERS,
     )
 
     payload = json.loads(read_text(root / INVENTORY_PATH))
@@ -211,6 +238,8 @@ def build_fixture(root: Path) -> None:
     write(root / PROOF_PATH, copy(PROOF_PATH))
     write(root / BUILD_PATH, '.name = "phase11-hvc-cleanup-packet-proof"\n')
     write(root / TARGETLESS_WITNESS_CHECKER_PATH, copy(TARGETLESS_WITNESS_CHECKER_PATH))
+    write(root / TARGETLESS_WITNESS_PATH, copy(TARGETLESS_WITNESS_PATH))
+    write(root / TARGETLESS_WITNESS_BUILD_PATH, copy(TARGETLESS_WITNESS_BUILD_PATH))
     write(
         root / INVENTORY_PATH,
         json.dumps(
@@ -277,6 +306,9 @@ def run_self_test() -> int:
             (TARGETLESS_WITNESS_CHECKER_PATH, 'const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");'),
             (TARGETLESS_WITNESS_CHECKER_PATH, 'const survey = try readRepoFile("Documentation/zigux/phase11-hvc-console-survey.md");'),
             (TARGETLESS_WITNESS_CHECKER_PATH, 'const matrix = try readRepoFile("Documentation/zigux/phase11-hvc-console-validation-matrix.md");'),
+            (TARGETLESS_WITNESS_PATH, 'test "phase11 hvc notifier witness records current-head targetless unregister sanitizer" {'),
+            (TARGETLESS_WITNESS_PATH, 'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");'),
+            (TARGETLESS_WITNESS_BUILD_PATH, '.name = "phase11-hvc-targetless-unregister-gap",'),
             (BUILD_PATH, 'phase11-hvc-cleanup-packet-proof'),
         ]
 
