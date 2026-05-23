@@ -75,7 +75,7 @@ REQUIRED_MARKERS = {
         'try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");',
         'try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");',
         'try expectContains(makefile, "phase7-validate:");',
-        'try expectContains(fixture, "\"packet\": \"phase7-rbtree-parity-fixture\"");',
+        'try expectContains(fixture, "\\"packet\\": \\"phase7-rbtree-parity-fixture\\"");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
         '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"',
@@ -85,11 +85,11 @@ REQUIRED_MARKERS = {
         NEXT_STEP_WRAPPER_MARKER,
     ],
     "zigux/tests/fixtures/phase7_rbtree.json": [
-        '"packet": "phase7-rbtree-parity-fixture"',
-        '"ordered_duplicate_range"',
-        '"cached_leftmost_promotion"',
-        '"postorder_null_stop"',
-        '"reverse_alias_detached"',
+        '\"packet\": \"phase7-rbtree-parity-fixture\"',
+        '\"ordered_duplicate_range\"',
+        '\"cached_leftmost_promotion\"',
+        '\"postorder_null_stop\"',
+        '\"reverse_alias_detached\"',
     ],
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c": [
         "struct phase7_rbtree_c_harness {",
@@ -103,7 +103,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 8
 
 
 def read_text(path: Path) -> str:
@@ -169,8 +169,13 @@ def run_self_test() -> None:
         assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
 
         write_fixture_root(root)
+        survey_marker = 'try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
+
+        write_fixture_root(root)
         fixture_path = root / "zigux/tests/fixtures/phase7_rbtree.json"
-        fixture_marker = '"packet": "phase7-rbtree-parity-fixture"'
+        fixture_marker = '\"packet\": \"phase7-rbtree-parity-fixture\"'
         fixture_path.write_text(read_text(fixture_path).replace(fixture_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree.json: {fixture_marker}"])
 
@@ -178,7 +183,7 @@ def run_self_test() -> None:
         makefile_path = root / "zigux/Makefile"
         makefile_marker = "phase7-validate:"
         makefile_path.write_text(read_text(makefile_path).replace(makefile_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/Makefile: {makefile_marker}"])
+        assert validate(root) == ([], [f"zigux/Makefile: {makefile_marker}])
 
         write_fixture_root(root)
         manifest_path = root / "zigux/tests/phase7_rbtree_manifest.json"
