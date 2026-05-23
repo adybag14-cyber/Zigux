@@ -76,6 +76,9 @@ EXPECTED_RECOVERY_MARKERS = (
 NOTE_MARKERS = (
     "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
     "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.",
+    "Current direct-readback dedicated local-only perf companion members:",
+    "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
+    "  * `zigux/tests/phase4_perf_baseline_survey.zig`",
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
 )
@@ -183,6 +186,10 @@ def _baseline_note(root: Path) -> str:
         "",
         "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.",
         "",
+        "Current direct-readback dedicated local-only perf companion members:",
+        "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
+        "  * `zigux/tests/phase4_perf_baseline_survey.zig`",
+        "",
         "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state. In this runtime authenticated contents reads now return `scripts/zigux/validate-phase4.py` directly, while the broader build and bitmap replay companions still remain unreadable on that same route.",
         "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
@@ -277,8 +284,8 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
-            "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.",
-            "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-local-perf-baseline-packet.py`.",
+            "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.\n\nCurrent direct-readback dedicated local-only perf companion members:\n  * `zigux/tests/phase4_perf_baseline_manifest.json`\n  * `zigux/tests/phase4_perf_baseline_survey.zig`",
+            "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-local-perf-baseline-packet.py`.\n\nCurrent direct-readback dedicated local-only perf companion members:\n  * `zigux/tests/phase4_perf_baseline_packet_manifest.json`\n  * `zigux/tests/phase4_perf_baseline_packet_survey.zig`",
         )
         cases += _expect_failure(
             root,
