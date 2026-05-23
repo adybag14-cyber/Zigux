@@ -15,6 +15,8 @@ PHASE3_MARKERS = (
     "`zigux/tests/phase3_low_level_wrappers_build.zig` keep the bounded Phase 3 docs-root packet explicit through the returned starter, helper, validator-support, shared-reminder, export/UAPI, header-family, manifest, catalog, low-level-wrapper, and layout-replay surfaces instead of leaving the docs root narrower than the current-tree packet or widening it into broader shared replay claims.",
     "* the current docs-root Phase 3 reminder packet should stay parked on `Documentation/zigux/phase3-abi-slice.md`",
     "* current `master` directly serves the focused `err_ptr` / `xarray` helper packet through `zigux/helpers/err_ptr.zig`",
+    "* current `master` also directly serves the bounded bitmap/cpumask helper packet through `Documentation/zigux/phase3-bitmap-cpumask-slice.md`",
+    "and it directly serves the bounded list/hlist helper packet through `Documentation/zigux/phase3-list-hlist-slice.md`",
     "* current `master` also directly serves `Documentation/zigux/phase3-validator-support-surface.md`",
     "* current `master` directly serves the starter export shim, the version-only and `dev_t` starter UAPI companions",
     "* current `master` also directly serves the helper-local policy packet through `Documentation/zigux/phase3-policy-slice.md`",
@@ -68,6 +70,8 @@ Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux
 - `zigux/tests/phase3_low_level_wrappers_build.zig` keep the bounded Phase 3 docs-root packet explicit through the returned starter, helper, validator-support, shared-reminder, export/UAPI, header-family, manifest, catalog, low-level-wrapper, and layout-replay surfaces instead of leaving the docs root narrower than the current-tree packet or widening it into broader shared replay claims.
 * the current docs-root Phase 3 reminder packet should stay parked on `Documentation/zigux/phase3-abi-slice.md`
 * current `master` directly serves the focused `err_ptr` / `xarray` helper packet through `zigux/helpers/err_ptr.zig`
+* current `master` also directly serves the bounded bitmap/cpumask helper packet through `Documentation/zigux/phase3-bitmap-cpumask-slice.md`
+and it directly serves the bounded list/hlist helper packet through `Documentation/zigux/phase3-list-hlist-slice.md`
 * current `master` also directly serves `Documentation/zigux/phase3-validator-support-surface.md`
 * current `master` directly serves the starter export shim, the version-only and `dev_t` starter UAPI companions
 * current `master` also directly serves the helper-local policy packet through `Documentation/zigux/phase3-policy-slice.md`
@@ -97,6 +101,7 @@ def run_self_test() -> int:
             PHASE3_MARKERS[7],
             PHASE3_MARKERS[8],
             PHASE3_MARKERS[10],
+            PHASE3_MARKERS[12],
         ):
             _write(root / DOCS_ROOT_README, _sample_docs_root_readme().replace(marker, "", 1))
             missing = collect_missing_markers(root)
