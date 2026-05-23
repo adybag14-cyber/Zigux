@@ -43,9 +43,16 @@ test "phase14 workqueue bridge maintenance handoff stays bridge-local and explic
     try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", handoff.reread_surfaces[0]);
     try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_bridge.zig", handoff.reread_surfaces[1]);
     try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_reviewability.zig", handoff.reread_surfaces[2]);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_bridge_manifest.json", handoff.reread_surfaces[3]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-workqueue-bridge-slice.md", handoff.reread_surfaces[4]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-workqueue-bridge-survey.md", handoff.reread_surfaces[5]);
+    try std.testing.expectEqual(@as(usize, 3), handoff.reopen_conditions.len);
     try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[0], "blocked-maintenance posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[1], "shared smoke or core traceability packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[2], "delayed-work requeue governance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[2], "scheduler-visible worker-state transitions") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "shared reminder surface") != null);
 }
 
 test "phase14 workqueue bridge cancel-path handoff stays explicit and in C" {
