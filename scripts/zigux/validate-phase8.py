@@ -339,7 +339,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ONLINE_CPU_ROUTING_SEGMENT: (
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
-        "test \\\"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\\\" {",
+        "test \"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\" {",
     ),
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT: (
         "phase8 online-cpu route helpers keep typed cpu-index wrappers stable",
@@ -350,7 +350,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'pub const default_bpf_fs_path = "/sys/fs/bpf";',
         "pub fn buildValidatedMapPinPath(",
         "pub fn buildValidatedSanitizedProgramPinPath(",
-        "test \\\"program pin-path helpers mirror the bounded libbpf program pin contract\\\" {",
+        "test \"program pin-path helpers mirror the bounded libbpf program pin contract\" {",
     ),
     PIN_PATH_VERIFY_SEGMENT: (
         "phase8 pin-path helper entrypoints stay explicit",
@@ -362,7 +362,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn resolveReadyBufferFdAtAttempt(",
         "pub fn resolveReadyBufferFdLookupReturnAtAttempt(",
         "pub fn summarizeBufferWindowLookup(",
-        "test \\\"phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing\\\" {",
+        "test \"phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing\" {",
     ),
     PERF_BUFFER_POLL_VERIFY_SEGMENT: (
         "phase8 perf-buffer poll helper entrypoints stay explicit",
@@ -649,7 +649,7 @@ def run_self_test() -> int:
         for relative_path, markers in FILE_MARKERS.items():
             original = _read(root / relative_path)
             for marker in markers:
-                (root / relative_path).writeText(original.replace(marker, ""), encoding="utf-8")
+                (root / relative_path).write_text(original.replace(marker, ""), encoding="utf-8")
                 result = validate_root(root)
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
