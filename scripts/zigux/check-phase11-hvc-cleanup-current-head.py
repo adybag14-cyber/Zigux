@@ -28,6 +28,7 @@ SURVEY_MARKERS = (
     "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "`Documentation/zigux/phase11-hvc-console-slice.md`",
     "`scripts/zigux/check-phase11-build-inventory.py`",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
@@ -241,6 +242,7 @@ def run_self_test() -> int:
 
         cases = [
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
+            (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-slice.md`"),
             (SURVEY_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
             (SURVEY_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_console_manifest.json`"),
