@@ -7,6 +7,7 @@ pub const ModuleDescriptor = struct {
     provides_dmam_free_coherent_cleanup_planning: bool,
     provides_dmam_detach_cleanup_transition_planning: bool,
     provides_of_iomap_planning: bool,
+    provides_of_iomap_cleanup_handoff_planning: bool,
     provides_iounmap_cleanup_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
@@ -89,6 +90,19 @@ pub const DeviceTreeIomapPlan = struct {
     keeps_nonposted_mapping_type: bool,
 };
 
+pub const DeviceTreeIomapCleanupHandoffPlan = struct {
+    anchor: []const u8,
+    index: u32,
+    translated_size: u64,
+    remap_ready: bool,
+    keeps_nonposted_mapping_type: bool,
+    hands_off_to_iounmap_cleanup: bool,
+    unmaps_mapping: bool,
+    releases_from_devres: bool,
+    release_record_consumed: bool,
+    warns_on_release_miss: bool,
+};
+
 pub const ManagedIounmapCleanupPlan = struct {
     anchor: []const u8,
     had_mapping_owner: bool,
@@ -145,6 +159,7 @@ pub const DevresHelperLab = struct {
             .provides_dmam_free_coherent_cleanup_planning = true,
             .provides_dmam_detach_cleanup_transition_planning = true,
             .provides_of_iomap_planning = true,
+            .provides_of_iomap_cleanup_handoff_planning = true,
             .provides_iounmap_cleanup_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
@@ -235,6 +250,26 @@ pub const DevresHelperLab = struct {
         };
     }
 
+    pub fn planDeviceTreeIomapCleanupHandoff(
+        iomap_plan: DeviceTreeIomapPlan,
+        release_record_matches: bool,
+    ) DeviceTreeIomapCleanupHandoffPlan {
+        const cleanup = planManagedIounmapCleanup(iomap_plan.remap_ready, release_record_matches);
+
+        return .{
+            .anchor = iomap_plan.anchor,
+            .index = iomap_plan.index,
+            .translated_size = iomap_plan.translated_size,
+            .remap_ready = iomap_plan.remap_ready,
+            .keeps_nonposted_mapping_type = iomap_plan.keeps_nonposted_mapping_type,
+            .hands_off_to_iounmap_cleanup = cleanup.generates_cleanup_plan,
+            .unmaps_mapping = cleanup.unmaps_mapping,
+            .releases_from_devres = cleanup.releases_from_devres,
+            .release_record_consumed = cleanup.release_record_consumed,
+            .warns_on_release_miss = cleanup.warns_on_release_miss,
+        };
+    }
+
     pub fn planManagedIounmapCleanup(had_mapping_owner: bool, release_record_matches: bool) ManagedIounmapCleanupPlan {
         if (!had_mapping_owner) {
             return .{
@@ -273,6 +308,7 @@ test "descriptor stays helper-local" {
     try std.testing.expect(descriptor.provides_dmam_free_coherent_cleanup_planning);
     try std.testing.expect(descriptor.provides_dmam_detach_cleanup_transition_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
+    try std.testing.expect(descriptor.provides_of_iomap_cleanup_handoff_planning);
     try std.testing.expect(descriptor.provides_iounmap_cleanup_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
@@ -488,6 +524,70 @@ test "iomap planning releases the requested region when remap later fails" {
     try std.testing.expect(plan.releases_region_on_remap_failure);
     try std.testing.expect(!plan.remap_ready);
     try std.testing.expect(!plan.keeps_nonposted_mapping_type);
+}
+
+test "iomap cleanup handoff materializes the iounmap cleanup owner after a successful remap" {
+    const iomap_plan = DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 3,
+        .translated_size = 16384,
+        .translation_ready = true,
+        .requests_region = false,
+        .request_region_available = true,
+        .remap_succeeds = true,
+        .nonposted = true,
+    });
+    const handoff = DevresHelperLab.planDeviceTreeIomapCleanupHandoff(iomap_plan, true);
+
+    try std.testing.expectEqualStrings("lib/devres.c", handoff.anchor);
+    try std.testing.expectEqual(@as(u32, 3), handoff.index);
+    try std.testing.expectEqual(@as(u64, 16384), handoff.translated_size);
+    try std.testing.expect(handoff.remap_ready);
+    try std.testing.expect(handoff.keeps_nonposted_mapping_type);
+    try std.testing.expect(handoff.hands_off_to_iounmap_cleanup);
+    try std.testing.expect(handoff.unmaps_mapping);
+    try std.testing.expect(handoff.releases_from_devres);
+    try std.testing.expect(handoff.release_record_consumed);
+    try std.testing.expect(!handoff.warns_on_release_miss);
+}
+
+test "iomap cleanup handoff keeps missing release records warnable" {
+    const iomap_plan = DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 1,
+        .translated_size = 8192,
+        .translation_ready = true,
+        .requests_region = true,
+        .request_region_available = true,
+        .remap_succeeds = true,
+        .nonposted = false,
+    });
+    const handoff = DevresHelperLab.planDeviceTreeIomapCleanupHandoff(iomap_plan, false);
+
+    try std.testing.expect(handoff.remap_ready);
+    try std.testing.expect(handoff.hands_off_to_iounmap_cleanup);
+    try std.testing.expect(handoff.unmaps_mapping);
+    try std.testing.expect(!handoff.releases_from_devres);
+    try std.testing.expect(!handoff.release_record_consumed);
+    try std.testing.expect(handoff.warns_on_release_miss);
+}
+
+test "iomap cleanup handoff stays inert when remap never succeeds" {
+    const iomap_plan = DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 0,
+        .translated_size = 4096,
+        .translation_ready = true,
+        .requests_region = true,
+        .request_region_available = true,
+        .remap_succeeds = false,
+        .nonposted = false,
+    });
+    const handoff = DevresHelperLab.planDeviceTreeIomapCleanupHandoff(iomap_plan, true);
+
+    try std.testing.expect(!handoff.remap_ready);
+    try std.testing.expect(!handoff.hands_off_to_iounmap_cleanup);
+    try std.testing.expect(!handoff.unmaps_mapping);
+    try std.testing.expect(!handoff.releases_from_devres);
+    try std.testing.expect(!handoff.release_record_consumed);
+    try std.testing.expect(!handoff.warns_on_release_miss);
 }
 
 test "iounmap cleanup planning consumes the matching devres release record" {
