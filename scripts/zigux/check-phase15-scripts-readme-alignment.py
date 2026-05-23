@@ -28,6 +28,7 @@ HANDOFF_NOTE_CHECKER_REL = "scripts/zigux/check-phase15-handoff-note-alignment.p
 STUDY_ONLY_CHECKER_REL = "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py"
 GAP_CHECKER_REL = "scripts/zigux/check-phase15-shared-summary-gap.py"
 READINESS_CHECKER_REL = "scripts/zigux/check-phase15-readiness-gate-packet.py"
+VALIDATOR_REL = "scripts/zigux/validate-phase15.py"
 READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
 REVIEW_PROCESS_TEST_REL = "zigux/tests/phase15_architecture_council_review_process.zig"
 REVIEW_PROCESS_MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
@@ -66,6 +67,7 @@ REQUIRED_FILES = (
     STUDY_ONLY_CHECKER_REL,
     GAP_CHECKER_REL,
     READINESS_CHECKER_REL,
+    VALIDATOR_REL,
     READINESS_MANIFEST_REL,
     REVIEW_PROCESS_TEST_REL,
     REVIEW_PROCESS_MANIFEST_REL,
@@ -94,6 +96,7 @@ README_PHASE15_MARKERS = (
     f"`{STUDY_ONLY_CHECKER_REL}`",
     f"`{GAP_CHECKER_REL}`",
     f"`{READINESS_CHECKER_REL}`",
+    f"`{VALIDATOR_REL}`",
     f"`{FREEZE_GOVERNANCE_REL}`",
     f"`{INDEFINITE_C_POLICY_REL}`",
     f"`{PARITY_SCORECARD_REL}`",
@@ -116,11 +119,10 @@ README_PHASE15_MARKERS = (
     f"`{READINESS_MANIFEST_REL}`",
     f"`{LANE_OWNER_ALIGNMENT_REL}`",
     f"`{WORKFLOW_REL}`",
-    "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_build.zig`",
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build companions framed as repo-reality gaps instead of shipped scripts-root evidence",
+    "the directly readable `scripts/zigux/validate-phase15.py` maintenance gate and the still-missing `zigux/tests/phase15_build.zig` broader dedicated-build companion",
+    "repeated authenticated reads on current `master` still return missing for `zigux/tests/phase15_build.zig`, so keep that broader dedicated-build companion framed as a repo-reality gap instead of shipped replay evidence",
     "although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths",
-    "`.github/workflows/zigux-bootstrap.yml` is present on current `master`, but it still carries no dedicated Phase 15 validate, test, or aggregate route, so keep that workflow surface framed as shared-summary gap vocabulary rather than shipped Phase 15 replay evidence",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
 )
 
@@ -138,7 +140,7 @@ READINESS_MARKERS = (
     f"`{HANDOFF_CHECKER_REL}`",
     f"`{GAP_CHECKER_REL}`",
     f"`{READINESS_MANIFEST_REL}`",
-    "`scripts/zigux/validate-phase15.py`",
+    f"`{VALIDATOR_REL}`",
     "`zigux/tests/phase15_build.zig`",
     "blocked route vocabulary",
 )
@@ -159,7 +161,7 @@ SHARED_GAP_MARKERS = (
     f"`{HANDOFF_MANIFEST_REL}`",
     f"`{HANDOFF_TEST_REL}`",
     f"`{LANE_OWNER_ALIGNMENT_REL}`",
-    "`scripts/zigux/validate-phase15.py`",
+    f"`{VALIDATOR_REL}`",
     "`zigux/tests/phase15_build.zig`",
     "parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
 )
@@ -187,7 +189,6 @@ FOCUSED_COMPANION_RELS = (
 )
 
 MISSING_BROADER_PATHS = (
-    "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_build.zig",
 )
 
@@ -286,9 +287,10 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 ## Phase 15
 
 - Phase 15 flow - the current scripts-root governance reminder packet stays in maintenance-mode truthfulness work, keeping the landed freeze-map, readiness, handoff, parity, stay-in-C, study-only, and shared-summary surfaces aligned without implying Architecture Council approval or a deep-core port-readiness decision
-- `{DOCS_CHECKER_REL}`, `{SCRIPTS_CHECKER_REL}`, `{TESTS_CHECKER_REL}`, `{HANDOFF_CHECKER_REL}`, `{HANDOFF_NOTE_CHECKER_REL}`, `{STUDY_ONLY_CHECKER_REL}`, `{GAP_CHECKER_REL}`, and `{READINESS_CHECKER_REL}` keep the shipped docs-root, scripts-root, tests-root, review-process handoff, handoff-note, study-only, shared-summary, and readiness packet guards explicit from the scripts root
-- `{FREEZE_GOVERNANCE_REL}`, `{INDEFINITE_C_POLICY_REL}`, `{PARITY_SCORECARD_REL}`, `{PARITY_SCORECARD_SURVEY_REL}`, `{LANE_SEQ_REL}`, `{READINESS_REL}`, `{HANDOFF_REL}`, `{STUDY_ONLY_REL}`, `{SHARED_GAP_REL}`, `{TESTS_README_REL}`, `{REVIEW_CHECKLIST_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{REVIEW_PROCESS_BUILD_REL}`, `{HANDOFF_MANIFEST_REL}`, `{HANDOFF_TEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, and `{WORKFLOW_REL}` keep the current directly readable governance packet explicit from the scripts root
-- repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so keep those broader validator-first and build companions framed as repo-reality gaps instead of shipped scripts-root evidence
+- `{DOCS_CHECKER_REL}`, `{SCRIPTS_CHECKER_REL}`, `{TESTS_CHECKER_REL}`, `{HANDOFF_CHECKER_REL}`, `{HANDOFF_NOTE_CHECKER_REL}`, `{STUDY_ONLY_CHECKER_REL}`, `{GAP_CHECKER_REL}`, `{READINESS_CHECKER_REL}`, and `{VALIDATOR_REL}` keep the current scripts-root governance packet explicit from the scripts root while the broader dedicated-build companion and Phase 15 Makefile routes still stay blocked
+- `{FREEZE_GOVERNANCE_REL}`, `{INDEFINITE_C_POLICY_REL}`, `{PARITY_SCORECARD_REL}`, `{PARITY_SCORECARD_SURVEY_REL}`, `{LANE_SEQ_REL}`, `{READINESS_REL}`, `{HANDOFF_REL}`, `{STUDY_ONLY_REL}`, `{SHARED_GAP_REL}`, `{TESTS_README_REL}`, `{REVIEW_CHECKLIST_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{REVIEW_PROCESS_BUILD_REL}`, `{HANDOFF_MANIFEST_REL}`, `{HANDOFF_TEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, and `{WORKFLOW_REL}` remain the current reminder-surface companions for that packet
+- `{VALIDATOR_REL}`, `{REVIEW_PROCESS_TEST_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{REVIEW_PROCESS_BUILD_REL}`, `{LANE_SEQ_MANIFEST_REL}`, `{LANE_SEQ_TEST_REL}`, `{HANDOFF_MANIFEST_REL}`, `{HANDOFF_TEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, `{LANE_OWNER_ALIGNMENT_REL}`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the directly materialized focused companions, manifests, replays, workflow surface, and returned shared governance references explicit without widening into approval or deep-core delivery claims
+- the directly readable `scripts/zigux/validate-phase15.py` maintenance gate and the still-missing `zigux/tests/phase15_build.zig` broader dedicated-build companion both remain part of the wider validator-first reminder family, and repeated authenticated reads on current `master` still return missing for `zigux/tests/phase15_build.zig`, so keep that broader dedicated-build companion framed as a repo-reality gap instead of shipped replay evidence
 - although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths
 - `.github/workflows/zigux-bootstrap.yml` is present on current `master`, but it still carries no dedicated Phase 15 validate, test, or aggregate route, so keep that workflow surface framed as shared-summary gap vocabulary rather than shipped Phase 15 replay evidence
 - no Architecture Council approval is currently recorded for a freeze-map status change
@@ -413,9 +415,9 @@ def run_self_test() -> int:
 
         returned_gap = root / "returned_gap"
         _seed(returned_gap)
-        _write(returned_gap / "scripts/zigux/validate-phase15.py", "present\n")
+        _write(returned_gap / "zigux/tests/phase15_build.zig", "present\n")
         failures = validate(returned_gap)
-        expected = ["missing_gap_path_returned:scripts/zigux/validate-phase15.py"]
+        expected = ["missing_gap_path_returned:zigux/tests/phase15_build.zig"]
         if failures != expected:
             raise AssertionError(f"unexpected returned-gap failure: {failures}")
 
