@@ -22,19 +22,20 @@
     "preexisting_phase12_make_targets_present": true,
     "preexisting_phase12_survey_note_present": true,
     "preexisting_phase12_fallback_catalog_present": true,
-    "preexisting_phase12_survey_gate_present": true
+    "preexisting_phase12_survey_gate_present": true,
+    "preexisting_phase12_survey_build_present": true
   },
   "roadmap_gap_check": {
     "dma_safe_abstractions": {
       "required_by_roadmap": true,
       "status": "rollback_evidence_only_live_starter_missing",
-      "current_surface": "Current master preserves only the survey note, fallback catalog, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and make routes for the virtio_scsi lane; it no longer serves a driver-local starter or replay surface.",
+      "current_surface": "Current master preserves only the survey note, fallback catalog, fixture manifest, survey manifest, dedicated survey-build replay, survey gate, checker, shared build bundle, and make routes for the virtio_scsi lane; it no longer serves a driver-local starter or replay surface.",
       "blocked_by": "DMA-safe request and sense-buffer ownership, sg chaining, and virtqueue submit-completion execution still require the driver-local starter family to return before later runtime packets can land honestly."
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
       "status": "rollback_evidence_present_no_live_queue_planner",
-      "current_surface": "The rollback-only survey packet keeps the missing starter explicit and the shared phase12 build route remains support-bundle evidence only for the virtio_net queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate tests rather than a virtio_scsi replay path.",
+      "current_surface": "The rollback-only survey packet keeps the missing starter explicit and the dedicated survey-build replay plus shared phase12 build route remain support-bundle evidence only rather than a virtio_scsi runtime replay path.",
       "blocked_by": "No live queue-family planner, no request-queue replay, and no driver-local rollback gates are currently served on master."
     },
     "throughput_and_recovery_parity": {
@@ -46,7 +47,7 @@
     "segmented_rollout": {
       "required_by_roadmap": true,
       "status": "survey_packet_and_fallback_present_driver_local_replay_missing",
-      "current_surface": "Current master carries the survey note, fallback catalog, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and make routes as rollback evidence while the older driver-local replay family is absent.",
+      "current_surface": "Current master carries the survey note, fallback catalog, fixture manifest, survey manifest, dedicated survey-build replay, survey gate, checker, shared build bundle, and make routes as rollback evidence while the older driver-local replay family is absent.",
       "blocked_by": "The direct starter, direct replay, syntax lab, repeated replan gate, and repeated rollback gate are all absent on current master."
     }
   },
@@ -101,6 +102,13 @@
       "why_now": "Current master keeps phase12-smoke, phase12-test, and phase12 aligned with the shared Phase 12 support bundle even though the virtio_scsi lane is rollback-evidence only."
     },
     {
+      "id": "phase12-virtio-scsi-survey-build-route",
+      "status": "rollback_evidence_present",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey_build.zig",
+      "why_now": "The dedicated survey-build route is the bounded executable rollback-evidence replay for this packet while the older direct virtio_scsi replay family remains absent on current master."
+    },
+    {
       "id": "phase12-virtio-scsi-survey-gate",
       "status": "rollback_evidence_present",
       "kind": "validation",
@@ -112,7 +120,7 @@
       "status": "rollback_evidence_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The survey note now records the same rollback-only current-master boundary that the manifest, fixture, survey gate, and checker validate."
+      "why_now": "The survey note now records the same rollback-only current-master boundary that the manifest, fixture, dedicated survey-build replay, survey gate, and checker validate."
     },
     {
       "id": "phase12-virtio-scsi-runtime-request-flow",
