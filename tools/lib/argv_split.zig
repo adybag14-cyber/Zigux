@@ -37,17 +37,16 @@ fn cStringPrefix(text: []const u8) []const u8 {
 }
 
 fn countArgc(text: []const u8) usize {
-    const current = cStringPrefix(text);
     var idx: usize = 0;
     var count: usize = 0;
 
-    while (idx < current.len) {
-        idx = skipSpaces(current, idx);
-        if (idx >= current.len) {
+    while (idx < text.len) {
+        idx = skipSpaces(text, idx);
+        if (idx >= text.len) {
             break;
         }
         count += 1;
-        idx = skipArg(current, idx);
+        idx = skipArg(text, idx);
     }
 
     return count;
@@ -158,6 +157,11 @@ test "argvSplit treats a leading nul byte as blank input" {
 
     try std.testing.expectEqual(@as(usize, 0), result.argc());
     try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+}
+
+test "countArgc stops at the first embedded nul byte" {
+    try std.testing.expectEqual(@as(usize, 0), countArgc(cStringPrefix("\x00ignored tail")));
+    try std.testing.expectEqual(@as(usize, 2), countArgc(cStringPrefix("alpha beta\x00gamma delta")));
 }
 
 test "argvSplit reset state stays reusable after deinit and argv_free" {
