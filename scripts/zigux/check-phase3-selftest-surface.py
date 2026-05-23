@@ -404,7 +404,7 @@ def run_self_test() -> int:
         (README_PATH, "scripts/zigux/validate-phase3-policy-unsafe-survey.py", "docs README"),
         (README_PATH, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "docs README"),
         (README_PATH, "zigux/tests/phase3_xarray_slot_starter_packet.zig", "docs README"),
-        (README_PATH, "zigux/tests/phase3_xarray-slot_starter_packet_build.zig", "docs README"),
+        (README_PATH, "zigux/tests/phase3_xarray_slot_starter_packet_build.zig", "docs README"),
         (README_PATH, "zigux/tests/phase3_xarray_slot_dump.zig", "docs README"),
         (README_PATH, "zigux/tests/phase3_xarray_slot_dump_build.zig", "docs README"),
         (README_PATH, "zigux/tests/fixtures/phase3_xarray_slot/expected.json", "docs README"),
