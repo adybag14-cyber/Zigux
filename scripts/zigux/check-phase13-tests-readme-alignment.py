@@ -212,7 +212,7 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 18
+    expected_case_count = 20
     with tempfile.TemporaryDirectory(prefix="zigux_p13_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -301,11 +301,31 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, TESTS_README)
         path.write_text(
+            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[4]),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (("MISSING_TEXT", REQUIRED_TEXT[4])) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TESTS_README)
+        path.write_text(
             replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[5]),
             encoding="utf-8",
         )
         issues = collect_issues(root)
         assert (("MISSING_TEXT", REQUIRED_TEXT[5])) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TESTS_README)
+        path.write_text(
+            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[6]),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (("MISSING_TEXT", REQUIRED_TEXT[6])) in issues
         checks_run += 1
 
         build_self_test_root(root)
