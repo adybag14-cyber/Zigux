@@ -88,6 +88,31 @@ pub fn strscpy_pad(dest: []u8, src: []const u8) isize {
     return strscpyPad(dest, src);
 }
 
+pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
+    const copy_len = @min(dest.len, @min(count, src.len));
+    if (copy_len != 0) {
+        @memcpy(dest[0..copy_len], src[0..copy_len]);
+    }
+    if (copy_len < dest.len) {
+        @memset(dest[copy_len..], pad);
+    }
+}
+
+pub fn memcpy_and_pad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
+    memcpyAndPad(dest, src, count, pad);
+}
+
+pub fn strtomem(dest: []u8, src: []const u8) void {
+    const copy_len = @min(dest.len, cStringLen(src));
+    if (copy_len != 0) {
+        @memcpy(dest[0..copy_len], src[0..copy_len]);
+    }
+}
+
+pub fn strtomem_pad(dest: []u8, src: []const u8, pad: u8) void {
+    memcpyAndPad(dest, src, @min(dest.len, cStringLen(src)), pad);
+}
+
 pub fn skipSpaces(str: []const u8) []const u8 {
     var idx: usize = 0;
     while (idx < str.len and std.ascii.isWhitespace(str[idx])) : (idx += 1) {}
@@ -526,6 +551,24 @@ test "strscpy and strscpyPad keep one-byte destinations terminated" {
     try std.testing.expectEqual(strscpy_e2big, strscpyPad(single_b[0..], "y"));
     try std.testing.expectEqual(@as(u8, 0), single_a[0]);
     try std.testing.expectEqual(@as(u8, 0), single_b[0]);
+}
+
+test "memcpyAndPad copies the requested prefix and pads the destination tail" {
+    var buf = [_]u8{ 9, 9, 9, 9, 9 };
+    memcpyAndPad(buf[0..], "abcxyz", 3, '.');
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 'c', '.', '.' }, buf[0..]);
+}
+
+test "strtomem copies a C-string prefix without adding a terminator or padding" {
+    var buf = [_]u8{ 9, 9, 9, 9 };
+    strtomem(buf[0..], &[_]u8{ 'o', 'k', 0, 'x' });
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 9, 9 }, buf[0..]);
+}
+
+test "strtomem_pad copies through the first NUL and pads the remaining tail" {
+    var buf = [_]u8{ 9, 9, 9, 9, 9 };
+    strtomem_pad(buf[0..], &[_]u8{ 'h', 'i', 0, 'x' }, '.');
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', '.', '.', '.' }, buf[0..]);
 }
 
 test "streq matches C-string equality semantics" {
