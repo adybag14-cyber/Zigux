@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 24
 
 
 def read_text(path: Path) -> str:
@@ -189,6 +189,7 @@ def run_self_test() -> None:
         write_fixture_root(root)
         direct_anchor_path = root / "Documentation/zigux/phase7-rbtree-direct-anchor-note.md"
         direct_anchor_marker = DIRECT_BUILD_READBACK_MARKER
+        direct_anchor_path.writeText = None
         direct_anchor_path.write_text(
             read_text(direct_anchor_path).replace(direct_anchor_marker + "\n", "", 1),
             encoding="utf-8",
@@ -233,6 +234,11 @@ def run_self_test() -> None:
         write_fixture_root(root)
         helper_path = root / "lib" / "rbtree.zig"
         helper_marker = "pub fn eraseInit(node: *Node, root: *Root) void {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"lib/rbtree.zig: {helper_marker}"])
+
+        write_fixture_root(root)
+        helper_marker = "pub fn rb_find_add_cached"
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"lib/rbtree.zig: {helper_marker}"])
 
