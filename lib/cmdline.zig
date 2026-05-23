@@ -784,6 +784,29 @@ test "nextArg keeps parameter and value slices borrowed from caller storage" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&nul_bounded[13])), @as(usize, @intFromPtr(parsed_nul_bounded.rest.ptr)));
 }
 
+test "nextArg keeps quoted tokens and quoted values inside the first NUL boundary" {
+    var quoted_token = [_]u8{ '"', 't', 'w', 'o', ' ', 'w', 'o', 'r', 'd', 's', '"', 0, ' ', 't', 'a', 'i', 'l' };
+    const parsed_token = nextArg(&quoted_token);
+    try std.testing.expectEqualStrings("two words", parsed_token.param);
+    try std.testing.expect(parsed_token.value == null);
+    try std.testing.expectEqualStrings("", parsed_token.rest);
+    try std.testing.expectEqualStrings("", parsed_token.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_token[1])), @as(usize, @intFromPtr(parsed_token.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_token[11])), @as(usize, @intFromPtr(parsed_token.rest.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(parsed_token.rest.ptr)), @as(usize, @intFromPtr(parsed_token.remaining.ptr)));
+
+    var quoted_value_nul = [_]u8{ 'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 'v', 'd', 'a', '1', '"', 0, ' ', 'q', 'u', 'i', 'e', 't' };
+    const parsed_value_nul = nextArg(&quoted_value_nul);
+    try std.testing.expectEqualStrings("root", parsed_value_nul.param);
+    try std.testing.expectEqualStrings("/dev/vda1", parsed_value_nul.value.?);
+    try std.testing.expectEqualStrings("", parsed_value_nul.rest);
+    try std.testing.expectEqualStrings("", parsed_value_nul.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value_nul[0])), @as(usize, @intFromPtr(parsed_value_nul.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value_nul[6])), @as(usize, @intFromPtr(parsed_value_nul.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value_nul[16])), @as(usize, @intFromPtr(parsed_value_nul.rest.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(parsed_value_nul.rest.ptr)), @as(usize, @intFromPtr(parsed_value_nul.remaining.ptr)));
+}
+
 test "nextArg keeps rest and remaining as the same borrowed suffix view" {
     const leading = nextArg(" \tconsole=ttyS0");
     try std.testing.expectEqualStrings("console=ttyS0", leading.rest);
