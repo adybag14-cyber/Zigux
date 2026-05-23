@@ -11,10 +11,12 @@ test "phase8 pin-path helper entrypoints stay explicit" {
     try std.testing.expect(@hasDecl(pin_path, "buildValidatedMapPinPath"));
     try std.testing.expect(@hasDecl(pin_path, "buildSanitizedMapPinPath"));
     try std.testing.expect(@hasDecl(pin_path, "buildValidatedSanitizedMapPinPath"));
+    try std.testing.expect(@hasDecl(pin_path, "buildValidatedSanitizedMapPinPathReturn"));
     try std.testing.expect(@hasDecl(pin_path, "buildProgramPinPath"));
     try std.testing.expect(@hasDecl(pin_path, "buildValidatedProgramPinPath"));
     try std.testing.expect(@hasDecl(pin_path, "buildSanitizedProgramPinPath"));
     try std.testing.expect(@hasDecl(pin_path, "buildValidatedSanitizedProgramPinPath"));
+    try std.testing.expect(@hasDecl(pin_path, "buildValidatedSanitizedProgramPinPathReturn"));
 }
 
 test "phase8 pin-path helpers keep stable map and program outputs explicit" {
@@ -59,6 +61,32 @@ test "phase8 pin-path helpers keep slash-preserving and validated-root outputs e
     );
 }
 
+test "phase8 pin-path helpers keep validated sanitized return wrappers explicit" {
+    var buffer: [96]u8 = undefined;
+
+    try std.testing.expectEqual(
+        @as(i32, "/sys/fs/bpf/metrics_v1".len),
+        pin_path.buildValidatedSanitizedMapPinPathReturn(&buffer, null, "metrics.v1"),
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/metrics_v1", buffer[0.."/sys/fs/bpf/metrics_v1".len]);
+    try std.testing.expectEqual(
+        @as(i32, "/sys/fs/bpf/xdp_dispatch_v1".len),
+        pin_path.buildValidatedSanitizedProgramPinPathReturn(&buffer, null, "xdp_dispatch.v1"),
+    );
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/xdp_dispatch_v1",
+        buffer[0.."/sys/fs/bpf/xdp_dispatch_v1".len],
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        pin_path.buildValidatedSanitizedMapPinPathReturn(&buffer, null, "metrics/v1"),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        pin_path.buildValidatedSanitizedProgramPinPathReturn(&buffer, "tmp/bpf", "xdp_dispatch.v1"),
+    );
+}
+
 test "phase8 pin-path helpers keep validation failures explicit" {
     var buffer: [96]u8 = undefined;
 
@@ -96,5 +124,18 @@ test "phase8 pin-path helpers keep length failures explicit" {
     try std.testing.expectError(
         error.NameTooLong,
         pin_path.buildProgramPinPath(&buffer, "/custom/root", "very_long_program_name"),
+    );
+
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
+        pin_path.buildValidatedSanitizedMapPinPathReturn(&buffer, "/custom/root", "very_long_map_name"),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
+        pin_path.buildValidatedSanitizedProgramPinPathReturn(
+            &buffer,
+            "/custom/root",
+            "very_long_program_name",
+        ),
     );
 }
