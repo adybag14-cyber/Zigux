@@ -68,7 +68,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
         "the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content",
-        "the focused replay still expects `startup_64\\r` on the chunked-reader path while the wrapper contract keeps that same raw carriage-return behavior below broader parser redesign work",
+        "the focused replay still expects `startup_64\r` on the chunked-reader path while the wrapper contract keeps that same raw carriage-return behavior below broader parser redesign work",
         "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names",
     ),
     TOOLING_LANE_SEQUENCE: (
@@ -100,10 +100,14 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test",
     ),
     TESTS_README: (
+        "`zigux/tests/phase8_help_only_build.zig`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
         "`Documentation/zigux/phase8-help-slice.md`",
         "`Documentation/zigux/phase8-kallsyms-slice.md`",
+        "`make -C zigux phase8-help-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
+        "`make -C zigux phase8-kallsyms-test`",
     ),
     HELP_KALLSYMS_BUILD: (
         "../../tools/lib/subcmd/help.zig",
@@ -140,7 +144,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 kallsyms direct parser truncates oversized names"',
         'test "phase 8 kallsyms keeps weak object classes on the current header-backed path"',
         'test "phase 8 kallsyms chunked parser also truncates oversized names"',
-        'expectEqualStrings("startup_64\\r", symbols.items[0].name)',
+        'expectEqualStrings("startup_64\r", symbols.items[0].name)',
         'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
     ),
     KALLSYMS_SOURCE: (
