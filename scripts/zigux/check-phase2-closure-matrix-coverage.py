@@ -364,6 +364,26 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        validator_text = validator_path.read_text(encoding="utf-8")
+        validator_path.write_text(
+            validator_text.replace(
+                'REQUIRED_FILES = (\n'
+                '    Path("Documentation/zigux/phase2-closure.md"),\n'
+                '    Path("scripts/zigux/validate-phase2-closure.py"),\n'
+                '    Path("zigux/tests/fixtures/phase2_tool_manifest.json"),\n'
+                ')\n',
+                'REQUIRED_FILES = ["Documentation/zigux/phase2-closure.md"]\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "validator.REQUIRED_FILES must stay tuple[Path, ...]",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
         matrix_text = matrix_path.read_text(encoding="utf-8")
         matrix_path.write_text(
             matrix_text.replace(
@@ -472,6 +492,14 @@ def run_self_test() -> int:
             "REDUNDANT_EXTRA_REQUIRED_FILE",
             "scripts/zigux/validate-phase2-closure.py",
         ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        (root / VALIDATOR_REL).unlink()
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            f"unable to load module: {root / VALIDATOR_REL}",
+        )
         checks_run += 1
 
         build_self_test_root(root)
