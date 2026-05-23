@@ -37,6 +37,9 @@ REQUIRED_MARKERS = {
         "zigux/kernel/export_shim.zig",
         "zigux/tests/phase3_export_uapi_layout.zig",
         "zigux/tests/phase3_abi_dump_current.zig",
+        "Direct same-lane correction on 2026-05-23: current `master` also exposes the dedicated shared ABI selftest-surface guard at `scripts/zigux/check-phase3-selftest-surface.py`",
+        "`python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`",
+        "`python3 scripts/zigux/check-phase3-selftest-surface.py`",
         "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
         "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "zig build phase3-dump --build-file zigux/tests/build.zig",
@@ -434,6 +437,21 @@ def run_self_test() -> int:
                 ".github/workflows/zigux-bootstrap.yml\n",
                 "missing Documentation/zigux/phase3-abi-slice.md marker: .github/workflows/zigux-bootstrap.yml",
             ),
+            (
+                ABI_SLICE_NOTE,
+                "Direct same-lane correction on 2026-05-23: current `master` also exposes the dedicated shared ABI selftest-surface guard at `scripts/zigux/check-phase3-selftest-surface.py`\n",
+                "missing Documentation/zigux/phase3-abi-slice.md marker: Direct same-lane correction on 2026-05-23: current `master` also exposes the dedicated shared ABI selftest-surface guard at `scripts/zigux/check-phase3-selftest-surface.py`",
+            ),
+            (
+                ABI_SLICE_NOTE,
+                "`python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`\n",
+                "missing Documentation/zigux/phase3-abi-slice.md marker: `python3 scripts/zigux/check-phase3-selftest-surface.py --self-test`",
+            ),
+            (
+                ABI_SLICE_NOTE,
+                "`python3 scripts/zigux/check-phase3-selftest-surface.py`\n",
+                "missing Documentation/zigux/phase3-abi-slice.md marker: `python3 scripts/zigux/check-phase3-selftest-surface.py`",
+            ),
         )
 
         for rel_path, marker, expected in cases:
@@ -623,7 +641,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=19")
+    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
