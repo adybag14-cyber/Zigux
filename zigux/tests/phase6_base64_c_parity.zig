@@ -20,6 +20,8 @@ const InvalidCase = struct {
 };
 
 const variant_sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+const variant_one_byte = [_]u8{0xfb};
+const variant_two_byte = [_]u8{ 0xff, 0xf0 };
 const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };
 
 const encode_cases = [_]EncodeCase{
@@ -30,8 +32,16 @@ const encode_cases = [_]EncodeCase{
     .{ .variant = .std, .padding = true, .input = "Hello, world!" },
     .{ .variant = .urlsafe, .padding = false, .input = &variant_sample },
     .{ .variant = .urlsafe, .padding = true, .input = &variant_sample },
+    .{ .variant = .urlsafe, .padding = false, .input = &variant_one_byte },
+    .{ .variant = .urlsafe, .padding = true, .input = &variant_one_byte },
+    .{ .variant = .urlsafe, .padding = false, .input = &variant_two_byte },
+    .{ .variant = .urlsafe, .padding = true, .input = &variant_two_byte },
     .{ .variant = .imap, .padding = false, .input = &variant_sample },
     .{ .variant = .imap, .padding = true, .input = &variant_sample },
+    .{ .variant = .imap, .padding = false, .input = &variant_one_byte },
+    .{ .variant = .imap, .padding = true, .input = &variant_one_byte },
+    .{ .variant = .imap, .padding = false, .input = &variant_two_byte },
+    .{ .variant = .imap, .padding = true, .input = &variant_two_byte },
 };
 
 const decode_cases = [_]DecodeCase{
@@ -42,8 +52,16 @@ const decode_cases = [_]DecodeCase{
     .{ .variant = .std, .padding = true, .input = "SGVsbG8sIHdvcmxkIQ==" },
     .{ .variant = .urlsafe, .padding = false, .input = "APv_f4A" },
     .{ .variant = .urlsafe, .padding = true, .input = "APv_f4A=" },
+    .{ .variant = .urlsafe, .padding = false, .input = "-w" },
+    .{ .variant = .urlsafe, .padding = true, .input = "-w==" },
+    .{ .variant = .urlsafe, .padding = false, .input = "__A" },
+    .{ .variant = .urlsafe, .padding = true, .input = "__A=" },
     .{ .variant = .imap, .padding = false, .input = "APv,f4A" },
     .{ .variant = .imap, .padding = true, .input = "APv,f4A=" },
+    .{ .variant = .imap, .padding = false, .input = "+w" },
+    .{ .variant = .imap, .padding = true, .input = "+w==" },
+    .{ .variant = .imap, .padding = false, .input = ",,A" },
+    .{ .variant = .imap, .padding = true, .input = ",,A=" },
 };
 
 const invalid_cases = [_]InvalidCase{
