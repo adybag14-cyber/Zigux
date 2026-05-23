@@ -84,44 +84,17 @@ WORKFLOW_LINES = (
     "run: make -C zigux phase2-genksyms",
 )
 
-README_PRESENT_MARKERS = (
-    "`scripts/zigux/check-phase2-kbuild-routes.py`",
-    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "`scripts/zigux/check-phase2-genksyms-selftest-alignment.py`",
-    "`scripts/zigux/check-genksyms-bridge.py`",
-    "`scripts/zigux/genksyms.zig`",
-    "`zigux/tests/fixtures/genksyms_bridge/cases.json`",
-    "`zigux/tests/fixtures/genksyms_bridge/manifest.json`",
-    "`scripts/zigux/check-phase2-cross.py`",
-    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross.py`",
-    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
-    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
-    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
-    "`scripts/zigux/check-phase2-required-make-routes.py`",
-    "`scripts/zigux/check-phase2-fixdep-gate.py`",
-    "`scripts/zigux/check-fixdep-diff.py`",
-    "`scripts/zigux/fixdep.zig`",
-    "`zigux/tests/fixtures/fixdep/cases.json`",
-    "`make -C zigux phase2-fixdep`",
-    "`scripts/zigux/install-zig.py`",
-    "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
-    "`scripts/zigux/kconfig/conf_bridge.zig`",
-    "`scripts/zigux/kconfig/confdata_bridge.zig`",
-    "the manifest-backed kconfig fixture roster",
-    "`Documentation/zigux/phase2-closure.md`",
-    "`scripts/zigux/validate-phase2.py`",
-    "`scripts/zigux/validate-phase2-closure.py`",
-    "`zigux/Makefile`",
-    "`make -C zigux phase2`",
-    "`make -C zigux phase2-tools`",
-    "`make -C zigux phase2-genksyms`",
-    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
-    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+README_REQUIRED_LINES = (
+    "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet, `conf_bridge` and `confdata_bridge` helper surfaces, the restored closure-side validator packet, the manifest-backed kconfig fixture roster, the shipped make-wrapper packet, and the surviving Phase 2 alignment guards instead of replaying older missing-route assumptions inside that now-rematerialized toolchain packet",
+    "- `scripts/zigux/kconfig/conf_bridge.zig` keeps the shipped sixteen-mode request-plan bridge explicit from the scripts root, including the `helpnewconfig` `silent` option handling and the same `randconfig`, `defconfig`, `savedefconfig`, and `syncconfig` argument surfaces that the Phase 2 wrapper-first roadmap tranche expects",
+    "- `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` keep the current conf-side and confdata-side bridge evidence packet explicit from the scripts root without pretending the broader closure packet is still directly readable",
+    "- `scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-toolchain-pinning.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-artifact-tools-manifest.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `scripts/zigux/check-phase2-required-make-routes.py` remain the shipped Phase 2 toolchain, reminder, alignment, artifact-support, fixdep, genksyms-bridge, and required-make-route guards that survive on current `master`",
+    "- `.github/workflows/zigux-bootstrap.yml`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` keep the shipped pinned Zig toolchain guard explicit in the live bootstrap action path before the surviving Phase 2 bridge and pinning checks",
+    "- `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, `make -C zigux phase2`, `zigux/tests/fixtures/phase2_tool_manifest.json`, and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keep the shipped closure-side reminder, closure-validator, validator entrypoint, make-wrapper, and artifact-support packet explicit from the scripts root beside the surviving checker set",
+    "- `scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed current Phase 2 tool packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
+    "- `scripts/zigux/check-phase2-artifact-tools-manifest.py`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep` keep the shipped artifact-support and fixdep packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
+    "- keep those installer, tool-manifest, artifact-support, direct cross-route, genksyms bridge, and fixdep surfaces explicit beside the shipped toolchain and kbuild reminder packet",
+    "- if future work widens the installer or direct cross-route packet, update this reminder packet only after rereading those direct current-`master` surfaces together with the live toolchain policy, manifest-backed kconfig fixture roster, the fixture-backed Phase 2 tool packet, and shipped make-wrapper packet so the scripts-root summary stays aligned with the now-returned Phase 2 evidence",
 )
 
 README_WARNING_LINES = (
@@ -163,7 +136,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
-    + len(README_PRESENT_MARKERS)
+    + len(README_REQUIRED_LINES)
+    + len(README_REQUIRED_LINES)
     + len(README_WARNING_LINES)
     + len(README_WARNING_LINES)
     + len(README_FORBIDDEN_MARKERS)
@@ -191,10 +165,6 @@ def resolve_path(root: Path, path: Path) -> Path:
 
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
-
-
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
 
 
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
@@ -227,7 +197,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
 
-    issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
+    issues.extend(
+        collect_exact_line_issues(
+            readme_text,
+            README_REQUIRED_LINES,
+            "MISSING_README_REQUIRED_LINES",
+            "DUPLICATE_README_REQUIRED_LINES",
+        )
+    )
     issues.extend(
         collect_exact_line_issues(
             readme_text,
@@ -286,8 +263,7 @@ def build_self_test_root(root: Path) -> None:
         "",
         "## Phase 2",
         "",
-        "- current packet",
-        *README_PRESENT_MARKERS,
+        *README_REQUIRED_LINES,
         *README_WARNING_LINES,
     ]
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
@@ -307,12 +283,6 @@ def build_self_test_root(root: Path) -> None:
         if path == MAKEFILE:
             continue
         write_text(resolve_path(root, path), "present\n")
-
-
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
@@ -357,12 +327,20 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
             checks_run += 1
 
-        for marker in README_PRESENT_MARKERS:
+        for marker in README_REQUIRED_LINES:
             build_self_test_root(root)
             readme_path = resolve_path(root, SCRIPTS_README)
-            readme_path.write_text(readme_path.read_text(encoding="utf-8").replace(marker, "BROKEN_PRESENT_MARKER"), encoding="utf-8")
+            readme_path.write_text(replace_exact_line(readme_path.read_text(encoding="utf-8"), marker, "BROKEN_PRESENT_MARKER"), encoding="utf-8")
             issues = collect_issues(root)
-            assert ("MISSING_README_PRESENT_MARKERS", marker) in issues
+            assert ("MISSING_README_REQUIRED_LINES", marker) in issues
+            checks_run += 1
+
+        for marker in README_REQUIRED_LINES:
+            build_self_test_root(root)
+            readme_path = resolve_path(root, SCRIPTS_README)
+            readme_path.write_text(duplicate_exact_line(readme_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_README_REQUIRED_LINES", f"{marker}:count=2") in issues
             checks_run += 1
 
         for marker in README_WARNING_LINES:
