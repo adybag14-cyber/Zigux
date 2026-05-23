@@ -49,18 +49,31 @@ REQUIRED_SOURCE_MARKERS = {
 }
 
 
-def validate_find_bit_source(text: str) -> tuple[str, object]:
-    missing_tests = [
-        label for label, marker in REQUIRED_TEST_MARKERS.items() if marker not in text
-    ]
-    if missing_tests:
-        return ("missing_test_markers", missing_tests)
+def collect_marker_count_failures(
+    text: str,
+    markers: dict[str, str],
+) -> list[str]:
+    failures: list[str] = []
+    for label, marker in markers.items():
+        count = text.count(marker)
+        if count != 1:
+            failures.append(f"{label}:expected=1:actual={count}")
+    return failures
 
-    missing_source = [
-        label for label, marker in REQUIRED_SOURCE_MARKERS.items() if marker not in text
+
+
+def validate_find_bit_source(text: str) -> tuple[str, object]:
+    test_failures = collect_marker_count_failures(text, REQUIRED_TEST_MARKERS)
+    if test_failures:
+        return ("invalid_test_marker_counts", test_failures)
+
+    source_failures = [
+        label
+        for label, marker in REQUIRED_SOURCE_MARKERS.items()
+        if marker not in text
     ]
-    if missing_source:
-        return ("missing_source_markers", missing_source)
+    if source_failures:
+        return ("missing_source_markers", source_failures)
 
     return ("pass", None)
 
@@ -75,7 +88,10 @@ def load_find_bit_source(path: Path) -> tuple[str, object]:
 
 
 
-def build_sample_source(omit_label: str | None = None) -> str:
+def build_sample_source(
+    omit_label: str | None = None,
+    duplicate_label: str | None = None,
+) -> str:
     lines = [
         'test "find first and next set bits across words, with andnot gaps explicit" {',
         "    _ = findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3);",
@@ -125,10 +141,23 @@ def build_sample_source(omit_label: str | None = None) -> str:
         "    _ = findLastBit(&single_word, single_word_nbits);",
         "}",
     ]
+
     if omit_label is not None:
         marker = REQUIRED_TEST_MARKERS.get(omit_label, REQUIRED_SOURCE_MARKERS.get(omit_label))
         assert marker is not None
         lines = [line for line in lines if marker not in line]
+
+    if duplicate_label is not None:
+        marker = REQUIRED_TEST_MARKERS.get(
+            duplicate_label,
+            REQUIRED_SOURCE_MARKERS.get(duplicate_label),
+        )
+        assert marker is not None
+        for idx, line in enumerate(lines):
+            if marker in line:
+                lines.insert(idx + 1, line)
+                break
+
     return "\n".join(lines) + "\n"
 
 
@@ -141,15 +170,21 @@ def run_self_test() -> None:
     case_count += 1
 
     for label in REQUIRED_TEST_MARKERS:
-        kind, payload = validate_find_bit_source(build_sample_source(label))
-        assert kind == "missing_test_markers", (label, kind, payload)
-        assert payload == [label], (label, payload)
+        kind, payload = validate_find_bit_source(build_sample_source(omit_label=label))
+        assert kind == "invalid_test_marker_counts", (label, kind, payload)
+        assert payload == [f"{label}:expected=1:actual=0"], (label, payload)
         case_count += 1
 
     for label in REQUIRED_SOURCE_MARKERS:
-        kind, payload = validate_find_bit_source(build_sample_source(label))
+        kind, payload = validate_find_bit_source(build_sample_source(omit_label=label))
         assert kind == "missing_source_markers", (label, kind, payload)
         assert payload == [label], (label, payload)
+        case_count += 1
+
+    for label in REQUIRED_TEST_MARKERS:
+        kind, payload = validate_find_bit_source(build_sample_source(duplicate_label=label))
+        assert kind == "invalid_test_marker_counts", (label, kind, payload)
+        assert payload == [f"{label}:expected=1:actual=2"], (label, payload)
         case_count += 1
 
     with tempfile.TemporaryDirectory(prefix="phase1-find-bit-bench-anchors-") as tmp:
