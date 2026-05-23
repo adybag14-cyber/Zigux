@@ -54,6 +54,7 @@ test "phase4 perf baseline survey keeps rollback, decision, and wrapper ownershi
     try requireMarkerCount("\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"", 1);
     try requireMarkerCount("\"validation_entrypoint\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\"", 1);
     try requireMarkerCount("\"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\"", 1);
+    try requireMarkerCount("\"shared_lab_and_ci_matrix_anchor\": \"Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix\"", 1);
     try requireMarker("\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"");
 }
 
