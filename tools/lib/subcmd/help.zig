@@ -235,15 +235,17 @@ pub fn renderCommandSections(
     errdefer output.deinit(allocator);
 
     if (main_cmds.count() != 0) {
-        const main_exec_path = exec_path orelse "";
-        const main_header = try std.fmt.allocPrint(
-            allocator,
-            "available {s} in '{s}'\n",
-            .{ title, main_exec_path },
-        );
+        const main_header = if (exec_path) |main_exec_path|
+            try std.fmt.allocPrint(
+                allocator,
+                "available {s} in '{s}'\n",
+                .{ title, main_exec_path },
+            )
+        else
+            try std.fmt.allocPrint(allocator, "available {s}\n", .{title});
         defer allocator.free(main_header);
         try output.appendSlice(allocator, main_header);
-        try output.appendNTimes(allocator, '-', 16 + title.len + main_exec_path.len);
+        try output.appendNTimes(allocator, '-', main_header.len - 1);
         try output.append(allocator, '\n');
 
         const rendered = try renderPrettyStringList(allocator, main_cmds, terminal_columns);
@@ -364,6 +366,33 @@ test "renderCommandSections keeps stable headers for main and fallback command g
             "subcommands available from elsewhere on your $PATH\n" ++
             "--------------------------------------------------\n" ++
             " report\n" ++
+            "\n",
+        rendered,
+    );
+}
+
+test "renderCommandSections omits an empty quoted exec path when none is available" {
+    var main_cmds = CommandNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.add("annotate");
+
+    var other_cmds = CommandNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    const rendered = try renderCommandSections(
+        std.testing.allocator,
+        "subcommands",
+        null,
+        &main_cmds,
+        &other_cmds,
+        80,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "available subcommands\n" ++
+            "---------------------\n" ++
+            " annotate\n" ++
             "\n",
         rendered,
     );
