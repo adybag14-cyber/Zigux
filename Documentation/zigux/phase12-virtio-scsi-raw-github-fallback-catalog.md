@@ -32,7 +32,8 @@ Base raw URL prefix:
 
 ## Current-Master Evidence Snapshot
 - exact coverage evidence refreshed on `2026-05-23` against live current `master`
-- authenticated contents and public raw `master` now converge again on this same archival catalog body for the fallback path
+- authenticated contents view now returns this refreshed archival catalog body on current `master`
+- public raw `master` fallback still serves the older `2026-05-21` archival body for this same path as of `2026-05-23`
 - current `master` still carries this fallback catalog, the survey note, the slice note, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 - current `master` no longer serves `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, or `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`
 - `zigux/tests/phase12_build.zig` now wires the `virtio_net` queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests through both shared `smoke` and shared `test`
@@ -49,6 +50,7 @@ Base raw URL prefix:
 ## Review Use
 - use this file only as a read-only archival index; it does not add a new replay surface
 - keep the fallback split explicit: this file is archival commit-pinned history only for the historical replay artifact, while the current-master survey note, fixture manifest, survey manifest, survey replay, survey gate, validator, shared build route, and `zigux/Makefile` are rollback evidence only
+- treat the authenticated contents readback and the public raw `master` fallback as split evidence again until the raw path catches up to the refreshed current-master body
 - rerun `python3 scripts/zigux/check-phase12-virtio-scsi-packet.py` before widening any PMO wording around this artifact
 - exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`
 - `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only and release-readiness checkers plus `scripts/zigux/validate-phase12.py`
