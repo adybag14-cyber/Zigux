@@ -225,6 +225,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         for marker in REQUIRED_NOTE_MARKERS:
             if marker not in string_notes:
                 issues.append(("MISSING_NOTE_MARKER", marker))
+        if string_notes != list(REQUIRED_NOTE_MARKERS):
+            issues.append(("NOTE_ORDER_MISMATCH", "notes"))
 
     return issues
 
@@ -313,6 +315,7 @@ def run_self_test() -> int:
         + 1
         + 1
         + 1
+        + 1
         + len(PRIMARY_TOOL_MARKERS)
         + len(PRIMARY_TOOL_MARKERS)
         + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
@@ -374,6 +377,13 @@ def run_self_test() -> int:
             write_manifest(manifest_path, manifest)
             assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        manifest = build_self_test_manifest()
+        manifest["notes"] = list(reversed(REQUIRED_NOTE_MARKERS))
+        write_manifest(manifest_path, manifest)
+        assert ("NOTE_ORDER_MISMATCH", "notes") in collect_issues(root)
+        checks_run += 1
 
         build_self_test_root(root)
         manifest = build_self_test_manifest()
