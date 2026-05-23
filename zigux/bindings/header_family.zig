@@ -103,6 +103,10 @@ pub fn canonicalizeBoundaryHeader(header: BoundaryHeader) BoundaryHeader {
     return abi.canonicalizeHeader(header);
 }
 
+pub fn validateBoundaryHeaderStatus(header: BoundaryHeader) ExportStatus {
+    return version_binding.validateBoundaryHeader(header);
+}
+
 pub fn initDevTFields(major: u32, minor: u32) DevTFields {
     return dev_t_binding.init(major, minor);
 }
@@ -272,6 +276,36 @@ test "header family binding keeps boundary header compatibility helpers direct" 
     try std.testing.expectEqual(@as(u16, abi.ABI_VERSION), normalized.abi_version);
     try std.testing.expectEqual(expanded.flags, normalized.flags);
     try std.testing.expect(boundaryHeaderIsCanonical(normalized));
+}
+
+test "header family binding relays boundary header validation statuses" {
+    const canonical = currentBoundaryHeader(0x24);
+    const expanded = compatibleBoundaryHeader(@sizeOf(BoundaryHeader) + 8, 0x24);
+    const undersized = BoundaryHeader{
+        .size = @sizeOf(BoundaryHeader) - 1,
+        .abi_version = abi.ABI_VERSION,
+        .flags = 0x24,
+    };
+    const stale = BoundaryHeader{
+        .size = @sizeOf(BoundaryHeader),
+        .abi_version = abi.ABI_VERSION + 1,
+        .flags = 0x24,
+    };
+    const ok = okStatus(.kernel);
+    const invalid = errorStatus(invalid_argument, .kernel);
+
+    try std.testing.expect(statusIsOk(validateBoundaryHeaderStatus(canonical)));
+    try std.testing.expect(statusIsOk(validateBoundaryHeaderStatus(expanded)));
+    try std.testing.expect(!statusIsOk(validateBoundaryHeaderStatus(undersized)));
+    try std.testing.expect(!statusIsOk(validateBoundaryHeaderStatus(stale)));
+    try std.testing.expect(std.meta.eql(version_binding.validateBoundaryHeader(canonical), validateBoundaryHeaderStatus(canonical)));
+    try std.testing.expect(std.meta.eql(version_binding.validateBoundaryHeader(expanded), validateBoundaryHeaderStatus(expanded)));
+    try std.testing.expect(std.meta.eql(version_binding.validateBoundaryHeader(undersized), validateBoundaryHeaderStatus(undersized)));
+    try std.testing.expect(std.meta.eql(version_binding.validateBoundaryHeader(stale), validateBoundaryHeaderStatus(stale)));
+    try std.testing.expect(std.meta.eql(ok, validateBoundaryHeaderStatus(canonical)));
+    try std.testing.expect(std.meta.eql(ok, validateBoundaryHeaderStatus(expanded)));
+    try std.testing.expect(std.meta.eql(invalid, validateBoundaryHeaderStatus(undersized)));
+    try std.testing.expect(std.meta.eql(invalid, validateBoundaryHeaderStatus(stale)));
 }
 
 test "header family binding mirrors Linux-facing dev_t helpers" {
