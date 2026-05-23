@@ -47,6 +47,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     defer allocator.free(helper_tests);
     try expectContains(helper_tests, "test \"phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators\" {");
     try expectContains(helper_tests, "test \"phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary\" {");
+    try expectContains(helper_tests, "test \"phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly\" {");
     try expectNotContains(helper_tests, "devmKasprintfStrarray");
     try expectNotContains(helper_tests, "devm_kasprintf_strarray");
 
