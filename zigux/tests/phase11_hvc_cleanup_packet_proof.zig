@@ -112,3 +112,28 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     try expectContains(driver, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {");
     try expectContains(driver, "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {");
 }
+
+test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to matrix evidence" {
+    const matrix_doc = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(matrix_doc);
+
+    const driver = try readRepoFileAlloc(
+        std.testing.allocator,
+        "drivers/tty/hvc/hvc_console.zig",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(driver);
+
+    try expectContains(matrix_doc, "`hvc_kick()` wakeup-cue");
+    try expectContains(matrix_doc, "notifier-irq");
+    try expectContains(matrix_doc, "modem-control helper summaries reviewable on current `master`");
+    try expectContains(driver, "pub fn summarizeCleanupPrerequisite(");
+    try expectContains(driver, ") error{CleanupRequiresFinalCloseOrHangup}!CleanupPrerequisiteSummary {");
+    try expectContains(driver, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {");
+    try expectContains(driver, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {");
+    try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");
+}
