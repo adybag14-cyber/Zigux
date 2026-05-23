@@ -121,6 +121,17 @@ MAKEFILE_FALLBACK_MARKERS = [
     "ZIG_PINNED_TOOLCHAIN := $(if $(ZIG_PINNED_EXECUTABLE),$(ZIG_PINNED_EXECUTABLE),$(ZIG_LOCAL_TOOLCHAIN))",
     "ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)",
 ]
+STALE_SHARED_ROUTE_MARKERS = [
+    '"phase12_virtio_net.zig"',
+    '"phase12_virtio_net_syntax_lab.zig"',
+    '"phase12_virtio_scsi.zig"',
+    '"phase12_virtio_scsi_syntax_lab.zig"',
+    '"phase12_virtio_scsi_repeated_replan_gate.zig"',
+    '"phase12_virtio_scsi_repeated_rollback_gate.zig"',
+    '"phase12_virtio_scsi_packet.zig"',
+    "phase12-virtio-net-tests",
+    "phase12-virtio-net-syntax-lab-tests",
+]
 
 REQUIRED_FILES = [
     BUILD_ONLY_CHECKER_PATH,
@@ -231,15 +242,9 @@ PHASE12_BUILD_EXACT_COUNTS = {
 }
 
 FORBIDDEN_MARKERS = {
-    PHASE12_BUILD_PATH: [
-        '"phase12_virtio_net.zig"',
-        '"phase12_virtio_net_syntax_lab.zig"',
-        '"phase12_virtio_scsi.zig"',
-        '"phase12_virtio_scsi_syntax_lab.zig"',
-        '"phase12_virtio_scsi_repeated_replan_gate.zig"',
-        '"phase12_virtio_scsi_repeated_rollback_gate.zig"',
-        '"phase12_virtio_scsi_packet.zig"',
-    ],
+    PHASE12_BUILD_PATH: [*STALE_SHARED_ROUTE_MARKERS],
+    MAKEFILE_PATH: [*STALE_SHARED_ROUTE_MARKERS],
+    WORKFLOW_PATH: [*STALE_SHARED_ROUTE_MARKERS],
 }
 
 EXACT_LINE_MARKER_PATHS = {WORKFLOW_PATH}
