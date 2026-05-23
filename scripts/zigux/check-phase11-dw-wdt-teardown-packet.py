@@ -68,11 +68,12 @@ REGISTRATION_SCAFFOLD_MARKERS = [
 RESTART_MARKERS = [
     'pub const anchor_path = "drivers/watchdog/dw_wdt.c";',
     'test "phase11 dw_wdt restart summary keeps missing drvdata explicit" {',
-    "try std.testing.expect(summary.keeps_missing_drvdata_explicit);",
+    "try std.testing.expectEqual(RestartState.blocked_missing_drvdata, summary.state);",
     'test "phase11 dw_wdt restart summary keeps missing timeout image explicit" {',
-    "try std.testing.expect(summary.keeps_missing_timeout_image_explicit);",
+    "try std.testing.expectEqual(RestartState.blocked_missing_timeout_image, summary.state);",
     'test "phase11 dw_wdt restart summary keeps restart register writes explicit" {',
     'try std.testing.expectEqualStrings("watchdog_set_restart_priority",',
+    'test "phase11 dw_wdt restart summary preserves explicit in-scope replay overrides" {',
     "try std.testing.expect(summary.blocked_on_live_mmio);",
 ]
 
@@ -127,6 +128,8 @@ EXPECTED_MANIFEST_LANE = "P11-L05"
 EXPECTED_MANIFEST_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
 VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
 VERIFY_DESTINATION = "drivers/watchdog/dw_wdt_verify.zig"
+RESTART_GAP_ID = "phase11-dw-wdt-restart-summary"
+RESTART_DESTINATION = "drivers/watchdog/dw_wdt_restart.zig"
 PM_GAP_ID = "phase11-dw-wdt-live-platform-pm"
 PM_DESTINATION = "drivers/watchdog/dw_wdt_pm.zig"
 NEXT_GAP_ID = "phase11-dw-wdt-live-mmio-validation"
@@ -176,6 +179,7 @@ def check_manifest(root: Path) -> list[str]:
             "dw_wdt_survey_gate_present",
             "dw_wdt_survey_note_present",
             "dw_wdt_pm_helper_present",
+            "dw_wdt_restart_helper_present",
         ):
             if summary.get(flag) is not True:
                 failures.append(f"manifest_flag:{flag}")
@@ -186,6 +190,15 @@ def check_manifest(root: Path) -> list[str]:
         return failures
 
     gap_map = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
+
+    restart_gap = gap_map.get(RESTART_GAP_ID)
+    if restart_gap is None:
+        failures.append(f"manifest_missing_gap:{RESTART_GAP_ID}")
+    else:
+        if restart_gap.get("zigux_destination") != RESTART_DESTINATION:
+            failures.append(f"manifest_restart_destination:{restart_gap.get('zigux_destination')!r}")
+        if restart_gap.get("status") != "starter_landed":
+            failures.append(f"manifest_restart_status:{restart_gap.get('status')!r}")
 
     verify_gap = gap_map.get(VERIFY_GAP_ID)
     if verify_gap is None:
@@ -252,12 +265,18 @@ def seed_fixture(root: Path) -> None:
             "dw_wdt_survey_gate_present": True,
             "dw_wdt_survey_note_present": True,
             "dw_wdt_pm_helper_present": True,
+            "dw_wdt_restart_helper_present": True,
         },
         "gaps": [
             {
                 "id": VERIFY_GAP_ID,
                 "status": "starter_landed",
                 "zigux_destination": VERIFY_DESTINATION,
+            },
+            {
+                "id": RESTART_GAP_ID,
+                "status": "starter_landed",
+                "zigux_destination": RESTART_DESTINATION,
             },
             {
                 "id": PM_GAP_ID,
@@ -300,6 +319,9 @@ def run_self_test() -> None:
             ("clock_plan", CLOCK_PLAN_MARKERS[0]),
             ("platform_plan", PLATFORM_PLAN_MARKERS[1]),
             ("gap_note", GAP_NOTE_MARKERS[1]),
+            ("registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[0]),
+            ("registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[4]),
+            ("restart", RESTART_MARKERS[1]),
             ("restart", RESTART_MARKERS[5]),
             ("verify", VERIFY_MARKERS[3]),
             ("pm", PM_MARKERS[8]),
@@ -323,11 +345,29 @@ def run_self_test() -> None:
         expect_failure(manifest_lane_case, "manifest_lane_key:'P11-L10'")
         case_count += 1
 
+        manifest_restart_flag_case = root / "manifest_restart_flag_case"
+        shutil.copytree(fixture, manifest_restart_flag_case)
+        manifest_path = manifest_restart_flag_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["survey_summary"]["dw_wdt_restart_helper_present"] = False
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        expect_failure(manifest_restart_flag_case, "manifest_flag:dw_wdt_restart_helper_present")
+        case_count += 1
+
+        manifest_restart_gap_case = root / "manifest_restart_gap_case"
+        shutil.copytree(fixture, manifest_restart_gap_case)
+        manifest_path = manifest_restart_gap_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["gaps"][1]["zigux_destination"] = "drivers/watchdog/dw_wdt_verify.zig"
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        expect_failure(manifest_restart_gap_case, "manifest_restart_destination:'drivers/watchdog/dw_wdt_verify.zig'")
+        case_count += 1
+
         manifest_pm_case = root / "manifest_pm_case"
         shutil.copytree(fixture, manifest_pm_case)
         manifest_path = manifest_pm_case / REQUIRED_FILES["manifest"]
         data = json.loads(read_text(manifest_path))
-        data["gaps"][1]["status"] = "ready_next"
+        data["gaps"][2]["status"] = "ready_next"
         manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         expect_failure(manifest_pm_case, "manifest_pm_status:'ready_next'")
         case_count += 1
@@ -336,7 +376,7 @@ def run_self_test() -> None:
         shutil.copytree(fixture, manifest_next_case)
         manifest_path = manifest_next_case / REQUIRED_FILES["manifest"]
         data = json.loads(read_text(manifest_path))
-        data["gaps"][2]["zigux_destination"] = "drivers/watchdog/dw_wdt.zig"
+        data["gaps"][3]["zigux_destination"] = "drivers/watchdog/dw_wdt.zig"
         manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         expect_failure(manifest_next_case, "manifest_next_destination:'drivers/watchdog/dw_wdt.zig'")
         case_count += 1
