@@ -30,6 +30,37 @@ test "phase2 genksyms wrapper replay keeps option terminator after earlier posit
     }
 }
 
+test "phase2 genksyms wrapper replay preserves positional passthrough ordering around later options" {
+    var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{
+        "leftover.c",
+        "-d",
+        "rightover.h",
+        "-r",
+        "foo.symref",
+    };
+    const outcome = try genksyms.parseArgs(arena_state.allocator(), &args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try std.testing.expectEqual(@as(usize, 5), request.rendered_args.len);
+                try std.testing.expectEqualStrings("-d", request.rendered_args[0]);
+                try std.testing.expectEqualStrings("-r", request.rendered_args[1]);
+                try std.testing.expectEqualStrings("foo.symref", request.rendered_args[2]);
+                try std.testing.expectEqualStrings("leftover.c", request.rendered_args[3]);
+                try std.testing.expectEqualStrings("rightover.h", request.rendered_args[4]);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
+    }
+}
+
 test "phase2 genksyms wrapper replay keeps dash-prefixed arguments as data across terminator boundaries" {
     var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena_state.deinit();
