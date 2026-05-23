@@ -136,6 +136,17 @@ REQUIRED_FILES = (
     TOOL_MANIFEST,
 )
 
+PHONY_ROUTES = (
+    "phase2-toolchain",
+    "phase2-tools",
+    "phase2-kconfig",
+    "phase2-cross",
+    "phase2-genksyms",
+    "phase2-fixdep",
+    "phase2-validate",
+    "phase2",
+)
+
 
 def read_text(root: Path, rel: Path) -> str:
     path = root / rel
@@ -162,6 +173,19 @@ def write_text(root: Path, rel: Path, text: str) -> None:
 
 def count_exact_line(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def collect_phony_target_counts(text: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith(".PHONY:"):
+            continue
+        _, suffix = stripped.split(":", 1)
+        for token in suffix.strip().split():
+            if token:
+                counts[token] = counts.get(token, 0) + 1
+    return counts
 
 
 def collect_manifest_wrappers(issues: list[str], manifest: object) -> list[str] | None:
@@ -194,24 +218,13 @@ def collect_issues(root: Path) -> list[str]:
         if not (root / rel).is_file():
             issues.append(f"missing_file:{rel.as_posix()}")
 
-    phony_targets: set[str] = set()
-    for line in makefile_text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith(".PHONY:"):
-            _, suffix = stripped.split(":", 1)
-            phony_targets.update(token for token in suffix.strip().split() if token)
-    for route in (
-        "phase2-toolchain",
-        "phase2-tools",
-        "phase2-kconfig",
-        "phase2-cross",
-        "phase2-genksyms",
-        "phase2-fixdep",
-        "phase2-validate",
-        "phase2",
-    ):
-        if route not in phony_targets:
+    phony_target_counts = collect_phony_target_counts(makefile_text)
+    for route in PHONY_ROUTES:
+        count = phony_target_counts.get(route, 0)
+        if count == 0:
             issues.append(f"missing_phony_target:{route}")
+        elif count != 1:
+            issues.append(f"duplicate_phony_target:{route}:count={count}")
 
     for marker in MAKEFILE_REQUIRED_LINES:
         count = count_exact_line(makefile_text, marker)
@@ -366,6 +379,16 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert f"missing_makefile_line:{MAKEFILE_REQUIRED_LINES[0]}" in issues
+        case_count += 1
+
+        build_sample_root(root)
+        write_text(
+            root,
+            MAKEFILE,
+            read_text(root, MAKEFILE) + ".PHONY: phase2-toolchain\n",
+        )
+        issues = collect_issues(root)
+        assert "duplicate_phony_target:phase2-toolchain:count=2" in issues
         case_count += 1
 
         build_sample_root(root)
