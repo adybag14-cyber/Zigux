@@ -13,6 +13,7 @@ Fresh mixed readback on 2026-05-23 confirmed these current sample-root files on 
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
+* `samples/zigux/runtime_atomic64.zig`
 * `samples/zigux/runtime_bitmap.zig`
 * `samples/zigux/runtime_bitmap_cold_stage_guard.zig`
 * `samples/zigux/runtime_bitmap_loader.zig`
