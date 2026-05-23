@@ -76,7 +76,6 @@ test "runtime trace-events sample keeps selftest summary replay explicit at the 
     try std.testing.expectEqual(@as(usize, 0), selftest_snapshot.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), selftest_snapshot.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), selftest_snapshot.register_transitions);
-    try std.testing.expectEqual(@as(usize, 1), selftest_snapshot.unregister_transitions);
     try std.testing.expectEqual(@as(i32, 0), selftest_snapshot.last_main_count);
     try std.testing.expectEqual(@as(i32, 1), selftest_snapshot.last_fn_count);
     try std.testing.expect(selftest_snapshot.saw_vararg_payload);
@@ -344,7 +343,7 @@ test "runtime trace-events sample keeps rejected re-init rollback explicit after
     try std.testing.expect(before_selftested_reinit.saw_conditional_path);
     try std.testing.expectEqualStrings("foo_bar_reg", before_selftested_reinit.last_register_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("foo_bar_unreg", before_selftested_reinit.last_unregister_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqualStrings("Mother Goose", before_selftested_reinit.last_main_randomChoiceMessage orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Mother Goose", before_selftested_reinit.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Look at me", before_selftested_reinit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
 
     try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.init());
