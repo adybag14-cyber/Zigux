@@ -30,7 +30,6 @@ VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
     ("checkers", "EXPECTED_MANIFEST_CHECKERS"),
     ("bridge_helpers", "EXPECTED_MANIFEST_BRIDGE_HELPERS"),
     ("fixture_roster", "EXPECTED_MANIFEST_FIXTURE_ROSTER"),
-    ("policy", "EXPECTED_MANIFEST_POLICY"),
 )
 DIRECT_MANIFEST_SURFACE_EXPECTATIONS: dict[str, tuple[str, ...]] = {
     "bootstrap_helpers": (
@@ -131,6 +130,9 @@ DIRECT_MANIFEST_SURFACE_EXPECTATIONS: dict[str, tuple[str, ...]] = {
         "make -C zigux phase2-fixdep",
         "make -C zigux phase2-validate",
         "make -C zigux phase2",
+    ),
+    "policy": (
+        "scripts/zigux/zig-toolchain-policy.json",
     ),
 }
 
@@ -596,10 +598,11 @@ EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
 EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
-EXPECTED_MANIFEST_POLICY = ("policy-a.json",)
+
 
 def resolve(root: Path, rel: Path) -> Path:
     return root / rel
+
 
 def build_self_test_root(root: Path) -> None:
     resolve(root, PHASE2_CLOSURE_REL).parent.mkdir(parents=True, exist_ok=True)
@@ -618,7 +621,6 @@ def build_self_test_root(root: Path) -> None:
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
-            "policy": list(EXPECTED_MANIFEST_POLICY),
         },
     }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
@@ -635,8 +637,10 @@ def build_self_test_root(root: Path) -> None:
     resolve(root, GENKSYMS_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\\n", encoding="utf-8")
 
+
 def _count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
 
 def require_manifest_list(issues, manifest, key):
     surfaces = manifest.get("present_surfaces")
@@ -649,12 +653,14 @@ def require_manifest_list(issues, manifest, key):
         return None
     return list(value)
 
+
 def expect_subset(issues, label, actual, expected):
     if actual is None:
         return
     for marker in expected:
         if marker not in actual:
             issues.append(("MISSING_MANIFEST_SURFACE", f"{label}:{marker}"))
+
 
 def collect_case_manifest_issues(issues, kconfig_cases, conf_manifest, confdata_manifest, genksyms_cases, genksyms_manifest):
     if not isinstance(kconfig_cases, dict):
@@ -672,6 +678,7 @@ def collect_case_manifest_issues(issues, kconfig_cases, conf_manifest, confdata_
         issues.append(("GENKSYMS_CASE_PACKET_MISMATCH", "cases"))
     if genksyms_manifest != EXPECTED_GENKSYMS_MANIFEST:
         issues.append(("GENKSYMS_MANIFEST_MISMATCH", "root"))
+
 
 def collect_issues(root: Path):
     issues = []
@@ -733,7 +740,6 @@ def collect_issues(root: Path):
     expect_subset(issues, "checkers", require_manifest_list(issues, manifest, "checkers"), EXPECTED_MANIFEST_CHECKERS)
     expect_subset(issues, "bridge_helpers", require_manifest_list(issues, manifest, "bridge_helpers"), EXPECTED_MANIFEST_BRIDGE_HELPERS)
     expect_subset(issues, "fixture_roster", require_manifest_list(issues, manifest, "fixture_roster"), EXPECTED_MANIFEST_FIXTURE_ROSTER)
-    expect_subset(issues, "policy", require_manifest_list(issues, manifest, "policy"), EXPECTED_MANIFEST_POLICY)
     collect_case_manifest_issues(issues, kconfig_cases, conf_manifest, confdata_manifest, genksyms_cases, genksyms_manifest)
     return issues
 """
