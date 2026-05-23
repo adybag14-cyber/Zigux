@@ -91,6 +91,14 @@ test "phase 8 file-path handle bridge proof keeps helper-local routing evidence 
     try expectContains(boundary_note, "advanceOnlineCpuCursor()");
     try expectContains(boundary_note, "summarizeNextOnlineCpuRoute()");
     try expectContains(boundary_note, "summarizeOnlineCpuRouting()");
+    try expectContains(boundary_note, "buildProcFdinfoPath()");
+    try expectContains(boundary_note, "mapReuseObservationFromFdinfo()");
+    try expectContains(boundary_note, "resolveReusePinnedMapAttempt()");
+    try expectContains(boundary_note, "classifyTokenPreparationFailure()");
+    try expectContains(boundary_note, "planTokenPreparation()");
+    try expectContains(boundary_note, "skip_optional_missing_delegation");
+    try expectContains(boundary_note, "skip_optional");
+    try expectContains(boundary_note, "mandatory `fail`");
     try expectContains(boundary_note, "It also does not claim the deferred `perf-buffer-online-cpu-routing` packet");
     try expectContains(boundary_note, "per-CPU `perf_event_open()` setup");
     try expectContains(boundary_note, "epoll-backed perf FD registration");
@@ -160,7 +168,11 @@ test "phase 8 file-path handle bridge helper source keeps planning-only bridge b
     defer std.testing.allocator.free(helper_source);
 
     try expectContains(helper_source, "pub fn resolveReusePinnedMapAttempt(");
+    try expectContains(helper_source, "pub fn classifyTokenPreparationFailure(");
     try expectContains(helper_source, "pub fn planTokenPreparation(");
+    try expectContains(helper_source, "skip_optional_missing_delegation");
+    try expectContains(helper_source, "skip_optional");
+    try expectContains(helper_source, ".fail");
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "bpf_obj_get(") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "F_DUPFD_CLOEXEC") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "/sys/fs/bpf") == null);
