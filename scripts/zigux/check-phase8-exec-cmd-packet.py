@@ -43,6 +43,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "buildDeferredExeclCall()",
         "buildDeferredExecvCall()",
         "`make -C zigux phase8-validate`",
+        "deferred execution",
+        "queue ownership",
+        "kernel/workqueue.c",
+        "Phase 14",
     ),
     SCRIPTS_README: (
         "Phase 8 flow - the current userspace-adjacent tooling reminder should keep the direct exec-cmd command packet explicit",
@@ -83,6 +87,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {',
         '"tools/lib/subcmd/exec-cmd.zig"',
         '"Run focused Phase 8 exec-cmd tests"',
+        'try expectContains(slice_note, "deferred execution");',
+        'try expectContains(slice_note, "queue ownership");',
+        'try expectContains(slice_note, "kernel/workqueue.c");',
+        'try expectContains(slice_note, "Phase 14");',
     ),
     EXEC_CMD_BUILD: (
         "phase8_exec_cmd.zig",
