@@ -32,6 +32,14 @@
     "expected_exit_code": 0
   },
   {
+    "name": "sample_escaped_hash",
+    "depfile": "sample_escaped_hash.d",
+    "target": "sample_escaped_hash.o",
+    "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_hash_source.c -o sample_escaped_hash.o",
+    "expected": "sample_escaped_hash_expected.txt",
+    "expected_exit_code": 0
+  },
+  {
     "name": "sample_concatenated",
     "depfile": "sample_concatenated.d",
     "target": "sample_concatenated.o",
