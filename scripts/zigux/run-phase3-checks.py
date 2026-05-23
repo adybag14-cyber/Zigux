@@ -137,7 +137,7 @@ CHECK_COMMANDS = (
         (),
         (
             "validated Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
-            "validated zigux/tests/phase3_policy_dump.zig",
+            "PHASE3_POLICY_UNSAFE_SURVEY=pass",
         ),
     ),
     (
@@ -488,6 +488,17 @@ def run_self_test() -> int:
             print("expected missing abi-header-family pass marker to fail the runner")
             return 1
 
+        policy_unsafe_path = root / CHECK_COMMANDS[17][0]
+        populate_repo()
+        _write_synthetic_script(
+            policy_unsafe_path,
+            (CHECK_COMMANDS[17][2][0],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing policy-unsafe pass marker to fail the runner")
+            return 1
+
         low_level_wrapper_path = root / CHECK_COMMANDS[18][0]
         populate_repo()
         _write_synthetic_script(
@@ -518,7 +529,7 @@ def run_self_test() -> int:
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 15}"
+            f"{len(SELF_TEST_MISSING_CASES) + 16}"
         )
         return 0
 
