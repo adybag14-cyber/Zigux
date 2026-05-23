@@ -23,7 +23,7 @@ PERF_SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20
-EXPECTED_PIN_SELF_TEST_CASES = 20
+EXPECTED_PIN_SELF_TEST_CASES = 19
 
 STATIC_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_NOTE_BLOB_SHA=53fec0ed6190e94af07826f720deb1fe59e2c67b`",
@@ -246,7 +246,6 @@ def run_self_test() -> int:
         root = Path(tmp)
         _build_baseline_tree(root)
         check(root)
-        cases += 1
         for label, _ in CURRENT_HEAD_BLOB_PINS:
             _build_baseline_tree(root)
             line = find_status_line(read(root, NOTE), label)
