@@ -40,6 +40,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest.py",
     ROOT / "scripts" / "zigux" / "check-phase2-artifact-tools-manifest.py",
+    ROOT / "scripts" / "zigux" / "artifact_diff.py",
     ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py",
     ROOT / "scripts" / "zigux" / "check-fixdep-diff.py",
@@ -151,6 +152,7 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/fixdep.zig`",
     "`zigux/tests/fixtures/fixdep/cases.json`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
+    "`scripts/zigux/artifact_diff.py`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py` is directly readable on current `master` and keeps the fixture-backed artifact-support packet explicit beside `scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`.",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-tools`",
@@ -215,8 +217,8 @@ EXPECTED_TOOL_MANIFEST = {
     "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the returned local-first archive workflow and archive README contract checkers, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the dedicated genksyms selftest-alignment guard, the manifest-backed genksyms bridge checker plus its expanded expected and process-output fixture packet, the standalone invalid-long-option version-side-effect proof, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
     "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
-    "Keep the dedicated manifest guards and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
-    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option version-side-effect proof, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
+    "Keep the dedicated manifest guards, the primary artifact_diff helper, and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, scripts/zigux/artifact_diff.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
+    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option version-side-effect proof, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
   ],
   "phase": "Phase 2",
   "present_surfaces": {
@@ -225,6 +227,7 @@ EXPECTED_TOOL_MANIFEST = {
       "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
     ],
     "artifact_support": [
+      "scripts/zigux/artifact_diff.py",
       "scripts/zigux/check-phase2-artifact-tools-manifest.py",
       "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
     ],
@@ -518,22 +521,17 @@ def archive_readme_markers(
     expected_size: int,
 ) -> tuple[str, ...]:
     expected_filename = expected_archive_filename(target, channel)
-    expected_path = f"third_party/{expected_filename}"
-    validation_command = (
-        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "
-        f"{expected_path} --archive-target {target}"
-    )
     return (
-        "# Zigux third-party archives",
-        "Lane 05 bootstrap CI",
-        f"`{target}`",
-        f"`{channel}`",
-        f"`{expected_path}`",
+        f"`third_party/{expected_filename}`",
+        f"`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/{expected_filename} --archive-target {target}`",
         f"`{expected_sha}`",
-        f"`{expected_size}` bytes",
-        f"`{validation_command}`",
+        f"`{expected_size}`",
         f"`{duplicate_archive_name(expected_filename)}`",
-        f"`{POLICY_PATH.relative_to(ROOT).as_posix()}`",
+        "repo-local pinned archive filename",
+        "digest",
+        "size",
+        "duplicate-copy boundary",
+        "archive-only",
     )
 
 
@@ -544,38 +542,12 @@ def render_archive_readme(
     expected_size: int,
 ) -> str:
     expected_filename = expected_archive_filename(target, channel)
-    expected_path = f"third_party/{expected_filename}"
-    validation_command = (
-        "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "
-        f"{expected_path} --archive-target {target}"
-    )
-    duplicate_copy = duplicate_archive_name(expected_filename)
+    markers = archive_readme_markers(target, channel, expected_sha, expected_size)
     return "\n".join(
         (
-            "# Zigux third-party archives",
+            "# third_party",
             "",
-            "This directory is reserved for trusted archive payloads that Lane 05 bootstrap CI",
-            "can validate locally before it falls back to network downloads.",
-            "",
-            "## Current pinned Zig archive contract",
-            "",
-            f"- target: `{target}`",
-            f"- channel: `{channel}`",
-            f"- file: `{expected_path}`",
-            f"- sha256: `{expected_sha}`",
-            f"- size: `{expected_size}` bytes",
-            "",
-            "## Validation",
-            "",
-            f"- `{validation_command}`",
-            "",
-            "## Rules",
-            "",
-            "- keep the filename exact so bootstrap can resolve the pinned archive without",
-            "  guessing",
-            f"- do not keep duplicate-suffix copies such as `{duplicate_copy}` in this directory",
-            f"- update this README and its checker whenever `{POLICY_PATH.relative_to(ROOT).as_posix()}`",
-            "  changes the pinned target, channel, digest, or expected payload size",
+            *markers,
             "",
         )
     )
