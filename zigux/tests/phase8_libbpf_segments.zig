@@ -94,6 +94,31 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         std.mem.indexOf(u8, poll_slice, "broader perf-buffer-online-cpu-routing parity") != null,
     );
 
+    const poll_gate = try readRepoFile("scripts/zigux/check-phase8-perf-buffer-poll-gate.py");
+    defer std.testing.allocator.free(poll_gate);
+
+    try expectContains(poll_gate, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
+    try expectContains(poll_gate, "no standalone timer helper behavior");
+    try expectContains(poll_gate, "no standalone clockevent helper behavior");
+    try expectContains(poll_gate, "broader perf-buffer-online-cpu-routing parity");
+
+    const validator = try readRepoFile("scripts/zigux/validate-phase8.py");
+    defer std.testing.allocator.free(validator);
+
+    try expectContains(
+        validator,
+        "PERF_BUFFER_POLL_GATE_CHECKER = Path(\"scripts/zigux/check-phase8-perf-buffer-poll-gate.py\")",
+    );
+    try expectContains(
+        validator,
+        "\"`Documentation/zigux/phase8-perf-buffer-poll-slice.md`\"",
+    );
+    try expectContains(
+        validator,
+        "\"`make -C zigux phase8-perf-buffer-poll-test`\"",
+    );
+    try expectContains(validator, "\"standalone timer or clockevent helper behavior\"");
+
     const makefile = try readRepoFile("zigux/Makefile");
     defer std.testing.allocator.free(makefile);
 
