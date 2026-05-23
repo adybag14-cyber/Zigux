@@ -99,6 +99,7 @@ MARKERS = {
         "Treat `samples/zigux/kobject_example.zig` as current direct sample-root evidence inside the mixed kobject packet recorded by `Documentation/zigux/phase5-kobject-sample-survey.md`, while `zigux/tests/phase5_kobject_example_survey.zig` remains the public-tree-backed companion in this runtime and `zigux/tests/phase5_build.zig` stays directly readable as the shared build-route companion.",
         "Keep `samples/zigux/kobject_example_attr_group_contract.zig` explicit as direct current sample-root evidence for the bounded kobject attr-group companion rather than leaving that shipped reviewability file outside the sample-root inventory.",
         "Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.",
+        "the current trace-events packet split: the bounded formatting companion stays directly readable through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, and the shared Phase 5 reminder surfaces; authenticated contents reread in this run also directly returned `zigux/tests/phase5_build.zig`; the broader sample-local companions `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` still depend on fresh public GitHub blob or tree fallback in this runtime, so keep those five broader trace-events companions explicit as public-tree-backed or shared-reminder evidence rather than direct authenticated proof, and keep the returned `zigux/tests/phase5_build.zig` route framed separately as the shared rerun handle rather than sample-local proof",
         "Keep the returned runtime bitmap reminder packet separate too: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` are current direct sample-root evidence for the separate Phase 9 runtime bitmap family, not extra Phase 5 sample proof.",
     ),
     SAMPLE_ROOT_PATH: (
@@ -212,7 +213,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 26
+    expected_case_count = 27
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -428,7 +429,7 @@ def run_self_test() -> int:
         )
         checks_run += 1
 
-        mutated = root / "missing_lane_sequencing_runtime_bitmap_boundary_marker"
+        mutated = root / "missing_lane_sequencing_trace_events_split_marker"
         seed(mutated)
         write_text(
             mutated,
@@ -436,9 +437,23 @@ def run_self_test() -> int:
             placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][4], ""),
         )
         expect_exact(
-            "lane_sequencing_runtime_bitmap_boundary_marker",
+            "lane_sequencing_trace_events_split_marker",
             collect_failures(mutated),
             [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][4]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_lane_sequencing_runtime_bitmap_boundary_marker"
+        seed(mutated)
+        write_text(
+            mutated,
+            LANE_SEQUENCING_PATH,
+            placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][5], ""),
+        )
+        expect_exact(
+            "lane_sequencing_runtime_bitmap_boundary_marker",
+            collect_failures(mutated),
+            [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][5]}"],
         )
         checks_run += 1
 
