@@ -162,14 +162,41 @@ jobs:
       - name: Check current Lane 05 local archive README packet
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py
 
+      - name: Self-test current Lane 05 retained bootstrap step checker
+        run: python3 scripts/zigux/check-lane05-bootstrap-retained-steps.py --self-test
+
+      - name: Check current Lane 05 retained bootstrap step packet
+        run: python3 scripts/zigux/check-lane05-bootstrap-retained-steps.py
+
       - name: Self-test current Lane 05 install-zig index fallback checker
         run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py --self-test
 
       - name: Check current Lane 05 install-zig index fallback packet
         run: python3 scripts/zigux/check-lane05-install-zig-index-fallback.py
 
+      - name: Self-test current Lane 05 install-zig archive verification checker
+        run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test
+
+      - name: Check current Lane 05 install-zig archive verification packet
+        run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py
+
       - name: Self-test current Zig installer helper
         run: python3 scripts/zigux/install-zig.py --self-test
+
+      - name: Self-test current staged pinned Zig archive helper
+        run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
+
+      - name: Self-test current Lane 05 stage helper contract checker
+        run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test
+
+      - name: Check current Lane 05 stage helper contract packet
+        run: python3 scripts/zigux/check-lane05-stage-helper-contract.py
+
+      - name: Self-test current Lane 05 stage helper selftest checker
+        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test
+
+      - name: Check current Lane 05 stage helper selftest packet
+        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
 
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
@@ -398,6 +425,9 @@ jobs:
       - name: Run Phase 4 rollback tests
         run: make -C zigux phase4-test
 
+      - name: Run Phase 4 artifact-diff contract make route
+        run: make -C zigux phase4-artifact-diff-contract
+
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
 
@@ -433,6 +463,9 @@ jobs:
       - name: Run focused Phase 8 exec-cmd tests
         run: make -C zigux phase8-exec-cmd-test
 
+      - name: Run focused Phase 8 libbpf segment tests
+        run: make -C zigux phase8-libbpf-segments-test
+
       - name: Run Phase 8 tooling tests
         run: make -C zigux phase8-test
 
@@ -448,17 +481,35 @@ jobs:
       - name: Check current Phase 9 freeze-map study-boundaries packet
         run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py
 
+      - name: Self-test current Phase 9 build-only surface checker
+        run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test
+
+      - name: Check current Phase 9 build-only surface packet
+        run: python3 scripts/zigux/check-phase9-build-only-surface.py
+
       - name: Self-test current Phase 9 trace-events runtime packet checker
         run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test
 
       - name: Check current Phase 9 trace-events runtime packet
         run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
 
+      - name: Self-test current Phase 9 trace-events direct-summary checker
+        run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test
+
+      - name: Check current Phase 9 trace-events direct-summary packet
+        run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py
+
       - name: Self-test current Phase 9 trace-events summary-preservation checker
         run: python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test
 
       - name: Check current Phase 9 trace-events summary-preservation packet
         run: python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py
+
+      - name: Run current Phase 9 shared loader command-environment boundary guard tests
+        run: zig build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig
+
+      - name: Run current Phase 9 shared loader allocator-init-flow packet
+        run: zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig
 
       - name: Run current Phase 9 trace-events runtime sample tests
         run: zig test samples/zigux/runtime_trace_events.zig
@@ -507,11 +558,29 @@ jobs:
       - name: Check current Phase 12 build-only surface
         run: python3 scripts/zigux/check-build-only-phase12-surface.py
 
+      - name: Self-test current Phase 12 complex-driver lane packet checker
+        run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test
+
+      - name: Check current Phase 12 complex-driver lane packet
+        run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py
+
       - name: Self-test current Phase 12 release-readiness packet checker
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
 
       - name: Check current Phase 12 release-readiness packet
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
+
+      - name: Self-test current Phase 12 libbpf snapshot checker
+        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
+
+      - name: Check current Phase 12 libbpf snapshot packet
+        run: python3 scripts/zigux/check-phase12-libbpf-snapshot.py
+
+      - name: Self-test current Phase 12 libbpf heavy-consumer packet checker
+        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
+
+      - name: Check current Phase 12 libbpf heavy-consumer packet
+        run: python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
 
       - name: Validate current Phase 12 support bundle
         run: python3 scripts/zigux/validate-phase12.py
