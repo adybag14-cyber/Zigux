@@ -315,7 +315,7 @@ def run_self_test() -> int:
         "--check-only",
     )
     expect_failure(
-        lambda root: (root / HELPER_PATH).writeText(
+        lambda root: (root / HELPER_PATH).write_text(
             (root / HELPER_PATH).read_text(encoding="utf-8").replace(
                 'print(f"STAGE_PINNED_ZIG_ARCHIVE_STATUS={status}")',
                 "",
@@ -326,7 +326,7 @@ def run_self_test() -> int:
         "STAGE_PINNED_ZIG_ARCHIVE_STATUS",
     )
     expect_failure(
-        lambda root: (root / HELPER_PATH).writeText(
+        lambda root: (root / HELPER_PATH).write_text(
             (root / HELPER_PATH).read_text(encoding="utf-8").replace(
                 'THIRD_PARTY_DIR = Path("third_party")',
                 'THIRD_PARTY_DIR = Path("payloads")',
@@ -337,7 +337,7 @@ def run_self_test() -> int:
         'THIRD_PARTY_DIR = Path("third_party")',
     )
     expect_failure(
-        lambda root: (root / POLICY_PATH).writeText(
+        lambda root: (root / POLICY_PATH).write_text(
             json.dumps(
                 {
                     "phase": "Phase 2",
@@ -358,7 +358,7 @@ def run_self_test() -> int:
         "archive_target_scope drifted",
     )
     expect_failure(
-        lambda root: (root / HELPER_PATH).writeText(
+        lambda root: (root / HELPER_PATH).write_text(
             (root / HELPER_PATH).read_text(encoding="utf-8").replace(
                 'print("STAGE_PINNED_ZIG_ARCHIVE_SELF_TEST=pass")',
                 "",
