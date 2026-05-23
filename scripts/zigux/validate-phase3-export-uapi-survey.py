@@ -52,7 +52,7 @@ REQUIRED_MARKERS = {
         "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
-        "The packet-local validator, dedicated layout-build handoff, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
+        "The packet-local validator, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
         "the shared tests-root route in `zigux/tests/build.zig`, where `addPhase3ExportUapiLayout(...)` imports `header_family_binding`",
         "`zigux/tests/phase3_export_uapi_layout_build.zig` now carries the dedicated `phase3-export-uapi-layout-test` replay handoff",
@@ -230,6 +230,11 @@ def run_self_test() -> int:
             SURVEY_PATH,
             "PHASE3_LAYOUT_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout-test",
             "expected missing dedicated layout-build make-route marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "The packet-local validator, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
+            "expected missing dev_t starter packet marker was not reported",
         ),
         (
             SURVEY_PATH,
