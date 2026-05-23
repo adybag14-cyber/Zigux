@@ -126,6 +126,7 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays whitespace-only sentinel termination");',
+        'try expectContains(helper_companion, "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value");',
         'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");',
     ],
@@ -144,7 +145,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 80
+SELF_TEST_CASE_COUNT = 81
 
 
 def read_text(path: Path) -> str:
@@ -530,6 +531,10 @@ def run_self_test() -> None:
             (
                 "missing_survey_companion_whitespace_only_marker",
                 'try expectContains(helper_companion, "phase 7 cmdline companion replays whitespace-only sentinel termination");',
+            ),
+            (
+                "missing_survey_companion_quoted_bare_grouping_marker",
+                'try expectContains(helper_companion, "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value");',
             ),
             (
                 "missing_survey_companion_first_nul_bare_option_marker",
