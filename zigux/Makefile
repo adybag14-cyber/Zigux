@@ -191,6 +191,7 @@ phase6-checksum-perf:
 
 phase6-hexdump-review:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-hexdump-route.py
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig --summary all
 
 phase6-hexdump-perf-matrix-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all
