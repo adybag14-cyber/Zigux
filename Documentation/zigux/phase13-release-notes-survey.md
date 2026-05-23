@@ -67,8 +67,9 @@ The release-planning handle that is directly supportable from this run stays anc
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
+- `scripts/zigux/validate-phase13-release.py`
 
-Keep broad release wording tied to that reminder packet while the missing validator-first helpers, adjacent notifier companions, and route surfaces remain explicit repo-reality gaps.
+Keep broad release wording tied to that reminder packet while the missing validator-first helpers, adjacent notifier companion, and route surfaces remain explicit repo-reality gaps.
 
 ## Repo-Reality Gaps
 
