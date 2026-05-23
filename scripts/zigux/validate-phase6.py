@@ -186,7 +186,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
     "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
-    "- follow-up 2026-05-22 direct readback recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`; the remaining generator-side gaps are `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`",
+    "A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py` again, so the still-missing generator-side gap is now narrower: only `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` remain outside the directly readable helper-local packet.",
 ]
 
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
