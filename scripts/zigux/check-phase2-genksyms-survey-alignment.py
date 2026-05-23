@@ -20,7 +20,9 @@ REQUIRED_PATHS = (
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/genksyms.zig",
     "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "scripts/zigux/check-phase2-genksyms-survey-alignment.py",
+    "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/genksyms_bridge/cases.json",
@@ -42,6 +44,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
@@ -49,7 +52,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.",
     "Current `master` directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, and restored process-output packet again:",
     "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json`",
-    "The narrower repo-reality gap is now inventory-shaped rather than an implementation absence:",
+    "The narrower repo-reality gap that once lived at the checker layer is now closed on current `master`:",
+    "Relative to the roadmap and ledger, the older inventory-shaped governance gap is no longer truthful on current `master`;",
     "Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift.",
 )
 
@@ -117,18 +121,23 @@ Lane: `P2-L07`
 ## Roadmap and ledger anchor
 
 - The Phase 2 roadmap still keeps `scripts/genksyms/genksyms.c` inside the bounded toolchain and Kbuild enablement tranche, with `scripts/zigux/genksyms.zig` as the Zigux destination.
+- The bootstrap ledger still records a bounded genksyms wrapper lane around `scripts/zigux/genksyms.zig` together with a dedicated checker and fixture-backed expected-output packet, so this family remains real product infrastructure rather than wrapper churn.
 
 ## Current repo evidence
 
 - Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.
-- Current `master` directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, and restored process-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`, `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`, `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`, `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`, `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`, `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`, `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json`, and `zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json` are all readable on head.
+- Current `master` directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, and restored process-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`, `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`, `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`, `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`, `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`, `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`, `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json`, `zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json`, and `zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json` are all readable on head.
 - Current shared Phase 2 reminder surfaces also keep the genksyms packet explicit: `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json` all still name the checker, fixture roster, or `phase2-genksyms` replay route.
-- The narrower repo-reality gap is now inventory-shaped rather than an implementation absence: current `master` now catalogs the full bridge packet in `zigux/tests/fixtures/genksyms_bridge/manifest.json`, but the dedicated checker still only replays the invocation-fixture packet and has not yet taken direct ownership of every restored process-output fixture.
+- The narrower repo-reality gap that once lived at the checker layer is now closed on current `master`: the dedicated checker directly validates the manifest-backed bridge packet, the restored process-output fixtures, the help fixture, and the standalone invalid-long-option version-side-effect proof, while `scripts/zigux/check-phase2-genksyms-selftest-alignment.py` keeps that checker-owned packet tied back to the workflow and Makefile hooks.
+
+## Survey result
+
+- Relative to the roadmap and ledger, the older inventory-shaped governance gap is no longer truthful on current `master`; the live work is a bounded wrapper-first dual-implementation packet whose expected-output governance is already checker-owned, so the remaining same-family posture is to keep this survey parked unless another directly coupled reminder surface drifts.
 
 ## Next bounded same-family step
 
 1. Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift.
-2. If the family reopens for governance rather than implementation, keep the next move to one directly coupled bridge-checker update that validates `manifest.json` and the restored process-output fixtures without widening into fixdep, kconfig, or broader Phase 2 closure churn.
+2. If the family reopens for governance rather than implementation, keep the next move to one directly coupled reminder-surface refresh in the survey note, closure note, tests README, or validator wording that mismatches the already checker-owned manifest and process-output packet.
 """
     write_text(root, SURVEY, survey_text)
     write_text(
@@ -158,22 +167,33 @@ Lane: `P2-L07`
         )
         + "\n",
     )
-    write_text(root, "scripts/zigux/validate-phase2.py", "present\n")
-    write_text(root, "scripts/zigux/validate-phase2-closure.py", "present\n")
-    write_text(root, "scripts/zigux/README.md", "present\n")
-    write_text(root, "zigux/tests/README.md", "present\n")
+
+    placeholder_paths = {
+        "Documentation/zigux/phase2-closure.md",
+        "scripts/zigux/README.md",
+        "scripts/zigux/validate-phase2.py",
+        "scripts/zigux/validate-phase2-closure.py",
+        "scripts/zigux/genksyms.zig",
+        "scripts/zigux/check-genksyms-bridge.py",
+        "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+        "scripts/zigux/check-phase2-genksyms-survey-alignment.py",
+        "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+        "zigux/tests/README.md",
+        "zigux/tests/fixtures/phase2_tool_manifest.json",
+    }
+    for rel in placeholder_paths:
+        write_text(root, rel, "present\n")
+
     for rel in REQUIRED_PATHS:
         if rel in {
             SURVEY,
             WORKFLOW,
             MAKEFILE,
-            "scripts/zigux/validate-phase2.py",
-            "scripts/zigux/validate-phase2-closure.py",
-            "scripts/zigux/README.md",
-            "zigux/tests/README.md",
+            *placeholder_paths,
         }:
             continue
         write_text(root, rel, "present\n")
+
 
 
 def run_self_test() -> int:
@@ -205,7 +225,9 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Fail closed when the Phase 2 genksyms survey drifts from the live dual-implementation packet.")
+    parser = argparse.ArgumentParser(
+        description="Fail closed when the Phase 2 genksyms survey drifts from the live dual-implementation packet."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
