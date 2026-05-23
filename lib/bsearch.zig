@@ -7,11 +7,16 @@ pub fn Comparator(comptime Key: type, comptime T: type) type {
     return *const fn (*const Key, *const T) i32;
 }
 
+pub fn OrderComparator(comptime Key: type, comptime T: type) type {
+    return *const fn (*const Key, *const T) std.math.Order;
+}
+
 pub fn CComparator(comptime Key: type, comptime T: type) type {
     return *const fn (*const Key, *const T) callconv(.c) CComparatorResult;
 }
 
 pub const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;
+pub const RawOrderComparator = *const fn (*const anyopaque, *const anyopaque) std.math.Order;
 pub const CRawComparator = *const fn (*const anyopaque, *const anyopaque) callconv(.c) CComparatorResult;
 
 pub const IndexRange = struct {
@@ -496,7 +501,7 @@ test "native std.math.Order comparator pointers keep duplicate spans and inserti
         items: []const i32,
         key: i32,
         expected: IndexRange,
-        compare: *const fn (*const i32, *const i32) std.math.Order,
+        compare: OrderComparator(i32, i32),
     }{
         .{ .items = ascending[0..], .key = 4, .expected = .{ .lower = 1, .upper = 4 }, .compare = compareOrderInt },
         .{ .items = ascending[0..], .key = 3, .expected = .{ .lower = 1, .upper = 1 }, .compare = compareOrderInt },
@@ -522,7 +527,7 @@ test "native std.math.Order comparator pointers keep duplicate spans and inserti
         items: []const i32,
         key: i32,
         expected: IndexRange,
-        compare: *const fn (*const anyopaque, *const anyopaque) std.math.Order,
+        compare: RawOrderComparator,
     }{
         .{ .items = ascending[0..], .key = 4, .expected = .{ .lower = 1, .upper = 4 }, .compare = compareOpaqueOrderInt },
         .{ .items = ascending[0..], .key = 3, .expected = .{ .lower = 1, .upper = 1 }, .compare = compareOpaqueOrderInt },
