@@ -16,7 +16,7 @@ contributor-facing summaries.
 
 Keep the current lane split explicit:
 
-- shared sequencing lane `P11-L06` owns the shared reminder wording in
+- shared sequencing lane `P11-Y06` owns the shared reminder wording in
   `Documentation/zigux/phase11-driver-lane-sequencing.md` and
   `Documentation/zigux/phase11-validation-matrix-gap-survey.md` together with
   the smallest coupled checker updates needed to keep that shared packet honest
