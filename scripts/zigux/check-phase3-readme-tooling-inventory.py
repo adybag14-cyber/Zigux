@@ -11,6 +11,9 @@ SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 
 RUNNER_FILE = Path("scripts/zigux/run-phase3-checks.py")
 SHARED_TESTS_ROUTES_FILE = Path("scripts/zigux/check-phase3-shared-tests-routes.py")
+ABI_MANIFEST_REPLAY_ROUTES_FILE = Path(
+    "scripts/zigux/check-phase3-abi-manifest-replay-routes.py"
+)
 BINDING_FILE = Path("zigux/bindings/dev_t.zig")
 NOTIFIER_BINDING_FILE = Path("zigux/bindings/notifier_abi.zig")
 NARROW_UNSAFE_FILE = Path("zigux/unsafe/narrow.zig")
@@ -64,6 +67,12 @@ POLICY_UNSAFE_SURVEY_NOTE_FILE = Path(
 
 RUNNER_MARKER = "scripts/zigux/run-phase3-checks.py"
 SHARED_TESTS_ROUTES_MARKER = "scripts/zigux/check-phase3-shared-tests-routes.py"
+ABI_MANIFEST_REPLAY_ROUTES_MARKER = (
+    "scripts/zigux/check-phase3-abi-manifest-replay-routes.py"
+)
+ABI_MANIFEST_REPLAY_ROUTES_SELFTEST_MARKER = (
+    "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"
+)
 HEADER_MARKER = "include/linux/zigux.h"
 UAPI_MARKER = "zigux/uapi/dev_t.zig"
 NOTIFIER_BINDING_MARKER = "zigux/bindings/notifier_abi.zig"
@@ -151,6 +160,7 @@ REQUIRED_FILES = (
     Path("include/zigux/abi.h"),
     Path("scripts/zigux/check-phase3-selftest-surface.py"),
     SHARED_TESTS_ROUTES_FILE,
+    ABI_MANIFEST_REPLAY_ROUTES_FILE,
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     RUNNER_FILE,
@@ -215,6 +225,8 @@ REQUIRED_MARKERS = (
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
     "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
+    ABI_MANIFEST_REPLAY_ROUTES_SELFTEST_MARKER,
+    ABI_MANIFEST_REPLAY_ROUTES_MARKER,
     "scripts/zigux/check-phase3-shared-tests-routes.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
@@ -290,6 +302,14 @@ README_MARKER_CASES = (
     (
         SHARED_TESTS_ROUTES_MARKER,
         "expected missing shared-tests-routes README marker was not reported",
+    ),
+    (
+        ABI_MANIFEST_REPLAY_ROUTES_SELFTEST_MARKER,
+        "expected missing manifest-replay self-test README marker was not reported",
+    ),
+    (
+        ABI_MANIFEST_REPLAY_ROUTES_MARKER,
+        "expected missing manifest-replay README marker was not reported",
     ),
     (HEADER_MARKER, "expected missing header README marker was not reported"),
     (UAPI_MARKER, "expected missing UAPI README marker was not reported"),
@@ -439,6 +459,10 @@ FILE_CASES = (
     (
         SHARED_TESTS_ROUTES_FILE,
         "expected missing shared-tests-routes file was not reported",
+    ),
+    (
+        ABI_MANIFEST_REPLAY_ROUTES_FILE,
+        "expected missing manifest-replay-routes file was not reported",
     ),
     (BINDING_FILE, "expected missing binding file was not reported"),
     (
