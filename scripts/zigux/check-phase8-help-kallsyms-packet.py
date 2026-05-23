@@ -243,7 +243,12 @@ def run_self_test() -> int:
             path = root / relative_path
             original = _read(path)
             for marker in markers:
-                path.write_text(original.replace(marker, "", 1), encoding="utf-8")
+                if marker not in original:
+                    raise AssertionError(f"expected marker in fixture: {relative_path}:{marker}")
+                mutated = original.replace(marker, "")
+                if mutated == original:
+                    raise AssertionError(f"expected fixture mutation to remove marker: {relative_path}:{marker}")
+                path.write_text(mutated, encoding="utf-8")
                 result = validate_root(root)
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
