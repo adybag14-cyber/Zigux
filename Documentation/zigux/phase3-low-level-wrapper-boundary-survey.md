@@ -30,8 +30,12 @@ This note records the current roadmap-versus-repo reality for the bounded Phase 
 
 - `scripts/zigux/check-phase3-catalog-selftest.py`
 - `scripts/zigux/check-phase3-selftest-surface.py`
+- `scripts/zigux/generate-phase3-check-wrappers.py`
+- `scripts/zigux/check-phase3-wrapper-templates.py`
 
 Current `master` also keeps `scripts/zigux/check-phase3-selftest-surface.py` directly readable as the shared Phase 3 selftest-surface guard for the returned validator-support, shared-tests-route, export/UAPI, catalog, and low-level-wrapper reminder packet. That newer shared guard should stay framed here as adjacent cross-packet support rather than as extra low-level-wrapper-local proof.
+
+Current `master` also keeps `scripts/zigux/generate-phase3-check-wrappers.py` together with `scripts/zigux/check-phase3-wrapper-templates.py` directly readable as the adjacent stale-wrapper cleanup pair for historical shared-runner wrapper retirement, and that churn-control support should stay framed here as adjacent cross-packet evidence rather than as extra low-level-wrapper-local proof.
 
 ## Current Gap
 
