@@ -27,6 +27,7 @@ MARKER = "PHASE14_CHECK_PACKET=shared_smoke_route"
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
+BUILD_PATH = Path("zigux/tests/phase14_build.zig")
 
 MAKEFILE_MARKERS = [
     ".PHONY:",
@@ -70,6 +71,66 @@ REQUIRED_MANIFEST_VALUES = {
     ("survey_summary", "phase14_validate_runs_rollback_threshold_sequencing"): True,
     ("survey_summary", "phase14_validate_runs_rcu_rollback_guardrail"): True,
 }
+
+EXPECTED_COMPILE_SHARDS = [
+    {
+        "label": "phase14-workqueue-bridge-tests",
+        "root_source": "phase14_workqueue_bridge.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-workqueue-reviewability-tests",
+        "root_source": "phase14_workqueue_reviewability.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-skbuff-bridge-tests",
+        "root_source": "phase14_skbuff_bridge.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-ring-buffer-survey-tests",
+        "root_source": "phase14_ring_buffer_survey.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-rcu-tree-survey-tests",
+        "root_source": "phase14_rcu_tree_survey.zig",
+        "coverage": "full_bundle_only",
+    },
+    {
+        "label": "phase14-end-to-end-smoke-tests",
+        "root_source": "phase14_end_to_end_smoke_survey.zig",
+        "coverage": "focused_and_full_bundle",
+    },
+]
+
+BUILD_MARKERS = [
+    "../../kernel/workqueue_bridge.zig",
+    "../../net/core/skbuff_bridge.zig",
+    'phase14_workqueue_bridge_module.addImport("workqueue_bridge", workqueue_bridge_module);',
+    'phase14_skbuff_bridge_module.addImport("skbuff_bridge", skbuff_bridge_module);',
+    '.name = "phase14-workqueue-bridge-tests"',
+    '.name = "phase14-workqueue-reviewability-tests"',
+    '.name = "phase14-skbuff-bridge-tests"',
+    '.name = "phase14-ring-buffer-survey-tests"',
+    '.name = "phase14-rcu-tree-survey-tests"',
+    '.name = "phase14-end-to-end-smoke-tests"',
+    '.root_source_file = b.path("phase14_workqueue_bridge.zig")',
+    '.root_source_file = b.path("phase14_workqueue_reviewability.zig")',
+    '.root_source_file = b.path("phase14_skbuff_bridge.zig")',
+    '.root_source_file = b.path("phase14_ring_buffer_survey.zig")',
+    '.root_source_file = b.path("phase14_rcu_tree_survey.zig")',
+    '.root_source_file = b.path("phase14_end_to_end_smoke_survey.zig")',
+    'const smoke_step = b.step("phase14-smoke", "Run the focused Phase 14 smoke shard");',
+    "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
+    "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
+    "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);",
+    "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
+    "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
+    "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
+    "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
+]
 
 
 def read_text(root: Path, rel: Path) -> str:
@@ -117,9 +178,23 @@ def require_manifest_values(errors: list[str], manifest: object) -> None:
             )
 
 
+def require_compile_shards(errors: list[str], manifest: object) -> None:
+    try:
+        compile_shards = lookup_path(manifest, ("compile_shards",))
+    except KeyError:
+        errors.append("missing_manifest_key:compile_shards")
+        return
+
+    if compile_shards != EXPECTED_COMPILE_SHARDS:
+        errors.append(
+            "manifest_value_mismatch:"
+            f"compile_shards:expected={EXPECTED_COMPILE_SHARDS!r}:actual={compile_shards!r}"
+        )
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
-    for rel in [MAKEFILE_PATH, WORKFLOW_PATH, MANIFEST_PATH]:
+    for rel in [MAKEFILE_PATH, WORKFLOW_PATH, MANIFEST_PATH, BUILD_PATH]:
         if not (root / rel).exists():
             errors.append(f"missing_file:{rel.as_posix()}")
     if errors:
@@ -127,9 +202,11 @@ def check(root: Path) -> list[str]:
 
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
+    build_file = read_text(root, BUILD_PATH)
     require_markers(errors, MAKEFILE_PATH, makefile, MAKEFILE_MARKERS)
     require_markers(errors, WORKFLOW_PATH, workflow, WORKFLOW_MARKERS)
     require_absent(errors, WORKFLOW_PATH, workflow, FORBIDDEN_WORKFLOW_MARKERS)
+    require_markers(errors, BUILD_PATH, build_file, BUILD_MARKERS)
 
     manifest_text = read_text(root, MANIFEST_PATH)
     try:
@@ -138,6 +215,7 @@ def check(root: Path) -> list[str]:
         errors.append(f"invalid_json:{MANIFEST_PATH.as_posix()}:{exc.msg}")
         return errors
     require_manifest_values(errors, manifest)
+    require_compile_shards(errors, manifest)
     return errors
 
 
@@ -191,6 +269,7 @@ def fixture_manifest() -> str:
         "smoke_shard_commands": [
             "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
         ],
+        "compile_shards": EXPECTED_COMPILE_SHARDS,
         "survey_summary": {
             "phase14_make_target_present": True,
             "phase14_make_smoke_target_present": False,
@@ -204,12 +283,106 @@ def fixture_manifest() -> str:
     return json.dumps(payload, indent=2) + "\n"
 
 
+def fixture_build() -> str:
+    return """const std = @import(\"std\");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const phase14_end_to_end_smoke_module = b.createModule(.{
+        .root_source_file = b.path(\"phase14_end_to_end_smoke_survey.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const phase14_ring_buffer_survey_module = b.createModule(.{
+        .root_source_file = b.path(\"phase14_ring_buffer_survey.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const phase14_rcu_tree_survey_module = b.createModule(.{
+        .root_source_file = b.path(\"phase14_rcu_tree_survey.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const workqueue_bridge_module = b.createModule(.{
+        .root_source_file = b.path(\"../../kernel/workqueue_bridge.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const skbuff_bridge_module = b.createModule(.{
+        .root_source_file = b.path(\"../../net/core/skbuff_bridge.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const phase14_workqueue_bridge_module = b.createModule(.{
+        .root_source_file = b.path(\"phase14_workqueue_bridge.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase14_workqueue_bridge_module.addImport(\"workqueue_bridge\", workqueue_bridge_module);
+    const phase14_workqueue_reviewability_module = b.createModule(.{
+        .root_source_file = b.path(\"phase14_workqueue_reviewability.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const phase14_skbuff_bridge_module = b.createModule(.{
+        .root_source_file = b.path(\"phase14_skbuff_bridge.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase14_skbuff_bridge_module.addImport(\"skbuff_bridge\", skbuff_bridge_module);
+
+    const phase14_workqueue_bridge_tests = b.addTest(.{
+        .name = \"phase14-workqueue-bridge-tests\",
+        .root_module = phase14_workqueue_bridge_module,
+    });
+    const run_phase14_workqueue_bridge_tests = b.addRunArtifact(phase14_workqueue_bridge_tests);
+    const phase14_workqueue_reviewability_tests = b.addTest(.{
+        .name = \"phase14-workqueue-reviewability-tests\",
+        .root_module = phase14_workqueue_reviewability_module,
+    });
+    const run_phase14_workqueue_reviewability_tests = b.addRunArtifact(phase14_workqueue_reviewability_tests);
+    const phase14_skbuff_bridge_tests = b.addTest(.{
+        .name = \"phase14-skbuff-bridge-tests\",
+        .root_module = phase14_skbuff_bridge_module,
+    });
+    const run_phase14_skbuff_bridge_tests = b.addRunArtifact(phase14_skbuff_bridge_tests);
+    const phase14_ring_buffer_survey_tests = b.addTest(.{
+        .name = \"phase14-ring-buffer-survey-tests\",
+        .root_module = phase14_ring_buffer_survey_module,
+    });
+    const run_phase14_ring_buffer_survey_tests = b.addRunArtifact(phase14_ring_buffer_survey_tests);
+    const phase14_rcu_tree_survey_tests = b.addTest(.{
+        .name = \"phase14-rcu-tree-survey-tests\",
+        .root_module = phase14_rcu_tree_survey_module,
+    });
+    const run_phase14_rcu_tree_survey_tests = b.addRunArtifact(phase14_rcu_tree_survey_tests);
+    const phase14_end_to_end_smoke_tests = b.addTest(.{
+        .name = \"phase14-end-to-end-smoke-tests\",
+        .root_module = phase14_end_to_end_smoke_module,
+    });
+    const run_phase14_end_to_end_smoke_tests = b.addRunArtifact(phase14_end_to_end_smoke_tests);
+    const smoke_step = b.step(\"phase14-smoke\", \"Run the focused Phase 14 smoke shard\");
+    smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);
+    const test_step = b.step(\"test\", \"Run the full Phase 14 bounded bridge and survey bundle\");
+    test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);
+    test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);
+    test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);
+    test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);
+    test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);
+    test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);
+}
+"""
+
+
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     write_text(root, MAKEFILE_PATH, fixture_makefile())
     write_text(root, WORKFLOW_PATH, fixture_workflow())
     write_text(root, MANIFEST_PATH, fixture_manifest())
+    write_text(root, BUILD_PATH, fixture_build())
 
 
 def write_fixture_manifest(root: Path, payload: object) -> None:
@@ -327,8 +500,28 @@ def run_self_test() -> int:
             print("expected RCU guardrail manifest drift failure")
             return 1
 
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["compile_shards"][5]["coverage"] = "full_bundle_only"
+        write_fixture_manifest(base, manifest)
+        if not any("manifest_value_mismatch:compile_shards" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected compile-shard manifest drift failure")
+            return 1
+
+        write_fixture_tree(base)
+        write_text(
+            base,
+            BUILD_PATH,
+            fixture_build().replace('.name = "phase14-ring-buffer-survey-tests"', '.name = "phase14-ring-buffer-review-tests"', 1),
+        )
+        if not any("missing_marker:zigux/tests/phase14_build.zig:.name = \"phase14-ring-buffer-survey-tests\"" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected build shard marker failure")
+            return 1
+
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=8")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -353,9 +546,9 @@ def main() -> int:
         return 1
 
     print("PHASE14_SHARED_SMOKE_ROUTE=pass")
-    print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}")
+    print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS)}")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_WORKFLOW_MARKERS)}")
-    print(f"PHASE14_SHARED_SMOKE_ROUTE_MANIFEST_ASSERTION_COUNT={len(REQUIRED_MANIFEST_VALUES)}")
+    print(f"PHASE14_SHARED_SMOKE_ROUTE_MANIFEST_ASSERTION_COUNT={len(REQUIRED_MANIFEST_VALUES) + 1}")
     return 0
 
 
