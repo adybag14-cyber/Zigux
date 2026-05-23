@@ -6,8 +6,9 @@ Fail-closed checker for the current Phase 14 rollback-threshold packet.
 This checker stays inside the rollback-automation lane. It validates that the
 shared smoke reminder surfaces still agree on the current study-only rollback
 contract, on the returned route checker and tests-root reminder checker, on the
-returned ring-buffer survey companion and shared smoke manifest, and on the
-current repo-reality split where the Makefile is readable, ships
+returned rollback-threshold checker, dedicated RCU rollback guard, ring-buffer
+survey companion, dedicated RCU survey companion, and shared smoke manifest,
+and on the current repo-reality split where the Makefile is readable, ships
 `phase14-validate`, and still does not ship the broader `phase14-smoke`,
 `phase14-test`, or `phase14` wrapper targets.
 """
@@ -33,11 +34,14 @@ ROLLBACK_THRESHOLD_MARKER = (
     "  * rollback threshold: `0` tolerated same-packet drifts across the "
     "recovered documentation packet, the directly readable shared-smoke route "
     "checker, the directly readable tests-root reminder checker, the directly "
-    "readable validator path, the readable current Makefile body, the directly "
-    "readable release-boundary exact-count guard, the directly readable "
-    "workqueue boundary shard, the directly readable ring-buffer survey "
-    "companion, the directly readable shared smoke manifest, and the "
-    "still-missing broader wrapper-backed rerun routes"
+    "readable validator path, the directly readable rollback-threshold "
+    "sequencing checker, the directly readable dedicated RCU rollback guard, "
+    "the readable current Makefile body, the directly readable "
+    "release-boundary exact-count guard, the directly readable workqueue "
+    "boundary shard, the directly readable ring-buffer survey companion, the "
+    "directly readable dedicated RCU survey companion, the directly readable "
+    "shared smoke manifest, and the still-missing broader wrapper-backed "
+    "rerun routes"
 )
 ROLLBACK_FALLBACK_MARKER = (
     "  * fallback path: keep this shared smoke lane aligned with the current "
@@ -53,8 +57,11 @@ ROLLBACK_TRIGGER_MARKERS = [
     "    * route-checker-versus-reminder-surface drift",
     "    * tests-root-checker-versus-reminder-surface drift",
     "    * validator-versus-reminder-surface drift",
+    "    * rollback-threshold-sequencing drift",
+    "    * dedicated-rcu-rollback-guard drift",
     "    * workqueue-boundary-shard drift",
     "    * ring-buffer-survey drift",
+    "    * dedicated-rcu-survey drift",
     "    * wrapper-route drift",
     "    * build-side exact-readback-gap drift",
     "    * broader executable-layer exact-readback-gap drift",
@@ -280,7 +287,7 @@ def fixture_productization_gap() -> str:
         [
             "# Phase 14 Productization Gap Survey",
             "Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.",
-            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable shared-smoke route checker, the directly readable tests-root reminder checker, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable shared smoke manifest, the directly readable workqueue reviewability shard, the directly readable ring-buffer survey companion, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
+            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable shared-smoke route checker, the directly readable tests-root reminder checker, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable shared smoke manifest, the directly readable workqueue reviewability shard, the directly readable ring-buffer survey companion, the directly readable RCU survey note, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
             "",
         ]
     )
@@ -363,6 +370,36 @@ def run_self_test() -> int:
             root,
             SMOKE_NOTE_PATH,
             fixture_smoke_note().replace(
+                "    * rollback-threshold-sequencing drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("rollback-threshold-sequencing drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected rollback-threshold trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
+                "    * dedicated-rcu-rollback-guard drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("dedicated-rcu-rollback-guard drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected dedicated RCU rollback trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
                 "    * ring-buffer-survey drift\n",
                 "",
                 1,
@@ -371,6 +408,21 @@ def run_self_test() -> int:
         if not any("ring-buffer-survey drift" in error for error in check(root)):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
             print("expected ring-buffer trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
+                "    * dedicated-rcu-survey drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("dedicated-rcu-survey drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected dedicated RCU survey trigger drift to fail")
             return 1
 
         write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
@@ -448,7 +500,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=10")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
