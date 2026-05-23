@@ -439,6 +439,32 @@ fn compareCountedOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     };
 }
 
+fn maxSearchComparisons(item_count: usize) usize {
+    return if (item_count == 0) 0 else std.math.log2_int_ceil(usize, item_count + 1);
+}
+
+fn expectTypedSearchComparisonBudget(items: []const i32, key_value: i32, expected: ?usize) !void {
+    var comparisons: usize = 0;
+    const key = CountedIntKey{
+        .target = key_value,
+        .comparisons = &comparisons,
+    };
+
+    try std.testing.expectEqual(expected, searchIndex(CountedIntKey, i32, &key, items, compareCountedInt));
+    try std.testing.expect(comparisons <= maxSearchComparisons(items.len));
+}
+
+fn expectRawSearchComparisonBudget(items: []const i32, key_value: i32, expected: ?usize) !void {
+    var comparisons: usize = 0;
+    const key = CountedIntKey{
+        .target = key_value,
+        .comparisons = &comparisons,
+    };
+
+    try std.testing.expectEqual(expected, bsearchIndex(&key, @ptrCast(items.ptr), items.len, @sizeOf(i32), compareCountedOpaqueInt));
+    try std.testing.expect(comparisons <= maxSearchComparisons(items.len));
+}
+
 fn expectTypedCAbiRange(items: []const i32, key: i32, expected: IndexRange, compare: CComparator(i32, i32)) !void {
     const lower = lowerBoundIndex(i32, i32, &key, items, compare);
     const upper = upperBoundIndex(i32, i32, &key, items, compare);
@@ -491,6 +517,22 @@ test "typed and raw searches support duplicate spans and descending C ABI pointe
     const found = bsearch(&key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
     const typed_found: *const i32 = @ptrCast(@alignCast(found));
     try std.testing.expectEqual(@as(i32, 4), typed_found.*);
+}
+
+test "typed and raw search indices stay within a logarithmic comparison budget" {
+    const ascending = [_]i32{ 1, 4, 7, 9, 11, 13, 17, 19, 23, 27, 31, 35, 41, 47, 53, 59, 61 };
+
+    try expectTypedSearchComparisonBudget(ascending[0..], 1, 0);
+    try expectTypedSearchComparisonBudget(ascending[0..], 61, ascending.len - 1);
+    try expectTypedSearchComparisonBudget(ascending[0..], 18, null);
+    try expectTypedSearchComparisonBudget(ascending[0..], 62, null);
+    try expectTypedSearchComparisonBudget(&[_]i32{}, 99, null);
+
+    try expectRawSearchComparisonBudget(ascending[0..], 1, 0);
+    try expectRawSearchComparisonBudget(ascending[0..], 61, ascending.len - 1);
+    try expectRawSearchComparisonBudget(ascending[0..], 18, null);
+    try expectRawSearchComparisonBudget(ascending[0..], 62, null);
+    try expectRawSearchComparisonBudget(&[_]i32{}, 99, null);
 }
 
 test "native std.math.Order comparator pointers keep duplicate spans and insertion points aligned" {
