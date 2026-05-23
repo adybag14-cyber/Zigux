@@ -27,6 +27,8 @@ fn expectSummaryStable(before: RuntimeBitmapSummary, after: RuntimeBitmapSummary
     try std.testing.expectEqual(before.weight, after.weight);
     try std.testing.expectEqual(before.nbits, after.nbits);
     try std.testing.expectEqual(before.init_runs, after.init_runs);
+    try std.testing.expectEqual(before.selftest_runs, after.selftest_runs);
+    try std.testing.expectEqual(before.exit_runs, after.exit_runs);
 }
 
 test "runtime bitmap loader keeps an empty loader payload explicit through direct exit" {
@@ -318,6 +320,61 @@ test "runtime bitmap loader rejects re-init after exit without disturbing the ex
     try std.testing.expectEqual(@as(?u32, 64), module.nthSetBit(2));
     try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
     try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
+}
+
+test "runtime bitmap loader keeps rejected re-exit rollback explicit" {
+    var initialized_module = RuntimeBitmapSample{};
+    try initialized_module.initFromBitList(load_plan.source_bit_list);
+    try initialized_module.exit();
+
+    const before_initialized_reexit = initialized_module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, initialized_module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_reexit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reexit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_reexit.exit_runs);
+    try std.testing.expect(initialized_module.isSet(0));
+    try std.testing.expect(initialized_module.isSet(63));
+    try std.testing.expect(initialized_module.isSet(64));
+    try std.testing.expect(initialized_module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), initialized_module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.exit());
+
+    const after_initialized_reexit = initialized_module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, initialized_module.stage());
+    try expectSummaryStable(before_initialized_reexit, after_initialized_reexit);
+    try std.testing.expect(initialized_module.isSet(0));
+    try std.testing.expect(initialized_module.isSet(63));
+    try std.testing.expect(initialized_module.isSet(64));
+    try std.testing.expect(initialized_module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), initialized_module.nthSetBit(3));
+
+    var selftested_module = RuntimeBitmapSample{};
+    try selftested_module.initFromBitList(load_plan.source_bit_list);
+    _ = try selftested_module.runSelftest();
+    try selftested_module.exit();
+
+    const before_selftested_reexit = selftested_module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, selftested_module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.exit_runs);
+    try std.testing.expect(selftested_module.isSet(0));
+    try std.testing.expect(selftested_module.isSet(63));
+    try std.testing.expect(selftested_module.isSet(64));
+    try std.testing.expect(selftested_module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), selftested_module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.exit());
+
+    const after_selftested_reexit = selftested_module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, selftested_module.stage());
+    try expectSummaryStable(before_selftested_reexit, after_selftested_reexit);
+    try std.testing.expect(selftested_module.isSet(0));
+    try std.testing.expect(selftested_module.isSet(63));
+    try std.testing.expect(selftested_module.isSet(64));
+    try std.testing.expect(selftested_module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), selftested_module.nthSetBit(3));
 }
 
 test "runtime bitmap loader keeps initialized loaded summary stable across direct exit without selftest" {
