@@ -80,6 +80,19 @@ fn buildValidatedSanitizedPinnedPath(buffer: []u8, root_path: ?[]const u8, leaf_
     return full_path;
 }
 
+fn pinPathErrorReturn(err: PinPathError) i32 {
+    return switch (err) {
+        error.NameTooLong => -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
+        error.EmptyName, error.InvalidName, error.InvalidRootPath =>
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+    };
+}
+
+fn pinPathLengthReturn(result: PinPathError![]const u8) i32 {
+    const path = result catch |err| return pinPathErrorReturn(err);
+    return std.math.cast(i32, path.len) orelse -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW));
+}
+
 pub fn buildMapPinPath(buffer: []u8, root_path: ?[]const u8, map_name: []const u8) PinPathError![]u8 {
     return buildPinnedPath(buffer, root_path, map_name);
 }
@@ -96,6 +109,14 @@ pub fn buildValidatedSanitizedMapPinPath(buffer: []u8, root_path: ?[]const u8, m
     return buildValidatedSanitizedPinnedPath(buffer, root_path, map_name);
 }
 
+pub fn buildValidatedSanitizedMapPinPathReturn(
+    buffer: []u8,
+    root_path: ?[]const u8,
+    map_name: []const u8,
+) i32 {
+    return pinPathLengthReturn(buildValidatedSanitizedMapPinPath(buffer, root_path, map_name));
+}
+
 pub fn buildProgramPinPath(buffer: []u8, root_path: ?[]const u8, prog_name: []const u8) PinPathError![]u8 {
     return buildPinnedPath(buffer, root_path, prog_name);
 }
@@ -110,6 +131,14 @@ pub fn buildSanitizedProgramPinPath(buffer: []u8, root_path: ?[]const u8, prog_n
 
 pub fn buildValidatedSanitizedProgramPinPath(buffer: []u8, root_path: ?[]const u8, prog_name: []const u8) PinPathError![]u8 {
     return buildValidatedSanitizedPinnedPath(buffer, root_path, prog_name);
+}
+
+pub fn buildValidatedSanitizedProgramPinPathReturn(
+    buffer: []u8,
+    root_path: ?[]const u8,
+    prog_name: []const u8,
+) i32 {
+    return pinPathLengthReturn(buildValidatedSanitizedProgramPinPath(buffer, root_path, prog_name));
 }
 
 test "pathnameConcat keeps the bounded libbpf path-join behavior" {
@@ -189,6 +218,26 @@ test "buildValidatedMapPinPath keeps unsanitized validated pin paths explicit" {
     );
 }
 
+test "validated sanitized map pin-path return helper keeps errno-shaped length outputs explicit" {
+    var buffer: [96]u8 = undefined;
+
+    try std.testing.expectEqual(
+        @as(i32, "/sys/fs/bpf/metrics_v1".len),
+        buildValidatedSanitizedMapPinPathReturn(&buffer, null, "metrics.v1"),
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/metrics_v1", buffer[0.."/sys/fs/bpf/metrics_v1".len]);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        buildValidatedSanitizedMapPinPathReturn(&buffer, null, "metrics/v1"),
+    );
+
+    var tiny_buffer: [16]u8 = undefined;
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
+        buildValidatedSanitizedMapPinPathReturn(&tiny_buffer, "/custom/root", "very_long_map_name"),
+    );
+}
+
 test "program pin-path helpers mirror the bounded libbpf program pin contract" {
     var buffer: [96]u8 = undefined;
 
@@ -215,6 +264,33 @@ test "program pin-path helpers mirror the bounded libbpf program pin contract" {
     try std.testing.expectError(
         error.InvalidRootPath,
         buildValidatedSanitizedProgramPinPath(&buffer, "tmp/bpf", "xdp_dispatch.v1"),
+    );
+}
+
+test "validated sanitized program pin-path return helper keeps errno-shaped length outputs explicit" {
+    var buffer: [96]u8 = undefined;
+
+    try std.testing.expectEqual(
+        @as(i32, "/sys/fs/bpf/xdp_dispatch_v1".len),
+        buildValidatedSanitizedProgramPinPathReturn(&buffer, null, "xdp_dispatch.v1"),
+    );
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/xdp_dispatch_v1",
+        buffer[0.."/sys/fs/bpf/xdp_dispatch_v1".len],
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        buildValidatedSanitizedProgramPinPathReturn(&buffer, "tmp/bpf", "xdp_dispatch.v1"),
+    );
+
+    var tiny_buffer: [16]u8 = undefined;
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
+        buildValidatedSanitizedProgramPinPathReturn(
+            &tiny_buffer,
+            "/custom/root",
+            "very_long_program_name",
+        ),
     );
 }
 
