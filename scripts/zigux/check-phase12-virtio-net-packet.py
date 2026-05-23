@@ -34,6 +34,8 @@ ABSENT_FILES = [
 MANIFEST_MARKERS = [
     '"lane_key": "P12-L04"',
     '"phase": "Phase 12"',
+    '"surveyed_commit": "6791c1229b883d9f0acf9ec70e4159db1c9d1bf6"',
+    '"verified_on": "2026-05-22"',
     '"anchor": "drivers/net/virtio_net.c"',
     '"status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
     '"status": "throughput_parity_helper_present_review_only_runtime_completion_missing"',
@@ -174,6 +176,14 @@ def run_check(root: Path) -> None:
         raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: lane_key drifted from P12-L04")
     if manifest.get("phase") != "Phase 12":
         raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: phase drifted from Phase 12")
+    if manifest.get("surveyed_commit") != "6791c1229b883d9f0acf9ec70e4159db1c9d1bf6":
+        raise CheckError(
+            "zigux/tests/phase12_virtio_net_manifest.json: surveyed_commit drifted from 6791c1229b883d9f0acf9ec70e4159db1c9d1bf6"
+        )
+    if manifest.get("verified_on") != "2026-05-22":
+        raise CheckError(
+            "zigux/tests/phase12_virtio_net_manifest.json: verified_on drifted from 2026-05-22"
+        )
 
     survey_note = read_text(root, "Documentation/zigux/phase12-virtio-net-survey.md")
     require_markers(survey_note, "Documentation/zigux/phase12-virtio-net-survey.md", SURVEY_NOTE_MARKERS)
@@ -218,6 +228,8 @@ def make_fixture_tree(root: Path) -> None:
             {
                 "lane_key": "P12-L04",
                 "phase": "Phase 12",
+                "surveyed_commit": "6791c1229b883d9f0acf9ec70e4159db1c9d1bf6",
+                "verified_on": "2026-05-22",
                 "anchor": "drivers/net/virtio_net.c",
                 "roadmap_gap_check": {
                     "queueing_correctness": {
@@ -300,6 +312,42 @@ def run_self_test() -> None:
                 raise
         else:
             raise AssertionError("expected manifest marker failure")
+        case_count += 1
+
+        root = fresh_root()
+        broken_manifest = root / "zigux/tests/phase12_virtio_net_manifest.json"
+        broken_manifest.write_text(
+            broken_manifest.read_text(encoding="utf-8").replace(
+                "6791c1229b883d9f0acf9ec70e4159db1c9d1bf6",
+                "stale_old_surveyed_commit",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "phase12_virtio_net_manifest.json" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected manifest surveyed_commit failure")
+        case_count += 1
+
+        root = fresh_root()
+        broken_manifest = root / "zigux/tests/phase12_virtio_net_manifest.json"
+        broken_manifest.write_text(
+            broken_manifest.read_text(encoding="utf-8").replace(
+                "2026-05-22",
+                "2026-05-21",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "phase12_virtio_net_manifest.json" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected manifest verified_on failure")
         case_count += 1
 
         root = fresh_root()
