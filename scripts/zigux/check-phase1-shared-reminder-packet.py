@@ -76,7 +76,7 @@ MARKERS = {
     ),
     "scripts/zigux/check-phase1-direct-owner-markers.py": (
         "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
-        'print("phase1-direct-owner-markers:ok")',
+        'print("PHASE1_DIRECT_OWNER_MARKERS=pass")',
     ),
     "scripts/zigux/check-phase1-route-summary-counts.py": (
         '"""Guard the current Phase 1 route-summary packet across closure, Makefile, and workflow."""',
