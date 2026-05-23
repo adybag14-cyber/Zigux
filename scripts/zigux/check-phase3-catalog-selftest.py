@@ -95,6 +95,7 @@ REQUIRED_MARKERS = {
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
+        '"make -C zigux phase3-export-shim-test"',
         '"make -C zigux phase3-export-uapi-layout"',
         '"make -C zigux phase3-export-uapi-layout-test"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
@@ -297,6 +298,11 @@ def run_self_test() -> int:
             CATALOG_PATH,
             '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
             "expected missing catalog export-shim test route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-export-shim-test"',
+            "expected missing catalog export-shim make route marker was not reported",
         ),
         (
             CATALOG_PATH,
