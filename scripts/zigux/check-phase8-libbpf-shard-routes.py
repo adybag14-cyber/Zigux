@@ -23,12 +23,15 @@ LOGGING_PATH = "tools/lib/bpf/zigux_segments/logging.zig"
 LOGGING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/logging_verify.zig"
 ONLINE_CPU_ROUTING_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig"
 ONLINE_CPU_ROUTING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig"
+PERF_BUFFER_POLL_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
 PERF_BUFFER_POLL_VERIFY_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig"
+PERF_BUFFER_READY_WINDOW_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig"
 PIN_PATH_PATH = "tools/lib/bpf/zigux_segments/pin_path.zig"
 PIN_PATH_VERIFY_PATH = "tools/lib/bpf/zigux_segments/pin_path_verify.zig"
 READY_BUFFER_ATTEMPT_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig"
 READY_BUFFER_FD_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig"
 READY_BUFFER_WINDOW_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig"
+TYPE_NAMES_PATH = "tools/lib/bpf/zigux_segments/type_names.zig"
 TYPE_NAMES_VERIFY_PATH = "tools/lib/bpf/zigux_segments/type_names_verify.zig"
 
 REQUIRED_FILES = (
@@ -48,12 +51,15 @@ REQUIRED_FILES = (
     LOGGING_VERIFY_PATH,
     ONLINE_CPU_ROUTING_PATH,
     ONLINE_CPU_ROUTING_VERIFY_PATH,
+    PERF_BUFFER_POLL_PATH,
     PERF_BUFFER_POLL_VERIFY_PATH,
+    PERF_BUFFER_READY_WINDOW_PATH,
     PIN_PATH_PATH,
     PIN_PATH_VERIFY_PATH,
     READY_BUFFER_ATTEMPT_VERIFY_PATH,
     READY_BUFFER_FD_VERIFY_PATH,
     READY_BUFFER_WINDOW_VERIFY_PATH,
+    TYPE_NAMES_PATH,
     TYPE_NAMES_VERIFY_PATH,
 )
 
@@ -65,8 +71,12 @@ REQUIRED_MARKERS = {
         'CPU_MASK_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/cpu_mask_verify.zig")',
         'LOGGING_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging.zig")',
         'LOGGING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging_verify.zig")',
+        'PERF_BUFFER_POLL_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig")',
+        'PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")',
         'PIN_PATH_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path.zig")',
         'PIN_PATH_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path_verify.zig")',
+        'TYPE_NAMES_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names.zig")',
+        'TYPE_NAMES_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/type_names_verify.zig")',
     ),
     SURVEY_PATH: (
         "Current helper-plus-build packet",
@@ -178,10 +188,21 @@ REQUIRED_MARKERS = {
         "resolveNextOnlineCpuRouteCpuIndex(",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
     ),
+    PERF_BUFFER_POLL_PATH: (
+        "pub const BufferFdLookupDisposition = enum {",
+        "pub fn resolveReadyBufferFdAtAttempt(",
+        "pub fn resolveReadyBufferFdLookupReturnAtAttempt(",
+        "pub fn summarizeBufferWindowLookup(",
+    ),
     PERF_BUFFER_POLL_VERIFY_PATH: (
         'test "phase8 perf-buffer poll helper entrypoints stay explicit" {',
         "summarizePollExecutionResultFromWaitResult",
         'test "phase8 perf-buffer poll rejects impossible hand-built summaries and mismatched ready waits" {',
+    ),
+    PERF_BUFFER_READY_WINDOW_PATH: (
+        "pub fn summarizeReadyBufferWindowLookupAtAttempt(",
+        "pub fn resolveReadyBufferWindowMappedSizeReturnAtAttempt(",
+        "pub fn resolveReadyBufferWindowLookupReturnAtAttempt(",
     ),
     PIN_PATH_PATH: (
         'pub const default_bpf_fs_path = "/sys/fs/bpf";',
@@ -207,6 +228,11 @@ REQUIRED_MARKERS = {
         'test "phase8 ready-buffer window helper entrypoints stay explicit" {',
         "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
         "resolveReadyBufferWindowLookupReturnAtAttempt",
+    ),
+    TYPE_NAMES_PATH: (
+        "pub fn libbpfBpfMapTypeStr(",
+        "pub fn libbpfBpfAttachTypeStr(",
+        "pub fn formatLibbpfBpfProgType(",
     ),
     TYPE_NAMES_VERIFY_PATH: (
         'test "phase8 libbpf type-name helper entrypoints stay explicit" {',
