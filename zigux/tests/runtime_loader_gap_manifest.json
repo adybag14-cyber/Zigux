@@ -1,5 +1,5 @@
 {
-  "lane_key": "P9-L18",
+  "lane_key": "P9-L08",
   "phase": "Phase 9",
   "scope": "runtime validation scaffolding",
   "bounded_task": "shared runtime-loader evidence, gating, and rollback discipline",
@@ -123,25 +123,25 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
       "role": "survey_note",
-      "owner": "P9-L18",
+      "owner": "P9-L08",
       "boundary": "Owns the shared loader-gap survey note for the live shared packet."
     },
     {
       "surface": "zigux/tests/runtime_loader_gap_manifest.json",
       "role": "packet_truth_manifest",
-      "owner": "P9-L18",
+      "owner": "P9-L08",
       "boundary": "Pins the shared loader-gap packet's current repo reality."
     },
     {
       "surface": "zigux/tests/runtime_loader_gap_survey.zig",
       "role": "survey_gate",
-      "owner": "P9-L18",
+      "owner": "P9-L08",
       "boundary": "Machine-checks the shared loader-gap packet without widening pilot-family behavior."
     },
     {
       "surface": "scripts/zigux/README.md",
       "role": "shared_scripts_root_reminder",
-      "owner": "P9-L18",
+      "owner": "P9-L08",
       "boundary": "Keeps the scripts-root shared loader-gap packet explicit without widening into the broader shared owner-map packet."
     },
     {
@@ -153,7 +153,7 @@
     {
       "surface": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
       "role": "loader_drift_replay",
-      "owner": "P9-L18",
+      "owner": "P9-L08",
       "boundary": "Closes the trace-events prepared shared runtime-substrate drift gap inside the shared loader-gap packet."
     },
     {
