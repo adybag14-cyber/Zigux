@@ -193,6 +193,8 @@ test "phase12 virtio scsi survey note stays aligned with rollback evidence" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "throughput-parity, and survey-gate tests as support-bundle evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback-only split machine-checkable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_scsi_survey.zig") != null);
+    try std.testing.expect(std.mem.count(u8, survey_note, "`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`") >= 1);
+    try std.testing.expect(std.mem.count(u8, survey_note, "`zigux/tests/phase12_virtio_scsi_manifest.json`") >= 1);
 }
 
 test "phase12 virtio scsi fallback catalog keeps archival replay distinct from current-master rollback evidence" {
