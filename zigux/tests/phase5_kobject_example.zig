@@ -32,6 +32,24 @@ test "phase 5 kobject sample keeps the descriptor contract explicit through the 
     }
 }
 
+test "phase 5 kobject sample keeps the cold-stage boundary explicit through the focused test surface too" {
+    var module = sample.KobjectExampleSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
+    try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
+
+    const summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.cold, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_attr_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+}
+
 test "phase 5 kobject sample keeps the anchor replay explicit through the focused test surface too" {
     var module = sample.KobjectExampleSample{};
     try module.init();
