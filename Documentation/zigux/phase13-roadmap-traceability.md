@@ -40,6 +40,8 @@ When shared Phase 13 wording changes, keep these current reminder surfaces align
 
 Keep `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the stable contributor-facing handle. Keep the broader docs-root, checklist, release-note, summary-gap, notifier-gap, contributor-sync, and tests-root companion packet aligned as supporting reminder surfaces instead of flattening that wider packet into the stable handle itself.
 
+Current `master` now also keeps that broader shared reminder packet aligned on the wider planner-expanded `devres` packet: `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all keep the `devm_iounmap()` and `devm_of_iomap()` planner note-and-manifest pairings explicit beside the shipped DMA-boundary, `dmam_alloc_coherent()`, and scatterlist evidence instead of stopping at the older narrower `devres` reminder split.
+
 Keep `zigux/Makefile` distinct from the still-missing shared wrapper names `make -C zigux phase13-validate` and `make -C zigux phase13`. The returned file is current repo evidence again, but those route names still are not the stable shared Phase 13 handle.
 
 ## Traceability Snapshot
