@@ -151,6 +151,14 @@ test "argvSplit stops at the first embedded nul byte" {
     try std.testing.expectEqualStrings("beta", result.argv[1]);
 }
 
+test "argvSplit truncates a token at an embedded nul byte" {
+    var result = try argvSplit(std.testing.allocator, "alpha\x00beta gamma");
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 1), result.argc());
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+}
+
 test "argvSplit treats a leading nul byte as blank input" {
     var result = try argvSplit(std.testing.allocator, "\x00ignored tail");
     defer result.deinit();
