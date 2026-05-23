@@ -102,7 +102,7 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.",
-        "Current authenticated helper readback in this runtime is still narrower than the broader public-tree Phase 8 packet: the helper set above stays the exact authenticated anchor, while current public-tree rereads now rematerialize `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and the focused libbpf bridge-side build companions on `master`.",
+        "Current authenticated helper readback in this runtime now also serves the bridge-side reminder packet directly: the helper set above stays the exact authenticated helper anchor, while the same contents path now returns `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and the focused libbpf bridge-side build companions on current `master`.",
         "`zigux/tests/phase8_verify_routing_gap.zig` plus `zigux/tests/phase8_verify_routing_gap_only_build.zig`",
         "make -C zigux phase8-perf-buffer-poll-test",
     ),
