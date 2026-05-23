@@ -1,0 +1,69 @@
+const std = @import("std");
+const gen = @import("../../scripts/zigux/genksyms_crc.zig");
+
+const c_line_payload_len = 4095;
+
+fn Capture(comptime capacity: usize) type {
+    return struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        pub fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, capacity),
+                .allocator = allocator,
+            };
+        }
+
+        pub fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        pub fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        pub fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer std.testing.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        pub fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+}
+
+test "lane19 exact-buffer blank split replay skips repeated blank continuations before the next line" {
+    var exact_then_blank_chunks = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 5);
+    defer exact_then_blank_chunks.deinit(std.testing.allocator);
+    try exact_then_blank_chunks.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try exact_then_blank_chunks.append(std.testing.allocator, '\n');
+    try exact_then_blank_chunks.append(std.testing.allocator, '\r');
+    try exact_then_blank_chunks.append(std.testing.allocator, '\n');
+    try exact_then_blank_chunks.appendSlice(std.testing.allocator, "x\n");
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try gen.runGenksymsCrc(exact_then_blank_chunks.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "0x{x:0>8}",
+        .{gen.crc32(exact_then_blank_chunks.items[0..c_line_payload_len])},
+    );
+    defer std.testing.allocator.free(exact_crc);
+    const next_line_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{gen.crc32("x")});
+    defer std.testing.allocator.free(next_line_crc);
+    const blank_cr_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{gen.crc32("\r")});
+    defer std.testing.allocator.free(blank_cr_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, next_line_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, blank_cr_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 2);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\n\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
+}
