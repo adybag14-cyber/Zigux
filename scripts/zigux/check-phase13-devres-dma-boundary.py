@@ -52,6 +52,12 @@ SURVEY_MARKERS = [
     "`dma_sync_*`",
     "`dma_mmap_*`",
     "`dma_map_sgtable()`",
+    "`sg_alloc_table()`",
+    "`sg_free_table()`",
+    "`sg_dma_address()`",
+    "`sg_dma_len()`",
+    "`dma_map_sg()`",
+    "`dma_unmap_sg()`",
     "`sg_table`",
     "`lib/devres_scatterlist.zig` ships a pure scatterlist lifetime planning surface",
 ]
@@ -87,6 +93,12 @@ SCATTERLIST_NOTE_MARKERS = [
     "retains detach-time unmap ownership on success",
     "failed mapping frees the release record",
     "warn-on-release-miss outcome",
+    "sg_alloc_table()",
+    "sg_free_table()",
+    "sg_dma_address()",
+    "sg_dma_len()",
+    "dma_map_sg()",
+    "dma_unmap_sg()",
     "dma_map_sgtable()",
     "sg_table",
 ]
@@ -256,6 +268,30 @@ def run_self_test() -> int:
                 "scatterlist_replay:missing_marker:phase13 devres scatterlist planner checker stays packet-local"
             ],
             "scatterlist_replay_missing_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SURVEY_PATH,
+            "\n".join(marker for marker in SURVEY_MARKERS if marker != "`sg_dma_len()`") + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["survey:missing_marker:`sg_dma_len()`"],
+            "survey_missing_scatterlist_boundary_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SCATTERLIST_NOTE_PATH,
+            "\n".join(marker for marker in SCATTERLIST_NOTE_MARKERS if marker != "dma_unmap_sg()") + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["scatterlist_note:missing_marker:dma_unmap_sg()"],
+            "scatterlist_note_missing_dma_unmap_marker_failed",
         )
         case_count += 1
 
