@@ -39,12 +39,7 @@ fn validatePerfMatrix() !void {
         if (fixtures.perf_encoded_buf_size < base64.chars(case.payload.len, case.padding)) {
             return error.Base64PerfMatrixMismatch;
         }
-        if (!std.mem.eql(u8, case.variant_name, "std") and
-            !std.mem.eql(u8, case.variant_name, "urlsafe") and
-            !std.mem.eql(u8, case.variant_name, "imap"))
-        {
-            return error.Base64PerfMatrixMismatch;
-        }
+        _ = try resolveCodec(case);
 
         for (fixtures.perf_cases[idx + 1 ..]) |other| {
             if (std.mem.eql(u8, case.label, other.label)) {
@@ -57,7 +52,7 @@ fn validatePerfMatrix() !void {
     }
 }
 
-fn resolveCodec(case: fixtures.PerfCase) Codec {
+fn resolveCodec(case: fixtures.PerfCase) !Codec {
     if (std.mem.eql(u8, case.variant_name, "std")) {
         return .{
             .helper_variant = .std,
@@ -79,7 +74,7 @@ fn resolveCodec(case: fixtures.PerfCase) Codec {
             .decoder = if (case.padding) &std.base64.standard.Decoder else &std.base64.standard_no_pad.Decoder,
         };
     }
-    unreachable;
+    return error.Base64PerfMatrixMismatch;
 }
 
 fn isImapCase(case: fixtures.PerfCase) bool {
@@ -247,7 +242,7 @@ pub fn main() !void {
     try validatePerfMatrix();
 
     for (fixtures.perf_cases) |case| {
-        const codec = resolveCodec(case);
+        const codec = try resolveCodec(case);
         const encode_slowdown = try encodeSlowdownPct(case, codec);
         if (encode_slowdown > case.max_encode_slowdown_pct) {
             std.debug.print(
