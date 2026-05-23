@@ -158,7 +158,7 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(
         u8,
         smoke_survey,
-        "workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, ready-next `none currently recorded`, blocked `phase14-workqueue-live-execution-blocker`",
+        "workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, current slice `phase14-workqueue-scheduler-visible-worker-state-refinement`, posture `blocked_maintenance`, blocked `phase14-workqueue-live-execution-blocker`",
     ) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_survey, "boundary-map-and-reviewability foothold") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_survey, "`make -C zigux phase14-validate`") != null);
