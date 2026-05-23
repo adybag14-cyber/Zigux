@@ -193,6 +193,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(loader_file, "runtime bitmap loader keeps loader-facing bitmap payload explicit");
     try expectContains(loader_file, "runtime bitmap loader keeps loaded cross-word summary stable through selftest and exit");
     try expectContains(loader_file, "runtime bitmap loader rejects re-selftest without disturbing lifecycle summaries");
+    try expectContains(loader_file, "runtime bitmap loader rejects malformed re-init after a loaded payload without disturbing lifecycle summaries");
     try expectContains(loader_file, "runtime bitmap loader rejects re-init after a loaded payload without disturbing the initialized summary");
     try expectContains(loader_file, "runtime bitmap loader rejects re-init after exit without disturbing the exited summary");
     try expectContains(loader_file, "runtime bitmap loader keeps initialized loaded summary stable across direct exit without selftest");
