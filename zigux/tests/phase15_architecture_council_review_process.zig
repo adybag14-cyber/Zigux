@@ -192,6 +192,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
         try expectContains(decision_record_template, field);
     }
     for (manifest.review_outcome_fields) |field| {
+        try expectContains(review_process, field);
         try expectContains(decision_record_template, field);
     }
     for (manifest.review_outcome_markers) |marker| {
