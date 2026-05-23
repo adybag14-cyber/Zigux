@@ -239,12 +239,14 @@ REQUIRED_MARKERS = {
     END_TO_END_SMOKE_MANIFEST_PATH: [
         '"shared_smoke_surfaces": [',
         '"scripts/zigux/check-phase14-rollback-threshold-sequencing.py"',
+        '"phase14_validate_runs_rollback_threshold_sequencing": true',
         '"Documentation/zigux/phase14-core-boundary-traceability.md"',
         '"scripts/zigux/check-phase14-release-boundary-exact-counts.py"',
         '"smoke_commands": [',
         '"smoke_shard_commands": [',
         '"zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"',
         '"phase14_make_smoke_target_present": false',
+        '"smoke_note_records_rollback_threshold": true',
     ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 14 shared smoke route checker",
@@ -461,7 +463,9 @@ def run_self_test() -> int:
             (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][3]),
             (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][4]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][1]),
-            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][4]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][2]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][5]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][9]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
