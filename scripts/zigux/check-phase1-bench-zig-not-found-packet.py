@@ -10,10 +10,12 @@ SELF_PATH = Path(__file__).resolve()
 DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
+SELF_CHECKER_REL = Path("scripts/zigux/check-phase1-bench-zig-not-found-packet.py")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_FILES = (
     BENCH_CHECKER_REL,
+    SELF_CHECKER_REL,
     WORKFLOW_REL,
 )
 
@@ -26,9 +28,19 @@ REQUIRED_MARKERS = (
     'print("PHASE1_BENCH_CHECK_REASON=zig_not_found")',
 )
 
-WORKFLOW_SECTION = (
-    "      - name: Self-test current Phase 1 bench checker",
-    "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+WORKFLOW_SECTIONS = (
+    (
+        "      - name: Self-test current Phase 1 bench checker",
+        "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+    ),
+    (
+        "      - name: Self-test current Phase 1 bench zig-not-found packet checker",
+        "        run: python3 scripts/zigux/check-phase1-bench-zig-not-found-packet.py --self-test",
+    ),
+    (
+        "      - name: Check current Phase 1 bench zig-not-found packet",
+        "        run: python3 scripts/zigux/check-phase1-bench-zig-not-found-packet.py",
+    ),
 )
 
 
@@ -44,9 +56,10 @@ def collect_missing_markers(root: Path) -> list[str]:
     bench_text = read_text(root / BENCH_CHECKER_REL)
     workflow_text = read_text(root / WORKFLOW_REL)
     missing = [marker for marker in REQUIRED_MARKERS if marker not in bench_text]
-    workflow_block = "\n".join(WORKFLOW_SECTION)
-    if workflow_block not in workflow_text:
-        missing.extend(WORKFLOW_SECTION)
+    for workflow_section in WORKFLOW_SECTIONS:
+        workflow_block = "\n".join(workflow_section)
+        if workflow_block not in workflow_text:
+            missing.extend(workflow_section)
     return missing
 
 
@@ -86,6 +99,10 @@ def write_sample_root(root: Path) -> None:
         + "\n",
     )
     write_text(
+        root / SELF_CHECKER_REL,
+        "#!/usr/bin/env python3\nprint('fixture')\n",
+    )
+    write_text(
         root / WORKFLOW_REL,
         "\n".join(
             (
@@ -94,6 +111,10 @@ def write_sample_root(root: Path) -> None:
                 "    steps:",
                 "      - name: Self-test current Phase 1 bench checker",
                 "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+                "      - name: Self-test current Phase 1 bench zig-not-found packet checker",
+                "        run: python3 scripts/zigux/check-phase1-bench-zig-not-found-packet.py --self-test",
+                "      - name: Check current Phase 1 bench zig-not-found packet",
+                "        run: python3 scripts/zigux/check-phase1-bench-zig-not-found-packet.py",
                 "",
             )
         ),
@@ -119,6 +140,28 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         assert collect_missing_markers(root) == ['print("PHASE1_BENCH_CHECK_REASON=zig_not_found")']
+        case_count += 1
+
+        write_sample_root(root)
+        workflow = root / WORKFLOW_REL
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Check current Phase 1 bench zig-not-found packet\n"
+                "        run: python3 scripts/zigux/check-phase1-bench-zig-not-found-packet.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert collect_missing_markers(root) == [
+            "      - name: Check current Phase 1 bench zig-not-found packet",
+            "        run: python3 scripts/zigux/check-phase1-bench-zig-not-found-packet.py",
+        ]
+        case_count += 1
+
+        write_sample_root(root)
+        (root / SELF_CHECKER_REL).unlink()
+        assert collect_missing_files(root) == [str(SELF_CHECKER_REL)]
         case_count += 1
 
         write_sample_root(root)
@@ -169,7 +212,7 @@ def main() -> int:
 
     print("PHASE1_BENCH_ZIG_NOT_FOUND_PACKET=pass")
     print(f"PHASE1_BENCH_ZIG_NOT_FOUND_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE1_BENCH_ZIG_NOT_FOUND_PACKET_REQUIRED_MARKER_COUNT={len(REQUIRED_MARKERS) + len(WORKFLOW_SECTION)}")
+    print(f"PHASE1_BENCH_ZIG_NOT_FOUND_PACKET_REQUIRED_MARKER_COUNT={len(REQUIRED_MARKERS) + sum(len(section) for section in WORKFLOW_SECTIONS)}")
     return 0
 
 
