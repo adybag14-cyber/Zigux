@@ -59,7 +59,8 @@ TEXT_MARKERS = {
         "`PHASE12_STATUS=archival-raw-read-fallback`",
         "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`",
         "- exact coverage evidence refreshed on `2026-05-23` against live current `master`",
-        "- authenticated contents and public raw `master` now converge again on this same archival catalog body for the fallback path",
+        "- authenticated contents view now returns this refreshed archival catalog body on current `master`",
+        "- public raw `master` fallback still serves the older `2026-05-21` archival body for this same path as of `2026-05-23`",
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
         "- survey replay: `zigux/tests/phase12_virtio_scsi_survey.zig`",
@@ -69,6 +70,7 @@ TEXT_MARKERS = {
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
         "exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
         "`make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only and release-readiness checkers plus `scripts/zigux/validate-phase12.py`",
+        "treat the authenticated contents readback and the public raw `master` fallback as split evidence again until the raw path catches up to the refreshed current-master body",
         "archival commit-pinned history only",
     ],
     SURVEY_GATE_PATH: [
