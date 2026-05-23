@@ -349,3 +349,82 @@ test "phase3 unsafe policy keeps unsafe and audit routing explicit" {
     try std.testing.expect(requiresDedicatedAuditInteropPolicy(mmio));
     try std.testing.expect(requiresDedicatedAuditInteropPolicy(raw));
 }
+
+test "phase3 unsafe policy keeps byte and reserved shorthands aligned with helper aliases" {
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), modeFromByte(0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), modeFromByte(1));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), modeFromByte(2));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), modeFromByte(9));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), modeFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expect(recognizesByte(0));
+    try std.testing.expect(recognizesByte(1));
+    try std.testing.expect(recognizesByte(2));
+    try std.testing.expect(!recognizesByte(9));
+    try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));
+
+    try std.testing.expectEqual(@as(?Surface, .safe_only), surfaceFromByte(0));
+    try std.testing.expectEqual(@as(?Surface, .mmio_only), surfaceFromByte(1));
+    try std.testing.expectEqual(@as(?Surface, .raw_pointer_bridge_only), surfaceFromByte(2));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromByte(9));
+    try std.testing.expectEqual(@as(?Surface, null), surfaceFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expectEqual(@as(?AccessBoundary, .typed_safe), accessBoundaryFromByte(0));
+    try std.testing.expectEqual(@as(?AccessBoundary, .volatile_mmio_window), accessBoundaryFromByte(1));
+    try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromByte(2));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expect(permitsNoUnsafeByte(0));
+    try std.testing.expect(!permitsNoUnsafeByte(1));
+    try std.testing.expect(permitsVolatileMmioByte(1));
+    try std.testing.expect(!permitsVolatileMmioByte(2));
+    try std.testing.expect(permitsRawPointerBridgeByte(2));
+    try std.testing.expect(!permitsRawPointerBridgeByte(1));
+
+    try std.testing.expect(permitsNoUnsafePolicyBytes(0, 0));
+    try std.testing.expect(!permitsNoUnsafePolicyBytes(0, 1));
+    try std.testing.expect(permitsVolatileMmioPolicyBytes(1, 0));
+    try std.testing.expect(!permitsVolatileMmioPolicyBytes(1, 1));
+    try std.testing.expect(requiresVolatileMmioAccessPolicyBytes(1, 0));
+    try std.testing.expect(!requiresVolatileMmioAccessPolicyBytes(1, 1));
+    try std.testing.expect(permitsRawPointerBridgePolicyBytes(2, 0));
+    try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));
+    try std.testing.expect(requiresRawPointerBridgePolicyBytes(2, 0));
+    try std.testing.expect(!requiresRawPointerBridgePolicyBytes(2, 1));
+
+    try std.testing.expect(allowsTypedOnlyAccessByte(0));
+    try std.testing.expect(!allowsTypedOnlyAccessByte(1));
+    try std.testing.expect(allowsTypedOnlyAccessPolicyBytes(0, 0));
+    try std.testing.expect(!allowsTypedOnlyAccessPolicyBytes(0, 1));
+    try std.testing.expect(allowsVolatileMmioByte(1));
+    try std.testing.expect(!allowsVolatileMmioByte(2));
+    try std.testing.expect(allowsVolatileMmioPolicyBytes(1, 0));
+    try std.testing.expect(!allowsVolatileMmioPolicyBytes(1, 1));
+    try std.testing.expect(allowsRawPointerBridgeByte(2));
+    try std.testing.expect(!allowsRawPointerBridgeByte(1));
+    try std.testing.expect(allowsRawPointerBridgePolicyBytes(2, 0));
+    try std.testing.expect(!allowsRawPointerBridgePolicyBytes(2, 1));
+
+    try std.testing.expect(!isUnsafeByte(0));
+    try std.testing.expect(isUnsafeByte(1));
+    try std.testing.expect(isUnsafeByte(2));
+    try std.testing.expect(!isUnsafePolicyBytes(2, 1));
+    try std.testing.expect(!requiresDedicatedAuditByte(0));
+    try std.testing.expect(requiresDedicatedAuditByte(1));
+    try std.testing.expect(requiresDedicatedAuditByte(2));
+    try std.testing.expect(!requiresDedicatedAuditPolicyBytes(2, 1));
+
+    try requireNoUnsafeByte(0);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeByte(1));
+    try requireVolatileMmioByte(1);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioByte(2));
+    try requireRawPointerBridgeByte(2);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeByte(1));
+
+    try requireNoUnsafePolicyBytes(0, 0);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafePolicyBytes(0, 1));
+    try requireVolatileMmioPolicyBytes(1, 0);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioPolicyBytes(1, 1));
+    try requireRawPointerBridgePolicyBytes(2, 0);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgePolicyBytes(2, 1));
+}
