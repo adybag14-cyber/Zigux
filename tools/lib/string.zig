@@ -458,6 +458,25 @@ pub fn strcspn(buf: []const u8, reject: []const u8) usize {
     return limit;
 }
 
+pub fn strnstr(buf: []const u8, needle: []const u8, count: usize) ?usize {
+    const limit = strnlen(buf, count);
+    const needle_len = cStringLen(needle);
+    if (needle_len == 0) {
+        return 0;
+    }
+    if (needle_len > limit) {
+        return null;
+    }
+
+    var idx: usize = 0;
+    while (idx + needle_len <= limit) : (idx += 1) {
+        if (std.mem.eql(u8, buf[idx .. idx + needle_len], needle[0..needle_len])) {
+            return idx;
+        }
+    }
+    return null;
+}
+
 pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
     const limit = strnlen(buf, count);
     for (buf[0..limit], 0..) |ch, idx| {
@@ -840,6 +859,14 @@ test "strcspn counts until the first rejected byte with C-string semantics" {
 
     const reject_cstr = [_]u8{ 'x', 0, 'y' };
     try std.testing.expectEqual(@as(usize, 2), strcspn("abxc", &reject_cstr));
+}
+
+test "strnstr honors count and C-string boundaries" {
+    try std.testing.expectEqual(@as(?usize, 1), strnstr("abc", "bc", 3));
+    try std.testing.expectEqual(@as(?usize, null), strnstr("abc", "bc", 1));
+    try std.testing.expectEqual(@as(?usize, null), strnstr(&[_]u8{ 'a', 0, 'b', 'c' }, "bc", 4));
+    try std.testing.expectEqual(@as(?usize, 1), strnstr("abc", &[_]u8{ 'b', 0, 'x' }, 3));
+    try std.testing.expectEqual(@as(?usize, 0), strnstr("abc", "", 0));
 }
 
 test "strnchr honors count and C-string boundaries" {
