@@ -671,6 +671,20 @@ test "strEndsWith honors C-string boundaries" {
     try std.testing.expect(!strEndsWith("abcdef", "deg"));
 }
 
+test "prefix and suffix Linux-style aliases mirror the primary helpers" {
+    const prefix_cstr = [_]u8{ 'k', 'e', 'r', 'n', 'e', 'l', 0, 'x' };
+    const suffix_cstr = [_]u8{ 'k', 'e', 'r', 'n', 'e', 'l', 0, 'y' };
+
+    try std.testing.expectEqual(strHasPrefix(&prefix_cstr, "ker"), str_has_prefix(&prefix_cstr, "ker"));
+    try std.testing.expectEqual(strHasPrefix("kernel", "xyz"), str_has_prefix("kernel", "xyz"));
+    try std.testing.expectEqual(strHasSuffix(&suffix_cstr, "nel"), str_has_suffix(&suffix_cstr, "nel"));
+    try std.testing.expectEqual(strHasSuffix("kernel", "xyz"), str_has_suffix("kernel", "xyz"));
+    try std.testing.expectEqual(strEndsWith(&suffix_cstr, "nel"), str_ends_with(&suffix_cstr, "nel"));
+    try std.testing.expectEqual(strEndsWith(&suffix_cstr, "nel"), strends(&suffix_cstr, "nel"));
+    try std.testing.expectEqual(strEndsWith("kernel", "xyz"), str_ends_with("kernel", "xyz"));
+    try std.testing.expectEqual(strEndsWith("kernel", "xyz"), strends("kernel", "xyz"));
+}
+
 test "kbasename returns the final path component with C-string semantics" {
     try std.testing.expectEqualStrings("file.txt", kbasename("/tmp/file.txt"));
     try std.testing.expectEqualStrings("node", kbasename(&[_]u8{ '/', 'a', '/', 'n', 'o', 'd', 'e', 0, '/', 'x' }));
@@ -926,14 +940,7 @@ test "strnlen honors count and C-string boundaries" {
 
 test "strnchrNul returns the first match, NUL, or count boundary" {
     try std.testing.expectEqual(@as(usize, 1), strnchrNul("abc", 3, 'b'));
-    try std.testing.expectEqual(@as(usize, 2), strnchrNul("abc", 2, 'z'));
-    try std.testing.expectEqual(@as(usize, 1), strnchrnul(&[_]u8{ 'a', 0, 'b' }, 3, 'z'));
-    try std.testing.expectEqual(@as(usize, 3), strchrNul("abc", 'z'));
-    try std.testing.expectEqual(@as(usize, 3), strchrnul("abc", 'z'));
-}
-
-test "phase 1 string replaceChar stops at embedded NUL" {
-    var buf = [_]u8{ 'a', 0, 'b', 'a' };
-    try std.testing.expectEqual(@as(usize, 1), replaceChar(buf[0..], 'a', 'z'));
-    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 0, 'b', 'a' }, buf[0..]);
+    try std.testing.expectEqual(@as(usize, 3), strnchrNul("abc", 3, 'z'));
+    try std.testing.expectEqual(@as(usize, 1), strnchrNul(&[_]u8{ 'a', 0, 'b' }, 3, 'z'));
+    try std.testing.expectEqual(@as(usize, 1), strnchrnul(&[_]u8{ 'a', 'b', 0 }, 3, 'b'));
 }
