@@ -7,11 +7,11 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
-MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
-POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
-CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
-MAKEFILE = ROOT / "zigux" / "Makefile"
-WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
+POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
+CROSS_TARGETS = Path("zigux/tests/fixtures/phase2_cross_targets.json")
+MAKEFILE = Path("zigux/Makefile")
+WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_STATUS = "active"
@@ -30,6 +30,10 @@ EXPECTED_CROSS_ROUTE_SUPPORT = (
     "zigux/tests/fixtures/phase2_cross_targets.json",
 )
 EXPECTED_POLICY_SURFACE = ("scripts/zigux/zig-toolchain-policy.json",)
+EXPECTED_VALIDATORS = (
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
+)
 EXPECTED_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate", "phase2-cross")
 EXPECTED_WRAPPER_PREFIX = (
     "zigux/Makefile",
@@ -71,6 +75,10 @@ def write_json(path: Path, payload: object) -> None:
     write_text(path, json.dumps(payload, indent=2) + "\n")
 
 
+def resolve_path(root: Path, path: Path) -> Path:
+    return root / path
+
+
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
@@ -97,24 +105,25 @@ def require_string_list(payload: object, path: Path, field: str) -> list[str]:
 
 
 def load_policy(root: Path) -> tuple[list[str], dict[str, str]]:
-    payload = read_json(root / POLICY)
+    policy_path = resolve_path(root, POLICY)
+    payload = read_json(policy_path)
     if not isinstance(payload, dict):
-        raise SystemExit(f"invalid json shape in required file: {root / POLICY}")
+        raise SystemExit(f"invalid json shape in required file: {policy_path}")
     if payload.get("phase") != EXPECTED_PHASE:
-        raise SystemExit(f"invalid phase in required file: {root / POLICY}")
+        raise SystemExit(f"invalid phase in required file: {policy_path}")
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
-        raise SystemExit(f"invalid upgrade_policy in required file: {root / POLICY}")
+        raise SystemExit(f"invalid upgrade_policy in required file: {policy_path}")
     required_make_routes = upgrade_policy.get("required_make_routes")
     if required_make_routes != list(EXPECTED_REQUIRED_MAKE_ROUTES):
-        raise SystemExit(f"invalid required_make_routes in required file: {root / POLICY}")
+        raise SystemExit(f"invalid required_make_routes in required file: {policy_path}")
     archive_target_scope = require_string_list(
         upgrade_policy.get("archive_target_scope"),
-        root / POLICY,
+        policy_path,
         "archive_target_scope",
     )
     if find_duplicates(archive_target_scope):
-        raise SystemExit(f"duplicate archive_target_scope entry in required file: {root / POLICY}")
+        raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}")
     unsupported = [target for target in archive_target_scope if target not in SUPPORTED_CROSS_TARGETS]
     if unsupported:
         raise SystemExit(
@@ -184,6 +193,18 @@ def collect_surface_issues(root: Path, surfaces: object) -> list[tuple[str, str]
             if not (root / entry).exists():
                 issues.append(("MISSING_SURFACE_PATH", f"policy:{entry}"))
 
+    validators = surfaces.get("validators")
+    if not isinstance(validators, list):
+        issues.append(("INVALID_SURFACE_CATEGORY", "validators"))
+    else:
+        issues.extend(collect_non_string_entry_issues(validators, "validators"))
+        string_validators = [entry for entry in validators if isinstance(entry, str)]
+        if string_validators != list(EXPECTED_VALIDATORS):
+            issues.append(("VALIDATOR_SURFACE_MISMATCH", json.dumps(string_validators)))
+        for entry in EXPECTED_VALIDATORS:
+            if entry in string_validators and not (root / entry).exists():
+                issues.append(("MISSING_SURFACE_PATH", f"validators:{entry}"))
+
     wrappers = surfaces.get("make_wrappers")
     if not isinstance(wrappers, list):
         issues.append(("INVALID_SURFACE_CATEGORY", "make_wrappers"))
@@ -203,7 +224,7 @@ def collect_surface_issues(root: Path, surfaces: object) -> list[tuple[str, str]
 
 
 def collect_fixture_issues(root: Path, expected_scope: list[str], expected_modes: dict[str, str]) -> list[tuple[str, str]]:
-    payload = read_json(root / CROSS_TARGETS)
+    payload = read_json(resolve_path(root, CROSS_TARGETS))
     issues: list[tuple[str, str]] = []
     if not isinstance(payload, dict):
         return [("INVALID_CROSS_TARGET_FIXTURE", type(payload).__name__)]
@@ -251,9 +272,9 @@ def collect_fixture_issues(root: Path, expected_scope: list[str], expected_modes
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
-    manifest = read_json(root / MANIFEST)
+    manifest = read_json(resolve_path(root, MANIFEST))
     if not isinstance(manifest, dict):
-        raise SystemExit(f"invalid json shape in required file: {root / MANIFEST}")
+        raise SystemExit(f"invalid json shape in required file: {resolve_path(root, MANIFEST)}")
 
     issues: list[tuple[str, str]] = []
     if manifest.get("phase") != EXPECTED_PHASE:
@@ -272,14 +293,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     expected_scope, expected_modes = load_policy(root)
     issues.extend(collect_fixture_issues(root, expected_scope, expected_modes))
 
-    workflow_text = read_text(root / WORKFLOW)
+    workflow_text = read_text(resolve_path(root, WORKFLOW))
     workflow_count = count_exact_lines(workflow_text, WORKFLOW_ROUTE_LINE)
     if workflow_count == 0:
         issues.append(("MISSING_WORKFLOW_LINE", WORKFLOW_ROUTE_LINE))
     elif workflow_count != 1:
         issues.append(("DUPLICATE_WORKFLOW_LINE", f"{WORKFLOW_ROUTE_LINE}:count={workflow_count}"))
 
-    makefile_text = read_text(root / MAKEFILE)
+    makefile_text = read_text(resolve_path(root, MAKEFILE))
     for marker in MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
         if count == 0:
@@ -317,6 +338,7 @@ def build_self_test_manifest() -> dict[str, object]:
             ],
             "cross_route_support": list(EXPECTED_CROSS_ROUTE_SUPPORT),
             "policy": list(EXPECTED_POLICY_SURFACE),
+            "validators": list(EXPECTED_VALIDATORS),
             "make_wrappers": [
                 *EXPECTED_WRAPPER_PREFIX,
                 "make -C zigux phase2-genksyms",
@@ -331,9 +353,9 @@ def build_self_test_manifest() -> dict[str, object]:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_json(root / MANIFEST, build_self_test_manifest())
+    write_json(resolve_path(root, MANIFEST), build_self_test_manifest())
     write_json(
-        root / POLICY,
+        resolve_path(root, POLICY),
         {
             "phase": EXPECTED_PHASE,
             "channel": "0.17.0-dev.87+9b177a7d2",
@@ -347,7 +369,7 @@ def build_self_test_root(root: Path) -> None:
         },
     )
     write_json(
-        root / CROSS_TARGETS,
+        resolve_path(root, CROSS_TARGETS),
         {
             "phase": EXPECTED_PHASE,
             "status": EXPECTED_STATUS,
@@ -369,17 +391,16 @@ def build_self_test_root(root: Path) -> None:
             ],
         },
     )
-    write_text(root / MAKEFILE, "\n".join(MAKEFILE_LINES) + "\n")
-    write_text(root / WORKFLOW, "name: zigux-bootstrap\n" + WORKFLOW_ROUTE_LINE + "\n")
-    write_text(root / "scripts" / "zigux" / "check-phase2-cross.py", "present\n")
-    write_text(root / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py", "present\n")
-    write_text(root / "scripts" / "zigux" / "zig-toolchain-policy.json", read_text(root / POLICY))
-    write_text(root / "zigux" / "Makefile", read_text(root / MAKEFILE))
-    write_text(root / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json", read_text(root / CROSS_TARGETS))
+    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
+    write_text(resolve_path(root, WORKFLOW), "name: zigux-bootstrap\n" + WORKFLOW_ROUTE_LINE + "\n")
+    write_text(resolve_path(root, Path("scripts/zigux/check-phase2-cross.py")), "present\n")
+    write_text(resolve_path(root, Path("scripts/zigux/check-phase2-cross-selftest-alignment.py")), "present\n")
+    write_text(resolve_path(root, Path("scripts/zigux/validate-phase2.py")), "present\n")
+    write_text(resolve_path(root, Path("scripts/zigux/validate-phase2-closure.py")), "present\n")
 
 
 def run_self_test() -> int:
-    expected_case_count = 29
+    expected_case_count = 32
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_tool_manifest_") as tmp_dir:
         root = Path(tmp_dir)
@@ -388,7 +409,7 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        manifest_path = root / MANIFEST
+        manifest_path = resolve_path(root, MANIFEST)
         manifest = read_json(manifest_path)
         assert isinstance(manifest, dict)
 
@@ -428,6 +449,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         manifest = read_json(manifest_path)
         assert isinstance(manifest, dict)
+        manifest["present_surfaces"]["validators"] = ["scripts/zigux/validate-phase2.py"]
+        write_json(manifest_path, manifest)
+        assert any(code == "VALIDATOR_SURFACE_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = read_json(manifest_path)
+        assert isinstance(manifest, dict)
         manifest["present_surfaces"]["checkers"] = [
             "scripts/zigux/check-phase2-cross-selftest-alignment.py",
             "scripts/zigux/check-phase2-cross.py",
@@ -444,7 +473,7 @@ def run_self_test() -> int:
         assert ("DUPLICATE_CHECKER_ENTRY", "scripts/zigux/check-phase2-cross.py") in collect_issues(root)
         checks_run += 1
 
-        for category in ("checkers", "cross_route_support", "policy", "make_wrappers"):
+        for category in ("checkers", "cross_route_support", "policy", "validators", "make_wrappers"):
             build_self_test_root(root)
             manifest = read_json(manifest_path)
             assert isinstance(manifest, dict)
@@ -473,10 +502,10 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        policy = read_json(root / POLICY)
+        policy = read_json(resolve_path(root, POLICY))
         assert isinstance(policy, dict)
         policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-validate"]
-        write_json(root / POLICY, policy)
+        write_json(resolve_path(root, POLICY), policy)
         try:
             collect_issues(root)
         except SystemExit as exc:
@@ -486,11 +515,11 @@ def run_self_test() -> int:
             raise AssertionError("missing phase2-cross policy route did not abort")
 
         build_self_test_root(root)
-        policy = read_json(root / POLICY)
+        policy = read_json(resolve_path(root, POLICY))
         assert isinstance(policy, dict)
         policy["upgrade_policy"]["archive_target_scope"] = ["riscv64-linux"]
         policy["archive_sha256"] = {"riscv64-linux": "3" * 64}
-        write_json(root / POLICY, policy)
+        write_json(resolve_path(root, POLICY), policy)
         try:
             collect_issues(root)
         except SystemExit as exc:
@@ -500,60 +529,65 @@ def run_self_test() -> int:
             raise AssertionError("unsupported policy target did not abort")
 
         build_self_test_root(root)
-        fixture = read_json(root / CROSS_TARGETS)
+        fixture = read_json(resolve_path(root, CROSS_TARGETS))
         assert isinstance(fixture, dict)
         fixture["archive_target_scope"] = ["aarch64-linux"]
-        write_json(root / CROSS_TARGETS, fixture)
+        write_json(resolve_path(root, CROSS_TARGETS), fixture)
         assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        fixture = read_json(root / CROSS_TARGETS)
+        fixture = read_json(resolve_path(root, CROSS_TARGETS))
         assert isinstance(fixture, dict)
         fixture["cross_targets"][1]["validation_mode"] = "archive_required"
-        write_json(root / CROSS_TARGETS, fixture)
+        write_json(resolve_path(root, CROSS_TARGETS), fixture)
         assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
-        fixture = read_json(root / CROSS_TARGETS)
+        fixture = read_json(resolve_path(root, CROSS_TARGETS))
         assert isinstance(fixture, dict)
         fixture["cross_targets"][0]["review_status"] = ""
-        write_json(root / CROSS_TARGETS, fixture)
+        write_json(resolve_path(root, CROSS_TARGETS), fixture)
         assert ("INVALID_CROSS_TARGET_ENTRY", "x86_64-linux:review_status") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        fixture = read_json(root / CROSS_TARGETS)
+        fixture = read_json(resolve_path(root, CROSS_TARGETS))
         assert isinstance(fixture, dict)
         fixture["cross_targets"].append(dict(fixture["cross_targets"][0]))
-        write_json(root / CROSS_TARGETS, fixture)
+        write_json(resolve_path(root, CROSS_TARGETS), fixture)
         assert ("DUPLICATE_CROSS_TARGET_ENTRY", "x86_64-linux") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root / WORKFLOW, "name: zigux-bootstrap\n")
+        write_text(resolve_path(root, WORKFLOW), "name: zigux-bootstrap\n")
         assert ("MISSING_WORKFLOW_LINE", WORKFLOW_ROUTE_LINE) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root / WORKFLOW, "name: zigux-bootstrap\n" + WORKFLOW_ROUTE_LINE + "\n" + WORKFLOW_ROUTE_LINE + "\n")
+        write_text(resolve_path(root, WORKFLOW), "name: zigux-bootstrap\n" + WORKFLOW_ROUTE_LINE + "\n" + WORKFLOW_ROUTE_LINE + "\n")
         assert ("DUPLICATE_WORKFLOW_LINE", f"{WORKFLOW_ROUTE_LINE}:count=2") in collect_issues(root)
         checks_run += 1
 
         for marker in MAKEFILE_LINES:
             build_self_test_root(root)
-            write_text(root / MAKEFILE, "\n".join(line for line in MAKEFILE_LINES if line != marker) + "\n")
+            write_text(resolve_path(root, MAKEFILE), "\n".join(line for line in MAKEFILE_LINES if line != marker) + "\n")
             assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
             checks_run += 1
 
         build_self_test_root(root)
-        (root / "scripts" / "zigux" / "check-phase2-cross.py").unlink()
+        resolve_path(root, Path("scripts/zigux/check-phase2-cross.py")).unlink()
         assert ("MISSING_SURFACE_PATH", "checkers:scripts/zigux/check-phase2-cross.py") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        (root / MANIFEST).unlink()
+        resolve_path(root, Path("scripts/zigux/validate-phase2.py")).unlink()
+        assert ("MISSING_SURFACE_PATH", "validators:scripts/zigux/validate-phase2.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, MANIFEST).unlink()
         try:
             collect_issues(root)
         except SystemExit as exc:
