@@ -223,7 +223,12 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 18
+EXPECTED_HEXDUMP_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
+]
+
+SELF_TEST_CASE_COUNT = 20
 
 
 class ValidationError(RuntimeError):
@@ -379,6 +384,12 @@ def validate(root: Path) -> None:
         "checksum",
         EXPECTED_CHECKSUM_CHECKER_SURFACES,
     )
+    require_helper_checker_surfaces(
+        helper_evidence_manifest,
+        "phase6 helper evidence manifest",
+        "hexdump",
+        EXPECTED_HEXDUMP_CHECKER_SURFACES,
+    )
     require_helper_field(
         helper_parity_manifest,
         "phase6 helper parity manifest",
@@ -397,6 +408,12 @@ def validate(root: Path) -> None:
         "phase6 helper parity manifest",
         "checksum",
         EXPECTED_CHECKSUM_CHECKER_SURFACES,
+    )
+    require_helper_checker_surfaces(
+        helper_parity_manifest,
+        "phase6 helper parity manifest",
+        "hexdump",
+        EXPECTED_HEXDUMP_CHECKER_SURFACES,
     )
 
     require_snippets(root / MAKEFILE, REQUIRED_MAKEFILE_SNIPPETS)
@@ -477,7 +494,11 @@ def scaffold_repo(root: Path) -> None:
             {
                 "key": "checksum",
                 "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES,
-            }
+            },
+            {
+                "key": "hexdump",
+                "checker_surfaces": EXPECTED_HEXDUMP_CHECKER_SURFACES,
+            },
         ],
     }, indent=2) + "\n")
     write(root / HELPER_PARITY_MANIFEST, json.dumps({
@@ -496,7 +517,7 @@ def scaffold_repo(root: Path) -> None:
             },
             {"key": "bsearch", "checker_surfaces": EXPECTED_BSEARCH_CHECKER_SURFACES, "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
             {"key": "checksum", "checker_surfaces": EXPECTED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
-            {"key": "hexdump", "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
+            {"key": "hexdump", "checker_surfaces": EXPECTED_HEXDUMP_CHECKER_SURFACES, "current_perf_evidence": {"linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER]}},
         ],
     }, indent=2) + "\n")
     write(root / PHASE6_BUILD, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
@@ -519,6 +540,7 @@ def run_self_test() -> None:
         root = Path(tmpdir)
         scaffold_repo(root)
         validate(root)
+
         def reset() -> None:
             scaffold_repo(root)
 
@@ -601,6 +623,29 @@ def run_self_test() -> None:
                                 **helper,
                                 "checker_surfaces": [
                                     "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
+                                ],
+                            }
+                            for helper in read_json(root / HELPER_EVIDENCE_MANIFEST)["helpers"]
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "helpers": [
+                            helper
+                            if helper.get("key") != "hexdump"
+                            else {
+                                **helper,
+                                "checker_surfaces": [
+                                    "scripts/zigux/check-phase6-hexdump-packet.py"
                                 ],
                             }
                             for helper in read_json(root / HELPER_EVIDENCE_MANIFEST)["helpers"]
@@ -700,6 +745,29 @@ def run_self_test() -> None:
                                 **helper,
                                 "checker_surfaces": [
                                     "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
+                                ],
+                            }
+                            for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "helpers": [
+                            helper
+                            if helper.get("key") != "hexdump"
+                            else {
+                                **helper,
+                                "checker_surfaces": [
+                                    "scripts/zigux/check-phase6-hexdump-packet.py"
                                 ],
                             }
                             for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
