@@ -315,20 +315,23 @@ EXPECTED_STRING_LANE_MARKERS = [
         "memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality "
         "and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and "
         "sysfs_match_string(), C-string list lookup through matchString() and match_string(), "
-        "counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte "
-        "memchrInv coverage helper-local while the committed shared replay owns embedded-NUL "
-        "replaceChar parity bytes and the current string fixture keys`",
+        "counted-search and search-length anchors through strpbrk(), strspn(), strcspn(), "
+        "strnchr(), strnchrNul() or strnchrnul(), strchr(), strrchr(), strlen(), and strnlen(), "
+        "embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-"
+        "local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the "
+        "current string fixture keys`",
     ),
     (
         "lane_next_safe_step",
         "`PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside "
         "strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix "
         "boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() "
-        "C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-"
-        "dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture "
-        "drift; keep the helper-local sysfs review anchors aligned across the string review packet "
-        "and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing "
-        "closure-side validator names by default`",
+        "C-string list lookup, counted-search and search-length anchors through strpbrk(), strspn(), "
+        "strcspn(), strnchr(), strnchrNul() or strnchrnul(), strchr(), strrchr(), strlen(), and "
+        "strnlen(), embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for "
+        "committed replaceChar or current string fixture drift; keep the helper-local sysfs review "
+        "anchors aligned across the string review packet and this lane note unless dedicated shared "
+        "sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
     ),
     (
         "lane_counted_search_match_or_nul",
