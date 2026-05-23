@@ -99,6 +99,8 @@ COMMANDS = (
     "python3 scripts/zigux/check-phase3-abi-support-packet.py",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
+    "python3 scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
