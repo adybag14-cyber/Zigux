@@ -10,9 +10,12 @@ import tempfile
 SELF_PATH = Path(__file__).resolve()
 
 DOCS_README_PATH = "Documentation/zigux/README.md"
+PHASE9_BITMAP_SURVEY_PATH = "Documentation/zigux/phase9-runtime-bitmap-survey.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
+SAMPLES_README_PATH = "samples/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
@@ -27,6 +30,12 @@ REQUIRED_MARKERS = {
         "`phase9-runtime-loader-shared-tests` shard remain neighboring shared-owner evidence",
         "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
         "the runtime bitmap sample, cold-stage guard, survey, module, diff, loader, and top-bit companion packet members",
+    ],
+    PHASE9_BITMAP_SURVEY_PATH: [
+        "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
+        "Keep `samples/zigux/runtime_bitmap_cold_stage_guard.zig` explicit as the returned cold-stage sample-root guard companion;",
+        "`phase9-runtime-bitmap-cold-stage-guard-tests`",
+        "`phase9-runtime-bitmap-tests`",
     ],
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared Phase 9 runtime-pilot packet",
@@ -43,15 +52,28 @@ REQUIRED_MARKERS = {
         "Trusted GitHub rereads on 2026-05-21 directly recover the still-live shared loader packet through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the still-returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, and the bounded `zigux/tests/phase9_build.zig` shard.",
         "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
         "`zigux/tests/phase9_build.zig` now also names `phase9-runtime-loader-command-env-boundary-guard-tests`",
+        "`samples/zigux/runtime_bitmap_cold_stage_guard.zig` now also returns on the trusted path as sample-root-only cold-stage selftest, exit, mutation, and source-lifecycle guard proof",
+        "`phase9-runtime-bitmap-cold-stage-guard-tests` route plus the aggregate `phase9-runtime-bitmap-tests` handle",
         "the review-first shared packet still stays neighboring shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded loader shard, and the direct command/environment boundary guard",
         "keep the Phase 8 command and environment ownership boundary explicit: deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` cues stay with `tools/lib/subcmd/exec-cmd.zig`, while `LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`",
         "current Phase 9 material still does not prove shipped runtime command or environment activation control; it proves only that the shared runtime-loader packet keeps those Phase 8 control surfaces out of the loader contract",
+    ],
+    SAMPLES_README_PATH: [
+        "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
+        "Keep `samples/zigux/runtime_bitmap_cold_stage_guard.zig` explicit as the returned cold-stage selftest, exit, mutation, and source-lifecycle guard companion proof for the same runtime bitmap starter.",
+        "`zigux/tests/runtime_bitmap_module.zig`",
+        "`zigux/tests/runtime_bitmap_diff.zig`",
     ],
     SCRIPTS_README_PATH: [
         "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
         "there is still no dedicated shared `validate-phase9.py` rerun path for this loader packet on current `master`",
         "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-shared-tests` and `phase9-runtime-loader-command-env-boundary-guard-tests` shards, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold keep the narrower shared runtime-loader allocator/init-flow and command/environment boundary packet explicit beside the still-blocked module-metadata, install-root, and depmod-publication boundary",
         "keep `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` framed as historical wider-family vocabulary until trusted direct rereads return them",
+    ],
+    TESTS_README_PATH: [
+        "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
+        "the partial runtime bitmap reminder packet including the returned cold-stage guard, module, and diff witnesses",
+        "Keep the bounded Phase 9 build bundle explicit as a rerun surface only: `zigux/tests/phase9_build.zig` reruns the atomic64 diff, bitmap survey, bitmap module, bitmap diff, bitmap cold-stage guard, bitmap top-bit companion, shared loader allocator/init-flow, shared loader command/environment boundary guard, the shared trace-events loader-substrate-drift shard, and the first-loadable parity-survey handle, but it is not proof that blocked publication boundaries or deeper runtime substrate work are complete.",
     ],
     PHASE9_BUILD_PATH: [
         'const runtime_loader_allocator_init_flow_module = b.createModule(.{',
@@ -62,6 +84,12 @@ REQUIRED_MARKERS = {
         '.root_source_file = b.path("../kernel/runtime_loader_command_env_boundary_guard.zig"),',
         'const runtime_loader_command_env_boundary_guard_tests = b.addTest(.{',
         '"phase9-runtime-loader-command-env-boundary-guard-tests",',
+        'const runtime_bitmap_cold_stage_guard_module = b.createModule(.{',
+        '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_cold_stage_guard.zig"),',
+        'const runtime_bitmap_cold_stage_guard_tests = b.addTest(.{',
+        '"phase9-runtime-bitmap-cold-stage-guard-tests",',
+        'const phase9_runtime_bitmap_cold_stage_guard = b.step(',
+        'phase9_runtime_bitmap_cold_stage_guard.dependOn(',
         'const phase9_runtime_loader_command_env_boundary_guard = b.step(',
         'phase9_runtime_loader_command_env_boundary_guard.dependOn(\n        &run_runtime_loader_command_env_boundary_guard_tests.step,\n    );',
         'const phase9_runtime_loader_shared = b.step(',
@@ -69,6 +97,7 @@ REQUIRED_MARKERS = {
         'phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);',
         'phase9_runtime_loader_shared.dependOn(\n        &run_runtime_loader_command_env_boundary_guard_tests.step,\n    );',
         'phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);',
+        'phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_cold_stage_guard_tests.step);',
     ],
     RUNTIME_LOADER_PATH: [
         "pub const PreparedRequest = struct {",
@@ -138,6 +167,17 @@ def duplicate_marker_occurrence(content: str, marker: str) -> str:
     return content.replace(marker, f"{marker}\n{marker}", 1)
 
 
+def break_marker(marker: str) -> str:
+    if len(marker) == 1:
+        return "_"
+    replacement_tail = "_" if marker[-1] != "_" else "-"
+    return marker[:-1] + replacement_tail
+
+
+def tamper_marker_occurrences(content: str, marker: str) -> str:
+    return content.replace(marker, break_marker(marker))
+
+
 def build_fixture_text(rel_path: str) -> str:
     markers = REQUIRED_MARKERS[rel_path]
     prefix = "# fixture\n\n" if rel_path.endswith(".md") else ""
@@ -198,7 +238,7 @@ def run_self_test() -> int:
             for marker in markers:
                 seed_fixture_tree(base)
                 current = read_text(base, rel_path)
-                write_text(base / rel_path, current.replace(marker, "", 1))
+                write_text(base / rel_path, tamper_marker_occurrences(current, marker))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
         for rel_path, markers in EXACT_ONCE_MARKERS.items():
@@ -244,11 +284,12 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Check that the current Phase 9 build-only packet keeps the shared "
             "runtime-loader allocator/init-flow shard, the command/environment "
-            "boundary guard, the returned runtime bitmap cold-stage guard wording, "
+            "boundary guard, the returned runtime bitmap cold-stage guard packet, "
             "the scripts-root reminder, the blocked depmod-boundary contract, the "
             "live loader facade, the dedicated allocator/init-flow replay, and the "
-            "aligned docs and checklist reminders explicit across the docs, scripts, "
-            "review checklist, lane sequencing note, contract, facade, replay, and "
+            "aligned docs, samples, tests, and sequencing reminders explicit across "
+            "the docs, scripts, review checklist, lane sequencing note, survey, "
+            "samples README, tests README, contract, facade, replay, and "
             "phase9_build rerun surface."
         )
     )
