@@ -948,6 +948,18 @@ test "landlock syscalls add-rule top-level wrapper keeps zero flags and write mo
     try std.testing.expectEqual(@as(?u32, FMODE_CAN_WRITE), wrapper.add_rule_plan.ruleset_fd_lookup_plan.required_mode_bits);
 }
 
+test "landlock syscalls add-rule top-level wrapper propagates missing ruleset_fops from ruleset lookup" {
+    try std.testing.expectError(error.MissingRulesetFileOperations, SyscallsHelperLab.planLandlockAddRule(.{
+        .ruleset_fd_mode_bits = FMODE_CAN_READ | FMODE_CAN_WRITE,
+        .ruleset_fd = .{
+            .ruleset_fops_present = false,
+        },
+        .input = .{
+            .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
+        },
+    }));
+}
+
 test "landlock syscalls add-rule top-level wrapper rejects disabled boot missing attr nonzero flags and non-writable rulesets" {
     try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockAddRule(.{
         .initialized = false,
