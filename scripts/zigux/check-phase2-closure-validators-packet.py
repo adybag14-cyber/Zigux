@@ -33,8 +33,11 @@ EXPECTED_CLOSURE_VALIDATORS = (
     "python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
     "python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
     "python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+    "python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+    "python3 scripts/zigux/check-phase2-kbuild-routes.py",
     "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "python3 scripts/zigux/check-kconfig-bridge.py",
     "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
@@ -108,6 +111,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
     "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
@@ -146,6 +151,7 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
     "phase2-tools:",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
     "phase2-kconfig:",
     "phase2-cross:",
     "phase2-genksyms:",
@@ -406,6 +412,22 @@ def run_self_test() -> int:
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
+                "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
+                "run: python3 scripts/zigux/other.py",
+            ),
+        )
+        expect_issue(
+            root,
+            ("MISSING_WORKFLOW_LINE", "run: python3 scripts/zigux/check-phase2-kbuild-routes.py"),
+        )
+        checks += 1
+
+        build_sample_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            replace_exact_line(
+                read_text(root, WORKFLOW),
                 "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
                 "run: python3 scripts/zigux/stage-pinned-zig-archive.py",
             ),
@@ -488,6 +510,25 @@ def run_self_test() -> int:
             (
                 "MISSING_MAKEFILE_LINE",
                 "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
+            ),
+        )
+        checks += 1
+
+        build_sample_root(root)
+        write_text(
+            root,
+            MAKEFILE,
+            replace_exact_line(
+                read_text(root, MAKEFILE),
+                "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
+                "# removed",
+            ),
+        )
+        expect_issue(
+            root,
+            (
+                "MISSING_MAKEFILE_LINE",
+                "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
             ),
         )
         checks += 1
