@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -24,6 +25,7 @@ VALIDATE_PHASE2 = Path("scripts/zigux/validate-phase2.py")
 PHASE2_CLOSURE = Path("Documentation/zigux/phase2-closure.md")
 PHASE2_BOOTSTRAP_NOTES = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
 TESTS_README = Path("zigux/tests/README.md")
+TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 
 ROUTE_COMMANDS = (
     "make -C zigux phase2-toolchain",
@@ -122,6 +124,8 @@ TESTS_README_REQUIRED_MARKERS = (
     "scripts/zigux/check-phase2-required-make-routes.py",
 )
 
+MANIFEST_REQUIRED_WRAPPERS = ("zigux/Makefile", *ROUTE_COMMANDS)
+
 REQUIRED_FILES = (
     WORKFLOW,
     MAKEFILE,
@@ -129,6 +133,7 @@ REQUIRED_FILES = (
     PHASE2_CLOSURE,
     PHASE2_BOOTSTRAP_NOTES,
     TESTS_README,
+    TOOL_MANIFEST,
 )
 
 
@@ -137,6 +142,16 @@ def read_text(root: Path, rel: Path) -> str:
     if not path.is_file():
         raise SystemExit(f"required file missing: {rel.as_posix()}")
     return path.read_text(encoding="utf-8")
+
+
+def read_json(root: Path, rel: Path) -> object:
+    path = root / rel
+    if not path.is_file():
+        raise SystemExit(f"required file missing: {rel.as_posix()}")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {rel.as_posix()}: {exc}") from exc
 
 
 def write_text(root: Path, rel: Path, text: str) -> None:
@@ -149,6 +164,21 @@ def count_exact_line(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def collect_manifest_wrappers(issues: list[str], manifest: object) -> list[str] | None:
+    if not isinstance(manifest, dict):
+        issues.append("invalid_tool_manifest_shape:root")
+        return None
+    surfaces = manifest.get("present_surfaces")
+    if not isinstance(surfaces, dict):
+        issues.append("invalid_tool_manifest_shape:present_surfaces")
+        return None
+    wrappers = surfaces.get("make_wrappers")
+    if not isinstance(wrappers, list) or not all(isinstance(item, str) for item in wrappers):
+        issues.append("invalid_tool_manifest_shape:present_surfaces.make_wrappers")
+        return None
+    return list(wrappers)
+
+
 def collect_issues(root: Path) -> list[str]:
     workflow_text = read_text(root, WORKFLOW)
     makefile_text = read_text(root, MAKEFILE)
@@ -156,6 +186,7 @@ def collect_issues(root: Path) -> list[str]:
     closure_text = read_text(root, PHASE2_CLOSURE)
     bootstrap_notes_text = read_text(root, PHASE2_BOOTSTRAP_NOTES)
     tests_readme_text = read_text(root, TESTS_README)
+    tool_manifest = read_json(root, TOOL_MANIFEST)
 
     issues: list[str] = []
 
@@ -215,6 +246,15 @@ def collect_issues(root: Path) -> list[str]:
     route_sentence = ", ".join(ROUTE_COMMANDS[:-1]) + f", and {ROUTE_COMMANDS[-1]}"
     if route_sentence not in tests_readme_text:
         issues.append("missing_tests_readme_route_sentence")
+
+    manifest_wrappers = collect_manifest_wrappers(issues, tool_manifest)
+    if manifest_wrappers is not None:
+        for marker in MANIFEST_REQUIRED_WRAPPERS:
+            count = manifest_wrappers.count(marker)
+            if count == 0:
+                issues.append(f"missing_manifest_wrapper:{marker}")
+            elif count != 1:
+                issues.append(f"duplicate_manifest_wrapper:{marker}:count={count}")
 
     return issues
 
@@ -284,6 +324,18 @@ def build_sample_root(root: Path) -> None:
                 *TESTS_README_REQUIRED_MARKERS,
                 ", ".join(ROUTE_COMMANDS[:-1]) + f", and {ROUTE_COMMANDS[-1]}",
             )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        TOOL_MANIFEST,
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "present_surfaces": {"make_wrappers": list(MANIFEST_REQUIRED_WRAPPERS)},
+            },
+            indent=2,
         )
         + "\n",
     )
@@ -366,6 +418,20 @@ def run_self_test() -> int:
         assert "missing_tests_readme_route_sentence" in issues
         case_count += 1
 
+        build_sample_root(root)
+        tool_manifest = json.loads(read_text(root, TOOL_MANIFEST))
+        tool_manifest["present_surfaces"]["make_wrappers"].remove("make -C zigux phase2")
+        write_text(root, TOOL_MANIFEST, json.dumps(tool_manifest, indent=2) + "\n")
+        issues = collect_issues(root)
+        assert "missing_manifest_wrapper:make -C zigux phase2" in issues
+        case_count += 1
+
+        build_sample_root(root)
+        write_text(root, TOOL_MANIFEST, "{}\n")
+        issues = collect_issues(root)
+        assert "invalid_tool_manifest_shape:present_surfaces" in issues
+        case_count += 1
+
     print("PHASE2_MAKE_ROUTE_PACKET_SELF_TEST=pass")
     print(f"PHASE2_MAKE_ROUTE_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -376,7 +442,7 @@ def main() -> int:
         description=(
             "Check that the current Phase 2 Makefile wrapper packet stays aligned "
             "with the closure note, bootstrap note, tests-root reminder, workflow, "
-            "and validator entrypoint."
+            "validator entrypoint, and tool manifest."
         )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
@@ -407,6 +473,7 @@ def main() -> int:
     print(f"PHASE2_MAKE_ROUTE_PACKET_ROUTE_COUNT={len(ROUTE_COMMANDS)}")
     print(f"PHASE2_MAKE_ROUTE_PACKET_WORKFLOW_LINE_COUNT={len(WORKFLOW_REQUIRED_LINES)}")
     print(f"PHASE2_MAKE_ROUTE_PACKET_MAKEFILE_LINE_COUNT={len(MAKEFILE_REQUIRED_LINES)}")
+    print(f"PHASE2_MAKE_ROUTE_PACKET_MANIFEST_WRAPPER_COUNT={len(MANIFEST_REQUIRED_WRAPPERS)}")
     return 0
 
 
