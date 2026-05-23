@@ -388,6 +388,25 @@ test "readHeader keeps exact non-ELF bytes when the next read would fail" {
     }, header.bytes[0..header.len]);
 }
 
+test "readHeader keeps fifteen bytes when a later read fails one byte before the full header" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 7, 8, 8 },
+        .fail_on_call = 3,
+    };
+
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, 15), header.len);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0,
+    }, header.bytes[0..header.len]);
+}
+
 test "readHeader stops after an exact non-ELF header even when trailing bytes and a later read failure are queued" {
     var reader = FailingReader{
         .bytes = &[_]u8{
