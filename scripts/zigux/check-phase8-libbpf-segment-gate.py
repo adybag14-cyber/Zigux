@@ -103,8 +103,12 @@ BRIDGE_BOUNDARY_GUARD_MARKERS = [
 BRIDGE_MANIFEST_SYNC_MARKERS = [
     'test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {',
     '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+    '"why_now": "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow."',
     '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+    '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."',
     '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
+    '"why_now": "This remaining file-path and handle bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred."',
+    '"why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects."',
 ]
 BRIDGE_HELPER_MARKERS = [
     "pub fn resolveReusePinnedMapAttempt(",
@@ -296,6 +300,7 @@ def run_self_test() -> int:
 
         bridge_test_path = root / BRIDGE_TEST_PATH
         original_bridge_test = bridge_test_path.read_text(encoding="utf-8")
+        bridge_test_path.writeText = None
         bridge_test_path.write_text(
             original_bridge_test.replace(
                 "planning-only `planTokenPreparation()` gating",
@@ -356,13 +361,17 @@ def run_self_test() -> int:
         original_manifest_sync = manifest_sync_path.read_text(encoding="utf-8")
         manifest_sync_path.write_text(
             original_manifest_sync.replace(
-                '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
-                '"slug": "file-path-and-handle-bridge", "status": "ready_next", "kind": "resource_boundary"',
+                '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."',
+                '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into reopen-side-effect drift."',
                 1,
             ),
             encoding="utf-8",
         )
-        if f'{BRIDGE_MANIFEST_SYNC_PATH}:"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"' not in validate(root)[1]:
+        expected_manifest_sync_marker = (
+            f"{BRIDGE_MANIFEST_SYNC_PATH}:"
+            '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."'
+        )
+        if expected_manifest_sync_marker not in validate(root)[1]:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:manifest_sync_marker")
         manifest_sync_path.write_text(original_manifest_sync, encoding="utf-8")
 
@@ -389,7 +398,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
