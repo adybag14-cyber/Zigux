@@ -22,6 +22,8 @@ SELFTEST_MARKERS = (
     'rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")',
     "assert rebuilt == payload",
     "output directory must be empty",
+    'source.write_bytes(b"0" * len(payload))',
+    "to have sha256",
     "expected non-positive chunk_bytes failure",
     "expected missing shard failure",
     "expected invalid base64 failure",
@@ -32,13 +34,15 @@ SELFTEST_MARKERS = (
 EXACT_ONCE_MARKERS = (
     'def run_self_test() -> int:',
     "SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST=pass",
+    'source.write_bytes(b"0" * len(payload))',
 )
 
 ORDERED_MARKERS = (
     ('payload = (b"lane05-archive-payload-" * 64)[:4097]', "manifest_path.exists()"),
     ("manifest_path.exists()", 'rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")'),
     ('rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")', "assert rebuilt == payload"),
-    ("output directory must be empty", "expected non-positive chunk_bytes failure"),
+    ("output directory must be empty", 'source.write_bytes(b"0" * len(payload))'),
+    ('source.write_bytes(b"0" * len(payload))', "expected non-positive chunk_bytes failure"),
     ("expected non-positive chunk_bytes failure", "expected missing shard failure"),
     ("expected missing shard failure", "expected invalid base64 failure"),
 )
@@ -209,11 +213,13 @@ def write_fixture(root: Path) -> None:
                 '    rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")',
                 "    assert rebuilt == payload",
                 '    raise ValueError("output directory must be empty")',
+                '    source.write_bytes(b"0" * len(payload))',
+                '    raise AssertionError("to have sha256")',
                 '    raise AssertionError("expected non-positive chunk_bytes failure")',
                 '    raise AssertionError("expected missing shard failure")',
                 '    raise AssertionError("expected invalid base64 failure")',
                 '    print("SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST=pass")',
-                '    print("SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST_CASE_COUNT=6")',
+                '    print("SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST_CASE_COUNT=7")',
             )
         )
         + "\n",
@@ -282,6 +288,17 @@ def run_self_test() -> int:
             encoding="utf-8",
         ),
         "self-test flow",
+    )
+    expect_failure(
+        lambda root: (root / SPLIT_HELPER).write_text(
+            (root / SPLIT_HELPER).read_text(encoding="utf-8").replace(
+                '    source.write_bytes(b"0" * len(payload))\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        ),
+        'source.write_bytes(b"0" * len(payload))',
     )
     expect_failure(
         lambda root: (root / TOOLCHAIN_POLICY).write_text(
