@@ -43,7 +43,7 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
-test "phase 7 rbtree survey keeps the returned json fixture and direct helper packet truthful" {
+test "phase 7 rbtree survey keeps the returned json fixture, C harness, and direct helper packet truthful" {
     const allocator = std.testing.allocator;
 
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_rbtree_manifest.json");
@@ -68,6 +68,8 @@ test "phase 7 rbtree survey keeps the returned json fixture and direct helper pa
     defer allocator.free(workflow);
     const fixture = try readRepoFile(allocator, "zigux/tests/fixtures/phase7_rbtree.json");
     defer allocator.free(fixture);
+    const c_harness = try readRepoFile(allocator, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    defer allocator.free(c_harness);
 
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -76,32 +78,35 @@ test "phase 7 rbtree survey keeps the returned json fixture and direct helper pa
     try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
-    try std.testing.expectEqualStrings("direct_helper_slice_checker_test_note_survey_manifest_fixture", manifest.current_direct_readback_state);
+    try std.testing.expectEqualStrings("direct_helper_slice_checker_test_note_survey_manifest_fixture_harness", manifest.current_direct_readback_state);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
     try std.testing.expect(manifest.verified_on_utc.len != 0);
 
     try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectSliceContains(manifest.readable_non_owner_paths, "tools/lib/rbtree.zig");
     try expectSliceContains(manifest.public_fallback_non_owner_paths, "zigux/tests/phase7_build.zig");
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree.json");
-    try expectSliceContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");
     try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
-    try expectSliceContains(manifest.ownership_focus, "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` explicit as returned parity evidence while leaving `zigux/tests/fixtures/phase7_rbtree_c_harness.c` as the one remaining same-lane repo-reality gap");
+    try expectSliceContains(manifest.ownership_focus, "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence");
     try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");
 
-    try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_anchor`");
+    try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_harness_anchor`");
     try expectContains(slice_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
     try expectContains(slice_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
     try expectContains(slice_note, "public-fallback provenance stays explicit");
 
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
-    try expectContains(direct_anchor_note, "still returned `404` for this dedicated companion surface");
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
+    try expectNotContains(direct_anchor_note, "still returned `404` for this dedicated companion surface");
 
     try expectContains(checker, "PHASE7_RBTREE_PARITY=pass");
     try expectContains(checker, "PHASE7_RBTREE_PARITY_SELF_TEST=pass");
     try expectContains(checker, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectContains(checker, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
 
     try expectContains(helper, "pub fn rb_find_add_cached");
     try expectContains(helper, "pub fn rb_prev");
@@ -121,4 +126,9 @@ test "phase 7 rbtree survey keeps the returned json fixture and direct helper pa
     try expectContains(fixture, "\"cached_leftmost_promotion\"");
     try expectContains(fixture, "\"postorder_null_stop\"");
     try expectContains(fixture, "\"reverse_alias_detached\"");
+
+    try expectContains(c_harness, "struct phase7_rbtree_c_harness");
+    try expectContains(c_harness, "ordered-duplicate-cached-postorder-reverse-c-harness");
+    try expectContains(c_harness, "phase7_rbtree_c_harness");
+    try expectContains(c_harness, "reverse_alias_detached");
 }
