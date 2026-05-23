@@ -1,12 +1,12 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-22T15:24:00Z",
+  "verified_on_utc": "2026-05-23T05:04:01Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
   ],
-  "current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest",
+  "current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture",
   "visible_paths": [
     "Documentation/zigux/phase7-rbtree-slice.md",
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md",
@@ -14,7 +14,8 @@
     "lib/rbtree.zig",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
-    "zigux/tests/phase7_rbtree_manifest.json"
+    "zigux/tests/phase7_rbtree_manifest.json",
+    "zigux/tests/fixtures/phase7_rbtree.json"
   ],
   "readable_non_owner_paths": [
     "tools/lib/rbtree.zig",
@@ -31,7 +32,6 @@
     "zigux/tests/phase7_build.zig"
   ],
   "missing_paths": [
-    "zigux/tests/fixtures/phase7_rbtree.json",
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c"
   ],
   "absent_makefile_markers": [
@@ -46,13 +46,13 @@
     "make -C zigux phase7-test"
   ],
   "ownership_focus": [
-    "the currently readable same-lane rbtree packet now includes the direct helper at `lib/rbtree.zig`, the dedicated slice note at `Documentation/zigux/phase7-rbtree-slice.md`, the direct-anchor note, the dedicated parity checker at `scripts/zigux/check-phase7-rbtree-parity.py`, the dedicated replay at `zigux/tests/phase7_rbtree.zig`, and the returned survey and manifest, so same-lane truthfulness must keep those returned surfaces explicit while still not presenting the dedicated fixture pair as returned on current master",
+    "the currently readable same-lane rbtree packet now includes the direct helper at `lib/rbtree.zig`, the dedicated slice note at `Documentation/zigux/phase7-rbtree-slice.md`, the direct-anchor note, the dedicated parity checker at `scripts/zigux/check-phase7-rbtree-parity.py`, the dedicated replay at `zigux/tests/phase7_rbtree.zig`, the returned survey and manifest, and the returned `zigux/tests/fixtures/phase7_rbtree.json` parity companion, so same-lane truthfulness must keep those returned surfaces explicit while still not presenting the dedicated C harness as returned on current master",
     "path truthfulness must keep the currently returned helper rooted at `lib/rbtree.zig` explicit while `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence rather than helper-local ownership on current master",
-    "cross-helper truthfulness must keep the landed string_helpers packet explicit while keeping the cmdline, argv_split, and rbtree packets distinct instead of collapsing them into one shared reminder claim",
-    "build-graph truthfulness must keep the split non-owner evidence explicit: `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` are readable, while the dedicated fixture pair still does not directly materialize on current master",
+    "build-graph truthfulness must keep the split non-owner evidence explicit: `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` are readable, while the dedicated C harness still does not directly materialize on current master",
     "positive shared build-route truthfulness must stay explicit too: `zigux/Makefile` now returns shared `phase7-validate`, so the machine-readable same-lane packet should name that returned shared marker while still keeping `phase7-rbtree-test:`, `phase7-rbtree-survey:`, `phase7-test:`, and `phase7:` listed under `absent_makefile_markers` until dedicated wrappers really materialize",
     "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig` only rematerialized through public blob/raw fallback after the authenticated contents bridge returned `404`, while `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet still came back through authenticated rereads",
-    "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed legacy or shared non-owner surfaces still rematerialized through authenticated rereads"
+    "machine-readable fallback provenance must stay explicit too: `public_fallback_non_owner_paths` currently names only `zigux/tests/phase7_build.zig`, because that shared non-owner surface needed public fallback in this runtime while the other listed legacy or shared non-owner surfaces still rematerialized through authenticated rereads",
+    "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` explicit as returned parity evidence while leaving `zigux/tests/fixtures/phase7_rbtree_c_harness.c` as the one remaining same-lane repo-reality gap"
   ],
-  "next_bounded_step": "Stay in the same `kernel-leaf-libraries` lane and reread `zigux/tests/phase7_rbtree_survey.zig`, `Documentation/zigux/phase7-rbtree-slice.md`, and `zigux/tests/phase7_rbtree_manifest.json` together only when one more dedicated rbtree companion surface changes, starting with whether `zigux/tests/fixtures/phase7_rbtree.json` or `zigux/tests/fixtures/phase7_rbtree_c_harness.c` rematerializes on current `master`, so the helper path, shared `phase7-validate` route, public-fallback provenance, and legacy companion framing stay aligned without widening beyond the rbtree packet."
+  "next_bounded_step": "Stay in the same `kernel-leaf-libraries` lane and keep `zigux/tests/fixtures/phase7_rbtree.json` explicit as the returned parity companion while narrowing the next same-lane follow-up to whether `zigux/tests/fixtures/phase7_rbtree_c_harness.c` rematerializes on current `master`, so the helper path, shared `phase7-validate` route, public-fallback provenance, and legacy companion framing stay aligned without widening beyond the rbtree packet."
 }
