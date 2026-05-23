@@ -204,17 +204,22 @@ test "phase 4 bitmap survey keeps the broader gate-evidence handoff explicit" {
 
     try expectContains(
         gate_evidence_source,
-        "The broader bitmap rollback packet is intentionally outside this exact-readback note on current `master`",
+        "The broader bitmap rollback packet stays intentionally outside this exact-readback note on current `master`",
     );
 
     try expectContains(
         gate_evidence_source,
-        "the public `zigux/tests` tree no longer exposes `zigux/tests/bitmap_diff.zig` or `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+        "the public `zigux/tests` tree again exposes `zigux/tests/bitmap_diff.zig` and `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
     );
 
     try expectContains(
         gate_evidence_source,
-        "The broader bitmap reviewability details still belong in the surrounding matrix and reminder packet",
+        "the broader bitmap rollback details stay reviewable through the surrounding matrix and the paired bitmap survey packet",
+    );
+
+    try expectContains(
+        gate_evidence_source,
+        "The broader bitmap reviewability details still belong in the surrounding matrix and reminder packet rather than this exact-readback note while the shared validator-first packet stays narrower than the coupled bitmap survey surfaces on current `master`.",
     );
 
     try expectContains(gate_evidence_source, "zigux/tests/phase4_perf_baseline_manifest.json");
