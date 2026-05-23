@@ -55,7 +55,7 @@ REQUIRED_SCRIPTS_README_LINES = {
 }
 
 REQUIRED_DOCS_README_LINES = {
-    "phase1_docs_packet": '* the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, restored closure-side, string-review, direct-owner, and bench guards: `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` keep the current-master-safe closure packet explicit, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, validator-first, bench-route, and replay surfaces.',
+    "phase1_docs_packet": "* the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, restored closure-side, string-review, direct-owner, and bench guards: `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` keep the current-master-safe closure packet explicit, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, validator-first, bench-route, and replay surfaces.",
     "phase1_helper_split": "* keep the helper-family split explicit here too: the nine shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string keep the only bounded direct-anchor follow-up anchors on current master.",
 }
 
@@ -305,25 +305,44 @@ def run_self_test() -> int:
 
     manifest_paths = [
         ("review_anchors", "tools/lib/find_bit.zig", "same_word_start_masks"),
+        ("review_anchors", "tools/lib/find_bit.zig", "inclusive_boundary_start"),
+        ("review_anchors", "tools/lib/find_bit.zig", "tail_word_inclusive_boundary_anchor"),
         ("review_anchors", "tools/lib/find_bit.zig", "single_word_tail_inclusive_boundary_anchor"),
         ("review_anchors", "tools/lib/find_bit.zig", "zero_bit_window"),
         ("review_anchors", "tools/lib/find_bit.zig", "zero_sized_short_circuit_anchor"),
         ("review_anchors", "tools/lib/find_bit.zig", "past_nbits_short_circuit"),
         ("review_anchors", "tools/lib/find_bit.zig", "underscore_alias_anchor"),
         ("review_anchors", "tools/lib/find_bit.zig", "linux_alias_anchor"),
+        ("review_anchors", "tools/lib/find_bit.zig", "andnot_scan_entrypoints"),
         ("review_anchors", "tools/lib/find_bit.zig", "tail_word_inclusive_boundary_contract"),
         ("review_anchors", "tools/lib/find_bit.zig", "andnot_scan_entrypoint_contract"),
         ("review_anchors", "tools/lib/find_bit.zig", "tail_word_set_skip_anchor"),
         ("review_anchors", "tools/lib/find_bit.zig", "tail_word_skip_anchor"),
         ("review_anchors", "tools/lib/find_bit.zig", "tail_clamp_fixture_keys"),
+        ("review_anchors", "tools/lib/find_bit.zig", "tail_inclusive_boundary_fixture_keys"),
         ("review_anchors", "tools/lib/find_bit.zig", "review_packet_summary"),
+        ("review_anchors", "tools/lib/find_bit.zig", "next_safe_step_note"),
     ]
     for path in manifest_paths:
         cases.append(("manifest_drift", (MANIFEST_REL, path, "manifest")))
 
     fixture_paths = [
-        ("find_bit", "tail_clamped_first"),
+        ("find_bit", "inclusive_boundary_next"),
+        ("find_bit", "inclusive_boundary_zero"),
+        ("find_bit", "inclusive_boundary_and"),
         ("find_bit", "tail_inclusive_boundary_next"),
+        ("find_bit", "tail_inclusive_boundary_zero"),
+        ("find_bit", "tail_inclusive_boundary_and"),
+        ("find_bit", "past_nbits_next"),
+        ("find_bit", "past_nbits_zero"),
+        ("find_bit", "past_nbits_and"),
+        ("find_bit", "tail_clamped_first"),
+        ("find_bit", "tail_clamped_next"),
+        ("find_bit", "tail_zero_clamped_first"),
+        ("find_bit", "tail_zero_clamped_next"),
+        ("find_bit", "tail_and_clamped_first"),
+        ("find_bit", "tail_and_clamped_next"),
+        ("find_bit", "tail_clamped_last"),
         ("find_bit", "tail_clamped_empty_last"),
     ]
     for path in fixture_paths:
