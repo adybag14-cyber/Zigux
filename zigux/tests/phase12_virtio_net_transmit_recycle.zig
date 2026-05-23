@@ -125,6 +125,19 @@ test "phase12 virtio net transmit recycle rejects impossible completion counts" 
     );
 }
 
+test "phase12 virtio net transmit recycle rejects zero wake thresholds for stopped queues" {
+    try std.testing.expectError(
+        error.StoppedQueueWakeThresholdMissing,
+        virtio_net_transmit_recycle.summarizeTransmitRecycle(.{
+            .in_flight_descriptors = 1,
+            .free_descriptors_before = 0,
+            .completed_descriptors = 0,
+            .wake_threshold = 0,
+            .queue_stopped = true,
+        }),
+    );
+}
+
 test "phase12 virtio net transmit recycle fails closed when the free-descriptor count would overflow" {
     try std.testing.expectError(
         error.QueueCountOverflow,
