@@ -72,7 +72,11 @@ REQUIRED_FILE_MARKERS = {
         "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn requiresDedicatedAuditInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn allowsVolatileMmioPolicyBytes(scope: u8, reserved: u8) bool {",
+        "pub fn requiresVolatileMmioAccessPolicyBytes(scope: u8, reserved: u8) bool {",
+        "pub fn requiresVolatileMmioAccessInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn requiresRawPointerBridgePolicyBytes(scope: u8, reserved: u8) bool {",
+        "pub fn requiresRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn allowsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
     ),
     MMIO_PATH: (
@@ -104,7 +108,18 @@ SELF_TEST_CASES = (
         "blob",
         "PHASE3_LAYOUT_ASSERT_BLOB_SHA",
     ),
-    ("unsafe policy audit marker drift", UNSAFE_POLICY_PATH, REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][2], "marker"),
+    (
+        "unsafe policy volatile-mmio require alias drift",
+        UNSAFE_POLICY_PATH,
+        REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][4],
+        "marker",
+    ),
+    (
+        "unsafe policy raw-bridge require alias drift",
+        UNSAFE_POLICY_PATH,
+        REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][8],
+        "marker",
+    ),
     ("narrow const-slice marker drift", NARROW_PATH, REQUIRED_FILE_MARKERS[NARROW_PATH][4], "marker"),
 )
 
