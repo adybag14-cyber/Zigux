@@ -42,6 +42,7 @@ MAKE_MARKERS = [
 
 CLOSURE_DOC_MARKERS = [
     "scripts/zigux/check-phase10-bootstrap-route.py",
+    "scripts/zigux/check-phase10-ring-packet.py",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "scripts/zigux/check-phase10-input-packet.py",
     "scripts/zigux/check-phase10-mmio-packet.py",
@@ -753,6 +754,14 @@ def run_self_test() -> int:
 
         closure_doc = root / "Documentation/zigux/phase10-closure-evidence.md"
         original_doc = closure_doc.read_text(encoding="utf-8")
+        closure_doc.write_text(
+            original_doc.replace("scripts/zigux/check-phase10-ring-packet.py", "scripts/zigux/check-phase10-ring-packet-missing.py", 1),
+            encoding="utf-8",
+        )
+        expect_contains(collect_missing_markers(root), "closure:scripts/zigux/check-phase10-ring-packet.py", "phase10-closure-self-test")
+        cases += 1
+        closure_doc.write_text(original_doc, encoding="utf-8")
+
         closure_doc.write_text(
             original_doc.replace("scripts/zigux/check-phase10-shared-freeze-boundary.py", "scripts/zigux/check-phase10-shared-freeze-boundary-missing.py", 1),
             encoding="utf-8",
