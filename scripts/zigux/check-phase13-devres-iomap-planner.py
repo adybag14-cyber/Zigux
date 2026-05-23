@@ -24,6 +24,8 @@ REQUIRED_MARKERS = {
         "requested non-posted mapping type stays attached to the planning surface",
         "devm_ioremap_np()",
         "devm_iounmap()",
+        "devm_arch_phys_wc_add()",
+        "devm_arch_io_reserve_memtype_wc()",
     ],
     MANIFEST_PATH: [
         "\"lane_key\": \"P13-L02\"",
@@ -34,7 +36,11 @@ REQUIRED_MARKERS = {
         "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
+        "\"id\": \"phase13-devres-missing-devm-arch-phys-wc-add-surface\"",
+        "\"id\": \"phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface\"",
         "\"id\": \"phase13-devres-live-mmio-mapping-state\"",
+        "\"id\": \"phase13-devres-live-device-tree-walks\"",
+        "\"id\": \"phase13-devres-live-arch-memtype-mutation\"",
     ],
     REPLAY_PATH: [
         "phase13 devres descriptor records helper-first iomap planning",
@@ -160,6 +166,44 @@ def run_self_test() -> int:
                 "zigux/tests/phase13_devres_iomap_planner_manifest.json:missing_marker:\"lane_key\": \"P13-L02\"",
             ],
             "missing_lane_key_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[MANIFEST_PATH]
+                if marker != "\"id\": \"phase13-devres-live-arch-memtype-mutation\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "zigux/tests/phase13_devres_iomap_planner_manifest.json:missing_marker:\"id\": \"phase13-devres-live-arch-memtype-mutation\"",
+            ],
+            "missing_arch_memtype_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / NOTE_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[NOTE_PATH]
+                if marker != "devm_arch_io_reserve_memtype_wc()"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "Documentation/zigux/phase13-devres-iomap-planner.md:missing_marker:devm_arch_io_reserve_memtype_wc()",
+            ],
+            "missing_arch_memtype_note_marker_failed",
         )
         case_count += 1
 
