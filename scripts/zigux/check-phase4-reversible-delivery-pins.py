@@ -11,6 +11,7 @@ from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
+TESTS_README_PACKET = Path("scripts/zigux/check-phase4-tests-readme-packet.py")
 DOCS_README = Path("Documentation/zigux/README.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 TESTS_README = Path("zigux/tests/README.md")
@@ -22,7 +23,7 @@ PERF_SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20
-EXPECTED_PIN_SELF_TEST_CASES = 18
+EXPECTED_PIN_SELF_TEST_CASES = 19
 
 STATIC_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_NOTE_BLOB_SHA=53fec0ed6190e94af07826f720deb1fe59e2c67b`",
@@ -41,6 +42,7 @@ STATIC_SHA_LINES = (
 )
 CURRENT_HEAD_BLOB_PINS = (
     ("PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA", REPO_REALITY_WARNING),
+    ("PHASE4_REVERSIBLE_DELIVERY_TESTS_README_PACKET_CHECKER_BLOB_SHA", TESTS_README_PACKET),
     ("PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA", CHECKLIST),
     ("PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA", TESTS_README),
     ("PHASE4_REVERSIBLE_DELIVERY_DOCS_README_BLOB_SHA", DOCS_README),
@@ -52,7 +54,7 @@ CURRENT_HEAD_BLOB_PINS = (
 EXPECTED_STATUS_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
     "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`",
 )
 EXPECTED_PACKET_MEMBER_LINES = (
     "Current direct-readback packet members:",
@@ -73,7 +75,7 @@ EXPECTED_RECOVERY_MARKERS = (
 )
 NOTE_MARKERS = (
     "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
 )
 
@@ -160,7 +162,7 @@ def _baseline_note(root: Path) -> str:
         *(current_head_blob_pin_line(root, label, rel) for label, rel in CURRENT_HEAD_BLOB_PINS),
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
         "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`",
         "",
         "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
         "",
@@ -174,7 +176,7 @@ def _baseline_note(root: Path) -> str:
         "  * `scripts/zigux/check-phase4-tests-readme-packet.py`",
         "  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`",
         "",
-        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18` here.",
+        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state. In this runtime authenticated contents reads now return `scripts/zigux/validate-phase4.py` directly, while the broader build and bitmap replay companions still remain unreadable on that same route.",
         "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
         "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.",
@@ -202,6 +204,7 @@ def _build_baseline_tree(root: Path) -> None:
     required_files = {
         NOTE,
         REPO_REALITY_WARNING,
+        TESTS_README_PACKET,
         DOCS_README,
         CHECKLIST,
         TESTS_README,
@@ -238,7 +241,7 @@ def run_self_test() -> int:
         check(root)
         cases += 1
 
-        for label, _ in CURRENT_HEAD_BLOB_PINS[:7]:
+        for label, _ in CURRENT_HEAD_BLOB_PINS[:8]:
             _build_baseline_tree(root)
             line = find_status_line(read(root, NOTE), label)
             cases += _expect_failure(root, NOTE, line, line.replace(line[-41:-1], "0" * 40))
@@ -252,8 +255,8 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
+            "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`",
             "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
-            "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=17`",
         )
         cases += _expect_failure(
             root,
