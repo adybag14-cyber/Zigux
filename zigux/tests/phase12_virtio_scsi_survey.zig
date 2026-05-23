@@ -15,6 +15,7 @@ const SurveySummary = struct {
     preexisting_phase12_survey_note_present: bool,
     preexisting_phase12_fallback_catalog_present: bool,
     preexisting_phase12_survey_gate_present: bool,
+    preexisting_phase12_survey_build_present: bool,
 };
 
 const RoadmapGapStatus = struct {
@@ -116,6 +117,7 @@ test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthfu
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_fallback_catalog_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_gate_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_build_present);
 
     try std.testing.expectEqualStrings("rollback_evidence_only_live_starter_missing", manifest.roadmap_gap_check.dma_safe_abstractions.status);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_check.dma_safe_abstractions.current_surface, "no longer serves a driver-local starter") != null);
@@ -129,6 +131,7 @@ test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthfu
     var saw_driver_gap = false;
     var saw_direct_replay_gap = false;
     var saw_build_gate = false;
+    var saw_survey_build_gap = false;
     var saw_survey_gate = false;
     var saw_runtime_gap = false;
 
@@ -149,6 +152,11 @@ test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthfu
             try std.testing.expectEqualStrings("shared_support_bundle_present", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "survey-gate tests") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-survey-build-route")) {
+            saw_survey_build_gap = true;
+            try std.testing.expectEqualStrings("rollback_evidence_present", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_scsi_survey_build.zig", gap.zigux_destination);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-survey-gate")) {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("rollback_evidence_present", gap.status);
@@ -162,6 +170,7 @@ test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthfu
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_direct_replay_gap);
     try std.testing.expect(saw_build_gate);
+    try std.testing.expect(saw_survey_build_gap);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_runtime_gap);
 }
@@ -221,9 +230,9 @@ test "phase12 virtio scsi survey gate keeps present files present and missing fi
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"));
     try std.testing.expect(try pathExists("zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_manifest.json"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_survey_build.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_survey.zig"));
     try std.testing.expect(try pathExists("scripts/zigux/check-phase12-virtio-scsi-packet.py"));
-    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_survey_build.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));
     try std.testing.expect(try pathExists("zigux/Makefile"));
     try std.testing.expect(!try pathExists("drivers/scsi/virtio_scsi.zig"));
