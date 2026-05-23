@@ -121,6 +121,18 @@ test "argvSplit collapses repeated whitespace and blank inputs to zero arguments
     try std.testing.expectEqual(@as(usize, 0), only_spaces.argc());
 }
 
+test "argvSplit duplicates tokens instead of aliasing the source buffer" {
+    var text = [_]u8{ 'a', 'l', 'p', 'h', 'a', ' ', 'b', 'e', 't', 'a' };
+    var result = try argv_split(std.testing.allocator, text[0..]);
+    defer argv_free(&result);
+
+    text[0] = 'o';
+    text[6] = 'z';
+
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+    try std.testing.expectEqualStrings("beta", result.argv[1]);
+}
+
 test "argvSplit frees duplicated args when a later dupe fails" {
     try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
         fn run(allocator: std.mem.Allocator) !void {
