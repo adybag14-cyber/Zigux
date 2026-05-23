@@ -18,23 +18,23 @@
   "files": [
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "blob_sha": "3a16c23f5f7a200f45c61e994179da7240938bfa"
+      "blob_sha": "3ce2306641fbfa16a53d06bbfbb7718409feb932"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-      "blob_sha": "7cbc2056b774d65850dce06d9fbb719cc29bbc45"
+      "blob_sha": "4f2e3b5dde3048f8061ff13a5b4e67f60d07f989"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-      "blob_sha": "335fccf359ce455b3a023c9251ea386bde713d88"
+      "blob_sha": "ded4b70146b016b5e7981f0708f49680889aaaf8"
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-      "blob_sha": "7034ab112dfd66888ea000edf9bbd6f7907fa6b0"
+      "blob_sha": "87a19e94acedcf342ec376571bec5c43a5e53361"
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-22T18:40:00Z",
+    "checked_at_utc": "2026-05-23T18:56:49Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
@@ -45,19 +45,19 @@
     "current_note_blobs": [
       {
         "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-        "blob_sha": "3a16c23f5f7a200f45c61e994179da7240938bfa"
+        "blob_sha": "3ce2306641fbfa16a53d06bbfbb7718409feb932"
       },
       {
         "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-        "blob_sha": "7cbc2056b774d65850dce06d9fbb719cc29bbc45"
+        "blob_sha": "4f2e3b5dde3048f8061ff13a5b4e67f60d07f989"
       },
       {
         "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-        "blob_sha": "335fccf359ce455b3a023c9251ea386bde713d88"
+        "blob_sha": "ded4b70146b016b5e7981f0708f49680889aaaf8"
       },
       {
         "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-        "blob_sha": "7034ab112dfd66888ea000edf9bbd6f7907fa6b0"
+        "blob_sha": "87a19e94acedcf342ec376571bec5c43a5e53361"
       }
     ]
   }
