@@ -251,6 +251,7 @@ def run_self_test() -> int:
             (MATRIX_PATH, "`hvc_remove()` handoff"),
             (MATRIX_PATH, "`hvc_cleanup()` tty-port"),
             (MATRIX_PATH, "`hvc_kick()` wakeup-cue"),
+            (VERIFY_PATH, "`error.NotifierDispatchRequiresTtyRegistration`"),
             (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`"),
             (DRIVER_PATH, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {"),
             (DRIVER_PATH, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {"),
