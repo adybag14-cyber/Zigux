@@ -1,0 +1,82 @@
+const std = @import("std");
+const bcm2835_wdt = @import("bcm2835_wdt");
+
+test "phase11 bcm2835 watchdog starter keeps timeout and restart constants reviewable" {
+    try std.testing.expectEqual(@as(u32, 1), bcm2835_wdt.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 15), bcm2835_wdt.max_timeout_sec);
+    try std.testing.expectEqual(@as(i32, 128), bcm2835_wdt.restart_priority);
+    try std.testing.expectEqual(@as(u32, 10), bcm2835_wdt.restart_timeout_ticks);
+    try std.testing.expectError(error.TimeoutTooSmall, bcm2835_wdt.Bcm2835WdtLab.init(0));
+    try std.testing.expectError(error.TimeoutTooLarge, bcm2835_wdt.Bcm2835WdtLab.init(16));
+}
+
+test "phase11 bcm2835 watchdog verify keeps PM-base readiness and ownership explicit" {
+    const ready = try bcm2835_wdt.summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .nowayout = true,
+        .bootloader_running = true,
+        .system_power_controller = true,
+        .poweroff_handler_present = false,
+        .parent_attached = true,
+        .pm_base_present = true,
+    });
+    try std.testing.expectEqualStrings(bcm2835_wdt.anchor_path, ready.anchor);
+    try std.testing.expect(ready.parent_attached);
+    try std.testing.expect(ready.parent_supplies_pm_base);
+    try std.testing.expect(ready.pm_base_required);
+    try std.testing.expect(ready.pm_base_handoff_ready);
+    try std.testing.expect(ready.timeout_init_requested);
+    try std.testing.expect(ready.register_device_requested);
+    try std.testing.expect(ready.stop_on_reboot_requested);
+    try std.testing.expectEqual(@as(i32, bcm2835_wdt.restart_priority), ready.restart_priority_value);
+    try std.testing.expect(ready.poweroff_handler_claimed);
+    try std.testing.expect(!ready.poweroff_handler_conflict);
+    try std.testing.expect(ready.blocked_on_live_platform_registration);
+
+    const blocked = try bcm2835_wdt.summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .nowayout = false,
+        .bootloader_running = false,
+        .system_power_controller = true,
+        .poweroff_handler_present = true,
+        .parent_attached = true,
+        .pm_base_present = false,
+    });
+    try std.testing.expect(blocked.parent_attached);
+    try std.testing.expect(!blocked.parent_supplies_pm_base);
+    try std.testing.expect(blocked.pm_base_required);
+    try std.testing.expect(!blocked.pm_base_handoff_ready);
+    try std.testing.expect(blocked.timeout_init_requested);
+    try std.testing.expect(!blocked.register_device_requested);
+    try std.testing.expect(blocked.stop_on_reboot_requested);
+    try std.testing.expect(!blocked.poweroff_handler_claimed);
+    try std.testing.expect(!blocked.poweroff_handler_conflict);
+    try std.testing.expect(blocked.blocked_on_live_platform_registration);
+}
+
+test "phase11 bcm2835 watchdog verify keeps poweroff ownership distinct" {
+    var claimed = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    claimed.importBootloaderRunning();
+    const claimed_poweroff = claimed.poweroff(true);
+    try std.testing.expectEqualStrings(bcm2835_wdt.anchor_path, claimed_poweroff.anchor);
+    try std.testing.expect(claimed_poweroff.halt_partition_requested);
+    try std.testing.expect(claimed_poweroff.restart_path_reused);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_timeout_ticks), claimed_poweroff.programmed_ticks);
+    try std.testing.expect(claimed_poweroff.full_reset_armed);
+    try std.testing.expect(claimed_poweroff.running_after_poweroff);
+
+    var unclaimed = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    const unclaimed_poweroff = unclaimed.poweroff(false);
+    try std.testing.expect(!unclaimed_poweroff.halt_partition_requested);
+    try std.testing.expect(unclaimed_poweroff.restart_path_reused);
+    try std.testing.expectEqual(@as(u32, 0), unclaimed_poweroff.programmed_ticks);
+    try std.testing.expect(!unclaimed_poweroff.full_reset_armed);
+    try std.testing.expect(!unclaimed_poweroff.running_after_poweroff);
+
+    unclaimed.start();
+    const stopped = unclaimed.stop();
+    try std.testing.expect(stopped.reset_register_written);
+    try std.testing.expect(stopped.running_before_stop);
+    try std.testing.expect(!stopped.running_after_stop);
+    try std.testing.expect(!stopped.full_reset_armed_after_stop);
+}
