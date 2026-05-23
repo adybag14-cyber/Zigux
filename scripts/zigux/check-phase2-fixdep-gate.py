@@ -15,6 +15,7 @@ DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 FIXDEP_REL = Path("scripts/zigux/fixdep.zig")
 FIXDEP_DIFF_REL = Path("scripts/zigux/check-fixdep-diff.py")
 FIXDEP_CASES_REL = Path("zigux/tests/fixtures/fixdep/cases.json")
+FIXDEP_SURVEY_REL = Path("Documentation/zigux/phase2-fixdep-dual-implementation-survey.md")
 PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 MAKEFILE_REL = Path("zigux/Makefile")
@@ -24,6 +25,7 @@ REQUIRED_FILES = (
     FIXDEP_REL,
     FIXDEP_DIFF_REL,
     FIXDEP_CASES_REL,
+    FIXDEP_SURVEY_REL,
     PHASE2_CLOSURE_REL,
     TESTS_README_REL,
     MAKEFILE_REL,
@@ -448,6 +450,7 @@ def build_self_test_root(root: Path) -> None:
         resolve(root, FIXDEP_CASES_REL),
         json.dumps([{"name": name} for name in REQUIRED_FIXDEP_CASE_NAMES], indent=2) + "\n",
     )
+    write_text(resolve(root, FIXDEP_SURVEY_REL), "present\n")
     write_text(
         resolve(root, PHASE2_CLOSURE_REL),
         "\n".join(
