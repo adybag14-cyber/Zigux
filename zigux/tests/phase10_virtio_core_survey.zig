@@ -40,6 +40,8 @@ test "phase10 virtio core survey gate keeps verify and focused replay surfaces e
     try expectContains(closure_manifest, "\"drivers/virtio/virtio_verify.zig\"");
     try expectContains(closure_manifest, "\"zigux/tests/phase10_virtio_core_reset_queue.zig\"");
     try expectContains(closure_manifest, "\"zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig\"");
+    try expectContains(closure_manifest, "\"phase10-lifecycle-guard-bookkeeping-helper\"");
+    try expectContains(closure_manifest, "\"phase10-reset-replay-bookkeeping-helper\"");
 }
 
 test "phase10 virtio core survey gate keeps slice-local review surfaces and blockers explicit" {
@@ -62,6 +64,12 @@ test "phase10 virtio core survey gate keeps slice-local review surfaces and bloc
     try expectContains(slice_note, "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_core_survey.zig");
     try expectContains(manifest, "\"lane_key\": \"P10-L01\"");
+    try expectContains(manifest, "\"id\": \"phase10-build-gate\"");
+    try expectContains(manifest, "\"id\": \"phase10-virtio-core-slice-note\"");
+    try expectContains(manifest, "\"id\": \"phase10-virtio-core-survey-note\"");
+    try expectContains(manifest, "\"id\": \"phase10-queue-shape-bookkeeping-helper\"");
+    try expectContains(manifest, "\"id\": \"phase10-config-generation-bookkeeping-helper\"");
+    try expectContains(manifest, "\"id\": \"phase10-interrupt-ack-bookkeeping-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-lifecycle-guard-bookkeeping-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-reset-replay-bookkeeping-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-core-dual-implementation-bridge\"");
