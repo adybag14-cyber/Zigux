@@ -56,6 +56,7 @@ REQUIRED_MMIO_SCOREBOARD_EVIDENCE = [
 ]
 
 REQUIRED_LAB_VALIDATION_EVIDENCE = [
+    "scripts/zigux/check-phase10-core-packet.py",
     "scripts/zigux/check-phase10-closure-manifest-counts.py",
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
@@ -518,6 +519,20 @@ def run_self_test() -> int:
         expect_contains(
             validate(root)[1],
             "roadmap_parity_scoreboard:mmio_wrappers:'Documentation/zigux/phase10-virtio-mmio-survey.md':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "scripts/zigux/check-phase10-core-packet.py"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'scripts/zigux/check-phase10-core-packet.py':missing",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
