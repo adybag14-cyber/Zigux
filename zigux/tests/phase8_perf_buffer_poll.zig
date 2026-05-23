@@ -47,8 +47,17 @@ test "phase 8 perf-buffer poll tests README keeps the current direct-readback pa
     try expectContains(note, "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`");
     try expectContains(note, "`zigux/tests/phase8_file_path_handle_bridge.zig`");
     try expectContains(note, "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`");
+    try expectContains(note, "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`");
+    try expectContains(
+        note,
+        "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`",
+    );
     try expectContains(note, "`zigux/tests/phase8_build.zig`");
     try expectContains(note, "`make -C zigux phase8-file-path-handle-bridge-test`");
+    try expectContains(
+        note,
+        "current `zigux/tests/phase8_build.zig` also keeps the landed boundary-guard and manifest-sync witnesses inside the shared aggregate replay, so this tests-root reminder should treat both checks as current current-`master` evidence instead of leaving them implied only by the aggregate build route",
+    );
     try expectContains(
         note,
         "repo-reality warning for the broader remaining Phase 8 tooling packet:",
