@@ -16,6 +16,10 @@ REQUIRED_TOP_LEVEL = {
     "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
 
+REQUIRED_REPO_REALITY_GAPS = (
+    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+)
+
 KCONFIG_CONF_STDOUT_PACKET = (
     "zigux/tests/fixtures/kconfig_bridge/oldaskconfig_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/syncconfig_expected.json",
@@ -126,7 +130,6 @@ REQUIRED_PRESENT_SURFACES = {
     ),
     "archive_support": (
         "third_party/README.md",
-        "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
     ),
     "make_wrappers": (
         "zigux/Makefile",
@@ -245,7 +248,7 @@ REQUIRED_NOTE_MARKERS = (
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep the dedicated manifest guards, the primary artifact_diff helper, and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, scripts/zigux/artifact_diff.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
     "Keep the returned install-zig archive verification checker, staged pinned-archive helper, and the stage-helper contract plus selftest packet explicit beside the local-first archive workflow, archive README contract, and installer helper so the shared Phase 2 tool packet matches the live phase2-toolchain and validate-phase2 routes.",
-    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, the pinned archive filename plus digest and size contract, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet while the payload itself stays listed under repo-reality gaps until same-lane work rematerializes it.",
 )
 
 
@@ -313,8 +316,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             for entry in string_entries:
                 if is_repo_relative_path(entry) and not (root / entry).exists():
                     issues.append(("MISSING_SURFACE_PATH", f"{category}:{entry}"))
-    if manifest.get("repo_reality_gaps") != []:
-        issues.append(("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps"))
+    if manifest.get("repo_reality_gaps") != list(REQUIRED_REPO_REALITY_GAPS):
+        issues.append(("REPO_REALITY_GAPS_MISMATCH", "repo_reality_gaps"))
     notes = manifest.get("notes")
     if not isinstance(notes, list):
         issues.append(("MISSING_NOTES", "notes"))
@@ -358,7 +361,7 @@ def build_self_test_manifest() -> dict:
             category: list(entries)
             for category, entries in REQUIRED_PRESENT_SURFACES.items()
         },
-        "repo_reality_gaps": [],
+        "repo_reality_gaps": list(REQUIRED_REPO_REALITY_GAPS),
         "notes": list(REQUIRED_NOTE_MARKERS),
     }
 
@@ -458,11 +461,11 @@ def run_self_test() -> int:
             checks_run += 1
 
         manifest = build_self_test_manifest()
-        manifest["repo_reality_gaps"] = ["unexpected-gap"]
+        manifest["repo_reality_gaps"] = []
         write_manifest(manifest_path, manifest)
         for _, entry in iter_required_repo_paths():
             write_text(root / entry, "present\n")
-        assert ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps") in collect_issues(root)
+        assert ("REPO_REALITY_GAPS_MISMATCH", "repo_reality_gaps") in collect_issues(root)
         checks_run += 1
 
         manifest = build_self_test_manifest()
