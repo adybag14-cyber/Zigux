@@ -79,8 +79,29 @@ TESTS_ALIGNMENT_MARKERS = (
 )
 
 SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
+EXPECTED_REVIEW_STATUS_BY_TARGET = {
+    "x86_64-linux": "pinned bootstrap archive",
+    "aarch64-linux": "route contract only",
+}
+EXPECTED_FIXTURE_FIELDS = {
+    "phase",
+    "status",
+    "route",
+    "archive_target_scope",
+    "cross_targets",
+}
+EXPECTED_CROSS_TARGET_FIELDS = {
+    "target",
+    "review_status",
+    "validation_mode",
+    "route",
+}
 ROUTE = "make -C zigux phase2-cross"
 EXPECTED_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate", "phase2-cross")
+
+
+class DuplicateJsonKeyError(ValueError):
+    pass
 
 
 def read_text(path: Path) -> str:
@@ -92,9 +113,20 @@ def read_text(path: Path) -> str:
 
 def read_json(path: Path) -> object:
     try:
-        return json.loads(read_text(path))
+        return json.loads(read_text(path), object_pairs_hook=reject_duplicate_object_pairs)
     except json.JSONDecodeError as exc:
         raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+    except DuplicateJsonKeyError as exc:
+        raise SystemExit(f"duplicate json key in required file: {path}: {exc}") from exc
+
+
+def reject_duplicate_object_pairs(pairs: list[tuple[object, object]]) -> dict[object, object]:
+    payload: dict[object, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise DuplicateJsonKeyError(str(key))
+        payload[key] = value
+    return payload
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -131,59 +163,57 @@ def collect_exact_line_issues(
 
 
 def load_expected_fixture(root: Path) -> dict[str, object]:
-    payload = read_json(resolve_path(root, TOOLCHAIN_POLICY))
+    policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+    payload = read_json(policy_path)
     if not isinstance(payload, dict):
-        raise SystemExit(f"invalid json shape in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        raise SystemExit(f"invalid json shape in required file: {policy_path}")
 
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
-        raise SystemExit(f"invalid upgrade_policy in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        raise SystemExit(f"invalid upgrade_policy in required file: {policy_path}")
 
     archive_target_scope = upgrade_policy.get("archive_target_scope")
     if not isinstance(archive_target_scope, list) or not archive_target_scope:
-        raise SystemExit(
-            f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-        )
+        raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
 
     normalized_scope: list[str] = []
     seen_scope: set[str] = set()
     for value in archive_target_scope:
-        if not isinstance(value, str) or not value.strip():
-            raise SystemExit(
-                f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-            )
-        target = value.strip()
+        if not isinstance(value, str) or not value or value != value.strip():
+            raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
+        target = value
         if target in seen_scope:
-            raise SystemExit(
-                f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-            )
+            raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}")
         normalized_scope.append(target)
         seen_scope.add(target)
 
     unsupported_targets = [target for target in normalized_scope if target not in SUPPORTED_CROSS_TARGETS]
     if unsupported_targets:
         raise SystemExit(
-            "unsupported archive_target_scope targets in required file: "
-            + ", ".join(unsupported_targets)
+            "unsupported archive_target_scope targets in required file: " + ", ".join(unsupported_targets)
         )
 
     required_make_routes = upgrade_policy.get("required_make_routes")
     if required_make_routes != list(EXPECTED_REQUIRED_MAKE_ROUTES):
-        raise SystemExit(
-            f"invalid required_make_routes in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-        )
+        raise SystemExit(f"invalid required_make_routes in required file: {policy_path}")
 
-    expected_modes = {
-        target: ("archive_required" if target in seen_scope else "route_contract_only")
-        for target in SUPPORTED_CROSS_TARGETS
-    }
+    expected_targets = []
+    for target in SUPPORTED_CROSS_TARGETS:
+        expected_targets.append(
+            {
+                "target": target,
+                "review_status": EXPECTED_REVIEW_STATUS_BY_TARGET[target],
+                "validation_mode": "archive_required" if target in seen_scope else "route_contract_only",
+                "route": ROUTE,
+            }
+        )
 
     return {
         "phase": "Phase 2",
         "status": "active",
         "route": ROUTE,
         "archive_target_scope": normalized_scope,
-        "cross_targets": expected_modes,
+        "cross_targets": expected_targets,
     }
 
 
@@ -192,6 +222,11 @@ def collect_fixture_issues(payload: object, root: Path) -> list[tuple[str, str]]
     issues: list[tuple[str, str]] = []
     if not isinstance(payload, dict):
         return [("INVALID_CROSS_TARGET_FIXTURE", type(payload).__name__)]
+
+    for key in payload:
+        if key not in EXPECTED_FIXTURE_FIELDS:
+            issues.append(("UNEXPECTED_CROSS_TARGET_FIXTURE_FIELD", key))
+
     if payload.get("phase") != expected_fixture["phase"]:
         issues.append(("INVALID_CROSS_TARGET_FIXTURE_FIELD", "phase"))
     if payload.get("status") != expected_fixture["status"]:
@@ -206,28 +241,61 @@ def collect_fixture_issues(payload: object, root: Path) -> list[tuple[str, str]]
         issues.append(("INVALID_CROSS_TARGET_FIXTURE_FIELD", "cross_targets"))
         return issues
 
-    actual_modes: dict[str, str] = {}
-    for entry in cross_targets:
+    actual_targets: list[str] = []
+    expected_targets = expected_fixture["cross_targets"]
+    assert isinstance(expected_targets, list)
+    expected_by_target = {entry["target"]: entry for entry in expected_targets if isinstance(entry, dict)}
+    seen_targets: set[str] = set()
+    actual_archive_required: set[str] = set()
+
+    for index, entry in enumerate(cross_targets):
         if not isinstance(entry, dict):
             issues.append(("INVALID_CROSS_TARGET_ENTRY", type(entry).__name__))
             continue
+
+        for key in entry:
+            if key not in EXPECTED_CROSS_TARGET_FIELDS:
+                issues.append(("UNEXPECTED_CROSS_TARGET_FIELD", f"{index}:{key}"))
+
         target = entry.get("target")
+        review_status = entry.get("review_status")
         validation_mode = entry.get("validation_mode")
         route = entry.get("route")
-        if not isinstance(target, str) or not target:
+
+        if not isinstance(target, str) or not target or target != target.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", "target"))
             continue
-        if not isinstance(validation_mode, str) or not validation_mode:
-            issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:validation_mode"))
-            continue
+
+        if target in seen_targets:
+            issues.append(("DUPLICATE_CROSS_TARGET_ENTRY", target))
+        seen_targets.add(target)
+        actual_targets.append(target)
+
+        expected_entry = expected_by_target.get(target)
+        if expected_entry is None:
+            issues.append(("UNSUPPORTED_CROSS_TARGET", target))
+        else:
+            expected_review_status = expected_entry.get("review_status")
+            expected_validation_mode = expected_entry.get("validation_mode")
+
+            if review_status != expected_review_status:
+                issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", f"{target}:{review_status}"))
+            if validation_mode != expected_validation_mode:
+                issues.append(("INVALID_CROSS_TARGET_MATRIX", json.dumps({target: validation_mode})))
+            if validation_mode == "archive_required":
+                actual_archive_required.add(target)
+
         if route != expected_fixture["route"]:
             issues.append(("INVALID_CROSS_TARGET_ROUTE", target))
-        if target in actual_modes:
-            issues.append(("DUPLICATE_CROSS_TARGET_ENTRY", target))
-        actual_modes[target] = validation_mode
 
-    if actual_modes != expected_fixture["cross_targets"]:
-        issues.append(("INVALID_CROSS_TARGET_MATRIX", json.dumps(actual_modes, sort_keys=True)))
+    expected_target_names = [entry["target"] for entry in expected_targets if isinstance(entry, dict)]
+    if seen_targets != set(expected_target_names):
+        issues.append(("CROSS_TARGET_SET_MISMATCH", ",".join(sorted(seen_targets))))
+    if actual_targets != expected_target_names:
+        issues.append(("CROSS_TARGET_ORDER_MISMATCH", ",".join(actual_targets)))
+    if actual_archive_required != set(expected_fixture["archive_target_scope"]):
+        issues.append(("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", ",".join(sorted(actual_archive_required))))
+
     return issues
 
 
@@ -401,7 +469,7 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
-        + 19
+        + 27
         + 10
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
@@ -507,6 +575,69 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        path.write_text(
+            """{
+  "phase": "Phase 2",
+  "channel": "0.17.0-dev.87+9b177a7d2",
+  "minimum_version": "0.17.0-dev.87+9b177a7d2",
+  "archive_sha256": {"x86_64-linux": "%s"},
+  "upgrade_policy": {
+    "required_make_routes": ["phase2-toolchain", "phase2-validate", "phase2-cross"],
+    "archive_target_scope": ["x86_64-linux"],
+    "archive_target_scope": ["aarch64-linux"]
+  }
+}
+"""
+            % ("3" * 64),
+            encoding="utf-8",
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate json key in required file" in str(exc)
+            assert "archive_target_scope" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate policy json key did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        path.write_text(
+            """{
+  "phase": "Phase 2",
+  "status": "active",
+  "route": "make -C zigux phase2-cross",
+  "archive_target_scope": ["x86_64-linux"],
+  "cross_targets": [
+    {
+      "target": "x86_64-linux",
+      "review_status": "pinned bootstrap archive",
+      "validation_mode": "archive_required",
+      "route": "make -C zigux phase2-cross",
+      "route": "make -C zigux phase2"
+    },
+    {
+      "target": "aarch64-linux",
+      "review_status": "route contract only",
+      "validation_mode": "route_contract_only",
+      "route": "make -C zigux phase2-cross"
+    }
+  ]
+}
+""",
+            encoding="utf-8",
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate json key in required file" in str(exc)
+            assert "route" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate fixture json key did not abort")
+
+        build_self_test_root(root)
         policy_path = resolve_path(root, TOOLCHAIN_POLICY)
         payload = json.loads(policy_path.read_text(encoding="utf-8"))
         payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-validate"]
@@ -556,6 +687,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope") in issues
         assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in issues)
+        assert ("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", "x86_64-linux") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -571,6 +703,19 @@ def run_self_test() -> int:
             checks_run += 1
         else:
             raise AssertionError("unsupported policy target did not abort")
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = [" x86_64-linux "]
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_target_scope" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("whitespace-padded archive target scope did not abort")
 
         build_self_test_root(root)
         policy_path = resolve_path(root, TOOLCHAIN_POLICY)
@@ -593,6 +738,14 @@ def run_self_test() -> int:
             checks_run += 1
         else:
             raise AssertionError("invalid json fixture did not abort")
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["unexpected"] = True
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("UNEXPECTED_CROSS_TARGET_FIXTURE_FIELD", "unexpected") in collect_issues(root)
+        checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
@@ -629,9 +782,28 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["target"] = " x86_64-linux "
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "target") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][1]["review_status"] = "pinned bootstrap archive"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "INVALID_CROSS_TARGET_REVIEW_STATUS",
+            "aarch64-linux:pinned bootstrap archive",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
         payload["cross_targets"][1]["validation_mode"] = ""
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_ENTRY", "aarch64-linux:validation_mode") in collect_issues(root)
+        assert ("INVALID_CROSS_TARGET_MATRIX", json.dumps({"aarch64-linux": ""})) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -645,10 +817,19 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["unexpected"] = True
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("UNEXPECTED_CROSS_TARGET_FIELD", "0:unexpected") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
         payload["cross_targets"][1]["validation_mode"] = "archive_required"
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in issues)
+        assert ("INVALID_CROSS_TARGET_MATRIX", json.dumps({"aarch64-linux": "archive_required"})) in issues
+        assert ("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", "aarch64-linux,x86_64-linux") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -658,6 +839,15 @@ def run_self_test() -> int:
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_CROSS_TARGET_ENTRY", "x86_64-linux") in issues
+        assert ("CROSS_TARGET_ORDER_MISMATCH", "x86_64-linux,aarch64-linux,x86_64-linux") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"].reverse()
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("CROSS_TARGET_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in collect_issues(root)
         checks_run += 1
 
         for path in (
@@ -704,19 +894,15 @@ def main() -> int:
         return emit_issues(issues)
 
     expected_fixture = load_expected_fixture(args.root.resolve())
+    assert isinstance(expected_fixture["archive_target_scope"], list)
+    assert isinstance(expected_fixture["cross_targets"], list)
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
         f"{len(DOCS_ROOT_README_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(TESTS_README_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKEFILE_LINES) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
     )
-    print(
-        "PHASE2_CROSS_ALIGNMENT_ARCHIVE_SCOPE_COUNT="
-        f"{len(expected_fixture['archive_target_scope'])}"
-    )
-    print(
-        "PHASE2_CROSS_ALIGNMENT_FIXTURE_TARGET_COUNT="
-        f"{len(expected_fixture['cross_targets'])}"
-    )
+    print("PHASE2_CROSS_ALIGNMENT_ARCHIVE_SCOPE_COUNT=" f"{len(expected_fixture['archive_target_scope'])}")
+    print("PHASE2_CROSS_ALIGNMENT_FIXTURE_TARGET_COUNT=" f"{len(expected_fixture['cross_targets'])}")
     return 0
 
 
