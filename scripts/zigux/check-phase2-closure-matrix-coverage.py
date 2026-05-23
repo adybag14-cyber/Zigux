@@ -42,6 +42,9 @@ def load_json(path: Path) -> object:
 def require_str_tuple(module_name: str, attr_name: str, value: object) -> tuple[str, ...]:
     if not isinstance(value, tuple) or not all(isinstance(item, str) for item in value):
         raise SystemExit(f"{module_name}.{attr_name} must stay tuple[str, ...]")
+    duplicates = iter_duplicate_items(list(value))
+    if duplicates:
+        raise SystemExit(f"{module_name}.{attr_name} must not contain duplicate string entries")
     return value
 
 
@@ -57,6 +60,8 @@ def build_validator_expectations(validator, matrix) -> dict[str, tuple[str, ...]
         raise SystemExit("matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must stay a tuple")
 
     expectations: dict[str, tuple[str, ...]] = {}
+    seen_keys: set[str] = set()
+    seen_attrs: set[str] = set()
     for pair in raw:
         if (
             not isinstance(pair, tuple)
@@ -68,6 +73,12 @@ def build_validator_expectations(validator, matrix) -> dict[str, tuple[str, ...]
                 "matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must stay tuple[tuple[str, str], ...]"
             )
         key, attr = pair
+        if key in seen_keys:
+            raise SystemExit("matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must not repeat manifest keys")
+        if attr in seen_attrs:
+            raise SystemExit("matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must not repeat validator attrs")
+        seen_keys.add(key)
+        seen_attrs.add(attr)
         expectations[key] = require_str_tuple("validator", attr, getattr(validator, attr, None))
     return expectations
 
@@ -190,7 +201,7 @@ def write_json(path: Path, payload: object) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    validator_source = """\
+    validator_source = """\\
 from pathlib import Path
 
 EXPECTED_MANIFEST_REVIEW_SURFACES = ("review.md",)
@@ -205,7 +216,7 @@ REQUIRED_FILES = (
     Path("zigux/tests/fixtures/phase2_tool_manifest.json"),
 )
 """
-    matrix_source = """\
+    matrix_source = """\\
 from pathlib import Path
 
 VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
@@ -422,6 +433,22 @@ def run_self_test() -> int:
         validator_text = validator_path.read_text(encoding="utf-8")
         validator_path.write_text(
             validator_text.replace(
+                'EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json",)\n',
+                'EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-a.json")\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "validator.EXPECTED_MANIFEST_FIXTURE_ROSTER must not contain duplicate string entries",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        validator_text = validator_path.read_text(encoding="utf-8")
+        validator_path.write_text(
+            validator_text.replace(
                 'REQUIRED_FILES = (\n'
                 '    Path("Documentation/zigux/phase2-closure.md"),\n'
                 '    Path("scripts/zigux/validate-phase2-closure.py"),\n'
@@ -474,6 +501,38 @@ def run_self_test() -> int:
         assert_system_exit_contains(
             lambda: collect_issues(root),
             "matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must stay tuple[tuple[str, str], ...]",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    ("closure_notes", "EXPECTED_MANIFEST_CLOSURE_NOTES"),\n',
+                '    ("review_surfaces", "EXPECTED_MANIFEST_CLOSURE_NOTES"),\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must not repeat manifest keys",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    ("validators", "EXPECTED_MANIFEST_VALIDATORS"),\n',
+                '    ("validators", "EXPECTED_MANIFEST_REVIEW_SURFACES"),\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must not repeat validator attrs",
         )
         checks_run += 1
 
@@ -562,6 +621,27 @@ def run_self_test() -> int:
         assert_system_exit_contains(
             lambda: collect_issues(root),
             "matrix.DIRECT_MANIFEST_SURFACE_EXPECTATIONS['policy'] must stay tuple[str, ...]",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    "policy": (\n'
+                '        "policy-a.json",\n'
+                "    ),\n",
+                '    "policy": (\n'
+                '        "policy-a.json",\n'
+                '        "policy-a.json",\n'
+                "    ),\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.DIRECT_MANIFEST_SURFACE_EXPECTATIONS['policy'] must not contain duplicate string entries",
         )
         checks_run += 1
 
