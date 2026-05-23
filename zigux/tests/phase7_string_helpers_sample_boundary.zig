@@ -222,6 +222,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(samples_readme, "* `*vsprintf*`");
     try expectContainsCount(samples_readme, "* `*vsprintf*`", 1);
     try expectContains(samples_readme, "Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`");
+    try expectContainsCount(samples_readme, "Current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`", 1);
     try expectContains(samples_readme, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");
     try expectContainsCount(samples_readme, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.", 1);
     try expectContains(samples_readme, "Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets");
