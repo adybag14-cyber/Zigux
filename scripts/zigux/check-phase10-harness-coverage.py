@@ -65,7 +65,7 @@ REQUIRED_MARKERS = {
         "The returned packet-local review guards also stay explicit through `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py`, so this shared closure note keeps the current virtqueue, input, and MMIO lab validation stack visible beside the returned shared validate/test route rather than collapsing that evidence into the build gate alone.",
         PHASE10_SCRIPTS_ROOT_PHRASE,
         "`lab_only_driver_validation=starter_landed`",
-        "- evidence: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`",
+        "- evidence: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `scripts/zigux/validate-phase10.py`",
         "scripts/zigux/check-phase10-harness-coverage.py",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
         "`zigux/Makefile`",
@@ -302,6 +302,12 @@ SELF_TEST_MUTATIONS = [
         "The returned packet-local review guards also stay explicit through `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py`, so this shared closure note keeps the current virtqueue, input, and MMIO lab validation stack visible beside the returned shared validate/test route rather than collapsing that evidence into the build gate alone.",
         "The returned packet-local review guards also stay explicit through `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet-missing.py`, and `scripts/zigux/check-phase10-mmio-packet.py`, so this shared closure note keeps the current virtqueue, input, and MMIO lab validation stack visible beside the returned shared validate/test route rather than collapsing that evidence into the build gate alone.",
         "Documentation/zigux/phase10-closure-evidence.md:The returned packet-local review guards also stay explicit through `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py`, so this shared closure note keeps the current virtqueue, input, and MMIO lab validation stack visible beside the returned shared validate/test route rather than collapsing that evidence into the build gate alone.",
+    ),
+    (
+        "Documentation/zigux/phase10-closure-evidence.md",
+        "- evidence: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `scripts/zigux/validate-phase10.py`",
+        "- evidence: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `scripts/zigux/validate-phase10-missing.py`",
+        "Documentation/zigux/phase10-closure-evidence.md:- evidence: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_input_verify.zig`, `scripts/zigux/validate-phase10.py`",
     ),
     (
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
