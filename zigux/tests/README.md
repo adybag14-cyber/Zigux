@@ -181,6 +181,8 @@ repo-reality warning for the broader remaining Phase 8 tooling packet:
 - `tools/lib/bpf/zigux_segments/verify.zig`
 - `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`
 - `zigux/tests/phase8_help_kallsyms_only_build.zig`
+- `zigux/tests/phase8_verify_routing_gap.zig`
+- `zigux/tests/phase8_verify_routing_gap_only_build.zig`
 - `zigux/tests/phase8_libbpf_segments.zig`
 - `zigux/tests/phase8_libbpf_segments_only_build.zig`
 - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
