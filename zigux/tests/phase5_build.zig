@@ -139,6 +139,20 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase5_bytestream_fifo_survey_tests = b.addRunArtifact(phase5_bytestream_fifo_survey_tests);
 
+    const phase5_kobject_example_sample_selfcheck_tests = b.addTest(.{
+        .name = "phase5-kobject-example-sample-selfcheck-tests",
+        .root_module = kobject_example_sample_module,
+    });
+    const run_phase5_kobject_example_sample_selfcheck_tests =
+        b.addRunArtifact(phase5_kobject_example_sample_selfcheck_tests);
+    const phase5_kobject_example_sample_selfcheck_step = b.step(
+        "phase5-kobject-example-sample-selfcheck",
+        "Run the Phase 5 kobject example sample-owned self-checks",
+    );
+    phase5_kobject_example_sample_selfcheck_step.dependOn(
+        &run_phase5_kobject_example_sample_selfcheck_tests.step,
+    );
+
     const phase5_kobject_example_tests = b.addTest(.{
         .name = "phase5-kobject-example-tests",
         .root_module = phase5_kobject_example_module,
@@ -233,6 +247,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_bytestream_fifo_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
+    test_step.dependOn(&run_phase5_kobject_example_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_survey_tests.step);
     test_step.dependOn(&run_phase5_kobject_attr_group_contract_tests.step);
