@@ -2,7 +2,7 @@
 
 ## Status
 
-- lane family: `P11-L10`
+- lane family: `P11-L12`
 - active current-head continuity: `P11-L05`
 - phase: `Phase 11`
 - scope: `drivers/watchdog/dw_wdt` verify-alignment and adjacent PM-truthfulness evidence
@@ -14,7 +14,7 @@
 
 ## Why This Note Exists
 
-The Phase 11 roadmap still keeps this watchdog family inside bounded lifecycle parity, teardown parity, and validation truthfulness around `drivers/watchdog/*.zig`. Keeping one closed-gap note for the historical `P11-L10` verify-alignment family is still useful, but it has to describe the current packet honestly.
+The Phase 11 roadmap still keeps this watchdog family inside bounded lifecycle parity, teardown parity, and validation truthfulness around `drivers/watchdog/*.zig`. Keeping one closed-gap note for the current `P11-L12` verify-alignment family is still useful, but it has to describe the current packet honestly.
 
 This note therefore no longer treats the broader validation-matrix, survey, slice, teardown-note, direct verify-helper, or direct replay stack as same-bridge proof in this environment. Instead it records the smaller packet that current authenticated contents still make directly reviewable, keeps the active manifest continuity explicit, and leaves future reopening to a fail-closed checker if the manifest, platform-plan note, manifest-routed teardown-parity ownership, or PM helper drift again.
 
