@@ -40,6 +40,12 @@ REQUIRED_MARKERS = {
         "Current `master` now materializes this helper-local packet through:",
         "Current `master` still leaves these directly coupled companions absent:",
     ],
+    "Documentation/zigux/phase13-landlock-syscalls-survey-gap.md": [
+        "historical breadcrumb",
+        "Current `master` now records the active helper-local summary in `Documentation/zigux/phase13-landlock-syscalls-survey.md`.",
+        "The active packet summary is now the restored survey, not this historical gap note.",
+        "`scripts/zigux/check-phase13-landlock-syscalls-packet.py`",
+    ],
 }
 
 FORBIDDEN_MARKERS = {
