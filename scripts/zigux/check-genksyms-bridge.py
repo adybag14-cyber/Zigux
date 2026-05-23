@@ -389,7 +389,7 @@ def validate_manifest_payload(payload: object) -> list[tuple[str, str]]:
         issues.append(("MANIFEST_BRIDGE_EXPECTED_PACKET_MISMATCH", MANIFEST_FIXTURE))
     if payload.get("help_packet") != expected["help_packet"]:
         issues.append(("MANIFEST_HELP_PACKET_MISMATCH", MANIFEST_FIXTURE))
-    if payload.get("standalone_proof_packet") != expected["standalone_proOF_PACKET"]:
+    if payload.get("standalone_proof_packet") != expected["standalone_proof_packet"]:
         issues.append(("MANIFEST_STANDALONE_PROOF_PACKET_MISMATCH", MANIFEST_FIXTURE))
     if payload.get("process_output_packet") != expected["process_output_packet"]:
         issues.append(("MANIFEST_PROCESS_OUTPUT_PACKET_MISMATCH", MANIFEST_FIXTURE))
