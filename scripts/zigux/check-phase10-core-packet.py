@@ -48,8 +48,8 @@ EXPECTED_SUMMARY_VALUES = {
     "preexisting_virtio_core_zig_present": True,
     "preexisting_virtio_core_test_present": True,
     "preexisting_virtio_core_reset_queue_test_present": True,
-    "preexisting_virtio_driver_id_zig_present": False,
-    "preexisting_virtio_driver_id_test_present": False,
+    "preexisting_virtio_driver_id_zig_present": True,
+    "preexisting_virtio_driver_id_test_present": True,
     "preexisting_virtio_core_slice_note_present": True,
     "preexisting_virtio_ring_survey_present": True,
     "preexisting_virtio_input_survey_present": True,
@@ -125,10 +125,13 @@ REQUIRED_PATHS = {
         "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
         "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`",
         "`zigux/tests/phase10_virtio_driver_id.zig`",
+        "`zigux/tests/phase10_virtio_core_survey.zig`",
         "`zigux/tests/phase10_build.zig`",
         "`scripts/zigux/validate-phase10.py`",
         "`scripts/zigux/check-phase10-core-packet.py`",
-        "stale guardrail reference drift",
+        "phase10-driver-id-helper",
+        "phase10-driver-id-coverage-disposition-helper",
+        "phase10-core-probe-remove-lifecycle",
     ],
     "drivers/virtio/virtio_driver_id.zig": [
         "pub fn reviewDriverIdMatch(",
@@ -143,12 +146,12 @@ REQUIRED_PATHS = {
         'test "phase10 virtio core verify keeps reset replay below transport lifecycle claims" {',
     ],
     "zigux/tests/phase10_build.zig": [
-        '".name = "phase10-virtio-core-tests""',
-        '".name = "phase10-virtio-core-interrupt-compound-ack-tests""',
-        '".name = "phase10-virtio-core-reset-queue-tests""',
-        '".name = "phase10-virtio-core-verify-tests""',
-        '".name = "phase10-virtio-core-survey-tests""',
-        '".name = "phase10-virtio-driver-id-tests""',
+        '.name = "phase10-virtio-core-tests"',
+        '.name = "phase10-virtio-core-interrupt-compound-ack-tests"',
+        '.name = "phase10-virtio-core-reset-queue-tests"',
+        '.name = "phase10-virtio-core-verify-tests"',
+        '.name = "phase10-virtio-core-survey-tests"',
+        '.name = "phase10-virtio-driver-id-tests"',
         "test_step.dependOn(&run_phase10_virtio_core_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_core_interrupt_compound_ack_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_core_reset_queue_tests.step);",
@@ -171,6 +174,14 @@ REQUIRED_PATHS = {
     "zigux/tests/phase10_virtio_driver_id.zig": [
         'test "phase10 virtio driver id replay keeps exact and wildcard dispositions reviewable" {',
         'test "phase10 virtio driver id replay keeps vendor wildcard and no-match paths separate" {',
+    ],
+}
+
+FORBIDDEN_MARKERS = {
+    "Documentation/zigux/phase10-virtio-core-survey.md": [
+        "stale guardrail reference drift",
+        "can still return `404`",
+        "mixed-source verification path",
     ],
 }
 
@@ -233,9 +244,10 @@ def validate_manifest(root: Path) -> list[str]:
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
+    tracked_paths = set(REQUIRED_PATHS.keys()) | set(FORBIDDEN_MARKERS.keys()) | {MANIFEST_PATH}
     missing_files = [
         rel_path
-        for rel_path in (*REQUIRED_PATHS.keys(), MANIFEST_PATH)
+        for rel_path in tracked_paths
         if not (root / rel_path).exists()
     ]
     if missing_files:
@@ -247,6 +259,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for marker in markers:
             if marker not in text:
                 missing_markers.append(f"{rel_path}:{marker}")
+
+    for rel_path, markers in FORBIDDEN_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker in text:
+                missing_markers.append(f"{rel_path}:forbidden:{marker}")
 
     missing_markers.extend(validate_manifest(root))
     return [], missing_markers
@@ -346,6 +364,18 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def add_forbidden_marker(tmp_root: Path) -> None:
+            target = tmp_root / "Documentation/zigux/phase10-virtio-core-survey.md"
+            text = target.read_text(encoding="utf-8")
+            target.write_text(text + "stale guardrail reference drift\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            add_forbidden_marker,
+            "Documentation/zigux/phase10-virtio-core-survey.md:forbidden:stale guardrail reference drift",
+        )
+        write_fixture(root)
+
         (root / "zigux/tests/phase10_virtio_driver_id.zig").unlink()
         missing_files, missing_markers = validate(root)
         if missing_markers:
@@ -359,7 +389,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
@@ -393,8 +423,9 @@ def main() -> int:
 
     required_marker_count = sum(len(markers) for markers in REQUIRED_PATHS.values())
     print("PHASE10_CORE_PACKET=pass")
-    print(f"PHASE10_CORE_REQUIRED_FILE_COUNT={len(REQUIRED_PATHS) + 1}")
+    print(f"PHASE10_CORE_REQUIRED_FILE_COUNT={len(set(REQUIRED_PATHS.keys()) | set(FORBIDDEN_MARKERS.keys())) + 1}")
     print(f"PHASE10_CORE_REQUIRED_MARKER_COUNT={required_marker_count}")
+    print(f"PHASE10_CORE_FORBIDDEN_MARKER_COUNT={sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}")
     print(f"PHASE10_CORE_EXPECTED_GAP_COUNT={len(EXPECTED_GAP_FIELDS)}")
     return 0
 
