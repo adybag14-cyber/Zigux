@@ -39,6 +39,97 @@ test "export and uapi version layouts stay aligned" {
     try testing.expect(version.eql(current, export_shim.currentVersion()));
 }
 
+test "version binding relays centralized boundary header helpers without widening the boundary" {
+    const canonical = version.boundaryHeader(0x2A);
+    const extended = version.compatibleHeader(version.header_size + 12, 0x2A);
+    const stale = version.Header{
+        .size = version.header_size,
+        .abi_version = canonical.abi_version + 1,
+        .flags = 0x19,
+    };
+    const canonicalized = version.canonicalizeHeader(extended);
+    const valid = version.validateBoundaryHeader(canonical);
+    const valid_extended = version.validateBoundaryHeader(extended);
+    const invalid = version.validateBoundaryHeader(stale);
+
+    try testing.expectEqual(uapi_version.header_size, version.header_size);
+    try testing.expectEqual(uapi_version.boundaryHeader(0x2A), canonical);
+    try testing.expectEqual(
+        uapi_version.compatibleHeader(version.header_size + 12, 0x2A),
+        extended,
+    );
+
+    try testing.expectEqual(
+        uapi_version.hasCurrentAbiVersion(canonical.abi_version),
+        version.hasCurrentAbiVersion(canonical.abi_version),
+    );
+    try testing.expectEqual(
+        uapi_version.isCanonicalSize(canonical.size),
+        version.isCanonicalSize(canonical.size),
+    );
+    try testing.expectEqual(
+        uapi_version.isCompatibleSize(canonical.size),
+        version.isCompatibleSize(canonical.size),
+    );
+    try testing.expectEqual(uapi_version.isCanonical(canonical), version.isCanonical(canonical));
+    try testing.expectEqual(uapi_version.isCompatible(canonical), version.isCompatible(canonical));
+    try testing.expectEqual(
+        uapi_version.extendsBoundary(canonical),
+        version.extendsBoundary(canonical),
+    );
+    try testing.expectEqual(
+        uapi_version.requestedExtraBytes(canonical),
+        version.requestedExtraBytes(canonical),
+    );
+
+    try testing.expectEqual(
+        uapi_version.isCanonicalSize(extended.size),
+        version.isCanonicalSize(extended.size),
+    );
+    try testing.expectEqual(
+        uapi_version.isCompatibleSize(extended.size),
+        version.isCompatibleSize(extended.size),
+    );
+    try testing.expectEqual(uapi_version.isCanonical(extended), version.isCanonical(extended));
+    try testing.expectEqual(uapi_version.isCompatible(extended), version.isCompatible(extended));
+    try testing.expectEqual(
+        uapi_version.extendsBoundary(extended),
+        version.extendsBoundary(extended),
+    );
+    try testing.expectEqual(
+        uapi_version.requestedExtraBytes(extended),
+        version.requestedExtraBytes(extended),
+    );
+    try testing.expectEqual(@as(u32, 12), version.requestedExtraBytes(extended));
+
+    try testing.expectEqual(
+        uapi_version.hasCurrentAbiVersion(stale.abi_version),
+        version.hasCurrentAbiVersion(stale.abi_version),
+    );
+    try testing.expectEqual(uapi_version.isCanonical(stale), version.isCanonical(stale));
+    try testing.expectEqual(uapi_version.isCompatible(stale), version.isCompatible(stale));
+    try testing.expectEqual(
+        uapi_version.extendsBoundary(stale),
+        version.extendsBoundary(stale),
+    );
+    try testing.expectEqual(
+        uapi_version.requestedExtraBytes(stale),
+        version.requestedExtraBytes(stale),
+    );
+
+    try testing.expectEqual(uapi_version.canonicalizeHeader(extended), canonicalized);
+    try testing.expectEqual(version.header_size, canonicalized.size);
+    try testing.expectEqual(canonical.abi_version, canonicalized.abi_version);
+    try testing.expectEqual(extended.flags, canonicalized.flags);
+
+    try testing.expectEqual(uapi_version.validateBoundaryHeader(canonical), valid);
+    try testing.expectEqual(uapi_version.validateBoundaryHeader(extended), valid_extended);
+    try testing.expectEqual(uapi_version.validateBoundaryHeader(stale), invalid);
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(i32, 0), valid_extended.code);
+    try testing.expectEqual(@as(i32, -22), invalid.code);
+}
+
 test "header-family binding keeps the bounded relay surface explicit" {
     const current = header_family.currentVersion();
     const canonical = header_family.currentBoundaryHeader(0x31);
