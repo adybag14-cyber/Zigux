@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -37,8 +38,7 @@ REQUIRED_DUMP_MARKERS = (
     'bridge_read_ok={any}',
     'bridge_write_ok={any}',
     'narrow={s}',
-    'const stdout = std.io.getStdOut().writer();',
-    'try stdout.print(',
+    'std.debug.print(',
 )
 
 REQUIRED_BUILD_MARKERS = (
@@ -66,6 +66,10 @@ def _read(path: Path) -> str:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def _expected_output() -> str:
+    return "\n".join(EXPECTED_LINES) + "\n"
 
 
 def validate_repo(repo_root: Path) -> list[str]:
@@ -98,6 +102,40 @@ def validate_repo(repo_root: Path) -> list[str]:
     return issues
 
 
+def verify_replay(repo_root: Path, zig_executable: str) -> list[str]:
+    command = [
+        zig_executable,
+        "build",
+        "phase3-policy-dump",
+        "--build-file",
+        BUILD_PATH.as_posix(),
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        return [f"phase3 policy dump replay unavailable: {exc}"]
+
+    issues: list[str] = []
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip() or f"exit code {completed.returncode}"
+        issues.append(f"phase3 policy dump replay failed: {detail}")
+        return issues
+
+    if completed.stdout:
+        issues.append("unexpected stdout from phase3 policy dump replay")
+
+    if completed.stderr != _expected_output():
+        issues.append("unexpected phase3 policy dump replay stderr output")
+
+    return issues
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_policy_dump_") as temp_dir:
         root = Path(temp_dir)
@@ -121,12 +159,20 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current Phase 3 policy dump packet.")
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--zig", default="zig", help="Zig executable to use for live replay verification")
+    parser.add_argument(
+        "--skip-replay",
+        action="store_true",
+        help="only check the tracked files and fixture without running the dump replay",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
     issues = validate_repo(args.repo_root)
+    if not args.skip_replay:
+        issues.extend(verify_replay(args.repo_root, args.zig))
     if issues:
         print("PHASE3_POLICY_DUMP=fail")
         for issue in issues:
@@ -135,6 +181,8 @@ def main() -> int:
 
     print(f"validated {args.repo_root / DUMP_PATH}")
     print(f"validated {args.repo_root / EXPECTED_PATH}")
+    if not args.skip_replay:
+        print(f"verified replay {args.repo_root / BUILD_PATH}")
     return 0
 
 
