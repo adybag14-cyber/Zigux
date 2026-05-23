@@ -26,6 +26,7 @@ INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 TARGETLESS_WITNESS_CHECKER_PATH = Path("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py")
 TARGETLESS_WITNESS_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap.zig")
 TARGETLESS_WITNESS_BUILD_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
@@ -194,6 +195,10 @@ TARGETLESS_WITNESS_BUILD_MARKERS = (
     'const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");',
 )
 
+FORBIDDEN_MAKEFILE_MARKERS = (
+    "phase11-hvc-survey:",
+)
+
 
 class CheckError(RuntimeError):
     pass
@@ -235,6 +240,11 @@ def run_check(root: Path) -> None:
         TARGETLESS_WITNESS_BUILD_MARKERS,
     )
 
+    makefile_text = read_text(root / MAKEFILE_PATH)
+    for marker in FORBIDDEN_MAKEFILE_MARKERS:
+        if marker in makefile_text:
+            raise CheckError(f"forbidden Makefile marker present: {marker}")
+
     payload = json.loads(read_text(root / INVENTORY_PATH))
     checks = payload.get("exact_current_checks")
     if not isinstance(checks, list) or "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig" not in checks:
@@ -270,6 +280,7 @@ def build_fixture(root: Path) -> None:
     write(root / TARGETLESS_WITNESS_CHECKER_PATH, copy(TARGETLESS_WITNESS_CHECKER_PATH))
     write(root / TARGETLESS_WITNESS_PATH, copy(TARGETLESS_WITNESS_PATH))
     write(root / TARGETLESS_WITNESS_BUILD_PATH, copy(TARGETLESS_WITNESS_BUILD_PATH))
+    write(root / MAKEFILE_PATH, copy(MAKEFILE_PATH))
     write(
         root / INVENTORY_PATH,
         json.dumps(
@@ -361,6 +372,22 @@ def run_self_test() -> int:
             shutil.copytree(fixture, broken, dirs_exist_ok=True)
             expect_failure(broken, rel, needle)
 
+        forbidden_makefile_route = tmpdir / "forbidden_makefile_route"
+        shutil.copytree(fixture, forbidden_makefile_route, dirs_exist_ok=True)
+        write(
+            forbidden_makefile_route / MAKEFILE_PATH,
+            read_text(forbidden_makefile_route / MAKEFILE_PATH) + "\nphase11-hvc-survey:\n\t@true\n",
+        )
+        try:
+            run_check(forbidden_makefile_route)
+        except CheckError as exc:
+            if "phase11-hvc-survey:" not in str(exc):
+                raise AssertionError(
+                    f"expected forbidden makefile route failure, got {exc!r}"
+                ) from exc
+        else:
+            raise AssertionError("expected forbidden makefile route failure")
+
         bad_inventory = tmpdir / "bad_inventory"
         shutil.copytree(fixture, bad_inventory, dirs_exist_ok=True)
         write(bad_inventory / INVENTORY_PATH, '{"exact_current_checks":[],"workflow_phase11_steps":[]}\n')
@@ -372,7 +399,7 @@ def run_self_test() -> int:
             raise AssertionError("expected inventory failure")
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print(f"PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT={len(cases) + 1}")
+        print(f"PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT={len(cases) + 2}")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
