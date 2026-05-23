@@ -41,7 +41,7 @@ REQUIRED_SOURCE_MARKERS = {
         "static inline int zigux_hlist_first_broken_prev_link(",
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
         "static inline struct zigux_interop_policy zigux_default_interop_policy(void)",
-        "static inline zigux_export_status zigux_make_status(",
+        "static inline struct zigux_export_status zigux_make_status(",
     ),
     ABI_BINDINGS_PATH: (
         'const notifier_abi = @import("notifier_abi.zig");',
