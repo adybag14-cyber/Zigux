@@ -73,6 +73,92 @@ EXPECTED_HELPER_FIXTURE_MAP = {
     "tools/lib/zalloc.zig": "zalloc",
 }
 
+EXPECTED_REVIEW_ANCHOR_FIXTURE_FIELDS = {
+    "tools/lib/bitmap.zig": {
+        "parity_fixture_keys": (
+            "alloc_words",
+            "zalloc_words",
+            "zalloc_values",
+            "scnprintf",
+            "truncated_scnprintf_len",
+            "truncated_scnprintf",
+            "terminator_only_scnprintf_len",
+            "terminator_only_nul",
+            "zero_length_scnprintf_len",
+        ),
+        "partial_xor_review_fields": (
+            "partial_xor_nbits",
+            "partial_xor_masked_values",
+        ),
+    },
+    "tools/lib/find_bit.zig": {
+        "tail_clamp_fixture_keys": (
+            "tail_clamped_first",
+            "tail_clamped_next",
+            "tail_zero_clamped_first",
+            "tail_zero_clamped_next",
+            "tail_and_clamped_first",
+            "tail_and_clamped_next",
+            "tail_clamped_last",
+            "tail_clamped_empty_last",
+        ),
+        "tail_inclusive_boundary_fixture_keys": (
+            "tail_inclusive_boundary_next",
+            "tail_inclusive_boundary_zero",
+            "tail_inclusive_boundary_and",
+        ),
+    },
+    "tools/lib/rbtree.zig": {
+        "parity_fixture_keys": (
+            "empty_root",
+            "insert_order",
+            "reverse_order",
+            "replace_order",
+            "erase_init_order",
+            "postorder_count",
+            "erase_init_node_empty",
+            "cleared_node_empty",
+            "find_found_key",
+            "find_missing",
+            "find_first_serial",
+            "next_match_serials",
+            "match_iterator_serials",
+            "next_match_terminal_null",
+        ),
+        "cached_leftmost_fixture_keys": (
+            "cached_leftmost_return_serials",
+        ),
+    },
+    "tools/lib/list_sort.zig": {
+        "parity_fixture_keys": (
+            "tri_sorted_keys",
+            "tri_sorted_ordinals",
+            "bool_sorted_keys",
+            "bool_sorted_ordinals",
+        ),
+    },
+    "tools/lib/string.zig": {
+        "parity_fixture_keys": (
+            "strtobool_y",
+            "strtobool_on",
+            "strtobool_zero",
+            "strtobool_off",
+            "strtobool_invalid",
+            "strlcpy_len",
+            "strlcpy_buffer",
+            "skip_spaces",
+            "trim_spaces",
+            "remove_spaces",
+            "replace_char",
+            "replace_char_end",
+            "replace_char_cstr_end",
+            "replace_char_cstr_bytes",
+            "memchr_inv_index",
+            "memchr_inv_none",
+        ),
+    },
+}
+
 EXPECTED_MANIFEST_PATH = "zigux/tests/fixtures/phase1_helper_manifest.json"
 EXPECTED_FIXTURE_PATH = "zigux/tests/fixtures/phase1_helpers.json"
 EXPECTED_REPLAY_PATH = "zigux/tests/phase1_helpers.zig"
@@ -160,6 +246,38 @@ def resolve_field_path(payload: dict[str, object], field_path: str) -> object | 
     return current
 
 
+def validate_fixture_key_fields(
+    *,
+    helper_path: str,
+    fixture_key: str,
+    review_anchor: object,
+    fixture: dict[str, object],
+    failures: list[str],
+) -> None:
+    if not isinstance(review_anchor, dict):
+        failures.append(issue(f"review_anchor_type:{helper_path}", "dict", type(review_anchor).__name__))
+        return
+    helper_fixture = fixture.get(fixture_key)
+    if not isinstance(helper_fixture, dict):
+        failures.append(issue(f"fixture_helper_type:{helper_path}", "dict", type(helper_fixture).__name__))
+        return
+
+    for field_name, expected_keys in EXPECTED_REVIEW_ANCHOR_FIXTURE_FIELDS.get(helper_path, {}).items():
+        actual_keys = tuple(review_anchor.get(field_name, []))
+        if actual_keys != expected_keys:
+            failures.append(issue(f"review_anchor_fixture_keys:{helper_path}:{field_name}", expected_keys, actual_keys))
+            continue
+        missing = tuple(key for key in expected_keys if key not in helper_fixture)
+        if missing:
+            failures.append(
+                issue(
+                    f"review_anchor_fixture_field_presence:{helper_path}:{field_name}",
+                    (),
+                    missing,
+                )
+            )
+
+
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
 
@@ -230,6 +348,23 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(f"helper_missing_from_manifest_for_fixture:{helper_path}")
         if fixture_key not in fixture:
             failures.append(f"fixture_key_missing_for_helper:{helper_path}:{fixture_key}")
+
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        failures.append(issue("review_anchors_type", "dict", type(review_anchors).__name__))
+        return failures
+    review_anchor_keys = tuple(sorted(review_anchors.keys()))
+    expected_review_anchor_keys = tuple(sorted(EXPECTED_HELPER_FIXTURE_MAP.keys()))
+    if review_anchor_keys != expected_review_anchor_keys:
+        failures.append(issue("review_anchor_keys", expected_review_anchor_keys, review_anchor_keys))
+    for helper_path, fixture_key in EXPECTED_HELPER_FIXTURE_MAP.items():
+        validate_fixture_key_fields(
+            helper_path=helper_path,
+            fixture_key=fixture_key,
+            review_anchor=review_anchors.get(helper_path),
+            fixture=fixture,
+            failures=failures,
+        )
 
     manifest_lane = manifest.get("lane_sequencing")
     blocker_lane = blockers.get("lane_sequencing")
@@ -404,7 +539,24 @@ def sample_manifest() -> dict[str, object]:
             "rule_summary": EXPECTED_RULE_SUMMARY,
             "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
         },
+        "review_anchors": {
+            helper_path: fields
+            for helper_path, fields in sample_review_anchors().items()
+        },
     }
+
+
+def sample_review_anchors() -> dict[str, dict[str, object]]:
+    anchors: dict[str, dict[str, object]] = {}
+    for helper_path in EXPECTED_HELPERS:
+        fixture_name = EXPECTED_HELPER_FIXTURE_MAP[helper_path]
+        anchor = {
+            "next_safe_step_note": f"Keep {fixture_name} bounded to its current manifest packet unless fixture drift appears.",
+        }
+        for field_name, expected_keys in EXPECTED_REVIEW_ANCHOR_FIXTURE_FIELDS.get(helper_path, {}).items():
+            anchor[field_name] = list(expected_keys)
+        anchors[helper_path] = anchor
+    return anchors
 
 
 def sample_blockers() -> dict[str, object]:
@@ -647,6 +799,29 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "review_anchor_keys_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data["review_anchors"].pop("tools/lib/string.zig"),
+            ),
+        ),
+        (
+            "review_anchor_fixture_keys_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data["review_anchors"]["tools/lib/bitmap.zig"].__setitem__(
+                    "parity_fixture_keys", ["drift"]
+                ),
+            ),
+        ),
+        (
+            "review_anchor_missing_fixture_field",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helpers.json",
+                lambda data: data["find_bit"].pop("tail_clamped_last"),
+            ),
+        ),
+        (
             "fixture_keys_drift",
             lambda root: _mutate_json(
                 root / "zigux/tests/fixtures/phase1_helpers.json",
@@ -762,6 +937,10 @@ def main() -> int:
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_FIXTURE_HELPER_COUNT={len(EXPECTED_FIXTURE_KEYS)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_BLOCKED_FIELD={EXPECTED_REPLAY_BLOCKER_FIELD}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_C_HARNESS_PRESENT={EXPECTED_C_HARNESS_PRESENT}")
+    print(
+        "PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_REVIEW_ANCHOR_HELPER_COUNT="
+        f"{len(EXPECTED_HELPER_FIXTURE_MAP)}"
+    )
     return 0
 
 
