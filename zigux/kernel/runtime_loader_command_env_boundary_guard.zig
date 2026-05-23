@@ -11,6 +11,15 @@ fn expectLacks(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
+fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        path,
+        allocator,
+        .limited(512 * 1024),
+    );
+}
+
 test "shared runtime loader surface keeps the bounded request contract explicit" {
     try expectContains(runtime_loader_contract_source, "pub const LoadPlan = struct");
     try expectContains(runtime_loader_contract_source, "module_name");
@@ -99,6 +108,48 @@ test "shared runtime loader surface rejects argv and environment control bleed-t
     }
     inline for (loader_forbidden_markers) |marker| {
         try expectLacks(runtime_loader_source, marker);
+    }
+}
+
+test "shared runtime loader surface keeps Phase 8 exec-cmd path controls in their original owner" {
+    const exec_cmd_source = try readRepoFile(std.testing.allocator, "tools/lib/subcmd/exec-cmd.zig");
+    defer std.testing.allocator.free(exec_cmd_source);
+
+    const exec_cmd_owner_markers = [_][]const u8{
+        "pub const Config",
+        "exec_name",
+        "exec_path",
+        "exec_path_env",
+        "PERF_EXEC_PATH",
+        "setupPathWithPwd",
+        "buildDeferredExeclCall",
+        "buildDeferredExecvCall",
+        "\"PATH\"",
+    };
+
+    inline for (exec_cmd_owner_markers) |marker| {
+        try expectContains(exec_cmd_source, marker);
+        try expectLacks(runtime_loader_source, marker);
+    }
+}
+
+test "shared runtime loader surface keeps Phase 8 help-display controls in their original owner" {
+    const help_source = try readRepoFile(std.testing.allocator, "tools/lib/subcmd/help.zig");
+    defer std.testing.allocator.free(help_source);
+
+    const help_owner_markers = [_][]const u8{
+        "default_command_prefix",
+        "default_terminal_columns",
+        "renderPrettyStringList",
+        "renderCommandSections",
+        "$PATH",
+        "terminal_columns",
+    };
+
+    inline for (help_owner_markers) |marker| {
+        try expectContains(help_source, marker);
+        try expectLacks(runtime_loader_source, marker);
+        try expectLacks(runtime_loader_contract_source, marker);
     }
 }
 
