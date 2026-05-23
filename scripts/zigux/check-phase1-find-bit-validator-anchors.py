@@ -54,7 +54,7 @@ REQUIRED_DOCS_README_LINES = {
 }
 
 REQUIRED_LANE_NOTE_LINES = {
-    "direct_owner": '- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), and findLastBit() byte-clump and backward-scan coverage, underscore-alias and Linux-style alias coverage including the shipped find_first_andnot_bit(), find_next_andnot_bit(), _find_first_andnot_bit(), and _find_next_andnot_bit() entry points, and tail-word skip anchors plus the committed tail-clamped and tail-inclusive-boundary find_bit replay fields already preserved in zigux/tests/phase1_helpers.json`',
+    "direct_owner": '- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), and findLastBit() byte-clump and backward-scan coverage, underscore-alias and Linux-style alias coverage including the shipped find_first_andnot_bit(), find_next_andnot_bit(), _find_first_andnot_bit(), and _find_next_andnot_bit() entry points, and tail-word skip anchors plus the committed tail-clamped and tail-inclusive-boundary find_bit replay fields already preserved in zigux/tests/fixtures/phase1_helpers.json`',
     "byte_clump_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
     "next_safe_step": '- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias or Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or for committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families`',
 }
@@ -67,6 +67,8 @@ EXPECTED_FIND_BIT_PACKET = {
     "same_word_start_masks": 'test "single-word next scans honor start masks"',
     "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "single_word_tail_inclusive_boundary_anchor": 'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
+    "tail_word_inclusive_boundary_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit of the final partial word, while later starts still return nbits instead of leaking the out-of-range tail.",
     "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
     "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
     "andnot_scan_entrypoints": [
@@ -291,6 +293,8 @@ def run_self_test() -> int:
 
     manifest_paths = [
         ("review_anchors", "tools/lib/find_bit.zig", "same_word_start_masks"),
+        ("review_anchors", "tools/lib/find_bit.zig", "single_word_tail_inclusive_boundary_anchor"),
+        ("review_anchors", "tools/lib/find_bit.zig", "tail_word_inclusive_boundary_contract"),
         ("review_anchors", "tools/lib/find_bit.zig", "andnot_scan_entrypoint_contract"),
         ("review_anchors", "tools/lib/find_bit.zig", "tail_clamp_fixture_keys"),
         ("review_anchors", "tools/lib/find_bit.zig", "review_packet_summary"),
