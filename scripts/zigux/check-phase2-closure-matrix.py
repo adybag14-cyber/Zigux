@@ -211,6 +211,12 @@ def assert_issue(module, root: Path, expected: tuple[str, str]) -> None:
         raise AssertionError(f"missing expected issue {expected!r}; saw {issues!r}")
 
 
+def assert_clean(module, root: Path) -> None:
+    issues = collect_checker_issues(module, root)
+    if issues != []:
+        raise AssertionError(f"expected no issues; saw {issues!r}")
+
+
 def assert_system_exit_contains(action, expected_substring: str) -> None:
     try:
         action()
@@ -453,6 +459,18 @@ def run_matrix(module, seed_root) -> int:
                 write_json(manifest_path, payload)
                 assert_issue(module, root, ("MISSING_MANIFEST_SURFACE", f"{key}:{marker}"))
                 checks_run += 1
+
+        for unsupported_value in (
+            ["ignored-extra-a", "ignored-extra-b"],
+            "ignored-extra-shape-drift",
+        ):
+            seed_root(root)
+            manifest_path = module.resolve(root, module.MANIFEST_REL)
+            payload = load_json(manifest_path)
+            payload["present_surfaces"]["unsupported_extra_bucket"] = unsupported_value
+            write_json(manifest_path, payload)
+            assert_clean(module, root)
+            checks_run += 1
 
         seed_root(root)
         cases_path = module.resolve(root, module.KCONFIG_CASES_REL)
