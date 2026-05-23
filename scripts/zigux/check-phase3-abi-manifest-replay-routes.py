@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the Phase 3 ABI manifest's export/UAPI and policy-unsafe replay routes."""
+"""Fail-close the Phase 3 ABI manifest's shared replay routes."""
 
 from __future__ import annotations
 
@@ -24,6 +24,8 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
     '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
     '"python3 scripts/zigux/check-phase3-policy-dump.py"',
+    '"python3 scripts/zigux/validate_phase3_selftest.py"',
+    '"python3 scripts/zigux/run-phase3-checks.py"',
     '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
     '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
     '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
@@ -44,6 +46,8 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
     "scripts/zigux/check-phase3-policy-dump.py",
+    "scripts/zigux/validate_phase3_selftest.py",
+    "scripts/zigux/run-phase3-checks.py",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -58,6 +62,8 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py",
+    "python3 scripts/zigux/validate_phase3_selftest.py",
+    "python3 scripts/zigux/run-phase3-checks.py",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
@@ -142,6 +148,8 @@ def _sample_validator() -> str:
         '    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",',
         '    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",',
         '    "python3 scripts/zigux/check-phase3-policy-dump.py",',
+        '    "python3 scripts/zigux/validate_phase3_selftest.py",',
+        '    "python3 scripts/zigux/run-phase3-checks.py",',
         '    "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",',
         '    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",',
         '    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",',
@@ -309,6 +317,34 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         current = _read(validator_path)
+        needle = '    "python3 scripts/zigux/validate_phase3_selftest.py",\n'
+        _write(validator_path, current.replace(needle, "", 1))
+        issues = validate_repo(repo_root)
+        expected = (
+            "missing scripts/zigux/validate-phase3.py marker: "
+            '"python3 scripts/zigux/validate_phase3_selftest.py"'
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected selftest-driver validator-route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        current = _read(validator_path)
+        needle = '    "python3 scripts/zigux/run-phase3-checks.py",\n'
+        _write(validator_path, current.replace(needle, "", 1))
+        issues = validate_repo(repo_root)
+        expected = (
+            "missing scripts/zigux/validate-phase3.py marker: "
+            '"python3 scripts/zigux/run-phase3-checks.py"'
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected runner validator-route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        current = _read(validator_path)
         needle = '    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",\n'
         _write(validator_path, current.replace(needle, "", 1))
         issues = validate_repo(repo_root)
@@ -381,6 +417,34 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].remove("scripts/zigux/validate_phase3_selftest.py")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "scripts/zigux/validate_phase3_selftest.py"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected selftest-driver packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].remove("scripts/zigux/run-phase3-checks.py")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "scripts/zigux/run-phase3-checks.py"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected runner packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
         manifest["replay_routes"].remove(
             "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"
         )
@@ -446,6 +510,38 @@ def run_self_test() -> int:
         _populate_repo(repo_root)
         manifest = json.loads(_read(manifest_path))
         manifest["replay_routes"].remove(
+            "python3 scripts/zigux/validate_phase3_selftest.py"
+        )
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "python3 scripts/zigux/validate_phase3_selftest.py"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected selftest-driver route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].remove(
+            "python3 scripts/zigux/run-phase3-checks.py"
+        )
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "python3 scripts/zigux/run-phase3-checks.py"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected runner route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].remove(
             "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"
         )
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
@@ -471,13 +567,13 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=20")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the Phase 3 ABI manifest's export/UAPI and policy-unsafe replay routes."
+        description="Validate the Phase 3 ABI manifest's shared replay routes."
     )
     parser.add_argument(
         "--repo-root",
