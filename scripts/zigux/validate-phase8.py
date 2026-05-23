@@ -171,6 +171,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "scripts/zigux/validate-phase8.py",
         "zigux/tests/phase8_perf_buffer_poll.zig",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "zigux/tests/phase8_file_path_handle_boundary_guard.zig",
+        "zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig",
     ),
     Path("zigux/Makefile"): (
         "phase8-validate:",
