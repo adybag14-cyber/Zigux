@@ -74,7 +74,6 @@ SCRIPTS_ROOT_REQUIRED_MARKERS = (
     "`scripts/zigux/check-phase10-ring-packet.py`",
     "`scripts/zigux/check-phase10-input-packet.py`",
     "`scripts/zigux/check-phase10-mmio-packet.py`",
-    "`scripts/zigux/check-phase10-closure-manifest-counts.py`",
     "`scripts/zigux/validate-phase10.py`",
     "`scripts/zigux/validate-phase10-closure.py`",
     "`zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` keep the returned closure-manifest and shared build gate explicit from the scripts root beside the same checker-backed review packet",
@@ -171,7 +170,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
 ## Phase 10
 
 - Phase 10 flow - the current scripts-root virtio packet stays reviewable through the bootstrap-route guard, the shared freeze-boundary guard, the ring, input, and MMIO packet guards, the harness-coverage and tests-readme core-surface guards, the returned validator pair, the closure manifest, and the Makefile-backed shared build gate while the narrower core-side repo-reality gaps and risky transport follow-through stay parked
-- `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-shared-freeze-boundary.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/check-phase10-closure-manifest-counts.py`, `scripts/zigux/validate-phase10.py`, and `scripts/zigux/validate-phase10-closure.py` keep the shipped shared Phase 10 scripts-root packet explicit on current `master`
+- `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-shared-freeze-boundary.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/validate-phase10.py`, and `scripts/zigux/validate-phase10-closure.py` keep the shipped shared Phase 10 scripts-root packet explicit on current `master`
 - `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` keep the returned closure-manifest and shared build gate explicit from the scripts root beside the same checker-backed review packet
 - public current-`master` readback now rematerializes `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig`, so keep those returned core-side companions explicit beside the returned core survey while only `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` remain the narrower core-side repo-reality gaps in this scripts-root reminder
 - `drivers/virtio/virtio_ring_publish_readiness.zig` stays explicit in the returned ring packet so the scripts-root reminder keeps the queue-local publish-readiness wrapper visible beside the other ring companions without widening into transport claims
@@ -302,18 +301,6 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
     else:
         raise AssertionError("expected scripts-root validator-pair marker failure")
 
-    missing_scripts_manifest_counts = good_scripts_root.replace(
-        "`scripts/zigux/check-phase10-closure-manifest-counts.py`",
-        "`scripts/zigux/check-phase10-closure-manifest-counts-missing.py`",
-        1,
-    )
-    try:
-        check_scripts_readme(missing_scripts_manifest_counts)
-    except SystemExit as exc:
-        assert "scripts-readme" in str(exc)
-    else:
-        raise AssertionError("expected scripts-root closure-manifest-counts marker failure")
-
     bad_mmio_companion = good_companion.replace(
         "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`",
         "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion-missing.md`",
@@ -411,7 +398,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing ring publish-readiness scripts-root marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
