@@ -58,6 +58,44 @@ test "phase2 genksyms wrapper replay preserves mixed version counts before missi
     }
 }
 
+test "phase2 genksyms wrapper replay preserves mixed version counts before missing long arguments" {
+    const args = [_][]const u8{
+        "--version",
+        "-V",
+        "--reference",
+    };
+    const outcome = try genksyms.parseArgs(std.testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try std.testing.expectEqual(@as(usize, 2), failure.version_count);
+            switch (failure.reason) {
+                .missing_option_argument => |option| try std.testing.expectEqualStrings("--reference", option),
+                else => return error.ExpectedMissingLongArgumentFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
+test "phase2 genksyms wrapper replay preserves mixed version counts before unexpected long arguments" {
+    const args = [_][]const u8{
+        "--ver",
+        "--version",
+        "--help=extra",
+    };
+    const outcome = try genksyms.parseArgs(std.testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try std.testing.expectEqual(@as(usize, 2), failure.version_count);
+            switch (failure.reason) {
+                .unexpected_option_argument => |option| try std.testing.expectEqualStrings("--help", option),
+                else => return error.ExpectedUnexpectedLongArgumentFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "phase2 genksyms wrapper replay preserves mixed version counts before too many reference files" {
     const args = [_][]const u8{
         "--version",
