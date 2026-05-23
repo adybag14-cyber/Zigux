@@ -85,6 +85,7 @@ If a freeze-in-C review closes without a status change, the closeout record must
 - the retained `freeze_in_c` decision
 - the current blocker
 - the required approver set
+- the governance lane sequencing link or explicit scope note
 - `retired_from_active_discussion` state
 - the automatic return-to-blocked trigger
 - the reopen triggers
