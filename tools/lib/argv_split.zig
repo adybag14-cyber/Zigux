@@ -169,6 +169,15 @@ test "argvSplit treats carriage return vertical tab and form feed as separators"
     try std.testing.expectEqualStrings("gamma", result.argv[2]);
 }
 
+test "argvSplit keeps non-whitespace control bytes inside a token" {
+    var result = try argvSplit(std.testing.allocator, "alpha\x07beta gamma\x1fdelta\x00tail");
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+    try std.testing.expectEqualStrings("alpha\x07beta", result.argv[0]);
+    try std.testing.expectEqualStrings("gamma\x1fdelta", result.argv[1]);
+}
+
 test "countArgc stops at the first embedded nul byte" {
     try std.testing.expectEqual(@as(usize, 0), countArgc(cStringPrefix("\x00ignored tail")));
     try std.testing.expectEqual(@as(usize, 2), countArgc(cStringPrefix("alpha beta\x00gamma delta")));
