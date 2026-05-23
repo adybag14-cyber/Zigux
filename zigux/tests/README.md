@@ -248,3 +248,47 @@ Although `zigux/Makefile` is present on current `master`, it still does not mate
 
 Tests-root reviewer prompt:
 - Does the bounded Phase 15 reminder keep the directly readable governance packet, the returned review-process build replay, the returned readiness and handoff survey packet members, the returned focused handoff replay, the shared-summary gap note, the active-governance replay entrypoints, and the still-missing validator-first, route-level, and build-level surfaces aligned without promoting blocked governance wrappers or deeper-core status changes into current tests-root evidence without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?
+
+## Phase 9 runtime packet
+
+Keep the current bounded Phase 9 reminder packet explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`.
+
+Keep the current shared review-checklist and trace-events checker packet explicit through `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md`, while keeping the shared loader and command/environment boundary packet distinct from the trace-events direct sample family.
+
+Keep `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, `zigux/tests/phase9_build.zig`, and `samples/zigux/runtime_bitmap_loader.zig` explicit as the current shared loader, bounded rerun-bundle, and direct loader-companion evidence, and keep `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` framed as historical wider-family vocabulary until trusted direct rereads return them.
+
+Keep the narrow trace-events packet distinct too: `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`, `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` remain the current shipped runtime-pilot proof rather than shared loader evidence.
+
+Keep the partial runtime bitmap reminder packet distinct from that returned loader shard too: `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `zigux/tests/runtime_bitmap_manifest.json` are the current trusted bitmap-side evidence surfaces, while that returned bitmap-side visibility still must not be used to imply that the broader shared runtime-loader or blocked publication boundaries returned.
+
+Keep the bounded Phase 9 build bundle explicit as a rerun surface only: `zigux/tests/phase9_build.zig` reruns the atomic64 diff, bitmap survey, bitmap module, bitmap diff, bitmap top-bit companion, shared loader allocator/init-flow, shared loader command/environment boundary guard, and the first-loadable parity-survey handle, but it is not proof that blocked publication boundaries or deeper runtime substrate work are complete.
+
+Keep the Phase 8 and earlier non-owner boundaries explicit too: `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` remain the command and environment owners, `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface references, and `rust/exports.c` plus `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 9 reminder keep the shared checker trio, the narrow trace-events sample family, the returned shared loader and command/environment boundary packet, the partial runtime bitmap reminder packet including the returned module and diff witnesses, the bounded build rerun surface, and the study-only freeze-map routing aligned without promoting blocked publication, install-root, or broader runtime-substrate completion claims?
+
+## Phase 12 release packet
+
+Keep the current shared Phase 12 packet explicit through `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
+
+Keep the directly readable validator-side support bundle explicit from the tests root too:
+
+- `scripts/zigux/validate-phase12.py`
+- `scripts/zigux/check-build-only-phase12-surface.py`
+- `scripts/zigux/check-phase12-release-readiness-packet.py`
+- `.github/workflows/zigux-bootstrap.yml`
+- `zigux/tests/phase12_build.zig`
+- `zigux/Makefile`
+- `make -C zigux phase12-validate`
+
+Keep the degraded rerun order honest here too: rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile` before attached-Zig rerun vocabulary, and if that local fallback is absent keep `make -C zigux phase12-validate` explicit as shipped current-route proof ahead of the attached-Zig rerun vocabulary `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`.
+
+Keep the degraded-read fallback split explicit too: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the one commit-pinned direct replay catalog, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` is the driver-local current-master gap-note companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than extra commit-pinned fallback artifacts.
+
+Keep the bounded driver-family split explicit too: the shared route stays the six-file `virtio_net` smoke-and-test sextet in `zigux/tests/phase12_build.zig` through `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig`, `virtio_scsi` remains the rollback-lab packet through its dedicated survey companions outside the shared route, `nvme_pci` remains the bounded driver-local foothold outside the shared route, and the parked libbpf packet stays tied to `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` rather than being promoted into a focused shared replay claim.
+
+Keep the docs-root Phase 12 note bounded below DMA-safe receive ownership, queue-restart parity, throughput delivery, recovery, deeper transport lifecycle, `net/core/skbuff.c`, `kernel/workqueue.c`, and `kernel/trace/ring_buffer.c` claims until fresh current-`master` proof lands for those deeper surfaces.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 12 reminder keep the release sequencing, readiness, closure, coordination, shared validator support bundle, degraded rerun order, raw-GitHub fallback split, and bounded driver-family split aligned without promoting deeper transport, DMA-safe receive, or study-only anchor claims into current release packet proof?
