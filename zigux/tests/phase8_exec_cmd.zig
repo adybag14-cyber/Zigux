@@ -6,6 +6,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
     const full_path = try std.fs.path.join(allocator, &.{ build_options.repo_root, path });
     defer allocator.free(full_path);
@@ -262,6 +266,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try expectContains(validate_phase8, "tools/lib/subcmd/exec-cmd.zig");
     try expectContains(validate_phase8, "zigux/tests/phase8_exec_cmd.zig");
     try expectContains(validate_phase8, "zigux/tests/phase8_exec_cmd_only_build.zig");
+    try expectNotContains(validate_phase8, "expectMissingPath(\"tools/lib/subcmd/exec-cmd.zig\")");
 
     const build_file = try readWorkspaceFile(
         std.testing.allocator,
@@ -270,6 +275,4 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     );
     defer std.testing.allocator.free(build_file);
     try expectContains(build_file, "Run focused Phase 8 exec-cmd tests");
-
-    // Legacy validator breadcrumb: expectMissingPath("tools/lib/subcmd/exec-cmd.zig")
 }
