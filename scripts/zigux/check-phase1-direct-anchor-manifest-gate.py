@@ -411,6 +411,21 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/string.zig"].__setitem__(
+                        "next_safe_step_note",
+                        manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/string.zig:next_safe_step_note",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest.__setitem__("helper_count", 12),
                     write_manifest(root, manifest),
                 )
