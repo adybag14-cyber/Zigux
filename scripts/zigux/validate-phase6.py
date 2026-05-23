@@ -223,7 +223,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 18
 
 
 class ValidationError(RuntimeError):
@@ -773,6 +773,9 @@ def run_self_test() -> None:
                     REQUIRED_WORKFLOW_SNIPPETS[1] + "\n", "", 1
                 ),
             )
+        )
+        expect_mutation(
+            lambda: (root / CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER).unlink()
         )
         expect_mutation(lambda: (root / PERF_THRESHOLD_CHECKER).unlink())
         expect_mutation(
