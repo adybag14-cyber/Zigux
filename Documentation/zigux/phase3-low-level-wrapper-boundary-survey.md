@@ -29,6 +29,9 @@ This note records the current roadmap-versus-repo reality for the bounded Phase 
 ## Adjacent Directly Readable Phase 3 Support
 
 - `scripts/zigux/check-phase3-catalog-selftest.py`
+- `scripts/zigux/check-phase3-selftest-surface.py`
+
+Current `master` also keeps `scripts/zigux/check-phase3-selftest-surface.py` directly readable as the shared Phase 3 selftest-surface guard for the returned validator-support, shared-tests-route, export/UAPI, catalog, and low-level-wrapper reminder packet. That newer shared guard should stay framed here as adjacent cross-packet support rather than as extra low-level-wrapper-local proof.
 
 ## Current Gap
 
