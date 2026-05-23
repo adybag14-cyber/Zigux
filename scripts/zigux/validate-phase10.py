@@ -256,6 +256,14 @@ def run_self_test() -> int:
             "zigux/tests/phase10_virtio_input_survey.zig",
             "missing_input_survey_path",
         )
+        assert_missing_required_path(
+            "scripts/zigux/check-phase10-closure-manifest-counts.py",
+            "missing_closure_manifest_counts_checker_path",
+        )
+        assert_missing_required_path(
+            "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+            "missing_lane_sequencing_path",
+        )
 
         def assert_subcommand_failure(
             script_rel: str,
@@ -325,7 +333,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
