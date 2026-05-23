@@ -9,6 +9,68 @@ fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEve
     try std.testing.expect(std.meta.eql(before, after));
 }
 
+test "phase9 trace-events sample keeps cold-stage registration lifecycle failures fail-closed" {
+    var module = RuntimeTraceEventsSample{};
+
+    const cold_before = module.summary();
+    try std.testing.expectEqual(ModuleStage.cold, cold_before.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.main_iterations);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.total_events);
+    try std.testing.expectEqual(@as(?usize, null), cold_before.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), cold_before.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), cold_before.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_before.exit_runs);
+    try std.testing.expectEqual(@as(i32, -1), cold_before.last_main_count);
+    try std.testing.expectEqual(@as(i32, -1), cold_before.last_fn_count);
+    try std.testing.expect(!cold_before.saw_vararg_payload);
+    try std.testing.expect(!cold_before.saw_rel_loc_payload);
+    try std.testing.expect(!cold_before.saw_conditional_path);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.main_thread_label);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.function_thread_label);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_register_label);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_unregister_label);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_main_foo_bar_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_main_random_choice_message);
+    try std.testing.expectEqual(@as(?usize, null), cold_before.last_main_vararg_array_length);
+    try std.testing.expectEqual(@as(?bool, null), cold_before.last_main_vararg_array_terminator_zero);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_main_template_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_main_conditional_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_main_template_cond_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_main_template_print_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_main_relative_location_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_function_foo_bar_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_function_template_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_before.last_format_template);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(0));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+
+    const cold_after = module.summary();
+    try expectSummaryStable(cold_before, cold_after);
+
+    try module.init();
+    const initialized = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized.registration_depth);
+    try std.testing.expectEqualStrings("event-sample", initialized.main_thread_label orelse return error.ExpectedMainThreadLabel);
+    try std.testing.expectEqualStrings("event-sample-fn", initialized.function_thread_label orelse return error.ExpectedFunctionThreadLabel);
+    try std.testing.expectEqual(@as(?[]const u8, null), initialized.last_register_label);
+    try std.testing.expectEqual(@as(?[]const u8, null), initialized.last_unregister_label);
+}
+
 test "phase9 trace-events sample keeps unregistered function-thread failures fail-closed" {
     var module = RuntimeTraceEventsSample{};
     try module.init();
