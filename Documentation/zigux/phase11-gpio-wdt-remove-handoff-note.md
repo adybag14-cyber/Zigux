@@ -21,6 +21,7 @@ The current remove-handoff-facing gpio packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -30,7 +31,7 @@ The current remove-handoff-facing gpio packet on `master` is:
 Current direct contents reads in this run do not rematerialize the older wider
 replay and route surfaces `zigux/tests/phase11_gpio_wdt.zig`,
 `zigux/tests/phase11_gpio_wdt_manifest.json`, or `zigux/tests/phase11_build.zig`,
-so keep the remove-handoff packet bounded to the returned driver, proof, and
+so keep the remove-handoff packet bounded to the returned driver, proofs, and
 coupled docs surfaces instead of treating absent wider replay, manifest, or
 shared-build files as current-head evidence.
 
@@ -41,6 +42,10 @@ shared-build files as current-head evidence.
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig` keeps the
   register-device failure summary and first bounded register-device request tied
   to the reboot-glue boundary before any later remove-hook execution claim.
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig` keeps
+  `nowayoutPolicySummary()` explicit across the bounded stopped,
+  blocked-by-nowayout, and kept-running split before any platform cleanup
+  callback or remove-hook execution claim.
 - `requestStop()` keeps the bounded nowayout, stopped, and kept-running stop
   split explicit before any platform cleanup callback claim.
 - `rebootGlueCheckpointSummary()` keeps the stop-on-reboot handoff visible
