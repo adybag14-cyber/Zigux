@@ -92,3 +92,35 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers count one-hot bits across every in-range position" {
+    inline for (0..8) |bit| {
+        const value = @as(u32, 1) << @as(std.math.Log2Int(u32), @intCast(bit));
+        try std.testing.expectEqual(@as(u32, 1), swHweight8(value));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight8(value));
+    }
+
+    inline for (0..16) |bit| {
+        const value = @as(u32, 1) << @as(std.math.Log2Int(u32), @intCast(bit));
+        try std.testing.expectEqual(@as(u32, 1), swHweight16(value));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight16(value));
+    }
+
+    inline for (0..32) |bit| {
+        const value = @as(u32, 1) << @as(std.math.Log2Int(u32), @intCast(bit));
+        try std.testing.expectEqual(@as(u32, 1), swHweight32(value));
+        try std.testing.expectEqual(@as(u32, 1), __sw_hweight32(value));
+    }
+
+    inline for (0..64) |bit| {
+        const value = @as(u64, 1) << @as(std.math.Log2Int(u64), @intCast(bit));
+        try std.testing.expectEqual(@as(u64, 1), swHweight64(value));
+        try std.testing.expectEqual(@as(u64, 1), __sw_hweight64(value));
+    }
+
+    inline for (0..@bitSizeOf(usize)) |bit| {
+        const value = @as(usize, 1) << @as(std.math.Log2Int(usize), @intCast(bit));
+        try std.testing.expectEqual(@as(usize, 1), hweightLong(value));
+        try std.testing.expectEqual(@as(usize, 1), hweight_long(value));
+    }
+}
