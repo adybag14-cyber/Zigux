@@ -56,6 +56,10 @@ REQUIRED_MARKERS = {
         "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+        "PHASE3_DEV_T_STARTER_PACKET_MANIFEST=zigux/tests/phase3_dev_t_starter_packet_manifest.json",
+        "PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts/zigux/check-phase3-dev-t-starter-packet.py",
+        "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
+        "PHASE3_DEV_T_STARTER_PACKET_RUN=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
         "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
         "`zigux/tests/phase3_export_shim_build.zig` now carries the focused `phase3-export-shim-test` replay handoff",
@@ -192,15 +196,12 @@ REQUIRED_MARKERS = {
     ),
 }
 
-
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
-
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -270,6 +271,26 @@ def run_self_test() -> int:
             SURVEY_PATH,
             "PHASE3_LAYOUT_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout-test",
             "expected missing dedicated layout-build make-route marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_DEV_T_STARTER_PACKET_MANIFEST=zigux/tests/phase3_dev_t_starter_packet_manifest.json",
+            "expected missing dev_t starter packet manifest marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts/zigux/check-phase3-dev-t-starter-packet.py",
+            "expected missing dev_t starter packet checker marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
+            "expected missing dev_t starter packet self-test marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_DEV_T_STARTER_PACKET_RUN=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
+            "expected missing dev_t starter packet replay marker was not reported",
         ),
         (
             SURVEY_PATH,
