@@ -75,7 +75,7 @@ REQUIRED_MARKERS = {
         'try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");',
         'try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");',
         'try expectContains(makefile, "phase7-validate:");',
-        'try expectContains(fixture, "\"packet\": \"phase7-rbtree-parity-fixture\"");',
+        'try expectContains(fixture, "\\"packet\\": \\"phase7-rbtree-parity-fixture\\"");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
         '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"',
@@ -103,7 +103,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 9
 
 
 def read_text(path: Path) -> str:
@@ -153,6 +153,17 @@ def run_self_test() -> None:
         write_fixture_root(root)
         direct_anchor_path = root / "Documentation/zigux/phase7-rbtree-direct-anchor-note.md"
         direct_anchor_marker = "Machine-readable fallback provenance stays explicit through `public_fallback_non_owner_paths`"
+        direct_anchor_path.write_text(
+            read_text(direct_anchor_path).replace(direct_anchor_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert validate(root) == (
+            [],
+            [f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {direct_anchor_marker}"],
+        )
+
+        write_fixture_root(root)
+        direct_anchor_marker = "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`"
         direct_anchor_path.write_text(
             read_text(direct_anchor_path).replace(direct_anchor_marker + "\n", "", 1),
             encoding="utf-8",
