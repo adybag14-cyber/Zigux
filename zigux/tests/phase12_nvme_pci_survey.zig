@@ -98,48 +98,58 @@ test "phase12 nvme pci survey manifest keeps the bounded starter packet truthful
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_gate_present);
 
     try std.testing.expectEqualStrings(
-        "starter_verifier_direct_test_manifest_and_survey_gate_present_shared_build_unwired",
+        "starter_verifier_direct_test_manifest_and_survey_gate_present_shared_build_direct_replay_present",
         manifest.roadmap_gap_check.queueing_correctness.status,
     );
     try std.testing.expectEqualStrings(
         "recovery_budget_summary_and_survey_gate_present_throughput_gate_missing",
         manifest.roadmap_gap_check.throughput_and_recovery_parity.status,
     );
+    try std.testing.expectEqualStrings(
+        "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_build_direct_replay_present",
+        manifest.roadmap_gap_check.segmented_rollout.status,
+    );
     try std.testing.expect(
         std.mem.indexOf(
             u8,
-            manifest.roadmap_gap_check.segmented_rollout.current_surface,
-            "fallback map",
+            manifest.roadmap_gap_check.queueing_correctness.current_surface,
+            "shared smoke-first Phase 12 build route",
         ) != null,
     );
 
     var saw_direct = false;
-    var saw_survey_note = false;
+    var saw_shared_build = false;
     var saw_survey_gate = false;
 
     try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
     for (manifest.gaps) |gap| {
         if (std.mem.eql(u8, gap.id, "phase12-nvme-direct-replay")) {
             saw_direct = true;
-            try std.testing.expectEqualStrings("landed_on_master", gap.status);
+            try std.testing.expectEqualStrings("landed_on_master_shared_build_present", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase12_nvme_pci.zig", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-nvme-survey-note")) {
-            saw_survey_note = true;
-            try std.testing.expectEqualStrings("survey_present", gap.status);
+        if (std.mem.eql(u8, gap.id, "phase12-nvme-shared-build-route")) {
+            saw_shared_build = true;
+            try std.testing.expectEqualStrings(
+                "direct_replay_present_shared_build_wired_survey_gate_standalone",
+                gap.status,
+            );
+            try std.testing.expect(
+                std.mem.indexOf(u8, gap.why_now, "shared Phase 12 smoke-first route") != null,
+            );
         }
         if (std.mem.eql(u8, gap.id, "phase12-nvme-survey-gate")) {
             saw_survey_gate = true;
-            try std.testing.expectEqualStrings("survey_present", gap.status);
+            try std.testing.expectEqualStrings("survey_present_dedicated_route_retained", gap.status);
         }
     }
 
     try std.testing.expect(saw_direct);
-    try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_shared_build);
     try std.testing.expect(saw_survey_gate);
 }
 
-test "phase12 nvme pci survey note keeps the roadmap gap and shared-build boundary explicit" {
+test "phase12 nvme pci survey note keeps the roadmap gap and shared-route split explicit" {
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-nvme-pci-survey.md", 16 * 1024);
     defer std.testing.allocator.free(survey_note);
 
@@ -150,15 +160,16 @@ test "phase12 nvme pci survey note keeps the roadmap gap and shared-build bounda
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_shared_build_unwired") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_shared_build_direct_replay_present") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane owner: `P12-L08`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/nvme/host/pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/nvme/host/pci_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_nvme_pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_nvme_pci_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not wire the NVMe direct replay into the shared `phase12-smoke` or `phase12` routes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "now wires the NVMe direct replay into the shared `phase12-smoke` and `phase12` routes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey gate still stays packet-local") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "IO queue reservation sizing") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recovery reservation replay preflight") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recovery reservation replay debt") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PRP metadata budgeting") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live DMA mapping") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-backed queue execution") != null);
@@ -191,7 +202,7 @@ test "phase12 nvme pci survey gate keeps present packet files explicit" {
     try std.testing.expect(try pathExists("zigux/Makefile"));
 }
 
-test "phase12 nvme pci survey gate keeps the shared Phase 12 route unwired for NVMe" {
+test "phase12 nvme pci survey gate keeps the shared Phase 12 route direct-replay-only for NVMe" {
     const shared_build = try readFileAlloc("zigux/tests/phase12_build.zig", 16 * 1024);
     defer std.testing.allocator.free(shared_build);
 
@@ -200,8 +211,16 @@ test "phase12 nvme pci survey gate keeps the shared Phase 12 route unwired for N
 
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_virtio_net_queue_resume.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_virtio_net_transmit_recycle.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_nvme_pci.zig") == null);
-    try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12-nvme-pci-direct-test") == null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_nvme_pci.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12-nvme-pci-direct-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_nvme_pci_survey.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12-nvme-pci-survey-tests") == null);
+    try std.testing.expectEqual(@as(usize, 13), std.mem.count(u8, shared_build, "b.createModule(.{"));
+    try std.testing.expectEqual(@as(usize, 6), std.mem.count(u8, shared_build, ".addImport("));
+    try std.testing.expectEqual(@as(usize, 7), std.mem.count(u8, shared_build, "b.addTest(.{"));
+    try std.testing.expectEqual(@as(usize, 7), std.mem.count(u8, shared_build, "b.addRunArtifact("));
+    try std.testing.expectEqual(@as(usize, 7), std.mem.count(u8, shared_build, "smoke_step.dependOn("));
+    try std.testing.expectEqual(@as(usize, 7), std.mem.count(u8, shared_build, "test_step.dependOn("));
 
     try std.testing.expect(std.mem.indexOf(u8, direct_build, "phase12_nvme_pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_build, "phase12-nvme-pci-direct-test") != null);
@@ -211,9 +230,10 @@ test "phase12 nvme pci survey gate keeps the make wrapper surface explicit" {
     const makefile = try readFileAlloc("zigux/Makefile", 16 * 1024);
     defer std.testing.allocator.free(makefile);
 
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-validate:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-smoke:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-smoke phase12-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-validate phase12-smoke phase12-test") != null);
 }
 
 test "phase12 nvme pci survey gate keeps the current recovery helper packet explicit" {
