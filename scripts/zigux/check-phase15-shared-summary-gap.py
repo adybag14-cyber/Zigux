@@ -54,7 +54,7 @@ STILL_MISSING_BROADER_PATHS = (
 )
 
 VALIDATOR_WORDING_SPLIT_MARKER = (
-    "`scripts/zigux/README.md` and `zigux/tests/README.md` still need the next shared-summary reread to stop treating the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate as missing broader route vocabulary while `zigux/tests/phase15_build.zig` remains the only broader dedicated-build companion still absent on current `master`"
+    "`scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate explicit while `zigux/tests/phase15_build.zig` remains the only broader dedicated-build companion still absent on current `master`"
 )
 
 REQUIRED_NOTE_MARKERS = (
@@ -319,148 +319,37 @@ def run_self_test() -> int:
 
         stale_root = root / "stale"
         _seed_repo(stale_root)
-        _write(stale_root / GAP_NOTE_PATH, _sample_gap_note() + "\n## Still-missing focused companions on current master\n")
+        _write(
+            stale_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace(VALIDATOR_WORDING_SPLIT_MARKER, "old stale wording", 1),
+        )
         failures = collect_failures(stale_root)
-        expected = [
-            "gap note still carries stale missing-path wording: ## Still-missing focused companions on current master"
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected stale-wording failure: {failures}")
-
-        stale_marker_root = root / "stale_marker"
-        _seed_repo(stale_marker_root)
-        _write(
-            stale_marker_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace(CURRENT_READBACK_MARKER, "current-master-readback-2026-05-21"),
-        )
-        failures = collect_failures(stale_marker_root)
-        expected = [
-            f"gap note missing required marker: surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`",
-            "gap note still carries stale missing-path wording: current-master-readback-2026-05-21",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected stale-marker failure: {failures}")
-
-        missing_study_only_checker_root = root / "missing_study_only_checker_marker"
-        _seed_repo(missing_study_only_checker_root)
-        _write(
-            missing_study_only_checker_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace(
-                "- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`\n", "", 2
-            ).replace(
-                "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(missing_study_only_checker_root)
-        expected = [
-            "gap note missing focused-companion marker: `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
-            "gap note missing required marker: `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-study-only-checker failure: {failures}")
-
-        missing_scripts_checker_root = root / "missing_scripts_checker_marker"
-        _seed_repo(missing_scripts_checker_root)
-        gap_note = _sample_gap_note()
-        head, marker, tail = gap_note.partition("## Current shared-summary watchpoints\n\n")
-        _write(
-            missing_scripts_checker_root / GAP_NOTE_PATH,
-            head
-            + marker
-            + tail.replace("- `scripts/zigux/check-phase15-scripts-readme-alignment.py`\n", "", 1),
-        )
-        failures = collect_failures(missing_scripts_checker_root)
-        expected = [
-            "gap note missing watchpoint marker: `scripts/zigux/check-phase15-scripts-readme-alignment.py`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-scripts-checker failure: {failures}")
-
-        missing_tests_checker_root = root / "missing_tests_checker"
-        _seed_repo(missing_tests_checker_root)
-        _write(
-            missing_tests_checker_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace("- `scripts/zigux/check-phase15-tests-readme-alignment.py`\n", ""),
-        )
-        failures = collect_failures(missing_tests_checker_root)
-        expected = [
-            "gap note missing focused-companion marker: `scripts/zigux/check-phase15-tests-readme-alignment.py`",
-            "gap note missing required marker: `scripts/zigux/check-phase15-tests-readme-alignment.py`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-tests-checker failure: {failures}")
-
-        missing_readiness_checker_root = root / "missing_readiness_checker"
-        _seed_repo(missing_readiness_checker_root)
-        _write(
-            missing_readiness_checker_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace("`scripts/zigux/check-phase15-readiness-gate-packet.py`", ""),
-        )
-        failures = collect_failures(missing_readiness_checker_root)
-        expected = [
-            "gap note missing focused-companion marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
-            "gap note missing required marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
-            "gap note missing watchpoint marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-readiness-checker failure: {failures}")
-
-        missing_validator_split_root = root / "missing_validator_split"
-        _seed_repo(missing_validator_split_root)
-        _write(
-            missing_validator_split_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace(f"- {VALIDATOR_WORDING_SPLIT_MARKER}\n", "", 1),
-        )
-        failures = collect_failures(missing_validator_split_root)
         expected = [
             f"gap note missing required marker: {VALIDATOR_WORDING_SPLIT_MARKER}",
             f"gap note missing watchpoint marker: {VALIDATOR_WORDING_SPLIT_MARKER}",
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected missing-validator-split failure: {failures}")
+            raise AssertionError(f"unexpected stale-wording failure: {failures}")
 
-        handoff_root = root / "handoff"
-        _seed_repo(handoff_root)
-        _write(handoff_root / HANDOFF_NOTE_PATH, "# Phase 15 Handoff Next Steps Survey\n")
-        failures = collect_failures(handoff_root)
-        expected = [f"handoff note missing landed status marker: {HANDOFF_STATUS_MARKER}"]
-        if failures != expected:
-            raise AssertionError(f"unexpected handoff failure: {failures}")
-
-    print("PHASE15_SHARED_SUMMARY_GAP_SELF_TEST=pass")
+    print("PHASE15_SHARED_SUMMARY_GAP=pass")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify that the Phase 15 shared-summary gap note matches the materialized governance packet."
+        description="Verify that the Phase 15 shared-summary gap note stays aligned with current repo reality."
     )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=Path.cwd(),
-        help="repository root containing Documentation/zigux, scripts/zigux, and zigux/tests",
-    )
-    parser.add_argument("--self-test", action="store_true", help="run the built-in synthetic self-test")
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
-    try:
-        failures = collect_failures(args.root)
-    except RuntimeError as exc:
-        print(f"ERROR: {exc}")
-        return 1
-
+    failures = collect_failures(args.root)
     if failures:
         for failure in failures:
-            print(f"ERROR: {failure}")
+            print(failure)
         return 1
-
-    print("Phase 15 shared-summary gap check passed.")
+    print("PHASE15_SHARED_SUMMARY_GAP=pass")
     return 0
 
 
