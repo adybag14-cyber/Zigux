@@ -38,6 +38,38 @@ fn unsafeName(scope: ?abi.UnsafeScope) []const u8 {
     };
 }
 
+fn boundaryName(boundary: ?unsafe_policy.AccessBoundary) []const u8 {
+    return switch (boundary orelse return "invalid") {
+        .typed_safe => "typed_safe",
+        .volatile_mmio_window => "volatile_mmio_window",
+        .raw_pointer_bridge => "raw_pointer_bridge",
+    };
+}
+
+fn surfaceName(surface: ?unsafe_policy.Surface) []const u8 {
+    return switch (surface orelse return "invalid") {
+        .safe_only => "safe_only",
+        .mmio_only => "mmio_only",
+        .raw_pointer_bridge_only => "raw_pointer_bridge_only",
+    };
+}
+
+fn narrowBoundaryName(boundary: ?narrow_surface.AccessBoundary) []const u8 {
+    return switch (boundary orelse return "invalid") {
+        .typed_safe => "typed_safe",
+        .volatile_mmio_window => "volatile_mmio_window",
+        .raw_pointer_bridge => "raw_pointer_bridge",
+    };
+}
+
+fn narrowSurfaceName(surface: ?narrow_surface.Surface) []const u8 {
+    return switch (surface orelse return "invalid") {
+        .safe_only => "safe_only",
+        .mmio_only => "mmio_only",
+        .raw_pointer_bridge_only => "raw_pointer_bridge_only",
+    };
+}
+
 const RawBridgeReplay = struct {
     read_ok: bool,
     write_ok: bool,
@@ -83,11 +115,15 @@ fn printPolicy(name: []const u8, policy: abi.InteropPolicy) void {
     const allocator_mode = allocator_policy.modeFromInteropPolicy(policy);
     const init_flow = if (allocator_mode) |mode| allocator_policy.initFlowFor(mode) else null;
     const helper_scope = unsafe_policy.scopeFromInteropPolicy(policy);
+    const helper_boundary = unsafe_policy.accessBoundaryFromInteropPolicy(policy);
+    const helper_surface = unsafe_policy.surfaceFromInteropPolicy(policy);
     const narrow_scope = narrow_surface.scopeFromInteropPolicy(policy);
+    const narrow_boundary = narrow_surface.accessBoundaryFromInteropPolicy(policy);
+    const narrow_surface_scope = narrow_surface.surfaceFromInteropPolicy(policy);
     const bridge_replay = rawBridgeReplay(policy);
 
     std.debug.print(
-        "{s}|panic={s}|allocator={s}|init_flow={s}|explicit_caller={any}|owned_state={any}|reset_on_init={any}|unsafe={s}|typed_only={any}|global_fallback={any}|warn_only={any}|mmio={any}|raw_bridge={any}|audit={any}|bridge_read_ok={any}|bridge_write_ok={any}|narrow={s}\n",
+        "{s}|panic={s}|allocator={s}|init_flow={s}|explicit_caller={any}|owned_state={any}|reset_on_init={any}|unsafe={s}|boundary={s}|surface={s}|typed_only={any}|global_fallback={any}|warn_only={any}|mmio={any}|raw_bridge={any}|audit={any}|bridge_read_ok={any}|bridge_write_ok={any}|narrow={s}|narrow_boundary={s}|narrow_surface={s}\n",
         .{
             name,
             panicName(panic_mode),
@@ -97,6 +133,8 @@ fn printPolicy(name: []const u8, policy: abi.InteropPolicy) void {
             allocator_mode != null and allocator_policy.initializesOwnedState(allocator_mode.?),
             allocator_mode != null and allocator_policy.requiresResetOnInit(allocator_mode.?),
             unsafeName(helper_scope),
+            boundaryName(helper_boundary),
+            surfaceName(helper_surface),
             unsafe_policy.allowsTypedOnlyAccessInteropPolicy(policy),
             allocator_mode != null and allocator_policy.permitsGlobalFallback(allocator_mode.?),
             panic_mode != null and panic_policy.permitsWarningOnlyContinuation(panic_mode.?),
@@ -106,6 +144,8 @@ fn printPolicy(name: []const u8, policy: abi.InteropPolicy) void {
             bridge_replay.read_ok,
             bridge_replay.write_ok,
             unsafeName(narrow_scope),
+            narrowBoundaryName(narrow_boundary),
+            narrowSurfaceName(narrow_surface_scope),
         },
     );
 }
