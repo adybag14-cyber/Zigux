@@ -19,7 +19,7 @@ Lane: `P2-L07`
 ## Survey result
 
 - The roadmap-backed genksyms helper is not missing: `scripts/zigux/genksyms.zig` remains directly readable on current `master`.
-- The truthful current genksyms packet is the helper, its embedded Zig tests, `scripts/zigux/check-genksyms-bridge.py`, the bridge-invocation fixtures in `cases.json`, the dedicated `manifest.json` catalog, the help fixture, the restored process-output fixtures, the standalone invalid-long-option version-side-effect proof, the dedicated survey-alignment checker, the validator pair in `scripts/zigux/validate-phase2.py` and `scripts/zigux/validate-phase2-closure.py`, and the shared Phase 2 closure and make-wrapper packet that still replays `phase2-genksyms`.
+- The truthful current genksyms packet is the helper, its embedded Zig tests, `scripts/zigux/check-genksyms-bridge.py`, the bridge-invocation fixtures in `cases.json`, the dedicated `manifest.json` catalog, the help fixture, the restored process-output fixtures, the standalone invalid-long-option version-side-effect proof, the dedicated genksyms selftest-alignment checker, the validator pair in `scripts/zigux/validate-phase2.py` and `scripts/zigux/validate-phase2-closure.py`, and the shared Phase 2 closure and make-wrapper packet that still replays `phase2-genksyms`.
 - Relative to the roadmap and ledger, the older inventory-shaped governance gap is no longer truthful on current `master`; the live work is a bounded wrapper-first dual-implementation packet whose expected-output governance is already checker-owned, so the remaining same-family posture is to keep this survey parked unless another directly coupled reminder surface drifts.
 
 ## Next bounded same-family step
