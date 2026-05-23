@@ -22,6 +22,7 @@ HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-pa
 PERF_BUFFER_POLL_GATE_CHECKER = Path("scripts/zigux/check-phase8-perf-buffer-poll-gate.py")
 LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-routes.py")
 LIBBPF_SEGMENT_GATE_CHECKER = Path("scripts/zigux/check-phase8-libbpf-segment-gate.py")
+EXEC_CMD_PACKET_CHECKER = Path("scripts/zigux/check-phase8-exec-cmd-packet.py")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
 LIBBPF_SEGMENT_MANIFEST = Path("tools/lib/bpf/zigux_segments/manifest.json")
 EXEC_CMD_SLICE = Path("Documentation/zigux/phase8-exec-cmd-slice.md")
@@ -68,6 +69,7 @@ REQUIRED_FILES = (
     PERF_BUFFER_POLL_GATE_CHECKER,
     LIBBPF_SHARD_ROUTES_CHECKER,
     LIBBPF_SEGMENT_GATE_CHECKER,
+    EXEC_CMD_PACKET_CHECKER,
     Path("zigux/Makefile"),
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase8_build.zig"),
@@ -168,6 +170,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "## Phase 8",
         "scripts/zigux/check-phase8-tests-readme-alignment.py",
         "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        "scripts/zigux/check-phase8-exec-cmd-packet.py",
         "scripts/zigux/validate-phase8.py",
         "zigux/tests/phase8_perf_buffer_poll.zig",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
@@ -339,7 +342,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ONLINE_CPU_ROUTING_SEGMENT: (
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
-        "test \"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\" {",
+        'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
     ),
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT: (
         "phase8 online-cpu route helpers keep typed cpu-index wrappers stable",
@@ -350,7 +353,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'pub const default_bpf_fs_path = "/sys/fs/bpf";',
         "pub fn buildValidatedMapPinPath(",
         "pub fn buildValidatedSanitizedProgramPinPath(",
-        "test \"program pin-path helpers mirror the bounded libbpf program pin contract\" {",
+        'test "program pin-path helpers mirror the bounded libbpf program pin contract" {',
     ),
     PIN_PATH_VERIFY_SEGMENT: (
         "phase8 pin-path helper entrypoints stay explicit",
@@ -362,7 +365,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn resolveReadyBufferFdAtAttempt(",
         "pub fn resolveReadyBufferFdLookupReturnAtAttempt(",
         "pub fn summarizeBufferWindowLookup(",
-        "test \"phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing\" {",
+        'test "phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing" {',
     ),
     PERF_BUFFER_POLL_VERIFY_SEGMENT: (
         "phase8 perf-buffer poll helper entrypoints stay explicit",
@@ -434,6 +437,7 @@ CHECKERS = (
     PERF_BUFFER_POLL_GATE_CHECKER,
     LIBBPF_SHARD_ROUTES_CHECKER,
     LIBBPF_SEGMENT_GATE_CHECKER,
+    EXEC_CMD_PACKET_CHECKER,
 )
 
 
@@ -557,6 +561,7 @@ def _passing_fixture(root: Path) -> None:
     _write(root / PERF_BUFFER_POLL_GATE_CHECKER, _passing_checker("PHASE8_PERF_BUFFER_POLL_GATE"))
     _write(root / LIBBPF_SHARD_ROUTES_CHECKER, _passing_checker("PHASE8_LIBBPF_SHARD_ROUTES"))
     _write(root / LIBBPF_SEGMENT_GATE_CHECKER, _passing_checker("PHASE8_LIBBPF_SEGMENT_GATE"))
+    _write(root / EXEC_CMD_PACKET_CHECKER, _passing_checker("PHASE8_EXEC_CMD_PACKET"))
 
 
 def run_self_test() -> int:
@@ -646,6 +651,27 @@ def run_self_test() -> int:
         case_count += 1
         _write(root / LIBBPF_SEGMENT_GATE_CHECKER, _passing_checker("PHASE8_LIBBPF_SEGMENT_GATE"))
 
+        _write(
+            root / EXEC_CMD_PACKET_CHECKER,
+            _failing_checker(
+                "PHASE8_EXEC_CMD_PACKET",
+                "missing-marker:Documentation/zigux/phase8-exec-cmd-slice.md:`PHASE8_SLICE=exec-cmd-deferred-exec-packet`",
+            ),
+        )
+        failing_exec_cmd_checker = validate_root(root)
+        exec_cmd_checker_output = failing_exec_cmd_checker.checker_failures.get(
+            EXEC_CMD_PACKET_CHECKER.as_posix()
+        )
+        if (
+            exec_cmd_checker_output is None
+            or "PHASE8_EXEC_CMD_PACKET=fail" not in exec_cmd_checker_output
+            or "missing-marker:Documentation/zigux/phase8-exec-cmd-slice.md:`PHASE8_SLICE=exec-cmd-deferred-exec-packet`"
+            not in exec_cmd_checker_output
+        ):
+            raise AssertionError("expected failing exec-cmd checker output to be reported")
+        case_count += 1
+        _write(root / EXEC_CMD_PACKET_CHECKER, _passing_checker("PHASE8_EXEC_CMD_PACKET"))
+
         for relative_path, markers in FILE_MARKERS.items():
             original = _read(root / relative_path)
             for marker in markers:
@@ -655,7 +681,7 @@ def run_self_test() -> int:
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
                 case_count += 1
-                (root / relative_path).write_text(original, encoding="utf-8")
+                (root / relative_path).writeText(original, encoding="utf-8")
 
         for relative_path in REQUIRED_FILES:
             original = _read(root / relative_path)
