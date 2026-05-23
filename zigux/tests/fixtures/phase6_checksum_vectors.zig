@@ -55,6 +55,14 @@ pub const ip_fast_csum_ipv4_20b = [_]u8{
     0xc0, 0xa8, 0x00, 0xc7,
 };
 
+pub const ip_fast_csum_ipv4_20b_updated = [_]u8{
+    0x45, 0x00, 0x00, 0x40,
+    0x1c, 0x46, 0x40, 0x00,
+    0x3f, 0x11, 0x00, 0x00,
+    0xc0, 0xa8, 0x00, 0x02,
+    0xc0, 0xa8, 0x00, 0xc7,
+};
+
 pub const ip_fast_csum_ipv4_24b = [_]u8{
     0x46, 0x00, 0x00, 0x30,
     0x12, 0x34, 0x20, 0x00,
@@ -84,6 +92,7 @@ pub const ip_fast_csum_ipv4_60b = [_]u8{
 
 pub const fast_path_cases = [_]FastPathCase{
     .{ .label = "IPV4_20B", .header = &ip_fast_csum_ipv4_20b, .iterations = 600_000, .max_slowdown_pct = 100 },
+    .{ .label = "IPV4_20B_UPDATED", .header = &ip_fast_csum_ipv4_20b_updated, .iterations = 600_000, .max_slowdown_pct = 100 },
     .{ .label = "IPV4_24B", .header = &ip_fast_csum_ipv4_24b, .iterations = 500_000, .max_slowdown_pct = 100 },
     .{ .label = "IPV4_60B", .header = &ip_fast_csum_ipv4_60b, .iterations = 250_000, .max_slowdown_pct = 100 },
 };
@@ -135,6 +144,7 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
         fingerprint: u64,
     }{
         .{ .label = "IPV4_20B", .len = 20, .iterations = 600_000, .max_slowdown_pct = 100, .fingerprint = 0x0682_5249_d059_7d1a },
+        .{ .label = "IPV4_20B_UPDATED", .len = 20, .iterations = 600_000, .max_slowdown_pct = 100, .fingerprint = 0x5f42_250b_82c8_2bed },
         .{ .label = "IPV4_24B", .len = 24, .iterations = 500_000, .max_slowdown_pct = 100, .fingerprint = 0x5eb5_c436_a23c_5f85 },
         .{ .label = "IPV4_60B", .len = 60, .iterations = 250_000, .max_slowdown_pct = 100, .fingerprint = 0xdf35_6721_260f_0ddd },
     };
