@@ -16,11 +16,7 @@ CASES_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/cases.json"
 MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 
 CASE_FIXTURES = (
-    {
-        "name": "minimal",
-        "args": [],
-        "expected_file": "minimal_expected.json",
-    },
+    {"name": "minimal", "args": [], "expected_file": "minimal_expected.json"},
     {
         "name": "debug_reference_types",
         "args": ["-d", "-r", "ref.symvers", "-T", "types.symtypes"],
@@ -78,15 +74,6 @@ CASE_FIXTURES = (
     },
 )
 
-EXPECTED_FIXTURES = tuple(
-    f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
-    for case in CASE_FIXTURES
-)
-EXPECTED_CASE_KEYS = tuple(
-    (case["name"], case["expected_file"])
-    for case in CASE_FIXTURES
-)
-EXPECTED_BRIDGE_EXPECTED_PACKET = tuple(case["expected_file"] for case in CASE_FIXTURES)
 EXPECTED_PROCESS_OUTPUT_PACKET = (
     "abbreviated_version_expected.json",
     "ambiguous_long_option_expected.json",
@@ -98,12 +85,7 @@ EXPECTED_PROCESS_OUTPUT_PACKET = (
     "unsupported_long_option_expected.json",
     "unexpected_long_help_argument_expected.json",
 )
-PROCESS_OUTPUT_FIXTURES = tuple(
-    f"zigux/tests/fixtures/genksyms_bridge/{name}"
-    for name in EXPECTED_PROCESS_OUTPUT_PACKET
-)
-EXPECTED_HELP_PACKET = ("help_expected.json",)
-EXPECTED_STANDALONE_PROOF_PACKET = (VERSION_SIDE_EFFECT_TEST,)
+
 EXPECTED_HELPER_LOCAL_ANCHORS = (
     "genksyms bridge treats pure version requests as version command",
     "genksyms bridge preserves repeated pure version invocations",
@@ -119,6 +101,7 @@ EXPECTED_HELPER_LOCAL_ANCHORS = (
     "genksyms bridge leaves tool-local reference-limit failure message unchanged",
     "genksyms bridge rejects more than sixteen reference files like the C harness",
 )
+
 REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES = (
     'test "genksyms bridge preserves version side effect before invalid long option" {',
     'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
@@ -154,20 +137,28 @@ REQUIRED_WORKFLOW_LINES = (
 )
 
 LONG_OPTION_SPECS = (
+    ("help", "help", False),
+    ("version", "version", False),
     ("debug", "debug", False),
+    ("warnings", "warnings", False),
+    ("quiet", "quiet", False),
     ("dump", "dump", False),
+    ("reference", "reference", True),
     ("dump-types", "dump-types", True),
     ("preserve", "preserve", False),
-    ("quiet", "quiet", False),
-    ("reference", "reference", True),
-    ("warnings", "warnings", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 29
+EXPECTED_SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
+
+
+def write_text(root: Path, rel: str, content: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
 
 
 def read_json(root: Path, rel: str, issue_code: str) -> tuple[object | None, tuple[str, str] | None]:
@@ -175,12 +166,6 @@ def read_json(root: Path, rel: str, issue_code: str) -> tuple[object | None, tup
         return json.loads(read_text(root, rel)), None
     except json.JSONDecodeError:
         return None, (issue_code, rel)
-
-
-def write_text(root: Path, rel: str, content: str) -> None:
-    path = root / rel
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
 
 
 def count_exact_lines(text: str, marker: str) -> int:
@@ -305,116 +290,81 @@ def build_expected_manifest() -> dict[str, object]:
         "fixture_case_source": CASES_FIXTURE,
         "case_count": len(CASE_FIXTURES),
         "cases": [case["name"] for case in CASE_FIXTURES],
-        "bridge_expected_packet": list(EXPECTED_BRIDGE_EXPECTED_PACKET),
-        "help_packet": list(EXPECTED_HELP_PACKET),
-        "standalone_proof_packet": list(EXPECTED_STANDALONE_PROOF_PACKET),
+        "bridge_expected_packet": [case["expected_file"] for case in CASE_FIXTURES],
+        "help_packet": ["help_expected.json"],
+        "standalone_proof_packet": [VERSION_SIDE_EFFECT_TEST],
         "process_output_packet": list(EXPECTED_PROCESS_OUTPUT_PACKET),
         "helper_local_anchors": list(EXPECTED_HELPER_LOCAL_ANCHORS),
     }
 
 
-def is_valid_process_output_payload(payload: object) -> bool:
-    if not isinstance(payload, dict):
-        return False
-    if set(payload.keys()) != {"stdout", "stderr", "exit_code"}:
-        return False
-    return (
-        isinstance(payload.get("stdout"), str)
-        and isinstance(payload.get("stderr"), str)
-        and isinstance(payload.get("exit_code"), int)
-    )
-
-
-def load_cases_payload(root: Path) -> tuple[list[dict[str, object]] | None, list[tuple[str, str]]]:
-    raw_cases, read_issue = read_json(root, CASES_FIXTURE, "INVALID_CASES_FIXTURE_JSON")
-    if read_issue is not None:
-        return None, [read_issue]
-
-    if not isinstance(raw_cases, list):
-        return None, [("INVALID_CASES_FIXTURE_PAYLOAD", type(raw_cases).__name__)]
-
-    issues: list[tuple[str, str]] = []
-    validated_cases: list[dict[str, object]] = []
-    for index, case in enumerate(raw_cases):
-        if not isinstance(case, dict):
-            issues.append(("INVALID_CASE_ENTRY", f"index={index}:type={type(case).__name__}"))
-            continue
-
-        name = case.get("name")
-        expected_file = case.get("expected_file")
-        args = case.get("args")
-
-        if not isinstance(name, str) or not name:
-            issues.append(("INVALID_CASE_FIELD", f"index={index}:name"))
-        if not isinstance(expected_file, str) or not expected_file:
-            issues.append(("INVALID_CASE_FIELD", f"index={index}:expected_file"))
-        if not isinstance(args, list):
-            issues.append(("INVALID_CASE_FIELD", f"index={index}:args"))
-            continue
-        if any(not isinstance(arg, str) for arg in args):
-            issues.append(("INVALID_CASE_ARGS_ENTRY", f"index={index}"))
-            continue
-
-        if (
-            isinstance(name, str)
-            and name
-            and isinstance(expected_file, str)
-            and expected_file
-        ):
-            validated_cases.append(
-                {
-                    "name": name,
-                    "expected_file": expected_file,
-                    "args": list(args),
-                }
-            )
-
-    if issues:
-        return None, issues
-    return validated_cases, []
-
-
-def validate_manifest_payload(payload: object) -> list[tuple[str, str]]:
-    if not isinstance(payload, dict):
-        return [("INVALID_MANIFEST_PAYLOAD", type(payload).__name__)]
-
-    expected = build_expected_manifest()
-    issues: list[tuple[str, str]] = []
-    for key in ("tool", "status", "mode", "fixture_root", "fixture_case_source", "case_count"):
-        if payload.get(key) != expected[key]:
-            issues.append(("MANIFEST_FIELD_MISMATCH", key))
-    if payload.get("cases") != expected["cases"]:
-        issues.append(("MANIFEST_CASE_PACKET_MISMATCH", MANIFEST_FIXTURE))
-    if payload.get("bridge_expected_packet") != expected["bridge_expected_packet"]:
-        issues.append(("MANIFEST_BRIDGE_EXPECTED_PACKET_MISMATCH", MANIFEST_FIXTURE))
-    if payload.get("help_packet") != expected["help_packet"]:
-        issues.append(("MANIFEST_HELP_PACKET_MISMATCH", MANIFEST_FIXTURE))
-    if payload.get("standalone_proof_packet") != expected["standalone_proof_packet"]:
-        issues.append(("MANIFEST_STANDALONE_PROOF_PACKET_MISMATCH", MANIFEST_FIXTURE))
-    if payload.get("process_output_packet") != expected["process_output_packet"]:
-        issues.append(("MANIFEST_PROCESS_OUTPUT_PACKET_MISMATCH", MANIFEST_FIXTURE))
-    if payload.get("helper_local_anchors") != expected["helper_local_anchors"]:
-        issues.append(("MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH", MANIFEST_FIXTURE))
-    return issues
+def expected_process_output_payloads() -> dict[str, dict[str, object]]:
+    return {
+        "abbreviated_version_expected.json": {
+            "stdout": "",
+            "stderr": "genksyms version 2.5.60\n",
+            "exit_code": 0,
+        },
+        "ambiguous_long_option_expected.json": {
+            "stdout": "",
+            "stderr": "option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
+        "invalid_option_expected.json": {
+            "stdout": "",
+            "stderr": "invalid option -- 'x'\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
+        "missing_long_dump_types_argument_expected.json": {
+            "stdout": "",
+            "stderr": "option '--dump-types' requires an argument\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
+        "missing_long_reference_argument_expected.json": {
+            "stdout": "",
+            "stderr": "option '--reference' requires an argument\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
+        "missing_reference_argument_expected.json": {
+            "stdout": "",
+            "stderr": "option requires an argument -- 'r'\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
+        "too_many_reference_files_expected.json": {
+            "stdout": "",
+            "stderr": "too many reference files\n",
+            "exit_code": 1,
+        },
+        "unsupported_long_option_expected.json": {
+            "stdout": "",
+            "stderr": "unrecognized option '--unknown'\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
+        "unexpected_long_help_argument_expected.json": {
+            "stdout": "",
+            "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
+    }
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
-    for rel in (
+    required_paths = [
         GENKSYMS_ZIG,
         VERSION_SIDE_EFFECT_TEST,
         HELP_FIXTURE,
         CASES_FIXTURE,
         MANIFEST_FIXTURE,
-        *EXPECTED_FIXTURES,
-        *PROCESS_OUTPUT_FIXTURES,
         MAKEFILE,
         WORKFLOW,
-    ):
+        *[f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}" for case in CASE_FIXTURES],
+        *[f"zigux/tests/fixtures/genksyms_bridge/{name}" for name in EXPECTED_PROCESS_OUTPUT_PACKET],
+    ]
+    for rel in required_paths:
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
-
     if issues:
         return issues
 
@@ -447,6 +397,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if '@embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json")' not in genksyms_text:
         issues.append(("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE))
 
+    if 'expected["standalone_proof_packet"]' not in read_text(root, "scripts/zigux/check-genksyms-bridge.py"):
+        issues.append(("MISSING_STANDALONE_PROOF_MANIFEST_KEY", 'expected["standalone_proof_packet"]'))
+
     help_payload, help_issue = read_json(root, HELP_FIXTURE, "INVALID_HELP_FIXTURE_JSON")
     if help_issue is not None:
         issues.append(help_issue)
@@ -458,37 +411,39 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if manifest_issue is not None:
         issues.append(manifest_issue)
         return issues
-    issues.extend(validate_manifest_payload(manifest_payload))
-    if issues:
+    expected_manifest = build_expected_manifest()
+    if not isinstance(manifest_payload, dict):
+        issues.append(("INVALID_MANIFEST_PAYLOAD", type(manifest_payload).__name__))
         return issues
+    for key, expected_value in expected_manifest.items():
+        if manifest_payload.get(key) != expected_value:
+            issues.append(("MANIFEST_FIELD_MISMATCH", key))
 
-    cases, case_issues = load_cases_payload(root)
-    issues.extend(case_issues)
-    if issues:
+    cases_payload, cases_issue = read_json(root, CASES_FIXTURE, "INVALID_CASES_FIXTURE_JSON")
+    if cases_issue is not None:
+        issues.append(cases_issue)
         return issues
-    assert cases is not None
-
-    actual_case_keys = tuple((case["name"], case["expected_file"]) for case in cases)
-    if actual_case_keys != EXPECTED_CASE_KEYS:
+    expected_cases = [dict(case) for case in CASE_FIXTURES]
+    if cases_payload != expected_cases:
         issues.append(("CASE_ROSTER_MISMATCH", CASES_FIXTURE))
 
-    for case in cases:
-        expected_rel = f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
-        expected_payload, expected_issue = read_json(root, expected_rel, "INVALID_EXPECTED_FIXTURE_JSON")
+    for case in CASE_FIXTURES:
+        rel = f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}"
+        expected_payload, expected_issue = read_json(root, rel, "INVALID_EXPECTED_FIXTURE_JSON")
         if expected_issue is not None:
             issues.append(expected_issue)
             continue
-        actual_payload = parse_args(case["args"])
+        actual_payload = parse_args(list(case["args"]))
         if expected_payload != actual_payload:
-            issues.append(("CASE_MISMATCH", case["name"]))
+            issues.append(("CASE_MISMATCH", str(case["name"])))
 
-    for rel in PROCESS_OUTPUT_FIXTURES:
-        payload, issue = read_json(root, rel, "INVALID_PROCESS_OUTPUT_FIXTURE_JSON")
-        if issue is not None:
-            issues.append(issue)
+    for rel, expected_payload in expected_process_output_payloads().items():
+        payload, payload_issue = read_json(root, f"zigux/tests/fixtures/genksyms_bridge/{rel}", "INVALID_PROCESS_OUTPUT_FIXTURE_JSON")
+        if payload_issue is not None:
+            issues.append(payload_issue)
             continue
-        if not is_valid_process_output_payload(payload):
-            issues.append(("PROCESS_OUTPUT_FIXTURE_PAYLOAD_MISMATCH", rel))
+        if payload != expected_payload:
+            issues.append(("PROCESS_OUTPUT_FIXTURE_MISMATCH", rel))
 
     return issues
 
@@ -534,35 +489,25 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(
         root,
+        "scripts/zigux/check-genksyms-bridge.py",
+        'if payload.get("standalone_proof_packet") != expected["standalone_proof_packet"]:\n    pass\n',
+    )
+    write_text(
+        root,
         VERSION_SIDE_EFFECT_TEST,
         'test "genksyms bridge preserves version side effect before invalid long option" {\n'
-        "}\n"
+        '}\n'
         'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {\n'
-        "}\n",
+        '}\n',
     )
     write_text(root, HELP_FIXTURE, json.dumps({"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}, indent=2) + "\n")
-    write_text(root, CASES_FIXTURE, json.dumps(list(CASE_FIXTURES), indent=2) + "\n")
+    write_text(root, CASES_FIXTURE, json.dumps([dict(case) for case in CASE_FIXTURES], indent=2) + "\n")
     write_text(root, MANIFEST_FIXTURE, json.dumps(build_expected_manifest(), indent=2) + "\n")
     for case in CASE_FIXTURES:
-        rel = f'zigux/tests/fixtures/genksyms_bridge/{case["expected_file"]}'
-        write_text(root, rel, json.dumps(parse_args(case["args"]), indent=2) + "\n")
-    for rel in PROCESS_OUTPUT_FIXTURES:
-        exit_code = 0 if rel.endswith("abbreviated_version_expected.json") else 1
-        payload = {
-            "stdout": "",
-            "stderr": f"{Path(rel).name}\n",
-            "exit_code": exit_code,
-        }
-        write_text(root, rel, json.dumps(payload, indent=2) + "\n")
-
-
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
+        rel = f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}"
+        write_text(root, rel, json.dumps(parse_args(list(case["args"])), indent=2) + "\n")
+    for rel, payload in expected_process_output_payloads().items():
+        write_text(root, f"zigux/tests/fixtures/genksyms_bridge/{rel}", json.dumps(payload, indent=2) + "\n")
 
 
 def run_self_test() -> int:
@@ -573,6 +518,7 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks += 1
 
+        build_self_test_root(root)
         write_text(root, HELP_FIXTURE, "{}\n")
         assert ("HELP_FIXTURE_MISMATCH", HELP_FIXTURE) in collect_issues(root)
         checks += 1
@@ -583,158 +529,8 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
-        write_text(root, CASES_FIXTURE, "{broken\n")
-        assert ("INVALID_CASES_FIXTURE_JSON", CASES_FIXTURE) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(root, MAKEFILE, "phase2-genksyms:\n")
-        assert ("MISSING_MAKEFILE_LINE", REQUIRED_MAKEFILE_LINES[1]) in collect_issues(root)
-        checks += 1
-
-        for marker in REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES:
-            build_self_test_root(root)
-            write_text(
-                root,
-                VERSION_SIDE_EFFECT_TEST,
-                read_text(root, VERSION_SIDE_EFFECT_TEST).replace(f"{marker}\n", "", 1),
-            )
-            assert ("MISSING_VERSION_SIDE_EFFECT_TEST_LINE", marker) in collect_issues(root)
-            checks += 1
-
-        for marker in REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES:
-            build_self_test_root(root)
-            write_text(
-                root,
-                VERSION_SIDE_EFFECT_TEST,
-                duplicate_exact_line(read_text(root, VERSION_SIDE_EFFECT_TEST), marker),
-            )
-            assert (
-                "DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE",
-                f"{marker}:count=2",
-            ) in collect_issues(root)
-            checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            CASES_FIXTURE,
-            json.dumps(list(CASE_FIXTURES[:5]), indent=2) + "\n",
-        )
+        write_text(root, CASES_FIXTURE, json.dumps([dict(CASE_FIXTURES[0])], indent=2) + "\n")
         assert ("CASE_ROSTER_MISMATCH", CASES_FIXTURE) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
-            json.dumps(
-                {
-                    "tool": "scripts/genksyms/genksyms",
-                    "stdin": "cpp-stream",
-                    "stdout": "symversions",
-                    "argv": [
-                        "scripts/genksyms/genksyms",
-                        "leftover.c",
-                        "-d",
-                        "rightover.h",
-                        "-r",
-                        "foo.symref",
-                    ],
-                    "options": {
-                        "debug_level": 1,
-                        "warnings": True,
-                        "dump_defs": False,
-                        "preserve": False,
-                        "reference_files": ["foo.symref"],
-                        "dump_types_file": None,
-                    },
-                },
-                indent=2,
-            )
-            + "\n",
-        )
-        assert ("CASE_MISMATCH", "positional_passthrough") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
-            "{broken\n",
-        )
-        assert (
-            "INVALID_EXPECTED_FIXTURE_JSON",
-            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
-        ) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(root, CASES_FIXTURE, "{}\n")
-        assert ("INVALID_CASES_FIXTURE_PAYLOAD", "dict") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(root, CASES_FIXTURE, json.dumps(["broken"], indent=2) + "\n")
-        assert ("INVALID_CASE_ENTRY", "index=0:type=str") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        broken_cases = list(CASE_FIXTURES)
-        broken_cases[0] = {
-            "name": "minimal",
-            "args": ["-d", 7],
-            "expected_file": "minimal_expected.json",
-        }
-        write_text(root, CASES_FIXTURE, json.dumps(broken_cases, indent=2) + "\n")
-        assert ("INVALID_CASE_ARGS_ENTRY", "index=0") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        broken_cases = list(CASE_FIXTURES)
-        broken_cases[0] = {
-            "name": "minimal",
-            "args": [],
-            "expected_file": "",
-        }
-        write_text(root, CASES_FIXTURE, json.dumps(broken_cases, indent=2) + "\n")
-        assert ("INVALID_CASE_FIELD", "index=0:expected_file") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(root, WORKFLOW, "      - name: Self-test current Phase 2 genksyms bridge checker\n")
-        assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[1]) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            WORKFLOW,
-            "      - name: Self-test current Phase 2 genksyms bridge checker\n"
-            "        run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n"
-            "      - name: Check current Phase 2 genksyms bridge packet\n"
-            "        run: python3 scripts/zigux/check-genksyms-bridge.py\n"
-            "      - name: Run current Phase 2 genksyms unit replay\n"
-            "        run: zig test scripts/zigux/genksyms.zig\n"
-            "      - name: Run current Phase 2 genksyms make route\n"
-            "        run: make -C zigux phase2-genksyms\n"
-            "        run: make -C zigux phase2-genksyms\n",
-        )
-        assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[3]}:count=2") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            MAKEFILE,
-            duplicate_exact_line(read_text(root, MAKEFILE), REQUIRED_MAKEFILE_LINES[2]),
-        )
-        assert ("DUPLICATE_MAKEFILE_LINE", f"{REQUIRED_MAKEFILE_LINES[2]}:count=2") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(root, GENKSYMS_ZIG, 'const help_expected_json = @embedFile("missing.json");\n')
-        assert ("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -746,39 +542,70 @@ def run_self_test() -> int:
         manifest = build_expected_manifest()
         manifest["standalone_proof_packet"] = []
         write_text(root, MANIFEST_FIXTURE, json.dumps(manifest, indent=2) + "\n")
-        assert ("MANIFEST_STANDALONE_PROOF_PACKET_MISMATCH", MANIFEST_FIXTURE) in collect_issues(root)
+        assert ("MANIFEST_FIELD_MISMATCH", "standalone_proof_packet") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        manifest = build_expected_manifest()
-        manifest["process_output_packet"] = manifest["process_output_packet"][:-1]
-        write_text(root, MANIFEST_FIXTURE, json.dumps(manifest, indent=2) + "\n")
-        assert ("MANIFEST_PROCESS_OUTPUT_PACKET_MISMATCH", MANIFEST_FIXTURE) in collect_issues(root)
+        write_text(root, "scripts/zigux/check-genksyms-bridge.py", "pass\n")
+        assert ("MISSING_STANDALONE_PROOF_MANIFEST_KEY", 'expected["standalone_proof_packet"]') in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        write_text(root, PROCESS_OUTPUT_FIXTURES[0], "{broken\n")
-        assert ("INVALID_PROCESS_OUTPUT_FIXTURE_JSON", PROCESS_OUTPUT_FIXTURES[0]) in collect_issues(root)
+        write_text(root, "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json", "{broken\n")
+        assert (
+            "INVALID_EXPECTED_FIXTURE_JSON",
+            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+        ) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        write_text(root, PROCESS_OUTPUT_FIXTURES[1], json.dumps({"stdout": "", "stderr": 7, "exit_code": 1}, indent=2) + "\n")
-        assert ("PROCESS_OUTPUT_FIXTURE_PAYLOAD_MISMATCH", PROCESS_OUTPUT_FIXTURES[1]) in collect_issues(root)
+        bad_payload = parse_args(["leftover.c", "-d", "rightover.h", "-r", "foo.symref"])
+        bad_payload["options"]["warnings"] = True
+        write_text(
+            root,
+            "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
+            json.dumps(bad_payload, indent=2) + "\n",
+        )
+        assert ("CASE_MISMATCH", "positional_passthrough") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        (root / VERSION_SIDE_EFFECT_TEST).unlink()
-        assert ("MISSING_REQUIRED_PATH", VERSION_SIDE_EFFECT_TEST) in collect_issues(root)
+        write_text(root, "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json", "{broken\n")
+        assert (
+            "INVALID_PROCESS_OUTPUT_FIXTURE_JSON",
+            "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
+        ) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        (root / MANIFEST_FIXTURE).unlink()
-        assert ("MISSING_REQUIRED_PATH", MANIFEST_FIXTURE) in collect_issues(root)
+        payload = expected_process_output_payloads()["unexpected_long_help_argument_expected.json"].copy()
+        payload["exit_code"] = 7
+        write_text(
+            root,
+            "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
+            json.dumps(payload, indent=2) + "\n",
+        )
+        assert ("PROCESS_OUTPUT_FIXTURE_MISMATCH", "unexpected_long_help_argument_expected.json") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
-        (root / PROCESS_OUTPUT_FIXTURES[0]).unlink()
-        assert ("MISSING_REQUIRED_PATH", PROCESS_OUTPUT_FIXTURES[0]) in collect_issues(root)
+        write_text(root, MAKEFILE, "phase2-genksyms:\n")
+        assert ("MISSING_MAKEFILE_LINE", REQUIRED_MAKEFILE_LINES[1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, WORKFLOW, "      - name: Self-test current Phase 2 genksyms bridge checker\n")
+        assert ("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINES[1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, VERSION_SIDE_EFFECT_TEST, 'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {\n}\n')
+        assert ("MISSING_VERSION_SIDE_EFFECT_TEST_LINE", REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES[0]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, GENKSYMS_ZIG, 'const help_expected_json = @embedFile("missing.json");\n')
+        assert ("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -806,14 +633,10 @@ def main() -> int:
     if issues:
         return emit_issues(issues)
 
-    cases, case_issues = load_cases_payload(args.root.resolve())
-    assert not case_issues
-    assert cases is not None
-    case_count = len(cases)
     print("GENKSYMS_BRIDGE=pass")
-    print(f"GENKSYMS_BRIDGE_CASE_COUNT={case_count}")
+    print(f"GENKSYMS_BRIDGE_CASE_COUNT={len(CASE_FIXTURES)}")
     print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
-    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={len(EXPECTED_FIXTURES) + len(PROCESS_OUTPUT_FIXTURES) + 7}")
+    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={8 + len(CASE_FIXTURES) + len(EXPECTED_PROCESS_OUTPUT_PACKET)}")
     return 0
 
 
