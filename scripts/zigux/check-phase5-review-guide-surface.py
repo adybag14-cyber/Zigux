@@ -90,6 +90,7 @@ MARKERS = {
         "- `phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable`",
         "- `phase 5 trace-events formatting companion keeps lifecycle boundaries explicit`",
         "- `phase 5 trace-events formatting companion keeps bounded destination failures explicit`",
+        "This survey note is directly readable again on current `master` and should stay grouped with the shared reminder packet rather than with the still-split sample-local companion set:",
     ),
     KOBJECT_SURVEY_PATH: (
         "`samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` together keep the bounded `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, NULL-terminated attribute-list slot, and shared build-route linkage explicit rather than turning that companion into a fifth Phase 5 sample",
@@ -244,7 +245,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 35
+    expected_case_count = 36
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -517,6 +518,20 @@ def run_self_test() -> int:
             "approved_idiom_exact_checks_marker",
             collect_failures(mutated),
             [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][11]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_approved_idiom_direct_survey_note_marker"
+        seed(mutated)
+        write_text(
+            mutated,
+            APPROVED_IDIOM_PATH,
+            placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][12], ""),
+        )
+        expect_exact(
+            "approved_idiom_direct_survey_note_marker",
+            collect_failures(mutated),
+            [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][12]}"],
         )
         checks_run += 1
 
