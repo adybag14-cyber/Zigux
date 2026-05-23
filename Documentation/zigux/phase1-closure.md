@@ -63,7 +63,10 @@ The current bootstrap workflow also keeps the adjacent Phase 1 route-summary gua
 
 Even with that self-test-only posture, the surviving `find_bit` bench guard is still explicit on current `master`: `scripts/zigux/check-phase1-bench.py` hard-codes `PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000` and `PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000`, and it still requires the paired exact checksum keys `PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM` and `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` whenever the broader expectations packet returns.
 
+Current `master` also ships `scripts/zigux/check-phase1-find-bit-bench-anchors.py` as a helper-local current-head guard: it exact-checks the inclusive-boundary, past-`nbits` no-read, `clump8` past-end no-read, and tail-clamped `findLastBit()` anchors directly in `tools/lib/find_bit.zig` while the broader expectations packet remains absent.
+
 - `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`
+- `PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
 - `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`
 - `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
