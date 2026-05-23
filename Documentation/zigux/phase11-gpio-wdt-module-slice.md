@@ -32,6 +32,10 @@ companion notes keep explicit:
   execution.
 - `nowayoutPolicySummary()` keeps the watchdog-core stop-policy split explicit
   before later reboot or teardown follow-through.
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig` keeps
+  `nowayoutPolicySummary()` directly reviewable across the bounded stopped,
+  blocked-by-nowayout, and kept-running outcomes without claiming live
+  watchdog-core registration or shutdown execution.
 - `probeSummary()` keeps the probe-time bookkeeping visible without claiming
   live platform registration.
 - `registrationHandoffSummary()` keeps the descriptor-facing and bookkeeping
