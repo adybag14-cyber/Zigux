@@ -17,7 +17,7 @@ TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
 TEST_FSMOUNT_SURVEY = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 33
+EXPECTED_SELF_TEST_CASE_COUNT = 35
 
 KPROBE_REVERSIBLE_DELIVERY_EVIDENCE = (
     "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, "
@@ -81,6 +81,7 @@ KPROBE_NOTE_MARKERS = (
     "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey",
     "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey",
     "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow",
+    "PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
     "PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig",
     "PHASE4_KPROBE_OWNER=Validation and Perf Team",
     "PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team",
@@ -152,6 +153,7 @@ def validate_kprobe_manifest(payload: dict[str, object], missing: list[str]) -> 
         (("current_replay",), "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m"),
         (("isolated_survey_replay",), "zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig"),
         (("shared_build_replay",), "phase4-kprobe-example-survey-tests"),
+        (("shared_lab_and_ci_matrix_anchor",), "Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix"),
         (("threshold_posture",), "c_anchor_only_until_kprobe_example_starter_lands"),
         (("reversible_delivery_evidence",), KPROBE_REVERSIBLE_DELIVERY_EVIDENCE),
         (("next_bounded_evidence_step",), KPROBE_NEXT_BOUNDED_EVIDENCE_STEP),
@@ -309,6 +311,7 @@ def write_fixture_tree(root: Path) -> None:
 +PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey
 +PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey
 +PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow
++PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix
 +PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig
 +PHASE4_KPROBE_OWNER=Validation and Perf Team
 +PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team
@@ -345,6 +348,7 @@ def write_fixture_tree(root: Path) -> None:
 +  "current_replay": "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
 +  "isolated_survey_replay": "zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig",
 +  "shared_build_replay": "phase4-kprobe-example-survey-tests",
++  "shared_lab_and_ci_matrix_anchor": "Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
 +  "threshold_posture": "c_anchor_only_until_kprobe_example_starter_lands",
 +  "reversible_delivery_evidence": "{KPROBE_REVERSIBLE_DELIVERY_EVIDENCE}",
 +  "next_bounded_evidence_step": "{KPROBE_NEXT_BOUNDED_EVIDENCE_STEP}",
@@ -457,7 +461,9 @@ def write_fixture_tree(root: Path) -> None:
 +            (KPROBE_NOTE, "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey", "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-lab-survey", "kprobe_note_marker:PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey"),
 +            (KPROBE_NOTE, "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey", "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-gap-survey", "kprobe_note_marker:PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey"),
 +            (KPROBE_NOTE, "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow", "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=shared_phase4_test_route", "kprobe_note_marker:PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow"),
++            (KPROBE_NOTE, "PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix", "PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-gate-evidence.md", "kprobe_note_marker:PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix"),
 +            (KPROBE_MANIFEST, "\"phase4_build_present\": true", "\"phase4_build_present\": false", "kprobe_manifest:survey_summary.phase4_build_present:expected=True"),
++            (KPROBE_MANIFEST, "\"shared_lab_and_ci_matrix_anchor\": \"Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix\"", "\"shared_lab_and_ci_matrix_anchor\": \"Documentation/zigux/phase4-gate-evidence.md\"", "kprobe_manifest:shared_lab_and_ci_matrix_anchor:expected='Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix'"),
 +            (KPROBE_MANIFEST, "\"threshold_posture\": \"c_anchor_only_until_kprobe_example_starter_lands\"", "\"threshold_posture\": \"reviewability_only_no_perf_threshold\"", "kprobe_manifest:threshold_posture:expected='c_anchor_only_until_kprobe_example_starter_lands'"),
 +            (KPROBE_MANIFEST, "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the explicit bootstrap-CI posture, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded starter lane intentionally widens this surface\"", "\"reversible_delivery_evidence\": \"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the parked packet explicit\"", "kprobe_manifest:reversible_delivery_evidence:expected='PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the explicit bootstrap-CI posture, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded starter lane intentionally widens this surface'"),
 +            (KPROBE_MANIFEST, "\"next_bounded_evidence_step\": \"Keep this parked packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit local lab replay marker, the dedicated local `make -C zigux phase4-kprobe-example-survey` wrapper, and the direct `zig test zigux/tests/phase4_kprobe_example_survey.zig` validation entrypoint until a later bounded Phase 4 lane lands the actual Zig starter with an updated rollback-readiness contract.\"", "\"next_bounded_evidence_step\": \"Keep this parked packet adjacent to the matrix only.\"", "kprobe_manifest:next_bounded_evidence_step:expected='Keep this parked packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit local lab replay marker, the dedicated local `make -C zigux phase4-kprobe-example-survey` wrapper, and the direct `zig test zigux/tests/phase4_kprobe_example_survey.zig` validation entrypoint until a later bounded Phase 4 lane lands the actual Zig starter with an updated rollback-readiness contract.'"),
