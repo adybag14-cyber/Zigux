@@ -406,18 +406,29 @@ EXPECTED_GENKSYMS_CASES = [
     },
     {
         "name": "explicit_option_terminator",
-        "args": ["-d", "leftover.c", "--", "--leftover", "positional"],
+        "args": ["--warnings", "--", "--not-an-option", "trailing.symref"],
         "expected_file": "explicit_option_terminator_expected.json",
     },
     {
         "name": "positional_passthrough",
-        "args": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
+        "args": ["-d", "--", "stdin.symtypes", "extra.symref"],
         "expected_file": "positional_passthrough_expected.json",
     },
-    {"name": "lone_dash_passthrough", "args": ["-", "-d"], "expected_file": "lone_dash_passthrough_expected.json"},
+    {
+        "name": "lone_dash_passthrough",
+        "args": ["-", "stdin.symtypes", "stdin.symref"],
+        "expected_file": "lone_dash_passthrough_expected.json",
+    },
     {
         "name": "dash_prefixed_long_option_arguments_as_data",
-        "args": ["--reference", "--debug", "--dump-types", "--types"],
+        "args": [
+            "--reference",
+            "--shadow-reference.symref",
+            "--dump-types",
+            "--shadow-types.symtypes",
+            "--",
+            "trailing.symref",
+        ],
         "expected_file": "dash_prefixed_long_option_arguments_as_data_expected.json",
     },
 ]
@@ -425,7 +436,7 @@ EXPECTED_GENKSYMS_CASES = [
 EXPECTED_GENKSYMS_MANIFEST = {
     "tool": "scripts/zigux/genksyms.zig",
     "status": "closed",
-    "mode": "bounded wrapper-first dual-implementation bridge",
+    "mode": "bounded request-plan bridge",
     "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
     "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
     "case_count": 9,
@@ -440,7 +451,7 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "lone_dash_passthrough",
         "dash_prefixed_long_option_arguments_as_data",
     ],
-    "bridge_expected_packet": [
+    "fixture_packet": [
         "minimal_expected.json",
         "debug_reference_types_expected.json",
         "long_options_expected.json",
@@ -452,7 +463,9 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "dash_prefixed_long_option_arguments_as_data_expected.json",
     ],
     "help_packet": ["help_expected.json"],
-    "standalone_proof_packet": ["scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"],
+    "standalone_proof_packet": [
+        "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
+    ],
     "process_output_packet": [path.name for path in GENKSYMS_PROCESS_OUTPUT_RELS],
     "helper_local_anchors": [
         "genksyms bridge treats pure version requests as version command",
@@ -482,8 +495,8 @@ EXPECTED_CONF_CASE_DETAILS = [
     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "silent=debug_defconfig", "expected": "savedefconfig_expected.json"},
-    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": true, "expected": "listnewconfig_expected.json"},
-    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": true, "expected": "helpnewconfig_expected.json"},
+    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": True, "expected": "listnewconfig_expected.json"},
+    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
