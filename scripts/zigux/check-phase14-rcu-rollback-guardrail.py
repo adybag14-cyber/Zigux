@@ -20,6 +20,15 @@ COMPANION_CONFIRMATION_HEADING = (
 COMPANION_PARTIAL_MARKER = (
     "authenticated contents-path readback still stays partial for those executable companions"
 )
+DIRECT_PACKET_SURFACES_HEADING = "directly readable dedicated packet surfaces on current `master`:"
+DIRECT_BRIDGE_SURFACE_MARKER = "  - `kernel/rcu/tree_bridge.zig`"
+OWNER_MAP_TIEBACK_HEADING = (
+    "- shared Phase 14 reminder surfaces that still carry the bounded owner-map tie-back:"
+)
+OWNER_MAP_TIEBACK_MARKERS = [
+    "- `Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
+    "- `Documentation/zigux/phase14-core-boundary-traceability.md`",
+]
 REQUIRED_EVIDENCE_HEADING = "- required evidence before any status review:"
 REQUIRED_EVIDENCE_MARKERS = [
     "- `Architecture Council` reopen record linked from the active review packet",
@@ -48,11 +57,14 @@ REQUIRED_MARKERS = [
     "`PHASE14_STATUS_BUCKET=freeze_in_c`",
     "`PHASE14_ANCHOR=kernel/rcu/tree.c`",
     "`PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`",
-    "directly readable dedicated packet surfaces on current `master`:",
+    DIRECT_PACKET_SURFACES_HEADING,
+    DIRECT_BRIDGE_SURFACE_MARKER,
     COMPANION_CONFIRMATION_HEADING,
     "`zigux/tests/phase14_rcu_tree_manifest.json`",
     "`zigux/tests/phase14_rcu_tree_survey.zig`",
     COMPANION_PARTIAL_MARKER,
+    OWNER_MAP_TIEBACK_HEADING,
+    *OWNER_MAP_TIEBACK_MARKERS,
     "dedicated rollback guard surface:",
     "`scripts/zigux/check-phase14-rcu-rollback-guardrail.py`",
     "`phase14-rcu-tree-rollback-threshold-guardrail`",
@@ -99,8 +111,9 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
 - `PHASE14_ROADMAP_DESTINATION=kernel/rcu/tree_bridge.zig`
 - `PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`
 - survey provenance captured against verified `master` head `4c889233d157960514b241bcd5aff7cac5fda312`
-- directly readable dedicated packet surfaces on current `master`:
+- """ + DIRECT_PACKET_SURFACES_HEADING + """
   - `Documentation/zigux/phase14-rcu-tree-survey.md`
+  - `kernel/rcu/tree_bridge.zig`
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
@@ -110,6 +123,10 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
 - authenticated contents-path readback still stays partial for those executable companions, so this note keeps the freeze-in-C blocker as the owner surface rather than claiming restored local replay or ownership
 - dedicated rollback guard surface:
   - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
+## Exact evidence captured
+""" + OWNER_MAP_TIEBACK_HEADING + """
+  - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+  - `Documentation/zigux/phase14-core-boundary-traceability.md`
 ## Rollback guardrail
 """ + ROLLBACK_THRESHOLD_MARKER + """
 - machine-check surface: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` keeps the dedicated note fail-closed on its lane key, blocked gap, companion-readback wording, rollback owner, and required reopen evidence.
@@ -132,6 +149,11 @@ def run_self_test() -> int:
         cases = [
             ("remove-lane-key", "`PHASE14_LANE_KEY=P14-L16`", "missing_marker:`PHASE14_LANE_KEY=P14-L16`"),
             (
+                "remove-direct-bridge-surface",
+                DIRECT_BRIDGE_SURFACE_MARKER,
+                f"missing_marker:{DIRECT_BRIDGE_SURFACE_MARKER}",
+            ),
+            (
                 "remove-companion-heading",
                 COMPANION_CONFIRMATION_HEADING,
                 f"missing_marker:{COMPANION_CONFIRMATION_HEADING}",
@@ -140,6 +162,11 @@ def run_self_test() -> int:
                 "remove-companion-partial-marker",
                 COMPANION_PARTIAL_MARKER,
                 f"missing_marker:{COMPANION_PARTIAL_MARKER}",
+            ),
+            (
+                "remove-owner-map-tieback-heading",
+                OWNER_MAP_TIEBACK_HEADING,
+                f"missing_marker:{OWNER_MAP_TIEBACK_HEADING}",
             ),
             (
                 "remove-checker",
@@ -174,7 +201,7 @@ def run_self_test() -> int:
             raise SystemExit(f"expected forbidden marker failure, got {failures!r}")
 
         print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")
-        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=8")
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
