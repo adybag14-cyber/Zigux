@@ -53,6 +53,16 @@ If this is your first Phase 13 reminder-surface edit in a while, use this short 
 
 Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.
 
+## Pre-Edit Triage Checklist
+
+Before changing a shared Phase 13 reminder surface, answer these three questions in order:
+
+1. is this a shared contributor wording repair, or is it really helper-local proof owned by `libfs`, `devres`, or `landlock`?
+2. if helper-local evidence must move, can the change stay inside one helper packet instead of widening the shared reminder packet?
+3. if the supporting route, replay, or checker is absent on current `master`, should it stay recorded as a repo-reality gap instead of being promoted into shipped evidence?
+
+Pre-edit triage rule: classify the work as shared contributor wording, one helper-local packet, or repo-reality-gap follow-through before editing, and if a supporting route or replay is absent on current `master`, leave it in the gap bucket instead of promoting it into shipped evidence.
+
 ## Shared Surfaces To Reread Together
 
 When shared Phase 13 wording changes, reread these contributor-facing and support surfaces together:
