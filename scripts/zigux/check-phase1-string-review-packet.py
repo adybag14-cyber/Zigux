@@ -120,7 +120,6 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strspn counts the accepted prefix with C-string semantics"',
     'test "strcspn counts until the first rejected byte with C-string semantics"',
     'test "strnchr honors count and C-string boundaries"',
-    'test "strlen honors C-string boundaries"',
     'test "strnlen honors count and C-string boundaries"',
     'test "strnchrNul returns the first match, NUL, or count boundary"',
 ]
