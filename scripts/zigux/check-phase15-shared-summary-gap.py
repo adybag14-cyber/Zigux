@@ -46,10 +46,10 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
     "scripts/zigux/check-phase15-readiness-gate-packet.py",
+    "scripts/zigux/validate-phase15.py",
 )
 
-STILL_MISSING_VALIDATOR_FIRST_PATHS = (
-    "scripts/zigux/validate-phase15.py",
+STILL_MISSING_BROADER_PATHS = (
     "zigux/tests/phase15_build.zig",
 )
 
@@ -84,7 +84,7 @@ REQUIRED_NOTE_MARKERS = (
     "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
     "`zigux/tests/phase15_handoff_next_steps.zig`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
-    "broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
+    "broader dedicated-build wording around `zigux/tests/phase15_build.zig` and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
 )
 
 STALE_TEXT_MARKERS = (
@@ -143,9 +143,9 @@ def collect_failures(root: Path) -> list[str]:
         if f"`{rel}`" not in gap_note:
             failures.append(f"gap note missing focused-companion marker: `{rel}`")
 
-    for rel in STILL_MISSING_VALIDATOR_FIRST_PATHS:
+    for rel in STILL_MISSING_BROADER_PATHS:
         if f"`{rel}`" not in gap_note:
-            failures.append(f"gap note missing still-missing validator-first marker: `{rel}`")
+            failures.append(f"gap note missing still-missing broader marker: `{rel}`")
         if (root / rel).exists():
             failures.append(f"gap note still treats materialized path as missing: `{rel}`")
 
@@ -178,7 +178,7 @@ def _write(path: Path, text: str) -> None:
 def _sample_gap_note() -> str:
     materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_GOVERNANCE_PATHS)
     focused = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_FOCUSED_COMPANIONS)
-    missing = "\n".join(f"- `{rel}`" for rel in STILL_MISSING_VALIDATOR_FIRST_PATHS)
+    missing = "\n".join(f"- `{rel}`" for rel in STILL_MISSING_BROADER_PATHS)
     required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS[1:])
     status = "\n".join(f"- `{marker}`" for marker in STATUS_MARKERS)
     return f"""# Phase 15 Shared Summary Gap
@@ -194,7 +194,7 @@ def _sample_gap_note() -> str:
 
 {focused}
 
-## Still-missing broader validator-first companions on current master
+## Still-missing broader dedicated-build companions on current master
 
 {missing}
 
@@ -302,10 +302,10 @@ def run_self_test() -> int:
 
         rematerialized_root = root / "rematerialized"
         _seed_repo(rematerialized_root)
-        _write(rematerialized_root / STILL_MISSING_VALIDATOR_FIRST_PATHS[0], "present\n")
+        _write(rematerialized_root / STILL_MISSING_BROADER_PATHS[0], "present\n")
         failures = collect_failures(rematerialized_root)
         expected = [
-            f"gap note still treats materialized path as missing: `{STILL_MISSING_VALIDATOR_FIRST_PATHS[0]}`"
+            f"gap note still treats materialized path as missing: `{STILL_MISSING_BROADER_PATHS[0]}`"
         ]
         if failures != expected:
             raise AssertionError(f"unexpected rematerialized-path failure: {failures}")
@@ -389,10 +389,11 @@ def run_self_test() -> int:
         _seed_repo(missing_readiness_checker_root)
         _write(
             missing_readiness_checker_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace("`scripts/zigux/check-phase15-readiness-gate-packet.py`", "", 1),
+            _sample_gap_note().replace("`scripts/zigux/check-phase15-readiness-gate-packet.py`", ""),
         )
         failures = collect_failures(missing_readiness_checker_root)
         expected = [
+            "gap note missing focused-companion marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
             "gap note missing required marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
             "gap note missing watchpoint marker: `scripts/zigux/check-phase15-readiness-gate-packet.py`",
         ]
