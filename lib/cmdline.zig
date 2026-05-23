@@ -57,6 +57,7 @@ fn parseSignedPrefix(text: []const u8) struct {
 
     return switch (text[0]) {
         '-' => .{ .negative = true, .start = 1 },
+        '+' => .{ .negative = false, .start = 1 },
         else => .{ .negative = false, .start = 0 },
     };
 }
@@ -162,7 +163,8 @@ fn parseUnsignedOption(text: []const u8) struct {
     consumed: usize,
     value: u64,
 } {
-    const base_info = parseOptionBase(text, 0);
+    const unsigned_start: usize = if (text.len != 0 and text[0] == '+') 1 else 0;
+    const base_info = parseOptionBase(text, unsigned_start);
 
     var idx = base_info.digits_start;
     var parsed_any = false;
@@ -241,11 +243,6 @@ pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
     str.* = current;
 
     if (current.len == 0) {
-        clearOptionOut(pint);
-        return 0;
-    }
-
-    if (current[0] == '+') {
         clearOptionOut(pint);
         return 0;
     }
@@ -494,8 +491,8 @@ test "getOption clears caller output on malformed signed and unsigned input" {
     try std.testing.expectEqualStrings("x", malformed_unsigned);
 
     var plus: []const u8 = "+9,tail";
-    try std.testing.expectEqual(@as(u8, 0), getOption(&plus, null));
-    try std.testing.expectEqualStrings("+9,tail", plus);
+    try std.testing.expectEqual(@as(u8, 2), getOption(&plus, null));
+    try std.testing.expectEqualStrings("tail", plus);
 }
 
 test "getOption preserves incomplete hex-prefix and descending-range behavior" {
@@ -505,11 +502,11 @@ test "getOption preserves incomplete hex-prefix and descending-range behavior" {
     try std.testing.expectEqual(@as(i32, 0), incomplete_hex_value);
     try std.testing.expectEqualStrings("x", incomplete_hex);
 
-    var plus_hex_rest: []const u8 = "+0x";
-    var plus_hex_value: i32 = -1;
-    try std.testing.expectEqual(@as(u8, 0), getOption(&plus_hex_rest, &plus_hex_value));
-    try std.testing.expectEqual(@as(i32, 0), plus_hex_value);
-    try std.testing.expectEqualStrings("+0x", plus_hex_rest);
+    var plus_option: []const u8 = "+7,tail";
+    var plus_option_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 2), getOption(&plus_option, &plus_option_value));
+    try std.testing.expectEqual(@as(i32, 7), plus_option_value);
+    try std.testing.expectEqualStrings("tail", plus_option);
 
     var descending = [_]i32{ 0, 0, 0, 0 };
     const descending_rest = getOptions("4-2,9", descending.len, &descending);
@@ -610,12 +607,22 @@ test "memparse applies suffixes before signed clamping" {
     try std.testing.expectEqualStrings("tail", negative.rest);
 
     const leading_plus = memparse("+3Mmore");
-    try std.testing.expectEqual(@as(u64, 0), leading_plus.value);
-    try std.testing.expectEqualStrings("+3Mmore", leading_plus.rest);
+    try std.testing.expectEqual(@as(u64, 3 << 20), leading_plus.value);
+    try std.testing.expectEqualStrings("more", leading_plus.rest);
 
     const leading_plus_decimal = memparse("+7tail");
-    try std.testing.expectEqual(@as(u64, 0), leading_plus_decimal.value);
-    try std.testing.expectEqualStrings("+7tail", leading_plus_decimal.rest);
+    try std.testing.expectEqual(@as(u64, 7), leading_plus_decimal.value);
+    try std.testing.expectEqualStrings("tail", leading_plus_decimal.rest);
+}
+
+test "memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable" {
+    const incomplete_hex = memparse("+0x");
+    try std.testing.expectEqual(@as(u64, 0), incomplete_hex.value);
+    try std.testing.expectEqualStrings("x", incomplete_hex.rest);
+
+    const no_digits = memparse("+nope");
+    try std.testing.expectEqual(@as(u64, 0), no_digits.value);
+    try std.testing.expectEqualStrings("+nope", no_digits.rest);
 }
 
 test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
