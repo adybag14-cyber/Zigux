@@ -566,6 +566,24 @@ fn addPhase3ExportUapiLayout(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3NotifierAbi(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/notifier_abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const tests = b.addTest(.{
+        .name = "phase3-notifier-abi-test",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3LowLevelWrappers(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -720,6 +738,7 @@ pub fn build(b: *std.Build) void {
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);
     const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);
+    const phase3_notifier_abi = addPhase3NotifierAbi(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
     const phase10_virtio_core_survey = addSurveyTest(
@@ -812,6 +831,12 @@ pub fn build(b: *std.Build) void {
     );
     phase3_export_uapi_layout_step.dependOn(&phase3_export_uapi_layout.step);
 
+    const phase3_notifier_abi_step = b.step(
+        "phase3-notifier-abi",
+        "Run the shared Phase 3 notifier ABI replay from zigux/tests",
+    );
+    phase3_notifier_abi_step.dependOn(&phase3_notifier_abi.step);
+
     const phase3_low_level_wrapper_step = b.step(
         "phase3-low-level-wrappers",
         "Run the shared Phase 3 low-level wrapper packet from zigux/tests",
@@ -830,6 +855,7 @@ pub fn build(b: *std.Build) void {
     phase3_test_step.dependOn(&phase3_policy_starter_packet.step);
     phase3_test_step.dependOn(&phase3_abi_core_packet.step);
     phase3_test_step.dependOn(&phase3_export_uapi_layout.step);
+    phase3_test_step.dependOn(&phase3_notifier_abi.step);
     phase3_test_step.dependOn(&phase3_low_level_wrappers.step);
 
     const phase3_dump_step = b.step(
