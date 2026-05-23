@@ -224,3 +224,86 @@ test "runtime atomic64 sample keeps zero and negative guard-return replay explic
     try std.testing.expect(!negative_dec_if_positive.changed);
     try std.testing.expectEqual(@as(i64, -2), negative_dec_if_positive.result);
 }
+
+test "runtime atomic64 sample keeps rejected re-init rollback explicit at the module boundary" {
+    var initialized_module = sample.RuntimeAtomic64Sample{};
+    try initialized_module.init(91);
+
+    const before_initialized_reinit_snapshot = initialized_module.lifecycleSnapshot();
+    const before_initialized_reinit_summary = initialized_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, before_initialized_reinit_snapshot.stage);
+    try std.testing.expect(before_initialized_reinit_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(@as(i64, 91), before_initialized_reinit_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_reinit_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reinit_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reinit_summary.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.init(7));
+
+    const after_initialized_reinit_snapshot = initialized_module.lifecycleSnapshot();
+    const after_initialized_reinit_summary = initialized_module.summary();
+    try std.testing.expectEqual(before_initialized_reinit_snapshot.stage, after_initialized_reinit_snapshot.stage);
+    try std.testing.expectEqual(before_initialized_reinit_snapshot.init_runs, after_initialized_reinit_snapshot.init_runs);
+    try std.testing.expectEqual(before_initialized_reinit_snapshot.selftest_runs, after_initialized_reinit_snapshot.selftest_runs);
+    try std.testing.expectEqual(before_initialized_reinit_snapshot.exit_runs, after_initialized_reinit_snapshot.exit_runs);
+    try std.testing.expectEqual(before_initialized_reinit_snapshot.allows_counter_ops, after_initialized_reinit_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(before_initialized_reinit_summary.counter_snapshot, after_initialized_reinit_summary.counter_snapshot);
+    try std.testing.expectEqual(before_initialized_reinit_summary.init_runs, after_initialized_reinit_summary.init_runs);
+    try std.testing.expectEqual(before_initialized_reinit_summary.selftest_runs, after_initialized_reinit_summary.selftest_runs);
+    try std.testing.expectEqual(before_initialized_reinit_summary.exit_runs, after_initialized_reinit_summary.exit_runs);
+
+    var selftested_module = sample.RuntimeAtomic64Sample{};
+    try selftested_module.init(-12);
+    _ = try selftested_module.runSelftest();
+
+    const before_selftested_reinit_snapshot = selftested_module.lifecycleSnapshot();
+    const before_selftested_reinit_summary = selftested_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_selftested_reinit_snapshot.stage);
+    try std.testing.expect(before_selftested_reinit_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(@as(i64, -12), before_selftested_reinit_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reinit_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reinit_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_reinit_summary.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.init(5));
+
+    const after_selftested_reinit_snapshot = selftested_module.lifecycleSnapshot();
+    const after_selftested_reinit_summary = selftested_module.summary();
+    try std.testing.expectEqual(before_selftested_reinit_snapshot.stage, after_selftested_reinit_snapshot.stage);
+    try std.testing.expectEqual(before_selftested_reinit_snapshot.init_runs, after_selftested_reinit_snapshot.init_runs);
+    try std.testing.expectEqual(before_selftested_reinit_snapshot.selftest_runs, after_selftested_reinit_snapshot.selftest_runs);
+    try std.testing.expectEqual(before_selftested_reinit_snapshot.exit_runs, after_selftested_reinit_snapshot.exit_runs);
+    try std.testing.expectEqual(before_selftested_reinit_snapshot.allows_counter_ops, after_selftested_reinit_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(before_selftested_reinit_summary.counter_snapshot, after_selftested_reinit_summary.counter_snapshot);
+    try std.testing.expectEqual(before_selftested_reinit_summary.init_runs, after_selftested_reinit_summary.init_runs);
+    try std.testing.expectEqual(before_selftested_reinit_summary.selftest_runs, after_selftested_reinit_summary.selftest_runs);
+    try std.testing.expectEqual(before_selftested_reinit_summary.exit_runs, after_selftested_reinit_summary.exit_runs);
+
+    var exited_module = sample.RuntimeAtomic64Sample{};
+    try exited_module.init(33);
+    _ = try exited_module.runSelftest();
+    try exited_module.exit();
+
+    const before_exited_reinit_snapshot = exited_module.lifecycleSnapshot();
+    const before_exited_reinit_summary = exited_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, before_exited_reinit_snapshot.stage);
+    try std.testing.expect(!before_exited_reinit_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(@as(i64, 33), before_exited_reinit_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), before_exited_reinit_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exited_reinit_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exited_reinit_summary.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.init(2));
+
+    const after_exited_reinit_snapshot = exited_module.lifecycleSnapshot();
+    const after_exited_reinit_summary = exited_module.summary();
+    try std.testing.expectEqual(before_exited_reinit_snapshot.stage, after_exited_reinit_snapshot.stage);
+    try std.testing.expectEqual(before_exited_reinit_snapshot.init_runs, after_exited_reinit_snapshot.init_runs);
+    try std.testing.expectEqual(before_exited_reinit_snapshot.selftest_runs, after_exited_reinit_snapshot.selftest_runs);
+    try std.testing.expectEqual(before_exited_reinit_snapshot.exit_runs, after_exited_reinit_snapshot.exit_runs);
+    try std.testing.expectEqual(before_exited_reinit_snapshot.allows_counter_ops, after_exited_reinit_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(before_exited_reinit_summary.counter_snapshot, after_exited_reinit_summary.counter_snapshot);
+    try std.testing.expectEqual(before_exited_reinit_summary.init_runs, after_exited_reinit_summary.init_runs);
+    try std.testing.expectEqual(before_exited_reinit_summary.selftest_runs, after_exited_reinit_summary.selftest_runs);
+    try std.testing.expectEqual(before_exited_reinit_summary.exit_runs, after_exited_reinit_summary.exit_runs);
+}
