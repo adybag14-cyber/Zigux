@@ -104,7 +104,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 
 
 def read_text(path: Path) -> str:
@@ -206,6 +206,11 @@ def run_self_test() -> None:
         manifest_path = root / "zigux/tests/phase7_rbtree_manifest.json"
         manifest_path.write_text(read_text(manifest_path).replace(NEXT_STEP_WRAPPER_MARKER + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {NEXT_STEP_WRAPPER_MARKER}"])
+
+        write_fixture_root(root)
+        manifest_marker = '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"'
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
 
     print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")
     print(f"PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
