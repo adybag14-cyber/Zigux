@@ -51,7 +51,9 @@ REQUIRED_FILES = (
 
 FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     HELP_SLICE: (
+        "`zigux/tests/phase8_help_only_build.zig`",
         "`zigux/tests/phase8_help_kallsyms_only_build.zig`",
+        "`make -C zigux phase8-help-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "parked help-and-kallsyms packet reviewable",
     ),
