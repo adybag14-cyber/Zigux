@@ -92,3 +92,43 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "zero extension preserves hweight across wider helpers" {
+    const values8 = [_]u8{ 0x00, 0x01, 0x7f, 0x80, 0xa5, 0xff };
+    for (values8) |value8| {
+        const wide = @as(u32, value8);
+        const expected = swHweight8(wide);
+        try std.testing.expectEqual(expected, swHweight16(wide));
+        try std.testing.expectEqual(expected, swHweight32(wide));
+        try std.testing.expectEqual(@as(u64, expected), swHweight64(wide));
+        try std.testing.expectEqual(expected, __sw_hweight8(wide));
+        try std.testing.expectEqual(expected, __sw_hweight16(wide));
+        try std.testing.expectEqual(expected, __sw_hweight32(wide));
+        try std.testing.expectEqual(@as(u64, expected), __sw_hweight64(wide));
+        try std.testing.expectEqual(@as(usize, expected), hweightLong(wide));
+        try std.testing.expectEqual(@as(usize, expected), hweight_long(wide));
+    }
+
+    const values16 = [_]u16{ 0x0000, 0x0001, 0x00ff, 0x8001, 0xa55a, 0xffff };
+    for (values16) |value16| {
+        const wide = @as(u32, value16);
+        const expected = swHweight16(wide);
+        try std.testing.expectEqual(expected, swHweight32(wide));
+        try std.testing.expectEqual(@as(u64, expected), swHweight64(wide));
+        try std.testing.expectEqual(expected, __sw_hweight16(wide));
+        try std.testing.expectEqual(expected, __sw_hweight32(wide));
+        try std.testing.expectEqual(@as(u64, expected), __sw_hweight64(wide));
+        try std.testing.expectEqual(@as(usize, expected), hweightLong(wide));
+        try std.testing.expectEqual(@as(usize, expected), hweight_long(wide));
+    }
+
+    const values32 = [_]u32{ 0x0000_0000, 0x0000_0001, 0x8000_0001, 0xa55a_f00f, 0xffff_ffff };
+    for (values32) |value32| {
+        const expected = swHweight32(value32);
+        try std.testing.expectEqual(@as(u64, expected), swHweight64(value32));
+        try std.testing.expectEqual(expected, __sw_hweight32(value32));
+        try std.testing.expectEqual(@as(u64, expected), __sw_hweight64(value32));
+        try std.testing.expectEqual(@as(usize, expected), hweightLong(value32));
+        try std.testing.expectEqual(@as(usize, expected), hweight_long(value32));
+    }
+}
