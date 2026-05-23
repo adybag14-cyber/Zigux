@@ -74,6 +74,8 @@ REQUIRED_PATHS = (
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zigux/tests/phase11_hvc_modem_control_proof.zig",
+    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
     "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
     "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
@@ -392,6 +394,8 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+            "zigux/tests/phase11_hvc_modem_control_proof.zig",
+            "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
             "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
             "Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md",
             "drivers/watchdog/dw_wdt.zig",
@@ -447,7 +451,7 @@ def run_self_test() -> int:
                 build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
             else:
                 build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec.name}:exit=1")
+            expect_issue(f"live_failed:{spec_name}:exit=1")
             case_count += 1
 
         for build_file, spec_name in (
