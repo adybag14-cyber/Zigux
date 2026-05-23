@@ -88,13 +88,38 @@ test "phase13 landlock ruleset branch planning appends layers when replacing mat
     try std.testing.expectEqual(ruleset.InsertRuleBranchMode.replace_existing_rule, branch_plan.mode);
     try std.testing.expect(branch_plan.link_plan == null);
     try std.testing.expect(branch_plan.replacement_plan != null);
+    try std.testing.expect(!branch_plan.replacement_plan.?.extends_existing_access);
     try std.testing.expectEqual(@as(usize, 3), branch_plan.resulting_rule.num_layers);
     try std.testing.expectEqual(@as(u16, 5), branch_plan.resulting_rule.layers[2].level);
     try std.testing.expectEqual(@as(u32, 0x10), branch_plan.resulting_rule.layers[2].access);
     try std.testing.expectEqual(@as(u32, 6), branch_plan.resulting_num_rules);
 }
 
-test "phase13 landlock ruleset branch planning rejects missing layers and missing matched rules" {
+test "phase13 landlock ruleset branch planning extends access for matched level-zero rules" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 1,
+        .layers = [_]ruleset.Layer{
+            .{ .level = 0, .access = 0x1 },
+        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 1)),
+    };
+    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{99}, 2);
+    const branch_plan = try ruleset.RulesetHelperLab.planInsertRuleBranch(
+        search_plan,
+        existing,
+        &.{.{ .level = 0, .access = 0x4 }},
+    );
+
+    try std.testing.expectEqual(ruleset.InsertRuleBranchMode.replace_existing_rule, branch_plan.mode);
+    try std.testing.expect(branch_plan.replacement_plan != null);
+    try std.testing.expect(branch_plan.replacement_plan.?.extends_existing_access);
+    try std.testing.expectEqual(@as(usize, 0), branch_plan.replacement_plan.?.appends_layer_count);
+    try std.testing.expectEqual(@as(usize, 1), branch_plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 0), branch_plan.resulting_rule.layers[0].level);
+    try std.testing.expectEqual(@as(u32, 0x5), branch_plan.resulting_rule.layers[0].access);
+    try std.testing.expectEqual(@as(u32, 2), branch_plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset branch planning rejects missing layers and invalid matched-rule updates" {
     const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{99}, 2);
 
     try std.testing.expectError(error.MissingLayers, ruleset.RulesetHelperLab.planInsertRuleBranch(search_plan, null, &.{}));
@@ -102,10 +127,27 @@ test "phase13 landlock ruleset branch planning rejects missing layers and missin
         error.MissingExistingRule,
         ruleset.RulesetHelperLab.planInsertRuleBranch(search_plan, null, &.{.{ .level = 2, .access = 0x1 }}),
     );
+    try std.testing.expectError(
+        error.MatchedRuleRequiresSingleLayer,
+        ruleset.RulesetHelperLab.planInsertRuleBranch(
+            search_plan,
+            ruleset.RulePlan{
+                .num_layers = 2,
+                .layers = [_]ruleset.Layer{
+                    .{ .level = 1, .access = 0x1 },
+                    .{ .level = 3, .access = 0x4 },
+                } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+            },
+            &.{
+                .{ .level = 5, .access = 0x10 },
+                .{ .level = 6, .access = 0x20 },
+            },
+        ),
+    );
 }
 
 test "phase13 landlock ruleset manifest records the current bounded security helper packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L12\"");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L10\"");
     try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-23\"");
     try expectContains(manifest_text, "\"anchor\": \"security/landlock/ruleset.c\"");
     try expectContains(manifest_text, "\"current_phase13_build_present\": false");
@@ -133,6 +175,7 @@ test "phase13 landlock ruleset manifest records the current bounded security hel
     try expectContains(manifest_text, "planRulesetCreation()");
     try expectContains(manifest_text, "planRuleTreeSearch()");
     try expectContains(manifest_text, "planInsertRuleBranch()");
+    try expectContains(manifest_text, "matched level-zero access-extension planning");
     try expectContains(manifest_text, "phase13-landlock-ruleset-survey.md");
     try expectContains(manifest_text, "hierarchy allocation");
 }
