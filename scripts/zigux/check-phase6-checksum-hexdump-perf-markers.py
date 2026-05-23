@@ -73,6 +73,15 @@ REQUIRED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-packet.py",
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
+REQUIRED_CHECKSUM_LINUX_STYLE_RERUN_ROUTES = [
+    "make -C zigux phase6-checksum-perf-matrix-test",
+    "make -C zigux phase6-checksum-perf",
+]
+REQUIRED_HEXDUMP_LINUX_STYLE_RERUN_ROUTES = [
+    "make -C zigux phase6-hexdump-review",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
+    "make -C zigux phase6-hexdump-perf",
+]
 EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT = "zigux/tests/phase6_hexdump_perf_matrix.zig"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_CHECKSUM_CASES = {
@@ -92,7 +101,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 40
+SELF_TEST_CASE_COUNT = 43
 
 
 class ValidationError(RuntimeError):
@@ -308,10 +317,12 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("checksum rerun routes missing")
     if not isinstance(hexdump_routes, list):
         raise ValidationError("hexdump rerun routes missing")
-    if "make -C zigux phase6-checksum-perf" not in checksum_routes:
-        raise ValidationError("checksum rerun route missing phase6-checksum-perf")
-    if "make -C zigux phase6-hexdump-perf" not in hexdump_routes:
-        raise ValidationError("hexdump rerun route missing phase6-hexdump-perf")
+    for route in REQUIRED_CHECKSUM_LINUX_STYLE_RERUN_ROUTES:
+        if route not in checksum_routes:
+            raise ValidationError(f"checksum rerun route missing {route}")
+    for route in REQUIRED_HEXDUMP_LINUX_STYLE_RERUN_ROUTES:
+        if route not in hexdump_routes:
+            raise ValidationError(f"hexdump rerun route missing {route}")
 
 
 
@@ -446,6 +457,7 @@ def scaffold_repo(root: Path) -> None:
                             "payload_case_labels": ["64B", "1501B"],
                             "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS,
                             "linux_style_rerun_routes": [
+                                "make -C zigux phase6-checksum-perf-matrix-test",
                                 "make -C zigux phase6-checksum-perf",
                                 "make -C zigux phase6-perf",
                             ],
@@ -479,6 +491,8 @@ def scaffold_repo(root: Path) -> None:
                                 },
                             ],
                             "linux_style_rerun_routes": [
+                                "make -C zigux phase6-hexdump-review",
+                                "make -C zigux phase6-hexdump-perf-matrix-test",
                                 "make -C zigux phase6-hexdump-perf",
                                 "make -C zigux phase6-perf",
                             ],
@@ -942,10 +956,46 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
+                '"make -C zigux phase6-checksum-perf-matrix-test"',
+                '"make -C zigux phase6-checksum-test"',
+            ),
+            "phase6-checksum-perf-matrix-test",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
                 '"make -C zigux phase6-checksum-perf"',
                 '"make -C zigux phase6-checksum-test"',
             ),
             "phase6-checksum-perf",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"make -C zigux phase6-hexdump-review"',
+                '"make -C zigux phase6-hexdump-scan"',
+            ),
+            "phase6-hexdump-review",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"make -C zigux phase6-hexdump-perf-matrix-test"',
+                '"make -C zigux phase6-hexdump-test"',
+            ),
+            "phase6-hexdump-perf-matrix-test",
         )
         cases_run += 1
         scaffold_repo(root)
