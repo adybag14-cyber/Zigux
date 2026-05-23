@@ -123,6 +123,7 @@ COMMANDS = (
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
+    "make -C zigux phase3-export-shim-test",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
