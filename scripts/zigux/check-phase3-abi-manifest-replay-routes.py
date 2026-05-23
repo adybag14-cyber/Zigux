@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the Phase 3 ABI manifest's selftest-surface replay routes."""
+"""Fail-close the Phase 3 ABI manifest's export/UAPI replay routes."""
 
 from __future__ import annotations
 
@@ -14,6 +14,12 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
     '"python3 scripts/zigux/check-phase3-selftest-surface.py"',
+    '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
+    '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+    '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+    '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
+    '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
+    '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
 )
 
 REQUIRED_MANIFEST_FIELDS = {
@@ -25,6 +31,12 @@ REQUIRED_MANIFEST_FIELDS = {
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
     "python3 scripts/zigux/check-phase3-selftest-surface.py",
+    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+    "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
+    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
 )
 
 
@@ -87,6 +99,12 @@ def _sample_validator() -> str:
         "REQUIRED_MANIFEST_REPLAY_ROUTES = (",
         '    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",',
         '    "python3 scripts/zigux/check-phase3-selftest-surface.py",',
+        '    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",',
+        '    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",',
+        '    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",',
+        '    "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",',
+        '    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",',
+        '    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",',
         ")",
         "",
     ]
@@ -136,6 +154,20 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(repo_root)
+        current = _read(validator_path)
+        needle = '    "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",\n'
+        _write(validator_path, current.replace(needle, "", 1))
+        issues = validate_repo(repo_root)
+        expected = (
+            "missing scripts/zigux/validate-phase3.py marker: "
+            '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"'
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected export-shim validator-route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
         manifest = json.loads(_read(manifest_path))
         manifest["replay_routes"].remove(
             "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"
@@ -153,6 +185,22 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].remove(
+            "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
+        )
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected dedicated export/UAPI layout replay drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
         manifest["slug"] = "stale-slug"
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
@@ -163,13 +211,13 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the Phase 3 ABI manifest's selftest-surface replay routes."
+        description="Validate the Phase 3 ABI manifest's export/UAPI replay routes."
     )
     parser.add_argument(
         "--repo-root",
