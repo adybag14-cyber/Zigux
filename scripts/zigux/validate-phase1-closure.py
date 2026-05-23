@@ -490,6 +490,7 @@ def run_self_test() -> int:
         ("failing_string_checker", lambda root: make_checker_stub(root / STRING_REVIEW_CHECKER_REL, ok=False)),
         ("missing_find_bit_review_checker", lambda root: (root / FIND_BIT_REVIEW_CHECKER_REL).unlink()),
         ("missing_find_bit_bench_anchor_checker", lambda root: (root / FIND_BIT_BENCH_ANCHOR_CHECKER_REL).unlink()),
+        ("failing_find_bit_bench_anchor_checker", lambda root: make_checker_stub(root / FIND_BIT_BENCH_ANCHOR_CHECKER_REL, ok=False)),
         ("failing_find_bit_review_checker", lambda root: make_checker_stub(root / FIND_BIT_REVIEW_CHECKER_REL, ok=False)),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
         ("missing_makefile_marker", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL).replace("phase12-test:\n", "", 1))),
