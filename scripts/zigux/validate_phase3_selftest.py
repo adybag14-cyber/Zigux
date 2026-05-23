@@ -192,6 +192,14 @@ SELFTEST_COMMANDS = (
             "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=",
         ),
     ),
+    (
+        Path("scripts/zigux/check-phase3-bitmap-cpumask.py"),
+        ("--self-test",),
+        (
+            "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST=pass",
+            "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
 )
 
 
@@ -334,7 +342,8 @@ def run_self_test() -> int:
             (19, "expected low-level-wrapper script omission was not reported"),
             (20, "expected linux-zigux header governance validator omission was not reported"),
             (21, "expected wrapper-generator script omission was not reported"),
-            (22, "expected missing trailing script was not reported"),
+            (22, "expected selftest-surface script omission was not reported"),
+            (23, "expected bitmap-cpumask script omission was not reported"),
         )
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
@@ -436,7 +445,6 @@ def run_self_test() -> int:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected missing count marker to fail the packet")
             return 1
-
 
         _populate_repo(root)
         missing_manifest_replay_pass_path = root / SELFTEST_COMMANDS[8][0]
@@ -594,10 +602,34 @@ def run_self_test() -> int:
             print("expected missing governance pass marker to fail the packet")
             return 1
 
+        _populate_repo(root)
+        missing_bitmap_cpumask_pass_path = root / SELFTEST_COMMANDS[23][0]
+        _write_synthetic_script(
+            missing_bitmap_cpumask_pass_path,
+            None,
+            "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST_CASE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing bitmap-cpumask pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_bitmap_cpumask_count_path = root / SELFTEST_COMMANDS[23][0]
+        _write_synthetic_script(
+            missing_bitmap_cpumask_count_path,
+            "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing bitmap-cpumask count marker to fail the packet")
+            return 1
+
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 22}"
+        f"{len(missing_cases) + 24}"
     )
     return 0
 
