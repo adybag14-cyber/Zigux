@@ -7,7 +7,7 @@ This note tracks the bounded Phase 9 runtime atomic64 packet on current `master`
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
 - `PHASE9_LANE_KEY=P9-L04`
-- `PHASE9_SURVEYED_COMMIT=9f8c05368242414084e4bc94ea979604c2b6b712`
+- `PHASE9_SURVEYED_COMMIT=2026-05-23-runtime-atomic64-shared-loader-reminder-trim`
 - scope: direct atomic64 starter truthfulness together with the visible shared-loader reminder surfaces only
 
 ## Current Packet
@@ -31,10 +31,10 @@ Current `master` also keeps these shared-loader reminder surfaces visible:
 - `zigux/tests/README.md`
 - `zigux/tests/phase9_build.zig`
 - `zigux/tests/runtime_loader_allocator_init_flow.zig`
-- `zigux/tests/runtime_loader_gap_survey.zig`
-- `zigux/tests/runtime_loader_selftest_complete_exit_parity.zig`
 - `zigux/kernel/runtime_loader.zig`
 - `zigux/kernel/runtime_loader_contract.zig`
+- `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`
+- `samples/zigux/runtime_bitmap_loader.zig`
 - `zigux/Makefile`
 
 That means the honest current packet is the direct atomic64 starter packet together with a visible shared-loader reminder packet. The shared-loader reminder surfaces visible here keep the broader runtime-substrate blocker explicit, so this packet is still not a completed loadable runtime-module path.
@@ -51,7 +51,7 @@ That means the honest current packet is the direct atomic64 starter packet toget
 
 The visible shared-loader reminder packet keeps a prepared `RuntimeAtomic64LoadSummary` snapshot reviewable without claiming live loader binding. The packet keeps the anchor, checked operation families, counter snapshot, and selftest-run count reviewable even when later counter mutation, later selftest activity, or later exit activity changes the live sample.
 
-The same shared-loader reminder packet also keeps the prepared shared selftest-hook drift guard explicit, the paired shared-release desynchronization proofs explicit, and the direct shared runtime-load transition guard that keeps the loader stage and shared release state synchronized even if the shared request advances before the loader-owned release path runs.
+The same shared-loader reminder packet also keeps the allocator/init-flow replay explicit, keeps the command/environment boundary guard explicit, keeps the returned bitmap-loader companion visible, and keeps the direct shared runtime-load transition guard that keeps the loader stage and shared release state synchronized even if the shared request advances before the loader-owned release path runs.
 
 ## Boundaries
 
