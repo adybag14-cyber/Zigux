@@ -145,6 +145,11 @@ def run_self_test() -> None:
     assert payload == ["find_next_or_past_end"]
     case_count += 1
 
+    kind, payload = validate_find_bit_source(build_sample_source("find_last_zero_sized"))
+    assert kind == "missing_source_markers", (kind, payload)
+    assert payload == ["find_last_zero_sized"]
+    case_count += 1
+
     kind, payload = validate_find_bit_source(build_sample_source("find_next_clump8_untouched"))
     assert kind == "missing_source_markers", (kind, payload)
     assert payload == ["find_next_clump8_untouched"]
