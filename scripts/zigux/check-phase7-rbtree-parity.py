@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -230,6 +230,12 @@ def run_self_test() -> None:
         helper_marker = "pub fn eraseInit(node: *Node, root: *Root) void {"
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"lib/rbtree.zig: {helper_marker}"])
+
+        write_fixture_root(root)
+        companion_path = root / "zigux/tests/phase7_rbtree.zig"
+        companion_marker = "phase 7 rbtree companion replays reverse traversal aliases and detached null stops"
+        companion_path.write_text(read_text(companion_path).replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree.zig: {companion_marker}"])
 
         write_fixture_root(root)
         survey_path = root / "zigux/tests/phase7_rbtree_survey.zig"
