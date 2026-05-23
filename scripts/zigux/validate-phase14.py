@@ -43,6 +43,9 @@ RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-ex
 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH = (
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 )
+RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH = (
+    "scripts/zigux/check-phase14-ring-buffer-study-only-guardrail.py"
+)
 RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-guardrail.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -76,6 +79,7 @@ REQUIRED_FILES = [
     SHARED_SMOKE_ROUTE_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
+    RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
@@ -205,6 +209,12 @@ REQUIRED_MARKERS = {
         "PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass",
         "phase14 rollback-threshold sequencing packet validated",
     ],
+    RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH: [
+        "PHASE14_RING_BUFFER_STUDY_ONLY_GUARDRAIL_SELF_TEST=pass",
+        "`PHASE14_STATUS=study_only`",
+        "`phase14-ring-buffer-zig-port-blocker`",
+        "Check that the dedicated Phase 14 ring-buffer study-only packet stays aligned",
+    ],
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
         "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
         "`PHASE14_LANE_KEY=P14-L16`",
@@ -214,7 +224,7 @@ REQUIRED_MARKERS = {
     TESTS_README_CHECKER_PATH: [
         "Check that the shared Phase 14 tests-root reminder stays aligned with repo reality.",
         "PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass",
-        "SURVEY_PATH = Path(\"Documentation/zigux/phase14-end-to-end-smoke-survey.md\")",
+        'SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")',
     ],
     TESTS_README_PATH: [
         "## Phase 14 shared smoke packet",
@@ -334,6 +344,19 @@ def fixture_text(rel_path: str) -> str:
         SCRIPTS_README_PATH: "# scripts/zigux",
         TESTS_README_PATH: "# zigux/tests",
     }
+    if rel_path == RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH:
+        return (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "# PHASE14_RING_BUFFER_STUDY_ONLY_GUARDRAIL_SELF_TEST=pass\n"
+            "# `PHASE14_STATUS=study_only`\n"
+            "# `phase14-ring-buffer-zig-port-blocker`\n"
+            "# Check that the dedicated Phase 14 ring-buffer study-only packet stays aligned\n"
+            "if \"--self-test\" in sys.argv:\n"
+            "    print(\"PHASE14_RING_BUFFER_STUDY_ONLY_GUARDRAIL_SELF_TEST=pass\")\n"
+            "else:\n"
+            "    print(\"PHASE14_RING_BUFFER_STUDY_ONLY_GUARDRAIL=pass\")\n"
+        )
     if rel_path == RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH:
         return (
             "#!/usr/bin/env python3\n"
@@ -368,15 +391,15 @@ def write_fixture_tree(root: Path) -> None:
         write_text(root / rel_path, fixture_text(rel_path))
 
 
-def checker_script_path(root: Path) -> Path:
-    candidate = root / RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH
+def checker_script_path(root: Path, rel_path: str) -> Path:
+    candidate = root / rel_path
     if candidate.exists():
         return candidate
-    return ROOT / RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH
+    return ROOT / rel_path
 
 
-def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
-    command = [sys.executable, str(checker_script_path(root))]
+def run_checker(root: Path, rel_path: str, *, self_test: bool) -> list[str]:
+    command = [sys.executable, str(checker_script_path(root, rel_path))]
     if self_test:
         command.append("--self-test")
     else:
@@ -389,10 +412,7 @@ def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
     output = [line for line in (completed.stdout + completed.stderr).splitlines() if line.strip()]
     if not output:
         output = ["checker exited with no output"]
-    return [
-        f"subcheck_fail:{RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH}:{line}"
-        for line in output
-    ]
+    return [f"subcheck_fail:{rel_path}:{line}" for line in output]
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -406,6 +426,8 @@ def remove_marker(path: Path, marker: str) -> None:
     updated = text.replace(f"- {marker}\n", "", 1)
     if updated == text:
         updated = text.replace(f"{marker}\n", "", 1)
+    if updated == text:
+        updated = text.replace(f"# {marker}\n", "", 1)
     path.write_text(updated, encoding="utf-8")
 
 
@@ -416,7 +438,17 @@ def run_self_test() -> int:
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
-        checker_failures = run_rcu_guardrail_checker(base, self_test=True)
+        checker_failures = run_checker(
+            base,
+            RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH,
+            self_test=True,
+        )
+        if checker_failures:
+            raise SystemExit(
+                "fixture tree should pass the dedicated ring-buffer study-only guardrail "
+                f"self-test but failed: {checker_failures!r}"
+            )
+        checker_failures = run_checker(base, RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH, self_test=True)
         if checker_failures:
             raise SystemExit(
                 "fixture tree should pass the dedicated RCU rollback guardrail self-test "
@@ -428,6 +460,7 @@ def run_self_test() -> int:
             RELEASE_BOUNDARY_CHECKER_PATH,
             RING_BUFFER_SURVEY_PATH,
             ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
+            RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH,
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
@@ -455,6 +488,10 @@ def run_self_test() -> int:
             (
                 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
                 REQUIRED_MARKERS[ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH][0],
+            ),
+            (
+                RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH,
+                REQUIRED_MARKERS[RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH][1],
             ),
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
@@ -485,9 +522,10 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the live "
             "`phase14-validate` route, the shared route checker, the shared smoke manifest, "
-            "the freeze-map study-only inventory, the release-boundary exact-count guard, the ring-buffer study-only packet, the dedicated "
-            "rollback-threshold sequencing checker, the dedicated RCU rollback "
-            "guardrail, and the returned workqueue reviewability shard."
+            "the freeze-map study-only inventory, the release-boundary exact-count guard, "
+            "the ring-buffer study-only guardrail, the dedicated rollback-threshold "
+            "sequencing checker, the dedicated RCU rollback guardrail, and the returned "
+            "workqueue reviewability shard."
         )
     )
     parser.add_argument(
@@ -508,7 +546,15 @@ def main() -> int:
 
     failures = validate(args.root)
     if not failures:
-        failures.extend(run_rcu_guardrail_checker(args.root, self_test=False))
+        failures.extend(
+            run_checker(
+                args.root,
+                RING_BUFFER_STUDY_ONLY_GUARDRAIL_CHECKER_PATH,
+                self_test=False,
+            )
+        )
+    if not failures:
+        failures.extend(run_checker(args.root, RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH, self_test=False))
     if failures:
         print("PHASE14_VALIDATION=fail")
         print("PHASE14_PACKET_DRIFT_START")
