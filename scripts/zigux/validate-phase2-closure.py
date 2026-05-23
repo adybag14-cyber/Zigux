@@ -528,6 +528,71 @@ EXPECTED_CONF_MANIFEST = {
         "mod2yesconfig",
         "mod2noconfig",
     ],
+    "stdout_packet": [
+        "oldaskconfig_expected.json",
+        "syncconfig_expected.json",
+        "oldconfig_expected.json",
+        "allnoconfig_expected.json",
+        "allyesconfig_expected.json",
+        "allmodconfig_expected.json",
+        "alldefconfig_expected.json",
+        "randconfig_expected.json",
+        "defconfig_expected.json",
+        "savedefconfig_expected.json",
+        "listnewconfig_expected.json",
+        "helpnewconfig_expected.json",
+        "olddefconfig_expected.json",
+        "yes2modconfig_expected.json",
+        "mod2yesconfig_expected.json",
+        "mod2noconfig_expected.json",
+    ],
+    "mode_arg_cases": ["defconfig", "savedefconfig"],
+    "silent_request_packet": ["listnewconfig_expected.json", "helpnewconfig_expected.json"],
+    "syncconfig_env_packet": ["syncconfig_expected.json"],
+    "allconfig_sentinel_packet": [
+        "allnoconfig_expected.json",
+        "allyesconfig_expected.json",
+        "alldefconfig_expected.json",
+    ],
+    "allconfig_override_packet": ["allmodconfig_expected.json", "randconfig_expected.json"],
+    "helper_local_allconfig_implicit_omission_modes": ["allmodconfig", "randconfig"],
+    "helper_local_allconfig_explicit_override_modes": [
+        "allmodconfig",
+        "allnoconfig",
+        "allyesconfig",
+        "randconfig",
+    ],
+    "randconfig_env_packet": ["randconfig_expected.json"],
+    "helper_local_anchors": [
+        "conf bridge mode surface stays aligned with conf.c long options",
+        "conf bridge emits olddefconfig argv and env",
+        "conf bridge emits syncconfig auto files",
+        "conf bridge emits syncconfig nosilentupdate when present",
+        "conf bridge omits empty syncconfig nosilentupdate",
+        "conf bridge emits silent flag before mode flag",
+        "conf bridge emits alldefconfig argv and env",
+        "conf bridge emits explicit empty allconfig override for allmodconfig",
+        "conf bridge emits randconfig tunables when present",
+        "conf bridge emits explicit randconfig allconfig override when present",
+        "conf bridge omits randconfig allconfig sentinel without explicit override",
+        "conf bridge emits yes2modconfig argv and env",
+        "conf bridge emits defconfig mode argument before kconfig",
+        "conf bridge emits savedefconfig mode argument before kconfig",
+        "conf bridge escapes low control bytes in JSON strings",
+        "mode argument validation rejects bridge option shaped defconfig payload",
+        "mode argument validation accepts defconfig path that only starts with silent",
+        "mode argument validation still accepts ordinary path text with equals",
+        "bridge options parser accepts explicit allconfig override for allmodconfig",
+        "bridge options parser accepts syncconfig nosilentupdate",
+        "bridge options parser keeps empty syncconfig nosilentupdate unset",
+        "bridge options parser accepts generic silent flag",
+        "bridge options parser accepts silent alongside randconfig options",
+        "bridge options parser rejects duplicate silent flag",
+        "bridge options parser rejects duplicate randconfig probability",
+        "bridge options parser rejects unexpected options for mode",
+        "bridge options parser keeps empty randconfig tunables unset",
+        "bridge options parser rejects duplicate mode specific options",
+    ],
 }
 
 EXPECTED_CONFDATA_CASE_DETAILS = [
@@ -571,6 +636,67 @@ EXPECTED_CONFDATA_MANIFEST = {
         "last_state_transitions",
         "duplicate_assignments",
         "duplicate_malformed_quoted_assignment",
+    ],
+    "input_packet": [
+        "sample.config",
+        "escaped_strings.config",
+        "escaped_control_sequences.config",
+        "trailing_escaped_backslash.config",
+        "sample_crlf.config",
+        "explicit_n_tristate.config",
+        "final_trailing_carriage_return.config",
+        "final_unterminated_unset_comment.config",
+        "uppercase_tristate.config",
+        "non_config_lines.config",
+        "empty_config_symbol_names.config",
+        "malformed_unset_comment_tokens.config",
+        "last_state_transitions.config",
+        "duplicate_assignments.config",
+        "duplicate_malformed_quoted_assignment.config",
+    ],
+    "expected_packet": [
+        "sample_expected.json",
+        "escaped_strings_expected.json",
+        "escaped_control_sequences_expected.json",
+        "trailing_escaped_backslash_expected.json",
+        "sample_crlf_expected.json",
+        "explicit_n_tristate_expected.json",
+        "final_trailing_carriage_return_expected.json",
+        "final_unterminated_unset_comment_expected.json",
+        "uppercase_tristate_expected.json",
+        "non_config_lines_expected.json",
+        "empty_config_symbol_names_expected.json",
+        "malformed_unset_comment_tokens_expected.json",
+        "last_state_transitions_expected.json",
+        "duplicate_assignments_expected.json",
+        "duplicate_malformed_quoted_assignment_expected.json",
+    ],
+    "helper_local_anchors": [
+        "confdata bridge parses bounded config states",
+        "confdata bridge emits bounded json output",
+        "confdata bridge decodes escaped quoted strings",
+        "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
+        "confdata bridge escapes low control bytes in json output",
+        "confdata bridge accepts CRLF config lines",
+        "confdata bridge preserves trailing carriage return on final unterminated value line",
+        "confdata bridge ignores unterminated unset comment with trailing carriage return",
+        "confdata bridge ignores suffix bytes after an embedded NUL",
+        "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
+        "confdata bridge keeps explicit n assignments as tristate values",
+        "confdata bridge recognizes uppercase tristate assignments",
+        "confdata bridge ignores non-CONFIG lines like upstream confdata",
+        "confdata bridge ignores empty CONFIG symbol names",
+        "confdata bridge ignores malformed unset comments with extra tokens",
+        "confdata bridge keeps trailing escaped backslashes in quoted strings",
+        "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata",
+        "confdata bridge ignores malformed quoted values like upstream confdata",
+        "confdata bridge emits no entries for empty CONFIG symbol names",
+        "confdata bridge keeps only the last assignment for duplicate symbols",
+        "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
+        "confdata bridge keeps only the last state across unset and set transitions",
+        "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
+        "confdata bridge releases appended entry ownership on index-allocation failure",
+        "confdata bridge preserves duplicate unset ownership on allocation failure",
     ],
 }
 
@@ -868,6 +994,22 @@ def run_self_test() -> int:
         payload[0]["expected_file"] = "drifted.json"
         genksyms_cases_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("GENKSYMS_CASE_PACKET_MISMATCH", "cases") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        (resolve(root, CONF_MANIFEST_REL)).write_text(
+            json.dumps({**json.loads(resolve(root, CONF_MANIFEST_REL).read_text(encoding="utf-8")), "stdout_packet": ["drifted.json"]}, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        assert ("CONF_MANIFEST_MISMATCH", "root") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        (resolve(root, CONFDATA_MANIFEST_REL)).write_text(
+            json.dumps({**json.loads(resolve(root, CONFDATA_MANIFEST_REL).read_text(encoding="utf-8")), "helper_local_anchors": ["drifted anchor"]}, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        assert ("CONFDATA_MANIFEST_MISMATCH", "root") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
