@@ -38,6 +38,7 @@
     "preexisting_virtio_input_test_present": true,
     "preexisting_virtio_input_registration_preflight_present": true,
     "preexisting_virtio_input_registration_preflight_test_present": true,
+    "preexisting_virtio_input_teardown_preflight_present": true,
     "preexisting_virtio_input_slice_note_present": true,
     "preexisting_virtio_input_module_note_present": true
   },
@@ -89,7 +90,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-input-module-slice.md",
-      "why_now": "The module-facing note keeps the queue-callback, registration-preflight, status-drain, teardown-local, and teardown-reset verify boundaries explicit in one packet-local companion."
+      "why_now": "The module-facing note keeps the queue-callback, registration-preflight, status-drain, teardown-preflight, teardown-local, and teardown-reset verify boundaries explicit in one packet-local companion."
     },
     {
       "id": "phase10-virtio-input-survey-gate",
@@ -167,6 +168,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input_status_drain.zig",
       "why_now": "The status-drain replay proves queued completions and suppressed timestamps stay reviewable without widening into transport-backed event delivery."
+    },
+    {
+      "id": "phase10-virtio-input-teardown-preflight-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input_teardown_preflight.zig",
+      "why_now": "The dedicated teardown-preflight helper keeps pending status-drain blockers, armed runtime state, and identity preservation explicit before the reset-local teardown path is treated as ready."
     },
     {
       "id": "phase10-virtio-input-teardown-observation-helper",
