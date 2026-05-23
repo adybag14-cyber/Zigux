@@ -10,6 +10,7 @@ WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE = "zigux/Makefile"
 GENKSYMS_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md"
 GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
+GENKSYMS_VERSION_SIDE_EFFECT_AMBIGUOUS_TEST = "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
 GENKSYMS_MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
 GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
@@ -58,6 +59,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "scripts/zigux/genksyms.zig",
     GENKSYMS_VERSION_SIDE_EFFECT_TEST,
+    GENKSYMS_VERSION_SIDE_EFFECT_AMBIGUOUS_TEST,
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/zig-toolchain-policy.json",
     "scripts/zigux/artifact_diff.py",
@@ -78,6 +80,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
     *GENKSYMS_PROCESS_OUTPUT_FIXTURES,
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
