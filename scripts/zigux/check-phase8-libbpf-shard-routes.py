@@ -90,6 +90,7 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/logging.zig`",
         "`tools/lib/bpf/zigux_segments/logging_verify.zig`",
         "`tools/lib/bpf/zigux_segments/type_names.zig`",
+        "`tools/lib/bpf/zigux_segments/type_names_verify.zig`",
         "`tools/lib/bpf/zigux_segments/pin_path.zig`",
         "`tools/lib/bpf/zigux_segments/pin_path_verify.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
