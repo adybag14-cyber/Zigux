@@ -90,11 +90,10 @@ REQUIRED_TESTS_ROOT_MARKERS = (
 FORBIDDEN_TESTS_ROOT_MARKERS = ()
 
 REQUIRED_SCRIPTS_README_MARKERS = (
-    "Phase 14 flow - the current scripts-root shared smoke packet stays reviewable through the recovered study-only documentation packet",
-    "`scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/validate-phase14.py`, and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` keep the recoverable shared-smoke layer visible",
-    "`kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` keep the directly readable workqueue reviewability shard explicit",
-    "current `master` does materialize `zigux/Makefile`, and its live body now exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with `phase14-validate`; `phase14-smoke`, `phase14-test`, and `phase14` still do not return",
-    "keep same-lane follow-through narrowed to reminder-surface truthfulness",
+    "Phase 14 flow - the current scripts-root shared smoke packet stays reviewable through the recovered study-only documentation packet, the directly readable route, tests-root, rollback-threshold, validator, and release-boundary guards, the machine-readable shared-smoke manifest, and the returned `phase14-validate` split without promoting the missing `phase14-smoke`, `phase14-test`, or `phase14` wrappers into current proof",
+    "`scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and `zigux/Makefile` keep the directly readable shared-smoke route proof, tests-root reminder proof, validator entrypoint, rollback-threshold sequencing contract, release-boundary exact-count posture, and machine-readable shared smoke surface inventory explicit from the scripts root while the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers remain absent on current `master`",
+    "`kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` keep the directly readable workqueue reviewability shard explicit from the scripts root without pretending that the broader executable layer or live workqueue execution has returned",
+    "shared reminder truthfulness around the returned study-only packet and the single `make -C zigux phase14-validate` gate",
 )
 
 REQUIRED_CHECKLIST_MARKERS = (
@@ -315,6 +314,19 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, "phase14 attached-toolchain guidance missing required markers")
+        cases += 1
+
+        write_fixture_tree(base)
+        scripts_path = base / SCRIPTS_README_PATH
+        scripts_path.write_text(
+            scripts_path.read_text(encoding="utf-8").replace(
+                REQUIRED_SCRIPTS_README_MARKERS[1],
+                "`scripts/zigux/validate-phase14.py` keeps the recoverable shared-smoke layer visible",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "phase14 scripts README missing required markers")
         cases += 1
 
         write_fixture_tree(base)
