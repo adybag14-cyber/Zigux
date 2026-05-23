@@ -44,6 +44,9 @@ pub fn summarizeTransmitRecycle(request: TransmitRecycleRequest) !TransmitRecycl
     if (request.completed_descriptors > request.in_flight_descriptors) {
         return error.CompletedDescriptorOverflow;
     }
+    if (request.queue_stopped and request.wake_threshold == 0) {
+        return error.StoppedQueueWakeThresholdMissing;
+    }
 
     const free_descriptors_after = try checkedAddU16(
         request.free_descriptors_before,
@@ -161,6 +164,16 @@ test "summarizeTransmitRecycle rejects completion counts larger than the in-flig
         .in_flight_descriptors = 3,
         .free_descriptors_before = 1,
         .completed_descriptors = 4,
+        .queue_stopped = true,
+    }));
+}
+
+test "summarizeTransmitRecycle rejects zero wake thresholds for stopped queues" {
+    try std.testing.expectError(error.StoppedQueueWakeThresholdMissing, summarizeTransmitRecycle(.{
+        .in_flight_descriptors = 1,
+        .free_descriptors_before = 0,
+        .completed_descriptors = 0,
+        .wake_threshold = 0,
         .queue_stopped = true,
     }));
 }
