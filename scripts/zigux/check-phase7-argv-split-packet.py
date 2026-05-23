@@ -209,7 +209,7 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         checker_text = read_text(checker_path)
-        checker_marker = "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"," 
+        checker_marker = "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\","
         checker_path.write_text(checker_text.replace(checker_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_checker_fixture_marker", tmp_root, f"scripts/zigux/check-phase7-argv-split-packet.py: {checker_marker}")
         cases_run += 1
