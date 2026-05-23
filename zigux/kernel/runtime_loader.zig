@@ -363,3 +363,23 @@ test "PreparedRequest keeps blocked publication and depmod surfaces out of the s
         try std.testing.expect(!@hasField(PreparedRequest, field));
     }
 }
+
+test "ApprovedPilotFamily keeps blocked publication and depmod surfaces out of the shared family contract" {
+    const blocked_publication_fields = [_][]const u8{
+        "modinfo",
+        "module_alias",
+        "module_aliases",
+        "modules_alias_path",
+        "module_install_root",
+        "modules_order_path",
+        "modules_builtin_path",
+        "module_symvers_path",
+        "depmod_script",
+        "depmod_manifest",
+        "depmod_aliases",
+    };
+
+    inline for (blocked_publication_fields) |field| {
+        try std.testing.expect(!@hasField(ApprovedPilotFamily, field));
+    }
+}
