@@ -226,6 +226,7 @@ Keep the directly readable tests-root Phase 15 governance packet explicit throug
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
