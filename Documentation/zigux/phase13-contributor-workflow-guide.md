@@ -41,6 +41,18 @@ Keep `python3 scripts/zigux/validate-phase13-release.py` explicit as the shipped
 
 `zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`, so keep the file itself distinct from those missing Phase 13 route names and keep only the route names recorded as repo-reality gaps until the shared build handle returns.
 
+## Contributor Quick Start
+
+If this is your first Phase 13 reminder-surface edit in a while, use this short loop before reading the longer packet details:
+
+1. open `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together
+2. decide whether the change is shared contributor wording or helper-local proof, and stay on the shared side unless the packet forces a narrower helper note
+3. edit at most one shared reminder surface plus the smallest helper-local note needed to keep the packet truthful
+4. rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`
+5. leave any absent route, replay, or helper framed as a repo-reality gap instead of promoting it into shipped evidence
+
+Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.
+
 ## Shared Surfaces To Reread Together
 
 When shared Phase 13 wording changes, reread these contributor-facing and support surfaces together:
