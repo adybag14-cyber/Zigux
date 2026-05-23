@@ -144,6 +144,17 @@ Keep the current direct-readback Phase 8 anchors explicit through:
 - `zigux/tests/phase8_perf_buffer_poll.zig`
 - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
 
+Keep the currently returned help-and-kallsyms focused packet explicit too; current `master` now rematerializes the dedicated shard files and their route-level companions even though the broader note still treats them as public-tree-backed companion evidence:
+
+- `Documentation/zigux/phase8-help-slice.md`
+- `Documentation/zigux/phase8-kallsyms-slice.md`
+- `zigux/tests/phase8_help_only_build.zig`
+- `zigux/tests/phase8_kallsyms_only_build.zig`
+- `zigux/tests/phase8_help_kallsyms_only_build.zig`
+- `make -C zigux phase8-help-test`
+- `make -C zigux phase8-help-kallsyms-test`
+- `make -C zigux phase8-kallsyms-test`
+
 Keep the current mixed-source file-path-handle bridge companions explicit too; they remain reviewable on current `master` through the public tree and the aligned reminder packet:
 
 - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
