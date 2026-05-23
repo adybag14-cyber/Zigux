@@ -625,6 +625,38 @@ fn addPhase3LowLevelWrappers(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3ScopeRequire(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const abi_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const narrow = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow.addImport("abi_bindings", abi_bindings);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("../unsafe/scope_require.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("abi_bindings", abi_bindings);
+    root_module.addImport("narrow_unsafe", narrow);
+
+    const tests = b.addTest(.{
+        .name = "phase3-scope-require-test",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -721,6 +753,7 @@ pub fn build(b: *std.Build) void {
     const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);
     const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
+    const phase3_scope_require = addPhase3ScopeRequire(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
     const phase10_virtio_core_survey = addSurveyTest(
         b,
@@ -818,6 +851,12 @@ pub fn build(b: *std.Build) void {
     );
     phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
 
+    const phase3_scope_require_step = b.step(
+        "phase3-scope-require-test",
+        "Run the shared Phase 3 unsafe scope-require replay from zigux/tests",
+    );
+    phase3_scope_require_step.dependOn(&phase3_scope_require.step);
+
     const phase3_test_step = b.step(
         "phase3-test",
         "Run the current shared Phase 3 starter packet bundle from zigux/tests",
@@ -831,6 +870,7 @@ pub fn build(b: *std.Build) void {
     phase3_test_step.dependOn(&phase3_abi_core_packet.step);
     phase3_test_step.dependOn(&phase3_export_uapi_layout.step);
     phase3_test_step.dependOn(&phase3_low_level_wrappers.step);
+    phase3_test_step.dependOn(&phase3_scope_require.step);
 
     const phase3_dump_step = b.step(
         "phase3-dump",
