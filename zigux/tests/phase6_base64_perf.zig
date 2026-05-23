@@ -241,10 +241,21 @@ fn decodeSlowdownPct(case: fixtures.PerfCase, codec: Codec) !u64 {
 pub fn main() !void {
     try validatePerfMatrix();
 
+    std.debug.print("PHASE6_BASE64_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});
+
     for (fixtures.perf_cases) |case| {
         const codec = try resolveCodec(case);
         const encode_slowdown = try encodeSlowdownPct(case, codec);
+        const decode_slowdown = try decodeSlowdownPct(case, codec);
+
+        std.debug.print("PHASE6_BASE64_PERF_{s}_ITERATIONS={d}\n", .{ case.label, case.iterations });
+        std.debug.print("PHASE6_BASE64_PERF_{s}_ENCODE_THRESHOLD_PCT={d}\n", .{ case.label, case.max_encode_slowdown_pct });
+        std.debug.print("PHASE6_BASE64_PERF_{s}_DECODE_THRESHOLD_PCT={d}\n", .{ case.label, case.max_decode_slowdown_pct });
+        std.debug.print("PHASE6_BASE64_PERF_{s}_ENCODE_SLOWDOWN_PCT={d}\n", .{ case.label, encode_slowdown });
+        std.debug.print("PHASE6_BASE64_PERF_{s}_DECODE_SLOWDOWN_PCT={d}\n", .{ case.label, decode_slowdown });
+
         if (encode_slowdown > case.max_encode_slowdown_pct) {
+            std.debug.print("PHASE6_BASE64_PERF_{s}=fail\n", .{case.label});
             std.debug.print(
                 "PHASE6_BASE64_PERF=fail label={s} encode_slowdown_pct={} max={}\n",
                 .{ case.label, encode_slowdown, case.max_encode_slowdown_pct },
@@ -252,8 +263,8 @@ pub fn main() !void {
             return error.TestExpectedEqual;
         }
 
-        const decode_slowdown = try decodeSlowdownPct(case, codec);
         if (decode_slowdown > case.max_decode_slowdown_pct) {
+            std.debug.print("PHASE6_BASE64_PERF_{s}=fail\n", .{case.label});
             std.debug.print(
                 "PHASE6_BASE64_PERF=fail label={s} decode_slowdown_pct={} max={}\n",
                 .{ case.label, decode_slowdown, case.max_decode_slowdown_pct },
@@ -261,6 +272,7 @@ pub fn main() !void {
             return error.TestExpectedEqual;
         }
 
+        std.debug.print("PHASE6_BASE64_PERF_{s}=pass\n", .{case.label});
         std.debug.print(
             "PHASE6_BASE64_PERF_CASE=pass label={s} encode_slowdown_pct={} decode_slowdown_pct={}\n",
             .{ case.label, encode_slowdown, decode_slowdown },
