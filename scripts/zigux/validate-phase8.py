@@ -202,9 +202,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`",
         "`zigux/tests/phase8_build.zig`",
         "`make -C zigux phase8-exec-cmd-test`",
         "`make -C zigux phase8-file-path-handle-bridge-test`",
+        "current `zigux/tests/phase8_build.zig` also keeps the landed boundary-guard and manifest-sync witnesses inside the shared aggregate replay, so this tests-root reminder should treat both checks as current current-`master` evidence instead of leaving them implied only by the aggregate build route",
         "repo-reality warning for the broader remaining Phase 8 tooling packet:",
         "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
         "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`",
@@ -336,7 +339,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ONLINE_CPU_ROUTING_SEGMENT: (
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
-        "test \"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\" {",
+        "test \\\"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\\\" {",
     ),
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT: (
         "phase8 online-cpu route helpers keep typed cpu-index wrappers stable",
@@ -347,7 +350,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'pub const default_bpf_fs_path = "/sys/fs/bpf";',
         "pub fn buildValidatedMapPinPath(",
         "pub fn buildValidatedSanitizedProgramPinPath(",
-        "test \"program pin-path helpers mirror the bounded libbpf program pin contract\" {",
+        "test \\\"program pin-path helpers mirror the bounded libbpf program pin contract\\\" {",
     ),
     PIN_PATH_VERIFY_SEGMENT: (
         "phase8 pin-path helper entrypoints stay explicit",
@@ -359,7 +362,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn resolveReadyBufferFdAtAttempt(",
         "pub fn resolveReadyBufferFdLookupReturnAtAttempt(",
         "pub fn summarizeBufferWindowLookup(",
-        "test \"phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing\" {",
+        "test \\\"phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing\\\" {",
     ),
     PERF_BUFFER_POLL_VERIFY_SEGMENT: (
         "phase8 perf-buffer poll helper entrypoints stay explicit",
