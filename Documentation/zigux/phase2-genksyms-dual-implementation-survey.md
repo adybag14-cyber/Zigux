@@ -22,6 +22,15 @@ Lane: `P2-L07`
 - The truthful current genksyms packet is the helper, its embedded Zig tests, `scripts/zigux/check-genksyms-bridge.py`, the bridge-invocation fixtures in `cases.json`, the dedicated `manifest.json` catalog, the help fixture, the restored process-output fixtures, the standalone invalid-long-option version-side-effect proof, the dedicated genksyms selftest-alignment checker, the validator pair in `scripts/zigux/validate-phase2.py` and `scripts/zigux/validate-phase2-closure.py`, and the shared Phase 2 closure and make-wrapper packet that still replays `phase2-genksyms`.
 - Relative to the roadmap and ledger, the older inventory-shaped governance gap is no longer truthful on current `master`; the live work is a bounded wrapper-first dual-implementation packet whose expected-output governance is already checker-owned, so the remaining same-family posture is to keep this survey parked unless another directly coupled reminder surface drifts.
 
+## Verification note
+
+- `2026-05-23` scheduled lane `P2-L09` rechecked the current genksyms artifact packet against the live fetched `master` payloads rather than older reminder wording.
+- The exact packet counts confirmed in that replay were: `GENKSYMS_CASE_COUNT=8`, `GENKSYMS_PROCESS_OUTPUT_FIXTURE_COUNT=9`, `GENKSYMS_HELP_PACKET_COUNT=1`, `GENKSYMS_MANIFEST_HELPER_ANCHOR_COUNT=13`, `GENKSYMS_MAKEFILE_HOOK_COUNT=5`, `GENKSYMS_WORKFLOW_HOOK_COUNT=6`, and `GENKSYMS_VERSION_SIDE_EFFECT_PROOFS=2`.
+- The invocation-fixture replay derived the current request-plan packet from `zigux/tests/fixtures/genksyms_bridge/cases.json` and confirmed all eight expected bridge outputs still match the bounded wrapper semantics for minimal, short-option, long-option, abbreviated-long-option, warning-override, option-terminator, positional-passthrough, and lone-dash handling.
+- The process-output replay confirmed the live `help_expected.json` payload and all nine process-output fixtures still match the current version banner, ambiguous-option, invalid-option, missing-argument, too-many-reference-files, unsupported-long-option, and unexpected-long-help-argument stderr or exit-code surfaces.
+- The hook replay confirmed the current `phase2-genksyms` Makefile stanza still carries the bridge self-test, bridge packet check, Zig unit replay, and alignment self-test or packet check hooks, and the workflow still carries those same six current-head hooks together with the shared `make -C zigux phase2-genksyms` route.
+- Direct raw GitHub checkout was blocked in this runtime, so the bounded verification stayed artifact-focused: it replayed the live fetched fixture and hook payloads locally instead of claiming a fresh full-tree `zig test scripts/zigux/genksyms.zig` rerun from a checked-out working tree.
+
 ## Next bounded same-family step
 
 1. Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift.
