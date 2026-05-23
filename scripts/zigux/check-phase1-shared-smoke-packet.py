@@ -211,6 +211,10 @@ def workflow_step_names(text: str) -> list[str]:
     return [line[len(prefix) :] for line in text.splitlines() if line.startswith(prefix)]
 
 
+def step_name_occurrences(names: list[str], step_name: str) -> int:
+    return sum(1 for name in names if name == step_name)
+
+
 def contains_adjacent_chain(names: list[str], expected_chain: tuple[str, ...]) -> bool:
     width = len(expected_chain)
     for start in range(len(names) - width + 1):
@@ -222,6 +226,7 @@ def contains_adjacent_chain(names: list[str], expected_chain: tuple[str, ...]) -
 def collect_workflow_failures(text: str) -> list[str]:
     failures: list[str] = []
     positions: list[int] = []
+    guarded_steps = (PREDECESSOR_STEP, *LEAD_IN_WORKFLOW_STEPS, *WORKFLOW_PACKET_STEPS, SUCCESSOR_STEP)
 
     for label, step in (("predecessor", PREDECESSOR_STEP), ("successor", SUCCESSOR_STEP)):
         block = workflow_step_block(*step)
@@ -237,13 +242,18 @@ def collect_workflow_failures(text: str) -> list[str]:
             continue
         positions.append(text.index(block))
 
+    workflow_names = workflow_step_names(text)
+    for step_name, _ in guarded_steps:
+        count = step_name_occurrences(workflow_names, step_name)
+        if count != 1:
+            failures.append(f"workflow_step_name:{step_name}:expected=1:actual={count}")
+
     if failures:
         return failures
     if positions != sorted(positions):
         failures.append("workflow:phase1_shared_smoke_packet:expected=strictly_increasing:actual=out_of_order")
         return failures
 
-    workflow_names = workflow_step_names(text)
     predecessor_and_lead_in_chain = (PREDECESSOR_STEP[0],) + tuple(
         step_name for step_name, _ in LEAD_IN_WORKFLOW_STEPS
     )
@@ -352,6 +362,18 @@ def duplicate_workflow_step(root: Path, step_name: str, run_command: str) -> Non
     block = workflow_step_block(step_name, run_command)
     text = load_text(root, WORKFLOW_REL)
     write_text(root, WORKFLOW_REL, text.replace(block, block + "\n" + block, 1))
+
+
+def duplicate_workflow_step_name_with_wrong_command(
+    root: Path,
+    step_name: str,
+    run_command: str,
+    wrong_command: str,
+) -> None:
+    block = workflow_step_block(step_name, run_command)
+    wrong_block = workflow_step_block(step_name, wrong_command)
+    text = load_text(root, WORKFLOW_REL)
+    write_text(root, WORKFLOW_REL, text.replace(block, block + "\n" + wrong_block, 1))
 
 
 def reorder_workflow(root: Path) -> None:
@@ -482,6 +504,15 @@ def run_self_test() -> int:
 
     cases.extend(
         [
+            (
+                "workflow_duplicate_step_name_with_wrong_command",
+                (
+                    "duplicate_workflow_step_name_with_wrong_command",
+                    "Check current Phase 1 closure packet",
+                    "python3 scripts/zigux/validate-phase1-closure.py",
+                    "python3 scripts/zigux/validate-phase1-closure.py --bogus",
+                ),
+            ),
             ("workflow_reordered", ("reorder_workflow",)),
             ("workflow_split_predecessor", ("split_predecessor_workflow",)),
             ("workflow_split_lead_in", ("split_lead_in_workflow",)),
@@ -508,6 +539,13 @@ def run_self_test() -> int:
                     remove_workflow_step(root, mutation[1], mutation[2])
                 elif kind == "duplicate_workflow":
                     duplicate_workflow_step(root, mutation[1], mutation[2])
+                elif kind == "duplicate_workflow_step_name_with_wrong_command":
+                    duplicate_workflow_step_name_with_wrong_command(
+                        root,
+                        mutation[1],
+                        mutation[2],
+                        mutation[3],
+                    )
                 elif kind == "reorder_workflow":
                     reorder_workflow(root)
                 elif kind == "split_predecessor_workflow":
