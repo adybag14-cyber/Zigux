@@ -126,6 +126,10 @@ def iter_duplicate_items(items: list[str]) -> list[str]:
     return duplicates
 
 
+def is_materialized_manifest_path(item: str) -> bool:
+    return "/" in item and not item.startswith("make -C ")
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     validator = load_module(root, VALIDATOR_REL, "zigux_validate_phase2_closure")
     matrix = load_module(root, MATRIX_REL, "zigux_check_phase2_closure_matrix")
@@ -167,8 +171,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         path.as_posix()
         for path in require_path_tuple("matrix", "EXTRA_REQUIRED_FILES", getattr(matrix, "EXTRA_REQUIRED_FILES", None))
     }
-    manifest_items = {item for values in surfaces.values() for item in values if "/" in item and not item.startswith("make -C ")}
+    materialized_required = validator_required | extra_required
+    covered_manifest_paths = {
+        item
+        for values in (*validator_expectations.values(), *direct_expectations.values())
+        for item in values
+        if is_materialized_manifest_path(item)
+    }
+    manifest_items = {
+        item for values in surfaces.values() for item in values if is_materialized_manifest_path(item)
+    }
 
+    for item in sorted(covered_manifest_paths - materialized_required):
+        issues.append(("MATRIX_COVERED_PATH_NOT_MATERIALIZED", item))
     for item in sorted(extra_required & validator_required):
         issues.append(("REDUNDANT_EXTRA_REQUIRED_FILE", item))
     for item in sorted(extra_required - manifest_items):
@@ -212,6 +227,7 @@ EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig",)
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json",)
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase2-closure.md"),
+    Path("scripts/zigux/validate-phase2.py"),
     Path("scripts/zigux/validate-phase2-closure.py"),
     Path("zigux/tests/fixtures/phase2_tool_manifest.json"),
 )
@@ -240,6 +256,7 @@ DIRECT_MANIFEST_SURFACE_EXPECTATIONS = {
     ),
 }
 EXTRA_REQUIRED_FILES = (
+    Path("scripts/zigux/install-zig.py"),
     Path("scripts/zigux/stage-pinned-zig-archive.py"),
     Path("scripts/zigux/check-extra.py"),
 )
@@ -263,6 +280,7 @@ EXTRA_REQUIRED_FILES = (
     write_text(root / VALIDATOR_REL, validator_source)
     write_text(root / MATRIX_REL, matrix_source)
     write_json(root / MANIFEST_REL, manifest)
+    write_text(root / "scripts/zigux/install-zig.py", "present\n")
     write_text(root / "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
     write_text(root / "scripts/zigux/check-extra.py", "present\n")
 
@@ -451,6 +469,7 @@ def run_self_test() -> int:
             validator_text.replace(
                 'REQUIRED_FILES = (\n'
                 '    Path("Documentation/zigux/phase2-closure.md"),\n'
+                '    Path("scripts/zigux/validate-phase2.py"),\n'
                 '    Path("scripts/zigux/validate-phase2-closure.py"),\n'
                 '    Path("zigux/tests/fixtures/phase2_tool_manifest.json"),\n'
                 ')\n',
@@ -463,6 +482,22 @@ def run_self_test() -> int:
             lambda: collect_issues(root),
             "validator.REQUIRED_FILES must stay tuple[Path, ...]",
         )
+        checks_run += 1
+
+        build_self_test_root(root)
+        validator_text = validator_path.read_text(encoding="utf-8")
+        validator_path.write_text(
+            validator_text.replace(
+                '    Path("scripts/zigux/validate-phase2.py"),\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "MATRIX_COVERED_PATH_NOT_MATERIALIZED",
+            "scripts/zigux/validate-phase2.py",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -659,6 +694,22 @@ def run_self_test() -> int:
             lambda: collect_issues(root),
             "matrix.EXTRA_REQUIRED_FILES must stay tuple[Path, ...]",
         )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    Path("scripts/zigux/install-zig.py"),\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "MATRIX_COVERED_PATH_NOT_MATERIALIZED",
+            "scripts/zigux/install-zig.py",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
