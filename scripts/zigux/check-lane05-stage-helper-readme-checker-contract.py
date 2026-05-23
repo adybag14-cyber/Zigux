@@ -101,16 +101,16 @@ def resolve_contract(root: Path) -> dict[str, object]:
 
 def require_marker(text: str, marker: str, label: str) -> None:
     if marker not in text:
-        raise ValueError(f"lane05 README checker contract missing {label}: {marker}")
+        raise ValueError(f"lane05 stage helper contract missing {label}: {marker}")
 
 
 def require_order(text: str, earlier: str, later: str, label: str) -> None:
     earlier_index = text.find(earlier)
     later_index = text.find(later)
     if earlier_index == -1 or later_index == -1:
-        raise ValueError(f"lane05 README checker contract missing ordered markers for {label}")
+        raise ValueError(f"lane05 stage helper contract missing ordered markers for {label}")
     if earlier_index >= later_index:
-        raise ValueError(f"lane05 README checker contract expected {label} `{earlier}` before `{later}`")
+        raise ValueError(f"lane05 stage helper contract expected {label} `{earlier}` before `{later}`")
 
 
 def check_stage_helper(root: Path, contract: dict[str, object]) -> int:
@@ -263,7 +263,7 @@ def write_fixture(root: Path) -> None:
                     "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
                 },
                 "upgrade_policy": {
-                    "channel_minimum_lockstep": true,
+                    "channel_minimum_lockstep": True,
                     "archive_target_scope": ["x86_64-linux"],
                     "required_make_routes": ["phase2-toolchain", "phase2-validate", "phase2-cross"],
                 },
@@ -359,7 +359,7 @@ def write_fixture(root: Path) -> None:
 def run_self_test() -> int:
     case_count = 0
 
-    with tempfile.TemporaryDirectory(prefix="lane05_readme_checker_contract_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="lane05_stage_helper_contract_") as tmp_dir:
         root = Path(tmp_dir)
         write_fixture(root)
         contract = resolve_contract(root)
@@ -370,7 +370,7 @@ def run_self_test() -> int:
 
     def expect_failure(mutator, expected_substring: str) -> None:
         nonlocal case_count
-        with tempfile.TemporaryDirectory(prefix="lane05_readme_checker_contract_fail_") as tmp_dir:
+        with tempfile.TemporaryDirectory(prefix="lane05_stage_helper_contract_fail_") as tmp_dir:
             root = Path(tmp_dir)
             write_fixture(root)
             mutator(root)
@@ -386,7 +386,7 @@ def run_self_test() -> int:
             raise AssertionError("expected checker to fail")
 
     expect_failure(
-        lambda root: (root / STAGE_HELPER_PATH).write_text("missing\n", encoding="utf-8"),
+        lambda root: (root / STAGE_HELPER_PATH).writeText("missing\n", encoding="utf-8"),
         "missing stage helper marker",
     )
     expect_failure(
@@ -438,14 +438,14 @@ def run_self_test() -> int:
         "missing README marker",
     )
 
-    print("LANE05_README_CHECKER_CONTRACT_SELF_TEST=pass")
-    print(f"LANE05_README_CHECKER_CONTRACT_SELF_TEST_CASE_COUNT={case_count}")
+    print("LANE05_STAGE_HELPER_CONTRACT_SELF_TEST=pass")
+    print(f"LANE05_STAGE_HELPER_CONTRACT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check the Lane 05 local-archive README checker contract against the staged-archive helper, policy, and README."
+        description="Check the Lane 05 staged-archive helper contract against policy and README."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate")
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage")
@@ -461,20 +461,20 @@ def main() -> int:
         readme_checker_marker_count = check_readme_checker(root, contract)
         readme_marker_count = check_readme(root, contract)
     except ValueError as exc:
-        print("LANE05_README_CHECKER_CONTRACT=fail")
-        print(f"LANE05_README_CHECKER_CONTRACT_ROOT={args.root.resolve()}")
-        print(f"LANE05_README_CHECKER_CONTRACT_NOTE={exc}")
+        print("LANE05_STAGE_HELPER_CONTRACT=fail")
+        print(f"LANE05_STAGE_HELPER_CONTRACT_ROOT={args.root.resolve()}")
+        print(f"LANE05_STAGE_HELPER_CONTRACT_NOTE={exc}")
         return 1
 
-    print("LANE05_README_CHECKER_CONTRACT=pass")
-    print(f"LANE05_README_CHECKER_CONTRACT_ROOT={root}")
-    print(f"LANE05_README_CHECKER_CONTRACT_TARGET={contract['target']}")
-    print(f"LANE05_README_CHECKER_CONTRACT_FILENAME={contract['filename']}")
-    print(f"LANE05_README_CHECKER_CONTRACT_SHA256={contract['sha256']}")
-    print(f"LANE05_README_CHECKER_CONTRACT_SIZE={contract['size']}")
-    print(f"LANE05_README_CHECKER_STAGE_HELPER_MARKER_COUNT={helper_marker_count}")
-    print(f"LANE05_README_CHECKER_MARKER_COUNT={readme_checker_marker_count}")
-    print(f"LANE05_README_CHECKER_README_MARKER_COUNT={readme_marker_count}")
+    print("LANE05_STAGE_HELPER_CONTRACT=pass")
+    print(f"LANE05_STAGE_HELPER_CONTRACT_ROOT={root}")
+    print(f"LANE05_STAGE_HELPER_CONTRACT_TARGET={contract['target']}")
+    print(f"LANE05_STAGE_HELPER_CONTRACT_FILENAME={contract['filename']}")
+    print(f"LANE05_STAGE_HELPER_CONTRACT_SHA256={contract['sha256']}")
+    print(f"LANE05_STAGE_HELPER_CONTRACT_SIZE={contract['size']}")
+    print(f"LANE05_STAGE_HELPER_MARKER_COUNT={helper_marker_count}")
+    print(f"LANE05_STAGE_HELPER_README_CHECKER_MARKER_COUNT={readme_checker_marker_count}")
+    print(f"LANE05_STAGE_HELPER_README_MARKER_COUNT={readme_marker_count}")
     return 0
 
 
