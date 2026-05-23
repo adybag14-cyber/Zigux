@@ -32,6 +32,7 @@ The shared `zigux/tests/phase5_build.zig` route remains useful support material 
 Keep the approved formatting idiom bounded to the current landed reminder packet:
 
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
+- `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
 - `Documentation/zigux/review-checklist.md`
