@@ -11,6 +11,8 @@ This note keeps the current Phase 2 closure-side packet aligned to the directly 
 
 The bounded Phase 2 tranche remains the directly readable toolchain, local-first archive, installer, direct cross-route, selected kconfig-bridge, bounded genksyms bridge, direct standalone genksyms invalid-long-option and ambiguous-long-option version-side-effect proofs, fixdep, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact-support packet already present on current `master`.
 
+current `master` still returns missing for `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, so keep the repo-local pinned archive contract explicit through `third_party/README.md`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, and the local-first archive reminder guards instead of treating the payload itself as directly readable current-master evidence.
+
 ## Current Closure Packet
 
 The currently reviewable Phase 2 closure packet is:
@@ -88,13 +90,13 @@ The currently reviewable Phase 2 closure packet is:
 
 ## Current Repo-Reality Gaps
 
-Within the bounded Phase 2 closure packet, current `master` no longer leaves the local-first archive pair, installer hook, direct cross-route packet, returned closure-validator companions, fixdep checker packet, or fixture-backed manifest guards in the repo-reality-gap bucket.
+Within the bounded Phase 2 closure packet, current `master` no longer leaves the local-first archive contract, installer hook, direct cross-route packet, returned closure-validator companions, fixdep checker packet, or fixture-backed manifest guards in the repo-reality-gap bucket.
 
 The current closure-side packet keeps the fixdep governance and parity checker pair explicit through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep`, keeps the bounded genksyms closure evidence explicit through `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`, `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig`, `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, the restored process-output fixture packet, the returned dash-prefixed long-option-arguments-as-data expected-output fixture, `zig test scripts/zigux/genksyms.zig`, and `make -C zigux phase2-genksyms`, and keeps same-lane follow-through tied to the toolchain, local-first archive, cross-route, kconfig, manifest-guard, genksyms, make-wrapper, fixdep, and validator packet that the repo still ships directly.
 
 - `PHASE2_CURRENT_GAP_PACKET=`
 
-The current closure-side packet now stays anchored to the materialized closure note, validator entrypoint, closure validator, toolchain policy, returned local-first archive pair, returned installer helper, direct cross-route checker, shared reminder guards, current manifest guards, selected kconfig bridge checker plus the direct `conf_bridge` and `confdata_bridge` Zig unit replays, the bounded genksyms bridge checker, the dedicated genksyms selftest-alignment checker, direct genksyms Zig unit replay, standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, restored process-output fixture packet, returned dash-prefixed long-option-arguments-as-data expected-output fixture, and fixture catalog, the fixdep checker pair and fixture roster, current manifests, and shipped make-wrapper routes that current `master` can honestly support.
+The current closure-side packet now stays anchored to the materialized closure note, validator entrypoint, closure validator, toolchain policy, returned local-first archive contract, returned installer helper, direct cross-route checker, shared reminder guards, current manifest guards, selected kconfig bridge checker plus the direct `conf_bridge` and `confdata_bridge` Zig unit replays, the bounded genksyms bridge checker, the dedicated genksyms selftest-alignment checker, direct genksyms Zig unit replay, standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, restored process-output fixture packet, returned dash-prefixed long-option-arguments-as-data expected-output fixture, and fixture catalog, the fixdep checker pair and fixture roster, current manifests, and shipped make-wrapper routes that current `master` can honestly support.
 
 ## Closure Validation
 
