@@ -41,6 +41,55 @@ test "starter packet version binding preserves the Linux-facing header family la
     try testing.expectEqual(@as(u32, 1), current.header_family_revision);
 }
 
+test "starter version binding keeps compatibility predicates and status explicit" {
+    const live = version.current();
+    const stale_major = version.Version{
+        .abi_major = version.abi_major + 1,
+        .abi_minor = version.abi_minor,
+        .header_family_revision = version.header_family_revision,
+    };
+    const stale_minor = version.Version{
+        .abi_major = version.abi_major,
+        .abi_minor = version.abi_minor + 1,
+        .header_family_revision = version.header_family_revision,
+    };
+    const stale_revision = version.Version{
+        .abi_major = version.abi_major,
+        .abi_minor = version.abi_minor,
+        .header_family_revision = version.header_family_revision + 1,
+    };
+    const valid = version.validate(live);
+    const invalid_major = version.validate(stale_major);
+    const invalid_minor = version.validate(stale_minor);
+    const invalid_revision = version.validate(stale_revision);
+
+    try testing.expect(version.hasCurrentAbiMajor(live.abi_major));
+    try testing.expect(version.hasCurrentAbiMinor(live.abi_minor));
+    try testing.expect(version.hasCurrentHeaderFamilyRevision(live.header_family_revision));
+    try testing.expect(version.matchesCurrent(live));
+
+    try testing.expect(!version.hasCurrentAbiMajor(stale_major.abi_major));
+    try testing.expect(!version.hasCurrentAbiMinor(stale_minor.abi_minor));
+    try testing.expect(!version.hasCurrentHeaderFamilyRevision(stale_revision.header_family_revision));
+    try testing.expect(!version.matchesCurrent(stale_major));
+    try testing.expect(!version.matchesCurrent(stale_minor));
+    try testing.expect(!version.matchesCurrent(stale_revision));
+
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), valid.facility);
+    try testing.expectEqual(@as(u16, 0), valid.flags);
+
+    try testing.expectEqual(@as(i32, -22), invalid_major.code);
+    try testing.expectEqual(@as(i32, -22), invalid_minor.code);
+    try testing.expectEqual(@as(i32, -22), invalid_revision.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_major.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_minor.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_revision.facility);
+    try testing.expectEqual(@as(u16, 1), invalid_major.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_minor.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_revision.flags);
+}
+
 test "dev_t binding equality stays field based" {
     const left = dev_t.init(7, 3);
     const same = dev_t.init(7, 3);
@@ -92,6 +141,108 @@ test "starter export shim reuses the canonical boundary header and version snaps
     try testing.expect(version.eql(current, version.current()));
 }
 
+test "starter export shim keeps boundary-header predicates explicit" {
+    const canonical = export_shim.canonicalHeader(0x41);
+    const extended = export_shim.compatibleHeader(export_shim.header_size + 8, 0x41);
+    const undersized = export_shim.BoundaryHeader{
+        .size = export_shim.header_size - 1,
+        .abi_version = export_shim.abi_version,
+        .flags = 0x41,
+    };
+    const stale = export_shim.BoundaryHeader{
+        .size = export_shim.header_size,
+        .abi_version = export_shim.abi_version + 1,
+        .flags = 0x41,
+    };
+    const canonicalized = export_shim.canonicalizeHeader(extended);
+
+    try testing.expect(export_shim.isCurrentAbiVersion(canonical.abi_version));
+    try testing.expect(export_shim.isCanonicalSize(canonical.size));
+    try testing.expect(export_shim.isCompatibleSize(canonical.size));
+    try testing.expect(export_shim.headerIsCanonical(canonical));
+    try testing.expect(export_shim.headerIsCompatible(canonical));
+    try testing.expect(!export_shim.extendsBoundary(canonical));
+    try testing.expectEqual(@as(u32, 0), export_shim.requestedExtraBytes(canonical));
+
+    try testing.expect(!export_shim.isCanonicalSize(extended.size));
+    try testing.expect(export_shim.isCompatibleSize(extended.size));
+    try testing.expect(!export_shim.headerIsCanonical(extended));
+    try testing.expect(export_shim.headerIsCompatible(extended));
+    try testing.expect(export_shim.extendsBoundary(extended));
+    try testing.expectEqual(@as(u32, 8), export_shim.requestedExtraBytes(extended));
+
+    try testing.expect(!export_shim.isCanonicalSize(undersized.size));
+    try testing.expect(!export_shim.isCompatibleSize(undersized.size));
+    try testing.expect(!export_shim.headerIsCanonical(undersized));
+    try testing.expect(!export_shim.headerIsCompatible(undersized));
+    try testing.expect(!export_shim.extendsBoundary(undersized));
+    try testing.expectEqual(@as(u32, 0), export_shim.requestedExtraBytes(undersized));
+
+    try testing.expect(!export_shim.isCurrentAbiVersion(stale.abi_version));
+    try testing.expect(!export_shim.headerIsCanonical(stale));
+    try testing.expect(!export_shim.headerIsCompatible(stale));
+    try testing.expect(!export_shim.extendsBoundary(stale));
+    try testing.expectEqual(@as(u32, 0), export_shim.requestedExtraBytes(stale));
+
+    try testing.expectEqual(export_shim.header_size, canonicalized.size);
+    try testing.expectEqual(export_shim.abi_version, canonicalized.abi_version);
+    try testing.expectEqual(extended.flags, canonicalized.flags);
+    try testing.expect(export_shim.headerIsCanonical(canonicalized));
+    try testing.expect(!export_shim.extendsBoundary(canonicalized));
+}
+
+test "starter export shim relays version compatibility status" {
+    const live = export_shim.currentVersion();
+    const stale_major = export_shim.Version{
+        .abi_major = version.abi_major + 1,
+        .abi_minor = version.abi_minor,
+        .header_family_revision = version.header_family_revision,
+    };
+    const stale_minor = export_shim.Version{
+        .abi_major = version.abi_major,
+        .abi_minor = version.abi_minor + 1,
+        .header_family_revision = version.header_family_revision,
+    };
+    const stale_revision = export_shim.Version{
+        .abi_major = version.abi_major,
+        .abi_minor = version.abi_minor,
+        .header_family_revision = version.header_family_revision + 1,
+    };
+    const valid = export_shim.validateVersion(live);
+    const invalid_major = export_shim.validateVersion(stale_major);
+    const invalid_minor = export_shim.validateVersion(stale_minor);
+    const invalid_revision = export_shim.validateVersion(stale_revision);
+
+    try testing.expect(export_shim.hasCurrentAbiMajor(live.abi_major));
+    try testing.expect(export_shim.hasCurrentAbiMinor(live.abi_minor));
+    try testing.expect(export_shim.hasCurrentHeaderFamilyRevision(live.header_family_revision));
+    try testing.expect(export_shim.versionMatchesCurrent(live));
+    try testing.expect(export_shim.statusIsOk(valid));
+
+    try testing.expect(!export_shim.hasCurrentAbiMajor(stale_major.abi_major));
+    try testing.expect(!export_shim.hasCurrentAbiMinor(stale_minor.abi_minor));
+    try testing.expect(!export_shim.hasCurrentHeaderFamilyRevision(stale_revision.header_family_revision));
+    try testing.expect(!export_shim.versionMatchesCurrent(stale_major));
+    try testing.expect(!export_shim.versionMatchesCurrent(stale_minor));
+    try testing.expect(!export_shim.versionMatchesCurrent(stale_revision));
+    try testing.expect(!export_shim.statusIsOk(invalid_major));
+    try testing.expect(!export_shim.statusIsOk(invalid_minor));
+    try testing.expect(!export_shim.statusIsOk(invalid_revision));
+
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(i32, -22), invalid_major.code);
+    try testing.expectEqual(@as(i32, -22), invalid_minor.code);
+    try testing.expectEqual(@as(i32, -22), invalid_revision.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), valid.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_major.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_minor.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_revision.facility);
+    try testing.expectEqual(@as(u16, 0), valid.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_major.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_minor.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_revision.flags);
+}
+
 test "starter export shim keeps facility-tagged status helpers explicit" {
     const ok = export_shim.okStatus(.helpers);
     const err = export_shim.errorStatus(-12, .kernel);
@@ -123,7 +274,14 @@ test "starter export shim forwards dev_t fields without changing starter layout 
     try testing.expect(!dev_t.eql(fields, different));
 }
 
-test "starter export shim relays dev_t validation status" {
+test "starter export shim relays dev_t bridges and validation status" {
+    const fields = export_shim.makeDevTFields(11, 29);
+    const encoded = export_shim.encodeDeviceNumber(fields) orelse return error.TestUnexpectedResult;
+    const decoded = export_shim.decodeDeviceNumber(encoded);
+    const valid_fields_status = export_shim.validateDeviceFields(fields);
+    const invalid_fields_status = export_shim.validateDeviceFields(
+        export_shim.makeDevTFields(dev_t.max_major + 1, 0),
+    );
     const valid = export_shim.validateDeviceNumber(dev_t.max_major, dev_t.max_minor);
     const invalid = export_shim.validateDeviceNumber(dev_t.max_major + 1, 0);
     const valid_range = export_shim.validateDeviceRange(
@@ -134,6 +292,23 @@ test "starter export shim relays dev_t validation status" {
         export_shim.makeDevTFields(1, 3),
         export_shim.makeDevTFields(1, 2),
     );
+
+    try testing.expectEqual(dev_t.makeDeviceNumber(fields.major, fields.minor), encoded);
+    try testing.expectEqual(fields.major, decoded.major);
+    try testing.expectEqual(fields.minor, decoded.minor);
+    try testing.expect(export_shim.encodeDeviceNumber(
+        export_shim.makeDevTFields(dev_t.max_major + 1, 0),
+    ) == null);
+
+    try testing.expect(export_shim.statusIsOk(valid_fields_status));
+    try testing.expectEqual(@as(i32, 0), valid_fields_status.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), valid_fields_status.facility);
+    try testing.expectEqual(@as(u16, 0), valid_fields_status.flags);
+
+    try testing.expect(!export_shim.statusIsOk(invalid_fields_status));
+    try testing.expectEqual(@as(i32, -22), invalid_fields_status.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_fields_status.facility);
+    try testing.expectEqual(@as(u16, 1), invalid_fields_status.flags);
 
     try testing.expectEqual(@as(i32, 0), valid.code);
     try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), valid.facility);
