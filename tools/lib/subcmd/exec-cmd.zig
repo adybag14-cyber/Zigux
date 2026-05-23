@@ -468,6 +468,40 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
 }
 
+test "setupPathWithPwd falls back to cwd when logical PWD identity does not match" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin");
+
+    const new_path = try setupPathWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        .{ .device = 3, .inode = 44 },
+        .{ .device = 9, .inode = 99 },
+    );
+    defer std.testing.allocator.free(new_path);
+
+    try std.testing.expectEqualStrings("/repo/tools/bin:/repo/scripts:/usr/bin", new_path);
+    try std.testing.expectEqualStrings(new_path, env.get("PATH").?);
+}
+
 test "prepareExecCmd prepends the configured executable name and preserves a trailing null slot" {
     const config = Config{
         .exec_name = "perf",
