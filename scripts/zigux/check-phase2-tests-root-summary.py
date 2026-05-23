@@ -26,6 +26,10 @@ REQUIRED_FILES = (
     Path("scripts/zigux/check-phase2-tests-readme-alignment.py"),
     Path("scripts/zigux/check-lane05-local-first-archive-workflow.py"),
     Path("scripts/zigux/check-lane05-local-archive-readme.py"),
+    Path("scripts/zigux/check-lane05-install-zig-archive-verification.py"),
+    Path("scripts/zigux/stage-pinned-zig-archive.py"),
+    Path("scripts/zigux/check-lane05-stage-helper-contract.py"),
+    Path("scripts/zigux/check-lane05-stage-helper-selftest.py"),
     Path("scripts/zigux/check-phase2-cross.py"),
     Path("scripts/zigux/check-genksyms-bridge.py"),
     Path("scripts/zigux/check-phase2-fixdep-gate.py"),
@@ -46,23 +50,25 @@ REQUIRED_FILES = (
 
 TESTS_README_MARKERS = (
     "## Phase 2 review packet",
-    "The current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, and fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "The current directly readable Phase 2 packet is the scripts-root kbuild, installer, archive-verification, staged archive-helper, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, and fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
     "Keep the rematerialized make-wrapper packet explicit through `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, and `make -C zigux phase2`.",
-    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers",
+    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml`, the archive-verification checker, and the staged archive-helper packet",
     "keep the local-first archive workflow replay surface explicit through `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`, `python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`, `python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`, and `python3 scripts/zigux/check-lane05-local-archive-readme.py`.",
+    "current `master` now directly materializes `scripts/zigux/check-lane05-install-zig-archive-verification.py`, `python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test`, `python3 scripts/zigux/check-lane05-install-zig-archive-verification.py`, `scripts/zigux/stage-pinned-zig-archive.py`, `python3 scripts/zigux/stage-pinned-zig-archive.py --self-test`, `scripts/zigux/check-lane05-stage-helper-contract.py`, `python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test`, `python3 scripts/zigux/check-lane05-stage-helper-contract.py`, `scripts/zigux/check-lane05-stage-helper-selftest.py`, `python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test`, and `python3 scripts/zigux/check-lane05-stage-helper-selftest.py`, so keep that returned archive-verification and staged archive-helper packet explicit here instead of leaving it outside the tests-root reminder",
     "current `master` now directly materializes `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep that returned installer, direct cross-route, and cross-target fixture packet explicit here instead of leaving it in the historical-gap bucket",
     "current `master` also directly materializes `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned checker, bridge helper, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder",
     "current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder",
     "Tests-root reviewer prompt:",
-    "- Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?",
+    "- Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, archive-verification, staged archive-helper, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?",
 )
 
 TESTS_README_EXACT_COUNT_MARKERS = (
     TESTS_README_MARKERS[2],
     TESTS_README_MARKERS[4],
-    TESTS_README_MARKERS[6],
+    TESTS_README_MARKERS[5],
     TESTS_README_MARKERS[7],
-    TESTS_README_MARKERS[9],
+    TESTS_README_MARKERS[8],
+    TESTS_README_MARKERS[10],
 )
 
 CLOSURE_NOTE_MARKERS = (
@@ -70,6 +76,10 @@ CLOSURE_NOTE_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "`scripts/zigux/check-lane05-install-zig-archive-verification.py`",
+    "`scripts/zigux/stage-pinned-zig-archive.py`",
+    "`scripts/zigux/check-lane05-stage-helper-contract.py`",
+    "`scripts/zigux/check-lane05-stage-helper-selftest.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
@@ -91,6 +101,13 @@ SCRIPTS_README_MARKERS = (
 )
 
 MAKEFILE_MARKERS = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/stage-pinned-zig-archive.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py",
     "phase2-cross:",
     "phase2-genksyms:",
     "phase2-fixdep:",
@@ -100,7 +117,9 @@ MAKEFILE_MARKERS = (
 
 FORBIDDEN_TESTS_README_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "The current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, and fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers`",
+    "- Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?",
 )
 
 
@@ -193,24 +212,31 @@ def run_self_test() -> int:
         case_count += 1
 
         build_good_tree(root)
+        (root / Path("scripts/zigux/check-lane05-install-zig-archive-verification.py")).unlink()
+        issues = collect_issues(root)
+        if "missing_file:scripts/zigux/check-lane05-install-zig-archive-verification.py" not in issues:
+            raise SystemExit("phase2-tests-root-summary:self-test:missing_archive_verification_file")
+        case_count += 1
+
+        build_good_tree(root)
         tests_readme_path = root / TESTS_README_REL
         tests_readme_path.write_text(
-            tests_readme_path.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[0], "", 1),
+            tests_readme_path.read_text(encoding="utf-8").replace(TESTS_README_MARKERS[5], "", 1),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        if f"missing_tests_readme_marker:{TESTS_README_MARKERS[0]}" not in issues:
-            raise SystemExit("phase2-tests-root-summary:self-test:missing_tests_marker")
+        if f"missing_tests_readme_marker:{TESTS_README_MARKERS[5]}" not in issues:
+            raise SystemExit("phase2-tests-root-summary:self-test:missing_stage_packet_marker")
         case_count += 1
 
         build_good_tree(root)
         closure_note_path = root / CLOSURE_NOTE_REL
         closure_note_path.write_text(
-            closure_note_path.read_text(encoding="utf-8").replace(CLOSURE_NOTE_MARKERS[0], "", 1),
+            closure_note_path.read_text(encoding="utf-8").replace(CLOSURE_NOTE_MARKERS[4], "", 1),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        if f"missing_closure_note_marker:{CLOSURE_NOTE_MARKERS[0]}" not in issues:
+        if f"missing_closure_note_marker:{CLOSURE_NOTE_MARKERS[4]}" not in issues:
             raise SystemExit("phase2-tests-root-summary:self-test:missing_closure_marker")
         case_count += 1
 
@@ -251,13 +277,31 @@ def run_self_test() -> int:
         build_good_tree(root)
         tests_readme_path = root / TESTS_README_REL
         tests_readme_path.write_text(
-            tests_readme_path.read_text(encoding="utf-8") + FORBIDDEN_TESTS_README_MARKERS[0] + "\n",
+            tests_readme_path.read_text(encoding="utf-8") + FORBIDDEN_TESTS_README_MARKERS[2] + "\n",
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        expected = f"forbidden_tests_readme_marker:{FORBIDDEN_TESTS_README_MARKERS[0]}:count=1:expected=0"
+        expected = (
+            "forbidden_tests_readme_marker:"
+            f"{FORBIDDEN_TESTS_README_MARKERS[2]}:count=1:expected=0"
+        )
         if expected not in issues:
-            raise SystemExit("phase2-tests-root-summary:self-test:forbidden_tests_marker")
+            raise SystemExit("phase2-tests-root-summary:self-test:forbidden_archive_wording")
+        case_count += 1
+
+        build_good_tree(root)
+        tests_readme_path = root / TESTS_README_REL
+        tests_readme_path.write_text(
+            tests_readme_path.read_text(encoding="utf-8") + FORBIDDEN_TESTS_README_MARKERS[3] + "\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        expected = (
+            "forbidden_tests_readme_marker:"
+            f"{FORBIDDEN_TESTS_README_MARKERS[3]}:count=1:expected=0"
+        )
+        if expected not in issues:
+            raise SystemExit("phase2-tests-root-summary:self-test:forbidden_old_prompt")
         case_count += 1
 
     print("PHASE2_TESTS_ROOT_SUMMARY_SELF_TEST=pass")
