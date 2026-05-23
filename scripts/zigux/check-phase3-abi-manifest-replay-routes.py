@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the Phase 3 ABI manifest's export/UAPI replay routes."""
+"""Fail-close the Phase 3 ABI manifest's export/UAPI and policy-unsafe replay routes."""
 
 from __future__ import annotations
 
@@ -28,15 +28,29 @@ REQUIRED_MANIFEST_FIELDS = {
     "slug": "phase3-abi-packet",
 }
 
+REQUIRED_PACKET_FILES = (
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "zigux/tests/phase3_policy_dump.zig",
+    "zigux/tests/phase3_policy_dump_build.zig",
+    "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
+    "scripts/zigux/check-phase3-policy-dump.py",
+)
+
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
     "python3 scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-dump.py",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
+    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
 )
 
 
@@ -81,6 +95,14 @@ def validate_repo(repo_root: Path) -> list[str]:
                 f"phase3_abi_manifest.json wrong {field}: {actual!r} != {expected!r}"
             )
 
+    packet_files = manifest.get("packet_files")
+    if not isinstance(packet_files, list):
+        issues.append("phase3_abi_manifest.json packet_files is not a list")
+    else:
+        for entry in REQUIRED_PACKET_FILES:
+            if entry not in packet_files:
+                issues.append(f"phase3_abi_manifest.json missing packet_files entry: {entry}")
+
     replay_routes = manifest.get("replay_routes")
     if not isinstance(replay_routes, list):
         issues.append("phase3_abi_manifest.json replay_routes is not a list")
@@ -116,6 +138,7 @@ def _sample_manifest() -> str:
         "phase": "Phase 3",
         "lane": "abi-runtime",
         "slug": "phase3-abi-packet",
+        "packet_files": list(REQUIRED_PACKET_FILES),
         "replay_routes": list(REQUIRED_REPLAY_ROUTES),
     }
     return json.dumps(manifest, indent=2) + "\n"
@@ -169,34 +192,94 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"
+        manifest["packet_files"].remove(
+            "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
         )
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
         expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
         )
         if expected not in issues:
             print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected manifest self-test route drift was not reported")
+            print("expected policy-unsafe note packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].remove("scripts/zigux/validate-phase3-policy-unsafe-survey.py")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "scripts/zigux/validate-phase3-policy-unsafe-survey.py"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-unsafe validator packet-file drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].remove("zigux/tests/phase3_policy_dump.zig")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing packet_files entry: "
+            "zigux/tests/phase3_policy_dump.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-dump packet-file drift was not reported")
             return 1
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(manifest_path))
         manifest["replay_routes"].remove(
-            "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
+            "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"
         )
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
         expected = (
             "phase3_abi_manifest.json missing replay route: "
-            "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
+            "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"
         )
         if expected not in issues:
             print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
-            print("expected dedicated export/UAPI layout replay drift was not reported")
+            print("expected policy-unsafe self-test route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].remove(
+            "python3 scripts/zigux/check-phase3-policy-dump.py"
+        )
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "python3 scripts/zigux/check-phase3-policy-dump.py"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-dump direct route drift was not reported")
+            return 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].remove(
+            "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"
+        )
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_abi_manifest.json missing replay route: "
+            "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"
+        )
+        if expected not in issues:
+            print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
+            print("expected policy-dump build route drift was not reported")
             return 1
 
         _populate_repo(repo_root)
@@ -211,13 +294,13 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the Phase 3 ABI manifest's export/UAPI replay routes."
+        description="Validate the Phase 3 ABI manifest's export/UAPI and policy-unsafe replay routes."
     )
     parser.add_argument(
         "--repo-root",
