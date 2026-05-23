@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""Check the current fixdep governance packet against live Phase 2 surfaces."""
-
 from __future__ import annotations
 
 import argparse
@@ -8,157 +6,335 @@ import json
 import tempfile
 from pathlib import Path
 
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
-HERE = Path(__file__).resolve()
-DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
+REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/artifact-diff.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/phase2-fixdep-next-step-note.md",
+    "scripts/basic/fixdep.c",
+    "scripts/include/xalloc.h",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/fixdep.zig",
+    "scripts/zigux/validate-phase2.py",
+    "zigux/Makefile",
+    "zigux/tests/README.md",
+    "zigux/tests/fixtures/fixdep/cases.json",
+]
 
-FIXDEP_REL = Path("scripts/zigux/fixdep.zig")
-FIXDEP_DIFF_REL = Path("scripts/zigux/check-fixdep-diff.py")
-FIXDEP_CASES_REL = Path("zigux/tests/fixtures/fixdep/cases.json")
-FIXDEP_SURVEY_REL = Path("Documentation/zigux/phase2-fixdep-dual-implementation-survey.md")
-PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
-TESTS_README_REL = Path("zigux/tests/README.md")
-MAKEFILE_REL = Path("zigux/Makefile")
-WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
+TOOLCHAIN_NOTE_MARKERS = [
+    "the broader fixdep, genksyms, artifact-tools, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of restating the full broader checker inventory in this dedicated pin-scope note",
+    "the closure note, tests root, and Makefile keep the committed `zigux/tests/fixtures/phase2_tool_manifest.json` plus `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` packet, the bounded direct `zig test scripts/zigux/fixdep.zig` replay, the committed genksyms bridge fixture packet, and the checker-backed kconfig bridge plus confdata manifest packet reviewable without reopening the dedicated genksyms or kconfig lanes from this bootstrap note",
+    "the active Phase 2 closure note and tests root keep the shipped fixdep workflow gate plus the direct `zig test scripts/zigux/fixdep.zig` replay explicit beside the same bounded tools route",
+]
 
-REQUIRED_FILES = (
-    FIXDEP_REL,
-    FIXDEP_DIFF_REL,
-    FIXDEP_CASES_REL,
-    FIXDEP_SURVEY_REL,
-    PHASE2_CLOSURE_REL,
-    TESTS_README_REL,
-    MAKEFILE_REL,
-    WORKFLOW_REL,
-)
+CLOSURE_MARKERS = [
+    "shared fixdep gate self-test: `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`",
+    "shared fixdep gate: `python3 scripts/zigux/check-phase2-fixdep-gate.py`",
+    "shared fixdep diff self-test: `python3 scripts/zigux/check-fixdep-diff.py --self-test`",
+    "shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`",
+    "zig test scripts/zigux/fixdep.zig",
+]
 
-FIXDEP_REQUIRED_EXACT_LINES = (
-    'test "config parsing trims _MODULE and deduplicates symbols" {',
-    'test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {',
-    'test "config parsing accepts CONFIG tokens after punctuation" {',
-    'test "config parsing stops at the first embedded NUL" {',
-    'test "dep parsing returns NoTargets for comment-only depfiles" {',
-    'test "dep parsing keeps escaped spaces inside tokens" {',
-    'test "dep parsing continues dependency lines across escaped newlines" {',
-    'test "dep parsing accepts CRLF lines and continuations" {',
-    'test "dep parsing does not continue bare carriage-return lines" {',
-    'test "dep parsing skips bytes after the first embedded NUL" {',
-    'test "ignored and no-parse file classification matches fixdep rules" {',
-    'test "file read errors map to C-style messages" {',
-    'test "file read errors map short reads to unexpected end of file" {',
-    'test "exact read size helper rejects short reads" {',
-    'test "path error wording keeps the dedicated fstat prefix" {',
-    'test "open dependency file classification keeps input-output failures on the C-style path" {',
-    'test "open dependency file classification preserves unrelated open failures" {',
-    'test "read failure wording matches C perror prefix" {',
-    'test "output write failure uses C-style wording" {',
-    'test "flush helper preserves the primary error" {',
-    'test "dependency file reads beyond the legacy one mebibyte ceiling" {',
-    'test "escaped hash dependency survives concatenated target comment path" {',
-    'test "escaped colon dependency survives concatenated target comment path" {',
-)
+PHASE2_FIXDEP_NEXT_STEP_MARKERS = [
+    "`scripts/zigux/check-phase2-fixdep-gate.py` validates the live twelve-case packet, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.",
+    "`zigux/tests/fixtures/fixdep/cases.json` names that same twelve-case packet and uses `stdout_mode: \"dev_full\"` on the three bounded `/dev/full` write-failure replays.",
+    "The direct fixdep artifact packet now carries the additional plain escaped-newline dependency continuation case through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `zigux/tests/fixtures/fixdep/cases.json`, while the broader shared reminder surfaces can be retold separately if they need to mention the new case count.",
+    "When a writable checkout with Zig is available, re-run `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig` so the dedicated gate and the direct replay stay aligned as one packet.",
+]
 
-FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
-    "diff_text(expected_stdout, zig_actual)",
-    "diff_text(expected_stdout, zig_repeat)",
-    "diff_text(zig_actual, zig_repeat)",
-    "diff_text(expected_stderr_path, zig_actual_stderr)",
-    "diff_text(expected_stderr_path, zig_repeat_stderr)",
-    "diff_text(zig_actual_stderr, zig_repeat_stderr)",
-    'ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
-    'EXPECTED_ZIG_FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"',
-    "validate_tool_source(ZIG_FIXDEP)",
-    "EXPECTED_SELF_TEST_CASE_COUNT = 15",
-    'print("FIXDEP_SELF_TEST=pass")',
-    'print(f"FIXDEP_SELF_TEST_CASE_COUNT={checks_run}")',
-    'print("FIXDEP_DIFF=pass")',
-    'print("FIXDEP_DETERMINISM=pass")',
-    "assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT",
-)
+ARTIFACT_DIFF_MARKERS = [
+    "`zigux/tests/fixtures/fixdep/sample_expected.txt` is generated from the current in-tree C `scripts/basic/fixdep.c` behavior on a bounded committed sample.",
+    "`zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt` anchors the escaped-whitespace dependency-token path so `fixdep.zig` must preserve escaped separators the same way as the C tool.",
+    "`zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt` anchors the escaped-colon dependency-token path so `fixdep.zig` must unescape `\\:` to the same on-disk dependency name that the C tool reads and emits.",
+    "`zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt` widens that claim with a second committed depfile covering multi-target parsing, comments, duplicate deps, no-parse files, and escaped `#`.",
+    "`zigux/tests/fixtures/fixdep/sample_concatenated_expected.txt` anchors the concatenated-target packet so `fixdep.zig` keeps the first source while still collecting later dependency tokens across the continued target entries.",
+    "`zigux/tests/fixtures/fixdep/sample_dependency_continuation_expected.txt` anchors plain escaped-newline dependency continuation within one target so `fixdep.zig` keeps collecting later dependency tokens across physical lines without inventing a new source entry.",
+    "`zigux/tests/fixtures/fixdep/sample_comment_continuation_expected.txt` anchors escaped-newline rustc-style comments before the first target so `fixdep.zig` keeps skipping the continued comment until the next real newline.",
+    "`zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt` plus `sample_comment_only_expected.stderr.txt` anchor the bounded comment-only depfile failure path while keeping the saved command line deterministic.",
+    "`zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt` plus `sample_missing_dep_expected.stderr.txt` anchor the bounded missing-dependency open error and its exit-code contract while keeping stdout stable.",
+    "`zigux/tests/fixtures/fixdep/sample_output_write_expected.txt` plus `sample_output_write_expected.stderr.txt` anchor the bounded stdout-write failure path for the main success packet and the replay variants that drive stdout into `/dev/full`.",
+    "`zigux/tests/fixtures/fixdep/cases.json` keeps the current twelve-case fixdep packet reviewable by naming the committed stdout artifact for every shipped case and the expected stderr or exit-code contract whenever the case is not a plain success path, including the dedicated `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full` write-failure replays.",
+    "`scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`.",
+]
 
-REQUIRED_FIXDEP_CASE_NAMES = (
+VALIDATE_PHASE2_MARKERS = [
+    'FIXDEP_GATE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-fixdep-gate.py"',
+    'FIXDEP_DIFF_CHECKER = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"',
+    '(FIXDEP_GATE_CHECKER, "--self-test"),',
+    '(FIXDEP_GATE_CHECKER,),',
+    '(FIXDEP_DIFF_CHECKER, "--self-test"),',
+    '(FIXDEP_DIFF_CHECKER,),',
+    '("zig", "test", ROOT / "scripts" / "zigux" / "fixdep.zig"),',
+]
+
+MAKEFILE_MARKERS = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+]
+
+WORKFLOW_MARKERS = [
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "run: python3 scripts/zigux/check-fixdep-diff.py",
+    "run: zig test scripts/zigux/fixdep.zig",
+]
+
+TESTS_README_MARKERS = [
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "zig test scripts/zigux/fixdep.zig",
+]
+
+EXACT_PACKET_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
+    "zigux/Makefile": MAKEFILE_MARKERS,
+}
+
+EXPECTED_CASE_NAMES = [
     "sample",
     "sample_multi_target",
+    "sample_multi_target_stdout_full",
     "sample_escaped_space",
     "sample_escaped_colon",
     "sample_concatenated",
     "sample_dependency_continuation",
     "sample_comment_continuation",
-    "sample_double_backslash_comment",
     "sample_comment_only",
     "sample_comment_only_stdout_full",
     "sample_missing_dep",
     "sample_missing_dep_stdout_full",
     "sample_output_write",
-)
+]
 
-CLOSURE_REQUIRED_MARKERS = (
-    "`Documentation/zigux/phase2-closure.md`",
-    "`zigux/Makefile`",
-    "`zigux/tests/README.md`",
-    "fixture-backed artifact",
-)
+EXPECTED_CASES = {
+    "sample": {
+        "depfile": "sample.d",
+        "target": "sample.o",
+        "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o",
+        "expected": "sample_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_multi_target": {
+        "depfile": "sample_multi_target.d",
+        "target": "module/sample2.o",
+        "cmdline": "clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2.o",
+        "expected": "sample_multi_target_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_multi_target_stdout_full": {
+        "depfile": "sample_multi_target.d",
+        "target": "module/sample2_stdout_full.o",
+        "cmdline": "clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2_stdout_full.o",
+        "expected": "sample_output_write_expected.txt",
+        "expected_stderr": "sample_output_write_expected.stderr.txt",
+        "expected_exit_code": 1,
+        "stdout_mode": "dev_full",
+    },
+    "sample_escaped_space": {
+        "depfile": "sample_escaped_space.d",
+        "target": "sample_escaped_space.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_space_source.c -o sample_escaped_space.o",
+        "expected": "sample_escaped_space_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_escaped_colon": {
+        "depfile": "sample_escaped_colon.d",
+        "target": "sample_escaped_colon.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o",
+        "expected": "sample_escaped_colon_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_concatenated": {
+        "depfile": "sample_concatenated.d",
+        "target": "sample_concatenated.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o",
+        "expected": "sample_concatenated_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_dependency_continuation": {
+        "depfile": "sample_dependency_continuation.d",
+        "target": "sample_dependency_continuation.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.c -o sample_dependency_continuation.o",
+        "expected": "sample_dependency_continuation_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_comment_continuation": {
+        "depfile": "sample_comment_continuation.d",
+        "target": "sample_comment_continuation.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_comment_continuation_source.c -o sample_comment_continuation.o",
+        "expected": "sample_comment_continuation_expected.txt",
+        "expected_exit_code": 0,
+    },
+    "sample_comment_only": {
+        "depfile": "sample_comment_only.d",
+        "target": "sample_comment_only.o",
+        "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only.o",
+        "expected": "sample_comment_only_expected.txt",
+        "expected_stderr": "sample_comment_only_expected.stderr.txt",
+        "expected_exit_code": 1,
+    },
+    "sample_comment_only_stdout_full": {
+        "depfile": "sample_comment_only.d",
+        "target": "sample_comment_only_stdout_full.o",
+        "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only_stdout_full.o",
+        "expected": "sample_output_write_expected.txt",
+        "expected_stderr": "sample_comment_only_expected.stderr.txt",
+        "expected_exit_code": 1,
+        "stdout_mode": "dev_full",
+    },
+    "sample_missing_dep": {
+        "depfile": "sample_missing_dep.d",
+        "target": "sample_missing_dep.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep.o",
+        "expected": "sample_missing_dep_expected.txt",
+        "expected_stderr": "sample_missing_dep_expected.stderr.txt",
+        "expected_exit_code": 2,
+    },
+    "sample_missing_dep_stdout_full": {
+        "depfile": "sample_missing_dep.d",
+        "target": "sample_missing_dep_stdout_full.o",
+        "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep_stdout_full.o",
+        "expected": "sample_output_write_expected.txt",
+        "expected_stderr": "sample_missing_dep_expected.stderr.txt",
+        "expected_exit_code": 2,
+        "stdout_mode": "dev_full",
+    },
+    "sample_output_write": {
+        "depfile": "sample.d",
+        "target": "sample_output_write.o",
+        "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_output_write.o",
+        "expected": "sample_output_write_expected.txt",
+        "expected_stderr": "sample_output_write_expected.stderr.txt",
+        "expected_exit_code": 1,
+        "stdout_mode": "dev_full",
+    },
+}
 
-TESTS_README_REQUIRED_MARKERS = (
-    "Phase 2 review packet",
-    "`Documentation/zigux/phase2-closure.md`",
-    "`zigux/Makefile`",
-    "`make -C zigux phase2`",
-)
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
-REQUIRED_WORKFLOW_LINES = (
-    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
-    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
-    "run: python3 scripts/zigux/check-fixdep-diff.py",
-    "run: make -C zigux phase2-fixdep",
-    "run: zig test scripts/zigux/fixdep.zig",
-)
-
-REQUIRED_MAKEFILE_PHONY_TARGETS = (
-    "phase2-fixdep",
-    "phase2-validate",
-    "phase2",
-)
-
-REQUIRED_MAKEFILE_LINES = (
-    "phase2-fixdep:",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
-    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
-)
-
-EXPECTED_SELF_TEST_CASE_COUNT = (
-    1
-    + len(FIXDEP_REQUIRED_EXACT_LINES)
-    + len(FIXDEP_REQUIRED_EXACT_LINES)
-    + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
-    + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
-    + len(REQUIRED_FIXDEP_CASE_NAMES)
-    + 9
-    + len(CLOSURE_REQUIRED_MARKERS)
-    + len(TESTS_README_REQUIRED_MARKERS)
-    + len(REQUIRED_WORKFLOW_LINES)
-    + len(REQUIRED_WORKFLOW_LINES)
-    + len(REQUIRED_MAKEFILE_PHONY_TARGETS)
-    + len(REQUIRED_MAKEFILE_LINES)
-    + len(REQUIRED_MAKEFILE_LINES)
-    + len(REQUIRED_FILES)
-)
+FILE_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": WORKFLOW_MARKERS,
+    "Documentation/zigux/artifact-diff.md": ARTIFACT_DIFF_MARKERS,
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": TOOLCHAIN_NOTE_MARKERS,
+    "Documentation/zigux/phase2-closure.md": CLOSURE_MARKERS,
+    "Documentation/zigux/phase2-fixdep-next-step-note.md": PHASE2_FIXDEP_NEXT_STEP_MARKERS,
+    "scripts/zigux/validate-phase2.py": VALIDATE_PHASE2_MARKERS,
+    "zigux/Makefile": MAKEFILE_MARKERS,
+    "zigux/tests/README.md": TESTS_README_MARKERS,
+}
 
 
-def resolve(root: Path, rel: Path) -> Path:
-    return root / rel
+def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> list[str]:
+    return [f"{prefix}:{marker}" for marker in markers if marker not in text]
 
 
-def read_text(path: Path) -> str:
+def collect_exact_packet_issues(text: str, markers: list[str], *, prefix: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    last_index = -1
+    for marker in markers:
+        positions = [index for index, line in enumerate(lines) if line == marker]
+        count = len(positions)
+        if count != 1:
+            issues.append(f"{prefix}:count:{marker}:expected=1:got={count}")
+            continue
+        index = positions[0]
+        if index <= last_index:
+            issues.append(f"{prefix}:order:{marker}")
+        last_index = index
+    return issues
+
+
+def validate_cases(root: Path) -> list[str]:
+    issues: list[str] = []
+    cases_path = root / "zigux/tests/fixtures/fixdep/cases.json"
     try:
-        return path.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise SystemExit(f"required file missing: {path}") from exc
+        cases = json.loads(cases_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"zigux/tests/fixtures/fixdep/cases.json:json:{exc.msg}"]
+
+    if not isinstance(cases, list):
+        return ["zigux/tests/fixtures/fixdep/cases.json:type"]
+
+    seen: list[str] = []
+    fixture_root = root / "zigux/tests/fixtures/fixdep"
+    for index, case in enumerate(cases):
+        label = f"zigux/tests/fixtures/fixdep/cases.json:cases[{index}]"
+        if not isinstance(case, dict):
+            issues.append(f"{label}:type")
+            continue
+
+        name = case.get("name")
+        if not isinstance(name, str) or not name:
+            issues.append(f"{label}:name")
+            continue
+        seen.append(name)
+
+        expected_case = EXPECTED_CASES.get(name)
+        if expected_case is None:
+            issues.append(f"{label}:unexpected_name:{name}")
+            continue
+
+        expected_fields = {"name", *expected_case.keys()}
+        unexpected_fields = sorted(set(case) - expected_fields)
+        if unexpected_fields:
+            issues.append(f"{label}:unexpected_fields:{','.join(unexpected_fields)}")
+
+        missing_fields = sorted(expected_fields - set(case))
+        for field in missing_fields:
+            issues.append(f"{label}:{field}")
+
+        for field_name, expected_value in expected_case.items():
+            actual_value = case.get(field_name)
+            if actual_value != expected_value:
+                issues.append(
+                    f"{label}:{field_name}:expected={expected_value!r}:got={actual_value!r}"
+                )
+
+        for field_name in ("depfile", "expected", "expected_stderr"):
+            value = case.get(field_name)
+            if value is None:
+                continue
+            if not isinstance(value, str) or not value:
+                issues.append(f"{label}:{field_name}:type")
+                continue
+            if not (fixture_root / value).is_file():
+                issues.append(f"{label}:{field_name}:missing_fixture:{value}")
+
+    if seen != EXPECTED_CASE_NAMES:
+        issues.append(
+            "zigux/tests/fixtures/fixdep/cases.json:case_names:"
+            f"expected={EXPECTED_CASE_NAMES!r}:got={seen!r}"
+        )
+
+    return issues
+
+
+def validate_root(root: Path) -> list[str]:
+    issues: list[str] = []
+    for rel_path in REQUIRED_FILES:
+        if not (root / rel_path).is_file():
+            issues.append(f"missing_file:{rel_path}")
+
+    if issues:
+        return issues
+
+    for rel_path, markers in FILE_MARKERS.items():
+        text = (root / rel_path).read_text(encoding="utf-8")
+        issues.extend(collect_missing_markers(text, markers, prefix=rel_path))
+        exact_markers = EXACT_PACKET_MARKERS.get(rel_path)
+        if exact_markers is not None:
+            issues.extend(collect_exact_packet_issues(text, exact_markers, prefix=rel_path))
+
+    issues.extend(validate_cases(root))
+    return issues
 
 
 def write_text(path: Path, content: str) -> None:
@@ -166,594 +342,248 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def count_exact_lines(text: str, marker: str) -> int:
-    return sum(1 for line in text.splitlines() if line.strip() == marker)
-
-
-def phony_targets_present(text: str) -> set[str]:
-    targets: set[str] = set()
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith(".PHONY:"):
-            _, suffix = stripped.split(":", 1)
-            targets.update(token for token in suffix.strip().split() if token)
-    return targets
-
-
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
-
-
-def collect_required_exact_lines(
-    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
-) -> list[tuple[str, str]]:
-    issues: list[tuple[str, str]] = []
-    for marker in markers:
-        count = count_exact_lines(text, marker)
-        if count == 0:
-            issues.append((missing_code, marker))
-        elif count != 1:
-            issues.append((duplicate_code, f"{marker}:count={count}"))
-    return issues
-
-
-def collect_exact_line_order_issue(
-    text: str, markers: tuple[str, ...], code: str
-) -> list[tuple[str, str]]:
-    marker_set = set(markers)
-    actual = [line.strip() for line in text.splitlines() if line.strip() in marker_set]
-    expected = list(markers)
-    if len(actual) != len(expected):
-        return []
-    if actual != expected:
-        return [(code, f"actual={actual!r}:expected={expected!r}")]
-    return []
-
-
-def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
-    try:
-        raw_cases = json.loads(read_text(path))
-    except json.JSONDecodeError:
-        return [("INVALID_FIXDEP_CASES_JSON", path.as_posix())]
-
-    if not isinstance(raw_cases, list):
-        return [("INVALID_FIXDEP_CASES_JSON", path.as_posix())]
-
-    issues: list[tuple[str, str]] = []
-    actual_names: list[str] = []
-    seen_names: set[str] = set()
-    duplicate_names: set[str] = set()
-
-    for index, raw_case in enumerate(raw_cases):
-        if not isinstance(raw_case, dict):
-            issues.append(("INVALID_FIXDEP_CASE_ENTRY", f"index={index}:type={type(raw_case).__name__}"))
-            continue
-
-        name = raw_case.get("name")
-        if not isinstance(name, str) or not name:
-            issues.append(("INVALID_FIXDEP_CASE_NAME", f"index={index}:name={name!r}"))
-            continue
-
-        actual_names.append(name)
-        if name in seen_names:
-            duplicate_names.add(name)
-        else:
-            seen_names.add(name)
-
-        if name not in REQUIRED_FIXDEP_CASE_NAMES:
-            issues.append(("UNEXPECTED_FIXDEP_CASE", name))
-
-    for name in sorted(duplicate_names):
-        issues.append(("DUPLICATE_FIXDEP_CASE", name))
-
-    expected_names = list(REQUIRED_FIXDEP_CASE_NAMES)
-    if actual_names != expected_names:
-        issues.append(
-            (
-                "FIXDEP_CASE_ORDER_MISMATCH",
-                f"actual={actual_names!r}:expected={expected_names!r}",
-            )
-        )
-
-    issues.extend(
-        ("MISSING_FIXDEP_CASE", name)
-        for name in REQUIRED_FIXDEP_CASE_NAMES
-        if name not in seen_names
-    )
-    return issues
-
-
-def collect_issues(root: Path) -> list[tuple[str, str]]:
-    issues: list[tuple[str, str]] = []
-
-    for rel in REQUIRED_FILES:
-        if not resolve(root, rel).exists():
-            issues.append(("MISSING_REQUIRED_FILE", rel.as_posix()))
-
-    if issues:
-        return issues
-
-    fixdep_text = read_text(resolve(root, FIXDEP_REL))
-    fixdep_diff_text = read_text(resolve(root, FIXDEP_DIFF_REL))
-    closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
-    tests_readme_text = read_text(resolve(root, TESTS_README_REL))
-    makefile_text = read_text(resolve(root, MAKEFILE_REL))
-    workflow_text = read_text(resolve(root, WORKFLOW_REL))
-
-    issues.extend(
-        collect_required_exact_lines(
-            fixdep_text,
-            FIXDEP_REQUIRED_EXACT_LINES,
-            "MISSING_FIXDEP_TEST_LINE",
-            "DUPLICATE_FIXDEP_TEST_LINE",
-        )
-    )
-    issues.extend(
-        collect_required_exact_lines(
-            fixdep_diff_text,
-            FIXDEP_DIFF_REQUIRED_EXACT_LINES,
-            "MISSING_FIXDEP_DIFF_LINE",
-            "DUPLICATE_FIXDEP_DIFF_LINE",
-        )
-    )
-    issues.extend(collect_fixdep_case_issues(resolve(root, FIXDEP_CASES_REL)))
-    issues.extend(
-        collect_missing_markers(closure_text, CLOSURE_REQUIRED_MARKERS, "MISSING_CLOSURE_MARKER")
-    )
-    issues.extend(
-        collect_missing_markers(
-            tests_readme_text, TESTS_README_REQUIRED_MARKERS, "MISSING_TESTS_README_MARKER"
-        )
-    )
-    issues.extend(
-        collect_required_exact_lines(
-            workflow_text,
-            REQUIRED_WORKFLOW_LINES,
-            "MISSING_WORKFLOW_LINE",
-            "DUPLICATE_WORKFLOW_LINE",
-        )
-    )
-    issues.extend(
-        collect_exact_line_order_issue(
-            workflow_text,
-            REQUIRED_WORKFLOW_LINES,
-            "FIXDEP_WORKFLOW_ORDER_MISMATCH",
-        )
-    )
-    phony_targets = phony_targets_present(makefile_text)
-    for target in REQUIRED_MAKEFILE_PHONY_TARGETS:
-        if target not in phony_targets:
-            issues.append(("MISSING_MAKEFILE_PHONY_TARGET", target))
-    issues.extend(
-        collect_required_exact_lines(
-            makefile_text,
-            REQUIRED_MAKEFILE_LINES,
-            "MISSING_MAKEFILE_LINE",
-            "DUPLICATE_MAKEFILE_LINE",
-        )
-    )
-    issues.extend(
-        collect_exact_line_order_issue(
-            makefile_text,
-            REQUIRED_MAKEFILE_LINES,
-            "FIXDEP_MAKEFILE_ORDER_MISMATCH",
-        )
-    )
-
-    return issues
-
-
-def emit_issues(issues: list[tuple[str, str]]) -> int:
-    grouped: dict[str, list[str]] = {}
-    for code, value in issues:
-        grouped.setdefault(code, []).append(value)
-
-    print("PHASE2_FIXDEP_GATE=fail")
-    for code, values in grouped.items():
-        print(f"{code}_START")
-        for value in values:
-            print(value)
-        print(f"{code}_END")
-    return 1
-
-
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
-
-
-def replace_exact_line(text: str, marker: str, replacement: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines[index] = replacement
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
-def remove_phony_target(text: str, target: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith(".PHONY:"):
-            prefix, suffix = stripped.split(":", 1)
-            targets = [token for token in suffix.strip().split() if token and token != target]
-            lines[index] = f"{prefix}: {' '.join(targets)}"
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f".PHONY line not found while removing target: {target}")
-
-
-def append_line(text: str, line: str) -> str:
-    return text + line + "\n"
-
-
-def swap_exact_lines(text: str, first: str, second: str) -> str:
-    lines = text.splitlines()
-    first_index = None
-    second_index = None
-    for index, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped == first and first_index is None:
-            first_index = index
-        if stripped == second and second_index is None:
-            second_index = index
-    if first_index is None or second_index is None:
-        raise AssertionError(f"marker line not found for swap: {first!r} / {second!r}")
-    lines[first_index], lines[second_index] = lines[second_index], lines[first_index]
-    return "\n".join(lines) + "\n"
-
-
 def build_self_test_root(root: Path) -> None:
-    write_text(
-        resolve(root, FIXDEP_REL),
-        "\n".join(
-            (
-                'test "config parsing trims _MODULE and deduplicates symbols" {',
-                "}",
-                'test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {',
-                "}",
-                'test "config parsing accepts CONFIG tokens after punctuation" {',
-                "}",
-                'test "config parsing stops at the first embedded NUL" {',
-                "}",
-                'test "dep parsing returns NoTargets for comment-only depfiles" {',
-                "}",
-                'test "dep parsing keeps escaped spaces inside tokens" {',
-                "}",
-                'test "dep parsing continues dependency lines across escaped newlines" {',
-                "}",
-                'test "dep parsing accepts CRLF lines and continuations" {',
-                "}",
-                'test "dep parsing does not continue bare carriage-return lines" {',
-                "}",
-                'test "dep parsing skips bytes after the first embedded NUL" {',
-                "}",
-                'test "ignored and no-parse file classification matches fixdep rules" {',
-                "}",
-                'test "file read errors map to C-style messages" {',
-                "}",
-                'test "file read errors map short reads to unexpected end of file" {',
-                "}",
-                'test "exact read size helper rejects short reads" {',
-                "}",
-                'test "path error wording keeps the dedicated fstat prefix" {',
-                "}",
-                'test "open dependency file classification keeps input-output failures on the C-style path" {',
-                "}",
-                'test "open dependency file classification preserves unrelated open failures" {',
-                "}",
-                'test "read failure wording matches C perror prefix" {',
-                "}",
-                'test "output write failure uses C-style wording" {',
-                "}",
-                'test "flush helper preserves the primary error" {',
-                "}",
-                'test "dependency file reads beyond the legacy one mebibyte ceiling" {',
-                "}",
-                'test "escaped hash dependency survives concatenated target comment path" {',
-                "}",
-                'test "escaped colon dependency survives concatenated target comment path" {',
-                "}",
-            )
-        )
-        + "\n",
-    )
-    write_text(
-        resolve(root, FIXDEP_DIFF_REL),
-        "\n".join(FIXDEP_DIFF_REQUIRED_EXACT_LINES) + "\n",
-    )
-    write_text(
-        resolve(root, FIXDEP_CASES_REL),
-        json.dumps([{"name": name} for name in REQUIRED_FIXDEP_CASE_NAMES], indent=2) + "\n",
-    )
-    write_text(resolve(root, FIXDEP_SURVEY_REL), "present\n")
-    write_text(
-        resolve(root, PHASE2_CLOSURE_REL),
-        "\n".join(
-            (
-                "# Phase 2 Closure",
-                "- `Documentation/zigux/phase2-closure.md`",
-                "- `zigux/Makefile`",
-                "- `zigux/tests/README.md`",
-                "The bounded Phase 2 tranche remains the directly readable toolchain, kbuild-route, kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact packet already present on current `master`.",
-            )
-        )
-        + "\n",
-    )
-    write_text(
-        resolve(root, TESTS_README_REL),
-        "\n".join(
-            (
-                "# zigux/tests",
-                "Phase 2 review packet",
-                "`Documentation/zigux/phase2-closure.md`",
-                "`zigux/Makefile`",
-                "`make -C zigux phase2`",
-            )
-        )
-        + "\n",
-    )
-    write_text(
-        resolve(root, MAKEFILE_REL),
-        "\n".join(
-            (
-                "PYTHON ?= python3",
-                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2",
-                "phase2-fixdep:",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
-                "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
-                "phase2: phase2-validate",
-            )
-        )
-        + "\n",
-    )
-    workflow_lines = [
-        "name: zigux-bootstrap",
-        "jobs:",
-        "  bootstrap:",
-        "    steps:",
-    ]
-    for index, marker in enumerate(REQUIRED_WORKFLOW_LINES, start=1):
-        workflow_lines.append(f"      - name: fixdep-step-{index}")
-        workflow_lines.append(f"        {marker}")
-    write_text(resolve(root, WORKFLOW_REL), "\n".join(workflow_lines) + "\n")
+    for rel_path in REQUIRED_FILES:
+        write_text(root / rel_path, "")
+
+    for rel_path, markers in FILE_MARKERS.items():
+        write_text(root / rel_path, "\n".join(markers) + "\n")
+
+    fixture_root = root / "zigux/tests/fixtures/fixdep"
+    for file_name in [
+        "sample.d",
+        "sample_expected.txt",
+        "sample_escaped_space.d",
+        "sample_escaped_space_expected.txt",
+        "sample_escaped_colon.d",
+        "sample_escaped_colon_expected.txt",
+        "sample_multi_target.d",
+        "sample_multi_target_expected.txt",
+        "sample_concatenated.d",
+        "sample_concatenated_expected.txt",
+        "sample_dependency_continuation.d",
+        "sample_dependency_continuation_expected.txt",
+        "sample_comment_continuation.d",
+        "sample_comment_continuation_expected.txt",
+        "sample_comment_only.d",
+        "sample_comment_only_expected.txt",
+        "sample_comment_only_expected.stderr.txt",
+        "sample_missing_dep.d",
+        "sample_missing_dep_expected.txt",
+        "sample_missing_dep_expected.stderr.txt",
+        "sample_output_write_expected.txt",
+        "sample_output_write_expected.stderr.txt",
+    ]:
+        write_text(fixture_root / file_name, "fixture\n")
+
+    cases = [{"name": name, **fields} for name, fields in EXPECTED_CASES.items()]
+    write_text(fixture_root / "cases.json", json.dumps(cases))
 
 
 def run_self_test() -> int:
-    checks_run = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase2_fixdep_gate_") as tmp_dir:
+    case_count = 0
+    with tempfile.TemporaryDirectory(prefix="phase2_fixdep_gate_") as tmp_dir:
         root = Path(tmp_dir)
+        build_self_test_root(root)
+        assert validate_root(root) == []
+        case_count += 1
 
         build_self_test_root(root)
-        assert collect_issues(root) == []
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve(root, FIXDEP_CASES_REL)
-        path.write_text("{broken\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_FIXDEP_CASES_JSON", path.as_posix()) in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve(root, FIXDEP_CASES_REL)
-        path.write_text("{}\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_FIXDEP_CASES_JSON", path.as_posix()) in issues
-        checks_run += 1
-
-        for marker in FIXDEP_REQUIRED_EXACT_LINES:
-            build_self_test_root(root)
-            path = resolve(root, FIXDEP_REL)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("MISSING_FIXDEP_TEST_LINE", marker) in collect_issues(root)
-            checks_run += 1
-
-        for marker in FIXDEP_REQUIRED_EXACT_LINES:
-            build_self_test_root(root)
-            path = resolve(root, FIXDEP_REL)
-            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("DUPLICATE_FIXDEP_TEST_LINE", f"{marker}:count=2") in collect_issues(root)
-            checks_run += 1
-
-        for marker in FIXDEP_DIFF_REQUIRED_EXACT_LINES:
-            build_self_test_root(root)
-            path = resolve(root, FIXDEP_DIFF_REL)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("MISSING_FIXDEP_DIFF_LINE", marker) in collect_issues(root)
-            checks_run += 1
-
-        for marker in FIXDEP_DIFF_REQUIRED_EXACT_LINES:
-            build_self_test_root(root)
-            path = resolve(root, FIXDEP_DIFF_REL)
-            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("DUPLICATE_FIXDEP_DIFF_LINE", f"{marker}:count=2") in collect_issues(root)
-            checks_run += 1
-
-        for name in REQUIRED_FIXDEP_CASE_NAMES:
-            build_self_test_root(root)
-            path = resolve(root, FIXDEP_CASES_REL)
-            cases = json.loads(path.read_text(encoding="utf-8"))
-            cases = [case for case in cases if case.get("name") != name]
-            path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
-            assert ("MISSING_FIXDEP_CASE", name) in collect_issues(root)
-            checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve(root, FIXDEP_CASES_REL)
-        cases = json.loads(path.read_text(encoding="utf-8"))
-        cases[1]["name"] = cases[0]["name"]
-        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("DUPLICATE_FIXDEP_CASE", REQUIRED_FIXDEP_CASE_NAMES[0]) in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve(root, FIXDEP_CASES_REL)
-        cases = json.loads(path.read_text(encoding="utf-8"))
-        cases[0]["name"] = "unexpected_fixdep_case"
-        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("UNEXPECTED_FIXDEP_CASE", "unexpected_fixdep_case") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve(root, FIXDEP_CASES_REL)
-        cases = json.loads(path.read_text(encoding="utf-8"))
-        cases[0], cases[1] = cases[1], cases[0]
-        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert any(code == "FIXDEP_CASE_ORDER_MISMATCH" for code, _ in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve(root, FIXDEP_CASES_REL)
-        cases = json.loads(path.read_text(encoding="utf-8"))
-        cases[0] = "broken"
-        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_FIXDEP_CASE_ENTRY", "index=0:type=str") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve(root, FIXDEP_CASES_REL)
-        cases = json.loads(path.read_text(encoding="utf-8"))
-        cases[0]["name"] = ""
-        path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_FIXDEP_CASE_NAME", "index=0:name=''") in issues
-        checks_run += 1
-
-        for marker in CLOSURE_REQUIRED_MARKERS:
-            build_self_test_root(root)
-            path = resolve(root, PHASE2_CLOSURE_REL)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("MISSING_CLOSURE_MARKER", marker) in collect_issues(root)
-            checks_run += 1
-
-        for marker in TESTS_README_REQUIRED_MARKERS:
-            build_self_test_root(root)
-            path = resolve(root, TESTS_README_REL)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("MISSING_TESTS_README_MARKER", marker) in collect_issues(root)
-            checks_run += 1
-
-        for marker in REQUIRED_WORKFLOW_LINES:
-            build_self_test_root(root)
-            path = resolve(root, WORKFLOW_REL)
-            path.write_text(
-                replace_exact_line(path.read_text(encoding="utf-8"), marker, "run: python3 scripts/zigux/other.py"),
-                encoding="utf-8",
-            )
-            assert ("MISSING_WORKFLOW_LINE", marker) in collect_issues(root)
-            checks_run += 1
-
-        for marker in REQUIRED_WORKFLOW_LINES:
-            build_self_test_root(root)
-            path = resolve(root, WORKFLOW_REL)
-            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
-            checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve(root, WORKFLOW_REL)
+        path = root / "Documentation/zigux/artifact-diff.md"
         path.write_text(
-            swap_exact_lines(
-                path.read_text(encoding="utf-8"),
-                REQUIRED_WORKFLOW_LINES[1],
-                REQUIRED_WORKFLOW_LINES[2],
-            ),
+            path.read_text(encoding="utf-8").replace(ARTIFACT_DIFF_MARKERS[8], "", 1),
             encoding="utf-8",
         )
-        issues = collect_issues(root)
-        assert any(code == "FIXDEP_WORKFLOW_ORDER_MISMATCH" for code, _ in issues)
-        checks_run += 1
-
-        for target in REQUIRED_MAKEFILE_PHONY_TARGETS:
-            build_self_test_root(root)
-            path = resolve(root, MAKEFILE_REL)
-            path.write_text(remove_phony_target(path.read_text(encoding="utf-8"), target), encoding="utf-8")
-            assert ("MISSING_MAKEFILE_PHONY_TARGET", target) in collect_issues(root)
-            checks_run += 1
-
-        for marker in REQUIRED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            path = resolve(root, MAKEFILE_REL)
-            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
-            assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
-            checks_run += 1
-
-        for marker in REQUIRED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            path = resolve(root, MAKEFILE_REL)
-            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
-            checks_run += 1
+        issues = validate_root(root)
+        assert f"Documentation/zigux/artifact-diff.md:{ARTIFACT_DIFF_MARKERS[8]}" in issues
+        case_count += 1
 
         build_self_test_root(root)
-        path = resolve(root, MAKEFILE_REL)
+        path = root / "Documentation/zigux/phase2-closure.md"
+        path.write_text(path.read_text(encoding="utf-8").replace(CLOSURE_MARKERS[0], "", 1), encoding="utf-8")
+        issues = validate_root(root)
+        assert f"Documentation/zigux/phase2-closure.md:{CLOSURE_MARKERS[0]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "scripts/zigux/validate-phase2.py"
         path.write_text(
-            swap_exact_lines(
-                path.read_text(encoding="utf-8"),
-                REQUIRED_MAKEFILE_LINES[2],
-                REQUIRED_MAKEFILE_LINES[3],
-            ),
+            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[1], "", 1),
             encoding="utf-8",
         )
-        issues = collect_issues(root)
-        assert any(code == "FIXDEP_MAKEFILE_ORDER_MISMATCH" for code, _ in issues)
-        checks_run += 1
+        issues = validate_root(root)
+        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[1]}" in issues
+        case_count += 1
 
-        for rel in REQUIRED_FILES:
-            build_self_test_root(root)
-            resolve(root, rel).unlink()
-            issues = collect_issues(root)
-            assert ("MISSING_REQUIRED_FILE", rel.as_posix()) in issues
-            checks_run += 1
+        build_self_test_root(root)
+        path = root / "scripts/zigux/validate-phase2.py"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[5], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[5]}" in issues
+        case_count += 1
 
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+        build_self_test_root(root)
+        path = root / "scripts/zigux/validate-phase2.py"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(VALIDATE_PHASE2_MARKERS[6], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"scripts/zigux/validate-phase2.py:{VALIDATE_PHASE2_MARKERS[6]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "Documentation/zigux/phase2-fixdep-next-step-note.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(PHASE2_FIXDEP_NEXT_STEP_MARKERS[2], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            f"Documentation/zigux/phase2-fixdep-next-step-note.md:{PHASE2_FIXDEP_NEXT_STEP_MARKERS[2]}"
+            in issues
+        )
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "zigux/Makefile"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[2], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f"zigux/Makefile:{MAKEFILE_MARKERS[2]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / ".github/workflows/zigux-bootstrap.yml"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(WORKFLOW_MARKERS[4], "", 1),
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert f".github/workflows/zigux-bootstrap.yml:{WORKFLOW_MARKERS[4]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / ".github/workflows/zigux-bootstrap.yml"
+        path.write_text(
+            path.read_text(encoding="utf-8") + WORKFLOW_MARKERS[1] + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_root(root)
+        assert (
+            ".github/workflows/zigux-bootstrap.yml:count:"
+            f"{WORKFLOW_MARKERS[1]}:expected=1:got=2"
+        ) in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        path = root / "zigux/Makefile"
+        original = path.read_text(encoding="utf-8")
+        reordered = original.replace(
+            "\n".join(MAKEFILE_MARKERS),
+            "\n".join(
+                [
+                    MAKEFILE_MARKERS[0],
+                    MAKEFILE_MARKERS[2],
+                    MAKEFILE_MARKERS[1],
+                    MAKEFILE_MARKERS[3],
+                ]
+            ),
+            1,
+        )
+        path.write_text(reordered, encoding="utf-8")
+        issues = validate_root(root)
+        assert f"zigux/Makefile:order:{MAKEFILE_MARKERS[2]}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-fixdep-diff.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-fixdep-diff.py" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "Documentation/zigux/phase2-fixdep-next-step-note.md").unlink()
+        issues = validate_root(root)
+        assert "missing_file:Documentation/zigux/phase2-fixdep-next-step-note.md" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_text(root / "zigux/tests/fixtures/fixdep/cases.json", "[]")
+        issues = validate_root(root)
+        assert any(issue.startswith("zigux/tests/fixtures/fixdep/cases.json:case_names:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        cases = json.loads((root / "zigux/tests/fixtures/fixdep/cases.json").read_text(encoding="utf-8"))
+        del cases[0]["expected"]
+        write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
+        issues = validate_root(root)
+        assert "zigux/tests/fixtures/fixdep/cases.json:cases[0]:expected" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        cases = json.loads((root / "zigux/tests/fixtures/fixdep/cases.json").read_text(encoding="utf-8"))
+        cases[0]["expected_stdout"] = "sample_expected.txt"
+        write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
+        issues = validate_root(root)
+        assert "zigux/tests/fixtures/fixdep/cases.json:cases[0]:unexpected_fields:expected_stdout" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        cases = json.loads((root / "zigux/tests/fixtures/fixdep/cases.json").read_text(encoding="utf-8"))
+        cases[8]["stdout_mode"] = "pipe_full"
+        write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
+        issues = validate_root(root)
+        assert (
+            "zigux/tests/fixtures/fixdep/cases.json:cases[8]:stdout_mode:expected='dev_full':got='pipe_full'"
+            in issues
+        )
+        case_count += 1
+
+    if case_count != EXPECTED_SELF_TEST_CASE_COUNT:
+        print("PHASE2_FIXDEP_GATE_SELF_TEST=fail")
+        print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT_ACTUAL={case_count}")
+        print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
+        return 1
+
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
-    print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT={checks_run}")
+    print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the live fixdep governance packet matches current Phase 2 surfaces."
+        description="Check the shared Phase 2 fixdep governance and expected-output packet."
     )
-    parser.add_argument("--root", type=Path, default=DEFAULT_ROOT, help="Repository root to inspect")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in checker coverage without needing a repo checkout.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(args.root.resolve())
+    issues = validate_root(ROOT)
     if issues:
-        return emit_issues(issues)
+        print("PHASE2_FIXDEP_GATE=fail")
+        print("PHASE2_FIXDEP_GATE_ISSUES_START")
+        for issue in issues:
+            print(issue)
+        print("PHASE2_FIXDEP_GATE_ISSUES_END")
+        return 1
 
+    marker_count = sum(len(markers) for markers in FILE_MARKERS.values())
     print("PHASE2_FIXDEP_GATE=pass")
-    print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
-    print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_LINE_COUNT={len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)}")
-    print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_CASE_COUNT={len(REQUIRED_FIXDEP_CASE_NAMES)}")
-    print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
-    print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_PHONY_TARGET_COUNT={len(REQUIRED_MAKEFILE_PHONY_TARGETS)}")
-    print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_MARKER_COUNT={marker_count}")
+    print(f"PHASE2_FIXDEP_CASE_COUNT={len(EXPECTED_CASE_NAMES)}")
     return 0
 
 
