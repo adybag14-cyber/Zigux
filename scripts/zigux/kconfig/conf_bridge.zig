@@ -699,11 +699,11 @@ test "conf bridge emits savedefconfig mode argument before kconfig" {
         .kconfig = "Kconfig",
         .config = ".config",
         .arch = "x86_64",
-        .mode_arg = "defconfig.out",
+        .mode_arg = "silent=debug_defconfig",
     });
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"savedefconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--savedefconfig\",\"defconfig.out\",\"Kconfig\"]") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--savedefconfig\",\"silent=debug_defconfig\",\"Kconfig\"]") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\".config\"") != null);
 }
 
