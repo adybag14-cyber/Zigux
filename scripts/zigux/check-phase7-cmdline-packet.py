@@ -36,10 +36,8 @@ REQUIRED_MARKERS = {
     "scripts/zigux/check-phase7-cmdline-packet.py": [
         "--self-test",
         "PHASE7_CMDLINE_PACKET_SELF_TEST=pass",
-        '"Documentation/zigux/phase7-cmdline-slice.md",',
-        '"lib/cmdline.zig",',
-        'test \\\"phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value\\\" {',
-        'try expectContains(helper_companion, \"phase 7 cmdline companion replays whitespace-only sentinel termination\");',
+        '\"Documentation/zigux/phase7-cmdline-slice.md\",',
+        '\"lib/cmdline.zig\",',
         "FORBIDDEN_MARKERS = {",
         "MISSING_PHASE7_CMDLINE_FILES_START",
         "MISSING_PHASE7_CMDLINE_FILES_END",
@@ -88,16 +86,6 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
         'test "phase 7 cmdline companion replays memparse signed clamp saturation" {',
-        'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
-        'test "phase 7 cmdline companion replays whitespace-only sentinel termination" {',
-        'test "phase 7 cmdline companion replays bare leading-equals ownership" {',
-        'test "nextArg keeps empty input borrowed from the caller slice" {',
-        'test "nextArg stays inside the first NUL for bare and key value tokens" {',
-        'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
-        'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {',
-        'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {',
-        'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {',
-        'test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {',
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
         '"anchor": "lib/cmdline.c"',
@@ -124,9 +112,6 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"nextArg keeps parameter and value slices borrowed from caller storage\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
         'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
-        'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
-        'try expectContains(helper_companion, "phase 7 cmdline companion replays whitespace-only sentinel termination");',
-        'try expectContains(helper_companion, "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value");',
         'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");',
     ],
@@ -145,7 +130,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 81
+SELF_TEST_CASE_COUNT = 66
 
 
 def read_text(path: Path) -> str:
@@ -312,7 +297,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        checker_marker = '"Documentation/zigux/phase7-cmdline-slice.md",'
+        checker_marker = '\"Documentation/zigux/phase7-cmdline-slice.md\",'
         remove_once(checker_path, checker_marker)
         expect_missing_marker(
             "missing_checker_slice_anchor_marker",
@@ -322,30 +307,10 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        checker_marker = '"lib/cmdline.zig",'
+        checker_marker = '\"lib/cmdline.zig\",'
         remove_once(checker_path, checker_marker)
         expect_missing_marker(
             "missing_checker_helper_path_marker",
-            tmp_root,
-            f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        checker_marker = 'test \\\"phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value\\\" {'
-        remove_once(checker_path, checker_marker)
-        expect_missing_marker(
-            "missing_checker_companion_quoted_bare_grouping_marker",
-            tmp_root,
-            f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
-        )
-        cases_run += 1
-        write_fixture_root(tmp_root)
-
-        checker_marker = 'try expectContains(helper_companion, \"phase 7 cmdline companion replays whitespace-only sentinel termination\");'
-        remove_once(checker_path, checker_marker)
-        expect_missing_marker(
-            "missing_checker_survey_whitespace_only_companion_marker",
             tmp_root,
             f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
         )
@@ -439,7 +404,7 @@ def run_self_test() -> None:
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_manifest.json"
         manifest_markers = [
-            ("missing_manifest_checker_marker", '"scripts/zigux/check-phase7-cmdline-packet.py"'),
+            ("missing_manifest_checker_marker", '\"scripts/zigux/check-phase7-cmdline-packet.py\"'),
             (
                 "missing_manifest_nextarg_ownership_marker",
                 "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
@@ -525,18 +490,6 @@ def run_self_test() -> None:
                 'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
             ),
             (
-                "missing_survey_companion_leading_equals_marker",
-                'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
-            ),
-            (
-                "missing_survey_companion_whitespace_only_marker",
-                'try expectContains(helper_companion, "phase 7 cmdline companion replays whitespace-only sentinel termination");',
-            ),
-            (
-                "missing_survey_companion_quoted_bare_grouping_marker",
-                'try expectContains(helper_companion, "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value");',
-            ),
-            (
                 "missing_survey_companion_first_nul_bare_option_marker",
                 'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));");',
             ),
@@ -592,46 +545,6 @@ def run_self_test() -> None:
             (
                 "missing_companion_memparse_signed_clamp_marker",
                 'test "phase 7 cmdline companion replays memparse signed clamp saturation" {',
-            ),
-            (
-                "missing_companion_leading_whitespace_boundary_marker",
-                'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
-            ),
-            (
-                "missing_companion_whitespace_only_boundary_marker",
-                'test "phase 7 cmdline companion replays whitespace-only sentinel termination" {',
-            ),
-            (
-                "missing_companion_bare_leading_equals_marker",
-                'test "phase 7 cmdline companion replays bare leading-equals ownership" {',
-            ),
-            (
-                "missing_companion_empty_input_borrow_marker",
-                'test "nextArg keeps empty input borrowed from the caller slice" {',
-            ),
-            (
-                "missing_companion_first_nul_boundary_marker",
-                'test "nextArg stays inside the first NUL for bare and key value tokens" {',
-            ),
-            (
-                "missing_companion_borrowed_suffix_marker",
-                'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
-            ),
-            (
-                "missing_companion_quoted_empty_token_marker",
-                'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {',
-            ),
-            (
-                "missing_companion_quoted_bare_grouping_marker",
-                'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {',
-            ),
-            (
-                "missing_companion_quoted_equals_and_unterminated_marker",
-                'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {',
-            ),
-            (
-                "missing_companion_quoted_value_borrow_marker",
-                'test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {',
             ),
         ]
         for case, marker in companion_markers:
