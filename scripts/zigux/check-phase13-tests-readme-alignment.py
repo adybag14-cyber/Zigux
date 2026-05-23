@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 TESTS_README = Path("zigux/tests/README.md")
 
-PHASE13_HEADING = "Phase 13 review packet"
+PHASE13_HEADING = "## Phase 13 review packet"
 PHASE13_SECTION_END = "Tests-root reviewer prompt:"
 
 REQUIRED_SHIPPED_MARKERS = (
@@ -52,6 +52,7 @@ REQUIRED_SHIPPED_MARKERS = (
     "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`",
     "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
     "`scripts/zigux/check-phase13-shared-summary-surfaces.py`",
+    "`scripts/zigux/check-phase13-tests-readme-alignment.py`",
     "`scripts/zigux/validate-phase13-release.py`",
     "`Documentation/zigux/phase13-notifier-list-survey.md`",
     "`scripts/zigux/check-phase13-notifier-packet.py`",
@@ -69,6 +70,12 @@ REQUIRED_GAP_MARKERS = (
     "`include/zigux/notifier_abi.h`",
 )
 
+TRIO_SURFACE_TEXT = (
+    "Keep the two gap-note companions and the shipped shared-summary, tests-root, "
+    "and release-validator trio explicit in that shared surface list so the tests-root "
+    "reminder matches the already-landed Phase 13 reminder and guard packet."
+)
+
 REQUIRED_TEXT = (
     "Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, and `Documentation/zigux/phase13-notifier-summary-gap.md` aligned with that stable handle as supporting shared reminder surfaces. Keep `Documentation/zigux/phase13-release-coordination-matrix.md` and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` explicit as supporting coordination companions, and keep `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, and `Documentation/zigux/phase13-notifier-summary-gap.md` aligned as broader same-lane reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.",
     "Current `master` instead materializes the narrower devres helper packet through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `lib/devres.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, so broader contributor wording should keep the direct DMA-boundary replay, the pure `dmam_alloc_coherent()` planning helper, the scatterlist planner note plus planner manifest, and the scatterlist packet explicit instead of rebuilding the older missing `zigux/tests/phase13_devres.zig` replay family.",
@@ -76,6 +83,7 @@ REQUIRED_TEXT = (
     "Current `master` still does not materialize `Documentation/zigux/phase13-libfs-survey.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, or `include/zigux/notifier_abi.h`, so keep those broader direct devres replay, missing direct Landlock syscall, missing adjacent notifier header, and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
     "Current `master` does materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that guard explicit as shipped shared-summary evidence aligned with the contributor workflow guide and roadmap-traceability note instead of repeating it as a missing tests-root gap.",
     "Current `master` also materializes `scripts/zigux/validate-phase13-release.py`, so keep that shared release-discipline validator explicit beside the shipped shared-summary and tests-root guards instead of treating it as a validator-first gap.",
+    TRIO_SURFACE_TEXT,
     "Current `master` also materializes the adjacent notifier survey plus the focused checker-backed packet `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, so keep those nine paths explicit as shipped adjacent evidence without counting them as extra shared replay steps.",
     "Current `master` does materialize `zigux/Makefile`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality gaps rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
     "Current `master` does materialize the helper-local `libfs` slice plus tests-root packet, the narrower `devres` packet, the Landlock packet anchors, and the adjacent notifier evidence through `Documentation/zigux/phase13-libfs-slice.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_manifest.json`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist_build.zig`, `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `security/landlock/ruleset.zig`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, while `Documentation/zigux/phase13-libfs-survey.md` remains a repo-reality gap on the current direct readback path.",
@@ -119,11 +127,7 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
-def resolve_path(root: Path, rel_path: Path) -> Path:
-    return root / rel_path
-
-
-def extract_phase13_shipped_section(text: str) -> str:
+def extract_phase13_section(text: str) -> str:
     heading_index = text.find(PHASE13_HEADING)
     if heading_index == -1:
         raise SystemExit(f"missing heading: {PHASE13_HEADING}")
@@ -133,40 +137,25 @@ def extract_phase13_shipped_section(text: str) -> str:
     return text[heading_index:end_index]
 
 
-def collect_missing_markers(text: str) -> list[str]:
-    return [marker for marker in REQUIRED_SHIPPED_MARKERS if marker not in text]
-
-
-def collect_missing_gap_markers(text: str) -> list[str]:
-    return [marker for marker in REQUIRED_GAP_MARKERS if marker not in text]
-
-
-def collect_missing_text(text: str) -> list[str]:
-    return [fragment for fragment in REQUIRED_TEXT if fragment not in text]
-
-
-def collect_forbidden_shipped_markers(text: str) -> list[str]:
-    shipped_section = extract_phase13_shipped_section(text)
-    return [line for line in FORBIDDEN_SHIPPED_LINES if line in shipped_section]
-
-
-def collect_forbidden_text(text: str) -> list[str]:
-    return [fragment for fragment in FORBIDDEN_TEXT if fragment in text]
-
-
 def collect_issues(root: Path) -> list[tuple[str, str]]:
-    tests_readme_text = read_text(resolve_path(root, TESTS_README))
+    text = read_text(root / TESTS_README)
+    shipped_section = extract_phase13_section(text)
     issues: list[tuple[str, str]] = []
-    for marker in collect_missing_markers(tests_readme_text):
-        issues.append(("MISSING_MARKER", marker))
-    for marker in collect_missing_gap_markers(tests_readme_text):
-        issues.append(("MISSING_GAP_MARKER", marker))
-    for fragment in collect_missing_text(tests_readme_text):
-        issues.append(("MISSING_TEXT", fragment))
-    for marker in collect_forbidden_shipped_markers(tests_readme_text):
-        issues.append(("FORBIDDEN_SHIPPED_MARKER", marker))
-    for fragment in collect_forbidden_text(tests_readme_text):
-        issues.append(("FORBIDDEN_TEXT", fragment))
+    for marker in REQUIRED_SHIPPED_MARKERS:
+        if marker not in text:
+            issues.append(("MISSING_MARKER", marker))
+    for marker in REQUIRED_GAP_MARKERS:
+        if marker not in text:
+            issues.append(("MISSING_GAP_MARKER", marker))
+    for fragment in REQUIRED_TEXT:
+        if fragment not in text:
+            issues.append(("MISSING_TEXT", fragment))
+    for line in FORBIDDEN_SHIPPED_LINES:
+        if line in shipped_section:
+            issues.append(("FORBIDDEN_SHIPPED_MARKER", line))
+    for fragment in FORBIDDEN_TEXT:
+        if fragment in text:
+            issues.append(("FORBIDDEN_TEXT", fragment))
     return issues
 
 
@@ -185,23 +174,46 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    section_lines = [
+    lines = [
         "# zigux/tests",
         "",
-        "## Phase 13 review packet",
+        PHASE13_HEADING,
         "",
         REQUIRED_TEXT[0],
         "",
         "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:",
     ]
-    section_lines.extend(f"- {marker}" for marker in REQUIRED_SHIPPED_MARKERS)
-    section_lines.append("")
-    section_lines.extend(REQUIRED_TEXT[1:])
-    section_lines.append("")
-    section_lines.append(GAP_MARKER_SENTENCE)
-    section_lines.append("")
-    section_lines.append(PHASE13_SECTION_END)
-    write_text(resolve_path(root, TESTS_README), "\n".join(section_lines) + "\n")
+    lines.extend(f"- {marker}" for marker in REQUIRED_SHIPPED_MARKERS)
+    lines.extend(
+        [
+            "",
+            REQUIRED_TEXT[1],
+            "",
+            REQUIRED_TEXT[2],
+            "",
+            REQUIRED_TEXT[3],
+            "",
+            REQUIRED_TEXT[4],
+            "",
+            REQUIRED_TEXT[5],
+            "",
+            TRIO_SURFACE_TEXT,
+            "",
+            REQUIRED_TEXT[7],
+            "",
+            REQUIRED_TEXT[8],
+            "",
+            REQUIRED_TEXT[9],
+            "",
+            GAP_MARKER_SENTENCE,
+            "",
+            PHASE13_SECTION_END,
+            "",
+            REQUIRED_TEXT[-1],
+            "",
+        ]
+    )
+    write_text(root / TESTS_README, "\n".join(lines))
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -212,154 +224,95 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 20
+    expected_case_count = 22
     with tempfile.TemporaryDirectory(prefix="zigux_p13_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
 
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), "`zigux/helpers/notifier_chain_view.zig`"),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_GAP_MARKER", "`zigux/helpers/notifier_chain_view.zig`")) in issues
+        path = root / TESTS_README
+
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), "`zigux/helpers/notifier_chain_view.zig`"), encoding="utf-8")
+        assert ("MISSING_GAP_MARKER", "`zigux/helpers/notifier_chain_view.zig`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("`include/zigux/notifier_abi.h`", ""),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_GAP_MARKER", "`include/zigux/notifier_abi.h`")) in issues
+        path.write_text(path.read_text(encoding="utf-8").replace("`include/zigux/notifier_abi.h`", ""), encoding="utf-8")
+        assert ("MISSING_GAP_MARKER", "`include/zigux/notifier_abi.h`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("`Documentation/zigux/phase13-devres-scatterlist-planner.md`", ""),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_MARKER", "`Documentation/zigux/phase13-devres-scatterlist-planner.md`")) in issues
+        path.write_text(path.read_text(encoding="utf-8").replace("`Documentation/zigux/phase13-devres-scatterlist-planner.md`", ""), encoding="utf-8")
+        assert ("MISSING_MARKER", "`Documentation/zigux/phase13-devres-scatterlist-planner.md`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("`zigux/tests/phase13_devres_scatterlist_planner_manifest.json`", ""),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_MARKER", "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json`")) in issues
+        path.write_text(path.read_text(encoding="utf-8").replace("`zigux/tests/phase13_devres_scatterlist_planner_manifest.json`", ""), encoding="utf-8")
+        assert ("MISSING_MARKER", "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase13-notifier-packet.py`", ""),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_MARKER", "`scripts/zigux/check-phase13-notifier-packet.py`")) in issues
+        path.write_text(path.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase13-notifier-packet.py`", ""), encoding="utf-8")
+        assert ("MISSING_MARKER", "`scripts/zigux/check-phase13-notifier-packet.py`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase13-shared-summary-surfaces.py`", ""),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_MARKER", "`scripts/zigux/check-phase13-shared-summary-surfaces.py`")) in issues
+        path.write_text(path.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase13-shared-summary-surfaces.py`", ""), encoding="utf-8")
+        assert ("MISSING_MARKER", "`scripts/zigux/check-phase13-shared-summary-surfaces.py`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("`scripts/zigux/validate-phase13-release.py`", ""),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_MARKER", "`scripts/zigux/validate-phase13-release.py`")) in issues
+        path.write_text(path.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase13-tests-readme-alignment.py`", ""), encoding="utf-8")
+        assert ("MISSING_MARKER", "`scripts/zigux/check-phase13-tests-readme-alignment.py`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[1]),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_TEXT", REQUIRED_TEXT[1])) in issues
+        path.write_text(path.read_text(encoding="utf-8").replace("`scripts/zigux/validate-phase13-release.py`", ""), encoding="utf-8")
+        assert ("MISSING_MARKER", "`scripts/zigux/validate-phase13-release.py`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[4]),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_TEXT", REQUIRED_TEXT[4])) in issues
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[1]), encoding="utf-8")
+        assert ("MISSING_TEXT", REQUIRED_TEXT[1]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[5]),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_TEXT", REQUIRED_TEXT[5])) in issues
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[4]), encoding="utf-8")
+        assert ("MISSING_TEXT", REQUIRED_TEXT[4]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[6]),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_TEXT", REQUIRED_TEXT[6])) in issues
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[5]), encoding="utf-8")
+        assert ("MISSING_TEXT", REQUIRED_TEXT[5]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[-2]),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_TEXT", REQUIRED_TEXT[-2])) in issues
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), TRIO_SURFACE_TEXT), encoding="utf-8")
+        assert ("MISSING_TEXT", TRIO_SURFACE_TEXT) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[-1]),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_TEXT", REQUIRED_TEXT[-1])) in issues
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[7]), encoding="utf-8")
+        assert ("MISSING_TEXT", REQUIRED_TEXT[7]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[0]),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("MISSING_TEXT", REQUIRED_TEXT[0])) in issues
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[8]), encoding="utf-8")
+        assert ("MISSING_TEXT", REQUIRED_TEXT[8]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[-1]), encoding="utf-8")
+        assert ("MISSING_TEXT", REQUIRED_TEXT[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[0]), encoding="utf-8")
+        assert ("MISSING_TEXT", REQUIRED_TEXT[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         path.write_text(
             path.read_text(encoding="utf-8").replace(
                 "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n",
@@ -368,12 +321,10 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        issues = collect_issues(root)
-        assert (("FORBIDDEN_SHIPPED_MARKER", "- `Documentation/zigux/phase13-libfs-survey.md`")) in issues
+        assert ("FORBIDDEN_SHIPPED_MARKER", "- `Documentation/zigux/phase13-libfs-survey.md`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
         path.write_text(
             path.read_text(encoding="utf-8").replace(
                 "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n",
@@ -382,12 +333,10 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        issues = collect_issues(root)
-        assert (("FORBIDDEN_SHIPPED_MARKER", "- `zigux/helpers/notifier_chain_view.zig`")) in issues
+        assert ("FORBIDDEN_SHIPPED_MARKER", "- `zigux/helpers/notifier_chain_view.zig`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
         path.write_text(
             path.read_text(encoding="utf-8").replace(
                 "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n",
@@ -396,22 +345,16 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        issues = collect_issues(root)
-        assert (("FORBIDDEN_SHIPPED_MARKER", "- `include/zigux/notifier_abi.h`")) in issues
+        assert ("FORBIDDEN_SHIPPED_MARKER", "- `include/zigux/notifier_abi.h`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            path.read_text(encoding="utf-8") + "\n" + FORBIDDEN_TEXT[-1] + "\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (("FORBIDDEN_TEXT", FORBIDDEN_TEXT[-1])) in issues
+        path.write_text(path.read_text(encoding="utf-8") + "\n" + FORBIDDEN_TEXT[-1] + "\n", encoding="utf-8")
+        assert ("FORBIDDEN_TEXT", FORBIDDEN_TEXT[-1]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        resolve_path(root, TESTS_README).unlink()
+        (root / TESTS_README).unlink()
         try:
             collect_issues(root)
         except SystemExit as exc:
