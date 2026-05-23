@@ -83,8 +83,9 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
     "zigux/tests/phase6_bsearch_c_abi_budget.zig",
 ]
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
+EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 27
 
 
 class ValidationError(RuntimeError):
@@ -158,6 +159,8 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected packet id in {path.as_posix()}")
     if manifest.get("phase") != "Phase 6":
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
+    if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
+        raise ValidationError("helper-evidence surveyed_head drifted")
 
     companions = manifest.get("current_direct_readback_companions")
     if not isinstance(companions, list):
@@ -204,6 +207,8 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected packet id in {path.as_posix()}")
     if manifest.get("phase") != "Phase 6":
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
+    if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
+        raise ValidationError("helper-parity surveyed_head drifted")
 
     base64 = get_helper(manifest, "base64")
     bsearch = get_helper(manifest, "bsearch")
@@ -280,6 +285,7 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": "phase6-helper-evidence",
                 "phase": "Phase 6",
+                "surveyed_head": EXPECTED_SURVEYED_HEAD,
                 "current_direct_readback_companions": [REQUIRED_DIRECT_READBACK_COMPANION],
                 "helpers": [
                     {
@@ -309,6 +315,7 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": "phase6-helper-parity",
                 "phase": "Phase 6",
+                "surveyed_head": EXPECTED_SURVEYED_HEAD,
                 "helpers": [
                     {
                         "key": "base64",
@@ -511,6 +518,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                '"surveyed_head": "current-master-readback-2026-05-22"',
+                '"surveyed_head": "current-master-readback-2026-05-21"',
+            ),
+            "helper-evidence surveyed_head drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 "zigux/tests/phase6_base64_perf.zig",
                 "zigux/tests/phase6_base64.zig",
             ),
@@ -599,6 +618,18 @@ def run_self_test() -> None:
                 '"packet": "phase6-helper-evidence"',
             ),
             "unexpected packet id",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"surveyed_head": "current-master-readback-2026-05-22"',
+                '"surveyed_head": "current-master-readback-2026-05-21"',
+            ),
+            "helper-parity surveyed_head drifted",
         )
         cases_run += 1
         scaffold_repo(root)
