@@ -175,6 +175,36 @@ test "shared runtime loader surface rejects registration-summary bleed-through" 
     }
 }
 
+test "shared runtime loader surface rejects live initcall and runtime registration bleed-through" {
+    const contract_forbidden_markers = [_][]const u8{
+        "module_init(",
+        "module_exit(",
+        "register_kretprobe(",
+        "unregister_kretprobe(",
+        "register_trace_",
+        "unregister_trace_",
+        "tracepoint_probe_register(",
+        "tracepoint_probe_unregister(",
+    };
+    const loader_forbidden_markers = [_][]const u8{
+        "module_init(",
+        "module_exit(",
+        "register_kretprobe(",
+        "unregister_kretprobe(",
+        "register_trace_",
+        "unregister_trace_",
+        "tracepoint_probe_register(",
+        "tracepoint_probe_unregister(",
+    };
+
+    inline for (contract_forbidden_markers) |marker| {
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+    inline for (loader_forbidden_markers) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+    }
+}
+
 test "shared runtime loader surface rejects publication and depmod bleed-through" {
     const loader_forbidden_field_decls = [_][]const u8{
         "modinfo:",
