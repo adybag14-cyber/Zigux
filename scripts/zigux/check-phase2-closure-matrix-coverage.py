@@ -104,6 +104,17 @@ def build_surface_map(root: Path) -> dict[str, list[str]]:
     return normalized
 
 
+def iter_duplicate_items(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for item in items:
+        if item in seen and item not in duplicates:
+            duplicates.append(item)
+            continue
+        seen.add(item)
+    return duplicates
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     validator = load_module(root, VALIDATOR_REL, "zigux_validate_phase2_closure")
     matrix = load_module(root, MATRIX_REL, "zigux_check_phase2_closure_matrix")
@@ -123,6 +134,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if actual is None:
             issues.append(("MISSING_MANIFEST_SURFACE_KEY", key))
             continue
+
+        for item in iter_duplicate_items(actual):
+            issues.append(("DUPLICATE_MANIFEST_ITEM", f"{key}:{item}"))
 
         validator_items = validator_expectations.get(key, ())
         direct_items = direct_expectations.get(key, ())
@@ -279,6 +293,13 @@ def run_self_test() -> int:
         payload["present_surfaces"]["bootstrap_helpers"].append("scripts/zigux/new-helper.py")
         write_json(manifest_path, payload)
         assert ("UNCOVERED_MANIFEST_ITEM", "bootstrap_helpers:scripts/zigux/new-helper.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
+        payload["present_surfaces"]["checkers"].append("scripts/zigux/check-extra.py")
+        write_json(manifest_path, payload)
+        assert ("DUPLICATE_MANIFEST_ITEM", "checkers:scripts/zigux/check-extra.py") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
