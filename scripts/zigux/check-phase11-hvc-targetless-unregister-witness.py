@@ -434,7 +434,15 @@ def run_self_test() -> int:
             ),
             (
                 VERIFY_BOUNDARY_PATH,
+                "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable",
+            ),
+            (
+                VERIFY_BOUNDARY_PATH,
                 "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
+            ),
+            (
+                DRIVER_PATH,
+                "targetless_no_unregister_edge: bool,",
             ),
             (
                 DRIVER_PATH,
