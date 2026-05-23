@@ -38,7 +38,7 @@ STATIC_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=8c7fdf65ee906111f8d9a1468cb52bfa8d242763`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_ATOMIC64_MANIFEST_BLOB_SHA=7dc51c0c5e7e3a3dbb2e83c1fedc719631c4db55`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_ATOMIC64_SURVEY_BLOB_SHA=ef0e3d311379ea1b96e515b304f0ad599832148a`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=75c533b819a0bb422e69c92a33a23da7c04d5af1`",
+    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=5324e8b3830669cefa2b4388ae8cd60149f5feff`",
 )
 CURRENT_HEAD_BLOB_PINS = (
     ("PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA", REPO_REALITY_WARNING),
@@ -87,33 +87,27 @@ WARNING_MARKERS = (
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
 )
 
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
-
 def read(root: Path, rel: Path) -> str:
     return (root / rel).read_text(encoding="utf-8")
-
 
 def write(root: Path, rel: Path, content: str) -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
-
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
     header = f"blob {len(data)}\0".encode("utf-8")
     return hashlib.sha1(header + data).hexdigest()
 
-
 def current_head_blob_pin_line(root: Path, label: str, rel: Path) -> str:
     return f"  * `{label}={git_blob_sha(root / rel)}`"
-
 
 def find_status_line(text: str, label: str) -> str:
     prefix = f"  * `{label}="
@@ -122,12 +116,10 @@ def find_status_line(text: str, label: str) -> str:
             return line
     raise RuntimeError(f"missing status line for {label}")
 
-
 def require(text: str, markers: tuple[str, ...], label: str) -> None:
     missing = [marker for marker in markers if marker not in text]
     if missing:
         raise RuntimeError(f"{label} is missing required fragments: {missing}")
-
 
 def require_current_head_blob_pins(root: Path, note: str) -> None:
     missing = [
@@ -138,7 +130,6 @@ def require_current_head_blob_pins(root: Path, note: str) -> None:
     if missing:
         raise RuntimeError(f"{NOTE.as_posix()} is missing current-head blob pins: {missing}")
 
-
 def check(root: Path) -> None:
     note = read(root, NOTE)
     warning = read(root, REPO_REALITY_WARNING)
@@ -146,12 +137,10 @@ def check(root: Path) -> None:
     require_current_head_blob_pins(root, note)
     require(warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
 
-
 def _baseline_other(path: Path) -> str:
     if path == REPO_REALITY_WARNING:
         return _baseline_warning()
     return f"placeholder for {path.as_posix()}\n"
-
 
 def _baseline_note(root: Path) -> str:
     lines = [
@@ -186,39 +175,23 @@ def _baseline_note(root: Path) -> str:
     ]
     return "\n".join(lines) + "\n"
 
-
 def _baseline_warning() -> str:
-    return "\n".join(
-        [
+    return "\n".join([
             "#!/usr/bin/env python3",
             "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20",
             "EXPECTED_PIN_SELF_TEST_CASES = 19",
             "scripts/zigux/check-phase4-reversible-delivery-pins.py",
             "scripts/zigux/check-phase4-perf-baseline-packet.py",
             "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
-        ]
-    ) + "\n"
-
+        ]) + "\n"
 
 def _build_baseline_tree(root: Path) -> None:
-    required_files = {
-        NOTE,
-        REPO_REALITY_WARNING,
-        TESTS_README_PACKET,
-        DOCS_README,
-        CHECKLIST,
-        TESTS_README,
-        SCRIPTS_README,
-        PERF_BASELINE_CHECKER,
-        PERF_MANIFEST,
-        PERF_SURVEY,
-    }
+    required_files = {NOTE, REPO_REALITY_WARNING, TESTS_README_PACKET, DOCS_README, CHECKLIST, TESTS_README, SCRIPTS_README, PERF_BASELINE_CHECKER, PERF_MANIFEST, PERF_SURVEY}
     for rel in required_files:
         if rel == NOTE:
             continue
         write(root, rel, _baseline_other(rel))
     write(root, NOTE, _baseline_note(root))
-
 
 def _expect_failure(root: Path, rel: Path, old: str | None, new: str | None) -> int:
     _build_baseline_tree(root)
@@ -232,7 +205,6 @@ def _expect_failure(root: Path, rel: Path, old: str | None, new: str | None) -> 
         return 1
     raise AssertionError(f"expected failure for {rel}")
 
-
 def run_self_test() -> int:
     cases = 0
     with tempfile.TemporaryDirectory(prefix="phase4-reversible-delivery-pins-") as tmp:
@@ -240,73 +212,20 @@ def run_self_test() -> int:
         _build_baseline_tree(root)
         check(root)
         cases += 1
-
         for label, _ in CURRENT_HEAD_BLOB_PINS[:8]:
             _build_baseline_tree(root)
             line = find_status_line(read(root, NOTE), label)
             cases += _expect_failure(root, NOTE, line, line.replace(line[-41:-1], "0" * 40))
-
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`",
-            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=19`",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`",
-            "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "Current direct-readback packet members:",
-            "Current packet members:",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "  * `scripts/zigux/check-phase4-tests-readme-packet.py`",
-            "  * `scripts/zigux/check-phase4-tests-review-packet.py`",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
-            "The broader Phase 4 validator, build, and bitmap replay companions still count as current-`master` gaps in this handoff.",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.",
-            "Historical broader packet references are omitted here.",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair and its manifest-backed handoff explicit as direct current-head evidence even while the broader Phase 4 companion set remains split between recovered note companions and exact-blob refresh debt.",
-            "Current direct contents reads for the runtime atomic64 packet are omitted here.",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
-            "The provenance wording drifted:",
-        )
-        cases += _expect_failure(
-            root,
-            REPO_REALITY_WARNING,
-            "EXPECTED_PIN_SELF_TEST_CASES = 19",
-            "EXPECTED_PIN_SELF_TEST_CASES = 17",
-        )
-        cases += _expect_failure(
-            root,
-            REPO_REALITY_WARNING,
-            "scripts/zigux/check-phase4-perf-baseline-packet.py",
-            "scripts/zigux/check-phase4-perf-packet.py",
-        )
-
+        cases += _expect_failure(root, NOTE, "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20`", "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=19`")
+        cases += _expect_failure(root, NOTE, "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`", "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`")
+        cases += _expect_failure(root, NOTE, "Current direct-readback packet members:", "Current packet members:")
+        cases += _expect_failure(root, NOTE, "  * `scripts/zigux/check-phase4-tests-readme-packet.py`", "  * `scripts/zigux/check-phase4-tests-review-packet.py`")
+        cases += _expect_failure(root, NOTE, "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.", "The broader Phase 4 validator, build, and bitmap replay companions still count as current-`master` gaps in this handoff.")
+        cases += _expect_failure(root, NOTE, "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.", "Historical broader packet references are omitted here.")
+        cases += _expect_failure(root, NOTE, "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair and its manifest-backed handoff explicit as direct current-head evidence even while the broader Phase 4 companion set remains split between recovered note companions and exact-blob refresh debt.", "Current direct contents reads for the runtime atomic64 packet are omitted here.")
+        cases += _expect_failure(root, NOTE, "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:", "The provenance wording drifted:")
+        cases += _expect_failure(root, REPO_REALITY_WARNING, "EXPECTED_PIN_SELF_TEST_CASES = 19", "EXPECTED_PIN_SELF_TEST_CASES = 17")
+        cases += _expect_failure(root, REPO_REALITY_WARNING, "scripts/zigux/check-phase4-perf-baseline-packet.py", "scripts/zigux/check-phase4-perf-packet.py")
     if cases != EXPECTED_PIN_SELF_TEST_CASES:
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=fail")
         print(f"expected {EXPECTED_PIN_SELF_TEST_CASES} self-test cases, saw {cases}")
@@ -315,7 +234,6 @@ def run_self_test() -> int:
     print(f"{PIN_SELF_TEST_COUNT_LABEL}={cases}")
     print(f"{LEGACY_PIN_SELF_TEST_CASES_LABEL}={cases}")
     return 0
-
 
 def main() -> int:
     args = parse_args()
@@ -328,7 +246,6 @@ def main() -> int:
         return 1
     print("PHASE4_REVERSIBLE_DELIVERY_PINS=pass")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
