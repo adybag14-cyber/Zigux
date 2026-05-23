@@ -371,6 +371,34 @@ test "renderCommandSections keeps stable headers for main and fallback command g
     );
 }
 
+test "renderCommandSections emits the fallback-only packet without a blank main header" {
+    var main_cmds = CommandNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+
+    var other_cmds = CommandNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.add("report");
+    try other_cmds.add("script");
+
+    const rendered = try renderCommandSections(
+        std.testing.allocator,
+        "subcommands",
+        "/usr/libexec/perf-core",
+        &main_cmds,
+        &other_cmds,
+        80,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "subcommands available from elsewhere on your $PATH\n" ++
+            "--------------------------------------------------\n" ++
+            " report script\n" ++
+            "\n",
+        rendered,
+    );
+}
+
 test "renderCommandSections omits an empty quoted exec path when none is available" {
     var main_cmds = CommandNames.init(std.testing.allocator);
     defer main_cmds.deinit();
