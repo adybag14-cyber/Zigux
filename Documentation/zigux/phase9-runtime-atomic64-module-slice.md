@@ -7,7 +7,7 @@ This note tracks the bounded Phase 9 runtime atomic64 starter packet on `master`
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
 - `PHASE9_LANE_KEY=P9-L04`
-- `PHASE9_SURVEYED_COMMIT=9f8c05368242414084e4bc94ea979604c2b6b712`
+- `PHASE9_SURVEYED_COMMIT=2026-05-23-runtime-atomic64-shared-loader-reminder-trim`
 - scope: selftest-hook and guarded lifecycle reviewability through the direct atomic64 starter packet, plus the adjacent shared loader-facing reminder surfaces only
 
 ## Direct Packet
