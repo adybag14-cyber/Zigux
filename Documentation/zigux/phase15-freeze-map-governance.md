@@ -80,6 +80,7 @@ The honest bounded step is therefore truthfulness maintenance, not expansion: ke
   - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
   - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
   - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
+  - `python3 scripts/zigux/check-phase15-readiness-gate-packet.py`
   - `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - adjacent route state:
   - direct contents readback resolves `Documentation/zigux/phase15-readiness-gate-survey.md`, so the validator-first readiness survey stays adjacent direct-readback evidence
