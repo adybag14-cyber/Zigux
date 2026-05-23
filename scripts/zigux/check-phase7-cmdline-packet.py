@@ -126,7 +126,7 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays bare leading-equals ownership");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays whitespace-only sentinel termination");',
-        'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
+        'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\\\"quiet,debug\\\\\\\\x00,nohlt\\\\\\\", \\\\\\\"nohlt\\\\\\\"));");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");',
     ],
     "samples/zigux/README.md": [
@@ -144,7 +144,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 78
+SELF_TEST_CASE_COUNT = 79
 
 
 def read_text(path: Path) -> str:
@@ -459,6 +459,10 @@ def run_self_test() -> None:
         survey_markers = [
             ("missing_survey_checker_reader", 'const checker = try readRepoFile(allocator, checker_path);'),
             (
+                "missing_survey_manifest_state_assertion",
+                'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
+            ),
+            (
                 "missing_survey_helper_linux_whitespace_marker",
                 'try expectContains(helper, "test \\\"nextArg keeps the Linux-style empty sentinel token for leading whitespace\\\" {");',
             ),
@@ -516,7 +520,7 @@ def run_self_test() -> None:
             ),
             (
                 "missing_survey_companion_first_nul_bare_option_marker",
-                'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\"quiet,debug\\\\\\x00,nohlt\\\\\", \\\\\"nohlt\\\\\"));");',
+                'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\\\\\"quiet,debug\\\\\\\\x00,nohlt\\\\\\\", \\\\\\\"nohlt\\\\\\\"));");',
             ),
             (
                 "missing_survey_companion_memparse_signed_clamp_marker",
