@@ -25,13 +25,16 @@ REQUIRED_TEST_MARKERS = {
     "last_bit_tail_test": 'test "find last bit clamps tail words to nbits" {',
 }
 
-REQUIRED_SOURCE_MARKERS = {
-    "find_first_andnot_gap": "findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3)",
+REQUIRED_SOURCE_PRESENT_MARKERS = {
     "find_next_boundary": "findNextBit(&set_map, nbits, boundary)",
     "find_next_and_boundary": "findNextAndBit(&and_lhs, &and_rhs, nbits, boundary)",
     "find_next_andnot_boundary": "findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)",
     "find_next_or_boundary": "findNextOrBit(&or_lhs, &or_rhs, nbits, boundary)",
     "find_next_zero_boundary": "findNextZeroBit(&zero_map, nbits, boundary)",
+}
+
+REQUIRED_SOURCE_EXACT_MARKERS = {
+    "find_first_andnot_gap": "findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3)",
     "find_last_tail_single_word": "findLastBit(&single_word, single_word_nbits)",
     "find_last_zero_sized": "findLastBit(&populated, 0)",
     "find_next_past_end": "findNextBit(&empty, 7, 11)",
@@ -67,13 +70,17 @@ def validate_find_bit_source(text: str) -> tuple[str, object]:
     if test_failures:
         return ("invalid_test_marker_counts", test_failures)
 
-    source_failures = [
+    source_presence_failures = [
         label
-        for label, marker in REQUIRED_SOURCE_MARKERS.items()
+        for label, marker in REQUIRED_SOURCE_PRESENT_MARKERS.items()
         if marker not in text
     ]
-    if source_failures:
-        return ("missing_source_markers", source_failures)
+    if source_presence_failures:
+        return ("missing_source_markers", source_presence_failures)
+
+    source_exact_failures = collect_marker_count_failures(text, REQUIRED_SOURCE_EXACT_MARKERS)
+    if source_exact_failures:
+        return ("invalid_source_marker_counts", source_exact_failures)
 
     return ("pass", None)
 
@@ -143,14 +150,23 @@ def build_sample_source(
     ]
 
     if omit_label is not None:
-        marker = REQUIRED_TEST_MARKERS.get(omit_label, REQUIRED_SOURCE_MARKERS.get(omit_label))
+        marker = REQUIRED_TEST_MARKERS.get(
+            omit_label,
+            REQUIRED_SOURCE_PRESENT_MARKERS.get(
+                omit_label,
+                REQUIRED_SOURCE_EXACT_MARKERS.get(omit_label),
+            ),
+        )
         assert marker is not None
         lines = [line for line in lines if marker not in line]
 
     if duplicate_label is not None:
         marker = REQUIRED_TEST_MARKERS.get(
             duplicate_label,
-            REQUIRED_SOURCE_MARKERS.get(duplicate_label),
+            REQUIRED_SOURCE_PRESENT_MARKERS.get(
+                duplicate_label,
+                REQUIRED_SOURCE_EXACT_MARKERS.get(duplicate_label),
+            ),
         )
         assert marker is not None
         for idx, line in enumerate(lines):
@@ -175,15 +191,27 @@ def run_self_test() -> None:
         assert payload == [f"{label}:expected=1:actual=0"], (label, payload)
         case_count += 1
 
-    for label in REQUIRED_SOURCE_MARKERS:
+    for label in REQUIRED_SOURCE_PRESENT_MARKERS:
         kind, payload = validate_find_bit_source(build_sample_source(omit_label=label))
         assert kind == "missing_source_markers", (label, kind, payload)
         assert payload == [label], (label, payload)
         case_count += 1
 
+    for label in REQUIRED_SOURCE_EXACT_MARKERS:
+        kind, payload = validate_find_bit_source(build_sample_source(omit_label=label))
+        assert kind == "invalid_source_marker_counts", (label, kind, payload)
+        assert payload == [f"{label}:expected=1:actual=0"], (label, payload)
+        case_count += 1
+
     for label in REQUIRED_TEST_MARKERS:
         kind, payload = validate_find_bit_source(build_sample_source(duplicate_label=label))
         assert kind == "invalid_test_marker_counts", (label, kind, payload)
+        assert payload == [f"{label}:expected=1:actual=2"], (label, payload)
+        case_count += 1
+
+    for label in REQUIRED_SOURCE_EXACT_MARKERS:
+        kind, payload = validate_find_bit_source(build_sample_source(duplicate_label=label))
+        assert kind == "invalid_source_marker_counts", (label, kind, payload)
         assert payload == [f"{label}:expected=1:actual=2"], (label, payload)
         case_count += 1
 
