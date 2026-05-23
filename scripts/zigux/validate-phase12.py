@@ -85,6 +85,13 @@ LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
 )
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
+PHASE12_PACKET_CHECKERS = [
+    VIRTIO_SCSI_PACKET_CHECKER_PATH,
+    VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
+    VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
+    VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_CHECKER_PATH,
+]
+
 # Keep the shared Phase 12 validator scoped to stable support-surface wording.
 # Exact blob pins in the raw-coverage note belong to the neighboring fallback lane.
 RAW_GITHUB_BRIDGE_MARKERS = [
@@ -439,6 +446,13 @@ def run_checker(root: Path, rel_path: str) -> list[str]:
     return failures
 
 
+def run_phase12_packet_checkers(root: Path) -> list[str]:
+    failures: list[str] = []
+    for rel_path in PHASE12_PACKET_CHECKERS:
+        failures.extend(run_checker(root, rel_path))
+    return failures
+
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -687,7 +701,7 @@ def main() -> int:
         print("PHASE12_PACKET_DRIFT_END")
         return 1
 
-    checker_failures = run_checker(args.root, VIRTIO_SCSI_PACKET_CHECKER_PATH)
+    checker_failures = run_phase12_packet_checkers(args.root)
     if checker_failures:
         print("PHASE12_VALIDATION=fail")
         print("PHASE12_PACKET_DRIFT_START")
@@ -704,6 +718,7 @@ def main() -> int:
         f"{sum(len(v) for v in EXACT_COUNT_MARKERS.values())}"
     )
     print("PHASE12_FORBIDDEN_MARKER_COUNT=" f"{sum(len(v) for v in FORBIDDEN_MARKERS.values())}")
+    print(f"PHASE12_PACKET_CHECKER_COUNT={len(PHASE12_PACKET_CHECKERS)}")
     return 0
 
 
