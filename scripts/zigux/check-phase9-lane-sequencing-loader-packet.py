@@ -23,8 +23,8 @@ NOTE_REQUIRED_MARKERS = [
     "keep the Phase 8 command and environment ownership boundary explicit",
     "deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` cues stay with `tools/lib/subcmd/exec-cmd.zig`",
     "`LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`",
-    "the current reminder surfaces still keep the partial runtime bitmap packet visible",
-    "treat that docs-root and tests-root overclaim as shared reminder debt to repair one surface at a time",
+    "the current reminder surfaces now keep the bounded runtime bitmap packet visible",
+    "treat any future docs-root or tests-root drift as shared reminder debt to repair one surface at a time",
     "`scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references",
     "`rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence",
 ]
