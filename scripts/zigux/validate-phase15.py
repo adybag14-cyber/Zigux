@@ -17,7 +17,7 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_LANE_KEY = "P15-L02"
 EXPECTED_PHASE = "Phase 15"
-EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-22"
+EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-23"
 EXPECTED_DIRECT_PACKET_PATHS = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
@@ -43,6 +43,7 @@ EXPECTED_DIRECT_PACKET_PATHS = [
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_build.zig",
+    "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_parity_scorecard.json",
@@ -86,6 +87,7 @@ REQUIRED_NOTE_MARKERS = (
     "the governance packet is materially landed and reviewable",
     "the dedicated validator now exists as a directly readable maintenance gate",
     "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_freeze_map_governance.zig`",
     "`zigux/tests/phase15_build.zig`",
     "`make -C zigux phase15-validate` remains blocked route vocabulary",
     "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route",
@@ -184,7 +186,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_LANE_KEY=P15-L02`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-23`
 - role: keep the current Phase 15 governance packet honest now that the dedicated validator exists as a directly readable maintenance gate, while the broader build and route companions still remain blocked on current `master`
 
 This survey keeps those two truths together:
@@ -193,6 +195,7 @@ This survey keeps those two truths together:
 - the broader build and workflow companions still block any claim that the larger Phase 15 replay route is fully ready
 
 - `scripts/zigux/validate-phase15.py`
+- `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_build.zig`
 - `make -C zigux phase15-validate` remains blocked route vocabulary
 - `.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route
