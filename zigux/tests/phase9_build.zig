@@ -526,7 +526,7 @@ pub fn build(b: *std.Build) void {
     phase9_runtime_loader_shared.dependOn(&run_runtime_loader_contract_tests.step);
     phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     phase9_runtime_loader_shared.dependOn(
-        &run_runtime_loader_command_env_BOUNDARY_guard_tests.step,
+        &run_runtime_loader_command_env_boundary_guard_tests.step,
     );
     phase9_runtime_loader_shared.dependOn(
         &run_runtime_trace_events_loader_substrate_drift_tests.step,
@@ -543,7 +543,7 @@ pub fn build(b: *std.Build) void {
         &run_runtime_trace_events_unregistered_gate_tests.step,
     );
     phase9_runtime_trace_events.dependOn(
-        &run_runtime_trace_events_exit_rollback_guard_tests.step,
+        &run_runtime_trace_EVENTS_exit_rollback_guard_tests.step,
     );
     phase9_runtime_trace_events.dependOn(
         &run_runtime_trace_events_registration_reentry_gate_tests.step,
