@@ -85,12 +85,15 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree.json");
     try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectSliceContains(manifest.readable_non_owner_paths, "tools/lib/rbtree.zig");
-    try expectSliceContains(manifest.public_fallback_non_owner_paths, "zigux/tests/phase7_build.zig");
+    try expectSliceContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");
+    try std.testing.expectEqual(@as(usize, 0), manifest.public_fallback_non_owner_paths.len);
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree.json");
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");
     try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
     try expectSliceContains(manifest.ownership_focus, "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence");
+    try expectSliceContains(manifest.ownership_focus, "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig`, `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet all rematerialized through authenticated rereads, so shared non-owner build evidence stays reviewable without public-fallback caveats on current master");
+    try expectSliceContains(manifest.ownership_focus, "machine-readable fallback provenance should stay empty in this packet while the readable non-owner surfaces all rematerialize through authenticated rereads in this runtime");
     try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");
