@@ -14,7 +14,9 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
+RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
+RUNTIME_LOADER_ALLOCATOR_INIT_FLOW_PATH = "zigux/tests/runtime_loader_allocator_init_flow.zig"
 
 REQUIRED_MARKERS = {
     DOCS_README_PATH: [
@@ -66,6 +68,14 @@ REQUIRED_MARKERS = {
         'phase9_runtime_loader_shared.dependOn(\n        &run_runtime_loader_command_env_boundary_guard_tests.step,\n    );',
         'phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);',
     ],
+    RUNTIME_LOADER_PATH: [
+        "pub const PreparedRequest = struct {",
+        "pub fn keepsAllocatorInitFlowConsistent(",
+        "pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {",
+        'test "prepareRequest enforces the bounded runtime loader contract"',
+        'test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on drift"',
+        'test "releaseWithoutSubstrate preserves the waiting snapshot on drift"',
+    ],
     RUNTIME_LOADER_CONTRACT_PATH: [
         'test "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract"',
         '"modinfo"',
@@ -75,6 +85,11 @@ REQUIRED_MARKERS = {
         '"depmod_script"',
         '"depmod_manifest"',
         '"depmod_aliases"',
+    ],
+    RUNTIME_LOADER_ALLOCATOR_INIT_FLOW_PATH: [
+        'test "shared runtime loader keeps initialized-stage bitmap and kretprobe request shape aligned"',
+        'test "shared runtime loader keeps selftest-complete trace-events and atomic64 request shape aligned"',
+        'test "shared runtime loader keeps rejected release-order transitions fail-closed across loader families"',
     ],
 }
 
@@ -196,9 +211,10 @@ def parse_args() -> argparse.Namespace:
             "Check that the current Phase 9 build-only packet keeps the shared "
             "runtime-loader allocator/init-flow shard, the command/environment "
             "boundary guard, the scripts-root reminder, the blocked depmod-boundary "
-            "contract, and the aligned docs and checklist reminders explicit across "
+            "contract, the live loader facade, the dedicated allocator/init-flow "
+            "replay, and the aligned docs and checklist reminders explicit across "
             "the docs, scripts, review checklist, lane sequencing note, contract, "
-            "and phase9_build rerun surface."
+            "facade, replay, and phase9_build rerun surface."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
