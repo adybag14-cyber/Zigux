@@ -47,6 +47,9 @@ test "phase10 virtio core survey gate keeps verify and focused replay surfaces e
     const build_file = try readRepoRelative(allocator, "zigux/tests/phase10_build.zig");
     defer allocator.free(build_file);
 
+    const shared_build_file = try readRepoRelative(allocator, "zigux/tests/build.zig");
+    defer allocator.free(shared_build_file);
+
     const closure_manifest = try readRepoRelative(
         allocator,
         "zigux/tests/phase10_closure_manifest.json",
@@ -65,6 +68,11 @@ test "phase10 virtio core survey gate keeps verify and focused replay surfaces e
     try expectContains(build_file, "run_phase10_virtio_core_verify_tests.step");
     try expectContains(build_file, "run_phase10_virtio_core_reset_queue_tests.step");
     try expectContains(build_file, "run_phase10_virtio_core_interrupt_compound_ack_tests.step");
+    try expectContains(shared_build_file, "\"phase10-virtio-core-survey\"");
+    try expectContains(shared_build_file, "\"phase10_virtio_core_survey.zig\"");
+    try expectContains(shared_build_file, "phase10_step.dependOn(&phase10_virtio_core_survey.step);");
+    try expectContains(shared_build_file, "smoke_step.dependOn(&phase10_virtio_core_survey.step);");
+    try expectContains(shared_build_file, "test_step.dependOn(&phase10_virtio_core_survey.step);");
     try expectContains(compact_closure_manifest, "\"drivers/virtio/virtio_verify.zig\"");
     try expectContains(compact_closure_manifest, "\"zigux/tests/phase10_virtio_core_reset_queue.zig\"");
     try expectContains(compact_closure_manifest, "\"zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig\"");
