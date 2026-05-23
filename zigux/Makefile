@@ -27,6 +27,14 @@ phase2-toolchain:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-first-archive-workflow.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-index-fallback.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-index-fallback.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-download-retries.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-download-retries.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-download-retries-workflow.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-download-retries-workflow.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-checker-packet.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-checker-packet.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/install-zig.py --self-test
