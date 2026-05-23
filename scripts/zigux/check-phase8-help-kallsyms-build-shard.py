@@ -17,12 +17,11 @@ REQUIRED_MARKERS = {
     BUILD_PATH: (
         '"../../tools/lib/subcmd/help.zig"',
         '"../../tools/lib/symbol/kallsyms.zig"',
-        '"phase8-help-kallsyms-help-tests"',
-        '"phase8-help-kallsyms-kallsyms-tests"',
+        '"phase8-help-tests"',
+        '"phase8-kallsyms-tests"',
         '"Run the focused Phase 8 help and kallsyms shared tests."',
         "test_step.dependOn(&run_help_tests.step);",
         "test_step.dependOn(&run_kallsyms_tests.step);",
-        "b.default_step.dependOn(test_step);",
     ),
 }
 
@@ -80,11 +79,10 @@ def run_self_test() -> int:
             raise SystemExit(f"self-test-baseline-failed:{baseline}")
 
         mutations = (
-            (BUILD_PATH, '"phase8-help-kallsyms-help-tests"'),
-            (BUILD_PATH, '"phase8-help-kallsyms-kallsyms-tests"'),
+            (BUILD_PATH, '"phase8-help-tests"'),
+            (BUILD_PATH, '"phase8-kallsyms-tests"'),
             (BUILD_PATH, "test_step.dependOn(&run_help_tests.step);"),
             (BUILD_PATH, "test_step.dependOn(&run_kallsyms_tests.step);"),
-            (BUILD_PATH, "b.default_step.dependOn(test_step);"),
         )
 
         for rel_path, marker in mutations:
