@@ -26,6 +26,19 @@ EXPECTED_COUNTS = {
     "exact_current_checks": 10,
 }
 
+EXPECTED_EXACT_CURRENT_CHECKS = (
+    "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase11-build-inventory.py",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test",
+    "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+    "zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+)
+
 REQUIRED_CONTRACT_MARKERS = (
     "3 build test names",
     "0 shared `test_step.dependOn(...)` edges",
@@ -39,6 +52,10 @@ REQUIRED_CONTRACT_MARKERS = (
 
 class CheckError(RuntimeError):
     pass
+
+
+def normalize_whitespace(text: str) -> str:
+    return " ".join(text.split())
 
 
 def read_text(path: Path) -> str:
@@ -63,6 +80,13 @@ def expect_string_list(label: str, value: object) -> list[str]:
     return list(value)
 
 
+def require_markers(label: str, text: str, markers: tuple[str, ...]) -> None:
+    normalized = normalize_whitespace(text)
+    for marker in markers:
+        if normalize_whitespace(marker) not in normalized:
+            raise CheckError(f"missing marker in {label}: {marker}")
+
+
 def run_check(root: Path) -> None:
     inventory = read_json(root / INVENTORY_PATH)
     contract = read_text(root / CONTRACT_PATH)
@@ -72,9 +96,15 @@ def run_check(root: Path) -> None:
         if actual != expected:
             raise CheckError(f"{label} count mismatch: expected {expected}, found {actual}")
 
-    for marker in REQUIRED_CONTRACT_MARKERS:
-        if marker not in contract:
-            raise CheckError(f"missing marker in {CONTRACT_PATH}: {marker}")
+    exact_current_checks = expect_string_list(
+        "exact_current_checks",
+        inventory.get("exact_current_checks"),
+    )
+    if exact_current_checks != list(EXPECTED_EXACT_CURRENT_CHECKS):
+        raise CheckError("exact_current_checks does not match the current-head HVC packet")
+
+    require_markers(str(CONTRACT_PATH), contract, REQUIRED_CONTRACT_MARKERS)
+    require_markers(str(CONTRACT_PATH), contract, EXPECTED_EXACT_CURRENT_CHECKS)
 
 
 def write(path: Path, text: str) -> None:
@@ -92,7 +122,7 @@ def build_fixture(root: Path) -> None:
                 "dedicated_survey_replays": [],
                 "shared_adjunct_replays": ["a", "b", "c"],
                 "shared_adjunct_build_replays": ["a", "b", "c"],
-                "exact_current_checks": [str(i) for i in range(10)],
+                "exact_current_checks": list(EXPECTED_EXACT_CURRENT_CHECKS),
             },
             indent=2,
         )
@@ -109,6 +139,7 @@ def build_fixture(root: Path) -> None:
                 "3 adjunct build replays",
                 "10 HVC current-head exact command markers",
                 "eight-route proof fan-out explicit",
+                *EXPECTED_EXACT_CURRENT_CHECKS,
             ]
         )
         + "\n",
@@ -146,12 +177,36 @@ def run_self_test() -> int:
         expect_failure(wrong_contract, "10 HVC current-head exact command markers")
         case_count += 1
 
+        missing_contract_check = tmpdir / "missing_contract_check"
+        shutil.copytree(fixture, missing_contract_check, dirs_exist_ok=True)
+        write(
+            missing_contract_check / CONTRACT_PATH,
+            read_text(missing_contract_check / CONTRACT_PATH).replace(
+                "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_contract_check,
+            "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+        )
+        case_count += 1
+
         wrong_inventory = tmpdir / "wrong_inventory"
         shutil.copytree(fixture, wrong_inventory, dirs_exist_ok=True)
         inventory = read_json(wrong_inventory / INVENTORY_PATH)
         inventory["exact_current_checks"] = inventory["exact_current_checks"][:-1]
         write(wrong_inventory / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_inventory, "exact_current_checks count mismatch")
+        case_count += 1
+
+        wrong_inventory_order = tmpdir / "wrong_inventory_order"
+        shutil.copytree(fixture, wrong_inventory_order, dirs_exist_ok=True)
+        inventory = read_json(wrong_inventory_order / INVENTORY_PATH)
+        inventory["exact_current_checks"] = list(reversed(inventory["exact_current_checks"]))
+        write(wrong_inventory_order / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_inventory_order, "exact_current_checks does not match")
         case_count += 1
 
         print("PHASE11_SHARED_REPLAY_CONTRACT_COUNTS_SELF_TEST=pass")
