@@ -148,15 +148,45 @@ test "phase 8 exec-cmd shared witness keeps argv0 sentinel path shapes explicit"
     try std.testing.expectEqualStrings("", rooted.argv0_path.?);
     try std.testing.expectEqualStrings("perf", rooted.command_name);
 
+    const rooted_search_path = try exec_cmd.buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        rooted.argv0_path,
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(rooted_search_path);
+    try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", rooted_search_path);
+
     var directory_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/tmp/")) orelse unreachable;
     defer directory_only.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("/tmp", directory_only.argv0_path.?);
     try std.testing.expectEqualStrings("", directory_only.command_name);
 
+    const directory_only_search_path = try exec_cmd.buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        directory_only.argv0_path,
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(directory_only_search_path);
+    try std.testing.expectEqualStrings("/repo/tools/bin:/tmp:/usr/bin", directory_only_search_path);
+
     var root_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/")) orelse unreachable;
     defer root_only.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("", root_only.argv0_path.?);
     try std.testing.expectEqualStrings("", root_only.command_name);
+
+    const root_only_search_path = try exec_cmd.buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        root_only.argv0_path,
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(root_only_search_path);
+    try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", root_only_search_path);
 }
 
 test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {
