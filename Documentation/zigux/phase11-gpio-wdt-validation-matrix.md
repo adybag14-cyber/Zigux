@@ -20,6 +20,8 @@ The current gpio watchdog matrix packet on `master` is:
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -33,8 +35,8 @@ The older wider replay and route surfaces
 `zigux/tests/phase11_gpio_wdt_survey.zig`,
 `Documentation/zigux/phase11-shared-replay-contract.md`, and
 `zigux/tests/phase11_build.zig` are not part of the current `master` packet, so
-this matrix keeps the lane grounded on the returned driver, proof, dedicated
-bounded replay route, and directly coupled docs surface only.
+this matrix keeps the lane grounded on the returned driver, proofs, dedicated
+bounded replay routes, and directly coupled docs surface only.
 
 ## Current Matrix
 
@@ -44,28 +46,32 @@ packet below:
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-The returned driver, focused register-device glue proof, dedicated replay route,
-plus the paired module slice, teardown note, and remove-handoff note keep the
-bounded `platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
+The returned driver, focused register-device glue proof, focused nowayout
+policy proof, dedicated replay routes, plus the paired module slice, teardown
+note, and remove-handoff note keep the bounded
+`platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
 `probeSummary()`, `descriptorRequestSummary()`,
 `timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `registrationHandoffSummary()`, `registrationPlanSummary()`,
 `registerDeviceCallSummary()`, `registerDeviceFailureSummary()`,
-`requestStop()`, and `summarizeTeardown()` checkpoint names directly reviewable
-as driver-backed teardown and failure-mode surfaces.
+`nowayoutPolicySummary()`, `requestStop()`, and `summarizeTeardown()`
+checkpoint names directly reviewable as driver-backed teardown and failure-mode
+surfaces.
 
-`nowayoutPolicySummary()` remains a current-head driver-local checkpoint that
-this packet can cite, but the focused proof currently exercises the same
-stop-policy split through `requestStop()` and `summarizeTeardown()` rather than
-through a standalone nowayout-only replay.
+The direct nowayout proof keeps `nowayoutPolicySummary()` machine-checked
+across the bounded stopped, blocked-by-nowayout, and kept-running outcomes,
+while the existing register-device glue proof still carries the stop-policy
+split through `requestStop()` and `summarizeTeardown()`.
 
 ## Teardown And Failure-Mode Review Surface
 
@@ -78,19 +84,20 @@ through a standalone nowayout-only replay.
   keeps the first bounded `devm_watchdog_register_device()` request surface,
   the paired register-device failure summary, and the teardown-facing
   stop-policy split explicit without claiming live watchdog-core registration.
-- dedicated replay route:
-  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig` keeps a
-  focused `zig build phase11-gpio-wdt-register-device-glue-review-test`
-  validation path available for the returned proof packet without pretending the
-  older shared `phase11_build.zig` surface has returned.
-- nowayout evidence boundary: treat `nowayoutPolicySummary()` as driver-local
-  evidence for the current packet and treat `requestStop()` plus
-  `summarizeTeardown()` as the direct proof route for the bounded nowayout,
-  stopped, and kept-running split until a future gpio-only replay lands.
+- direct nowayout proof anchor:
+  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig` keeps
+  `nowayoutPolicySummary()` explicit as a bounded stopped, blocked-by-nowayout,
+  and kept-running packet without claiming live watchdog-core registration or
+  reboot-backed teardown execution.
+- dedicated replay routes:
+  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig` and
+  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` keep focused
+  `zig build` validation paths available for the returned proof packet without
+  pretending the older shared `phase11_build.zig` surface has returned.
 - teardown handoff: `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
-  keeps the bounded stop-request split, reboot-glue transition, and
-  register-device failure cues explicit without claiming live remove-hook or
-  reboot-backed shutdown execution.
+  keeps the bounded stop-request split, direct nowayout-policy proof,
+  reboot-glue transition, and register-device failure cues explicit without
+  claiming live remove-hook or reboot-backed shutdown execution.
 - remove-handoff note: `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
   keeps the bounded remove-handoff packet explicit without claiming live
   platform cleanup callbacks, platform-driver removal, watchdog-core unregister,
@@ -99,21 +106,18 @@ through a standalone nowayout-only replay.
   keeps the bounded checkpoint names explicit without claiming live GPIO,
   `watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution, or
   watchdog-core side effects.
-- matrix posture: this matrix records only the current driver, proof, dedicated
-  replay route, and directly coupled documentation surfaces and does not treat
-  absent wider replay, manifest, survey gate, shared-contract, or build-route
-  files as current-head evidence.
+- matrix posture: this matrix records only the current driver, proofs,
+  dedicated replay routes, and directly coupled documentation surfaces and does
+  not treat absent wider replay, manifest, survey gate, shared-contract, or
+  build-route files as current-head evidence.
 
 ## Review Guardrails
 
 - Treat this matrix as current-head truthfulness only, not as proof of live
   platform behavior or hardware-backed validation.
 - Keep teardown and failure-mode parity bounded to the current driver, direct
-  proof, dedicated replay route, and directly coupled docs packet until a later
-  repo change restores wider replay or build-route surfaces.
-- Do not describe the current packet as having a standalone nowayout-only replay
-  route. The current direct proof keeps that stop-policy split reviewable
-  through `requestStop()` and `summarizeTeardown()`.
+  proofs, dedicated replay routes, and directly coupled docs packet until a
+  later repo change restores wider replay or build-route surfaces.
 - Do not use this note to claim live GPIO descriptor acquisition,
   `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
   `watchdog_stop_on_reboot()` execution,
