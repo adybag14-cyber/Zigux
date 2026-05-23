@@ -557,6 +557,15 @@ test "shared runtime loader keeps waiting module-name and allocator handoff from
         trace_events_pending,
     );
 
+    trace_events_request.plan = trace_events_pending;
+    trace_events_request.plan.allocator_handoff = .kernel_heap;
+    try std.testing.expectError(error.PreparedPlanDrift, trace_events_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        trace_events_request,
+        trace_events_plan,
+        trace_events_pending,
+    );
+
     const bitmap_plan = makeInitializedPlan(
         "runtime_bitmap",
         "lib/test_bitmap.c",
@@ -568,6 +577,11 @@ test "shared runtime loader keeps waiting module-name and allocator handoff from
     const bitmap_pending = try bitmap_request.requestRuntimeLoad();
 
     bitmap_request.plan.allocator_handoff = .kernel_heap;
+    try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
+
+    bitmap_request.plan = bitmap_pending;
+    bitmap_request.plan.module_name = "runtime_bitmap_drift";
     try std.testing.expectError(error.PreparedPlanDrift, bitmap_request.releaseWithoutSubstrate());
     try expectWaitingRequestSnapshot(bitmap_request, bitmap_plan, bitmap_pending);
 }
