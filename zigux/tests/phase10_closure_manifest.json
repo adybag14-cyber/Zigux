@@ -257,6 +257,9 @@
     "zigux/tests/phase10_virtio_mmio.zig": [
       "phase10 mmio lab replay"
     ],
+    "drivers/virtio/virtio_mmio_verify.zig": [
+      "phase10 mmio wrapper-facing verify replay"
+    ],
     "zigux/tests/phase10_virtio_mmio_survey.zig": [
       "phase10 mmio survey replay"
     ],
