@@ -29,15 +29,16 @@ NEXT_GAP_ID = "phase11-dw-wdt-live-mmio-validation"
 NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
     "- lane family: `P11-L12`",
-    "- active current-head continuity: `P11-L05`",
+    "- active current-head continuity note owner: `P11-Y03`",
     "- current authenticated contents no longer keep the older returned validation-matrix story directly readable through the same bridge that serves the rest of this packet",
     "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
-    "- `zigux/tests/phase11_dw_wdt_manifest.json` still records continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` still records archival continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- the active routing split now keeps owner-note truthfulness on `P11-Y03`, survey-only follow-through on `P11-L09`, and deeper platform-registration scaffold follow-through on `P11-L10`; do not reserve `P11-L05` unless the packet collapses back to the older survey-era shape",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge",
     "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
     "- `drivers/watchdog/dw_wdt_pm.zig` keeps `test \\\"phase11 dw_wdt pm suspend keeps missing drvdata explicit\\\"`",
     "`test \\\"phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idle restore\\\"`",
-    "- `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`, but this note does not itself own that later implementation step",
     "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` should keep this narrower current-head packet fail-closed instead of asserting direct readability for the broader returned validation-matrix or verify-helper stack",
 ]
 
@@ -314,7 +315,7 @@ def run_self_test() -> None:
         note_path = missing_note_teardown_route / FILES["note"]
         note_path.write_text(
             note_path.read_text(encoding="utf-8").replace(
-                NOTE_MARKERS[6] + "\n",
+                NOTE_MARKERS[7] + "\n",
                 "",
                 1,
             ),
@@ -322,7 +323,7 @@ def run_self_test() -> None:
         )
         expect_failure(
             missing_note_teardown_route,
-            f"missing marker in note: {NOTE_MARKERS[6]}",
+            f"missing marker in note: {NOTE_MARKERS[7]}",
         )
         case_count += 1
 
@@ -331,7 +332,7 @@ def run_self_test() -> None:
         note_path = missing_note_ready_next / FILES["note"]
         note_path.write_text(
             note_path.read_text(encoding="utf-8").replace(
-                NOTE_MARKERS[10] + "\n",
+                NOTE_MARKERS[11] + "\n",
                 "",
                 1,
             ),
@@ -339,7 +340,7 @@ def run_self_test() -> None:
         )
         expect_failure(
             missing_note_ready_next,
-            f"missing marker in note: {NOTE_MARKERS[10]}",
+            f"missing marker in note: {NOTE_MARKERS[11]}",
         )
         case_count += 1
 
