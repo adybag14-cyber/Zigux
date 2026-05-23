@@ -144,7 +144,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 79
+SELF_TEST_CASE_COUNT = 80
 
 
 def read_text(path: Path) -> str:
@@ -250,6 +250,19 @@ def run_self_test() -> None:
         remove_once(sequencing_path, sequencing_marker)
         expect_missing_marker(
             "missing_sequencing_samples_boundary_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        sequencing_marker = (
+            "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, "
+            "survey, manifest, checker, and no-sample boundary now directly materialize on current `master`"
+        )
+        remove_once(sequencing_path, sequencing_marker)
+        expect_missing_marker(
+            "missing_sequencing_current_master_packet_marker",
             tmp_root,
             f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
         )
