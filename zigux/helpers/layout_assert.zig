@@ -161,6 +161,7 @@ pub fn assertPublishedAbiLayouts() LayoutError!void {
     try assertBoundaryHeaderLayout();
     try assertExportStatusLayout();
     try assertInteropPolicyLayout();
+    assertStatusAndFacilityValues();
     try assertNotifierBlockLayout();
     try assertNotifierChainPriorityIncreaseLayout();
     try assertListHeadLayout();
@@ -185,6 +186,17 @@ pub fn assertInteropPolicyModeValues() void {
         expectComptimeByteValue(abi.UNSAFE_NONE, @intFromEnum(abi.UnsafeScope.none), "abi unsafe none byte drifted");
         expectComptimeByteValue(abi.UNSAFE_VOLATILE_MMIO, @intFromEnum(abi.UnsafeScope.volatile_mmio), "abi unsafe mmio byte drifted");
         expectComptimeByteValue(abi.UNSAFE_RAW_POINTER_BRIDGE, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), "abi unsafe raw-pointer byte drifted");
+    }
+}
+
+pub fn assertStatusAndFacilityValues() void {
+    comptime {
+        expectComptimeByteValue(abi.FACILITY_KERNEL, @intFromEnum(abi.Facility.kernel), "abi kernel facility drifted");
+        expectComptimeByteValue(abi.FACILITY_HELPERS, @intFromEnum(abi.Facility.helpers), "abi helpers facility drifted");
+        expectComptimeByteValue(abi.FACILITY_DRIVERS, @intFromEnum(abi.Facility.drivers), "abi drivers facility drifted");
+        expectComptimeByteValue(abi.STATUS_FLAG_ERROR, abi.makeStatus(-1, .kernel).flags, "abi error status flag drifted");
+        expectComptimeByteValue(0, abi.makeStatus(0, .helpers).flags, "abi ok status flags drifted");
+        expectComptimeByteValue(abi.FACILITY_DRIVERS, abi.makeStatus(-1, .drivers).facility, "abi status facility relay drifted");
     }
 }
 
@@ -231,6 +243,10 @@ test "layout assert reports mismatches without widening the call site" {
     try std.testing.expectError(error.SizeMismatch, expectSize(ExportStatus, 12));
     try std.testing.expectError(error.AlignMismatch, expectAlign(ExportStatus, 2));
     try std.testing.expectError(error.OffsetMismatch, expectOffset(ExportStatus, "flags", 4));
+}
+
+test "layout assert keeps published facility and status constants explicit" {
+    assertStatusAndFacilityValues();
 }
 
 test "layout assert aggregates the published ABI layouts" {
