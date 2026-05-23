@@ -46,7 +46,7 @@ REQUIRED_CONTRACT_MARKERS = (
     "3 shared adjunct proof replays",
     "3 adjunct build replays",
     "10 HVC current-head exact command markers",
-    "eight-route proof fan-out explicit",
+    "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
 )
 
 
@@ -138,7 +138,7 @@ def build_fixture(root: Path) -> None:
                 "3 shared adjunct proof replays",
                 "3 adjunct build replays",
                 "10 HVC current-head exact command markers",
-                "eight-route proof fan-out explicit",
+                "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
                 *EXPECTED_EXACT_CURRENT_CHECKS,
             ]
         )
@@ -169,12 +169,15 @@ def run_self_test() -> int:
         write(
             wrong_contract / CONTRACT_PATH,
             read_text(wrong_contract / CONTRACT_PATH).replace(
-                "10 HVC current-head exact command markers",
-                "8 HVC current-head exact command markers",
+                "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
+                "`make -C zigux phase11-validate` wrapper now cover eight focused proof builds through",
                 1,
             ),
         )
-        expect_failure(wrong_contract, "10 HVC current-head exact command markers")
+        expect_failure(
+            wrong_contract,
+            "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
+        )
         case_count += 1
 
         missing_contract_check = tmpdir / "missing_contract_check"
