@@ -68,6 +68,7 @@ pub const InsertLinkPlan = struct {
 pub const ReplaceRulePlan = struct {
     appends_layer_count: usize,
     preserves_rule_count: bool,
+    extends_existing_access: bool,
 };
 
 pub const InsertRuleBranchPlan = struct {
@@ -189,6 +190,33 @@ pub const RulesetHelperLab = struct {
             if (current_rule.num_layers == 0) {
                 return error.InvalidExistingRule;
             }
+            if (incoming_layers.len != 1) {
+                return error.MatchedRuleRequiresSingleLayer;
+            }
+
+            if (incoming_layers[0].level == 0) {
+                if (current_rule.num_layers != 1 or current_rule.layers[0].level != 0) {
+                    return error.InvalidExistingRule;
+                }
+
+                const resulting_rule = copyRuleWithExtendedAccess(current_rule, incoming_layers[0].access);
+                return .{
+                    .anchor = descriptor().anchor,
+                    .mode = .replace_existing_rule,
+                    .link_plan = null,
+                    .replacement_plan = .{
+                        .appends_layer_count = 0,
+                        .preserves_rule_count = true,
+                        .extends_existing_access = true,
+                    },
+                    .resulting_rule = resulting_rule,
+                    .resulting_num_rules = search_plan.current_num_rules,
+                };
+            }
+
+            if (current_rule.layers[0].level == 0) {
+                return error.InvalidExistingRule;
+            }
             if (current_rule.num_layers + incoming_layers.len > max_num_layers) {
                 return error.TooManyLayers;
             }
@@ -201,6 +229,7 @@ pub const RulesetHelperLab = struct {
                 .replacement_plan = .{
                     .appends_layer_count = incoming_layers.len,
                     .preserves_rule_count = true,
+                    .extends_existing_access = false,
                 },
                 .resulting_rule = resulting_rule,
                 .resulting_num_rules = search_plan.current_num_rules,
@@ -241,6 +270,12 @@ pub const RulesetHelperLab = struct {
             result.layers[rule.num_layers + index] = layer;
         }
         result.num_layers = rule.num_layers + extra_layers.len;
+        return result;
+    }
+
+    fn copyRuleWithExtendedAccess(rule: RulePlan, extra_access: u32) RulePlan {
+        var result = rule;
+        result.layers[0].access |= extra_access;
         return result;
     }
 
@@ -336,18 +371,60 @@ test "landlock ruleset branch planning appends layers when replacing matched rul
     try std.testing.expectEqual(InsertRuleBranchMode.replace_existing_rule, branch_plan.mode);
     try std.testing.expect(branch_plan.link_plan == null);
     try std.testing.expect(branch_plan.replacement_plan != null);
+    try std.testing.expect(!branch_plan.replacement_plan.?.extends_existing_access);
     try std.testing.expectEqual(@as(usize, 3), branch_plan.resulting_rule.num_layers);
     try std.testing.expectEqual(@as(u16, 5), branch_plan.resulting_rule.layers[2].level);
     try std.testing.expectEqual(@as(u32, 0x10), branch_plan.resulting_rule.layers[2].access);
     try std.testing.expectEqual(@as(u32, 6), branch_plan.resulting_num_rules);
 }
 
-test "landlock ruleset branch planning rejects missing layers and missing matched rules" {
+test "landlock ruleset branch planning extends access for matched level-zero rules" {
+    const existing = RulePlan{
+        .num_layers = 1,
+        .layers = [_]Layer{
+            .{ .level = 0, .access = 0x1 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 1)),
+    };
+    const search_plan = try RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{99}, 2);
+    const branch_plan = try RulesetHelperLab.planInsertRuleBranch(
+        search_plan,
+        existing,
+        &.{.{ .level = 0, .access = 0x4 }},
+    );
+
+    try std.testing.expectEqual(InsertRuleBranchMode.replace_existing_rule, branch_plan.mode);
+    try std.testing.expect(branch_plan.replacement_plan != null);
+    try std.testing.expect(branch_plan.replacement_plan.?.extends_existing_access);
+    try std.testing.expectEqual(@as(usize, 0), branch_plan.replacement_plan.?.appends_layer_count);
+    try std.testing.expectEqual(@as(usize, 1), branch_plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 0), branch_plan.resulting_rule.layers[0].level);
+    try std.testing.expectEqual(@as(u32, 0x5), branch_plan.resulting_rule.layers[0].access);
+    try std.testing.expectEqual(@as(u32, 2), branch_plan.resulting_num_rules);
+}
+
+test "landlock ruleset branch planning rejects missing layers and invalid matched-rule updates" {
     const search_plan = try RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{99}, 2);
 
     try std.testing.expectError(error.MissingLayers, RulesetHelperLab.planInsertRuleBranch(search_plan, null, &.{}));
     try std.testing.expectError(
         error.MissingExistingRule,
         RulesetHelperLab.planInsertRuleBranch(search_plan, null, &.{.{ .level = 2, .access = 0x1 }}),
+    );
+    try std.testing.expectError(
+        error.MatchedRuleRequiresSingleLayer,
+        RulesetHelperLab.planInsertRuleBranch(
+            search_plan,
+            RulePlan{
+                .num_layers = 2,
+                .layers = [_]Layer{
+                    .{ .level = 1, .access = 0x1 },
+                    .{ .level = 3, .access = 0x4 },
+                } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+            },
+            &.{
+                .{ .level = 5, .access = 0x10 },
+                .{ .level = 6, .access = 0x20 },
+            },
+        ),
     );
 }
