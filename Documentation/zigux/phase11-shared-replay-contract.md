@@ -34,6 +34,7 @@ reminder surfaces:
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-shared-replay-contract-counts.py`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
@@ -57,6 +58,7 @@ and HVC proof-backed packet stay directly materialized on current `master`.
 
 Keep the scripts-root reminder honest too: broader contributor-facing summaries
 should keep `scripts/zigux/check-phase11-build-inventory.py`,
+`scripts/zigux/check-phase11-shared-replay-contract-counts.py`,
 `scripts/zigux/check-phase11-matrix-gap-survey.py`,
 `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
 `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
@@ -86,7 +88,7 @@ or `zigux/tests/phase11_build.zig` routes.
   HVC current-head continuity packet rather than a whole-Phase-11 replay roster
 - that inventory currently records 3 build test names, 0 shared
   `test_step.dependOn(...)` edges, 0 dedicated survey replays, 3 shared adjunct
-  proof replays, 3 adjunct build replays, and 8 HVC current-head exact command
+  proof replays, 3 adjunct build replays, and 10 HVC current-head exact command
   markers, while `python3 scripts/zigux/validate-phase11.py --self-test`,
   `scripts/zigux/validate-phase11.py`, and `make -C zigux phase11-validate`
   keep the broader matrix-gap, targetless-unregister, DesignWare, bcm2835, and
@@ -113,6 +115,7 @@ deterministic and reviewable:
 - shared validator self-test: `python3 scripts/zigux/validate-phase11.py --self-test`
 - shared checker self-tests:
   `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`,
+  `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py --self-test`,
   `python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test`,
   `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py --self-test`,
   `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test`,
@@ -121,6 +124,7 @@ deterministic and reviewable:
   and `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py --self-test`
 - shared checker live routes:
   `python3 scripts/zigux/check-phase11-build-inventory.py`,
+  `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py`,
   `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`,
   `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
   `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
