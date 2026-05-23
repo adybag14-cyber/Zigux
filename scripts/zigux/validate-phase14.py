@@ -148,7 +148,8 @@ REQUIRED_MARKERS = {
     ],
     WORKQUEUE_SLICE_PATH: [
         "  * `PHASE14_LANE_KEY=P14-L04`",
-        "  * `PHASE14_DIRECT_ZIG_TEST=zigux/tests/phase14_workqueue_reviewability.zig`",
+        "  * `PHASE14_REVIEWABILITY_TEST=zigux/tests/phase14_workqueue_reviewability.zig`",
+        "  * `PHASE14_DIRECT_ZIG_TEST=zigux/tests/phase14_workqueue_bridge.zig`",
     ],
     WORKQUEUE_SURVEY_PATH: [
         "`PHASE14_ANCHOR=kernel/workqueue.c`",
