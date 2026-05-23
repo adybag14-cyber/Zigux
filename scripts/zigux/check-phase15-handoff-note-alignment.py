@@ -9,13 +9,16 @@ from pathlib import Path
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
 CHECKER_PATH = Path("scripts/zigux/check-phase15-handoff-note-alignment.py")
+
 EXPECTED_LANE_KEY = "P15-L12"
 EXPECTED_PHASE = "Phase 15"
-RETIRED_MISSING_REPLAY_MARKER = "no dedicated handoff-specific Zig replay is directly materialized on current `master`"
+RETIRED_MISSING_REPLAY_MARKER = (
+    "no dedicated handoff-specific Zig replay is directly materialized on current `master`"
+)
 REQUIRED_BOUNDARY_MARKERS = (
     "keep the four freeze-in-C anchors parked",
     "keep the two roadmap study-only anchors parked",
-    "treat broader docs-root, checklist, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence",
+    "treat broader docs-root, checklist, scripts-root, tests-root, and dedicated-build Phase 15 wording drift as truthfulness gaps, not as already-landed evidence",
     "do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged",
 )
 REQUIRED_FREEZE_IN_C_PATHS = (
@@ -29,6 +32,87 @@ REQUIRED_STUDY_ONLY_PATHS = (
     "kernel/trace/ring_buffer.c",
 )
 
+SAMPLE_MANIFEST = {
+    "lane_key": "P15-L12",
+    "phase": "Phase 15",
+    "surveyed_commit": "current-master-readback-2026-05-23",
+    "handoff_note": HANDOFF_NOTE_PATH.as_posix(),
+    "checker": CHECKER_PATH.as_posix(),
+    "present_paths": [
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/phase15-freeze-map-governance.md",
+        "Documentation/zigux/phase15-architecture-council-review-process.md",
+        "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+        "Documentation/zigux/phase15-indefinite-c-policy.md",
+        "Documentation/zigux/phase15-parity-scorecard.md",
+        "Documentation/zigux/phase15-parity-scorecard-survey.md",
+        "Documentation/zigux/phase15-readiness-gate-survey.md",
+        "Documentation/zigux/phase15-governance-lane-sequencing.md",
+        "Documentation/zigux/phase15-study-only-anchor-accounting.md",
+        "Documentation/zigux/phase15-shared-summary-gap.md",
+        "zigux/tests/phase15_freeze_map_governance.zig",
+        "zigux/tests/phase15_parity_scorecard.json",
+        "zigux/tests/phase15_parity_scorecard.zig",
+        "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+        "zigux/tests/phase15_architecture_council_review_process.zig",
+        "zigux/tests/phase15_architecture_council_review_process_build.zig",
+        "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+        "zigux/tests/phase15_governance_lane_sequencing.zig",
+        "zigux/tests/phase15_readiness_gate_manifest.json",
+        "zigux/tests/phase15_handoff_next_steps_manifest.json",
+        "zigux/tests/phase15_handoff_next_steps.zig",
+        "zigux/tests/phase15_indefinite_c_policy.json",
+        "zigux/tests/phase15_indefinite_c_policy.zig",
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+        "scripts/zigux/check-phase15-review-process-handoff.py",
+        "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+        "scripts/zigux/check-phase15-readiness-gate-packet.py",
+        "scripts/zigux/check-phase15-tests-readme-alignment.py",
+        "scripts/zigux/check-phase15-shared-summary-gap.py",
+        "scripts/zigux/check-phase15-handoff-note-alignment.py",
+        "scripts/zigux/validate-phase15.py",
+    ],
+    "still_missing_paths": [
+        "zigux/tests/phase15_build.zig",
+    ],
+    "required_markers": [
+        "PHASE15_STATUS=handoff_next_steps_survey_landed",
+        "PHASE15_LANE_KEY=P15-L12",
+        "PHASE15_PROVENANCE_MODE=dated_master_readback",
+        "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
+        "The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.",
+        "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the dedicated shared-build companion and blocked route bodies remain gap-tracked.",
+        "The dedicated validator `scripts/zigux/validate-phase15.py` is directly materialized on current `master` as a maintenance gate, but it does not by itself land the broader shared Phase 15 build replay or route bodies.",
+        "an Architecture Council approval workflow implementation",
+        "a direct port-readiness decision for any Phase 15 anchor",
+    ],
+    "checker_group_markers": [
+        "one focused review-process checker",
+        "one focused review-checklist study-only checker",
+        "one focused readiness-packet checker",
+        "one focused tests-readme checker",
+        "the shared-summary gap checker",
+        "the focused handoff-note checker",
+    ],
+    "handoff_rule_markers": [
+        "if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts",
+        "if the dedicated shared-build companion or blocked route bodies are published later, reread this note together with those new direct paths before presenting them as current evidence here",
+    ],
+    "roadmap_alignment_markers": [
+        "The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.",
+        "These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features.",
+    ],
+    "pending_next_step_markers": [
+        "tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet",
+        "reread this handoff note together with any newly landed dedicated shared-build companion or route-body recovery before treating that broader replay surface as current evidence here",
+        "revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves",
+    ],
+    "missing_route_markers": [
+        "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`",
+    ],
+}
+
 
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -36,6 +120,74 @@ def _read_text(path: Path) -> str:
 
 def _read_manifest(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def _sample_manifest() -> str:
+    return json.dumps(SAMPLE_MANIFEST, indent=2) + "\n"
+
+
+def _sample_handoff_note() -> str:
+    manifest = SAMPLE_MANIFEST
+    lines = [
+        "# Phase 15 Handoff Next Steps Survey",
+        "",
+        "- `PHASE15_STATUS=handoff_next_steps_survey_landed`",
+        "- `PHASE15_LANE_KEY=P15-L12`",
+        "- `PHASE15_PROVENANCE_MODE=dated_master_readback`",
+        f"- surveyed against dated current-master readback marker `{manifest['surveyed_commit']}`",
+        f"- {manifest['required_markers'][3]}",
+        f"- {manifest['required_markers'][4]}",
+        f"- {manifest['required_markers'][5]}",
+        "- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`",
+        "- `scripts/zigux/validate-phase15.py`, which keeps the dedicated validator directly materialized as a maintenance gate without implying that the broader shared Phase 15 build replay or route bodies are landed",
+        "",
+        "## Current handed-off packet on current master",
+    ]
+    lines.extend(f"- `{path}`" for path in manifest["present_paths"])
+    lines.extend(
+        [
+            "",
+            "## Current governance posture to preserve",
+            "- keep the four freeze-in-C anchors parked: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`",
+            "- keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
+            "- treat broader docs-root, checklist, scripts-root, tests-root, and dedicated-build Phase 15 wording drift as truthfulness gaps, not as already-landed evidence",
+            "- do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged",
+            "",
+            "## Roadmap-backed open handoff gaps",
+            f"- {manifest['roadmap_alignment_markers'][0]}",
+            f"- {manifest['required_markers'][6]}",
+        ]
+    )
+    lines.extend(f"- no dedicated shared Phase 15 build replay `{path}` is directly materialized on current `master`" for path in manifest["still_missing_paths"])
+    lines.extend(
+        [
+            f"- {manifest['missing_route_markers'][0]}",
+            "- no Architecture Council approval is currently recorded for a freeze-map status change, so the packet remains in maintenance-mode blocker accounting rather than port-readiness",
+            f"- {manifest['roadmap_alignment_markers'][1]}",
+            "",
+            "## Pending next-step order",
+            f"1. {manifest['pending_next_step_markers'][0]}",
+            f"2. {manifest['pending_next_step_markers'][1]}",
+            f"3. {manifest['pending_next_step_markers'][2]}",
+            "",
+            "## Handoff rules",
+            f"- {manifest['handoff_rule_markers'][0]}",
+            f"- {manifest['handoff_rule_markers'][1]}",
+            "- if the freeze-map anchor set or any blocker disposition changes, reopen `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-parity-scorecard.md` before widening this note",
+            "",
+            "## Non-goals",
+            "- an Architecture Council approval workflow implementation",
+            "- a direct port-readiness decision for any Phase 15 anchor",
+            "- that the broader Phase 15 shared-build companion or route bodies are already shipped on current `master`",
+            "",
+        ]
+    )
+    return "\n".join(lines)
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -47,54 +199,36 @@ def collect_failures(root: Path) -> list[str]:
         failures.append(
             f"handoff manifest lane key drifted from {EXPECTED_LANE_KEY}: {manifest['lane_key']}"
         )
-
     if manifest["phase"] != EXPECTED_PHASE:
         failures.append(
             f"handoff manifest phase drifted from {EXPECTED_PHASE}: {manifest['phase']}"
         )
-
     if manifest["handoff_note"] != HANDOFF_NOTE_PATH.as_posix():
         failures.append(
             f"handoff manifest note path drifted from {HANDOFF_NOTE_PATH.as_posix()}: {manifest['handoff_note']}"
         )
-
     if manifest["checker"] != CHECKER_PATH.as_posix():
         failures.append(
             f"handoff manifest checker path drifted from {CHECKER_PATH.as_posix()}: {manifest['checker']}"
         )
-
     if manifest["surveyed_commit"] not in handoff_note:
         failures.append("handoff note is missing the manifest surveyed_commit marker")
-
     if f"`{manifest['checker']}`" not in handoff_note:
         failures.append("handoff note is missing the focused handoff-note checker path")
-
     if RETIRED_MISSING_REPLAY_MARKER in handoff_note:
         failures.append("handoff note still frames the focused handoff replay as missing")
 
-    for marker in manifest["required_markers"]:
-        if marker not in handoff_note:
-            failures.append(f"handoff note is missing required marker: {marker}")
-
-    for marker in manifest["checker_group_markers"]:
-        if marker not in handoff_note:
-            failures.append(f"handoff note is missing checker-group marker: {marker}")
-
-    for marker in manifest["handoff_rule_markers"]:
-        if marker not in handoff_note:
-            failures.append(f"handoff note is missing handoff-rule marker: {marker}")
-
-    for marker in manifest["roadmap_alignment_markers"]:
-        if marker not in handoff_note:
-            failures.append(f"handoff note is missing roadmap-alignment marker: {marker}")
-
-    for marker in manifest["pending_next_step_markers"]:
-        if marker not in handoff_note:
-            failures.append(f"handoff note is missing pending-next-step marker: {marker}")
-
-    for marker in manifest["missing_route_markers"]:
-        if marker not in handoff_note:
-            failures.append(f"handoff note is missing missing-route marker: {marker}")
+    for key, label in (
+        ("required_markers", "required marker"),
+        ("checker_group_markers", "checker-group marker"),
+        ("handoff_rule_markers", "handoff-rule marker"),
+        ("roadmap_alignment_markers", "roadmap-alignment marker"),
+        ("pending_next_step_markers", "pending-next-step marker"),
+        ("missing_route_markers", "missing-route marker"),
+    ):
+        for marker in manifest[key]:
+            if marker not in handoff_note:
+                failures.append(f"handoff note is missing {label}: {marker}")
 
     for marker in REQUIRED_BOUNDARY_MARKERS:
         if marker not in handoff_note:
@@ -127,175 +261,11 @@ def collect_failures(root: Path) -> list[str]:
     return failures
 
 
-def _write(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
-def _sample_manifest() -> str:
-    return json.dumps(
-        {
-            "lane_key": "P15-L12",
-            "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-22",
-            "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
-            "checker": "scripts/zigux/check-phase15-handoff-note-alignment.py",
-            "present_paths": [
-                "Documentation/zigux/freeze-map.md",
-                "Documentation/zigux/review-checklist.md",
-                "Documentation/zigux/phase15-freeze-map-governance.md",
-                "Documentation/zigux/phase15-architecture-council-review-process.md",
-                "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
-                "Documentation/zigux/phase15-indefinite-c-policy.md",
-                "Documentation/zigux/phase15-parity-scorecard.md",
-                "Documentation/zigux/phase15-parity-scorecard-survey.md",
-                "Documentation/zigux/phase15-readiness-gate-survey.md",
-                "Documentation/zigux/phase15-governance-lane-sequencing.md",
-                "Documentation/zigux/phase15-study-only-anchor-accounting.md",
-                "Documentation/zigux/phase15-shared-summary-gap.md",
-                "zigux/tests/phase15_freeze_map_governance.zig",
-                "zigux/tests/phase15_parity_scorecard.json",
-                "zigux/tests/phase15_parity_scorecard.zig",
-                "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-                "zigux/tests/phase15_architecture_council_review_process.zig",
-                "zigux/tests/phase15_architecture_council_review_process_build.zig",
-                "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
-                "zigux/tests/phase15_governance_lane_sequencing.zig",
-                "zigux/tests/phase15_readiness_gate_manifest.json",
-                "zigux/tests/phase15_handoff_next_steps_manifest.json",
-                "zigux/tests/phase15_handoff_next_steps.zig",
-                "zigux/tests/phase15_indefinite_c_policy.json",
-                "zigux/tests/phase15_indefinite_c_policy.zig",
-                "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-                "scripts/zigux/check-phase15-review-process-handoff.py",
-                "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
-                "scripts/zigux/check-phase15-readiness-gate-packet.py",
-                "scripts/zigux/check-phase15-tests-readme-alignment.py",
-                "scripts/zigux/check-phase15-shared-summary-gap.py",
-                "scripts/zigux/check-phase15-handoff-note-alignment.py",
-            ],
-            "still_missing_paths": [
-                "scripts/zigux/validate-phase15.py",
-                "zigux/tests/phase15_build.zig",
-            ],
-            "required_markers": [
-                "PHASE15_STATUS=handoff_next_steps_survey_landed",
-                "PHASE15_LANE_KEY=P15-L12",
-                "PHASE15_PROVENANCE_MODE=dated_master_readback",
-                "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
-                "The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.",
-                "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.",
-                "an Architecture Council approval workflow implementation",
-                "a direct port-readiness decision for any Phase 15 anchor",
-            ],
-            "checker_group_markers": [
-                "one focused review-process checker",
-                "one focused review-checklist study-only checker",
-                "one focused readiness-packet checker",
-                "one focused tests-readme checker",
-                "the shared-summary gap checker",
-                "the focused handoff-note checker",
-            ],
-            "handoff_rule_markers": [
-                "if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts",
-                "if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here",
-            ],
-            "roadmap_alignment_markers": [
-                "The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.",
-                "These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features.",
-            ],
-            "pending_next_step_markers": [
-                "tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet",
-                "reread this handoff note together with any newly landed handoff-specific validator-first or dedicated-build companion before treating that companion as current evidence here",
-                "revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves",
-            ],
-            "missing_route_markers": [
-                "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`",
-            ],
-        },
-        indent=2,
-    ) + "\n"
-
-
-def _sample_handoff_note() -> str:
-    return """# Phase 15 Handoff Next Steps Survey
-
-- `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L12`
-- `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
-- the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
-- The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.
-- Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
-
-## Current handed-off packet on current master
-
-- `Documentation/zigux/freeze-map.md`
-- `Documentation/zigux/review-checklist.md`
-- `Documentation/zigux/phase15-freeze-map-governance.md`
-- `Documentation/zigux/phase15-architecture-council-review-process.md`
-- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
-- `Documentation/zigux/phase15-indefinite-c-policy.md`
-- `Documentation/zigux/phase15-parity-scorecard.md`
-- `Documentation/zigux/phase15-parity-scorecard-survey.md`
-- `Documentation/zigux/phase15-readiness-gate-survey.md`
-- `Documentation/zigux/phase15-governance-lane-sequencing.md`
-- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
-- `Documentation/zigux/phase15-shared-summary-gap.md`
-- `zigux/tests/phase15_freeze_map_governance.zig`
-- `zigux/tests/phase15_parity_scorecard.json`
-- `zigux/tests/phase15_parity_scorecard.zig`
-- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
-- `zigux/tests/phase15_architecture_council_review_process.zig`
-- `zigux/tests/phase15_architecture_council_review_process_build.zig`
-- `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
-- `zigux/tests/phase15_governance_lane_sequencing.zig`
-- `zigux/tests/phase15_readiness_gate_manifest.json`
-- `zigux/tests/phase15_handoff_next_steps_manifest.json`
-- `zigux/tests/phase15_handoff_next_steps.zig`
-- `zigux/tests/phase15_indefinite_c_policy.json`
-- `zigux/tests/phase15_indefinite_c_policy.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
-- `scripts/zigux/check-phase15-readiness-gate-packet.py`
-- `scripts/zigux/check-phase15-tests-readme-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`
-
-## Current governance posture to preserve
-
-- keep the four freeze-in-C anchors parked: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
-- keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
-- treat broader docs-root, checklist, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence
-- do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged
-
-## Roadmap-backed open handoff gaps
-
-The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.
-
-- `scripts/zigux/validate-phase15.py`
-- `zigux/tests/phase15_build.zig`
-- no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`
-
-These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features.
-
-## Pending next-step order
-
-1. tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet
-2. reread this handoff note together with any newly landed handoff-specific validator-first or dedicated-build companion before treating that companion as current evidence here
-3. revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves
-
-## Handoff rules
-
-- if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused tests-readme checker, the checker-backed shared-gap packet, the focused handoff-note checker, and the focused handoff-specific replay instead of carrying stale future-target language
-- if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here
-
-## Non-goals
-
-- an Architecture Council approval workflow implementation
-- a direct port-readiness decision for any Phase 15 anchor
-"""
+def _seed_present_paths(root: Path, manifest: dict) -> None:
+    for repo_path in manifest["present_paths"]:
+        if repo_path == MANIFEST_PATH.as_posix():
+            continue
+        _write(root / repo_path, "# fixture\n")
 
 
 def run_self_test() -> int:
@@ -303,12 +273,8 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(root / MANIFEST_PATH, _sample_manifest())
-
         manifest = _read_manifest(root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(root / repo_path, "# fixture\n")
+        _seed_present_paths(root, manifest)
 
         failures = collect_failures(root)
         if failures:
@@ -318,20 +284,17 @@ def run_self_test() -> int:
         _write(
             missing_gap_boundary_root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
-                "- treat broader docs-root, checklist, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence\n",
+                "- treat broader docs-root, checklist, scripts-root, tests-root, and dedicated-build Phase 15 wording drift as truthfulness gaps, not as already-landed evidence\n",
                 "",
                 1,
             ),
         )
         _write(missing_gap_boundary_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(missing_gap_boundary_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_gap_boundary_root / repo_path, "# fixture\n")
+        _seed_present_paths(missing_gap_boundary_root, manifest)
         failures = collect_failures(missing_gap_boundary_root)
         expected = [
-            "handoff note is missing boundary marker: treat broader docs-root, checklist, scripts-root, tests-root, and validator-first Phase 15 wording drift as truthfulness gaps, not as already-landed evidence",
+            "handoff note is missing boundary marker: treat broader docs-root, checklist, scripts-root, tests-root, and dedicated-build Phase 15 wording drift as truthfulness gaps, not as already-landed evidence",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-gap-boundary failure: {failures}")
@@ -355,10 +318,7 @@ def run_self_test() -> int:
             ),
         )
         manifest = _read_manifest(manifest_identity_drift_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(manifest_identity_drift_root / repo_path, "# fixture\n")
+        _seed_present_paths(manifest_identity_drift_root, manifest)
         failures = collect_failures(manifest_identity_drift_root)
         expected = [
             "handoff manifest lane key drifted from P15-L12: P15-L99",
@@ -373,14 +333,11 @@ def run_self_test() -> int:
         missing_surveyed_commit_root = root / "missing_surveyed_commit"
         _write(
             missing_surveyed_commit_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace("`current-master-readback-2026-05-22`", "`current-master-readback-YYYY-MM-DD`", 1),
+            _sample_handoff_note().replace("`current-master-readback-2026-05-23`", "`current-master-readback-YYYY-MM-DD`", 1),
         )
         _write(missing_surveyed_commit_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(missing_surveyed_commit_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_surveyed_commit_root / repo_path, "# fixture\n")
+        _seed_present_paths(missing_surveyed_commit_root, manifest)
         failures = collect_failures(missing_surveyed_commit_root)
         expected = [
             "handoff note is missing the manifest surveyed_commit marker",
@@ -391,18 +348,23 @@ def run_self_test() -> int:
         missing_checker_path_root = root / "missing_checker_path"
         _write(
             missing_checker_path_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace("- `scripts/zigux/check-phase15-handoff-note-alignment.py`, ", "", 1),
+            _sample_handoff_note().replace(
+                "- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`\n",
+                "",
+                1,
+            ),
         )
         _write(missing_checker_path_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(missing_checker_path_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_checker_path_root / repo_path, "# fixture\n")
+        _seed_present_paths(missing_checker_path_root, manifest)
         failures = collect_failures(missing_checker_path_root)
         expected = [
-            "handoff note is missing the focused handoff-note checker path",
-            "handoff note is missing present-path marker: `scripts/zigux/check-phase15-handoff-note-alignment.py`",
+            "handoff note is missing checker-group marker: one focused review-process checker",
+            "handoff note is missing checker-group marker: one focused review-checklist study-only checker",
+            "handoff note is missing checker-group marker: one focused readiness-packet checker",
+            "handoff note is missing checker-group marker: one focused tests-readme checker",
+            "handoff note is missing checker-group marker: the shared-summary gap checker",
+            "handoff note is missing checker-group marker: the focused handoff-note checker",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-checker-path failure: {failures}")
@@ -411,10 +373,7 @@ def run_self_test() -> int:
         _write(missing_present_root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(missing_present_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(missing_present_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_present_root / repo_path, "# fixture\n")
+        _seed_present_paths(missing_present_root, manifest)
         (missing_present_root / "zigux/tests/phase15_handoff_next_steps.zig").unlink()
         failures = collect_failures(missing_present_root)
         expected = [
@@ -422,92 +381,6 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-present failure: {failures}")
-
-        missing_present_marker_root = root / "missing_present_marker"
-        _write(
-            missing_present_marker_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n",
-                "",
-                1,
-            ),
-        )
-        _write(missing_present_marker_root / MANIFEST_PATH, _sample_manifest())
-        manifest = _read_manifest(missing_present_marker_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_present_marker_root / repo_path, "# fixture\n")
-        failures = collect_failures(missing_present_marker_root)
-        expected = [
-            "handoff note is missing present-path marker: `scripts/zigux/check-phase15-shared-summary-gap.py`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-present-marker failure: {failures}")
-
-        missing_review_process_marker_root = root / "missing_review_process_marker"
-        _write(
-            missing_review_process_marker_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                "- `zigux/tests/phase15_architecture_council_review_process.zig`\n",
-                "",
-                1,
-            ),
-        )
-        _write(missing_review_process_marker_root / MANIFEST_PATH, _sample_manifest())
-        manifest = _read_manifest(missing_review_process_marker_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_review_process_marker_root / repo_path, "# fixture\n")
-        failures = collect_failures(missing_review_process_marker_root)
-        expected = [
-            "handoff note is missing present-path marker: `zigux/tests/phase15_architecture_council_review_process.zig`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected review-process-present-marker failure: {failures}")
-
-        missing_boundary_marker_root = root / "missing_boundary_marker"
-        _write(
-            missing_boundary_marker_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                "- keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`\n",
-                "",
-                1,
-            ),
-        )
-        _write(missing_boundary_marker_root / MANIFEST_PATH, _sample_manifest())
-        manifest = _read_manifest(missing_boundary_marker_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_boundary_marker_root / repo_path, "# fixture\n")
-        failures = collect_failures(missing_boundary_marker_root)
-        expected = [
-            "handoff note is missing boundary marker: keep the two roadmap study-only anchors parked",
-            "handoff note is missing study-only path marker: `kernel/workqueue.c`",
-            "handoff note is missing study-only path marker: `kernel/trace/ring_buffer.c`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-boundary-marker failure: {failures}")
-
-        missing_freeze_path_root = root / "missing_freeze_path"
-        _write(
-            missing_freeze_path_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace("`net/core/skbuff.c`", "`net/core/REMOVED.c`", 1),
-        )
-        _write(missing_freeze_path_root / MANIFEST_PATH, _sample_manifest())
-        manifest = _read_manifest(missing_freeze_path_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_freeze_path_root / repo_path, "# fixture\n")
-        failures = collect_failures(missing_freeze_path_root)
-        expected = [
-            "handoff note is missing freeze-in-c path marker: `net/core/skbuff.c`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-freeze-path failure: {failures}")
 
         missing_route_marker_root = root / "missing_route_marker"
         _write(
@@ -520,10 +393,7 @@ def run_self_test() -> int:
         )
         _write(missing_route_marker_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(missing_route_marker_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(missing_route_marker_root / repo_path, "# fixture\n")
+        _seed_present_paths(missing_route_marker_root, manifest)
         failures = collect_failures(missing_route_marker_root)
         expected = [
             "handoff note is missing missing-route marker: no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`",
@@ -532,13 +402,13 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected missing-route-marker failure: {failures}")
 
         retired_gap_root = root / "retired_gap"
-        _write(retired_gap_root / HANDOFF_NOTE_PATH, _sample_handoff_note() + "\n- no dedicated handoff-specific Zig replay is directly materialized on current `master`\n")
+        _write(
+            retired_gap_root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note() + "\n- no dedicated handoff-specific Zig replay is directly materialized on current `master`\n",
+        )
         _write(retired_gap_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(retired_gap_root / MANIFEST_PATH)
-        for repo_path in manifest["present_paths"]:
-            if repo_path == MANIFEST_PATH.as_posix():
-                continue
-            _write(retired_gap_root / repo_path, "# fixture\n")
+        _seed_present_paths(retired_gap_root, manifest)
         failures = collect_failures(retired_gap_root)
         expected = [
             "handoff note still frames the focused handoff replay as missing",
@@ -578,6 +448,7 @@ def main() -> int:
 
     print("Phase 15 handoff-note alignment check passed.")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
