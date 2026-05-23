@@ -7,7 +7,7 @@ from pathlib import Path
 
 GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
-CURRENT_READBACK_MARKER = "current-master-readback-2026-05-21"
+CURRENT_READBACK_MARKER = "current-master-readback-2026-05-23"
 WATCHPOINTS_HEADING = "## Current shared-summary watchpoints"
 
 STATUS_MARKERS = (
@@ -53,6 +53,10 @@ STILL_MISSING_BROADER_PATHS = (
     "zigux/tests/phase15_build.zig",
 )
 
+VALIDATOR_WORDING_SPLIT_MARKER = (
+    "`scripts/zigux/README.md` and `zigux/tests/README.md` still need the next shared-summary reread to stop treating the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate as missing broader route vocabulary while `zigux/tests/phase15_build.zig` remains the only broader dedicated-build companion still absent on current `master`"
+)
+
 REQUIRED_NOTE_MARKERS = (
     f"surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`",
     "`Documentation/zigux/README.md`",
@@ -84,6 +88,7 @@ REQUIRED_NOTE_MARKERS = (
     "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
     "`zigux/tests/phase15_handoff_next_steps.zig`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    VALIDATOR_WORDING_SPLIT_MARKER,
     "broader dedicated-build wording around `zigux/tests/phase15_build.zig` and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
 )
 
@@ -92,6 +97,7 @@ STALE_TEXT_MARKERS = (
     "The current shared-summary drift is anchored to these still-missing paths:",
     "previously treated as missing",
     "current-master-readback-2026-05-17",
+    "current-master-readback-2026-05-21",
 )
 
 HANDOFF_STATUS_MARKER = "PHASE15_STATUS=handoff_next_steps_survey_landed"
@@ -103,6 +109,7 @@ REQUIRED_WATCHPOINT_MARKERS = (
     "`zigux/tests/phase15_governance_lane_sequencing.zig`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
     "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
+    VALIDATOR_WORDING_SPLIT_MARKER,
 )
 
 
@@ -324,12 +331,12 @@ def run_self_test() -> int:
         _seed_repo(stale_marker_root)
         _write(
             stale_marker_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace(CURRENT_READBACK_MARKER, "current-master-readback-2026-05-17"),
+            _sample_gap_note().replace(CURRENT_READBACK_MARKER, "current-master-readback-2026-05-21"),
         )
         failures = collect_failures(stale_marker_root)
         expected = [
             f"gap note missing required marker: surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`",
-            "gap note still carries stale missing-path wording: current-master-readback-2026-05-17",
+            "gap note still carries stale missing-path wording: current-master-readback-2026-05-21",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected stale-marker failure: {failures}")
@@ -399,6 +406,20 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-readiness-checker failure: {failures}")
+
+        missing_validator_split_root = root / "missing_validator_split"
+        _seed_repo(missing_validator_split_root)
+        _write(
+            missing_validator_split_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace(f"- {VALIDATOR_WORDING_SPLIT_MARKER}\n", "", 1),
+        )
+        failures = collect_failures(missing_validator_split_root)
+        expected = [
+            f"gap note missing required marker: {VALIDATOR_WORDING_SPLIT_MARKER}",
+            f"gap note missing watchpoint marker: {VALIDATOR_WORDING_SPLIT_MARKER}",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-validator-split failure: {failures}")
 
         handoff_root = root / "handoff"
         _seed_repo(handoff_root)
