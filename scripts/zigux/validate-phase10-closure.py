@@ -134,6 +134,7 @@ EXPECTED_INPUT_HELPERS = [
     "phase10-virtio-input-capability-setup-helper",
     "phase10-virtio-input-multitouch-slot-helper",
     "phase10-virtio-input-probe-preflight-helper",
+    "phase10-virtio-input-teardown-preflight-helper",
     "phase10-virtio-input-teardown-observation-helper",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
@@ -716,6 +717,20 @@ def run_self_test() -> int:
         expect_contains(
             collect_manifest_drift(root),
             "blocked_transport_gaps:zigux/tests/phase10_virtio_core_manifest.json:'phase10-core-attribute-summary-helper'!='phase10-core-probe-remove-lifecycle'",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        broken["landed_input_helper_evidence"]["zigux/tests/phase10_virtio_input_manifest.json"] = [
+            item
+            for item in broken["landed_input_helper_evidence"]["zigux/tests/phase10_virtio_input_manifest.json"]
+            if item != "phase10-virtio-input-teardown-preflight-helper"
+        ]
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "landed_input_helper_evidence:zigux/tests/phase10_virtio_input_manifest.json:'phase10-virtio-input-teardown-preflight-helper':missing_from_closure",
             "phase10-closure-self-test",
         )
         cases += 1
