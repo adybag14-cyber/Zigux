@@ -6,9 +6,14 @@ import tempfile
 from pathlib import Path
 
 README_PATH = Path("zigux-alpha/README.md")
-SECTION_HEADING = "Active product surfaces"
-NEXT_HEADING = "Start here"
-EXPECTED_LINES = (
+REQUIRED_FILES = (
+    Path("Documentation/zigux/README.md"),
+    Path("Documentation/zigux/review-checklist.md"),
+    Path("Documentation/zigux/freeze-map.md"),
+    Path("Documentation/zigux/phase15-freeze-map-governance.md"),
+    Path("scripts/zigux/check-lane01-bootstrap-charter-alignment.py"),
+)
+ACTIVE_PRODUCT_SURFACE_LINES = (
     "- `Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.",
     "- `Documentation/zigux/review-checklist.md` is the reviewer-facing gate for active Zigux product work.",
     "- `Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.",
@@ -17,36 +22,51 @@ EXPECTED_LINES = (
 )
 
 
-def extract_active_product_surfaces(root: Path) -> tuple[str, ...]:
-    readme_lines = (root / README_PATH).read_text(encoding="utf-8").splitlines()
+def _find_section_order(readme: str) -> str:
+    rules_index = readme.find("\nRules\n")
+    active_index = readme.find("\nActive product surfaces\n")
+    start_here_index = readme.find("\nStart here\n")
+    if rules_index == -1:
+        raise ValueError("missing heading: Rules")
+    if active_index == -1:
+        raise ValueError("missing heading: Active product surfaces")
+    if start_here_index == -1:
+        raise ValueError("missing heading: Start here")
+    if not (rules_index < active_index < start_here_index):
+        raise ValueError("unexpected section order for README handoff packet")
+    return "Rules->ActiveProductSurfaces->StartHere"
 
+
+def collect_failures(root: Path) -> list[str]:
+    readme_path = root / README_PATH
+    readme = readme_path.read_text(encoding="utf-8")
+
+    failures: list[str] = []
     try:
-        start = readme_lines.index(SECTION_HEADING)
+        section_order = _find_section_order(readme)
     except ValueError as exc:
-        raise AssertionError(f"missing heading: {SECTION_HEADING}") from exc
+        failures.append(f"section:{exc}")
+        section_order = None
 
-    try:
-        end = readme_lines.index(NEXT_HEADING, start + 1)
-    except ValueError as exc:
-        raise AssertionError(f"missing heading: {NEXT_HEADING}") from exc
+    if section_order is not None:
+        active_heading = "\nActive product surfaces\n"
+        active_start = readme.find(active_heading)
+        start_here = readme.find("\nStart here\n")
+        active_section = readme[active_start + len(active_heading) : start_here]
+        for line in ACTIVE_PRODUCT_SURFACE_LINES:
+            if line not in active_section:
+                failures.append(f"marker:{line}")
+        bullet_count = sum(
+            1 for line in active_section.splitlines() if line.startswith("- ")
+        )
+        if bullet_count != len(ACTIVE_PRODUCT_SURFACE_LINES):
+            failures.append(f"bullet-count:{bullet_count}")
 
-    return tuple(line for line in readme_lines[start + 1 : end] if line.strip())
+    for path in REQUIRED_FILES:
+        if not (root / path).is_file():
+            failures.append(f"missing-file:{path.as_posix()}")
 
-
-def check_active_product_surfaces(root: Path) -> list[str]:
-    try:
-        packet = extract_active_product_surfaces(root)
-    except AssertionError as exc:
-        return [str(exc)]
-
-    if packet != EXPECTED_LINES:
-        return [
-            "active-product-surfaces packet mismatch",
-            f"expected:{EXPECTED_LINES!r}",
-            f"actual:{packet!r}",
-        ]
-
-    return []
+    return failures
 
 
 def _write(path: Path, text: str) -> None:
@@ -74,73 +94,83 @@ Start here
 """
 
 
+def _write_required_files(root: Path) -> None:
+    for path in REQUIRED_FILES:
+        _write(root / path, "placeholder\n")
+
+
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_lane01_active_surfaces_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_lane01_active_product_surfaces_") as tmp_dir:
         root = Path(tmp_dir)
         _write(root / README_PATH, _sample_readme())
+        _write_required_files(root)
 
-        errors = check_active_product_surfaces(root)
-        if errors:
-            raise AssertionError(f"baseline Lane 01 active product surfaces fixture should pass: {errors}")
-        case_count += 1
-
-        _write(root / README_PATH, _sample_readme().replace("Active product surfaces\n", "", 1))
-        errors = check_active_product_surfaces(root)
-        if errors != ["missing heading: Active product surfaces"]:
-            raise AssertionError(f"unexpected heading error: {errors}")
-        _write(root / README_PATH, _sample_readme())
+        if collect_failures(root):
+            raise AssertionError("baseline active-product-surfaces fixture should pass")
         case_count += 1
 
         _write(
             root / README_PATH,
             _sample_readme().replace(
-                "- `scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.\n",
+                ACTIVE_PRODUCT_SURFACE_LINES[1] + "\n",
                 "",
                 1,
             ),
         )
-        errors = check_active_product_surfaces(root)
-        if not errors or errors[0] != "active-product-surfaces packet mismatch":
-            raise AssertionError(f"expected missing-checker mismatch, got: {errors}")
+        failures = collect_failures(root)
+        expected = [f"marker:{ACTIVE_PRODUCT_SURFACE_LINES[1]}", "bullet-count:4"]
+        if failures != expected:
+            raise AssertionError(f"unexpected failures for missing review-checklist line: {failures}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace("Active product surfaces\n", "Current product surfaces\n", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["section:missing heading: Active product surfaces"]
+        if failures != expected:
+            raise AssertionError(f"unexpected failures for heading rename: {failures}")
         _write(root / README_PATH, _sample_readme())
         case_count += 1
 
         _write(
             root / README_PATH,
             _sample_readme().replace(
-                "- `Documentation/zigux/review-checklist.md` is the reviewer-facing gate for active Zigux product work.\n"
-                "- `Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.\n",
-                "- `Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.\n"
-                "- `Documentation/zigux/review-checklist.md` is the reviewer-facing gate for active Zigux product work.\n",
+                "Rules\n- Keep product planning and bootstrap artifacts here first.\n\nActive product surfaces\n",
+                "Active product surfaces\n- Keep product planning and bootstrap artifacts here first.\n\nRules\n",
                 1,
             ),
         )
-        errors = check_active_product_surfaces(root)
-        if not errors or errors[0] != "active-product-surfaces packet mismatch":
-            raise AssertionError(f"expected reorder mismatch, got: {errors}")
+        failures = collect_failures(root)
+        expected = ["section:unexpected section order for README handoff packet"]
+        if failures != expected:
+            raise AssertionError(f"unexpected failures for section order case: {failures}")
         _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        (root / REQUIRED_FILES[2]).unlink()
+        failures = collect_failures(root)
+        expected = [f"missing-file:{REQUIRED_FILES[2].as_posix()}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected failures for missing freeze-map file: {failures}")
+        _write_required_files(root)
         case_count += 1
 
         _write(
             root / README_PATH,
             _sample_readme().replace(
-                "- `Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.\n",
-                "- `Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.\n"
-                "- `Documentation/zigux/phase2-closure.md` is the live closure summary for the broadened Phase 2 tranche.\n",
+                ACTIVE_PRODUCT_SURFACE_LINES[4] + "\n",
+                ACTIVE_PRODUCT_SURFACE_LINES[4] + "\n" + ACTIVE_PRODUCT_SURFACE_LINES[4] + "\n",
                 1,
             ),
         )
-        errors = check_active_product_surfaces(root)
-        if not errors or errors[0] != "active-product-surfaces packet mismatch":
-            raise AssertionError(f"expected extra-item mismatch, got: {errors}")
-        _write(root / README_PATH, _sample_readme())
-        case_count += 1
-
-        _write(root / README_PATH, _sample_readme().replace("Start here\n", "Next steps\n", 1))
-        errors = check_active_product_surfaces(root)
-        if errors != ["missing heading: Start here"]:
-            raise AssertionError(f"unexpected next-heading error: {errors}")
+        failures = collect_failures(root)
+        expected = ["bullet-count:6"]
+        if failures != expected:
+            raise AssertionError(f"unexpected failures for duplicate bullet case: {failures}")
         case_count += 1
 
     print("LANE01_BOOTSTRAP_ACTIVE_PRODUCT_SURFACES_SELF_TEST=pass")
@@ -150,32 +180,43 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify that the Lane 01 Active product surfaces packet remains aligned."
+        description="Verify the Lane 01 bootstrap README active-product-surfaces packet."
     )
     parser.add_argument(
         "--root",
         type=Path,
         default=Path.cwd(),
-        help="repository root containing zigux-alpha/README.md",
+        help="repository root containing the bootstrap README packet",
     )
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="exercise the checker against synthetic Lane 01 README fixtures",
+        help="exercise the checker against synthetic fixtures",
     )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    errors = check_active_product_surfaces(args.root)
-    if errors:
-        for error in errors:
-            print(f"ERROR: {error}")
+    failures = collect_failures(args.root)
+    if failures:
+        for failure in failures:
+            print(f"ERROR: {failure}")
         return 1
 
-    print("Lane 01 bootstrap Active product surfaces check passed.")
-    print(f"LANE01_BOOTSTRAP_ACTIVE_PRODUCT_SURFACE_COUNT={len(EXPECTED_LINES)}")
+    readme = (args.root / README_PATH).read_text(encoding="utf-8")
+    active_heading = "\nActive product surfaces\n"
+    active_start = readme.find(active_heading)
+    start_here = readme.find("\nStart here\n")
+    active_section = readme[active_start + len(active_heading) : start_here]
+    bullet_count = sum(1 for line in active_section.splitlines() if line.startswith("- "))
+
+    print("LANE01_BOOTSTRAP_ACTIVE_PRODUCT_SURFACES=pass")
+    print(f"LANE01_BOOTSTRAP_ACTIVE_PRODUCT_SURFACES_BULLET_COUNT={bullet_count}")
+    print(
+        "LANE01_BOOTSTRAP_ACTIVE_PRODUCT_SURFACES_SECTION_ORDER="
+        + _find_section_order(readme)
+    )
     return 0
 
 
