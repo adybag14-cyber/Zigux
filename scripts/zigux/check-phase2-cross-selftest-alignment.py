@@ -79,8 +79,29 @@ TESTS_ALIGNMENT_MARKERS = (
 )
 
 SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
+EXPECTED_REVIEW_STATUS_BY_TARGET = {
+    "x86_64-linux": "pinned bootstrap archive",
+    "aarch64-linux": "route contract only",
+}
+EXPECTED_FIXTURE_FIELDS = {
+    "phase",
+    "status",
+    "route",
+    "archive_target_scope",
+    "cross_targets",
+}
+EXPECTED_CROSS_TARGET_FIELDS = {
+    "target",
+    "review_status",
+    "validation_mode",
+    "route",
+}
 ROUTE = "make -C zigux phase2-cross"
 EXPECTED_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate", "phase2-cross")
+
+
+class DuplicateJsonKeyError(ValueError):
+    pass
 
 
 def read_text(path: Path) -> str:
@@ -92,9 +113,20 @@ def read_text(path: Path) -> str:
 
 def read_json(path: Path) -> object:
     try:
-        return json.loads(read_text(path))
+        return json.loads(read_text(path), object_pairs_hook=reject_duplicate_object_pairs)
     except json.JSONDecodeError as exc:
         raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+    except DuplicateJsonKeyError as exc:
+        raise SystemExit(f"duplicate json key in required file: {path}: {exc}") from exc
+
+
+def reject_duplicate_object_pairs(pairs: list[tuple[object, object]]) -> dict[object, object]:
+    payload: dict[object, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise DuplicateJsonKeyError(str(key))
+        payload[key] = value
+    return payload
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -152,7 +184,11 @@ def load_expected_fixture(root: Path) -> dict[str, object]:
             raise SystemExit(
                 f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
             )
-        target = value.strip()
+        if value != value.strip():
+            raise SystemExit(
+                f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
+            )
+        target = value
         if target in seen_scope:
             raise SystemExit(
                 f"duplicate archive_target_scope entry in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
@@ -173,17 +209,23 @@ def load_expected_fixture(root: Path) -> dict[str, object]:
             f"invalid required_make_routes in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
         )
 
-    expected_modes = {
-        target: ("archive_required" if target in seen_scope else "route_contract_only")
-        for target in SUPPORTED_CROSS_TARGETS
-    }
+    expected_targets = []
+    for target in SUPPORTED_CROSS_TARGETS:
+        expected_targets.append(
+            {
+                "target": target,
+                "review_status": EXPECTED_REVIEW_STATUS_BY_TARGET[target],
+                "validation_mode": "archive_required" if target in seen_scope else "route_contract_only",
+                "route": ROUTE,
+            }
+        )
 
     return {
         "phase": "Phase 2",
         "status": "active",
         "route": ROUTE,
         "archive_target_scope": normalized_scope,
-        "cross_targets": expected_modes,
+        "cross_targets": expected_targets,
     }
 
 
@@ -192,6 +234,9 @@ def collect_fixture_issues(payload: object, root: Path) -> list[tuple[str, str]]
     issues: list[tuple[str, str]] = []
     if not isinstance(payload, dict):
         return [("INVALID_CROSS_TARGET_FIXTURE", type(payload).__name__)]
+    for key in payload:
+        if key not in EXPECTED_FIXTURE_FIELDS:
+            issues.append(("UNEXPECTED_CROSS_TARGET_FIXTURE_FIELD", key))
     if payload.get("phase") != expected_fixture["phase"]:
         issues.append(("INVALID_CROSS_TARGET_FIXTURE_FIELD", "phase"))
     if payload.get("status") != expected_fixture["status"]:
@@ -206,28 +251,53 @@ def collect_fixture_issues(payload: object, root: Path) -> list[tuple[str, str]]
         issues.append(("INVALID_CROSS_TARGET_FIXTURE_FIELD", "cross_targets"))
         return issues
 
-    actual_modes: dict[str, str] = {}
-    for entry in cross_targets:
+    actual_targets: list[dict[str, str]] = []
+    seen_targets: set[str] = set()
+    for index, entry in enumerate(cross_targets):
         if not isinstance(entry, dict):
             issues.append(("INVALID_CROSS_TARGET_ENTRY", type(entry).__name__))
             continue
+        for key in entry:
+            if key not in EXPECTED_CROSS_TARGET_FIELDS:
+                issues.append(("UNEXPECTED_CROSS_TARGET_FIELD", f"{index}:{key}"))
+
         target = entry.get("target")
+        review_status = entry.get("review_status")
         validation_mode = entry.get("validation_mode")
         route = entry.get("route")
-        if not isinstance(target, str) or not target:
+
+        if not isinstance(target, str) or not target or target != target.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", "target"))
             continue
-        if not isinstance(validation_mode, str) or not validation_mode:
+        if target in seen_targets:
+            issues.append(("DUPLICATE_CROSS_TARGET_ENTRY", target))
+        seen_targets.add(target)
+
+        if target not in SUPPORTED_CROSS_TARGETS:
+            issues.append(("UNSUPPORTED_CROSS_TARGET", target))
+
+        if not isinstance(review_status, str) or not review_status or review_status != review_status.strip():
+            issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:review_status"))
+        elif review_status != EXPECTED_REVIEW_STATUS_BY_TARGET.get(target):
+            issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", f"{target}:{review_status}"))
+
+        if not isinstance(validation_mode, str) or not validation_mode or validation_mode != validation_mode.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:validation_mode"))
             continue
         if route != expected_fixture["route"]:
             issues.append(("INVALID_CROSS_TARGET_ROUTE", target))
-        if target in actual_modes:
-            issues.append(("DUPLICATE_CROSS_TARGET_ENTRY", target))
-        actual_modes[target] = validation_mode
 
-    if actual_modes != expected_fixture["cross_targets"]:
-        issues.append(("INVALID_CROSS_TARGET_MATRIX", json.dumps(actual_modes, sort_keys=True)))
+        actual_targets.append(
+            {
+                "target": target,
+                "review_status": review_status,
+                "validation_mode": validation_mode,
+                "route": route,
+            }
+        )
+
+    if actual_targets != expected_fixture["cross_targets"]:
+        issues.append(("INVALID_CROSS_TARGET_MATRIX", json.dumps(actual_targets, sort_keys=True)))
     return issues
 
 
@@ -401,8 +471,7 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
-        + 19
-        + 10
+        + 22
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
         root = Path(tmp_dir)
@@ -475,153 +544,111 @@ def run_self_test() -> int:
             checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, CROSS_TARGETS)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["phase"] = "Phase X"
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "phase") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, CROSS_TARGETS)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["status"] = "blocked"
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "status") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, CROSS_TARGETS)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["route"] = "make -C zigux phase2-toolchain"
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "route") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, CROSS_TARGETS)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["archive_target_scope"] = ["aarch64-linux"]
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-validate"]
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        path.write_text(
+            """{
+  "phase": "Phase 2",
+  "channel": "0.17.0-dev.87+9b177a7d2",
+  "minimum_version": "0.17.0-dev.87+9b177a7d2",
+  "archive_sha256": {"x86_64-linux": "%s"},
+  "upgrade_policy": {
+    "archive_target_scope": ["x86_64-linux"],
+    "archive_target_scope": ["aarch64-linux"],
+    "required_make_routes": ["phase2-toolchain", "phase2-validate", "phase2-cross"]
+  }
+}
+""" % ("3" * 64),
+            encoding="utf-8",
+        )
         try:
             collect_issues(root)
         except SystemExit as exc:
-            assert "invalid required_make_routes" in str(exc)
-            checks_run += 1
+            assert "duplicate json key in required file" in str(exc)
+            assert "archive_target_scope" in str(exc)
         else:
-            raise AssertionError("missing phase2-cross route did not abort")
-
-        build_self_test_root(root)
-        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["required_make_routes"] = "broken"
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "invalid required_make_routes" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("invalid required_make_routes shape did not abort")
-
-        build_self_test_root(root)
-        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["archive_target_scope"] = ["aarch64-linux"]
-        payload["archive_sha256"] = {"aarch64-linux": "3" * 64}
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        fixture_path = resolve_path(root, CROSS_TARGETS)
-        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
-        fixture["archive_target_scope"] = ["aarch64-linux"]
-        fixture["cross_targets"][0]["validation_mode"] = "route_contract_only"
-        fixture["cross_targets"][1]["validation_mode"] = "archive_required"
-        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
-        assert collect_issues(root) == []
+            raise AssertionError("duplicate policy json key did not abort")
         checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["archive_target_scope"] = ["aarch64-linux"]
-        payload["archive_sha256"] = {"aarch64-linux": "3" * 64}
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope") in issues
-        assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
-        payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"]["archive_target_scope"] = ["riscv64-linux"]
-        payload["archive_sha256"] = {"riscv64-linux": "3" * 64}
-        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "unsupported archive_target_scope targets" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("unsupported policy target did not abort")
-
-        build_self_test_root(root)
-        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
-        policy_path.write_text("{\n", encoding="utf-8")
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "invalid json in required file" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("invalid policy json did not abort")
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
-        path.write_text("{\n", encoding="utf-8")
+        path.write_text(
+            """{
+  "phase": "Phase 2",
+  "status": "active",
+  "route": "make -C zigux phase2-cross",
+  "archive_target_scope": ["x86_64-linux"],
+  "cross_targets": [
+    {
+      "target": "x86_64-linux",
+      "review_status": "pinned bootstrap archive",
+      "validation_mode": "archive_required",
+      "route": "make -C zigux phase2-cross",
+      "route": "make -C zigux phase2"
+    },
+    {
+      "target": "aarch64-linux",
+      "review_status": "route contract only",
+      "validation_mode": "route_contract_only",
+      "route": "make -C zigux phase2-cross"
+    }
+  ]
+}
+""",
+            encoding="utf-8",
+        )
         try:
             collect_issues(root)
         except SystemExit as exc:
-            assert "invalid json in required file" in str(exc)
-            checks_run += 1
+            assert "duplicate json key in required file" in str(exc)
+            assert "route" in str(exc)
         else:
-            raise AssertionError("invalid json fixture did not abort")
+            raise AssertionError("duplicate fixture json key did not abort")
+        checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"] = "broken"
+        payload["unexpected"] = True
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "cross_targets") in collect_issues(root)
+        assert ("UNEXPECTED_CROSS_TARGET_FIXTURE_FIELD", "unexpected") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"] = []
+        payload["cross_targets"][0]["unexpected"] = True
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "cross_targets") in collect_issues(root)
+        assert ("UNEXPECTED_CROSS_TARGET_FIELD", "0:unexpected") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"][0] = "broken"
+        payload["cross_targets"][0]["review_status"] = "route contract only"
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_ENTRY", "str") in collect_issues(root)
+        assert ("INVALID_CROSS_TARGET_REVIEW_STATUS", "x86_64-linux:route contract only") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"][0]["target"] = ""
+        payload["cross_targets"][1]["review_status"] = "pinned bootstrap archive"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_REVIEW_STATUS", "aarch64-linux:pinned bootstrap archive") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["review_status"] = " pinned bootstrap archive "
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "x86_64-linux:review_status") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["target"] = " x86_64-linux "
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_ENTRY", "target") in collect_issues(root)
         checks_run += 1
@@ -629,36 +656,41 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"][1]["validation_mode"] = ""
+        payload["cross_targets"] = payload["cross_targets"][:1]
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_ENTRY", "aarch64-linux:validation_mode") in collect_issues(root)
+        assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"][0]["route"] = "make -C zigux phase2-toolchain"
+        payload["cross_targets"].reverse()
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_CROSS_TARGET_ROUTE", "x86_64-linux") in collect_issues(root)
+        assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"][1]["validation_mode"] = "archive_required"
+        payload["cross_targets"][0]["target"] = "riscv64-linux"
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
+        assert ("UNSUPPORTED_CROSS_TARGET", "riscv64-linux") in issues
         assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in issues)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, CROSS_TARGETS)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"].append(payload["cross_targets"][0].copy())
+        payload["upgrade_policy"]["archive_target_scope"] = ["riscv64-linux"]
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("DUPLICATE_CROSS_TARGET_ENTRY", "x86_64-linux") in issues
-        checks_run += 1
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "unsupported archive_target_scope targets" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("unsupported archive_target_scope did not abort")
 
         for path in (
             DOCS_ROOT_README,
