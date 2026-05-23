@@ -111,7 +111,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 56
+SELF_TEST_CASE_COUNT = 58
 
 
 def read_text(path: Path) -> str:
@@ -427,6 +427,20 @@ def run_self_test() -> None:
         helper_marker = "pub fn argvSplitWithArgc("
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_argvsplitwithargc_marker", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_argvfree_marker", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "pub fn cArgv(self: *const ArgvSplitResult) [*:null]const ?[*:0]const u8 {"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_cargv_marker", tmp_root, f"lib/argv_split.zig: {helper_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
