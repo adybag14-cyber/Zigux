@@ -51,6 +51,7 @@ FORBIDDEN_WORKFLOW_LINES = (
 
 REQUIRED_MAKEFILE_LINES = (
     "phase7-validate:",
+    "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 )
 
@@ -64,7 +65,7 @@ FORBIDDEN_MAKEFILE_LINES = (
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -176,7 +177,12 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root / MAKEFILE, "phase7-validate:\n\t$(PYTHON) scripts/zigux/validate-phase7.py\n")
+    write_text(
+        root / MAKEFILE,
+        "phase7-validate:\n"
+        "\t$(PYTHON) scripts/zigux/validate-phase7.py --self-test\n"
+        "\t$(PYTHON) scripts/zigux/validate-phase7.py\n",
+    )
     write_text(
         root / WORKFLOW,
         "\n".join(
@@ -240,6 +246,20 @@ def run_self_test() -> int:
         path.write_text(path.read_text(encoding="utf-8") + "phase7-test:\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("FORBIDDEN_MAKEFILE_LINES", "phase7-test:") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            replace_exact_line(
+                path.read_text(encoding="utf-8"),
+                "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+                "\ttrue",
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_LINES", "$(PYTHON) scripts/zigux/validate-phase7.py --self-test") in issues
         cases += 1
 
         build_self_test_root(root)
