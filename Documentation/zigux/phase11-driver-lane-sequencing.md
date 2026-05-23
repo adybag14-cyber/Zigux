@@ -33,7 +33,8 @@ Keep the current lane split explicit:
   raw `master` fallback rereads in this run do rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and direct
   rereads also keep the returned DesignWare docs-owner, checker, driver,
-  registration-scaffold, and adjacent PM-helper packet explicit through
+  registration-scaffold, the optional APB-clock scaffold outcomes, and adjacent
+  PM-helper packet explicit through
   `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
   `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
   `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
@@ -169,7 +170,8 @@ Phase 11 packet, while `make -C zigux phase11` and
 
 Current rereads in this run also keep the directly readable DesignWare
 platform-registration, provenance, lane-gap, verify-alignment, checker, driver,
-registration-scaffold, and adjacent PM-helper packet through
+registration-scaffold, the optional APB-clock scaffold outcomes, and adjacent
+PM-helper packet through
 `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
 `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
 `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
