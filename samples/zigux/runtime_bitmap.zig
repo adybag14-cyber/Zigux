@@ -326,6 +326,47 @@ test "runtime bitmap sample keeps parse print and range mutation replay explicit
     try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(9, 4));
 }
 
+test "runtime bitmap sample keeps zero-length and rejected range mutations non-destructive" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList("0, 5, 64, 70");
+
+    const before = module.summary();
+    try module.setRange(RuntimeBitmapSample.bitmap_nbits, 0);
+    try module.clearRange(RuntimeBitmapSample.bitmap_nbits, 0);
+
+    const after_zero_length = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try expectSummaryStable(before, after_zero_length);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
+
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        module.setRange(RuntimeBitmapSample.bitmap_nbits, 1),
+    );
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        module.clearRange(RuntimeBitmapSample.bitmap_nbits - 1, 2),
+    );
+
+    const after_rejected = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try expectSummaryStable(before, after_rejected);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(4));
+    try std.testing.expectEqual(@as(u32, 4), try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+
+    const formatted = try module.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("0,5,64,70", formatted);
+}
+
 test "runtime bitmap sample keeps duplicate bit lists normalized without inflating summaries" {
     var module = RuntimeBitmapSample{};
     try module.initFromBitList(" 0, 5, 5, 64, 70, 70 ");
