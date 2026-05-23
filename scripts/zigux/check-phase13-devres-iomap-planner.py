@@ -26,10 +26,13 @@ REQUIRED_MARKERS = {
         "devm_iounmap()",
     ],
     MANIFEST_PATH: [
+        "\"lane_key\": \"P13-L02\"",
+        "\"phase\": \"Phase 13\"",
         "\"packet\": \"phase13-devres-iomap-planner\"",
         "\"status\": \"starter_landed\"",
         "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+        "\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
         "\"id\": \"phase13-devres-live-mmio-mapping-state\"",
     ],
@@ -119,6 +122,44 @@ def run_self_test() -> int:
             validate(root),
             [f"missing_file:{NOTE_PATH.as_posix()}"],
             "missing_note_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[MANIFEST_PATH]
+                if marker != "\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "zigux/tests/phase13_devres_iomap_planner_manifest.json:missing_marker:\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+            ],
+            "missing_remap_owner_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[MANIFEST_PATH]
+                if marker != "\"lane_key\": \"P13-L02\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "zigux/tests/phase13_devres_iomap_planner_manifest.json:missing_marker:\"lane_key\": \"P13-L02\"",
+            ],
+            "missing_lane_key_failed",
         )
         case_count += 1
 
