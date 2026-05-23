@@ -60,7 +60,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
 
     try expectContains(parity_note, "`PHASE9_STATUS=active`");
     try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L01`");
-    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-23-first-loadable-parity-bitmap-diff-direct-packet`");
+    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-23-first-loadable-parity-bitmap-cold-stage-direct-packet`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`");
     try expectContains(parity_note, "`samples/zigux/runtime_atomic64.zig`");
@@ -75,6 +75,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-module-slice.md`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap.zig`");
+    try expectContains(parity_note, "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap_loader.zig`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_manifest.json`");
@@ -104,7 +105,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     try expectContains(
         parity_note,
-        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet without a returned family-local loader scaffold, and the still-partial bitmap reminder packet with restored module and diff proof but without broader shared runtime-loader parity.",
+        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet without a returned family-local loader scaffold, and the still-partial bitmap reminder packet with restored cold-stage guard, module, and diff proof but without broader shared runtime-loader parity.",
     );
 
     try expectContains(atomic64_survey_note, "`PHASE9_STATUS=active`");
@@ -148,7 +149,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
 
     try expectContains(atomic64_manifest, "\"phase\": \"Phase 9\"");
     try expectContains(atomic64_manifest, "\"lane_key\": \"P9-L04\"");
-    try expectContains(atomic64_manifest, "\"surveyed_commit\": \"9f8c05368242414084e4bc94ea979604c2b6b712\"");
+    try expectContains(atomic64_manifest, "\"surveyed_commit\": \"2026-05-23-runtime-atomic64-shared-loader-reminder-trim\"");
     try expectContains(
         atomic64_manifest,
         "\"landed_pilot_state\": \"starter_landed_with_visible_shared_loader_packet\"",
