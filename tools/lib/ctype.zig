@@ -124,6 +124,52 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype table keeps stable class counts and print graph partitions" {
+    var alnum_count: usize = 0;
+    var alpha_count: usize = 0;
+    var cntrl_count: usize = 0;
+    var graph_count: usize = 0;
+    var lower_count: usize = 0;
+    var print_count: usize = 0;
+    var punct_count: usize = 0;
+    var space_count: usize = 0;
+    var upper_count: usize = 0;
+    var xdigit_count: usize = 0;
+    var printable_non_graph_spaces: usize = 0;
+
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+
+        if (isalnum(byte)) alnum_count += 1;
+        if (isalpha(byte)) alpha_count += 1;
+        if (iscntrl(byte)) cntrl_count += 1;
+        if (isgraph(byte)) graph_count += 1;
+        if (islower(byte)) lower_count += 1;
+        if (isprint(byte)) print_count += 1;
+        if (ispunct(byte)) punct_count += 1;
+        if (isspace(byte)) space_count += 1;
+        if (isupper(byte)) upper_count += 1;
+        if (isxdigit(byte)) xdigit_count += 1;
+        if (isprint(byte) and !isgraph(byte)) printable_non_graph_spaces += 1;
+
+        try std.testing.expectEqual(isalpha(byte), isupper(byte) or islower(byte));
+        try std.testing.expect(!(isupper(byte) and islower(byte)));
+    }
+
+    try std.testing.expectEqual(@as(usize, 124), alnum_count);
+    try std.testing.expectEqual(@as(usize, 114), alpha_count);
+    try std.testing.expectEqual(@as(usize, 33), cntrl_count);
+    try std.testing.expectEqual(@as(usize, 189), graph_count);
+    try std.testing.expectEqual(@as(usize, 58), lower_count);
+    try std.testing.expectEqual(@as(usize, 191), print_count);
+    try std.testing.expectEqual(@as(usize, 65), punct_count);
+    try std.testing.expectEqual(@as(usize, 7), space_count);
+    try std.testing.expectEqual(@as(usize, 56), upper_count);
+    try std.testing.expectEqual(@as(usize, 22), xdigit_count);
+    try std.testing.expectEqual(@as(usize, 2), printable_non_graph_spaces);
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
