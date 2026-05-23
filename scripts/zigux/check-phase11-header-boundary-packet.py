@@ -11,6 +11,7 @@ SURVEY_PATH = Path("Documentation/zigux/phase11-uapi-header-parity-survey.md")
 MATRIX_PATH = Path("Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md")
 
 SURVEY_REQUIRED_MARKERS = (
+    "`scripts/zigux/check-phase11-build-inventory.py`",
     "`scripts/zigux/check-phase11-header-boundary-packet.py`",
     "`python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`",
     "`python3 scripts/zigux/check-phase11-header-boundary-packet.py`",
@@ -28,6 +29,7 @@ SURVEY_FORBIDDEN_MARKERS = (
 )
 
 MATRIX_REQUIRED_MARKERS = (
+    "`scripts/zigux/check-phase11-build-inventory.py`",
     "`scripts/zigux/check-phase11-header-boundary-packet.py`",
     "`python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`",
     "`python3 scripts/zigux/check-phase11-header-boundary-packet.py`",
@@ -101,6 +103,7 @@ def run_self_test() -> int:
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+  - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - the older shared header-packet companions named by earlier continuity still do not read back at their former paths on current `master`:
   - `zigux/tests/phase11_uapi_header_parity_manifest.json`
@@ -109,6 +112,7 @@ def run_self_test() -> int:
 - current shared reminder and machine-checked HVC header-boundary evidence therefore still lives in the newer focused proof packet and its adjacent current-head companion stack:
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+  - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - The broader shared ABI replay remains a real gap on current `master`: no directly readable shared survey source, manifest, or shared Phase 11 build route currently rematerializes the older cross-driver packet, and the returned header-boundary checker now only guards the narrower current-head note packet.
 ## Current-Head Boundary
@@ -121,6 +125,7 @@ def run_self_test() -> int:
 - current direct-readback packet:
   - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+  - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - current direct contents reads in this lane do not rematerialize:
   - `zigux/tests/phase11_uapi_header_parity_manifest.json`
@@ -143,8 +148,8 @@ def run_self_test() -> int:
         survey_missing = tmpdir / "survey_missing"
         shutil.copytree(fixture_root, survey_missing, dirs_exist_ok=True)
         path = survey_missing / SURVEY_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[1]), encoding="utf-8")
-        expect_failure(survey_missing, SURVEY_REQUIRED_MARKERS[1])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[2]), encoding="utf-8")
+        expect_failure(survey_missing, SURVEY_REQUIRED_MARKERS[2])
         case_count += 1
 
         survey_forbidden = tmpdir / "survey_forbidden"
@@ -164,8 +169,8 @@ def run_self_test() -> int:
         matrix_missing = tmpdir / "matrix_missing"
         shutil.copytree(fixture_root, matrix_missing, dirs_exist_ok=True)
         path = matrix_missing / MATRIX_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[1]), encoding="utf-8")
-        expect_failure(matrix_missing, MATRIX_REQUIRED_MARKERS[1])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[2]), encoding="utf-8")
+        expect_failure(matrix_missing, MATRIX_REQUIRED_MARKERS[2])
         case_count += 1
 
         matrix_forbidden = tmpdir / "matrix_forbidden"
