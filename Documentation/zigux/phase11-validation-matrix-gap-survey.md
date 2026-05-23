@@ -113,8 +113,11 @@ closure.
 
 - `bcm2835_wdt`: raw `master` fallback rereads now rematerialize
   `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, so keep that
-  returned roadmap-required bcm2835 driver-local matrix explicit in the shared
-  packet while leaving bcm2835-only reminder wording, replay claims, and
+  returned roadmap-required bcm2835 driver-local matrix explicit. The returned
+  bcm2835 matrix also keeps its bounded timeout, probe-summary ownership,
+  runtime register modeling, restart-or-poweroff intent, and teardown-note
+  packet explicit instead of reducing the bcm2835 lane to a presence-only roster
+  entry while leaving bcm2835-only reminder wording, replay claims, and
   platform-backed execution in the bcm2835 owner lane.
 - `gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` is
   directly readable on current `master`, and it keeps the bounded descriptor,
@@ -139,9 +142,13 @@ closure.
   witness pair.
 - `dw_wdt`: raw `master` fallback rereads now rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so keep that
-  returned roadmap-required DesignWare driver-local matrix explicit in the
-  shared packet while leaving DesignWare-local reminder wording, continuity
-  claims, and platform-backed execution in the DesignWare owner lane.
+  returned roadmap-required DesignWare driver-local matrix explicit. The
+  returned DesignWare matrix also keeps its reset-controlled versus
+  continued-heartbeat teardown split, idle remove-time heartbeat preservation,
+  and registration-facing handoff review packet explicit instead of reducing
+  the DesignWare lane to a presence-only roster entry while leaving
+  DesignWare-local reminder wording, continuity claims, and platform-backed
+  execution in the DesignWare owner lane.
 
 ## Review Rules
 
@@ -154,11 +161,9 @@ closure.
   watchdog-core registration side effects, notifier execution, khvcd execution,
   sysrq execution, MMIO behavior, or host-backed teardown.
 - Keep the returned four-matrix driver-local packet explicit through bcm2835,
-  gpio, HVC, and DesignWare contents rereads while preserving the narrower HVC
-  build inventory, its adjunct build routes, the surviving `layout_assert`-
-  backed ABI proof shards, the dedicated targetless-unregister witness checker
-  route, and the standalone targetless-unregister witness as adjacent
-  continuity evidence rather than a cross-driver replay roster.
+  gpio, HVC, and DesignWare contents rereads while preserving the roadmap-
+  required teardown or failure-mode cues each returned matrix already carries,
+  rather than reducing bcm2835 or DesignWare to presence-only roster entries.
 - Keep bcm2835-only and DesignWare-only reminder follow-through in their owner
   lanes even though both roadmap-required matrices now reread through raw
   `master` fallback.
