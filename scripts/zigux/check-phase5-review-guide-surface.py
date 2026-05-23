@@ -116,6 +116,7 @@ MARKERS = {
         "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
         "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.",
         "* `*kasprintf*`\n* `*strarray*`",
+        "* `*rbtree*`",
     ),
 }
 
@@ -222,7 +223,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 30
+    expected_case_count = 31
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -357,6 +358,16 @@ def run_self_test() -> int:
             "sample_root_helper_inventory_marker",
             collect_failures(mutated),
             [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][4]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_sample_root_rbtree_boundary_marker"
+        seed(mutated)
+        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][5], ""))
+        expect_exact(
+            "sample_root_rbtree_boundary_marker",
+            collect_failures(mutated),
+            [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][5]}"],
         )
         checks_run += 1
 
