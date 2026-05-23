@@ -127,6 +127,16 @@ def load_policy(root: Path) -> tuple[list[str], dict[str, str]]:
     return archive_target_scope, expected_modes
 
 
+def collect_non_string_entry_issues(entries: object, category: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    if not isinstance(entries, list):
+        return issues
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, str):
+            issues.append(("INVALID_SURFACE_ENTRY", f"{category}:{index}:{type(entry).__name__}"))
+    return issues
+
+
 def collect_surface_issues(root: Path, surfaces: object) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     if not isinstance(surfaces, dict):
@@ -136,10 +146,13 @@ def collect_surface_issues(root: Path, surfaces: object) -> list[tuple[str, str]
     if not isinstance(checkers, list):
         issues.append(("INVALID_SURFACE_CATEGORY", "checkers"))
     else:
+        issues.extend(collect_non_string_entry_issues(checkers, "checkers"))
         string_checkers = [entry for entry in checkers if isinstance(entry, str)]
         for entry in EXPECTED_CHECKERS:
             if entry not in string_checkers:
                 issues.append(("MISSING_CHECKER_ENTRY", entry))
+            elif not (root / entry).exists():
+                issues.append(("MISSING_SURFACE_PATH", f"checkers:{entry}"))
         for entry in find_duplicates(string_checkers):
             if entry in EXPECTED_CHECKERS:
                 issues.append(("DUPLICATE_CHECKER_ENTRY", entry))
@@ -151,6 +164,7 @@ def collect_surface_issues(root: Path, surfaces: object) -> list[tuple[str, str]
     if not isinstance(cross_support, list):
         issues.append(("INVALID_SURFACE_CATEGORY", "cross_route_support"))
     else:
+        issues.extend(collect_non_string_entry_issues(cross_support, "cross_route_support"))
         string_support = [entry for entry in cross_support if isinstance(entry, str)]
         if string_support != list(EXPECTED_CROSS_ROUTE_SUPPORT):
             issues.append(("CROSS_ROUTE_SUPPORT_MISMATCH", json.dumps(string_support)))
@@ -162,6 +176,7 @@ def collect_surface_issues(root: Path, surfaces: object) -> list[tuple[str, str]
     if not isinstance(policy_surface, list):
         issues.append(("INVALID_SURFACE_CATEGORY", "policy"))
     else:
+        issues.extend(collect_non_string_entry_issues(policy_surface, "policy"))
         string_policy = [entry for entry in policy_surface if isinstance(entry, str)]
         if string_policy != list(EXPECTED_POLICY_SURFACE):
             issues.append(("POLICY_SURFACE_MISMATCH", json.dumps(string_policy)))
@@ -173,6 +188,7 @@ def collect_surface_issues(root: Path, surfaces: object) -> list[tuple[str, str]
     if not isinstance(wrappers, list):
         issues.append(("INVALID_SURFACE_CATEGORY", "make_wrappers"))
     else:
+        issues.extend(collect_non_string_entry_issues(wrappers, "make_wrappers"))
         string_wrappers = [entry for entry in wrappers if isinstance(entry, str)]
         for entry in EXPECTED_WRAPPER_PREFIX:
             if entry not in string_wrappers:
@@ -363,7 +379,7 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    expected_case_count = 24
+    expected_case_count = 29
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_tool_manifest_") as tmp_dir:
         root = Path(tmp_dir)
@@ -427,6 +443,15 @@ def run_self_test() -> int:
         write_json(manifest_path, manifest)
         assert ("DUPLICATE_CHECKER_ENTRY", "scripts/zigux/check-phase2-cross.py") in collect_issues(root)
         checks_run += 1
+
+        for category in ("checkers", "cross_route_support", "policy", "make_wrappers"):
+            build_self_test_root(root)
+            manifest = read_json(manifest_path)
+            assert isinstance(manifest, dict)
+            manifest["present_surfaces"][category].append(3)
+            write_json(manifest_path, manifest)
+            assert ("INVALID_SURFACE_ENTRY", f"{category}:{len(manifest['present_surfaces'][category]) - 1}:int") in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         manifest = read_json(manifest_path)
@@ -521,6 +546,11 @@ def run_self_test() -> int:
             write_text(root / MAKEFILE, "\n".join(line for line in MAKEFILE_LINES if line != marker) + "\n")
             assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        (root / "scripts" / "zigux" / "check-phase2-cross.py").unlink()
+        assert ("MISSING_SURFACE_PATH", "checkers:scripts/zigux/check-phase2-cross.py") in collect_issues(root)
+        checks_run += 1
 
         build_self_test_root(root)
         (root / MANIFEST).unlink()
