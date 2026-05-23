@@ -63,6 +63,11 @@ REQUIRED_SMOKE_LINES = (
     '    try std.testing.expectEqualSlices(i32, &.{ 0, -1, 2, -1 }, &cached_leftmost_return_serials);',
 )
 
+PREDECESSOR_STEP = (
+    "Validate current Phase 2 tool packet",
+    "python3 scripts/zigux/validate-phase2.py",
+)
+
 LEAD_IN_WORKFLOW_STEPS = (
     (
         "Self-test current Phase 1 direct-owner checker",
@@ -218,7 +223,7 @@ def collect_workflow_failures(text: str) -> list[str]:
     failures: list[str] = []
     positions: list[int] = []
 
-    for label, step in (("successor", SUCCESSOR_STEP),):
+    for label, step in (("predecessor", PREDECESSOR_STEP), ("successor", SUCCESSOR_STEP)):
         block = workflow_step_block(*step)
         count = text.count(block)
         if count != 1:
@@ -239,14 +244,26 @@ def collect_workflow_failures(text: str) -> list[str]:
         return failures
 
     workflow_names = workflow_step_names(text)
+    predecessor_and_lead_in_chain = (PREDECESSOR_STEP[0],) + tuple(
+        step_name for step_name, _ in LEAD_IN_WORKFLOW_STEPS
+    )
     lead_in_chain = tuple(step_name for step_name, _ in LEAD_IN_WORKFLOW_STEPS)
     core_chain = tuple(step_name for step_name, _ in WORKFLOW_PACKET_STEPS)
+    if not contains_adjacent_chain(workflow_names, predecessor_and_lead_in_chain):
+        failures.append(
+            "workflow:phase1_shared_smoke_packet:expected=phase2_tail_and_direct_owner_string_review_head_adjacent:actual=split_or_interleaved"
+        )
     if not contains_adjacent_chain(workflow_names, lead_in_chain):
         failures.append("workflow:phase1_shared_smoke_packet:expected=direct_owner_and_string_review_lead_in_adjacent:actual=split_or_interleaved")
     if not contains_adjacent_chain(workflow_names, lead_in_chain + core_chain):
         failures.append("workflow:phase1_shared_smoke_packet:expected=lead_in_plus_core_adjacent_without_insertions:actual=split_or_interleaved")
-    if not contains_adjacent_chain(workflow_names, lead_in_chain + core_chain + (SUCCESSOR_STEP[0],)):
-        failures.append("workflow:phase1_shared_smoke_packet:expected=lead_in_plus_core_before_phase4_head:actual=split_or_shifted")
+    if not contains_adjacent_chain(
+        workflow_names,
+        (PREDECESSOR_STEP[0],) + lead_in_chain + core_chain + (SUCCESSOR_STEP[0],),
+    ):
+        failures.append(
+            "workflow:phase1_shared_smoke_packet:expected=phase2_tail_plus_lead_in_plus_core_before_phase4_head:actual=split_or_shifted"
+        )
 
     return failures
 
@@ -302,8 +319,15 @@ def build_sample_repo(root: Path) -> None:
     write_text(root, TESTS_BUILD_REL, "\n".join(REQUIRED_BUILD_LINES) + "\n")
     write_text(root, PHASE1_SMOKE_REL, "\n".join(REQUIRED_SMOKE_LINES) + "\n")
 
-    blocks = [workflow_step_block(step_name, run_command) for step_name, run_command in LEAD_IN_WORKFLOW_STEPS]
-    blocks.extend(workflow_step_block(step_name, run_command) for step_name, run_command in WORKFLOW_PACKET_STEPS)
+    blocks = [workflow_step_block(*PREDECESSOR_STEP)]
+    blocks.extend(
+        workflow_step_block(step_name, run_command)
+        for step_name, run_command in LEAD_IN_WORKFLOW_STEPS
+    )
+    blocks.extend(
+        workflow_step_block(step_name, run_command)
+        for step_name, run_command in WORKFLOW_PACKET_STEPS
+    )
     blocks.append(workflow_step_block(*SUCCESSOR_STEP))
     write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
 
@@ -331,7 +355,7 @@ def duplicate_workflow_step(root: Path, step_name: str, run_command: str) -> Non
 
 
 def reorder_workflow(root: Path) -> None:
-    steps = list(LEAD_IN_WORKFLOW_STEPS + WORKFLOW_PACKET_STEPS)
+    steps = [PREDECESSOR_STEP, *LEAD_IN_WORKFLOW_STEPS, *WORKFLOW_PACKET_STEPS]
     steps[-1], steps[-2] = steps[-2], steps[-1]
     blocks = [workflow_step_block(step_name, run_command) for step_name, run_command in steps]
     blocks.append(workflow_step_block(*SUCCESSOR_STEP))
@@ -341,14 +365,33 @@ def reorder_workflow(root: Path) -> None:
 def split_lead_in_workflow(root: Path) -> None:
     lead_in = list(LEAD_IN_WORKFLOW_STEPS)
     core = list(WORKFLOW_PACKET_STEPS)
-    blocks = [
-        workflow_step_block(*lead_in[0]),
-        workflow_step_block(*lead_in[1]),
-        workflow_step_block(*core[0]),
-        workflow_step_block(*lead_in[2]),
-        workflow_step_block(*lead_in[3]),
-    ]
+    blocks = [workflow_step_block(*PREDECESSOR_STEP)]
+    blocks.extend(
+        [
+            workflow_step_block(*lead_in[0]),
+            workflow_step_block(*lead_in[1]),
+            workflow_step_block(*core[0]),
+            workflow_step_block(*lead_in[2]),
+            workflow_step_block(*lead_in[3]),
+        ]
+    )
     blocks.extend(workflow_step_block(step_name, run_command) for step_name, run_command in core[1:])
+    blocks.append(workflow_step_block(*SUCCESSOR_STEP))
+    write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
+
+
+def split_predecessor_workflow(root: Path) -> None:
+    blocks = [
+        workflow_step_block(*PREDECESSOR_STEP),
+        workflow_step_block(
+            "Synthetic unrelated insertion",
+            "python3 scripts/zigux/synthetic-unrelated-insertion.py --self-test",
+        ),
+    ]
+    blocks.extend(
+        workflow_step_block(step_name, run_command)
+        for step_name, run_command in LEAD_IN_WORKFLOW_STEPS + WORKFLOW_PACKET_STEPS
+    )
     blocks.append(workflow_step_block(*SUCCESSOR_STEP))
     write_text(root, WORKFLOW_REL, "\n".join(blocks) + "\n")
 
@@ -379,8 +422,19 @@ def run_self_test() -> int:
 
     cases.extend(
         [
+            (
+                "missing_predecessor_workflow_step",
+                ("remove_workflow", PREDECESSOR_STEP[0], PREDECESSOR_STEP[1]),
+            ),
+            (
+                "duplicate_predecessor_workflow_step",
+                ("duplicate_workflow", PREDECESSOR_STEP[0], PREDECESSOR_STEP[1]),
+            ),
             ("missing_successor_workflow_step", ("remove_workflow", SUCCESSOR_STEP[0], SUCCESSOR_STEP[1])),
-            ("duplicate_successor_workflow_step", ("duplicate_workflow", SUCCESSOR_STEP[0], SUCCESSOR_STEP[1])),
+            (
+                "duplicate_successor_workflow_step",
+                ("duplicate_workflow", SUCCESSOR_STEP[0], SUCCESSOR_STEP[1]),
+            ),
         ]
     )
 
@@ -391,6 +445,7 @@ def run_self_test() -> int:
     cases.extend(
         [
             ("workflow_reordered", ("reorder_workflow",)),
+            ("workflow_split_predecessor", ("split_predecessor_workflow",)),
             ("workflow_split_lead_in", ("split_lead_in_workflow",)),
             ("workflow_forbidden_bench_run", ("forbidden_workflow", FORBIDDEN_WORKFLOW_LINES[0])),
             ("workflow_forbidden_generic_test_run", ("forbidden_workflow", FORBIDDEN_WORKFLOW_LINES[1])),
@@ -415,6 +470,8 @@ def run_self_test() -> int:
                     duplicate_workflow_step(root, mutation[1], mutation[2])
                 elif kind == "reorder_workflow":
                     reorder_workflow(root)
+                elif kind == "split_predecessor_workflow":
+                    split_predecessor_workflow(root)
                 elif kind == "split_lead_in_workflow":
                     split_lead_in_workflow(root)
                 elif kind == "forbidden_workflow":
