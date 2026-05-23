@@ -50,6 +50,9 @@ HEADER_FAMILY_NOTE_FILE = Path(
 HEADER_FAMILY_NEXT_STEP_NOTE_FILE = Path(
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
 )
+HEADER_GOVERNANCE_VALIDATOR_FILE = Path(
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
+)
 EXPORT_UAPI_SURVEY_NOTE_FILE = Path(
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
 )
@@ -105,6 +108,12 @@ EXPORT_UAPI_LAYOUT_BUILD_ROUTE_MARKER = (
 WORKFLOW_MARKER = ".github/workflows/zigux-bootstrap.yml"
 EXPORT_UAPI_SURVEY_NOTE_MARKER = "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
 EXPORT_UAPI_SURVEY_VALIDATOR_MARKER = "scripts/zigux/validate-phase3-export-uapi-survey.py"
+HEADER_GOVERNANCE_VALIDATOR_MARKER = (
+    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py"
+)
+HEADER_GOVERNANCE_VALIDATOR_SELFTEST_MARKER = (
+    "python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test"
+)
 CATALOG_SELFTEST_GAP_MARKER = "scripts/zigux/check-phase3-catalog-selftest.py"
 CATALOG_TOOL_MARKER = "scripts/zigux/phase3_catalog.py"
 WRAPPER_GENERATION_GAP_MARKER = "scripts/zigux/generate-phase3-check-wrappers.py"
@@ -172,6 +181,7 @@ REQUIRED_FILES = (
     HEADER_FAMILY_VALIDATOR_FILE,
     HEADER_FAMILY_NOTE_FILE,
     HEADER_FAMILY_NEXT_STEP_NOTE_FILE,
+    HEADER_GOVERNANCE_VALIDATOR_FILE,
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     XARRAY_SLOT_CHECK_FILE,
@@ -231,6 +241,8 @@ REQUIRED_MARKERS = (
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     POLICY_UNSAFE_SURVEY_VALIDATOR_MARKER,
+    HEADER_GOVERNANCE_VALIDATOR_SELFTEST_MARKER,
+    HEADER_GOVERNANCE_VALIDATOR_MARKER,
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/validate-phase3.py",
@@ -344,6 +356,14 @@ README_MARKER_CASES = (
     (
         POLICY_UNSAFE_SURVEY_VALIDATOR_MARKER,
         "expected missing policy-unsafe validator README marker was not reported",
+    ),
+    (
+        HEADER_GOVERNANCE_VALIDATOR_SELFTEST_MARKER,
+        "expected missing header-governance self-test README marker was not reported",
+    ),
+    (
+        HEADER_GOVERNANCE_VALIDATOR_MARKER,
+        "expected missing header-governance validator README marker was not reported",
     ),
     (MMIO_HELPER_MARKER, "expected missing MMIO helper README marker was not reported"),
     (
@@ -492,6 +512,10 @@ FILE_CASES = (
     (
         HEADER_FAMILY_NEXT_STEP_NOTE_FILE,
         "expected missing header-family next-step note was not reported",
+    ),
+    (
+        HEADER_GOVERNANCE_VALIDATOR_FILE,
+        "expected missing header-governance validator file was not reported",
     ),
     (
         LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
