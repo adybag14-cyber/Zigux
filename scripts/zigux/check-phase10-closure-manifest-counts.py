@@ -55,6 +55,8 @@ REQUIRED_MMIO_SCOREBOARD_EVIDENCE = [
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
 ]
 
+REQUIRED_INPUT_READY_TRANSPORT_PATH = "zigux/tests/phase10_virtio_input_manifest.json"
+REQUIRED_INPUT_READY_TRANSPORT_GAP = "phase10-virtio-input-registration-lifecycle"
 REQUIRED_MMIO_READY_TRANSPORT_PATH = "zigux/tests/phase10_virtio_mmio_manifest.json"
 REQUIRED_MMIO_READY_TRANSPORT_GAP = "phase10-mmio-lifecycle-and-irq-paths"
 
@@ -144,6 +146,13 @@ def collect_drift(manifest: dict) -> list[str]:
         drift.append("ready_transport_followups:missing")
         return drift
 
+    input_followup = ready_transport_followups.get(REQUIRED_INPUT_READY_TRANSPORT_PATH)
+    if input_followup != REQUIRED_INPUT_READY_TRANSPORT_GAP:
+        drift.append(
+            "ready_transport_followups:"
+            f"{REQUIRED_INPUT_READY_TRANSPORT_PATH}:{input_followup!r}!={REQUIRED_INPUT_READY_TRANSPORT_GAP!r}"
+        )
+
     mmio_followup = ready_transport_followups.get(REQUIRED_MMIO_READY_TRANSPORT_PATH)
     if mmio_followup != REQUIRED_MMIO_READY_TRANSPORT_GAP:
         drift.append(
@@ -155,6 +164,13 @@ def collect_drift(manifest: dict) -> list[str]:
     if not isinstance(blocked_transport_gaps, dict):
         drift.append("blocked_transport_gaps:missing")
         return drift
+
+    input_blocked_gap = blocked_transport_gaps.get(REQUIRED_INPUT_READY_TRANSPORT_PATH)
+    if input_blocked_gap != REQUIRED_INPUT_READY_TRANSPORT_GAP:
+        drift.append(
+            "blocked_transport_gaps:"
+            f"{REQUIRED_INPUT_READY_TRANSPORT_PATH}:{input_blocked_gap!r}!={REQUIRED_INPUT_READY_TRANSPORT_GAP!r}"
+        )
 
     mmio_blocked_gap = blocked_transport_gaps.get(REQUIRED_MMIO_READY_TRANSPORT_PATH)
     if mmio_blocked_gap != REQUIRED_MMIO_READY_TRANSPORT_GAP:
@@ -195,9 +211,11 @@ def fixture_manifest() -> dict:
             },
         },
         "ready_transport_followups": {
+            REQUIRED_INPUT_READY_TRANSPORT_PATH: REQUIRED_INPUT_READY_TRANSPORT_GAP,
             REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
         },
         "blocked_transport_gaps": {
+            REQUIRED_INPUT_READY_TRANSPORT_PATH: REQUIRED_INPUT_READY_TRANSPORT_GAP,
             REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
         },
     }
@@ -445,11 +463,31 @@ def run_self_test() -> int:
         cases += 1
 
         broken = dict(original)
+        broken["ready_transport_followups"][REQUIRED_INPUT_READY_TRANSPORT_PATH] = "phase10-input-helper-drift"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "ready_transport_followups:zigux/tests/phase10_virtio_input_manifest.json:'phase10-input-helper-drift'!='phase10-virtio-input-registration-lifecycle'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
         broken["ready_transport_followups"][REQUIRED_MMIO_READY_TRANSPORT_PATH] = "phase10-mmio-helper-drift"
         write_manifest(broken)
         expect_contains(
             validate(root)[1],
             "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-helper-drift'!='phase10-mmio-lifecycle-and-irq-paths'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["blocked_transport_gaps"][REQUIRED_INPUT_READY_TRANSPORT_PATH] = "phase10-input-helper-drift"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "blocked_transport_gaps:zigux/tests/phase10_virtio_input_manifest.json:'phase10-input-helper-drift'!='phase10-virtio-input-registration-lifecycle'",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
