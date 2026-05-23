@@ -47,11 +47,17 @@ TOO_MANY_ARGUMENTS_ERROR = (
 SELF_TEST_CASES = [
     "text_pass",
     "text_mismatch",
+    "text_invalid_utf8_expected",
+    "text_invalid_utf8_actual",
+    "text_invalid_utf8_both",
     "json_pass",
     "json_mismatch",
     "json_invalid_expected",
     "json_invalid_actual",
     "json_invalid_both",
+    "json_invalid_utf8_expected",
+    "json_invalid_utf8_actual",
+    "json_invalid_utf8_both",
     "json_missing_expected",
     "json_missing_actual",
     "json_missing_both",
@@ -81,13 +87,20 @@ def read_bytes(path: Path) -> bytes:
     return path.read_bytes()
 
 
-def load_text(path: Path) -> str:
-    return read_bytes(path).decode("utf-8")
+def decode_utf8(path: Path, *, side: str, mode: str) -> tuple[str | None, str | None]:
+    try:
+        return read_bytes(path).decode("utf-8"), None
+    except UnicodeDecodeError as exc:
+        return None, f"{side}_{mode}_UTF8_ERROR={path}:{exc.start + 1}: {exc.reason}"
 
 
 def canonical_json_bytes(path: Path, *, side: str) -> tuple[bytes | None, str | None]:
+    text, decode_error = decode_utf8(path, side=side, mode="JSON")
+    if decode_error is not None:
+        return None, decode_error
+    assert text is not None
     try:
-        value = json.loads(load_text(path))
+        value = json.loads(text)
     except json.JSONDecodeError as exc:
         return None, f"{side}_JSON_ERROR={path}:{exc.lineno}:{exc.colno}: {exc.msg}"
     return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"), None
@@ -105,7 +118,15 @@ def missing_lines(expected: Path, actual: Path) -> list[str] | None:
 
 
 def compare_text(expected: Path, actual: Path) -> ComparisonResult:
-    if read_bytes(expected) == read_bytes(actual):
+    expected_text, expected_error = decode_utf8(expected, side="EXPECTED", mode="TEXT")
+    if expected_error is not None:
+        return ComparisonResult(ok=False, extra_lines=[expected_error])
+    actual_text, actual_error = decode_utf8(actual, side="ACTUAL", mode="TEXT")
+    if actual_error is not None:
+        return ComparisonResult(ok=False, extra_lines=[actual_error])
+    assert expected_text is not None
+    assert actual_text is not None
+    if expected_text == actual_text:
         return ComparisonResult(ok=True, extra_lines=[])
     return ComparisonResult(ok=False, extra_lines=[])
 
@@ -197,6 +218,10 @@ def run_self_test() -> int:
         actual_json_mismatch = root / "actual-mismatch.json"
         invalid_expected_json = root / "invalid-expected.json"
         invalid_actual_json = root / "invalid-actual.json"
+        invalid_expected_text = root / "invalid-expected.txt"
+        invalid_actual_text = root / "invalid-actual.txt"
+        invalid_expected_json_utf8 = root / "invalid-expected-utf8.json"
+        invalid_actual_json_utf8 = root / "invalid-actual-utf8.json"
         blob_a = root / "blob-a.bin"
         blob_b = root / "blob-b.bin"
 
@@ -208,6 +233,30 @@ def run_self_test() -> int:
         actual.write_text("alpha\nBETA\n", encoding="utf-8", newline="\n")
         assert_case(not compare("text", expected, actual).ok, "text_mismatch")
         covered.append("text_mismatch")
+        actual.write_text("alpha\nbeta\n", encoding="utf-8", newline="\n")
+
+        invalid_expected_text.write_bytes(b"\xffalpha\n")
+        invalid_actual_text.write_bytes(b"alpha\xff\n")
+        assert_case(
+            compare("text", invalid_expected_text, actual).extra_lines
+            == [f"EXPECTED_TEXT_UTF8_ERROR={invalid_expected_text}:1: invalid start byte"],
+            "text_invalid_utf8_expected",
+        )
+        covered.append("text_invalid_utf8_expected")
+
+        assert_case(
+            compare("text", expected, invalid_actual_text).extra_lines
+            == [f"ACTUAL_TEXT_UTF8_ERROR={invalid_actual_text}:6: invalid start byte"],
+            "text_invalid_utf8_actual",
+        )
+        covered.append("text_invalid_utf8_actual")
+
+        assert_case(
+            compare("text", invalid_expected_text, invalid_actual_text).extra_lines
+            == [f"EXPECTED_TEXT_UTF8_ERROR={invalid_expected_text}:1: invalid start byte"],
+            "text_invalid_utf8_both",
+        )
+        covered.append("text_invalid_utf8_both")
 
         expected_json.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding="utf-8", newline="\n")
         actual_json.write_text('{\n "beta": [2, 3],\n "alpha": 1\n}\n', encoding="utf-8", newline="\n")
@@ -240,6 +289,29 @@ def run_self_test() -> int:
             "json_invalid_both",
         )
         covered.append("json_invalid_both")
+
+        invalid_expected_json_utf8.write_bytes(b"\xff{}\n")
+        invalid_actual_json_utf8.write_bytes(b"{\"alpha\":\xff}\n")
+        assert_case(
+            compare("json", invalid_expected_json_utf8, actual_json).extra_lines
+            == [f"EXPECTED_JSON_UTF8_ERROR={invalid_expected_json_utf8}:1: invalid start byte"],
+            "json_invalid_utf8_expected",
+        )
+        covered.append("json_invalid_utf8_expected")
+
+        assert_case(
+            compare("json", expected_json, invalid_actual_json_utf8).extra_lines
+            == [f"ACTUAL_JSON_UTF8_ERROR={invalid_actual_json_utf8}:10: invalid start byte"],
+            "json_invalid_utf8_actual",
+        )
+        covered.append("json_invalid_utf8_actual")
+
+        assert_case(
+            compare("json", invalid_expected_json_utf8, invalid_actual_json_utf8).extra_lines
+            == [f"EXPECTED_JSON_UTF8_ERROR={invalid_expected_json_utf8}:1: invalid start byte"],
+            "json_invalid_utf8_both",
+        )
+        covered.append("json_invalid_utf8_both")
 
         assert_case(
             compare("json", missing, actual_json).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=True"],
