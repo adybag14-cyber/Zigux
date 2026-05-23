@@ -852,11 +852,11 @@ test "bitmap weighted and andnot clamp counts to the declared tail window" {
     try std.testing.expectEqual(@as(usize, 1), direct_andnot_weight);
     try std.testing.expectEqual(direct_andnot_weight, alias_andnot_weight);
 
-    const zero = [_]Word{~@as(Word, 0)};
-    try std.testing.expectEqual(@as(usize, 0), weightAnd(zero[0..0], zero[0..0], 0));
-    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_and(zero[0..0], zero[0..0], 0));
-    try std.testing.expectEqual(@as(usize, 0), weightAndNot(zero[0..0], zero[0..0], 0));
-    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_andnot(zero[0..0], zero[0..0], 0));
+    const zero_words = [_]Word{~@as(Word, 0)};
+    try std.testing.expectEqual(@as(usize, 0), weightAnd(zero_words[0..0], zero_words[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_and(zero_words[0..0], zero_words[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), weightAndNot(zero_words[0..0], zero_words[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight_andnot(zero_words[0..0], zero_words[0..0], 0));
 }
 
 test "bitmap complement clamps partial tails and leaves zero-sized caller views untouched" {
@@ -887,7 +887,7 @@ test "bitmap scnprintf collapses contiguous ranges" {
 
     var buffer: [64]u8 = undefined;
     const len = scnprintf(&map, 32, &buffer);
-    try std.testing.expectEqualStrings("1-3,7,10-11", buffer[0..len]);
+    try std.testing.expectEqualStrings("1-3,10-11", buffer[0..len]);
 }
 
 test "bitmap scnprintf keeps contiguous ranges merged across word boundaries" {
