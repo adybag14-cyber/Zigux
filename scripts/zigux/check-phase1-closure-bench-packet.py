@@ -47,6 +47,12 @@ EXPECTED_CLOSURE_MARKERS = {
         "and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet "
         "returns`"
     ),
+    "closure_validator": (
+        "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`"
+    ),
+    "validator_state": (
+        "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`"
+    ),
 }
 
 EXPECTED_LANE_NOTE_MARKERS = {
@@ -269,6 +275,28 @@ def run_self_test() -> int:
                 root / PHASE1_CLOSURE_REL,
                 load_text(root, PHASE1_CLOSURE_REL).replace(
                     EXPECTED_CLOSURE_MARKERS["rbtree_guard"] + "\n",
+                    "",
+                    1,
+                ),
+            ),
+        ),
+        (
+            "missing_closure_validator",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(
+                    EXPECTED_CLOSURE_MARKERS["closure_validator"] + "\n",
+                    "",
+                    1,
+                ),
+            ),
+        ),
+        (
+            "missing_validator_state",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(
+                    EXPECTED_CLOSURE_MARKERS["validator_state"] + "\n",
                     "",
                     1,
                 ),
