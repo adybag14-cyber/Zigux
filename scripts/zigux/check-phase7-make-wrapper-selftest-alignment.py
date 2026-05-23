@@ -65,7 +65,7 @@ FORBIDDEN_MAKEFILE_LINES = (
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def read_text(path: Path) -> str:
@@ -98,16 +98,25 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     else:
         validator_text = read_text(validator_path)
         for marker in REQUIRED_VALIDATOR_MARKERS:
-            if marker not in validator_text:
+            count = validator_text.count(marker)
+            if count == 0:
                 issues.append(("MISSING_VALIDATOR_MARKERS", marker))
+            elif count != 1:
+                issues.append(("DUPLICATE_VALIDATOR_MARKERS", f"{marker}:count={count}"))
 
     for marker in REQUIRED_CHECKER_MARKERS:
-        if marker not in checker_text:
+        count = checker_text.count(marker)
+        if count == 0:
             issues.append(("MISSING_CHECKER_MARKERS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_CHECKER_MARKERS", f"{marker}:count={count}"))
 
     for marker in REQUIRED_SEQUENCING_MARKERS:
-        if marker not in sequencing_text:
+        count = sequencing_text.count(marker)
+        if count == 0:
             issues.append(("MISSING_SEQUENCING_MARKERS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_SEQUENCING_MARKERS", f"{marker}:count={count}"))
 
     for rel in PARKED_PATHS:
         if (root / rel).exists():
@@ -125,8 +134,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("FORBIDDEN_WORKFLOW_HOOKS", marker))
 
     for marker in REQUIRED_MAKEFILE_LINES:
-        if marker not in makefile_text:
+        count = count_exact_lines(makefile_text, marker)
+        if count == 0:
             issues.append(("MISSING_MAKEFILE_LINES", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_MAKEFILE_LINES", f"{marker}:count={count}"))
 
     for marker in FORBIDDEN_MAKEFILE_LINES:
         if count_exact_lines(makefile_text, marker):
@@ -242,6 +254,13 @@ def run_self_test() -> int:
             cases += 1
 
         build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(path.read_text(encoding="utf-8") + f"        {REQUIRED_WORKFLOW_LINES[0]}\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[0]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
         path = root / MAKEFILE
         path.write_text(path.read_text(encoding="utf-8") + "phase7-test:\n", encoding="utf-8")
         issues = collect_issues(root)
@@ -263,6 +282,13 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(path.read_text(encoding="utf-8") + "\t$(PYTHON) scripts/zigux/validate-phase7.py\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_MAKEFILE_LINES", "$(PYTHON) scripts/zigux/validate-phase7.py:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
         validator_path = root / VALIDATOR
         validator_path.write_text(
             validator_path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[0] + "\n", "", 1),
@@ -280,6 +306,13 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[1]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        validator_path = root / VALIDATOR
+        validator_path.write_text(validator_path.read_text(encoding="utf-8") + REQUIRED_VALIDATOR_MARKERS[0] + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[0]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
