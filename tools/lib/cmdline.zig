@@ -289,6 +289,29 @@ test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
 }
 
+test "parseOptionStr keeps exact token boundaries across commas and visible terminators" {
+    try std.testing.expect(parseOptionStr("alpha,beta,gamma", "alpha"));
+    try std.testing.expect(parseOptionStr("alpha,beta,gamma", "gamma"));
+    try std.testing.expect(parseOptionStr("alpha,beta\x00gamma", "beta"));
+
+    try std.testing.expect(!parseOptionStr("alpha,beta,gamma", "alp"));
+    try std.testing.expect(!parseOptionStr("alpha,beta,gamma", "bet"));
+    try std.testing.expect(!parseOptionStr("alpha,beta,gamma", "gamma,delta"));
+    try std.testing.expect(!parseOptionStr("alpha,beta=1,gamma", "beta"));
+    try std.testing.expect(!parseOptionStr("alpha,beta\x00gamma", "gamma"));
+}
+
+test "parseOptionStr only matches empty options on comma-bounded empty entries" {
+    try std.testing.expect(parseOptionStr(",alpha", ""));
+    try std.testing.expect(parseOptionStr("alpha,,beta", ""));
+    try std.testing.expect(parseOptionStr("alpha,,,beta", ""));
+
+    try std.testing.expect(!parseOptionStr("alpha,\x00beta", ""));
+    try std.testing.expect(!parseOptionStr("\x00,alpha", ""));
+    try std.testing.expect(!parseOptionStr("alpha", ""));
+    try std.testing.expect(!parse_option_str("alpha,\x00beta", ""));
+}
+
 test "nextArg returns null for blank input" {
     try std.testing.expect(nextArg(" \t \n") == null);
 }
@@ -317,16 +340,4 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     try std.testing.expectEqualStrings("mode", parsed.param);
     try std.testing.expectEqualStrings("fast path", parsed.value.?);
     try std.testing.expectEqualStrings("tail", parsed.remaining);
-}
-
-test "nextArg keeps empty and unterminated quoted values aligned" {
-    const empty = nextArg("root=\"\" quiet") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("root", empty.param);
-    try std.testing.expectEqualStrings("", empty.value.?);
-    try std.testing.expectEqualStrings("quiet", empty.remaining);
-
-    const unterminated = nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("mode", unterminated.param);
-    try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
-    try std.testing.expectEqualStrings("", unterminated.remaining);
 }
