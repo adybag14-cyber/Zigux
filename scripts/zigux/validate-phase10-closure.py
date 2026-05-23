@@ -189,6 +189,7 @@ FOCUSED_HARNESS_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
+    "drivers/virtio/virtio_mmio_verify.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
@@ -779,6 +780,16 @@ def run_self_test() -> int:
         expect_contains(
             collect_manifest_drift(root),
             "focused_harness_replays:zigux/tests/phase10_virtio_ring.zig:missing",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+
+        broken = json.loads(json.dumps(original))
+        del broken["focused_harness_replays"]["drivers/virtio/virtio_mmio_verify.zig"]
+        write_closure(broken)
+        expect_contains(
+            collect_manifest_drift(root),
+            "focused_harness_replays:drivers/virtio/virtio_mmio_verify.zig:missing",
             "phase10-closure-self-test",
         )
         cases += 1
