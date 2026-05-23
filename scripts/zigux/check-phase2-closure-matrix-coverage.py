@@ -180,6 +180,8 @@ def build_self_test_root(root: Path) -> None:
 from pathlib import Path
 
 EXPECTED_MANIFEST_REVIEW_SURFACES = ("review.md",)
+EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-note.md",)
+EXPECTED_MANIFEST_VALIDATORS = ("scripts/zigux/validate-phase2.py",)
 EXPECTED_MANIFEST_CHECKERS = ("check-base.py",)
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig",)
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json",)
@@ -195,6 +197,8 @@ from pathlib import Path
 
 VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
     ("review_surfaces", "EXPECTED_MANIFEST_REVIEW_SURFACES"),
+    ("closure_notes", "EXPECTED_MANIFEST_CLOSURE_NOTES"),
+    ("validators", "EXPECTED_MANIFEST_VALIDATORS"),
     ("checkers", "EXPECTED_MANIFEST_CHECKERS"),
     ("bridge_helpers", "EXPECTED_MANIFEST_BRIDGE_HELPERS"),
     ("fixture_roster", "EXPECTED_MANIFEST_FIXTURE_ROSTER"),
@@ -217,6 +221,8 @@ EXTRA_REQUIRED_FILES = (
     manifest = {
         "present_surfaces": {
             "review_surfaces": ["review.md"],
+            "closure_notes": ["closure-note.md"],
+            "validators": ["scripts/zigux/validate-phase2.py"],
             "checkers": ["check-base.py", "scripts/zigux/check-extra.py"],
             "bridge_helpers": ["bridge-a.zig"],
             "fixture_roster": ["fixture-a.json"],
@@ -253,9 +259,37 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = load_json(manifest_path)
+        del payload["present_surfaces"]["closure_notes"]
+        write_json(manifest_path, payload)
+        assert ("MISSING_MANIFEST_SURFACE_KEY", "closure_notes") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
+        del payload["present_surfaces"]["validators"]
+        write_json(manifest_path, payload)
+        assert ("MISSING_MANIFEST_SURFACE_KEY", "validators") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
         payload["present_surfaces"]["bootstrap_helpers"].append("scripts/zigux/new-helper.py")
         write_json(manifest_path, payload)
         assert ("UNCOVERED_MANIFEST_ITEM", "bootstrap_helpers:scripts/zigux/new-helper.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
+        payload["present_surfaces"]["closure_notes"].remove("closure-note.md")
+        write_json(manifest_path, payload)
+        assert ("MISSING_MATRIX_COVERED_ITEM", "closure_notes:closure-note.md") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
+        payload["present_surfaces"]["validators"].remove("scripts/zigux/validate-phase2.py")
+        write_json(manifest_path, payload)
+        assert ("MISSING_MATRIX_COVERED_ITEM", "validators:scripts/zigux/validate-phase2.py") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -287,6 +321,23 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         assert ("EXTRA_REQUIRED_FILE_NOT_IN_MANIFEST", "scripts/zigux/not-in-manifest.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_path = root / MATRIX_REL
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    Path("scripts/zigux/check-extra.py"),\n',
+                '    Path("scripts/zigux/check-extra.py"),\n    Path("scripts/zigux/validate-phase2-closure.py"),\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "REDUNDANT_EXTRA_REQUIRED_FILE",
+            "scripts/zigux/validate-phase2-closure.py",
+        ) in collect_issues(root)
         checks_run += 1
 
     print("PHASE2_CLOSURE_MATRIX_COVERAGE_SELF_TEST=pass")
