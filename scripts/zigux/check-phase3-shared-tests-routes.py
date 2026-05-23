@@ -9,6 +9,7 @@ from pathlib import Path
 
 
 BUILD_PATH = Path("zigux/tests/build.zig")
+EXPORT_SHIM_BUILD_PATH = Path("zigux/tests/phase3_export_shim_build.zig")
 SELFTEST_DRIVER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
@@ -85,6 +86,25 @@ REQUIRED_BUILD_MARKERS = (
     "test_step.dependOn(phase3_test_step);",
 )
 
+REQUIRED_EXPORT_SHIM_BUILD_MARKERS = (
+    '.root_source_file = b.path("../bindings/abi.zig"),',
+    '.root_source_file = b.path("../uapi/dev_t.zig"),',
+    '.root_source_file = b.path("../uapi/version.zig"),',
+    '.root_source_file = b.path("../bindings/dev_t.zig"),',
+    '.root_source_file = b.path("../bindings/version.zig"),',
+    '.root_source_file = b.path("../kernel/export_shim.zig"),',
+    'uapi_version_module.addImport("abi_bindings", abi_bindings_module);',
+    'dev_t_binding_module.addImport("uapi_dev_t", uapi_dev_t_module);',
+    'version_binding_module.addImport("uapi_version", uapi_version_module);',
+    'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+    'export_shim_module.addImport("dev_t_binding", dev_t_binding_module);',
+    'export_shim_module.addImport("version_binding", version_binding_module);',
+    '.name = "phase3-export-shim-test",',
+    'b.step(',
+    '"phase3-export-shim-test"',
+    '"Run the focused Phase 3 export shim replay"',
+)
+
 REQUIRED_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
@@ -98,6 +118,8 @@ REQUIRED_DRIVER_MARKERS = (
 REQUIRED_MAKEFILE_MARKERS = (
     "phase3-export-uapi-layout-test:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    "phase3-export-shim-test:",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "phase3-low-level-wrappers-test:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "phase3-policy-starter-packet-test:",
@@ -126,6 +148,7 @@ REQUIRED_WORKFLOW_MARKERS = (
 )
 
 SAMPLE_BUILD_TEXT = "\n".join(REQUIRED_BUILD_MARKERS) + "\n"
+SAMPLE_EXPORT_SHIM_BUILD_TEXT = "\n".join(REQUIRED_EXPORT_SHIM_BUILD_MARKERS) + "\n"
 SAMPLE_DRIVER_TEXT = "\n".join(REQUIRED_DRIVER_MARKERS) + "\n"
 SAMPLE_MAKEFILE_TEXT = "\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n"
 SAMPLE_WORKFLOW_TEXT = "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n"
@@ -162,6 +185,22 @@ SELF_TEST_CASES = (
     (BUILD_PATH, "phase3_dump_step.dependOn(&phase3_abi_dump.step);"),
     (BUILD_PATH, "smoke_step.dependOn(phase3_test_step);"),
     (
+        EXPORT_SHIM_BUILD_PATH,
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+    ),
+    (
+        EXPORT_SHIM_BUILD_PATH,
+        'export_shim_module.addImport("version_binding", version_binding_module);',
+    ),
+    (
+        EXPORT_SHIM_BUILD_PATH,
+        '.name = "phase3-export-shim-test",',
+    ),
+    (
+        EXPORT_SHIM_BUILD_PATH,
+        '"Run the focused Phase 3 export shim replay"',
+    ),
+    (
         SELFTEST_DRIVER_PATH,
         'Path("scripts/zigux/check-phase3-abi.py")',
     ),
@@ -176,6 +215,14 @@ SELF_TEST_CASES = (
     (
         MAKEFILE_PATH,
         "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+    ),
+    (
+        MAKEFILE_PATH,
+        "phase3-export-shim-test:",
+    ),
+    (
+        MAKEFILE_PATH,
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     ),
     (
         MAKEFILE_PATH,
@@ -277,6 +324,16 @@ def _write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def _remove_exact_line(path: Path, marker: str) -> None:
+    lines = _read_text(path).splitlines()
+    for index, line in enumerate(lines):
+        if line == marker:
+            del lines[index]
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            return
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def _validate_markers(repo_root: Path, relative_path: Path, markers: tuple[str, ...]) -> list[str]:
     issues: list[str] = []
     path = repo_root / relative_path
@@ -292,17 +349,40 @@ def _validate_markers(repo_root: Path, relative_path: Path, markers: tuple[str, 
     return issues
 
 
+def _validate_exact_lines(repo_root: Path, relative_path: Path, markers: tuple[str, ...]) -> list[str]:
+    issues: list[str] = []
+    path = repo_root / relative_path
+    try:
+        lines = _read_text(path).splitlines()
+    except FileNotFoundError:
+        issues.append(f"missing repo file: {relative_path.as_posix()}")
+        return issues
+
+    for marker in markers:
+        if marker not in lines:
+            issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     issues.extend(_validate_markers(repo_root, BUILD_PATH, REQUIRED_BUILD_MARKERS))
+    issues.extend(
+        _validate_markers(
+            repo_root,
+            EXPORT_SHIM_BUILD_PATH,
+            REQUIRED_EXPORT_SHIM_BUILD_MARKERS,
+        )
+    )
     issues.extend(_validate_markers(repo_root, SELFTEST_DRIVER_PATH, REQUIRED_DRIVER_MARKERS))
-    issues.extend(_validate_markers(repo_root, MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS))
-    issues.extend(_validate_markers(repo_root, WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS))
+    issues.extend(_validate_exact_lines(repo_root, MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS))
+    issues.extend(_validate_exact_lines(repo_root, WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS))
     return issues
 
 
 def _populate_repo(root: Path) -> None:
     _write_text(root / BUILD_PATH, SAMPLE_BUILD_TEXT)
+    _write_text(root / EXPORT_SHIM_BUILD_PATH, SAMPLE_EXPORT_SHIM_BUILD_TEXT)
     _write_text(root / SELFTEST_DRIVER_PATH, SAMPLE_DRIVER_TEXT)
     _write_text(root / MAKEFILE_PATH, SAMPLE_MAKEFILE_TEXT)
     _write_text(root / WORKFLOW_PATH, SAMPLE_WORKFLOW_TEXT)
@@ -324,7 +404,7 @@ def run_self_test() -> int:
         for relative_path, marker in SELF_TEST_CASES:
             _populate_repo(root)
             path = root / relative_path
-            path.write_text(_read_text(path).replace(marker, "", 1), encoding="utf-8")
+            _remove_exact_line(path, marker)
             issues = validate_repo(root)
             expected = f"missing {relative_path.as_posix()} marker: {marker}"
             if expected not in issues:
@@ -360,6 +440,7 @@ def main() -> int:
         return 1
 
     print(f"validated {args.repo_root / BUILD_PATH}")
+    print(f"validated {args.repo_root / EXPORT_SHIM_BUILD_PATH}")
     print(f"validated {args.repo_root / SELFTEST_DRIVER_PATH}")
     print(f"validated {args.repo_root / MAKEFILE_PATH}")
     print(f"validated {args.repo_root / WORKFLOW_PATH}")
