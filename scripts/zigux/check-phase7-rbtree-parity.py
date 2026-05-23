@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(path: Path) -> str:
@@ -270,6 +270,16 @@ def run_self_test() -> None:
 
         write_fixture_root(root)
         manifest_marker = '"public_fallback_non_owner_paths": []'
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
+
+        write_fixture_root(root)
+        manifest_marker = MANIFEST_BUILD_PROVENANCE_MARKER
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
+
+        write_fixture_root(root)
+        manifest_marker = MANIFEST_EMPTY_FALLBACK_MARKER
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
 
