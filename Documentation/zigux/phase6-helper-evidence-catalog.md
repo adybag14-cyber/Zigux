@@ -23,19 +23,14 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 
 ## Current direct-readback warning
 
-Fresh direct GitHub contents reads on current `master` still return missing for several shared-note and helper-local packet members that older Phase 6 reminder surfaces have treated as shipped evidence, including:
+Fresh direct GitHub contents reads on current `master` still return missing for the remaining generator-side base64 direct C parity companions:
 
 - `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`
-- `zigux/tests/phase6_base64_c_parity.zig`
 - `zigux/tests/phase6_base64_c_casegen.zig`
-- `zigux/tests/fixtures/phase6_base64_c_harness.c`
-- `scripts/zigux/check-phase6-base64-c-parity.py`
 
-Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`, and that broader perf note is now aligned again on the currently readable base64, bsearch, checksum, and hexdump measurement packet.
+Authenticated current-master rereads now directly recover `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, `scripts/zigux/check-phase6-base64-c-parity.py`, and `Documentation/zigux/phase6-perf-gate-survey.md`, so the only current direct-readback gaps left inside the broader base64 parity family are the two generator-side paths above.
 
-Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and `scripts/zigux/check-phase6-hexdump-route.py`.
-
-A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py` again, so the still-missing generator-side gap is now narrower: only `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` remain outside the directly readable helper-local packet.
+Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, and `scripts/zigux/check-phase6-hexdump-packet.py`, and `scripts/zigux/check-phase6-hexdump-route.py`.
 
 The docs-root README now keeps a dedicated Phase 6 helper-evidence stanza aligned with surveyed head `current-master-readback-2026-05-21`, so keep `Documentation/zigux/README.md` inside the current direct-readback packet rather than treating it as a remaining shared-note follow-through gap.
 
