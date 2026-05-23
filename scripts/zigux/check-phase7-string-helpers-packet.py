@@ -23,7 +23,12 @@ REQUIRED_FILES = [
 
 DEVM_FOLLOW_ON_MARKER = (
     "Keep the dedicated checker, survey, and sample-boundary replays fail-closed "
-    "on the still-parked `devm_kasprintf_strarray()` follow-on"
+    "on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons"
+)
+
+FULL_FAMILY_GAP_MARKER = (
+    "the broader full-family packet that still leaves `parse_int_array_user()` and "
+    "`devm_kasprintf_strarray()` outside the current `master` helper packet"
 )
 
 NO_EXTRA_SAMPLE_BULLETS = [
@@ -75,6 +80,8 @@ REQUIRED_MARKERS = {
         '"* `*printf*`"',
         '"* `*vsprintf*`"',
         FORMAT_BOUNDARY_MARKER,
+        FULL_FAMILY_GAP_MARKER,
+        DEVM_FOLLOW_ON_MARKER,
         "MISSING_PHASE7_STRING_HELPERS_FILES_START",
         "MISSING_PHASE7_STRING_HELPERS_FILES_END",
         "MISSING_PHASE7_STRING_HELPERS_MARKERS_START",
@@ -138,8 +145,8 @@ REQUIRED_MARKERS = {
         'try expectContains(manifest, "\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
         'try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping");',
-        'try expectContains(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on\\\"");',
-        'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
+        'try expectContains(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\"");',
+        'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
         'try expectNotContains(helper_tests, "devmKasprintfStrarray");',
@@ -149,8 +156,8 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local",
-        "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet",
-        "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
+        FULL_FAMILY_GAP_MARKER,
+        DEVM_FOLLOW_ON_MARKER,
         FORMAT_BOUNDARY_MARKER,
         "* `*printf*`",
         "* `*vsprintf*`",
@@ -168,13 +175,13 @@ COUNTED_MARKERS = {
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
         (
-            "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
+            DEVM_FOLLOW_ON_MARKER,
             1,
         ),
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         (
-            "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
+            DEVM_FOLLOW_ON_MARKER,
             1,
         ),
         (FORMAT_BOUNDARY_MARKER, 1),
@@ -522,13 +529,13 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         sample_boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
-        sample_boundary_marker = "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
+        sample_boundary_marker = DEVM_FOLLOW_ON_MARKER
         remove_once(sample_boundary_path, sample_boundary_marker)
         expect_missing_marker("missing_sample_boundary_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        sample_boundary_marker = "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet"
+        sample_boundary_marker = FULL_FAMILY_GAP_MARKER
         remove_once(sample_boundary_path, sample_boundary_marker)
         expect_missing_marker("missing_sample_boundary_non_goal_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
         cases_run += 1
