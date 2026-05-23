@@ -46,6 +46,8 @@ REQUIRED_SURVEY_SNIPPETS = [
 
 REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-perf:",
+    "phase6-hexdump-review:",
+    "phase6-hexdump-perf-matrix-test:",
     "phase6-hexdump-perf:",
     "phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf",
 ]
@@ -54,6 +56,10 @@ REQUIRED_EVIDENCE_REPLAYS = [
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
     "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-review",
+    "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
@@ -86,11 +92,12 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 37
+SELF_TEST_CASE_COUNT = 40
 
 
 class ValidationError(RuntimeError):
     """Raised when the Phase 6 perf packet drifts."""
+
 
 
 def read_text(path: Path) -> str:
@@ -100,6 +107,7 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
+
 def require_snippets(path: Path, snippets: list[str]) -> None:
     content = read_text(path)
     for snippet in snippets:
@@ -107,6 +115,7 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
             raise ValidationError(
                 f"missing expected Phase 6 perf marker in {path.as_posix()}: {snippet}"
             )
+
 
 
 def load_manifest(path: Path) -> dict[str, object]:
@@ -119,6 +128,7 @@ def load_manifest(path: Path) -> dict[str, object]:
     return parsed
 
 
+
 def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
     helpers = manifest.get("helpers")
     if not isinstance(helpers, list):
@@ -127,6 +137,7 @@ def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
         if isinstance(helper, dict) and helper.get("key") == key:
             return helper
     raise ValidationError(f"missing helper row in manifest: {key}")
+
 
 
 def require_checker_surfaces(
@@ -140,6 +151,7 @@ def require_checker_surfaces(
     for surface in expected_surfaces:
         if surface not in checker_surfaces:
             raise ValidationError(f"{key} checker surface drifted: {surface}")
+
 
 
 def validate_case_matrix(
@@ -167,6 +179,7 @@ def validate_case_matrix(
         for field, value in fields.items():
             if case.get(field) != value:
                 raise ValidationError(f"{name} {label} {field} drifted")
+
 
 
 def validate_evidence_manifest(path: Path) -> None:
@@ -241,6 +254,7 @@ def validate_evidence_manifest(path: Path) -> None:
             )
 
 
+
 def validate_parity_manifest(path: Path) -> None:
     manifest = load_manifest(path)
     if manifest.get("packet") != "phase6-helper-parity":
@@ -300,6 +314,7 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("hexdump rerun route missing phase6-hexdump-perf")
 
 
+
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
@@ -309,9 +324,11 @@ def validate(repo_root: Path) -> None:
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
 
 
+
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 
 def scaffold_repo(root: Path) -> None:
@@ -475,9 +492,11 @@ def scaffold_repo(root: Path) -> None:
     )
 
 
+
 def mutate_text(path: Path, old: str, new: str) -> None:
     content = read_text(path)
     write(path, content.replace(old, new, 1))
+
 
 
 def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
@@ -491,6 +510,7 @@ def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
             ) from exc
     else:
         raise AssertionError("expected validation failure")
+
 
 
 def run_self_test() -> None:
@@ -600,6 +620,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / MAKEFILE_PATH,
+                "phase6-hexdump-review:",
+                "phase6-hexdump-scan:",
+            ),
+            "phase6-hexdump-review:",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / MAKEFILE_PATH,
                 "phase6-hexdump-perf:",
                 "phase6-hexdump-test:",
             ),
@@ -667,6 +699,30 @@ def run_self_test() -> None:
         )
         cases_run += 1
         scaffold_repo(root)
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"make -C zigux phase6-hexdump-review"',
+                '"make -C zigux phase6-hexdump-scan"',
+            ),
+            "phase6-hexdump-review",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"make -C zigux phase6-hexdump-perf-matrix-test"',
+                '"make -C zigux phase6-hexdump-test"',
+            ),
+            "phase6-hexdump-perf-matrix-test",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
         expect_failure(
             root,
             lambda: mutate_text(
@@ -948,6 +1004,7 @@ def run_self_test() -> None:
     print(f"PHASE6_CHECKSUM_HEXDUMP_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
 
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -962,6 +1019,7 @@ def parse_args() -> argparse.Namespace:
         help="run the built-in self-test",
     )
     return parser.parse_args()
+
 
 
 def main() -> int:
