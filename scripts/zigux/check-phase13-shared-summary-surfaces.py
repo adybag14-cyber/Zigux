@@ -16,6 +16,7 @@ REQUIRED_MARKERS = {
         "Keep `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` recorded as repo-reality gaps until they rematerialize on current `master`.",
         "Contributor quick-start loop: open the workflow-guide, scripts-root, and tests-root trio first, keep the change to one shared reminder surface plus the smallest helper-local note, rerun the shared-summary, tests-root, and release-validator trio, and leave missing routes or helpers in the repo-reality-gap bucket.",
         "Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.",
+        "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
     ],
     "Documentation/zigux/phase13-release-coordination-matrix.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
@@ -58,11 +59,13 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md": [
         "- keep the shared contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, keep `Documentation/zigux/phase13-release-coordination-matrix.md` plus `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` explicit as supporting coordination companions rather than as the stable handle itself, keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard beside that stable handle, keep `zigux/Makefile` explicit only as the returned file, and keep `make -C zigux phase13-validate` plus blocked convenience route `make -C zigux phase13` framed as the still-missing shared build routes on current `master`",
         "- treat notifier evidence as adjacent release-surface support rather than a fifth shared-helper anchor, and keep the shipped `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` explicit while `zigux/helpers/notifier_chain_view.zig` remains a separate adjacent repo-reality gap; keep `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, and `zigux/tests/phase13_notifier_list_reviewability.zig` visible as the focused adjacent checker packet without promoting notifier support into a fifth helper lane.",
+        "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
     ],
     "Documentation/zigux/review-checklist.md": [
         "* if the change touches the shared Phase 13 shared-helper packet, do `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `Documentation/zigux/phase13-notifier-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `scripts/zigux/check-phase13-tests-readme-alignment.py` still agree on the stable contributor-facing handle;",
         "keep adjacent notifier evidence explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`;",
         "and keep validator-first, deeper `devres` replay, direct Landlock syscall replay, adjacent notifier-chain and notifier-header companions `zigux/helpers/notifier_chain_view.zig` and `include/zigux/notifier_abi.h`, and notifier-priority surfaces framed as repo-reality gaps until current `master` rematerializes them?",
+        "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
     ],
     "scripts/zigux/README.md": [
         "`Documentation/zigux/phase13-shared-summary-guard-gap.md`",
@@ -70,6 +73,7 @@ REQUIRED_MARKERS = {
         "keep `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned shared-summary and adjacent notifier evidence on current `master` instead of leaving them in the repo-reality-gap list",
         "`zigux/Makefile` is present on current `master`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep those route names recorded as repo-reality gaps instead of promoting the returned file into a shipped shared build handle",
         "`scripts/zigux/check-phase13-shared-summary-surfaces.py`, `scripts/zigux/check-phase13-tests-readme-alignment.py`, and `scripts/zigux/validate-phase13-release.py` keep the shared-summary, tests-root alignment, and release-discipline packet explicit from the scripts root without pretending a broader validator-first or convenience-route replay has returned",
+        "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
     ],
     "zigux/tests/README.md": [
         "Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, and `Documentation/zigux/phase13-notifier-summary-gap.md` aligned with that stable handle as supporting shared reminder surfaces. Keep `Documentation/zigux/phase13-release-coordination-matrix.md` and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` explicit as supporting coordination companions, and keep `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, and `Documentation/zigux/phase13-notifier-summary-gap.md` aligned as broader same-lane reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.",
@@ -202,6 +206,22 @@ def run_self_test() -> int:
         checks_run += 1
 
         populate_repo(tempdir)
+        contributor_guide_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
+        contributor_guide_path.write_text(
+            contributor_guide_path.read_text(encoding="utf-8").replace(
+                "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
         release_notes_path = tempdir / "Documentation/zigux/phase13-release-notes-survey.md"
         release_notes_path.write_text(
             release_notes_path.read_text(encoding="utf-8").replace(
@@ -266,6 +286,22 @@ def run_self_test() -> int:
         checks_run += 1
 
         populate_repo(tempdir)
+        contributor_sync_path = tempdir / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
+        contributor_sync_path.write_text(
+            contributor_sync_path.read_text(encoding="utf-8").replace(
+                "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md:`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
         checklist_path = tempdir / "Documentation/zigux/review-checklist.md"
         checklist_path.write_text(
             checklist_path.read_text(encoding="utf-8").replace(
@@ -278,6 +314,22 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "missing_marker:Documentation/zigux/review-checklist.md:keep adjacent notifier evidence explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`;",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        checklist_path = tempdir / "Documentation/zigux/review-checklist.md"
+        checklist_path.write_text(
+            checklist_path.read_text(encoding="utf-8").replace(
+                "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/review-checklist.md:`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
         )
         checks_run += 1
 
@@ -310,6 +362,22 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "missing_marker:scripts/zigux/README.md:`Documentation/zigux/phase13-notifier-summary-gap.md`",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        scripts_readme_path = tempdir / "scripts/zigux/README.md"
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:scripts/zigux/README.md:`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
         )
         checks_run += 1
 
