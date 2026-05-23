@@ -4,7 +4,7 @@
   "mode": "bounded wrapper-first dual-implementation bridge",
   "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
   "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
-  "case_count": 8,
+  "case_count": 9,
   "cases": [
     "minimal",
     "debug_reference_types",
@@ -13,7 +13,8 @@
     "quiet_overrides_warning",
     "explicit_option_terminator",
     "positional_passthrough",
-    "lone_dash_passthrough"
+    "lone_dash_passthrough",
+    "dash_prefixed_long_option_arguments_as_data"
   ],
   "bridge_expected_packet": [
     "minimal_expected.json",
@@ -23,7 +24,8 @@
     "quiet_overrides_warning_expected.json",
     "explicit_option_terminator_expected.json",
     "positional_passthrough_expected.json",
-    "lone_dash_passthrough_expected.json"
+    "lone_dash_passthrough_expected.json",
+    "dash_prefixed_long_option_arguments_as_data_expected.json"
   ],
   "help_packet": [
     "help_expected.json"
