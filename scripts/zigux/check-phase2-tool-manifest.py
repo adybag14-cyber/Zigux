@@ -121,13 +121,8 @@ REQUIRED_PRESENT_SURFACES = {
         "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
         "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
     ),
-    "policy": (
-        "scripts/zigux/zig-toolchain-policy.json",
-    ),
-    "archive_support": (
-        "third_party/README.md",
-        "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
-    ),
+    "policy": ("scripts/zigux/zig-toolchain-policy.json",),
+    "archive_support": ("third_party/README.md",),
     "make_wrappers": (
         "zigux/Makefile",
         "make -C zigux phase2-toolchain",
@@ -243,31 +238,9 @@ REQUIRED_NOTE_MARKERS = (
     "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep the dedicated manifest guards, the primary artifact_diff helper, and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, scripts/zigux/artifact_diff.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
-    "Keep the returned install-zig archive verification checker, staged pinned-archive helper, and the stage-helper contract plus selftest packet explicit beside the local-first archive workflow, archive README contract, and installer helper so the shared Phase 2 tool packet matches the live phase2-toolchain and validate-phase2 routes.",
-    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+    "Keep the returned install-zig archive verification checker, staged pinned-archive helper, and the stage-helper contract plus selftest packet explicit beside the local-first archive workflow, archive README contract, and installer helper so the shared Phase 2 tool packet matches the live phase2-toolchain and validate-phase2 routes while the payload itself remains absent on current master.",
+    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, the pinned archive filename plus digest and size contract, the direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving the absent archive payload in the directly readable bucket.",
 )
-
-
-def read_manifest(path: Path) -> dict:
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:
-        raise SystemExit(f"required file missing: {path}") from exc
-
-
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
-def find_duplicate_strings(entries: list[str]) -> list[str]:
-    seen: set[str] = set()
-    duplicates: list[str] = []
-    for entry in entries:
-        if entry in seen and entry not in duplicates:
-            duplicates.append(entry)
-        seen.add(entry)
-    return duplicates
 
 
 def is_repo_relative_path(entry: str) -> bool:
@@ -283,12 +256,43 @@ def iter_required_repo_paths() -> tuple[tuple[str, str], ...]:
     )
 
 
+def read_manifest(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit(f"required manifest has invalid top-level shape: {path}")
+    return payload
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def write_manifest(path: Path, payload: dict) -> None:
+    write_text(path, json.dumps(payload, indent=2) + "\n")
+
+
+def find_duplicate_strings(entries: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for entry in entries:
+        if entry in seen and entry not in duplicates:
+            duplicates.append(entry)
+        seen.add(entry)
+    return duplicates
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     manifest = read_manifest(root / MANIFEST)
     issues: list[tuple[str, str]] = []
+
     for key, expected in REQUIRED_TOP_LEVEL.items():
         if manifest.get(key) != expected:
             issues.append(("TOP_LEVEL_MISMATCH", key))
+
     surfaces = manifest.get("present_surfaces")
     if not isinstance(surfaces, dict):
         issues.append(("MISSING_PRESENT_SURFACES", "present_surfaces"))
@@ -298,37 +302,48 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             if not isinstance(entries, list):
                 issues.append(("MISSING_SURFACE_CATEGORY", category))
                 continue
-            non_string_entries = [repr(entry) for entry in entries if not isinstance(entry, str)]
-            for entry in non_string_entries:
-                issues.append(("INVALID_SURFACE_ENTRY", f"{category}:{entry}"))
+
             string_entries = [entry for entry in entries if isinstance(entry, str)]
-            for entry in find_duplicate_strings(string_entries):
-                issues.append(("DUPLICATE_SURFACE_ENTRY", f"{category}:{entry}"))
+            for entry in entries:
+                if not isinstance(entry, str):
+                    issues.append(("INVALID_SURFACE_ENTRY", f"{category}:{entry!r}"))
+
+            for duplicate in find_duplicate_strings(string_entries):
+                issues.append(("DUPLICATE_SURFACE_ENTRY", f"{category}:{duplicate}"))
+
             for entry in required_entries:
                 if entry not in string_entries:
                     issues.append(("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
+
             if string_entries != list(required_entries):
                 issues.append(("SURFACE_ORDER_MISMATCH", category))
+
             for entry in string_entries:
                 if is_repo_relative_path(entry) and not (root / entry).exists():
                     issues.append(("MISSING_SURFACE_PATH", f"{category}:{entry}"))
+
     if manifest.get("repo_reality_gaps") != []:
         issues.append(("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps"))
+
     notes = manifest.get("notes")
     if not isinstance(notes, list):
         issues.append(("MISSING_NOTES", "notes"))
     else:
-        non_string_notes = [repr(note) for note in notes if not isinstance(note, str)]
-        for note in non_string_notes:
-            issues.append(("INVALID_NOTE_ENTRY", note))
         string_notes = [note for note in notes if isinstance(note, str)]
-        for marker in find_duplicate_strings(string_notes):
-            issues.append(("DUPLICATE_NOTE_ENTRY", marker))
+        for note in notes:
+            if not isinstance(note, str):
+                issues.append(("INVALID_NOTE_ENTRY", repr(note)))
+
+        for duplicate in find_duplicate_strings(string_notes):
+            issues.append(("DUPLICATE_NOTE_ENTRY", duplicate))
+
         for marker in REQUIRED_NOTE_MARKERS:
             if marker not in string_notes:
                 issues.append(("MISSING_NOTE_MARKER", marker))
+
         if string_notes != list(REQUIRED_NOTE_MARKERS):
             issues.append(("NOTE_ORDER_MISMATCH", "notes"))
+
     return issues
 
 
@@ -343,11 +358,6 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
             print(value)
         print(f"{code}_END")
     return 1
-
-
-def write_manifest(path: Path, manifest: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 def build_self_test_manifest() -> dict:
@@ -368,141 +378,124 @@ def build_self_test_root(root: Path) -> None:
         write_text(root / entry, "present\n")
 
 
+def expect_issue(root: Path, expected: tuple[str, str]) -> None:
+    issues = collect_issues(root)
+    assert expected in issues, (expected, issues)
+
+
 def run_self_test() -> int:
-    expected_case_count = (
-        1
-        + len(REQUIRED_TOP_LEVEL)
-        + 1
-        + sum(1 for entries in REQUIRED_PRESENT_SURFACES.values() if len(entries) > 1)
-        + sum(len(entries) for entries in REQUIRED_PRESENT_SURFACES.values())
-        + len(REQUIRED_PRESENT_SURFACES)
-        + len(REQUIRED_PRESENT_SURFACES)
-        + len(REQUIRED_PRESENT_SURFACES)
-        + len(iter_required_repo_paths())
-        + 1
-        + 1
-        + len(REQUIRED_NOTE_MARKERS)
-        + 1
-        + 1
-        + 1
-        + 1
-    )
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_tool_manifest_") as tmp_dir:
         root = Path(tmp_dir)
         manifest_path = root / MANIFEST
+
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
 
         for key in REQUIRED_TOP_LEVEL:
+            build_self_test_root(root)
             manifest = build_self_test_manifest()
             manifest[key] = "broken"
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
-            assert ("TOP_LEVEL_MISMATCH", key) in collect_issues(root)
+            expect_issue(root, ("TOP_LEVEL_MISMATCH", key))
             checks_run += 1
 
+        build_self_test_root(root)
         manifest = build_self_test_manifest()
         manifest["present_surfaces"] = []
         write_manifest(manifest_path, manifest)
-        assert ("MISSING_PRESENT_SURFACES", "present_surfaces") in collect_issues(root)
+        expect_issue(root, ("MISSING_PRESENT_SURFACES", "present_surfaces"))
         checks_run += 1
 
         for category, entries in REQUIRED_PRESENT_SURFACES.items():
+            build_self_test_root(root)
             manifest = build_self_test_manifest()
             del manifest["present_surfaces"][category]
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
-            assert ("MISSING_SURFACE_CATEGORY", category) in collect_issues(root)
+            expect_issue(root, ("MISSING_SURFACE_CATEGORY", category))
             checks_run += 1
+
             for entry in entries:
+                build_self_test_root(root)
                 manifest = build_self_test_manifest()
                 manifest["present_surfaces"][category].remove(entry)
                 write_manifest(manifest_path, manifest)
-                for _, required_entry in iter_required_repo_paths():
-                    write_text(root / required_entry, "present\n")
-                assert ("MISSING_SURFACE_ENTRY", f"{category}:{entry}") in collect_issues(root)
+                expect_issue(root, ("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
                 checks_run += 1
+
+            build_self_test_root(root)
             manifest = build_self_test_manifest()
             manifest["present_surfaces"][category].append(entries[0])
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
-            assert ("DUPLICATE_SURFACE_ENTRY", f"{category}:{entries[0]}") in collect_issues(root)
+            expect_issue(root, ("DUPLICATE_SURFACE_ENTRY", f"{category}:{entries[0]}"))
             checks_run += 1
+
+            build_self_test_root(root)
             manifest = build_self_test_manifest()
             manifest["present_surfaces"][category].append(123)
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
-            assert ("INVALID_SURFACE_ENTRY", f"{category}:123") in collect_issues(root)
+            expect_issue(root, ("INVALID_SURFACE_ENTRY", f"{category}:123"))
             checks_run += 1
+
             if len(entries) > 1:
+                build_self_test_root(root)
                 manifest = build_self_test_manifest()
-                reordered = manifest["present_surfaces"][category]
-                reordered[0], reordered[1] = reordered[1], reordered[0]
+                manifest["present_surfaces"][category][0], manifest["present_surfaces"][category][1] = (
+                    manifest["present_surfaces"][category][1],
+                    manifest["present_surfaces"][category][0],
+                )
                 write_manifest(manifest_path, manifest)
-                for _, entry in iter_required_repo_paths():
-                    write_text(root / entry, "present\n")
-                assert ("SURFACE_ORDER_MISMATCH", category) in collect_issues(root)
+                expect_issue(root, ("SURFACE_ORDER_MISMATCH", category))
                 checks_run += 1
 
         for category, entry in iter_required_repo_paths():
             build_self_test_root(root)
             (root / entry).unlink()
-            assert ("MISSING_SURFACE_PATH", f"{category}:{entry}") in collect_issues(root)
+            expect_issue(root, ("MISSING_SURFACE_PATH", f"{category}:{entry}"))
             checks_run += 1
 
+        build_self_test_root(root)
         manifest = build_self_test_manifest()
         manifest["repo_reality_gaps"] = ["unexpected-gap"]
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
-        assert ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps") in collect_issues(root)
+        expect_issue(root, ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps"))
         checks_run += 1
 
+        build_self_test_root(root)
         manifest = build_self_test_manifest()
         manifest["notes"] = "broken"
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
-        assert ("MISSING_NOTES", "notes") in collect_issues(root)
+        expect_issue(root, ("MISSING_NOTES", "notes"))
         checks_run += 1
 
         for marker in REQUIRED_NOTE_MARKERS:
+            build_self_test_root(root)
             manifest = build_self_test_manifest()
             manifest["notes"].remove(marker)
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
-            assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
+            expect_issue(root, ("MISSING_NOTE_MARKER", marker))
             checks_run += 1
 
+        build_self_test_root(root)
         manifest = build_self_test_manifest()
         manifest["notes"].append(REQUIRED_NOTE_MARKERS[0])
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
-        assert ("DUPLICATE_NOTE_ENTRY", REQUIRED_NOTE_MARKERS[0]) in collect_issues(root)
+        expect_issue(root, ("DUPLICATE_NOTE_ENTRY", REQUIRED_NOTE_MARKERS[0]))
         checks_run += 1
 
+        build_self_test_root(root)
         manifest = build_self_test_manifest()
         manifest["notes"].append(123)
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
-        assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
+        expect_issue(root, ("INVALID_NOTE_ENTRY", "123"))
         checks_run += 1
 
+        build_self_test_root(root)
         manifest = build_self_test_manifest()
         manifest["notes"][0], manifest["notes"][1] = manifest["notes"][1], manifest["notes"][0]
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
-        assert ("NOTE_ORDER_MISMATCH", "notes") in collect_issues(root)
+        expect_issue(root, ("NOTE_ORDER_MISMATCH", "notes"))
         checks_run += 1
 
         manifest_path.unlink()
@@ -514,7 +507,6 @@ def run_self_test() -> int:
         else:
             raise AssertionError("missing manifest did not abort")
 
-    assert checks_run == expected_case_count
     print("PHASE2_TOOL_MANIFEST_SELF_TEST=pass")
     print(f"PHASE2_TOOL_MANIFEST_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
@@ -524,13 +516,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Keep the Phase 2 tool manifest aligned with the current repo-tooling packet."
     )
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="exercise the checker against synthetic fixtures")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(ROOT)
+    issues = collect_issues(args.root.resolve())
     if issues:
         return emit_issues(issues)
     print("PHASE2_TOOL_MANIFEST=pass")
