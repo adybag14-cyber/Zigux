@@ -125,6 +125,10 @@ fn skipLeadingSpaces(text: []const u8, start: usize) usize {
     return idx;
 }
 
+fn cStringPrefix(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
 pub fn nextArg(args: []const u8) ?NextArgResult {
     const start = skipLeadingSpaces(args, 0);
     if (start >= args.len) {
@@ -181,40 +185,41 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
 pub const next_arg = nextArg;
 
 pub fn memparse(text: []const u8) MemparseResult {
-    const prefix = parseSignedPrefix(text);
-    const base_info = parseBase(text, prefix.start);
+    const current = cStringPrefix(text);
+    const prefix = parseSignedPrefix(current);
+    const base_info = parseBase(current, prefix.start);
     const signed_input = prefix.start != 0;
 
     var idx = base_info.digits_start;
     var parsed_any = false;
     var magnitude: u64 = 0;
 
-    while (idx < text.len) : (idx += 1) {
-        const digit = digitValue(text[idx], base_info.base) orelse break;
+    while (idx < current.len) : (idx += 1) {
+        const digit = digitValue(current[idx], base_info.base) orelse break;
         parsed_any = true;
         magnitude = saturatingMulAdd(magnitude, base_info.base, digit);
     }
 
     if (!parsed_any) {
-        return .{ .value = 0, .rest = text };
+        return .{ .value = 0, .rest = current };
     }
 
-    if (idx < text.len and signed_input) {
-        magnitude = applySuffix(magnitude, text[idx]);
+    if (idx < current.len and signed_input) {
+        magnitude = applySuffix(magnitude, current[idx]);
     }
 
     var result = clampSignedMagnitude(magnitude, prefix.negative);
-    if (idx < text.len) {
+    if (idx < current.len) {
         if (!signed_input) {
-            result = applySuffix(result, text[idx]);
+            result = applySuffix(result, current[idx]);
         }
-        switch (text[idx]) {
+        switch (current[idx]) {
             'E', 'e', 'P', 'p', 'T', 't', 'G', 'g', 'M', 'm', 'K', 'k' => idx += 1,
             else => {},
         }
     }
 
-    return .{ .value = result, .rest = text[idx..] };
+    return .{ .value = result, .rest = current[idx..] };
 }
 
 test "memparse handles decimal hexadecimal octal and suffixes" {
@@ -275,6 +280,22 @@ test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
     const positive_octal = memparse("+010Mmore");
     try std.testing.expectEqual(@as(u64, 8 << 20), positive_octal.value);
     try std.testing.expectEqualStrings("more", positive_octal.rest);
+}
+
+test "memparse stops at the first embedded nul byte" {
+    const parsed = memparse("64K\x00tail");
+    try std.testing.expectEqual(@as(u64, 64 << 10), parsed.value);
+    try std.testing.expectEqualStrings("", parsed.rest);
+
+    const signed = memparse("-2M\x00ignored");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -(2 << 20)))), signed.value);
+    try std.testing.expectEqualStrings("", signed.rest);
+}
+
+test "memparse treats a leading nul byte as empty input" {
+    const parsed = memparse("\x00ignored");
+    try std.testing.expectEqual(@as(u64, 0), parsed.value);
+    try std.testing.expectEqualStrings("", parsed.rest);
 }
 
 test "parseOptionStr matches only exact bare options" {
