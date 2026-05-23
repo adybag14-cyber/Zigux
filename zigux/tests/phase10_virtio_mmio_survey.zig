@@ -148,6 +148,18 @@ test "phase10 virtio mmio survey gate keeps helper-local queue isolation and pro
     );
     try expectContains(
         helper_tests,
+        "test \\\"phase10 virtio mmio keeps config-write planning bounded to staged review state\\\" {",
+    );
+    try expectContains(
+        helper_tests,
+        "test \\\"phase10 virtio mmio keeps stale config-write plans unavailable after generation drift\\\" {",
+    );
+    try expectContains(
+        helper_tests,
+        "test \\\"phase10 virtio mmio keeps config-write disposition planning-only across restaging\\\" {",
+    );
+    try expectContains(
+        helper_tests,
         "test \\\"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\\\" {",
     );
     try expectContains(
