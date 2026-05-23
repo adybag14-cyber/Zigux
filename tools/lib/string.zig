@@ -386,6 +386,31 @@ pub fn strcmp(lhs: []const u8, rhs: []const u8) i32 {
     return @as(i32, lhs_tail) - @as(i32, rhs_tail);
 }
 
+pub fn strncmp(lhs: []const u8, rhs: []const u8, count: usize) i32 {
+    if (count == 0) {
+        return 0;
+    }
+
+    const lhs_len = cStringLen(lhs);
+    const rhs_len = cStringLen(rhs);
+    const limit = @min(count, @min(lhs_len, rhs_len));
+
+    var idx: usize = 0;
+    while (idx < limit) : (idx += 1) {
+        if (lhs[idx] != rhs[idx]) {
+            return @as(i32, lhs[idx]) - @as(i32, rhs[idx]);
+        }
+    }
+
+    if (idx == count) {
+        return 0;
+    }
+
+    const lhs_tail: u8 = if (lhs_len > idx) lhs[idx] else 0;
+    const rhs_tail: u8 = if (rhs_len > idx) rhs[idx] else 0;
+    return @as(i32, lhs_tail) - @as(i32, rhs_tail);
+}
+
 pub fn strchr(buf: []const u8, needle: u8) ?usize {
     const limit = cStringLen(buf);
     if (needle == 0) {
@@ -564,8 +589,8 @@ test "strscpy_pad mirrors strscpyPad padding semantics" {
 }
 
 test "strscpy and strscpyPad keep one-byte destinations terminated" {
-    var single_a = [_]u8{ 7 };
-    var single_b = [_]u8{ 8 };
+    var single_a = [_]u8{7};
+    var single_b = [_]u8{8};
     try std.testing.expectEqual(strscpy_e2big, strscpy(single_a[0..], "x"));
     try std.testing.expectEqual(strscpy_e2big, strscpyPad(single_b[0..], "y"));
     try std.testing.expectEqual(@as(u8, 0), single_a[0]);
@@ -706,6 +731,20 @@ test "strcmp stops at embedded NULs and length mismatches" {
     try std.testing.expect(strcmp("ab", &[_]u8{ 'a', 0, 'z' }) > 0);
 }
 
+test "strncmp honors the count limit before later mismatches" {
+    try std.testing.expect(strncmp("abcdef", "abcxyz", 3) == 0);
+    try std.testing.expect(strncmp("abcdef", "abcxyz", 4) < 0);
+    try std.testing.expect(strncmp("abcxyz", "abcdef", 4) > 0);
+    try std.testing.expect(strncmp("abcdef", "abcxyz", 0) == 0);
+}
+
+test "strncmp stops at embedded NULs and shorter prefixes" {
+    try std.testing.expect(strncmp(&[_]u8{ 'a', 0, 'z' }, &[_]u8{ 'a', 0, 'x' }, 3) == 0);
+    try std.testing.expect(strncmp(&[_]u8{ 'a', 0, 'z' }, "ab", 3) < 0);
+    try std.testing.expect(strncmp("ab", &[_]u8{ 'a', 0, 'z' }, 3) > 0);
+    try std.testing.expect(strncmp("ab", "abc", 2) == 0);
+}
+
 test "memdup and memchrInv preserve byte content" {
     const dup = try memdup(std.testing.allocator, "abc");
     defer std.testing.allocator.free(dup);
@@ -816,6 +855,14 @@ test "memparse applies suffixes before signed clamping" {
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -9216000000000000))), parsed.value);
 }
 
+test "strnstr honors count and C-string boundaries" {
+    try std.testing.expectEqual(@as(?usize, 1), strnstr("abc", "bc", 3));
+    try std.testing.expectEqual(@as(?usize, null), strnstr("abc", "bc", 1));
+    try std.testing.expectEqual(@as(?usize, null), strnstr(&[_]u8{ 'a', 0, 'b', 'c' }, "bc", 4));
+    try std.testing.expectEqual(@as(?usize, 1), strnstr("abc", &[_]u8{ 'b', 0, 'x' }, 3));
+    try std.testing.expectEqual(@as(?usize, 0), strnstr("abc", "", 0));
+}
+
 test "strchr mirrors full-length C-string searches" {
     try std.testing.expectEqual(@as(?usize, 1), strchr("abc", 'b'));
     try std.testing.expectEqual(@as(?usize, null), strchr(&[_]u8{ 'a', 0, 'b' }, 'b'));
@@ -859,14 +906,6 @@ test "strcspn counts until the first rejected byte with C-string semantics" {
 
     const reject_cstr = [_]u8{ 'x', 0, 'y' };
     try std.testing.expectEqual(@as(usize, 2), strcspn("abxc", &reject_cstr));
-}
-
-test "strnstr honors count and C-string boundaries" {
-    try std.testing.expectEqual(@as(?usize, 1), strnstr("abc", "bc", 3));
-    try std.testing.expectEqual(@as(?usize, null), strnstr("abc", "bc", 1));
-    try std.testing.expectEqual(@as(?usize, null), strnstr(&[_]u8{ 'a', 0, 'b', 'c' }, "bc", 4));
-    try std.testing.expectEqual(@as(?usize, 1), strnstr("abc", &[_]u8{ 'b', 0, 'x' }, 3));
-    try std.testing.expectEqual(@as(?usize, 0), strnstr("abc", "", 0));
 }
 
 test "strnchr honors count and C-string boundaries" {
