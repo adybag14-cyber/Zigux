@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -219,6 +219,12 @@ def run_self_test() -> None:
         slice_marker = SLICE_AUTHENTICATED_BUILD_MARKER
         marker_path.write_text(read_text(marker_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}"])
+
+        write_fixture_root(root)
+        helper_path = root / "lib" / "rbtree.zig"
+        helper_marker = "pub fn eraseInit(node: *Node, root: *Root) void {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"lib/rbtree.zig: {helper_marker}"])
 
         write_fixture_root(root)
         survey_path = root / "zigux/tests/phase7_rbtree_survey.zig"
