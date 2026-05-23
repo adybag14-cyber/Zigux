@@ -48,7 +48,7 @@ test "phase 7 cmdline companion replays option decoding, ranges, and malformed-i
     try std.testing.expectEqual(@as(i32, 2), wrapped_validate[0]);
 }
 
-test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {
+test "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries" {
     var incomplete_hex: []const u8 = "0x";
     var incomplete_hex_value: i32 = -1;
     try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&incomplete_hex, &incomplete_hex_value));
