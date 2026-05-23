@@ -14,12 +14,14 @@ DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 PHASE1_CLOSURE_REL = Path("Documentation/zigux/phase1-closure.md")
 PHASE1_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
+VALIDATOR_REL = Path("scripts/zigux/validate-phase1-closure.py")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_FILES = (
     PHASE1_CLOSURE_REL,
     PHASE1_LANE_NOTE_REL,
     BENCH_CHECKER_REL,
+    VALIDATOR_REL,
     WORKFLOW_REL,
 )
 
@@ -30,6 +32,12 @@ EXPECTED_CLOSURE_MARKERS = {
         "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires "
         "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM "
         "when the broader expectations packet returns`"
+    ),
+    "find_bit_anchor_guard": (
+        "`PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 "
+        "scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks "
+        "inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and "
+        "findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`"
     ),
     "rbtree_guard": (
         "`PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now "
@@ -67,6 +75,12 @@ EXPECTED_LANE_NOTE_MARKERS = {
         "helper-specific next-safe-step markers below before reopening any shared reminder surface`"
     ),
 }
+
+EXPECTED_VALIDATOR_MARKERS = (
+    'FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")',
+    '(FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),',
+    '`PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`',
+)
 
 EXPECTED_WORKFLOW_MARKERS = (
     "- name: Self-test current Phase 1 bench checker",
@@ -144,6 +158,16 @@ def collect_failures(root: Path) -> list[str]:
             )
         )
 
+    validator_text = load_text(root, VALIDATOR_REL)
+    for marker in EXPECTED_VALIDATOR_MARKERS:
+        failures.extend(
+            require_exact_occurrence(
+                validator_text,
+                f"{VALIDATOR_REL.as_posix()}:required",
+                marker,
+            )
+        )
+
     workflow_text = load_text(root, WORKFLOW_REL)
     for marker in EXPECTED_WORKFLOW_MARKERS:
         failures.extend(
@@ -201,6 +225,10 @@ def make_fixture_tree(root: Path) -> None:
         + "\n",
     )
     write_text(
+        root / VALIDATOR_REL,
+        "\n".join(EXPECTED_VALIDATOR_MARKERS) + "\n",
+    )
+    write_text(
         root / WORKFLOW_REL,
         "\n".join(EXPECTED_WORKFLOW_MARKERS) + "\n",
     )
@@ -225,6 +253,17 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_find_bit_anchor_guard",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(
+                    EXPECTED_CLOSURE_MARKERS["find_bit_anchor_guard"] + "\n",
+                    "",
+                    1,
+                ),
+            ),
+        ),
+        (
             "missing_rbtree_guard",
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
@@ -242,6 +281,39 @@ def run_self_test() -> int:
                 load_text(root, PHASE1_LANE_NOTE_REL).replace(
                     EXPECTED_LANE_NOTE_MARKERS["next_step"],
                     "`PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=drifted`",
+                    1,
+                ),
+            ),
+        ),
+        (
+            "missing_validator_anchor_path",
+            lambda root: write_text(
+                root / VALIDATOR_REL,
+                load_text(root, VALIDATOR_REL).replace(
+                    EXPECTED_VALIDATOR_MARKERS[0] + "\n",
+                    "",
+                    1,
+                ),
+            ),
+        ),
+        (
+            "missing_validator_anchor_delegate",
+            lambda root: write_text(
+                root / VALIDATOR_REL,
+                load_text(root, VALIDATOR_REL).replace(
+                    EXPECTED_VALIDATOR_MARKERS[1] + "\n",
+                    "",
+                    1,
+                ),
+            ),
+        ),
+        (
+            "missing_validator_anchor_marker",
+            lambda root: write_text(
+                root / VALIDATOR_REL,
+                load_text(root, VALIDATOR_REL).replace(
+                    EXPECTED_VALIDATOR_MARKERS[2] + "\n",
+                    "",
                     1,
                 ),
             ),
