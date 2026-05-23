@@ -60,7 +60,7 @@ test "phase 5 kobject attr-group survey keeps the focused external replay aligne
     }
 }
 
-test "phase 5 kobject attr-group survey keeps the shared phase5 build route aware of the focused replay" {
+test "phase 5 kobject attr-group survey keeps the shared phase5 build route aware of the focused replay and survey guard" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -75,9 +75,13 @@ test "phase 5 kobject attr-group survey keeps the shared phase5 build route awar
     const required_markers = [_][]const u8{
         "../../samples/zigux/kobject_example_attr_group_contract.zig",
         "phase5_kobject_attr_group_contract.zig",
+        "phase5_kobject_attr_group_contract_survey.zig",
         "\"kobject_attr_group_contract\"",
         "\"phase5-kobject-attr-group-contract-tests\"",
+        "\"phase5-kobject-attr-group-contract-survey-tests\"",
+        "\"phase5-kobject-attr-group-contract-survey\"",
         "test_step.dependOn(&run_phase5_kobject_attr_group_contract_tests.step);",
+        "test_step.dependOn(&run_phase5_kobject_attr_group_contract_survey_tests.step);",
     };
     for (required_markers) |marker| {
         try expectContains(build_file, marker);
