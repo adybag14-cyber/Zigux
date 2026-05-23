@@ -20,6 +20,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "scripts/zigux/check-lane05-local-first-archive-workflow.py",
     "scripts/zigux/check-lane05-local-archive-readme.py",
+    "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
@@ -277,6 +278,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/check-lane01-bootstrap-charter-alignment.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-local-first-archive-workflow.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
     write_text(root, "scripts/zigux/install-zig.py", "present\n")
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
     write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
@@ -352,6 +354,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / "scripts/zigux/check-zig-toolchain.py").unlink()
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-zig-toolchain.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase1-route-summary-counts.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/check-phase1-route-summary-counts.py",
+        ) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
