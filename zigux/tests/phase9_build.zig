@@ -543,7 +543,7 @@ pub fn build(b: *std.Build) void {
         &run_runtime_trace_events_unregistered_gate_tests.step,
     );
     phase9_runtime_trace_events.dependOn(
-        &run_runtime_trace_EVENTS_exit_rollback_guard_tests.step,
+        &run_runtime_trace_events_exit_rollback_guard_tests.step,
     );
     phase9_runtime_trace_events.dependOn(
         &run_runtime_trace_events_registration_reentry_gate_tests.step,
