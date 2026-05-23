@@ -35,6 +35,7 @@ REQUIRED_HELPER_ANCHORS = [
     'test "single-word next scans honor start masks"',
     'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
     'test "clump8 past-end scans return without reading bitmap words"',
     'test "getValue8 reads aligned bytes from bitmap words"',
     'test "find last bit scans backward across words"',
