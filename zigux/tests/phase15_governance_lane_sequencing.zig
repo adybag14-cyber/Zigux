@@ -77,9 +77,9 @@ test "phase 15 governance-lane sequencing manifest records the current direct pa
     try std.testing.expectEqualStrings("current-master-readback-2026-05-22", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-governance-lane-sequencing.md", manifest.sequencing_note);
     try std.testing.expectEqualStrings("zigux/tests/phase15_readiness_gate_manifest.json", manifest.readiness_manifest);
-    try std.testing.expectEqual(@as(usize, 19), manifest.direct_packet_paths.len);
-    try std.testing.expectEqual(@as(usize, 2), manifest.still_missing_broader_paths.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.maintenance_replay_commands.len);
+    try std.testing.expectEqual(@as(usize, 20), manifest.direct_packet_paths.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.still_missing_broader_paths.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.maintenance_replay_commands.len);
 
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_parity_scorecard.json");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_parity_scorecard.zig");
@@ -88,10 +88,12 @@ test "phase 15 governance-lane sequencing manifest records the current direct pa
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_handoff_next_steps_manifest.json");
     try expectSliceContains(manifest.direct_packet_paths, "scripts/zigux/check-phase15-handoff-note-alignment.py");
     try expectSliceContains(manifest.direct_packet_paths, "Documentation/zigux/phase15-study-only-anchor-accounting.md");
-    try expectSliceContains(manifest.still_missing_broader_paths, "scripts/zigux/validate-phase15.py");
+    try expectSliceContains(manifest.direct_packet_paths, "scripts/zigux/validate-phase15.py");
     try expectSliceContains(manifest.still_missing_broader_paths, "zigux/tests/phase15_build.zig");
+    try expectSliceNotContains(manifest.still_missing_broader_paths, "scripts/zigux/validate-phase15.py");
     try expectSliceNotContains(manifest.still_missing_broader_paths, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectSliceContains(manifest.maintenance_replay_commands, "python3 scripts/zigux/check-phase15-handoff-note-alignment.py");
+    try expectSliceContains(manifest.maintenance_replay_commands, "python3 scripts/zigux/validate-phase15.py");
     try expectSliceContains(manifest.maintenance_replay_commands, "zig test zigux/tests/phase15_governance_lane_sequencing.zig");
 }
 
@@ -118,15 +120,18 @@ test "phase 15 governance-lane sequencing note names the current packet and curr
     try expectContains(sequencing_note, "the dedicated handoff manifest plus focused handoff-specific replay plus focused handoff-note checker are landed");
     try expectContains(sequencing_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
     try expectContains(sequencing_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
+    try expectContains(sequencing_note, "`scripts/zigux/validate-phase15.py`");
     try expectContains(sequencing_note, "python3 scripts/zigux/check-phase15-handoff-note-alignment.py");
+    try expectContains(sequencing_note, "python3 scripts/zigux/validate-phase15.py");
     try expectContains(sequencing_note, "zig test zigux/tests/phase15_governance_lane_sequencing.zig");
     try expectContains(sequencing_note, "a missing focused replay, dedicated build file, or other absent broader companion is already landed on current `master`");
-    try expectContains(sequencing_note, "broader validator-first and dedicated-build companions");
-    try expectContains(sequencing_note, "which remaining missing validator-first or dedicated-build companions");
+    try expectContains(sequencing_note, "which remaining missing dedicated-build companions");
+    try expectContains(sequencing_note, "the dedicated validator-first companion `scripts/zigux/validate-phase15.py` is directly materialized");
 
     for (manifest.still_missing_broader_paths) |path| {
         try expectContains(sequencing_note, path);
     }
+    try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "Current `master` still returns missing for `scripts/zigux/validate-phase15.py`") == null);
     try std.testing.expect(std.mem.indexOf(u8, sequencing_note, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig") == null);
 }
 
