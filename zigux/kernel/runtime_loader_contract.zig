@@ -163,11 +163,46 @@ test "keepsLoadPlanExplicit compares every shared handoff field" {
     var drifted = stable;
     drifted.module_name = "runtime_bitmap_drift";
     try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.anchor = "lib/test_bitmap_drift.c";
+    try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.entry_symbol = "zigux_runtime_bitmap_init_drift";
+    try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.exit_symbol = "zigux_runtime_bitmap_exit_drift";
+    try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.requires_runtime_substrate = false;
+    try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.provides_selftest_hook = false;
+    try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
     drifted = stable;
     drifted.allocator_handoff = .caller_provided;
     try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.init_flow.handoff_stage = .selftest_complete;
+    drifted.init_flow.selftest_runs = 1;
+    try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.init_flow.init_runs = 2;
+    try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
     drifted = stable;
     drifted.init_flow.selftest_runs = 1;
+    try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.init_flow.exit_runs = 1;
     try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
 }
 
