@@ -26,7 +26,7 @@ Fresh authenticated GitHub reread in this slot directly returned:
 - `zigux/tests/fixtures/phase7_rbtree.json`
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 
-Fresh current-master reread in this slot also confirmed these shared, legacy, or roadmap-adjacent non-owner surfaces:
+Fresh current-master reread in this slot also directly returned these shared, legacy, or roadmap-adjacent non-owner surfaces:
 
 - `tools/lib/rbtree.zig`
 - `scripts/zigux/check-phase7-build-wiring.py`
@@ -35,9 +35,7 @@ Fresh current-master reread in this slot also confirmed these shared, legacy, or
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 
-`zigux/tests/phase7_build.zig` needed the public blob and raw GitHub fallback in this slot after the authenticated GitHub contents bridge returned `404` for that path, so keep it explicit as returned shared non-owner build evidence without overstating authenticated whole-file coverage for this one surface.
-
-Machine-readable fallback provenance stays explicit through `public_fallback_non_owner_paths` in `zigux/tests/phase7_rbtree_manifest.json`, which currently names only `zigux/tests/phase7_build.zig` because the other listed legacy or shared non-owner surfaces still rematerialized through authenticated rereads in this slot.
+`zigux/tests/phase7_build.zig` now rematerialized through the same authenticated reread path in this slot, so keep it explicit as returned shared non-owner build evidence without treating it as helper-local ownership.
 
 The dedicated C harness now returns as a helper-local parity companion rather than a repo-reality gap:
 
