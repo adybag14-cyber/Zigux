@@ -26,6 +26,10 @@ test "phase 8 file-path handle bridge manifest keeps the landed helper wording e
 
     try expectContains(
         manifest,
+        "\"surveyed_commit\": \"17fd5f8e2b234738428770e192346d040aff13ce\"",
+    );
+    try expectContains(
+        manifest,
         "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
     );
     try expectContains(
