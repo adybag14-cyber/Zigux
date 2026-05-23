@@ -176,7 +176,7 @@ test "phase10 virtio mmio survey gate keeps helper-local queue isolation and pro
     );
 }
 
-test "phase10 virtio mmio survey note keeps risky transport work blocked" {
+test "phase10 virtio mmio survey note keeps risky transport work and freeze-boundary policy evidence explicit" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -187,9 +187,24 @@ test "phase10 virtio mmio survey note keeps risky transport work blocked" {
 
     try expectContains(survey_note, "transport-backed queue setup or queue reset execution");
     try expectContains(survey_note, "shared IRQ delivery parity");
-    try expectContains(survey_note, "DMA-facing behavior");
     try expectContains(
         survey_note,
-        "probe, remove, freeze, restore, or device-lifecycle closure",
+        "`freeze_boundary_status` stays `aligned` and `freeze_status_change_claimed` stays `false`.",
+    );
+    try expectContains(
+        survey_note,
+        "`architecture_council_reopen_required` stays `true` and `architecture_council_reopen_attached` stays `false`.",
+    );
+    try expectContains(
+        survey_note,
+        "allowed evidence kinds stay limited to `driver_local_lab_slices`, `survey_manifests`, and `shared_validation_gates`.",
+    );
+    try expectContains(
+        survey_note,
+        "allowed roadmap destinations stay limited to `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`.",
+    );
+    try expectContains(
+        survey_note,
+        "forbidden transport claims remain `queue_setup_reset_paths`, `queue_reset_execution`, `irq_parity`, `dma_paths`, `probe_remove_lifecycle`, and `freeze_restore_lifecycle`.",
     );
 }
