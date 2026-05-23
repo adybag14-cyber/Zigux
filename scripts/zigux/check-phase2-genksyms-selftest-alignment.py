@@ -126,22 +126,52 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
-def extract_literal(module_text: str, const_name: str) -> object:
-    module = ast.parse(module_text)
+def extract_literal_from_module(module: ast.Module, const_name: str, *, source_path: Path) -> object:
     for node in module.body:
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id == const_name:
-                    return ast.literal_eval(node.value)
-    raise ValueError(f"missing constant {const_name}")
+                    try:
+                        return ast.literal_eval(node.value)
+                    except (SyntaxError, ValueError) as exc:
+                        raise ValueError(
+                            f"{source_path.relative_to(ROOT).as_posix()}:{const_name}:invalid_literal:{exc}"
+                        ) from exc
+    raise ValueError(f"{source_path.relative_to(ROOT).as_posix()}:missing constant {const_name}")
 
 
-def extract_bridge_packets(bridge_checker_text: str) -> tuple[list[dict[str, object]], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+def extract_string_sequence(module: ast.Module, const_name: str, *, source_path: Path) -> tuple[str, ...]:
+    value = extract_literal_from_module(module, const_name, source_path=source_path)
+    if not isinstance(value, (list, tuple)) or not all(isinstance(item, str) for item in value):
+        raise ValueError(
+            f"{source_path.relative_to(ROOT).as_posix()}:{const_name}:expected_string_sequence"
+        )
+    return tuple(value)
+
+
+def extract_case_fixtures(module: ast.Module, *, source_path: Path) -> list[dict[str, object]]:
+    value = extract_literal_from_module(module, "CASE_FIXTURES", source_path=source_path)
+    if not isinstance(value, (list, tuple)) or not all(isinstance(item, dict) for item in value):
+        raise ValueError(
+            f"{source_path.relative_to(ROOT).as_posix()}:CASE_FIXTURES:expected_case_fixture_sequence"
+        )
+    return [dict(item) for item in value]
+
+
+def extract_bridge_packets(
+    bridge_checker_text: str, *, source_path: Path
+) -> tuple[list[dict[str, object]], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+    try:
+        module = ast.parse(bridge_checker_text, filename=source_path.as_posix())
+    except SyntaxError as exc:
+        raise ValueError(
+            f"{source_path.relative_to(ROOT).as_posix()}:invalid_python:{exc.lineno}:{exc.offset}"
+        ) from exc
     return (
-        list(extract_literal(bridge_checker_text, "CASE_FIXTURES")),
-        tuple(extract_literal(bridge_checker_text, "EXPECTED_PROCESS_OUTPUT_PACKET")),
-        tuple(extract_literal(bridge_checker_text, "EXPECTED_HELPER_LOCAL_ANCHORS")),
-        tuple(extract_literal(bridge_checker_text, "REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES")),
+        extract_case_fixtures(module, source_path=source_path),
+        extract_string_sequence(module, "EXPECTED_PROCESS_OUTPUT_PACKET", source_path=source_path),
+        extract_string_sequence(module, "EXPECTED_HELPER_LOCAL_ANCHORS", source_path=source_path),
+        extract_string_sequence(module, "REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES", source_path=source_path),
     )
 
 
@@ -198,7 +228,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(root / WORKFLOW.relative_to(ROOT))
     makefile_text = read_text(root / MAKEFILE.relative_to(ROOT))
-    bridge_checker_text = read_text(root / BRIDGE_CHECKER.relative_to(ROOT))
+    bridge_checker_path = root / BRIDGE_CHECKER.relative_to(ROOT)
+    bridge_checker_text = read_text(bridge_checker_path)
     version_side_effect_text = read_text(root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT))
 
     for marker in WORKFLOW_LINES:
@@ -215,7 +246,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
-    case_fixtures, process_output_packet, helper_local_anchors, version_side_effect_lines = extract_bridge_packets(bridge_checker_text)
+    try:
+        case_fixtures, process_output_packet, helper_local_anchors, version_side_effect_lines = extract_bridge_packets(
+            bridge_checker_text,
+            source_path=BRIDGE_CHECKER,
+        )
+    except ValueError as exc:
+        issues.append(("INVALID_BRIDGE_CHECKER_PACKET", str(exc)))
+        return issues
 
     required_paths = [
         root / CASES_FIXTURE.relative_to(ROOT),
@@ -321,7 +359,10 @@ def build_self_test_root(root: Path) -> None:
         '}\n',
     )
     bridge_checker_text = read_text(root / BRIDGE_CHECKER.relative_to(ROOT))
-    case_fixtures, process_output_packet, helper_local_anchors, _ = extract_bridge_packets(bridge_checker_text)
+    case_fixtures, process_output_packet, helper_local_anchors, _ = extract_bridge_packets(
+        bridge_checker_text,
+        source_path=BRIDGE_CHECKER,
+    )
     write_text(root / CASES_FIXTURE.relative_to(ROOT), json.dumps([
         {"name": case["name"], "args": case["args"], "expected_file": case["expected_file"]}
         for case in case_fixtures
@@ -402,6 +443,21 @@ def run_self_test() -> int:
             )
             assert ("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        bridge_path = root / BRIDGE_CHECKER.relative_to(ROOT)
+        bridge_path.write_text("def broken(:\n", encoding="utf-8")
+        assert any(code == "INVALID_BRIDGE_CHECKER_PACKET" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        bridge_path = root / BRIDGE_CHECKER.relative_to(ROOT)
+        bridge_path.write_text(bridge_path.read_text(encoding="utf-8").replace("CASE_FIXTURES = ", "MISSING_CASE_FIXTURES = ", 1), encoding="utf-8")
+        assert (
+            "INVALID_BRIDGE_CHECKER_PACKET",
+            "scripts/zigux/check-genksyms-bridge.py:missing constant CASE_FIXTURES",
+        ) in collect_issues(root)
+        checks_run += 1
 
         build_self_test_root(root)
         cases_path = root / CASES_FIXTURE.relative_to(ROOT)
@@ -543,6 +599,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 1
+    + 2
 )
 
 
