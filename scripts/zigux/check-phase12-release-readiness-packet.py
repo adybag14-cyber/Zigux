@@ -102,7 +102,7 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "  * current contents-bridge shared support bundle during degraded contents reads:",
-        "- exact coverage evidence checked on `2026-05-23`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` at blob `b34900db85b8872b5981b63839ab35583d340f0a`, `scripts/zigux/validate-phase12.py` at blob `de1e248f6688adf89b9f9edb3abd824ece6ddae5`, `scripts/zigux/check-phase12-release-readiness-packet.py` at blob `f6343d3b1dd6c4c6e0a16fb86d888dcf68186d74`, `.github/workflows/zigux-bootstrap.yml` at blob `5d07f69d341f667c96f59a26cd6957870c54997f`, `scripts/zigux/README.md` at blob `82636ad6f5befd3b0fc4eb8f6ac875475d9119a9`, `zigux/Makefile` at blob `ad34a7346eac978fc6bb824778e408084d6af909`, and `zigux/tests/phase12_build.zig` at blob `c338d24f4d12317c6a58d25708bbc14a5006852c`",
+        "- exact coverage evidence checked on `2026-05-23`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` at blob `b34900db85b8872b5981b63839ab35583d340f0a`, `scripts/zigux/validate-phase12.py` at blob `de1e248f6688adf89b9f9edb3abd824ece6ddae5`, `scripts/zigux/check-phase12-release-readiness-packet.py` at blob `8007f57475bc5c173899c8fa88c0776b2f692e1f`, `.github/workflows/zigux-bootstrap.yml` at blob `5d07f69d341f667c96f59a26cd6957870c54997f`, `scripts/zigux/README.md` at blob `695f5ad4f0cf6c9b8b1faa063e60627f2c6e6eeb`, `zigux/Makefile` at blob `ad34a7346eac978fc6bb824778e408084d6af909`, and `zigux/tests/phase12_build.zig` at blob `c338d24f4d12317c6a58d25708bbc14a5006852c`",
         "exact runtime-reality evidence checked on `2026-05-23`: the directly readable `zigux/Makefile` blob `ad34a7346eac978fc6bb824778e408084d6af909` now exposes shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` again",
     ],
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
@@ -144,7 +144,7 @@ REQUIRED_MARKERS = {
 
 EXACT_COUNT_MARKERS = {
     RAW_GITHUB_COVERAGE_SURVEY_PATH: {
-        "- exact coverage evidence checked on `2026-05-23`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` at blob `b34900db85b8872b5981b63839ab35583d340f0a`, `scripts/zigux/validate-phase12.py` at blob `de1e248f6688adf89b9f9edb3abd824ece6ddae5`, `scripts/zigux/check-phase12-release-readiness-packet.py` at blob `f6343d3b1dd6c4c6e0a16fb86d888dcf68186d74`, `.github/workflows/zigux-bootstrap.yml` at blob `5d07f69d341f667c96f59a26cd6957870c54997f`, `scripts/zigux/README.md` at blob `82636ad6f5befd3b0fc4eb8f6ac875475d9119a9`, `zigux/Makefile` at blob `ad34a7346eac978fc6bb824778e408084d6af909`, and `zigux/tests/phase12_build.zig` at blob `c338d24f4d12317c6a58d25708bbc14a5006852c`": 1,
+        "- exact coverage evidence checked on `2026-05-23`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` at blob `b34900db85b8872b5981b63839ab35583d340f0a`, `scripts/zigux/validate-phase12.py` at blob `de1e248f6688adf89b9f9edb3abd824ece6ddae5`, `scripts/zigux/check-phase12-release-readiness-packet.py` at blob `8007f57475bc5c173899c8fa88c0776b2f692e1f`, `.github/workflows/zigux-bootstrap.yml` at blob `5d07f69d341f667c96f59a26cd6957870c54997f`, `scripts/zigux/README.md` at blob `695f5ad4f0cf6c9b8b1faa063e60627f2c6e6eeb`, `zigux/Makefile` at blob `ad34a7346eac978fc6bb824778e408084d6af909`, and `zigux/tests/phase12_build.zig` at blob `c338d24f4d12317c6a58d25708bbc14a5006852c`": 1,
     },
 }
 
