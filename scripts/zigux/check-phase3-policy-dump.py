@@ -37,6 +37,8 @@ REQUIRED_DUMP_MARKERS = (
     'bridge_read_ok={any}',
     'bridge_write_ok={any}',
     'narrow={s}',
+    'const stdout = std.io.getStdOut().writer();',
+    'try stdout.print(',
 )
 
 REQUIRED_BUILD_MARKERS = (
