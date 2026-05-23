@@ -277,6 +277,30 @@ test "phase10 virtio mmio verify counts changed config bytes without mutating st
     try std.testing.expectEqual(@as(u32, 0x0203_0405), summary.previous_value);
 }
 
+test "phase10 virtio mmio verify keeps config-write disposition wrapper non-mutating across no-op plans and restaging" {
+    var device = try virtio_mmio.VirtioMmioLab.init(92, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0405);
+    const no_op = try summarizeConfigWriteDisposition(&device);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, no_op.anchor);
+    try std.testing.expectEqual(@as(u32, 4), no_op.relative_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 4), no_op.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 7), no_op.relative_end_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 7), no_op.absolute_end_offset);
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), no_op.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), no_op.planned_value);
+    try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 0), changedByteCount(no_op));
+    try std.testing.expect(!no_op.has_changes);
+
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x08, 0x07, 0x06, 0x05 });
+    try std.testing.expectError(
+        error.ConfigWritePlanUnavailable,
+        summarizeConfigWriteDisposition(&device),
+    );
+}
+
 test "phase10 virtio mmio verify keeps config-write apply observation wrapper planning-only and explicit" {
     var device = try virtio_mmio.VirtioMmioLab.init(90, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
