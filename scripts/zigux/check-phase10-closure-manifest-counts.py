@@ -55,6 +55,18 @@ REQUIRED_MMIO_SCOREBOARD_EVIDENCE = [
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
 ]
 
+REQUIRED_FOCUSED_HARNESS_REPLAYS = {
+    "drivers/virtio/virtio_ring_publish_readiness.zig": [
+        "phase10 ring publish-readiness wrapper replay",
+    ],
+    "zigux/tests/phase10_virtio_mmio.zig": [
+        "phase10 mmio lab replay",
+    ],
+    "zigux/tests/phase10_virtio_mmio_survey.zig": [
+        "phase10 mmio survey replay",
+    ],
+}
+
 REQUIRED_INPUT_READY_TRANSPORT_PATH = "zigux/tests/phase10_virtio_input_manifest.json"
 REQUIRED_INPUT_READY_TRANSPORT_GAP = "phase10-virtio-input-registration-lifecycle"
 REQUIRED_MMIO_READY_TRANSPORT_PATH = "zigux/tests/phase10_virtio_mmio_manifest.json"
@@ -141,6 +153,22 @@ def collect_drift(manifest: dict) -> list[str]:
                 f"{item!r}:missing"
             )
 
+    focused_harness_replays = manifest.get("focused_harness_replays")
+    if not isinstance(focused_harness_replays, dict):
+        drift.append("focused_harness_replays:missing")
+        return drift
+
+    for path, required_labels in REQUIRED_FOCUSED_HARNESS_REPLAYS.items():
+        replay_labels = focused_harness_replays.get(path)
+        if not isinstance(replay_labels, list) or not replay_labels:
+            drift.append(f"focused_harness_replays:{path}:missing")
+            continue
+        for label in required_labels:
+            if label not in replay_labels:
+                drift.append(
+                    f"focused_harness_replays:{path}:{label!r}:missing"
+                )
+
     ready_transport_followups = manifest.get("ready_transport_followups")
     if not isinstance(ready_transport_followups, dict):
         drift.append("ready_transport_followups:missing")
@@ -210,6 +238,7 @@ def fixture_manifest() -> dict:
                 "evidence": REQUIRED_MMIO_SCOREBOARD_EVIDENCE,
             },
         },
+        "focused_harness_replays": REQUIRED_FOCUSED_HARNESS_REPLAYS,
         "ready_transport_followups": {
             REQUIRED_INPUT_READY_TRANSPORT_PATH: REQUIRED_INPUT_READY_TRANSPORT_GAP,
             REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
@@ -463,6 +492,38 @@ def run_self_test() -> int:
         cases += 1
 
         broken = dict(original)
+        broken["focused_harness_replays"]["drivers/virtio/virtio_ring_publish_readiness.zig"] = []
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:drivers/virtio/virtio_ring_publish_readiness.zig:missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_mmio.zig"] = [
+            "phase10 mmio companion drift",
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:zigux/tests/phase10_virtio_mmio.zig:'phase10 mmio lab replay':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        del broken["focused_harness_replays"]["zigux/tests/phase10_virtio_mmio_survey.zig"]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:zigux/tests/phase10_virtio_mmio_survey.zig:missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
         broken["ready_transport_followups"][REQUIRED_INPUT_READY_TRANSPORT_PATH] = "phase10-input-helper-drift"
         write_manifest(broken)
         expect_contains(
@@ -563,6 +624,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_EXACT_CHECK_COUNT={len(REQUIRED_EXACT_CHECKS)}")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_RING_EVIDENCE_COUNT={len(REQUIRED_RING_SCOREBOARD_EVIDENCE)}")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_MMIO_EVIDENCE_COUNT={len(REQUIRED_MMIO_SCOREBOARD_EVIDENCE)}")
+    print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_FOCUSED_HARNESS_REPLAY_COUNT={len(REQUIRED_FOCUSED_HARNESS_REPLAYS)}")
     return 0
 
 
