@@ -228,6 +228,9 @@ REQUIRED_MARKERS = {
         RAW_GITHUB_COVERAGE_MARKER,
         RAW_GITHUB_COVERAGE_RETURNED_WRAPPER_MARKER,
         RAW_GITHUB_COVERAGE_LOCAL_FIRST_WORKFLOW_MARKER,
+        "    * `scripts/zigux/check-phase12-complex-driver-lane-packet.py`",
+        "    * `scripts/zigux/check-phase12-libbpf-snapshot.py`",
+        "    * `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`",
     ],
 }
 
