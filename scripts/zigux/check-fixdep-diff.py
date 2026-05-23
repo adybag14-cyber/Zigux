@@ -123,7 +123,9 @@ EXPECTED_CASE_ORDER = list(EXPECTED_CASES)
 EXPECTED_FIXTURE_FILES = frozenset(
     {
         "cases.json",
-        r"escaped\\ space-config.h",
+        "dep:colon.so",
+        "dep\\ name.rmeta",
+        "escaped\\ space-config.h",
         "sample-config.h",
         "sample.c",
         "sample.d",
@@ -157,9 +159,11 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "sample_escaped_colon.d",
         "sample_escaped_colon_expected.txt",
         "sample_escaped_colon_source.c",
+        "sample_escaped_colon_source.rmeta",
         "sample_escaped_space.d",
         "sample_escaped_space_expected.txt",
         "sample_escaped_space_source.c",
+        "sample_escaped_space_source.rmeta",
         "sample_expected.txt",
         "sample_missing_dep.d",
         "sample_missing_dep_expected.stderr.txt",
@@ -451,10 +455,10 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / "escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
-            frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+            frozenset({"fixture_a.txt", "escaped\\ space-config.h"}),
         )
     checks_run += 1
 
@@ -465,22 +469,22 @@ def run_self_test() -> int:
             "missing_escaped_space_fixture",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+                frozenset({"fixture_a.txt", "escaped\\ space-config.h"}),
             ),
-            f"{fixture_dir}:missing_fixtures:escaped\\\\ space-config.h",
+            f"{fixture_dir}:missing_fixtures:escaped\\ space-config.h",
         )
     checks_run += 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_unexpected_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / "escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
         expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
+                frozenset({"fixture_a.txt", "escaped\\ space-config.h"}),
             ),
             f"{fixture_dir}:unexpected_fixtures:unexpected.txt",
         )
