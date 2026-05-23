@@ -125,3 +125,51 @@ test "hweight helpers count each in-range single bit exactly once" {
         try std.testing.expectEqual(@as(usize, 1), hweight_long(bit));
     }
 }
+
+test "hweight helpers gain exactly one when setting a previously clear bit" {
+    const base8: u32 = 0b0101_0010;
+    const base8_count = swHweight8(base8);
+    for (0..8) |shift| {
+        const bit: u32 = @as(u32, 1) << @intCast(shift);
+        if ((base8 & bit) != 0) continue;
+        try std.testing.expectEqual(base8_count + 1, swHweight8(base8 | bit));
+        try std.testing.expectEqual(base8_count + 1, __sw_hweight8(base8 | bit));
+    }
+
+    const base16: u32 = 0x5214;
+    const base16_count = swHweight16(base16);
+    for (0..16) |shift| {
+        const bit: u32 = @as(u32, 1) << @intCast(shift);
+        if ((base16 & bit) != 0) continue;
+        try std.testing.expectEqual(base16_count + 1, swHweight16(base16 | bit));
+        try std.testing.expectEqual(base16_count + 1, __sw_hweight16(base16 | bit));
+    }
+
+    const base32: u32 = 0x5214_8421;
+    const base32_count = swHweight32(base32);
+    for (0..32) |shift| {
+        const bit: u32 = @as(u32, 1) << @intCast(shift);
+        if ((base32 & bit) != 0) continue;
+        try std.testing.expectEqual(base32_count + 1, swHweight32(base32 | bit));
+        try std.testing.expectEqual(base32_count + 1, __sw_hweight32(base32 | bit));
+    }
+
+    const base64: u64 = 0x5214_8421_1248_4211;
+    const base64_count = swHweight64(base64);
+    for (0..64) |shift| {
+        const bit: u64 = @as(u64, 1) << @intCast(shift);
+        if ((base64 & bit) != 0) continue;
+        try std.testing.expectEqual(base64_count + 1, swHweight64(base64 | bit));
+        try std.testing.expectEqual(base64_count + 1, __sw_hweight64(base64 | bit));
+    }
+
+    const base_long: usize = if (@sizeOf(usize) == 4) 0x1248_4211 else 0x5214_8421_1248_4211;
+    const base_long_count = hweightLong(base_long);
+    const long_bits = @sizeOf(usize) * 8;
+    for (0..long_bits) |shift| {
+        const bit: usize = @as(usize, 1) << @intCast(shift);
+        if ((base_long & bit) != 0) continue;
+        try std.testing.expectEqual(base_long_count + 1, hweightLong(base_long | bit));
+        try std.testing.expectEqual(base_long_count + 1, hweight_long(base_long | bit));
+    }
+}
