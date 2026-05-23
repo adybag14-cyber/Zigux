@@ -79,6 +79,7 @@ Direct current-`master` readback in this run still returned missing for:
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `zigux/tests/phase13_build.zig`
+- `scripts/zigux/check-phase13-devres-packet.py`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
