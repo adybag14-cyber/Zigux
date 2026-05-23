@@ -41,7 +41,7 @@ This survey exists to make that current helper packet explicit and reviewable on
 - `zigux/tests/phase10_virtio_mmio.zig` now gives the MMIO survey packet one dedicated MMIO lab replay for probe gating, queue readiness, interrupt-ack disposition, feature negotiation, config-write plan freshness, and config-write disposition below risky transport claims.
 - `zigux/tests/phase10_virtio_mmio_manifest.json` keeps the helper-local MMIO lab gate, dedicated survey gate, and blocked risky-transport posture explicit beside the helper and verify replay.
 - `zigux/tests/phase10_virtio_mmio_survey.zig` now gives the MMIO lane one dedicated survey replay that rereads this survey note together with the shared build gate instead of treating the dedicated survey surface as missing repo reality.
-- `zigux/tests/phase10_build.zig` remains part of the shared Phase 10 review packet and now runs the helper-local MMIO tests through `drivers/virtio/virtio_mmio.zig`, the dedicated MMIO lab replay through `zigux/tests/phase10_virtio_mmio.zig`, the wrapper-facing MMIO verify replay, and the dedicated MMIO survey replay through `zigux/tests/phase10_virtio_mmio_survey.zig`. The shared gate should still be read as helper-local MMIO coverage plus one direct lab replay and one survey replay rather than a broader transport-backed replay.
+- `zigux/tests/phase10_build.zig` remains part of the shared Phase 10 review packet and now runs the helper-local MMIO tests through the shared `phase10-virtio-mmio-tests` route, the dedicated MMIO lab replay through the shared `phase10-virtio-mmio-lab-tests` route, the wrapper-facing MMIO verify replay through the shared `phase10-virtio-mmio-verify-tests` route, and the dedicated MMIO survey replay through the shared `phase10-virtio-mmio-survey-tests` route. The shared gate should still be read as helper-local MMIO coverage plus one direct lab replay and one survey replay rather than a broader transport-backed replay.
 - `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md` remains the packet-local companion for the config-write disposition rung and should stay aligned with this broader survey note.
 
 ## Freeze boundary
@@ -63,7 +63,7 @@ Current `master` keeps this MMIO lane reviewable through these bounded surfaces:
 1. helper-local tests inside `drivers/virtio/virtio_mmio.zig`
 2. the dedicated MMIO lab replay: `zig test zigux/tests/phase10_virtio_mmio.zig`
 3. the dedicated survey replay: `zig test zigux/tests/phase10_virtio_mmio_survey.zig`
-4. `zigux/tests/phase10_build.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` remain shared Phase 10 reminder routes, and the current build file now runs the helper-local MMIO tests, the dedicated MMIO lab replay, the wrapper-facing MMIO verify replay, and the dedicated MMIO survey replay together
+4. `zigux/tests/phase10_build.zig`, `make -C zigux phase10-test`, and `make -C zigux phase10` remain shared Phase 10 reminder routes, and the current build file now runs the shared `phase10-virtio-mmio-tests`, `phase10-virtio-mmio-lab-tests`, `phase10-virtio-mmio-verify-tests`, and `phase10-virtio-mmio-survey-tests` routes together so the helper-local MMIO tests, the dedicated MMIO lab replay, the wrapper-facing MMIO verify replay, and the dedicated MMIO survey replay stay visible in one VM-friendly lab validation packet
 
 These gates should be read as helper-local review evidence, direct lab-driver validation, and shared packet reminders only, not as proof of a transport-backed MMIO driver or a dedicated MMIO lifecycle replay.
 
