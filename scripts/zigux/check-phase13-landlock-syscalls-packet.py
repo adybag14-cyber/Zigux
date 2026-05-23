@@ -46,6 +46,12 @@ REQUIRED_MARKERS = {
         "The active packet summary is now the restored survey, not this historical gap note.",
         "`scripts/zigux/check-phase13-landlock-syscalls-packet.py`",
     ],
+    "Documentation/zigux/phase13-roadmap-traceability.md": [
+        "`scripts/zigux/check-phase13-landlock-syscalls-packet.py`",
+        "`Documentation/zigux/phase13-landlock-syscalls-survey.md`",
+        "`security/landlock/syscalls.c`: mapped through",
+        "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
+    ],
 }
 
 FORBIDDEN_MARKERS = {
