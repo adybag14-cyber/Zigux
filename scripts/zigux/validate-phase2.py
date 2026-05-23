@@ -147,7 +147,9 @@ REQUIRED_WORKFLOW_LINES = (
     "run: make -C zigux phase2-fixdep",
     "run: make -C zigux phase2-tools",
     "run: make -C zigux phase2-kconfig",
+    "run: make -C zigux phase2-cross",
     "run: make -C zigux phase2-validate",
+    "run: make -C zigux phase2",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
