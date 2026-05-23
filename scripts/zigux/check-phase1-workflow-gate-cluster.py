@@ -26,7 +26,7 @@ REQUIRED_FILES = (
     ".github/workflows/zigux-bootstrap.yml",
 )
 
-EXACT_MARKERS = {
+MARKERS = {
     "Documentation/zigux/README.md": (
         "`python3 scripts/zigux/check-phase1-bench.py --self-test`",
         "`python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test`",
@@ -48,8 +48,8 @@ EXACT_MARKERS = {
         "`scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, and `scripts/zigux/validate-phase1-closure.py`",
     ),
     "scripts/zigux/check-phase1-route-summary-counts.py": (
-        "\"run: python3 scripts/zigux/check-phase1-bench.py --self-test\"," ,
-        "\"run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig\",",
+        '"run: python3 scripts/zigux/check-phase1-bench.py --self-test",',
+        '"run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",',
     ),
     "scripts/zigux/check-phase1-bench.py": (
         'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
@@ -88,18 +88,9 @@ EXACT_MARKERS = {
     ),
 }
 
-WORKFLOW_ORDER = (
-    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
-    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
-    "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
-    "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
-    "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
-    "run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
-    "run: python3 scripts/zigux/validate-phase1-closure.py",
-    "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
-)
+WORKFLOW_ORDER = MARKERS[".github/workflows/zigux-bootstrap.yml"]
 
-FORBIDDEN_EXACT_MARKERS = {
+FORBIDDEN = {
     ".github/workflows/zigux-bootstrap.yml": (
         "run: python3 scripts/zigux/check-phase1-bench.py",
     ),
@@ -117,122 +108,79 @@ def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
-def collect_missing_files(root: Path) -> list[str]:
-    return [relative_path for relative_path in REQUIRED_FILES if not (root / relative_path).is_file()]
-
-
-def collect_exact_markers(text: str, label: str, markers: tuple[str, ...]) -> list[str]:
+def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
-    lines = text.splitlines()
-    for marker in markers:
-        count = sum(1 for line in lines if line.strip() == marker.strip())
-        if count != 1:
-            issues.append(f"{label}:expected_once:actual={count}:{marker}")
-    return issues
+    for relative_path in REQUIRED_FILES:
+        if not (root / relative_path).is_file():
+            issues.append(f"missing_file:{relative_path}")
+    if issues:
+        return issues
 
+    for relative_path, markers in MARKERS.items():
+        text = read_text(root, relative_path)
+        lines = text.splitlines()
+        for marker in markers:
+            count = sum(1 for line in lines if line.strip() == marker.strip())
+            if count != 1:
+                issues.append(f"{relative_path}:expected_once:actual={count}:{marker}")
+        for marker in FORBIDDEN.get(relative_path, ()):
+            count = sum(1 for line in lines if line.strip() == marker.strip())
+            if count != 0:
+                issues.append(f"{relative_path}:forbidden:actual={count}:{marker}")
 
-def collect_forbidden_markers(text: str, label: str, markers: tuple[str, ...]) -> list[str]:
-    issues: list[str] = []
-    lines = text.splitlines()
-    for marker in markers:
-        count = sum(1 for line in lines if line.strip() == marker.strip())
-        if count != 0:
-            issues.append(f"{label}:forbidden:actual={count}:{marker}")
-    return issues
-
-
-def collect_workflow_order(text: str) -> list[str]:
-    issues: list[str] = []
-    positions: list[int] = []
-    for marker in WORKFLOW_ORDER:
-        position = text.find(marker)
-        if position == -1:
-            return []
-        positions.append(position)
-    if positions != sorted(positions):
+    workflow = read_text(root, ".github/workflows/zigux-bootstrap.yml")
+    positions = [workflow.find(marker) for marker in WORKFLOW_ORDER]
+    if all(position != -1 for position in positions) and positions != sorted(positions):
         issues.append(".github/workflows/zigux-bootstrap.yml:workflow_order:out_of_order")
     return issues
 
 
-def collect_missing_markers(root: Path) -> list[str]:
-    issues = [f"missing_file:{relative_path}" for relative_path in collect_missing_files(root)]
-    if issues:
-        return issues
-
-    for relative_path, markers in EXACT_MARKERS.items():
-        text = read_text(root, relative_path)
-        issues.extend(collect_exact_markers(text, relative_path, markers))
-        issues.extend(
-            collect_forbidden_markers(
-                text,
-                relative_path,
-                FORBIDDEN_EXACT_MARKERS.get(relative_path, ()),
-            )
-        )
-
-    workflow_text = read_text(root, ".github/workflows/zigux-bootstrap.yml")
-    issues.extend(collect_workflow_order(workflow_text))
-    return issues
-
-
 def write_text(root: Path, relative_path: str, content: str) -> None:
-    destination = root / relative_path
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(content, encoding="utf-8")
+    target = root / relative_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content, encoding="utf-8")
 
 
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
-        markers = EXACT_MARKERS.get(relative_path, ())
-        write_text(root, relative_path, "\n".join(markers) + ("\n" if markers else ""))
+        write_text(root, relative_path, "\n".join(MARKERS.get(relative_path, ())) + "\n")
 
 
-def mutate_remove_marker(root: Path, relative_path: str, marker: str) -> None:
+def mutate_remove(root: Path, relative_path: str, marker: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
 
 
-def mutate_duplicate_marker(root: Path, relative_path: str, marker: str) -> None:
+def mutate_duplicate(root: Path, relative_path: str, marker: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
 
-def mutate_append_marker(root: Path, relative_path: str, marker: str) -> None:
+def mutate_append(root: Path, relative_path: str, marker: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text + marker + "\n", encoding="utf-8")
 
 
-def mutate_reverse_workflow_pair(root: Path) -> None:
+def mutate_swap(root: Path) -> None:
     target = root / ".github/workflows/zigux-bootstrap.yml"
+    first, second = WORKFLOW_ORDER[:2]
     text = target.read_text(encoding="utf-8")
-    first = WORKFLOW_ORDER[0]
-    second = WORKFLOW_ORDER[1]
-    swapped = text.replace(first + "\n" + second, second + "\n" + first, 1)
-    target.write_text(swapped, encoding="utf-8")
+    target.write_text(text.replace(first + "\n" + second, second + "\n" + first, 1), encoding="utf-8")
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, object]] = [("success", None)]
+    cases: list[tuple[str, tuple[str, ...] | None]] = [("success", None)]
     for relative_path in REQUIRED_FILES:
         cases.append((f"missing_file:{relative_path}", ("missing_file", relative_path)))
-    for relative_path, markers in EXACT_MARKERS.items():
+    for relative_path, markers in MARKERS.items():
         for marker in markers:
             cases.append((f"missing_marker:{relative_path}", ("remove", relative_path, marker)))
             cases.append((f"duplicate_marker:{relative_path}", ("duplicate", relative_path, marker)))
-    cases.append(("workflow_out_of_order", ("workflow_swap",)))
-    cases.append(
-        (
-            "forbidden_live_bench_run",
-            (
-                "forbidden",
-                ".github/workflows/zigux-bootstrap.yml",
-                FORBIDDEN_EXACT_MARKERS[".github/workflows/zigux-bootstrap.yml"][0],
-            ),
-        )
-    )
+    cases.append(("workflow_out_of_order", ("swap",)))
+    cases.append(("forbidden_live_bench_run", ("append", ".github/workflows/zigux-bootstrap.yml", FORBIDDEN[".github/workflows/zigux-bootstrap.yml"][0])))
 
     for name, mutation in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-workflow-gate-cluster-") as tmpdir:
@@ -243,14 +191,14 @@ def run_self_test() -> int:
                 if kind == "missing_file":
                     (root / mutation[1]).unlink()
                 elif kind == "remove":
-                    mutate_remove_marker(root, mutation[1], mutation[2])
+                    mutate_remove(root, mutation[1], mutation[2])
                 elif kind == "duplicate":
-                    mutate_duplicate_marker(root, mutation[1], mutation[2])
-                elif kind == "forbidden":
-                    mutate_append_marker(root, mutation[1], mutation[2])
-                elif kind == "workflow_swap":
-                    mutate_reverse_workflow_pair(root)
-            issues = collect_missing_markers(root)
+                    mutate_duplicate(root, mutation[1], mutation[2])
+                elif kind == "append":
+                    mutate_append(root, mutation[1], mutation[2])
+                elif kind == "swap":
+                    mutate_swap(root)
+            issues = collect_issues(root)
             if name == "success":
                 if issues:
                     print("self-test:success:unexpected_failures")
@@ -275,7 +223,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    issues = collect_missing_markers(repo_root(args.root))
+    issues = collect_issues(repo_root(args.root))
     if issues:
         print("PHASE1_WORKFLOW_GATE_CLUSTER=fail")
         for item in issues:
@@ -284,10 +232,7 @@ def main() -> int:
 
     print("PHASE1_WORKFLOW_GATE_CLUSTER=pass")
     print(f"PHASE1_WORKFLOW_GATE_CLUSTER_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE1_WORKFLOW_GATE_CLUSTER_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in EXACT_MARKERS.values())}"
-    )
+    print(f"PHASE1_WORKFLOW_GATE_CLUSTER_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in MARKERS.values())}")
     return 0
 
 
