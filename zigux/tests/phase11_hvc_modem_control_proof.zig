@@ -1,5 +1,5 @@
 const std = @import("std");
-const hvc_console = @import("../../drivers/tty/hvc/hvc_console.zig");
+const hvc_console = @import("hvc_console");
 
 test "phase11 hvc console keeps full modem control callback surfaces reviewable" {
     const summary = hvc_console.summarizeModemControlHandoff(.{
