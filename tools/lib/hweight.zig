@@ -92,3 +92,54 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers match byte-lane accumulation" {
+    const value16: u32 = 0xa55a;
+    const bytes16 =
+        swHweight8(value16 & 0xff) +
+        swHweight8((value16 >> 8) & 0xff);
+    try std.testing.expectEqual(bytes16, swHweight16(value16));
+    try std.testing.expectEqual(bytes16, __sw_hweight16(value16));
+
+    const value32: u32 = 0xc396_5aa5;
+    const bytes32 =
+        swHweight8(value32 & 0xff) +
+        swHweight8((value32 >> 8) & 0xff) +
+        swHweight8((value32 >> 16) & 0xff) +
+        swHweight8((value32 >> 24) & 0xff);
+    try std.testing.expectEqual(bytes32, swHweight32(value32));
+    try std.testing.expectEqual(bytes32, __sw_hweight32(value32));
+
+    const value64: u64 = 0xf00d_cafe_1357_2468;
+    const bytes64 =
+        @as(u64, swHweight8(@intCast(value64 & 0xff))) +
+        @as(u64, swHweight8(@intCast((value64 >> 8) & 0xff))) +
+        @as(u64, swHweight8(@intCast((value64 >> 16) & 0xff))) +
+        @as(u64, swHweight8(@intCast((value64 >> 24) & 0xff))) +
+        @as(u64, swHweight8(@intCast((value64 >> 32) & 0xff))) +
+        @as(u64, swHweight8(@intCast((value64 >> 40) & 0xff))) +
+        @as(u64, swHweight8(@intCast((value64 >> 48) & 0xff))) +
+        @as(u64, swHweight8(@intCast((value64 >> 56) & 0xff)));
+    try std.testing.expectEqual(bytes64, swHweight64(value64));
+    try std.testing.expectEqual(bytes64, __sw_hweight64(value64));
+
+    const long_value: usize = if (@sizeOf(usize) == 4) 0x962d_5a3c else 0x962d_5a3c_f00d_beef;
+    const long_expected = if (@sizeOf(usize) == 4)
+        @as(usize, swHweight8(long_value & 0xff) +
+            swHweight8((long_value >> 8) & 0xff) +
+            swHweight8((long_value >> 16) & 0xff) +
+            swHweight8((long_value >> 24) & 0xff))
+    else
+        @as(usize, @intCast(
+            @as(u64, swHweight8(@intCast(long_value & 0xff))) +
+                @as(u64, swHweight8(@intCast((long_value >> 8) & 0xff))) +
+                @as(u64, swHweight8(@intCast((long_value >> 16) & 0xff))) +
+                @as(u64, swHweight8(@intCast((long_value >> 24) & 0xff))) +
+                @as(u64, swHweight8(@intCast((long_value >> 32) & 0xff))) +
+                @as(u64, swHweight8(@intCast((long_value >> 40) & 0xff))) +
+                @as(u64, swHweight8(@intCast((long_value >> 48) & 0xff))) +
+                @as(u64, swHweight8(@intCast((long_value >> 56) & 0xff))),
+        ));
+    try std.testing.expectEqual(long_expected, hweightLong(long_value));
+    try std.testing.expectEqual(long_expected, hweight_long(long_value));
+}
