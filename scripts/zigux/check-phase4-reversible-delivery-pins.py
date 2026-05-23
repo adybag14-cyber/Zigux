@@ -81,7 +81,7 @@ NOTE_MARKERS = (
 
 WARNING_MARKERS = (
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20",
-    "EXPECTED_PIN_SELF_TEST_CASES = 18",
+    "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
@@ -142,7 +142,15 @@ def require_current_head_blob_pins(root: Path, note: str) -> None:
 def check(root: Path) -> None:
     note = read(root, NOTE)
     warning = read(root, REPO_REALITY_WARNING)
-    require(note, STATIC_SHA_LINES + EXPECTED_STATUS_LINES + NOTE_MARKERS + EXPECTED_PACKET_MEMBER_LINES + EXPECTED_RECOVERY_MARKERS, NOTE.as_posix())
+    require(
+        note,
+        STATIC_SHA_LINES
+        + EXPECTED_STATUS_LINES
+        + NOTE_MARKERS
+        + EXPECTED_PACKET_MEMBER_LINES
+        + EXPECTED_RECOVERY_MARKERS,
+        NOTE.as_posix(),
+    )
     require_current_head_blob_pins(root, note)
     require(warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
 
@@ -192,7 +200,7 @@ def _baseline_warning() -> str:
         [
             "#!/usr/bin/env python3",
             "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20",
-            "EXPECTED_PIN_SELF_TEST_CASES = 18",
+            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19",
             "scripts/zigux/check-phase4-reversible-delivery-pins.py",
             "scripts/zigux/check-phase4-perf-baseline-packet.py",
             "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
@@ -297,8 +305,8 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             REPO_REALITY_WARNING,
-            "EXPECTED_PIN_SELF_TEST_CASES = 18",
-            "EXPECTED_PIN_SELF_TEST_CASES = 17",
+            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19",
+            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18",
         )
         cases += _expect_failure(
             root,
