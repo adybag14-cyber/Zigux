@@ -173,6 +173,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_boundary_guard.zig",
         "zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig",
+        "tools/lib/symbol/kallsyms.zig",
+        "current public-tree rereads plus the shared packet guards `scripts/zigux/check-phase8-help-kallsyms-packet.py` and `scripts/zigux/check-phase8-libbpf-shard-routes.py` rematerialize those broader help, kallsyms, and libbpf-segment companions on `master`",
     ),
     Path("zigux/Makefile"): (
         "phase8-validate:",
