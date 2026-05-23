@@ -64,6 +64,23 @@ REQUIRED_LAB_VALIDATION_EVIDENCE = [
     ".github/workflows/zigux-bootstrap.yml",
 ]
 
+REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE = [
+    "samples/zigux",
+    "zigux/tests/phase5_build.zig",
+    "Documentation/zigux/review-checklist.md",
+]
+
+REQUIRED_RUNTIME_STARTER_SCOREBOARD_EVIDENCE = [
+    "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+    "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+    "samples/zigux/runtime_bitmap_loader.zig",
+    "samples/zigux/runtime_trace_events.zig",
+    "zigux/tests/phase9_build.zig",
+    "zigux/kernel/runtime_loader.zig",
+    "zigux/tests/runtime_trace_events_manifest.json",
+    "zigux/tests/runtime_trace_events_survey.zig",
+]
+
 REQUIRED_CORE_LAB_VALIDATION_EVIDENCE = [
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "drivers/virtio/virtio_driver_id.zig",
@@ -221,6 +238,55 @@ def collect_drift(manifest: dict) -> list[str]:
                 f"{item!r}:missing"
             )
 
+    cross_phase_boundary = manifest.get("cross_phase_scoreboard_boundary")
+    if not isinstance(cross_phase_boundary, dict):
+        drift.append("cross_phase_scoreboard_boundary:missing")
+        return drift
+
+    reference_samples = cross_phase_boundary.get("reference_samples")
+    if not isinstance(reference_samples, dict):
+        drift.append("cross_phase_scoreboard_boundary:reference_samples:missing")
+        return drift
+    if reference_samples.get("status") != "out_of_scope":
+        drift.append(
+            "cross_phase_scoreboard_boundary:reference_samples:status:"
+            f"{reference_samples.get('status')!r}!='out_of_scope'"
+        )
+    reference_sample_evidence = reference_samples.get("evidence")
+    if not isinstance(reference_sample_evidence, list) or not reference_sample_evidence:
+        drift.append(
+            "cross_phase_scoreboard_boundary:reference_samples:evidence:missing"
+        )
+        return drift
+    for item in REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE:
+        if item not in reference_sample_evidence:
+            drift.append(
+                "cross_phase_scoreboard_boundary:reference_samples:"
+                f"{item!r}:missing"
+            )
+
+    runtime_starters = cross_phase_boundary.get("runtime_starters")
+    if not isinstance(runtime_starters, dict):
+        drift.append("cross_phase_scoreboard_boundary:runtime_starters:missing")
+        return drift
+    if runtime_starters.get("status") != "out_of_scope":
+        drift.append(
+            "cross_phase_scoreboard_boundary:runtime_starters:status:"
+            f"{runtime_starters.get('status')!r}!='out_of_scope'"
+        )
+    runtime_starter_evidence = runtime_starters.get("evidence")
+    if not isinstance(runtime_starter_evidence, list) or not runtime_starter_evidence:
+        drift.append(
+            "cross_phase_scoreboard_boundary:runtime_starters:evidence:missing"
+        )
+        return drift
+    for item in REQUIRED_RUNTIME_STARTER_SCOREBOARD_EVIDENCE:
+        if item not in runtime_starter_evidence:
+            drift.append(
+                "cross_phase_scoreboard_boundary:runtime_starters:"
+                f"{item!r}:missing"
+            )
+
     landed_core_helper_evidence = manifest.get("landed_core_helper_evidence")
     if not isinstance(landed_core_helper_evidence, dict):
         drift.append("landed_core_helper_evidence:missing")
@@ -332,6 +398,16 @@ def fixture_manifest() -> dict:
                 "status": "starter_landed",
                 "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE
                 + REQUIRED_CORE_LAB_VALIDATION_EVIDENCE,
+            },
+        },
+        "cross_phase_scoreboard_boundary": {
+            "reference_samples": {
+                "status": "out_of_scope",
+                "evidence": REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE,
+            },
+            "runtime_starters": {
+                "status": "out_of_scope",
+                "evidence": REQUIRED_RUNTIME_STARTER_SCOREBOARD_EVIDENCE,
             },
         },
         "landed_core_helper_evidence": REQUIRED_LANDED_CORE_HELPER_EVIDENCE,
@@ -674,6 +750,44 @@ def run_self_test() -> int:
         cases += 1
 
         broken = dict(original)
+        broken["cross_phase_scoreboard_boundary"]["reference_samples"]["evidence"] = [
+            item
+            for item in broken["cross_phase_scoreboard_boundary"]["reference_samples"]["evidence"]
+            if item != "samples/zigux"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "cross_phase_scoreboard_boundary:reference_samples:'samples/zigux':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["cross_phase_scoreboard_boundary"]["runtime_starters"]["status"] = "starter_landed"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "cross_phase_scoreboard_boundary:runtime_starters:status:'starter_landed'!='out_of_scope'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["cross_phase_scoreboard_boundary"]["runtime_starters"]["evidence"] = [
+            item
+            for item in broken["cross_phase_scoreboard_boundary"]["runtime_starters"]["evidence"]
+            if item != "zigux/tests/runtime_trace_events_survey.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "cross_phase_scoreboard_boundary:runtime_starters:'zigux/tests/runtime_trace_events_survey.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
         broken["landed_core_helper_evidence"]["zigux/tests/phase10_virtio_core_manifest.json"] = [
             item
             for item in broken["landed_core_helper_evidence"]["zigux/tests/phase10_virtio_core_manifest.json"]
@@ -843,6 +957,14 @@ def main() -> int:
     print(
         "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_LAB_VALIDATION_EVIDENCE_COUNT="
         f"{len(REQUIRED_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_CORE_LAB_VALIDATION_EVIDENCE)}"
+    )
+    print(
+        "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_REFERENCE_SAMPLE_EVIDENCE_COUNT="
+        f"{len(REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE)}"
+    )
+    print(
+        "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_RUNTIME_STARTER_EVIDENCE_COUNT="
+        f"{len(REQUIRED_RUNTIME_STARTER_SCOREBOARD_EVIDENCE)}"
     )
     print(
         "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_LANDED_CORE_HELPER_COUNT="
