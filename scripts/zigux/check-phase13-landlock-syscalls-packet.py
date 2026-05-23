@@ -27,13 +27,13 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
         "`scripts/zigux/check-phase13-landlock-syscalls-packet.py`",
-        "helper-local packet companions through:",
+        "active helper-local packet companions through:",
         "shared-build companions still absent",
     ],
-    "Documentation/zigux/phase13-landlock-syscalls-survey-gap.md": [
-        "`scripts/zigux/check-phase13-landlock-syscalls-packet.py`",
-        "repo-reality gaps",
-        "Leave this lane parked",
+    "Documentation/zigux/phase13-landlock-syscalls-survey.md": [
+        "master-readback-2026-05-23",
+        "Current `master` now materializes this helper-local packet through:",
+        "Current `master` still leaves these directly coupled companions absent:",
     ],
 }
 
