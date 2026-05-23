@@ -216,7 +216,28 @@ test "runtime bitmap sample keeps source and target lifecycle guards explicit at
 
     var initialized_source = sample.RuntimeBitmapSample{};
     try initialized_source.initWithSetBits(&.{10});
+    const source_before_exited_target_copy = initialized_source.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_source.stage());
+    try std.testing.expectEqual(@as(u32, 10), source_before_exited_target_copy.first_set);
+    try std.testing.expectEqual(@as(u32, 0), source_before_exited_target_copy.first_zero);
+    try std.testing.expectEqual(@as(u32, 1), source_before_exited_target_copy.weight);
+    try std.testing.expectEqual(sample.RuntimeBitmapSample.bitmap_nbits, source_before_exited_target_copy.nbits);
+    try std.testing.expectEqual(@as(usize, 1), source_before_exited_target_copy.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), source_before_exited_target_copy.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), source_before_exited_target_copy.exit_runs);
+    try std.testing.expect(initialized_source.isSet(10));
+    try std.testing.expectEqual(@as(?u32, 10), initialized_source.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, null), initialized_source.nthSetBit(1));
+
     try std.testing.expectError(error.InvalidLifecycleTransition, target.copyFrom(&initialized_source));
+
+    const source_after_exited_target_copy = initialized_source.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_source.stage());
+    try expectSummaryStable(source_before_exited_target_copy, source_after_exited_target_copy);
+    try std.testing.expect(initialized_source.isSet(10));
+    try std.testing.expectEqual(@as(?u32, 10), initialized_source.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, null), initialized_source.nthSetBit(1));
+
     const target_after_exited_copy = target.summary();
     try expectSummaryStable(exited_target, target_after_exited_copy);
 }
