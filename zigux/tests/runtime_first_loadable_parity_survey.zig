@@ -70,24 +70,25 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(parity_note, "manifest-backed ownership packet");
-    try expectContains(phase9_build, "\"phase9-runtime-atomic64-diff\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-loader-allocator-init-flow-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-loader-command-env-boundary-guard-tests\"");
-    try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
-    try expectContains(phase9_build, "\"phase9-first-loadable-runtime-module-parity-survey-tests\"");
-    try expectContains(phase9_build, "\"runtime_first_loadable_parity_survey.zig\"");
-    try expectContains(phase9_build, "\"Run the Phase 9 first-loadable runtime-module parity survey tests.\"");
-    try expectContains(phase9_build, "\"phase9-runtime-atomic64-sample-tests\"");
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-loader-tests\"") == null);
-    try expectContains(phase9_build, "\"phase9-runtime-atomic64-module-tests\"");
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-survey-tests\"") == null);
-    try expectContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
+    try expectContains(parity_note, "phase9-runtime-atomic64-diff");
+    try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-module-tests` route name");
+    try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-sample-tests` route name");
+    try expectContains(parity_note, "the build-local `phase9-runtime-loader-shared-tests` route name");
+    try expectContains(parity_note, "the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle");
+    try expectContains(
+        parity_note,
+        "those surviving shared-loader and cross-family route names are reminder vocabulary rather than proof that the underlying Phase 9 parity target shipped",
+    );
+    try expectContains(parity_note, "does not yet materialize that target as a coherent cross-family packet");
+    try expectContains(parity_note, "must not claim shipped cross-family loader parity");
+    try expectContains(
+        parity_note,
+        "must not claim shipped cross-family loader parity, shipped runtime-loader handoff parity, or shipped end-to-end module lifecycle parity on current `master`.",
+    );
+    try expectContains(
+        parity_note,
+        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet with restored module proof but blocked diff follow-through.",
+    );
 
     try expectContains(atomic64_manifest, "\"phase\": \"Phase 9\"");
     try expectContains(atomic64_manifest, "\"lane_key\": \"P9-L04\"");
@@ -119,4 +120,23 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(manifest, "\"diff_summary_replay\"");
     try expectContains(manifest, "\"diff_copy_tail_clearing\"");
     try expectContains(manifest, "\"diff_exit_lifecycle_guards\"");
+
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-diff\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-allocator-init-flow-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-command-env-boundary-guard-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-loader-shared-tests\"");
+    try expectContains(phase9_build, "\"phase9-first-loadable-runtime-module-parity-survey-tests\"");
+    try expectContains(phase9_build, "\"runtime_first_loadable_parity_survey.zig\"");
+    try expectContains(phase9_build, "\"Run the Phase 9 first-loadable runtime-module parity survey tests.\"");
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-sample-tests\"");
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-loader-tests\"") == null);
+    try expectContains(phase9_build, "\"phase9-runtime-atomic64-module-tests\"");
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "\"phase9-runtime-atomic64-survey-tests\"") == null);
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
 }
