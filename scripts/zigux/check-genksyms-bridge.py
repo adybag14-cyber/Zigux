@@ -148,7 +148,7 @@ LONG_OPTION_SPECS = (
     ("preserve", "preserve", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -536,6 +536,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, MANIFEST_FIXTURE, "{broken\n")
         assert ("INVALID_MANIFEST_JSON", MANIFEST_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST_FIXTURE, "[]\n")
+        assert ("INVALID_MANIFEST_PAYLOAD", "list") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
