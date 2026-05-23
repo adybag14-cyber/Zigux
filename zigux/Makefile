@@ -55,7 +55,9 @@ phase2-kconfig:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py
 
 phase2-cross:
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py
 
 phase2-genksyms:
