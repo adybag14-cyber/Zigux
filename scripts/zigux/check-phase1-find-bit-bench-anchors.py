@@ -140,9 +140,19 @@ def run_self_test() -> None:
     assert payload == ["boundary_tail_test"]
     case_count += 1
 
+    kind, payload = validate_find_bit_source(build_sample_source("single_word_tail_test"))
+    assert kind == "missing_test_markers", (kind, payload)
+    assert payload == ["single_word_tail_test"]
+    case_count += 1
+
     kind, payload = validate_find_bit_source(build_sample_source("find_next_or_past_end"))
     assert kind == "missing_source_markers", (kind, payload)
     assert payload == ["find_next_or_past_end"]
+    case_count += 1
+
+    kind, payload = validate_find_bit_source(build_sample_source("find_next_andnot_past_end"))
+    assert kind == "missing_source_markers", (kind, payload)
+    assert payload == ["find_next_andnot_past_end"]
     case_count += 1
 
     kind, payload = validate_find_bit_source(build_sample_source("find_last_zero_sized"))
