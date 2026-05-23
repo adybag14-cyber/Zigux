@@ -1,1 +1,7 @@
-module/sample2.o: zigux/tests/fixtures/fixdep/sample2.c zigux/tests/fixtures/fixdep/shared\#config.h zigux/tests/fixtures/fixdep/sample2-config.h zigux/tests/fixtures/fixdep/sample2.so
+module/sample2.o module/sample2.second.o: zigux/tests/fixtures/fixdep/sample2.c \
+ zigux/tests/fixtures/fixdep/shared\#config.h \
+ zigux/tests/fixtures/fixdep/sample2-config.h \
+ zigux/tests/fixtures/fixdep/sample2.so \
+ include/generated/autoconf.h \
+ zigux/tests/fixtures/fixdep/shared\#config.h \
+ zigux/tests/fixtures/fixdep/sample2.so
