@@ -139,6 +139,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `python3 scripts/zigux/check-phase7-argv-split-packet.py`",
     "- `make -C zigux phase7-validate`",
     "## Current build-wiring evidence",
+    "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
     "## Current repo-reality gaps",
     "- none currently",
 ]
@@ -293,9 +294,9 @@ def run_self_test() -> None:
     marker_cases = [
         ("missing_catalog_build_wiring_companion_marker", CATALOG_PATH, "- `scripts/zigux/check-phase7-build-wiring.py`", "- `scripts/zigux/check-phase7-build-route.py`"),
         ("missing_catalog_make_wrapper_companion_marker", CATALOG_PATH, "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`", "- `scripts/zigux/check-phase7-make-wrapper.py`"),
-        ("missing_catalog_build_file_marker", CATALOG_PATH, "- `zigux/tests/phase7_build.zig`", "- `zigux/tests/phase7_rbtree.zig`"),
         ("missing_catalog_rbtree_marker", CATALOG_PATH, "- `lib/rbtree.zig`", "- `tools/lib/rbtree.zig`"),
         ("missing_catalog_none_gap_marker", CATALOG_PATH, "- none currently", "- `lib/rbtree.zig`"),
+        ("missing_catalog_build_graph_sentence", CATALOG_PATH, "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.", "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig` and `../../lib/cmdline.zig` into the shared Phase 7 build graph."),
         ("missing_phase7_validate_route", MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
         ("missing_phase7_validate_run", MAKEFILE_PATH, "$(PYTHON) scripts/zigux/validate-phase7.py", "$(PYTHON) scripts/zigux/check-phase7-shared-surface.py"),
         ("missing_manifest_build_wiring_companion", MANIFEST_PATH, '"scripts/zigux/check-phase7-build-wiring.py",', '"scripts/zigux/check-phase7-build-route.py",'),
