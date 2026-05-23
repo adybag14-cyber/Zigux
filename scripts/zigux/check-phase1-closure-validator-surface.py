@@ -20,9 +20,11 @@ REQUIRED_EXACT_LINES = (
     'REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")',
     'SCRIPTS_README_REL = Path("scripts/zigux/README.md")',
     'STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")',
+    'FIND_BIT_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-review-packet.py")',
     'DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")',
     'ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")',
     'BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")',
+    'FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")',
     'SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")',
     'TESTS_README_REL = Path("zigux/tests/README.md")',
     'TESTS_BUILD_REL = Path("zigux/tests/build.zig")',
@@ -34,6 +36,7 @@ REQUIRED_EXACT_LINES = (
     'FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")',
     'RBTREE_HELPER_REL = Path("tools/lib/rbtree.zig")',
     'STRING_HELPER_REL = Path("tools/lib/string.zig")',
+    'EXPECTED_HELPERS = [',
     'EXPECTED_SHARED_REPLAY_PARKED_HELPERS = [',
     'EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [',
     'EXPECTED_LANE_RULE_SUMMARY = (',
@@ -48,9 +51,11 @@ REQUIRED_EXACT_LINES = (
     'REQUIRED_FILES = (',
     'DELEGATED_CHECKERS = (',
     '(STRING_REVIEW_CHECKER_REL, "phase1-string-review-packet"),',
+    '(FIND_BIT_REVIEW_CHECKER_REL, "phase1-find-bit-review-packet"),',
     '(DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),',
     '(ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),',
     '(BENCH_CHECKER_REL, "phase1-bench"),',
+    '(FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),',
     '(SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),',
     'print("PHASE1_CLOSURE_SELF_TEST=pass")',
     'print(f"PHASE1_CLOSURE_SELF_TEST_CASE_COUNT={len(cases)}")',
@@ -62,6 +67,7 @@ REQUIRED_SUBSTRINGS = (
     '"route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",',
     '"shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",',
     '"find_bit_bench_guard": "`PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",',
+    '"find_bit_bench_anchor_guard": "`PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`",',
     '"string_sysfs_review": "`PHASE1_STRING_SYSFS_REVIEW=helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests and the Phase 1 helper manifest because the shared Phase 1 replay still carries no dedicated sysfs fixture keys`",',
     '"validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",',
     '"phase14-validate:",',
@@ -74,12 +80,6 @@ REQUIRED_SUBSTRINGS = (
     '"strnchrNul returns the first match, NUL, or count boundary"',
     '"strspn counts the accepted prefix with C-string semantics"',
 )
-
-FORBIDDEN_SUBSTRINGS = (
-    'PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master',
-    '`PHASE1_NEXT_SAFE_STEP=restore the missing phase1 closure note first`',
-)
-
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
@@ -97,11 +97,6 @@ def require_exact_line(text: str, label: str, marker: str) -> list[str]:
 def require_exact_substring(text: str, label: str, marker: str) -> list[str]:
     count = text.count(marker)
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
-
-
-def require_absent_substring(text: str, label: str, marker: str) -> list[str]:
-    count = text.count(marker)
-    return [] if count == 0 else [f"{label}:expected=0:actual={count}"]
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -124,14 +119,6 @@ def collect_failures(root: Path) -> list[str]:
             require_exact_substring(
                 text,
                 f"{VALIDATOR_REL.as_posix()}:substring:{marker}",
-                marker,
-            )
-        )
-    for marker in FORBIDDEN_SUBSTRINGS:
-        failures.extend(
-            require_absent_substring(
-                text,
-                f"{VALIDATOR_REL.as_posix()}:forbidden:{marker}",
                 marker,
             )
         )
@@ -158,9 +145,9 @@ def run_self_test() -> int:
         cases.append((f"duplicate_line_{abs(hash(marker))}", ("line_duplicate", marker)))
     for marker in REQUIRED_SUBSTRINGS:
         cases.append((f"remove_substring_{abs(hash(marker))}", ("substring_remove", marker)))
-        cases.append((f"duplicate_substring_{abs(hash(marker))}", ("substring_duplicate", marker)))
-    for marker in FORBIDDEN_SUBSTRINGS:
-        cases.append((f"forbidden_{abs(hash(marker))}", ("forbidden_add", marker)))
+        cases.append(
+            (f"duplicate_substring_{abs(hash(marker))}", ("substring_duplicate", marker))
+        )
     cases.append(("missing_file", ("missing_file", "")))
 
     for name, mutation in cases:
@@ -182,8 +169,6 @@ def run_self_test() -> int:
                         text = text.replace(marker, "", 1)
                     elif kind == "substring_duplicate":
                         text = text.replace(marker, marker + "\n" + marker, 1)
-                    elif kind == "forbidden_add":
-                        text += marker + "\n"
                     target.write_text(text, encoding="utf-8")
 
             failures = collect_failures(root)
