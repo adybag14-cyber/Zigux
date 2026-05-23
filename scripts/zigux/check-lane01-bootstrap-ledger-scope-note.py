@@ -40,11 +40,24 @@ def ensure_order(text: str, headings: tuple[str, ...]) -> None:
         if next_position == -1:
             raise SystemExit(f"missing required heading: {heading}")
         if next_position <= position:
-            raise SystemExit(
-                "section order mismatch for "
-                + " -> ".join(headings)
-            )
+            raise SystemExit("section order mismatch for " + " -> ".join(headings))
         position = next_position
+
+
+def extract_scope_note_lines(text: str) -> list[str]:
+    lines = text.splitlines()
+    try:
+        start_index = lines.index(HEADING)
+    except ValueError as exc:
+        raise SystemExit(f"missing required heading: {HEADING}") from exc
+
+    body_lines: list[str] = []
+    for line in lines[start_index + 1 :]:
+        if line.startswith("## "):
+            raise SystemExit("Scope Note must remain the final section in the ledger")
+        if line.strip():
+            body_lines.append(line)
+    return body_lines
 
 
 def validate(root: Path) -> None:
@@ -53,6 +66,12 @@ def validate(root: Path) -> None:
     ensure_order(text, ORDER_HEADINGS)
     for line in REQUIRED_LINES:
         ensure_once(text, line)
+
+    body_lines = extract_scope_note_lines(text)
+    if tuple(body_lines) != REQUIRED_LINES:
+        raise SystemExit(
+            "Scope Note body drifted; expected exactly the two bounded Phase 2 reminder lines"
+        )
 
 
 def write_sample_root(destination: Path) -> None:
@@ -131,8 +150,34 @@ def run_self_test() -> None:
         else:
             raise AssertionError("reordered heading case should fail")
 
+        write_sample_root(root)
+        extra_line = root / TARGET
+        extra_line.write_text(
+            extra_line.read_text(encoding="utf-8") + "- Extra drift line.\n",
+            encoding="utf-8",
+        )
+        try:
+            validate(root)
+        except SystemExit:
+            pass
+        else:
+            raise AssertionError("extra scope note line case should fail")
+
+        write_sample_root(root)
+        trailing_section = root / TARGET
+        trailing_section.write_text(
+            trailing_section.read_text(encoding="utf-8") + "\n## Follow-up\n\n- future\n",
+            encoding="utf-8",
+        )
+        try:
+            validate(root)
+        except SystemExit:
+            pass
+        else:
+            raise AssertionError("trailing section case should fail")
+
     print("LANE01_BOOTSTRAP_LEDGER_SCOPE_NOTE_SELF_TEST=pass")
-    print("LANE01_BOOTSTRAP_LEDGER_SCOPE_NOTE_SELF_TEST_CASES=4")
+    print("LANE01_BOOTSTRAP_LEDGER_SCOPE_NOTE_SELF_TEST_CASES=6")
 
 
 def parse_args() -> argparse.Namespace:
@@ -158,6 +203,7 @@ def main() -> int:
     print("LANE01_BOOTSTRAP_LEDGER_SCOPE_NOTE=pass")
     print(f"LANE01_BOOTSTRAP_LEDGER_SCOPE_NOTE_REQUIRED_LINE_COUNT={len(REQUIRED_LINES)}")
     print("LANE01_BOOTSTRAP_LEDGER_SCOPE_NOTE_SECTION_ORDER=CommitTrain->ScopeNote")
+    print("LANE01_BOOTSTRAP_LEDGER_SCOPE_NOTE_FINAL_SECTION=ScopeNote")
     return 0
 
 
