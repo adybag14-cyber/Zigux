@@ -75,7 +75,8 @@ pub const UnsafeScope = enum(u8) {
 };
 
 pub const NotifierResult = notifier_abi.NotifierResult;
-pub const ChainPriorityIncrease = notifier_abi.NotifierChainPriorityIncrease;
+pub const NotifierChainPriorityIncrease = notifier_abi.NotifierChainPriorityIncrease;
+pub const ChainPriorityIncrease = NotifierChainPriorityIncrease;
 pub const NotifierBlock = notifier_abi.NotifierBlock;
 pub const ListHead = notifier_abi.ListHead;
 pub const HListHead = notifier_abi.HListHead;
@@ -119,7 +120,7 @@ pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
     return notifier_abi.hlistHasConsistentPrevLinks(head);
 }
 
-pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
+pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?NotifierChainPriorityIncrease {
     return notifier_abi.firstChainPriorityIncrease(head);
 }
 
@@ -421,6 +422,8 @@ test "abi binding notifier and list layouts stay aligned with the exported ABI h
         @alignOf(ChainPriorityIncrease),
     );
 
+    try std.testing.expectEqual(@sizeOf(NotifierChainPriorityIncrease), @sizeOf(ChainPriorityIncrease));
+    try std.testing.expectEqual(@alignOf(NotifierChainPriorityIncrease), @alignOf(ChainPriorityIncrease));
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
