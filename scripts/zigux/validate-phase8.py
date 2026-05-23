@@ -262,7 +262,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "Run focused Phase 8 exec-cmd tests",
     ),
     Path("zigux/tests/phase8_file_path_handle_bridge.zig"): (
-        "phase 8 file-path handle bridge",
+        "phase 8 file-path-handle bridge",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     ),
     FILE_PATH_HANDLE_BOUNDARY_GUARD_TEST: (
