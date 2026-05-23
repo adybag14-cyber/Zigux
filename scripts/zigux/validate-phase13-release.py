@@ -33,10 +33,10 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase13_devres_iounmap_planner_manifest.json`",
         "`zigux/tests/phase13_devres_iomap_planner.zig`",
         "`zigux/tests/phase13_devres_iomap_planner_manifest.json`",
-        "At the same time, fresh direct readback now shows the broader reminder packet is no longer split the way this note previously described.",
-        "`Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `zigux/tests/README.md` already mirror the wider planner-expanded `devres` packet",
-        "The remaining broader reminder drift is scripts-root only: `scripts/zigux/README.md` still stops at the older direct DMA-boundary plus `dmam_alloc_coherent()` and scatterlist subset and does not yet mirror the helper-first `devm_iounmap()` or `devm_of_iomap()` planner note-and-manifest pairings.",
-        "Current `master` also now materializes `scripts/zigux/validate-phase13-release.py`, so keep that shared release-discipline validator explicit beside the shipped shared-summary and tests-readme guards instead of carrying it in the repo-reality-gap bucket.",
+        "Fresh direct readback now shows the broader reminder packet is no longer split across the shared reminder surfaces.",
+        "The still-missing direct Landlock syscall replay companions `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` remain separate repo-reality gaps rather than shipped evidence.",
+        "Current `master` now also materializes `Documentation/zigux/phase13-landlock-ruleset-survey.md` and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, so keep the returned Landlock survey-and-checker pair explicit beside the still-missing direct syscall replay companions rather than listing those returned helper-local surfaces as release-facing gaps.",
+        "Current `master` also now materializes `scripts/zigux/validate-phase13-release.py`, so keep that shared release-discipline validator explicit beside the shipped shared-summary guard and the stable contributor-facing handle while the remaining same-lane follow-through stays narrowed to still-missing direct companions or any future broader reminder drift.",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "This note restores the roadmap-to-repo owner map for the active Phase 13 shared-helper packet on current `master`.",
@@ -82,6 +82,8 @@ FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase13-release-notes-survey.md": [
         "- `scripts/zigux/validate-phase13-release.py`",
         "But the whole broader reminder packet is still not fully aligned on that wider set: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still stop at the older direct DMA-boundary plus `dmam_alloc_coherent()` and scatterlist subset and do not yet mirror the helper-first `devm_iounmap()` or `devm_of_iomap()` planner note-and-manifest pairings.",
+        "- `Documentation/zigux/phase13-landlock-syscalls-survey.md`",
+        "- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "- `scripts/zigux/validate-phase13-release.py`",
