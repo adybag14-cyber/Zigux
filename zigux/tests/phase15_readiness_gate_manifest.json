@@ -2,7 +2,7 @@
   "lane_key": "P15-L02",
   "phase": "Phase 15",
   "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit": "current-master-readback-2026-05-22",
+  "surveyed_commit": "current-master-readback-2026-05-23",
   "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
   "direct_packet_paths": [
     "Documentation/zigux/freeze-map.md",
@@ -29,6 +29,7 @@
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_build.zig",
+    "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_parity_scorecard.json",
