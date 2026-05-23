@@ -63,12 +63,14 @@ def validate_find_bit_source(text: str) -> tuple[str, object]:
     return ("pass", None)
 
 
+
 def load_find_bit_source(path: Path) -> tuple[str, object]:
     try:
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return ("missing_file", path)
     return validate_find_bit_source(text)
+
 
 
 def build_sample_source(omit_label: str | None = None) -> str:
@@ -125,6 +127,7 @@ def build_sample_source(omit_label: str | None = None) -> str:
     return "\n".join(lines) + "\n"
 
 
+
 def run_self_test() -> None:
     case_count = 0
 
@@ -147,6 +150,11 @@ def run_self_test() -> None:
     assert payload == ["find_next_clump8_untouched"]
     case_count += 1
 
+    kind, payload = validate_find_bit_source(build_sample_source("find_clump8_low_level_alias_past_end"))
+    assert kind == "missing_source_markers", (kind, payload)
+    assert payload == ["find_clump8_low_level_alias_past_end"]
+    case_count += 1
+
     with tempfile.TemporaryDirectory(prefix="phase1-find-bit-bench-anchors-") as tmp:
         source_path = Path(tmp) / "find_bit.zig"
         kind, payload = load_find_bit_source(source_path)
@@ -161,6 +169,7 @@ def run_self_test() -> None:
 
     print("PHASE1_FIND_BIT_BENCH_ANCHORS_SELF_TEST=pass")
     print(f"PHASE1_FIND_BIT_BENCH_ANCHORS_SELF_TEST_CASE_COUNT={case_count}")
+
 
 
 def main() -> int:
