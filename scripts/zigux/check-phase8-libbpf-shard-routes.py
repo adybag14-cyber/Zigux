@@ -11,6 +11,8 @@ SCRIPT_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 MAKEFILE_PATH = "zigux/Makefile"
+BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
+MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 VERIFY_ROUTING_GAP_TEST_PATH = "zigux/tests/phase8_verify_routing_gap.zig"
 VERIFY_ROUTING_GAP_BUILD_PATH = "zigux/tests/phase8_verify_routing_gap_only_build.zig"
@@ -39,6 +41,8 @@ REQUIRED_FILES = (
     VALIDATOR_PATH,
     SURVEY_PATH,
     MAKEFILE_PATH,
+    BRIDGE_TEST_PATH,
+    MANIFEST_PATH,
     PHASE8_BUILD_PATH,
     VERIFY_ROUTING_GAP_TEST_PATH,
     VERIFY_ROUTING_GAP_BUILD_PATH,
@@ -106,6 +110,19 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
         "phase8-test:",
         "zigux/tests/phase8_build.zig --summary all",
+    ),
+    BRIDGE_TEST_PATH: (
+        "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit",
+        '\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"',
+        '\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"',
+        '\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"',
+    ),
+    MANIFEST_PATH: (
+        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
+        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
+        "direct procfs reads and descriptor ownership flow",
+        "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
     ),
     PHASE8_BUILD_PATH: (
         "../../tools/lib/bpf/zigux_segments/verify.zig",
