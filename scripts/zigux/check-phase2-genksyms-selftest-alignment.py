@@ -13,6 +13,7 @@ MAKEFILE = ROOT / "zigux" / "Makefile"
 BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py"
 GENKSYMS_ZIG = ROOT / "scripts" / "zigux" / "genksyms.zig"
 VERSION_SIDE_EFFECT_TEST = ROOT / "scripts" / "zigux" / "genksyms_version_before_invalid_long_option_test.zig"
+AMBIGUOUS_VERSION_SIDE_EFFECT_TEST = ROOT / "scripts" / "zigux" / "genksyms_version_before_ambiguous_long_option_test.zig"
 CASES_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json"
 MANIFEST_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "manifest.json"
 HELP_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "help_expected.json"
@@ -237,6 +238,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     bridge_checker_text = read_text(bridge_checker_path)
     genksyms_text = read_text(root / GENKSYMS_ZIG.relative_to(ROOT))
     version_side_effect_text = read_text(root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT))
+    ambiguous_version_side_effect_text = read_text(root / AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT))
 
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -265,6 +267,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         root / CASES_FIXTURE.relative_to(ROOT),
         root / MANIFEST_FIXTURE.relative_to(ROOT),
         root / HELP_FIXTURE.relative_to(ROOT),
+        root / AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT),
     ]
     required_paths.extend(root / f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}" for case in case_fixtures)
     required_paths.extend(root / f"zigux/tests/fixtures/genksyms_bridge/{name}" for name in process_output_packet)
@@ -280,6 +283,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_VERSION_SIDE_EFFECT_TEST_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count={count}"))
+
+    for marker in (
+        'test "genksyms bridge preserves version side effect before ambiguous long option" {',
+        'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {',
+    ):
+        count = count_exact_lines(ambiguous_version_side_effect_text, marker)
+        if count == 0:
+            issues.append(("MISSING_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count={count}"))
 
     for anchor in helper_local_anchors:
         marker = helper_anchor_test_marker(anchor)
@@ -383,6 +396,13 @@ def build_self_test_root(root: Path) -> None:
         'test "genksyms bridge preserves version side effect before invalid long option" {\n'
         '}\n'
         'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {\n'
+        '}\n',
+    )
+    write_text(
+        root / AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT),
+        'test "genksyms bridge preserves version side effect before ambiguous long option" {\n'
+        '}\n'
+        'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {\n'
         '}\n',
     )
     bridge_checker_text = read_text(root / BRIDGE_CHECKER.relative_to(ROOT))
@@ -599,9 +619,35 @@ def run_self_test() -> int:
             assert ("DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
+        for marker in (
+            'test "genksyms bridge preserves version side effect before ambiguous long option" {',
+            'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {',
+        ):
+            build_self_test_root(root)
+            version_path = root / AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT)
+            version_path.write_text(
+                version_path.read_text(encoding="utf-8").replace(f"{marker}\n", "", 1),
+                encoding="utf-8",
+            )
+            assert ("MISSING_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in (
+            'test "genksyms bridge preserves version side effect before ambiguous long option" {',
+            'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {',
+        ):
+            build_self_test_root(root)
+            version_path = root / AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT)
+            version_path.write_text(
+                duplicate_exact_line(version_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
         build_self_test_root(root)
         (root / HELP_FIXTURE.relative_to(ROOT)).unlink()
-        assert ("MISSING_REQUIRED_PATHS", HELP_FIXTURE.relative_to(ROOT).as_posix()) in collect_issues(root)
+        assert ( "MISSING_REQUIRED_PATHS", HELP_FIXTURE.relative_to(ROOT).as_posix()) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -636,32 +682,7 @@ def run_self_test() -> int:
     return 0
 
 
-EXPECTED_SELF_TEST_CASE_COUNT = (
-    1
-    + len(WORKFLOW_LINES)
-    + len(WORKFLOW_LINES)
-    + len(MAKEFILE_LINES)
-    + len(MAKEFILE_LINES)
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 2
-    + 2
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 2
-)
+EXPECTED_SELF_TEST_CASE_COUNT = 48
 
 
 def main() -> int:
