@@ -29,17 +29,10 @@ pub const CpuMaskView = struct {
     pub fn isSubsetOf(self: CpuMaskView, other: CpuMaskView) bool {
         std.debug.assert(self.bitmap.bit_len == other.bitmap.bit_len);
 
-        const active_len = self.bitmap.activeWordLen();
-        for (self.bitmap.words[0..active_len], other.bitmap.words[0..active_len], 0..) |self_word, other_word, index| {
-            var masked_self = self_word;
-            if (index == active_len - 1) {
-                const remainder = self.bitmap.bit_len % bitmap_view.word_bits;
-                if (remainder != 0) {
-                    const mask = (@as(usize, 1) << @intCast(remainder)) - 1;
-                    masked_self &= mask;
-                }
-            }
-            if ((masked_self & ~other_word) != 0) return false;
+        for (0..self.bitmap.activeWordLen()) |index| {
+            const masked_self = self.bitmap.maskedWord(index);
+            const masked_other = other.bitmap.maskedWord(index);
+            if ((masked_self & ~masked_other) != 0) return false;
         }
         return true;
     }
@@ -47,16 +40,8 @@ pub const CpuMaskView = struct {
     pub fn intersects(self: CpuMaskView, other: CpuMaskView) bool {
         std.debug.assert(self.bitmap.bit_len == other.bitmap.bit_len);
 
-        const active_len = self.bitmap.activeWordLen();
-        for (self.bitmap.words[0..active_len], other.bitmap.words[0..active_len], 0..) |self_word, other_word, index| {
-            var overlap = self_word & other_word;
-            if (index == active_len - 1) {
-                const remainder = self.bitmap.bit_len % bitmap_view.word_bits;
-                if (remainder != 0) {
-                    overlap &= (@as(usize, 1) << @intCast(remainder)) - 1;
-                }
-            }
-            if (overlap != 0) return true;
+        for (0..self.bitmap.activeWordLen()) |index| {
+            if ((self.bitmap.maskedWord(index) & other.bitmap.maskedWord(index)) != 0) return true;
         }
         return false;
     }
@@ -106,4 +91,37 @@ test "cpumask view keeps subset and overlap checks bounded to the declared capac
     try std.testing.expect(!superset.isSubsetOf(base));
     try std.testing.expect(base.intersects(superset));
     try std.testing.expect(!base.intersects(disjoint));
+}
+
+test "cpumask view reuses bitmap masking for partial tail subset and overlap checks" {
+    const capacity = bitmap_view.word_bits + 3;
+    const base_words = [_]usize{
+        std.math.maxInt(usize),
+        (@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 7),
+    };
+    const subset_words = [_]usize{
+        (@as(usize, 1) << 4),
+        (@as(usize, 1) << 2) | (@as(usize, 1) << 9),
+    };
+    const overlap_words = [_]usize{
+        0,
+        (@as(usize, 1) << 2) | (@as(usize, 1) << 8),
+    };
+    const tail_noise_words = [_]usize{
+        0,
+        (@as(usize, 1) << 4) | (@as(usize, 1) << 10),
+    };
+
+    const base = CpuMaskView.init(base_words[0..], capacity);
+    const subset = CpuMaskView.init(subset_words[0..], capacity);
+    const overlap = CpuMaskView.init(overlap_words[0..], capacity);
+    const tail_noise = CpuMaskView.init(tail_noise_words[0..], capacity);
+
+    try std.testing.expect(subset.isSubsetOf(base));
+    try std.testing.expect(base.intersects(overlap));
+    try std.testing.expect(!base.intersects(tail_noise));
+    try std.testing.expect(tail_noise.isSubsetOf(base));
+    try std.testing.expectEqual(@as(usize, 0), tail_noise.countPresentCpus());
+    try std.testing.expectEqual(@as(?usize, null), tail_noise.firstCpu());
+    try std.testing.expectEqual(@as(?usize, 0), tail_noise.firstMissingCpu());
 }
