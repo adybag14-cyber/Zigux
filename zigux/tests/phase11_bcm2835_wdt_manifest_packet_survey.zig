@@ -19,7 +19,7 @@ fn expectNotContains(text: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, text, needle) == null);
 }
 
-test "phase11 bcm2835 manifest packet survey keeps the surviving reminder packet truthful" {
+test "phase11 bcm2835 manifest packet survey keeps the returned driver proof truthful" {
     const survey_note = try readFile(std.testing.allocator, "Documentation/zigux/phase11-bcm2835-wdt-survey.md", 16 * 1024);
     defer std.testing.allocator.free(survey_note);
 
@@ -28,12 +28,12 @@ test "phase11 bcm2835 manifest packet survey keeps the surviving reminder packet
     try expectContains(survey_note, "Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md");
     try expectContains(survey_note, "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig");
     try expectContains(survey_note, "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig");
-    try expectContains(survey_note, "does not return `drivers/watchdog/bcm2835_wdt.zig`");
-    try expectContains(survey_note, "`drivers/watchdog/bcm2835_wdt_verify.zig`");
-    try expectContains(survey_note, "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`");
-    try expectContains(survey_note, "reminder surface plus an explicit blocker plan");
+    try expectContains(survey_note, "`drivers/watchdog/bcm2835_wdt.zig`");
+    try expectContains(survey_note, "`zigux/tests/phase11_bcm2835_wdt.zig`");
+    try expectContains(survey_note, "does not return `drivers/watchdog/bcm2835_wdt_verify.zig`");
+    try expectContains(survey_note, "driver-return proof");
+    try expectNotContains(survey_note, "does not return `drivers/watchdog/bcm2835_wdt.zig`");
     try expectNotContains(survey_note, "one bcm2835-only manifest or slice-note extension");
-    try expectNotContains(survey_note, "P11-L12");
 }
 
 test "phase11 bcm2835 manifest packet survey keeps the blocker plan aligned with current master" {
@@ -41,14 +41,13 @@ test "phase11 bcm2835 manifest packet survey keeps the blocker plan aligned with
     defer std.testing.allocator.free(validation_plan);
 
     try expectContains(validation_plan, "PHASE11_BCM2835_WDT_PLATFORM_VALIDATION_PLAN=starter_boundary_recorded");
-    try expectContains(validation_plan, "current directly readable packet remains `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md`, `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig`, and `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`");
-    try expectContains(validation_plan, "Do not fabricate current-head proof for a driver, verify helper, direct replay, slice note, teardown note, validation matrix");
+    try expectContains(validation_plan, "`drivers/watchdog/bcm2835_wdt.zig`, and `zigux/tests/phase11_bcm2835_wdt.zig`");
+    try expectContains(validation_plan, "Do not fabricate current-head proof for a verify helper, manifest-backed closure packet, slice note, teardown note, validation matrix");
     try expectContains(validation_plan, "Do not use it to reopen `gpio_wdt`, `dw_wdt`, HVC, or shared Phase 11 wording.");
     try expectContains(validation_plan, "Treat this as a validation-governance document, not proof that wider platform behavior is already implemented.");
-    try expectContains(validation_plan, "If a later lane cannot produce the required proof for one stage, keep that stage blocked and leave the reminder packet as the published boundary.");
-    try expectContains(validation_plan, "The next honest bcm2835-only follow-through is one explicit driver-return or platform-registration planning step");
-    try expectNotContains(validation_plan, "drivers/watchdog/bcm2835_wdt_verify.zig");
-    try expectNotContains(validation_plan, "zigux/tests/phase11_bcm2835_wdt.zig");
+    try expectContains(validation_plan, "If a later lane cannot produce the required proof for one stage, keep that stage blocked and leave the current reminder-plus-driver packet as the published boundary.");
+    try expectContains(validation_plan, "The next honest bcm2835-only follow-through is one explicit verify-helper or validation-matrix step");
+    try expectNotContains(validation_plan, "live board-backed restart");
 }
 
 test "phase11 bcm2835 manifest packet survey keeps the dedicated build route pointed at the current reminder packet" {
