@@ -396,6 +396,42 @@ test "runtime bitmap sample keeps duplicate bit lists normalized without inflati
     try std.testing.expectEqualStrings("0,5,64,70", formatted);
 }
 
+test "runtime bitmap sample keeps a whitespace-only bit list explicit as an initialized empty bitmap" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList(" \n\t ");
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, before_exit.first_set);
+    try std.testing.expectEqual(@as(u32, 0), before_exit.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), before_exit.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, before_exit.nbits);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
+    try std.testing.expect(!module.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(0));
+    try std.testing.expectEqual(@as(u32, 0), try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+
+    const formatted = try module.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("", formatted);
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(before_exit.first_set, after_exit.first_set);
+    try std.testing.expectEqual(before_exit.first_zero, after_exit.first_zero);
+    try std.testing.expectEqual(before_exit.weight, after_exit.weight);
+    try std.testing.expectEqual(before_exit.nbits, after_exit.nbits);
+    try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expect(!module.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(0));
+}
+
 test "runtime bitmap sample rejects malformed or out-of-range bit-list init without leaving the cold state" {
     var malformed = RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidBitList, malformed.initFromBitList("0,,64"));
