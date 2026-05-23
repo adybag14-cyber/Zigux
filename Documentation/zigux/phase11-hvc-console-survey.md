@@ -15,8 +15,8 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
   packet reviewable through the direct starter, current survey, current-head
   companion, verify-helper boundary note, validation matrix, build-inventory
   checker, cleanup-current-head checker, targetless-unregister witness checker,
-  shared build inventory, the proof-backed adjunct stack, and the standalone
-  targetless-unregister witness pair
+  shared build inventory, the proof-backed adjunct stack, the dedicated
+  modem-control proof pair, and the standalone targetless-unregister witness pair
 - current authenticated contents readback still does not rematerialize
   `drivers/tty/hvc/hvc_console_verify.zig`,
   `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
@@ -49,6 +49,8 @@ Treat the current bounded HVC packet on `master` as:
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
@@ -56,9 +58,12 @@ The shared build-inventory checker plus shared build inventory still record
 three proof-backed build tests, the coupled `exact_current_checks` list, and
 the `workflow_phase11_steps` entry that routes this packet through
 `make -C zigux phase11-validate`. Keep the dedicated survey route absent until
-`zigux/Makefile` grows it explicitly. The standalone targetless-unregister
-witness pair likewise stays directly readable as a separate failure-mode replay
-without promoting itself into the shared three-entry build inventory.
+`zigux/Makefile` grows it explicitly. The dedicated modem-control proof pair
+likewise stays directly readable as a focused adjunct route without promoting
+itself into the shared three-entry build inventory, and the standalone
+ targetless-unregister witness pair likewise stays directly readable as a
+separate failure-mode replay without promoting itself into the shared three-entry
+build inventory.
 
 ## Still-Bounded Gaps
 
@@ -83,7 +88,8 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the current companion stack,
 the verify-boundary reminder surface, the shared inventory-backed proof routes,
-and the standalone targetless-unregister witness pair.
+the dedicated modem-control proof pair, and the standalone targetless-unregister
+witness pair.
 
 It does not claim that the currently missing verify helper, sysrq helper,
 focused survey replay, manifest, teardown note, or dedicated survey checker
