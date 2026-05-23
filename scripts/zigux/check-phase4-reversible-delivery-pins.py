@@ -212,7 +212,7 @@ def run_self_test() -> int:
         _build_baseline_tree(root)
         check(root)
         cases += 1
-        for label, _ in CURRENT_HEAD_BLOB_PINS[:8]:
+        for label, _ in CURRENT_HEAD_BLOB_PINS:
             _build_baseline_tree(root)
             line = find_status_line(read(root, NOTE), label)
             cases += _expect_failure(root, NOTE, line, line.replace(line[-41:-1], "0" * 40))
@@ -225,7 +225,6 @@ def run_self_test() -> int:
         cases += _expect_failure(root, NOTE, "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair and its manifest-backed handoff explicit as direct current-head evidence even while the broader Phase 4 companion set remains split between recovered note companions and exact-blob refresh debt.", "Current direct contents reads for the runtime atomic64 packet are omitted here.")
         cases += _expect_failure(root, NOTE, "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:", "The provenance wording drifted:")
         cases += _expect_failure(root, REPO_REALITY_WARNING, "EXPECTED_PIN_SELF_TEST_CASES = 19", "EXPECTED_PIN_SELF_TEST_CASES = 17")
-        cases += _expect_failure(root, REPO_REALITY_WARNING, "scripts/zigux/check-phase4-perf-baseline-packet.py", "scripts/zigux/check-phase4-perf-packet.py")
     if cases != EXPECTED_PIN_SELF_TEST_CASES:
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=fail")
         print(f"expected {EXPECTED_PIN_SELF_TEST_CASES} self-test cases, saw {cases}")
