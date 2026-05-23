@@ -57,7 +57,7 @@ The live workqueue packet currently matches the Phase 14 roadmap and freeze-map 
 
   * roadmap required feature `boundary maps`: satisfied by `kernel/workqueue_bridge.zig` describing queue submission routing and allocation entrypoints without claiming live worker ownership
   * roadmap required feature `concurrency audits`: satisfied by the bridge-local manager, pending-bit, delayed-work, flush-drain, rescuer, hotplug, and scheduler-visible worker-state audit checkpoints kept in review-only form
-  * roadmap required feature `explicit stay-in-C decisions where warranted`: satisfied by the bridge-local blocked-live-execution handoff and the survey's explicit stay-in-C boundaries around callback dispatch, flush, drain, cancellation completion, delayed requeue control, rescuer execution, and topology rebinding
+  * roadmap required feature `explicit stay-in-C decisions where warranted`: satisfied by the bridge-local blocked-live-execution handoff and the survey's explicit stay-in-C boundaries around callback dispatch, flush, drain, cancellation completion, delayed requeue control, runtime `max_active` retuning, rescuer execution, scheduler-visible worker-state transitions, and topology rebinding
   * roadmap required feature `wrapper-first or study-only posture`: satisfied by keeping `kernel/workqueue.c` in the freeze map's `Study / Boundary Only` bucket and limiting trusted bridge-local reruns to reviewability evidence rather than live execution claims
 
 That alignment is intentionally narrow. It shows that the packet has a real reviewable foothold for boundary mapping and audit work, while the freeze map still blocks any claim that Zigux owns the runtime workqueue engine.
@@ -82,7 +82,7 @@ The landed workqueue packet is strong enough to keep the following review-only a
 
 Those two boundary-map-only entrypoint groups are the current roadmap-backed bridge foothold. The rest of the packet stays review-only so Phase 14 can keep `kernel/workqueue.c` honest as a boundary-study target without implying live worker execution or wrapper ownership.
 
-The newer bridge-local concurrency audit plus the explicit cancel-path handoff keep the manager, forward-progress, inactive-list, reentrancy, callback-window, idle-sleep, and cancellation-completion seams explicit as stay-in-C evidence rather than as a live wrapper claim.
+The newer bridge-local concurrency audit plus the explicit cancel-path handoff keep the manager, forward-progress, inactive-list, reentrancy, callback-window, idle-sleep, delayed requeue, runtime `max_active` retuning, cancellation-completion, scheduler-visible worker-state, and hotplug-topology seams explicit as stay-in-C evidence rather than as a live wrapper claim.
 
 The packet is still blocked from claiming:
 
