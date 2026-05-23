@@ -9,6 +9,17 @@ from pathlib import Path
 
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 EXPECTED_HELPERS = [
     "tools/lib/argv_split.zig",
     "tools/lib/bitmap.zig",
@@ -192,8 +203,29 @@ def repo_root(root_arg: str | None) -> Path:
     return Path(root_arg).resolve() if root_arg else Path(__file__).resolve().parents[2]
 
 
+def load_json_with_duplicate_tracking(text: str) -> object:
+    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
+
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(collect_duplicate_json_key_paths(item, prefix))
+    return paths
+
+
 def load_manifest(root: Path) -> dict:
-    return json.loads((root / MANIFEST_REL).read_text(encoding="utf-8"))
+    data = load_json_with_duplicate_tracking((root / MANIFEST_REL).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise TypeError(f"expected manifest dict, got {type(data).__name__}")
+    return data
 
 
 def write_manifest(root: Path, manifest: dict) -> None:
@@ -224,6 +256,12 @@ def write_sample_root(root: Path) -> None:
 
 def collect_issues(manifest: dict) -> list[str]:
     issues: list[str] = []
+
+    duplicate_paths = collect_duplicate_json_key_paths(manifest)
+    if duplicate_paths:
+        issues.extend(f"manifest:duplicate_json_key:{path}" for path in duplicate_paths)
+        return issues
+
     if manifest.get("phase") != "Phase 1":
         issues.append("manifest:phase=Phase 1")
     if manifest.get("status") != "closed":
@@ -268,6 +306,12 @@ def assert_issue_case(root: Path, mutate, expected_issue: str) -> None:
     issues = collect_issues(load_manifest(root))
     assert expected_issue in issues, issues
     write_sample_root(root)
+
+
+def insert_duplicate_manifest_line(root: Path, needle: str, duplicate_line: str) -> None:
+    manifest_path = root / MANIFEST_REL
+    text = manifest_path.read_text(encoding="utf-8")
+    manifest_path.write_text(text.replace(needle, duplicate_line + "\n" + needle, 1), encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -387,6 +431,25 @@ def run_self_test() -> None:
         )
         case_count += 1
 
+        insert_duplicate_manifest_line(
+            root,
+            '    "tools/lib/string.zig": {',
+            '    "tools/lib/string.zig": {},',
+        )
+        issues = collect_issues(load_manifest(root))
+        assert "manifest:duplicate_json_key:review_anchors.tools/lib/string.zig" in issues, issues
+        write_sample_root(root)
+        case_count += 1
+
+        manifest_path.write_text("{\n", encoding="utf-8")
+        try:
+            load_manifest(root)
+        except json.JSONDecodeError:
+            pass
+        else:
+            raise AssertionError("expected invalid JSON decode failure")
+        case_count += 1
+
     print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_SELF_TEST=pass")
     print(f"PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -409,7 +472,22 @@ def main() -> int:
         run_self_test()
         return 0
 
-    issues = collect_issues(load_manifest(repo_root(args.root)))
+    try:
+        manifest = load_manifest(repo_root(args.root))
+    except json.JSONDecodeError as exc:
+        print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=fail")
+        print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_START")
+        print(f"manifest:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}")
+        print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_END")
+        return 1
+    except TypeError as exc:
+        print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=fail")
+        print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_START")
+        print(str(exc))
+        print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_END")
+        return 1
+
+    issues = collect_issues(manifest)
     if issues:
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=fail")
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_START")
