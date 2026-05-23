@@ -83,7 +83,7 @@ TESTS_README_REQUIRED_MARKERS = [
 
 PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     'test "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit" {',
-    'test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet explicit" {',
+    'test "phase 8 perf-buffer poll scripts README keeps the current bridge packet explicit" {',
     '"zigux/tests/README.md"',
     '"scripts/zigux/README.md"',
     '"current direct-readback Phase 8 anchors:"',
