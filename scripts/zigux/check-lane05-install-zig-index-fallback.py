@@ -193,7 +193,7 @@ def run_self_test() -> int:
 
     expect_pass()
     expect_failure(
-        lambda root: (root / INSTALLER_PATH).writeText("missing\n", encoding="utf-8"),
+        lambda root: (root / INSTALLER_PATH).write_text("missing\n", encoding="utf-8"),
         "missing installer marker",
     )
     expect_failure(
