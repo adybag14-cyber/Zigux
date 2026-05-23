@@ -39,6 +39,10 @@ COMPANION_REQUIRED_MARKERS = (
     "Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.",
     "blocked risky-transport posture",
     "Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.",
+    "Keep the returned shared validator pair `scripts/zigux/validate-phase10.py` and `scripts/zigux/validate-phase10-closure.py` plus the returned `zigux/Makefile` explicit in that directly re-readable anchor set instead of leaving them visible only in the shared build-gate reminder.",
+    "Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig` instead of framing that survey replay as a last-known packet member.",
+    "treat any dedicated MMIO lifecycle replay step as a last-known packet member until a fresh reread rematerializes it.",
+    "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet",
     "Wrapper ownership for the input lane stays split:",
     "`drivers/virtio/virtio.zig` owns shared device-status bookkeeping",
     "`drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning",
@@ -146,10 +150,18 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
 
 Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.
 
+Keep the returned shared validator pair `scripts/zigux/validate-phase10.py` and `scripts/zigux/validate-phase10-closure.py` plus the returned `zigux/Makefile` explicit in that directly re-readable anchor set instead of leaving them visible only in the shared build-gate reminder.
+
+Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig` instead of framing that survey replay as a last-known packet member.
+
+Keep the MMIO helper names `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig` explicit beside `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `scripts/zigux/check-phase10-mmio-packet.py`, and the shared `zigux/tests/phase10_build.zig` gate on the same narrower basis; treat any dedicated MMIO lifecycle replay step as a last-known packet member until a fresh reread rematerializes it.
+
 Keep the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.
 
 Tests-root reviewer prompt:
 - keep the blocked risky-transport posture explicit while keeping the now-returned driver-id pair explicit beside the returned core-side companions and `zigux/tests/phase10_virtio_ring.zig` framed as the broader public current-`master` ring companion where exact direct-path readback still misses it.
+
+Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh, so the returned ring survey, the helper-local MMIO survey, and their blocked risky-transport wording do not collapse back into one generic freeze-boundary bucket.
 
 Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning.
 
@@ -325,7 +337,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
     bad_mmio_companion = good_companion.replace(
         "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`",
         "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion-missing.md`",
-        1,
+        2,
     )
     try:
         check_companion_text(bad_mmio_companion)
@@ -418,6 +430,54 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
     else:
         raise AssertionError("expected missing driver-id pair scripts-root marker failure")
 
+    missing_direct_anchor_validator_pair = good_companion.replace(
+        "Keep the returned shared validator pair `scripts/zigux/validate-phase10.py` and `scripts/zigux/validate-phase10-closure.py` plus the returned `zigux/Makefile` explicit in that directly re-readable anchor set instead of leaving them visible only in the shared build-gate reminder.",
+        "Keep the returned shared validator pair `scripts/zigux/validate-phase10.py` explicit in that directly re-readable anchor set instead of leaving it visible only in the shared build-gate reminder.",
+        1,
+    )
+    try:
+        check_companion_text(missing_direct_anchor_validator_pair)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing direct-anchor validator pair marker failure")
+
+    missing_ring_survey_gate = good_companion.replace(
+        "Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig` instead of framing that survey replay as a last-known packet member.",
+        "Keep `zigux/tests/phase10_virtio_ring_survey_missing.zig` explicit as the returned dedicated ring survey gate beside `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig` instead of framing that survey replay as a last-known packet member.",
+        1,
+    )
+    try:
+        check_companion_text(missing_ring_survey_gate)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing ring survey gate marker failure")
+
+    missing_mmio_lifecycle_boundary = good_companion.replace(
+        "treat any dedicated MMIO lifecycle replay step as a last-known packet member until a fresh reread rematerializes it.",
+        "treat any dedicated MMIO lifecycle replay step as immediately returned direct evidence.",
+        1,
+    )
+    try:
+        check_companion_text(missing_mmio_lifecycle_boundary)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing mmio lifecycle boundary marker failure")
+
+    missing_ring_mmio_lane_split = good_companion.replace(
+        "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh, so the returned ring survey, the helper-local MMIO survey, and their blocked risky-transport wording do not collapse back into one generic freeze-boundary bucket.",
+        "Keep the queue-local Phase 10 freeze-boundary packet aligned when shared reviewer-facing reminders refresh.",
+        1,
+    )
+    try:
+        check_companion_text(missing_ring_mmio_lane_split)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing ring-mmio lane split marker failure")
+
     missing_ring_publish_readiness_scripts = good_scripts_root.replace(
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
         "`drivers/virtio/virtio_ring_publish_readiness_missing.zig`",
@@ -431,7 +491,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing ring publish-readiness scripts-root marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
