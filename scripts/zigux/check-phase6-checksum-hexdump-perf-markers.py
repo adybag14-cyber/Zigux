@@ -77,11 +77,13 @@ REQUIRED_HEXDUMP_CHECKER_SURFACES = [
 REQUIRED_CHECKSUM_LINUX_STYLE_RERUN_ROUTES = [
     "make -C zigux phase6-checksum-perf-matrix-test",
     "make -C zigux phase6-checksum-perf",
+    "make -C zigux phase6-perf",
 ]
 REQUIRED_HEXDUMP_LINUX_STYLE_RERUN_ROUTES = [
     "make -C zigux phase6-hexdump-review",
     "make -C zigux phase6-hexdump-perf-matrix-test",
     "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
 ]
 EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT = "zigux/tests/phase6_hexdump_perf_matrix.zig"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
@@ -103,7 +105,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 43
+SELF_TEST_CASE_COUNT = 45
 
 
 class ValidationError(RuntimeError):
@@ -987,6 +989,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
+                '"make -C zigux phase6-perf"',
+                '"make -C zigux phase6-checksum-test"',
+            ),
+            "phase6-perf",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
                 '"make -C zigux phase6-hexdump-review"',
                 '"make -C zigux phase6-hexdump-scan"',
             ),
@@ -1015,6 +1029,18 @@ def run_self_test() -> None:
                 '"make -C zigux phase6-hexdump-test"',
             ),
             "phase6-hexdump-perf",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"make -C zigux phase6-perf"',
+                '"make -C zigux phase6-hexdump-test"',
+            ),
+            "phase6-perf",
         )
         cases_run += 1
         scaffold_repo(root)
