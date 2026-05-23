@@ -285,7 +285,7 @@ test "phase12 nvme pci dropped backlog retirement stays idle before any reset ba
     _ = try lab.planIoQueue(8, 64, false);
 
     const summary = lab.summarizeDroppedIoRetirement();
-    try std.testing.expectEqual(RecoveryState.running, summary.state);
+    try std.testing.expectEqual(nvme_pci.RecoveryState.running, summary.state);
     try std.testing.expectEqual(@as(u32, 0), summary.reset_generation);
     try std.testing.expect(summary.admin_queue_replayed_after_reset);
     try std.testing.expect(!summary.admin_queue_must_be_replayed);
@@ -341,4 +341,48 @@ test "phase12 nvme pci direct replay keeps stale reservation replay blocked unti
     try std.testing.expectEqual(@as(u16, 4), ready.last_queue_id);
     try std.testing.expect(ready.queue_numbering_restarted);
     try std.testing.expect(!ready.admin_queue_must_be_replanned);
+}
+
+test "phase12 nvme pci direct replay keeps planner-capped reservation debt explicit before replay" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(8, 8);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+    const prefill = try lab.reserveIoQueues(62, 62);
+    try std.testing.expectEqual(@as(usize, 62), prefill.reserved_io_queues);
+
+    const debt = try lab.recoveryReservationReplayDebtSummary(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 8);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", debt.anchor);
+    try std.testing.expectEqual(nvme_pci.RecoveryState.running, debt.state);
+    try std.testing.expectEqual(@as(u32, 1), debt.reset_generation);
+    try std.testing.expectEqual(@as(usize, 8), debt.requested_reserved_io_queues);
+    try std.testing.expectEqual(@as(usize, 8), debt.controller_io_queue_limit);
+    try std.testing.expectEqual(@as(usize, 2), debt.planner_remaining_io_slots);
+    try std.testing.expectEqual(@as(usize, 2), debt.replayable_reserved_io_queues);
+    try std.testing.expectEqual(@as(?u16, 63), debt.first_queue_id);
+    try std.testing.expectEqual(@as(?u16, 64), debt.last_queue_id);
+    try std.testing.expectEqual(@as(?u16, 65), debt.next_io_queue_id_after_replay);
+    try std.testing.expect(!debt.queue_numbering_would_restart);
+    try std.testing.expect(!debt.controller_limited);
+    try std.testing.expect(debt.planner_limited);
+    try std.testing.expect(!debt.queue_planning_blocked);
+    try std.testing.expect(!debt.queues_frozen);
+    try std.testing.expect(debt.has_queue_reservation_to_replay);
+    try std.testing.expect(!debt.queue_reservation_already_current);
+    try std.testing.expect(debt.cached_queue_reservation_stale);
+    try std.testing.expect(!debt.cached_prp_metadata_stale);
+    try std.testing.expect(!debt.descriptor_rebuild_required);
+    try std.testing.expect(!debt.admin_queue_must_be_replanned);
+    try std.testing.expectEqual(nvme_pci.RecoveryReservationReplayBlocker.none, debt.replay_blocker);
+    try std.testing.expect(debt.replay_preflight_ready);
 }
