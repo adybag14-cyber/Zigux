@@ -257,6 +257,7 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/validate-phase3.py")',
     'Path("scripts/zigux/check-phase3-abi.py")',
     'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
+    'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
     'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
     'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
     'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
@@ -272,6 +273,8 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=pass",
     "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT=",
+    "PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass",
+    "PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=",
     "PHASE3_WRAPPER_SELF_TEST=pass",
     "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
     "PHASE3_VALIDATE_SELFTEST=pass",
@@ -668,6 +671,11 @@ def run_self_test() -> int:
         ),
         (
             SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
             "selftest driver",
         ),
@@ -735,6 +743,16 @@ def run_self_test() -> int:
         (
             SELFTEST_DRIVER_PATH,
             "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST_CASE_COUNT=",
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            "PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass",
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            "PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=",
             "selftest driver",
         ),
         (
