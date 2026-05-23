@@ -18,7 +18,13 @@ PHASE2_BOOTSTRAP_NOTES_REL = Path("Documentation/zigux/phase2-toolchain-bootstra
 PHASE2_GENKSYMS_SURVEY_REL = Path("Documentation/zigux/phase2-genksyms-dual-implementation-survey.md")
 PHASE2_VALIDATE_REL = Path("scripts/zigux/validate-phase2.py")
 PHASE2_CLOSURE_VALIDATE_REL = Path("scripts/zigux/validate-phase2-closure.py")
+LOCAL_ARCHIVE_WORKFLOW_CHECKER_REL = Path("scripts/zigux/check-lane05-local-first-archive-workflow.py")
+LOCAL_ARCHIVE_README_CHECKER_REL = Path("scripts/zigux/check-lane05-local-archive-readme.py")
+INSTALL_ZIG_ARCHIVE_VERIFICATION_CHECKER_REL = Path("scripts/zigux/check-lane05-install-zig-archive-verification.py")
+STAGE_HELPER_CONTRACT_CHECKER_REL = Path("scripts/zigux/check-lane05-stage-helper-contract.py")
+STAGE_HELPER_SELFTEST_CHECKER_REL = Path("scripts/zigux/check-lane05-stage-helper-selftest.py")
 INSTALL_ZIG_REL = Path("scripts/zigux/install-zig.py")
+STAGE_PINNED_ARCHIVE_REL = Path("scripts/zigux/stage-pinned-zig-archive.py")
 TOOLCHAIN_CHECKER_REL = Path("scripts/zigux/check-zig-toolchain.py")
 PINNING_CHECKER_REL = Path("scripts/zigux/check-phase2-toolchain-pinning.py")
 PIN_SCOPE_CHECKER_REL = Path("scripts/zigux/check-phase2-toolchain-pin-scope.py")
@@ -78,8 +84,6 @@ GENKSYMS_PROCESS_OUTPUT_RELS = (
     Path("zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json"),
     Path("zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json"),
 )
-LOCAL_ARCHIVE_WORKFLOW_CHECKER_REL = Path("scripts/zigux/check-lane05-local-first-archive-workflow.py")
-LOCAL_ARCHIVE_README_CHECKER_REL = Path("scripts/zigux/check-lane05-local-archive-readme.py")
 ARCHIVE_README_REL = Path("third_party/README.md")
 ARCHIVE_PAYLOAD_REL = Path("third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")
 
@@ -92,7 +96,11 @@ REQUIRED_FILES = (
     PHASE2_CLOSURE_VALIDATE_REL,
     LOCAL_ARCHIVE_WORKFLOW_CHECKER_REL,
     LOCAL_ARCHIVE_README_CHECKER_REL,
+    INSTALL_ZIG_ARCHIVE_VERIFICATION_CHECKER_REL,
+    STAGE_HELPER_CONTRACT_CHECKER_REL,
+    STAGE_HELPER_SELFTEST_CHECKER_REL,
     INSTALL_ZIG_REL,
+    STAGE_PINNED_ARCHIVE_REL,
     TOOLCHAIN_CHECKER_REL,
     PINNING_CHECKER_REL,
     PIN_SCOPE_CHECKER_REL,
@@ -235,7 +243,14 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "run: python3 scripts/zigux/install-zig.py --self-test",
+    "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -331,6 +346,9 @@ EXPECTED_MANIFEST_CHECKERS = (
     "scripts/zigux/check-zig-toolchain.py",
     "scripts/zigux/check-lane05-local-first-archive-workflow.py",
     "scripts/zigux/check-lane05-local-archive-readme.py",
+    "scripts/zigux/check-lane05-install-zig-archive-verification.py",
+    "scripts/zigux/check-lane05-stage-helper-contract.py",
+    "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
@@ -347,6 +365,14 @@ EXPECTED_MANIFEST_CHECKERS = (
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
+)
+EXPECTED_MANIFEST_BOOTSTRAP_HELPERS = (
+    "scripts/zigux/install-zig.py",
+    "scripts/zigux/stage-pinned-zig-archive.py",
+)
+EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (
+    "third_party/README.md",
+    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
 )
 EXPECTED_MANIFEST_BRIDGE_HELPERS = (
     "scripts/zigux/kconfig/conf_bridge.zig",
@@ -405,30 +431,28 @@ EXPECTED_GENKSYMS_CASES = [
         "expected_file": "quiet_overrides_warning_expected.json",
     },
     {
+        "name": "help",
+        "args": ["--help"],
+        "expected_file": "help_expected.json",
+    },
+    {
         "name": "explicit_option_terminator",
-        "args": ["--warnings", "--", "--not-an-option", "trailing.symref"],
+        "args": ["--debug", "--", "--warn", "literal.symref"],
         "expected_file": "explicit_option_terminator_expected.json",
     },
     {
         "name": "positional_passthrough",
-        "args": ["-d", "--", "stdin.symtypes", "extra.symref"],
+        "args": ["input.symref", "output.symtypes"],
         "expected_file": "positional_passthrough_expected.json",
     },
     {
         "name": "lone_dash_passthrough",
-        "args": ["-", "stdin.symtypes", "stdin.symref"],
+        "args": ["-", "tail.symref"],
         "expected_file": "lone_dash_passthrough_expected.json",
     },
     {
         "name": "dash_prefixed_long_option_arguments_as_data",
-        "args": [
-            "--reference",
-            "--shadow-reference.symref",
-            "--dump-types",
-            "--shadow-types.symtypes",
-            "--",
-            "trailing.symref",
-        ],
+        "args": ["--reference", "--not-an-option.symref", "--dump-types", "--types-as-data.symtypes"],
         "expected_file": "dash_prefixed_long_option_arguments_as_data_expected.json",
     },
 ]
@@ -436,22 +460,24 @@ EXPECTED_GENKSYMS_CASES = [
 EXPECTED_GENKSYMS_MANIFEST = {
     "tool": "scripts/zigux/genksyms.zig",
     "status": "closed",
-    "mode": "bounded request-plan bridge",
+    "mode": "bounded bridge",
     "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
     "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
-    "case_count": 9,
+    "case_count": 10,
     "cases": [
         "minimal",
         "debug_reference_types",
         "long_options",
         "abbreviated_long_options",
         "quiet_overrides_warning",
+        "help",
         "explicit_option_terminator",
         "positional_passthrough",
         "lone_dash_passthrough",
         "dash_prefixed_long_option_arguments_as_data",
     ],
-    "fixture_packet": [
+    "option_packet": [
+        "help_expected.json",
         "minimal_expected.json",
         "debug_reference_types_expected.json",
         "long_options_expected.json",
@@ -462,45 +488,56 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "lone_dash_passthrough_expected.json",
         "dash_prefixed_long_option_arguments_as_data_expected.json",
     ],
-    "help_packet": ["help_expected.json"],
-    "standalone_proof_packet": [
-        "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
+    "process_output_packet": [
+        "abbreviated_version_expected.json",
+        "ambiguous_long_option_expected.json",
+        "invalid_option_expected.json",
+        "missing_long_dump_types_argument_expected.json",
+        "missing_long_reference_argument_expected.json",
+        "missing_reference_argument_expected.json",
+        "too_many_reference_files_expected.json",
+        "unsupported_long_option_expected.json",
+        "unexpected_long_help_argument_expected.json",
     ],
-    "process_output_packet": [path.name for path in GENKSYMS_PROCESS_OUTPUT_RELS],
     "helper_local_anchors": [
-        "genksyms bridge treats pure version requests as version command",
-        "genksyms bridge preserves repeated pure version invocations",
-        "genksyms bridge preserves empty inline long reference argument",
-        "genksyms bridge preserves empty inline abbreviated dump-types argument",
-        "parseArgs reports ambiguous abbreviated long options",
-        "genksyms bridge renders ambiguous long option failure like the fixture",
-        "genksyms bridge renders invalid short option failure like the fixture",
-        "genksyms bridge renders missing long option argument like the fixture",
-        "genksyms bridge renders missing short option argument like the fixture",
-        "genksyms bridge renders unexpected long option argument like the fixture",
-        "genksyms bridge appends usage after getopt-style parse failures",
-        "genksyms bridge leaves tool-local reference-limit failure message unchanged",
-        "genksyms bridge rejects more than sixteen reference files like the C harness",
+        "bridge recognizes --help before required positional arguments",
+        "bridge keeps short options aligned with genksyms flag semantics",
+        "bridge keeps long options aligned with genksyms flag semantics",
+        "quiet keeps warning level explicit and wins over --warnings",
+        "bridge accepts unique long-option abbreviations",
+        "bridge rejects ambiguous long-option abbreviations",
+        "bridge rejects unsupported long options before positional parsing",
+        "bridge rejects missing dump-types argument after long option spelling",
+        "bridge rejects missing reference argument after long option spelling",
+        "bridge rejects unexpected positional argument after --help",
+        "bridge emits version output before invalid long-option failure",
+        "bridge emits version output before ambiguous long-option failure",
+        "bridge treats dash-prefixed values after --reference as positional data",
+        "bridge treats dash-prefixed values after --dump-types as positional data",
+        "bridge stops option parsing after explicit terminator",
+        "bridge preserves lone dash positional arguments as reference files",
+        "bridge preserves ordinary positional arguments after options",
+        "bridge rejects too many reference files once positional parsing stays active",
     ],
 }
 
 EXPECTED_CONF_CASE_DETAILS = [
-    {"name": "oldaskconfig", "mode": "oldaskconfig", "kconfig": "Kconfig", "config": "ask/.config", "arch": "x86_64", "expected": "oldaskconfig_expected.json"},
-    {"name": "syncconfig", "mode": "syncconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "riscv64", "nosilentupdate": "1", "expected": "syncconfig_expected.json"},
-    {"name": "oldconfig", "mode": "oldconfig", "kconfig": "Kconfig", "config": "refresh/.config", "arch": "x86", "expected": "oldconfig_expected.json"},
-    {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "expected": "allnoconfig_expected.json"},
-    {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
-    {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
-    {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
-    {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
-    {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
-    {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "silent=debug_defconfig", "expected": "savedefconfig_expected.json"},
-    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": True, "expected": "listnewconfig_expected.json"},
-    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
-    {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
-    {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
-    {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
-    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"},
+    {"name": "oldaskconfig", "args": ["oldaskconfig", "Kconfig"], "expected": "oldaskconfig_expected.json"},
+    {"name": "syncconfig", "args": ["syncconfig", "Kconfig"], "expected": "syncconfig_expected.json"},
+    {"name": "oldconfig", "args": ["oldconfig", "Kconfig"], "expected": "oldconfig_expected.json"},
+    {"name": "allnoconfig", "args": ["allnoconfig", "Kconfig"], "expected": "allnoconfig_expected.json"},
+    {"name": "allyesconfig", "args": ["allyesconfig", "Kconfig"], "expected": "allyesconfig_expected.json"},
+    {"name": "allmodconfig", "args": ["allmodconfig", "Kconfig"], "expected": "allmodconfig_expected.json"},
+    {"name": "alldefconfig", "args": ["alldefconfig", "Kconfig"], "expected": "alldefconfig_expected.json"},
+    {"name": "randconfig", "args": ["randconfig", "Kconfig"], "expected": "randconfig_expected.json"},
+    {"name": "defconfig", "args": ["defconfig", "arch/arm64/configs/defconfig", "Kconfig"], "expected": "defconfig_expected.json"},
+    {"name": "savedefconfig", "args": ["savedefconfig", "configs/minimal_defconfig", "Kconfig"], "expected": "savedefconfig_expected.json"},
+    {"name": "listnewconfig", "args": ["listnewconfig", "Kconfig"], "expected": "listnewconfig_expected.json"},
+    {"name": "helpnewconfig", "args": ["helpnewconfig", "Kconfig"], "expected": "helpnewconfig_expected.json"},
+    {"name": "olddefconfig", "args": ["olddefconfig", "Kconfig"], "expected": "olddefconfig_expected.json"},
+    {"name": "yes2modconfig", "args": ["yes2modconfig", "Kconfig"], "expected": "yes2modconfig_expected.json"},
+    {"name": "mod2yesconfig", "args": ["mod2yesconfig", "Kconfig"], "expected": "mod2yesconfig_expected.json"},
+    {"name": "mod2noconfig", "args": ["mod2noconfig", "Kconfig"], "expected": "mod2noconfig_expected.json"},
 ]
 
 EXPECTED_CONF_MANIFEST = {
@@ -546,37 +583,30 @@ EXPECTED_CONF_MANIFEST = {
         "mod2yesconfig_expected.json",
         "mod2noconfig_expected.json",
     ],
-    "mode_arg_cases": ["defconfig", "savedefconfig"],
-    "silent_request_packet": ["listnewconfig_expected.json", "helpnewconfig_expected.json"],
-    "syncconfig_env_packet": ["syncconfig_expected.json"],
-    "allconfig_sentinel_packet": [
-        "allnoconfig_expected.json",
-        "allyesconfig_expected.json",
-        "alldefconfig_expected.json",
-    ],
-    "allconfig_override_packet": ["allmodconfig_expected.json", "randconfig_expected.json"],
-    "helper_local_allconfig_implicit_omission_modes": ["allmodconfig", "randconfig"],
-    "helper_local_allconfig_explicit_override_modes": [
-        "allmodconfig",
-        "allnoconfig",
-        "allyesconfig",
-        "randconfig",
-    ],
-    "randconfig_env_packet": ["randconfig_expected.json"],
     "helper_local_anchors": [
-        "conf bridge mode surface stays aligned with conf.c long options",
-        "conf bridge emits olddefconfig argv and env",
-        "conf bridge emits syncconfig auto files",
-        "conf bridge emits syncconfig nosilentupdate when present",
-        "conf bridge omits empty syncconfig nosilentupdate",
-        "conf bridge emits silent flag before mode flag",
-        "conf bridge emits alldefconfig argv and env",
-        "conf bridge emits explicit empty allconfig override for allmodconfig",
-        "conf bridge emits randconfig tunables when present",
-        "conf bridge emits explicit randconfig allconfig override when present",
-        "conf bridge omits randconfig allconfig sentinel without explicit override",
-        "conf bridge emits yes2modconfig argv and env",
-        "conf bridge emits defconfig mode argument before kconfig",
+        "conf bridge emits oldaskconfig mode argument before kconfig",
+        "conf bridge emits syncconfig mode argument before kconfig",
+        "conf bridge emits oldconfig mode argument before kconfig",
+        "conf bridge emits allnoconfig mode argument before kconfig",
+        "conf bridge emits allyesconfig mode argument before kconfig",
+        "conf bridge emits allmodconfig mode argument before kconfig",
+        "conf bridge emits alldefconfig mode argument before kconfig",
+        "conf bridge emits randconfig mode argument before kconfig",
+        "conf bridge emits olddefconfig mode argument before kconfig",
+        "conf bridge emits yes2modconfig mode argument before kconfig",
+        "conf bridge emits mod2yesconfig mode argument before kconfig",
+        "conf bridge emits mod2noconfig mode argument before kconfig",
+        "conf bridge emits listnewconfig mode argument before kconfig",
+        "conf bridge emits helpnewconfig mode argument before kconfig",
+        "conf bridge keeps helpnewconfig mode argument even when silent is set",
+        "bridge options parser rejects duplicate allconfig arguments",
+        "bridge options parser rejects missing allconfig argument",
+        "bridge options parser rejects duplicate env overrides",
+        "bridge options parser rejects duplicate kconfig paths",
+        "bridge options parser rejects helpnewconfig without a kconfig path",
+        "bridge options parser rejects defconfig with missing path",
+        "bridge options parser rejects savedefconfig with missing path",
+        "conf bridge emits defconfig mode argument before defconfig path",
         "conf bridge emits savedefconfig mode argument before kconfig",
         "conf bridge escapes low control bytes in JSON strings",
         "mode argument validation rejects bridge option shaped defconfig payload",
@@ -822,6 +852,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     expect_subset(issues, "closure_notes", require_manifest_list(issues, manifest, "closure_notes"), EXPECTED_MANIFEST_CLOSURE_NOTES)
     expect_subset(issues, "validators", require_manifest_list(issues, manifest, "validators"), EXPECTED_MANIFEST_VALIDATORS)
     expect_subset(issues, "checkers", require_manifest_list(issues, manifest, "checkers"), EXPECTED_MANIFEST_CHECKERS)
+    expect_subset(issues, "bootstrap_helpers", require_manifest_list(issues, manifest, "bootstrap_helpers"), EXPECTED_MANIFEST_BOOTSTRAP_HELPERS)
+    expect_subset(issues, "archive_support", require_manifest_list(issues, manifest, "archive_support"), EXPECTED_MANIFEST_ARCHIVE_SUPPORT)
     expect_subset(issues, "bridge_helpers", require_manifest_list(issues, manifest, "bridge_helpers"), EXPECTED_MANIFEST_BRIDGE_HELPERS)
     expect_subset(issues, "fixture_roster", require_manifest_list(issues, manifest, "fixture_roster"), EXPECTED_MANIFEST_FIXTURE_ROSTER)
 
@@ -878,6 +910,8 @@ def build_self_test_root(root: Path) -> None:
             "closure_notes": list(EXPECTED_MANIFEST_CLOSURE_NOTES),
             "validators": list(EXPECTED_MANIFEST_VALIDATORS),
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
+            "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
+            "archive_support": list(EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
         },
@@ -946,8 +980,8 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         workflow_path = resolve(root, WORKFLOW_REL)
-        workflow_path.write_text(replace_exact_line(workflow_path.read_text(encoding="utf-8"), "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py", "run: python3 scripts/zigux/other.py"), encoding="utf-8")
-        assert ("MISSING_WORKFLOW_LINE", "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py") in collect_issues(root)
+        workflow_path.write_text(replace_exact_line(workflow_path.read_text(encoding="utf-8"), "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py", "run: python3 scripts/zigux/other.py"), encoding="utf-8")
+        assert ("MISSING_WORKFLOW_LINE", "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -959,9 +993,25 @@ def run_self_test() -> int:
         build_self_test_root(root)
         manifest_path = resolve(root, MANIFEST_REL)
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-        payload["present_surfaces"]["checkers"].remove("scripts/zigux/check-phase2-genksyms-selftest-alignment.py")
+        payload["present_surfaces"]["checkers"].remove("scripts/zigux/check-lane05-install-zig-archive-verification.py")
         manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("MISSING_MANIFEST_SURFACE", "checkers:scripts/zigux/check-phase2-genksyms-selftest-alignment.py") in collect_issues(root)
+        assert ("MISSING_MANIFEST_SURFACE", "checkers:scripts/zigux/check-lane05-install-zig-archive-verification.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest_path = resolve(root, MANIFEST_REL)
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["bootstrap_helpers"].remove("scripts/zigux/stage-pinned-zig-archive.py")
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("MISSING_MANIFEST_SURFACE", "bootstrap_helpers:scripts/zigux/stage-pinned-zig-archive.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest_path = resolve(root, MANIFEST_REL)
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["archive_support"].remove("third_party/README.md")
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("MISSING_MANIFEST_SURFACE", "archive_support:third_party/README.md") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
