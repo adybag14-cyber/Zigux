@@ -64,7 +64,38 @@ REQUIRED_LAB_VALIDATION_EVIDENCE = [
     ".github/workflows/zigux-bootstrap.yml",
 ]
 
+REQUIRED_CORE_LAB_VALIDATION_EVIDENCE = [
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "drivers/virtio/virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+    "zigux/tests/phase10_virtio_core_survey.zig",
+]
+
+REQUIRED_LANDED_CORE_HELPER_EVIDENCE = {
+    "zigux/tests/phase10_virtio_core_manifest.json": [
+        "phase10-queue-shape-bookkeeping-helper",
+        "phase10-config-generation-bookkeeping-helper",
+        "phase10-interrupt-ack-bookkeeping-helper",
+        "phase10-lifecycle-guard-bookkeeping-helper",
+        "phase10-driver-validation-narrowing-helper",
+        "phase10-core-attribute-summary-helper",
+        "phase10-reset-replay-bookkeeping-helper",
+    ],
+}
+
 REQUIRED_FOCUSED_HARNESS_REPLAYS = {
+    "zigux/tests/phase10_virtio_driver_id.zig": [
+        "phase10 driver-id review path replay",
+    ],
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig": [
+        "phase10 core interrupt-compound-ack replay",
+    ],
+    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
+        "phase10 core reset-queue replay",
+    ],
     "drivers/virtio/virtio_ring_publish_readiness.zig": [
         "phase10 ring publish-readiness wrapper replay",
     ],
@@ -76,6 +107,8 @@ REQUIRED_FOCUSED_HARNESS_REPLAYS = {
     ],
 }
 
+REQUIRED_CORE_BLOCKED_TRANSPORT_PATH = "zigux/tests/phase10_virtio_core_manifest.json"
+REQUIRED_CORE_BLOCKED_TRANSPORT_GAP = "phase10-core-probe-remove-lifecycle"
 REQUIRED_INPUT_READY_TRANSPORT_PATH = "zigux/tests/phase10_virtio_input_manifest.json"
 REQUIRED_INPUT_READY_TRANSPORT_GAP = "phase10-virtio-input-registration-lifecycle"
 REQUIRED_MMIO_READY_TRANSPORT_PATH = "zigux/tests/phase10_virtio_mmio_manifest.json"
@@ -181,6 +214,29 @@ def collect_drift(manifest: dict) -> list[str]:
                 f"{item!r}:missing"
             )
 
+    for item in REQUIRED_CORE_LAB_VALIDATION_EVIDENCE:
+        if item not in lab_validation_evidence:
+            drift.append(
+                "roadmap_parity_scoreboard:lab_only_driver_validation:"
+                f"{item!r}:missing"
+            )
+
+    landed_core_helper_evidence = manifest.get("landed_core_helper_evidence")
+    if not isinstance(landed_core_helper_evidence, dict):
+        drift.append("landed_core_helper_evidence:missing")
+        return drift
+
+    for path, required_labels in REQUIRED_LANDED_CORE_HELPER_EVIDENCE.items():
+        helper_labels = landed_core_helper_evidence.get(path)
+        if not isinstance(helper_labels, list) or not helper_labels:
+            drift.append(f"landed_core_helper_evidence:{path}:missing")
+            continue
+        for label in required_labels:
+            if label not in helper_labels:
+                drift.append(
+                    f"landed_core_helper_evidence:{path}:{label!r}:missing"
+                )
+
     focused_harness_replays = manifest.get("focused_harness_replays")
     if not isinstance(focused_harness_replays, dict):
         drift.append("focused_harness_replays:missing")
@@ -220,6 +276,13 @@ def collect_drift(manifest: dict) -> list[str]:
     if not isinstance(blocked_transport_gaps, dict):
         drift.append("blocked_transport_gaps:missing")
         return drift
+
+    core_blocked_gap = blocked_transport_gaps.get(REQUIRED_CORE_BLOCKED_TRANSPORT_PATH)
+    if core_blocked_gap != REQUIRED_CORE_BLOCKED_TRANSPORT_GAP:
+        drift.append(
+            "blocked_transport_gaps:"
+            f"{REQUIRED_CORE_BLOCKED_TRANSPORT_PATH}:{core_blocked_gap!r}!={REQUIRED_CORE_BLOCKED_TRANSPORT_GAP!r}"
+        )
 
     input_blocked_gap = blocked_transport_gaps.get(REQUIRED_INPUT_READY_TRANSPORT_PATH)
     if input_blocked_gap != REQUIRED_INPUT_READY_TRANSPORT_GAP:
@@ -267,15 +330,18 @@ def fixture_manifest() -> dict:
             },
             "lab_only_driver_validation": {
                 "status": "starter_landed",
-                "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE,
+                "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE
+                + REQUIRED_CORE_LAB_VALIDATION_EVIDENCE,
             },
         },
+        "landed_core_helper_evidence": REQUIRED_LANDED_CORE_HELPER_EVIDENCE,
         "focused_harness_replays": REQUIRED_FOCUSED_HARNESS_REPLAYS,
         "ready_transport_followups": {
             REQUIRED_INPUT_READY_TRANSPORT_PATH: REQUIRED_INPUT_READY_TRANSPORT_GAP,
             REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
         },
         "blocked_transport_gaps": {
+            REQUIRED_CORE_BLOCKED_TRANSPORT_PATH: REQUIRED_CORE_BLOCKED_TRANSPORT_GAP,
             REQUIRED_INPUT_READY_TRANSPORT_PATH: REQUIRED_INPUT_READY_TRANSPORT_GAP,
             REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
         },
@@ -541,6 +607,48 @@ def run_self_test() -> int:
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
             item
             for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "Documentation/zigux/phase10-virtio-core-survey.md"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'Documentation/zigux/phase10-virtio-core-survey.md':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "drivers/virtio/virtio_driver_id.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'drivers/virtio/virtio_driver_id.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "zigux/tests/phase10_virtio_driver_id.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/tests/phase10_virtio_driver_id.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
             if item != "scripts/zigux/check-phase10-closure-manifest-counts.py"
         ]
         write_manifest(broken)
@@ -561,6 +669,30 @@ def run_self_test() -> int:
         expect_contains(
             validate(root)[1],
             "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/Makefile':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["landed_core_helper_evidence"]["zigux/tests/phase10_virtio_core_manifest.json"] = [
+            item
+            for item in broken["landed_core_helper_evidence"]["zigux/tests/phase10_virtio_core_manifest.json"]
+            if item != "phase10-driver-validation-narrowing-helper"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "landed_core_helper_evidence:zigux/tests/phase10_virtio_core_manifest.json:'phase10-driver-validation-narrowing-helper':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_driver_id.zig"] = []
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:zigux/tests/phase10_virtio_driver_id.zig:missing",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
@@ -613,6 +745,16 @@ def run_self_test() -> int:
         expect_contains(
             validate(root)[1],
             "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-helper-drift'!='phase10-mmio-lifecycle-and-irq-paths'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["blocked_transport_gaps"][REQUIRED_CORE_BLOCKED_TRANSPORT_PATH] = "phase10-core-helper-drift"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "blocked_transport_gaps:zigux/tests/phase10_virtio_core_manifest.json:'phase10-core-helper-drift'!='phase10-core-probe-remove-lifecycle'",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
@@ -700,7 +842,11 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_MMIO_EVIDENCE_COUNT={len(REQUIRED_MMIO_SCOREBOARD_EVIDENCE)}")
     print(
         "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_LAB_VALIDATION_EVIDENCE_COUNT="
-        f"{len(REQUIRED_LAB_VALIDATION_EVIDENCE)}"
+        f"{len(REQUIRED_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_CORE_LAB_VALIDATION_EVIDENCE)}"
+    )
+    print(
+        "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_LANDED_CORE_HELPER_COUNT="
+        f"{sum(len(labels) for labels in REQUIRED_LANDED_CORE_HELPER_EVIDENCE.values())}"
     )
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_FOCUSED_HARNESS_REPLAY_COUNT={len(REQUIRED_FOCUSED_HARNESS_REPLAYS)}")
     return 0
