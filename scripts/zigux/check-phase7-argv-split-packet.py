@@ -30,6 +30,7 @@ REQUIRED_MARKERS = {
         "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.",
         "whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space",
         "leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins",
+        "blank, whitespace-only, whitespace-before-first-NUL, and leading-NUL inputs all reuse the same shared empty storage, argv, and `cArgv()` views across calls, so blank-result teardown stays repeatable without hidden allocation churn",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
@@ -109,7 +110,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 53
+SELF_TEST_CASE_COUNT = 54
 
 
 def read_text(path: Path) -> str:
@@ -197,6 +198,13 @@ def run_self_test() -> None:
         slice_marker = "leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins"
         slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_slice_leading_nul_blank_marker", tmp_root, f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        slice_text = read_text(slice_path)
+        slice_marker = "blank, whitespace-only, whitespace-before-first-NUL, and leading-NUL inputs all reuse the same shared empty storage, argv, and `cArgv()` views across calls, so blank-result teardown stays repeatable without hidden allocation churn"
+        slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_slice_shared_blank_views_marker", tmp_root, f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
