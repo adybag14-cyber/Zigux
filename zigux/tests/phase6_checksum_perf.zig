@@ -80,6 +80,7 @@ fn validateFastPathMatrix() !void {
         fingerprint: u64,
     }{
         .{ .label = "IPV4_20B", .len = 20, .iterations = 600_000, .max_slowdown_pct = 100, .fingerprint = 0x0682_5249_d059_7d1a },
+        .{ .label = "IPV4_20B_UPDATED", .len = 20, .iterations = 600_000, .max_slowdown_pct = 100, .fingerprint = 0x5f42_250b_82c8_2bed },
         .{ .label = "IPV4_24B", .len = 24, .iterations = 500_000, .max_slowdown_pct = 100, .fingerprint = 0x5eb5_c436_a23c_5f85 },
         .{ .label = "IPV4_60B", .len = 60, .iterations = 250_000, .max_slowdown_pct = 100, .fingerprint = 0xdf35_6721_260f_0ddd },
     };
