@@ -177,6 +177,62 @@ test "runtime bitmap loader rejects re-selftest without disturbing lifecycle sum
     try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
 }
 
+test "runtime bitmap loader rejects malformed re-init after a loaded payload without disturbing lifecycle summaries" {
+    var module = RuntimeBitmapSample{};
+    try module.initFromBitList(load_plan.source_bit_list);
+
+    const before_rejected_init = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_init.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_init.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_init.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(63));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.initFromBitList("0,,64"));
+
+    const after_rejected_init = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try expectSummaryStable(before_rejected_init, after_rejected_init);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(63));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
+
+    _ = try module.runSelftest();
+    try module.exit();
+
+    const before_rejected_exit_init = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_init.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_init.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_init.exit_runs);
+
+    const out_of_bounds_list = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{}",
+        .{RuntimeBitmapSample.bitmap_nbits},
+    );
+    defer std.testing.allocator.free(out_of_bounds_list);
+    try std.testing.expectError(
+        error.InvalidLifecycleTransition,
+        module.initFromBitList(out_of_bounds_list),
+    );
+
+    const after_rejected_exit_init = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try expectSummaryStable(before_rejected_exit_init, after_rejected_exit_init);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(63));
+    try std.testing.expect(module.isSet(64));
+    try std.testing.expect(module.isSet(127));
+    try std.testing.expectEqual(@as(?u32, 127), module.nthSetBit(3));
+}
+
 test "runtime bitmap loader rejects re-init after a loaded payload without disturbing the initialized summary" {
     var module = RuntimeBitmapSample{};
     try module.initFromBitList(load_plan.source_bit_list);
