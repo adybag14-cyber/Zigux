@@ -54,6 +54,12 @@ pub fn fold(sum: u32) u16 {
     return ~from32to16(sum);
 }
 
+pub fn from64to32(sum: u64) u32 {
+    var value = (sum & 0xffff_ffff) + (sum >> 32);
+    value = (value & 0xffff_ffff) + (value >> 32);
+    return @intCast(value);
+}
+
 pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     var result = normalize(sum);
     result = add(result, saddr >> 16);
@@ -70,18 +76,18 @@ pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u16 {
 }
 
 pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u32 {
-    var result = normalize(sum);
+    var result: u64 = normalize(sum);
 
     for (0..4) |index| {
         const offset = index * 4;
-        result = add(result, readBigEndianU32(saddr[offset .. offset + 4]));
-        result = add(result, readBigEndianU32(daddr[offset .. offset + 4]));
+        result += readBigEndianU32(saddr[offset .. offset + 4]);
+        result += readBigEndianU32(daddr[offset .. offset + 4]);
     }
 
-    result = add(result, len >> 16);
-    result = add(result, len & 0xffff);
-    result = add(result, proto);
-    return normalize(result);
+    result += len >> 16;
+    result += len & 0xffff;
+    result += proto;
+    return normalize(from64to32(result));
 }
 
 pub fn tcpUdpV6Magic(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u16 {
@@ -186,6 +192,24 @@ test "add plus negate keeps one's-complement carry semantics" {
 
     for (cases) |case| {
         try std.testing.expectEqual(case.expected, add(case.sum, negate(case.sum)));
+    }
+}
+
+test "from64to32 preserves double-word carry folding semantics" {
+    const cases = [_]struct {
+        sum: u64,
+        expected: u32,
+    }{
+        .{ .sum = 0x0000_0000_0000_0000, .expected = 0x0000_0000 },
+        .{ .sum = 0x0000_0000_0000_0001, .expected = 0x0000_0001 },
+        .{ .sum = 0x0000_0001_0000_0000, .expected = 0x0000_0001 },
+        .{ .sum = 0xffff_ffff_0000_0001, .expected = 0x0000_0001 },
+        .{ .sum = 0xffff_ffff_ffff_ffff, .expected = 0xffff_ffff },
+        .{ .sum = 0x1234_5678_9abc_def0, .expected = 0xacf1_3568 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected, from64to32(case.sum));
     }
 }
 
