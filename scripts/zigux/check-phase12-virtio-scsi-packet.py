@@ -58,7 +58,8 @@ TEXT_MARKERS = {
     FALLBACK_CATALOG_PATH: [
         "`PHASE12_STATUS=archival-raw-read-fallback`",
         "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`",
-        "- exact coverage evidence refreshed on `2026-05-21` against live current `master`",
+        "- exact coverage evidence refreshed on `2026-05-23` against live current `master`",
+        "- authenticated contents and public raw `master` now converge again on this same archival catalog body for the fallback path",
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
         "- survey replay: `zigux/tests/phase12_virtio_scsi_survey.zig`",
