@@ -84,6 +84,7 @@ REQUIRED_SNIPPETS = {
         '            "label": "1501B",',
         '            "iterations": 12000,',
         '          "IPV4_20B",',
+        '          "IPV4_20B_UPDATED",',
         '          "IPV4_24B",',
         '          "IPV4_60B"',
         '          "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",',
@@ -139,6 +140,7 @@ REQUIRED_SNIPPETS = {
         '            "label": "1501B",',
         '            "iterations": 12000,',
         '          "IPV4_20B",',
+        '          "IPV4_20B_UPDATED",',
         '          "IPV4_24B",',
         '          "IPV4_60B"',
         '          "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",',
@@ -217,7 +219,7 @@ REQUIRED_SNIPPETS = {
         "- workflow note: current `.github/workflows/zigux-bootstrap.yml` reruns `make -C zigux phase6-perf`, so the shared bootstrap route now follows the aggregate perf wrapper rather than relying on helper-specific ad hoc coverage",
         "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
         "- bsearch exact evidence: the committed perf fixture matrix keeps `len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 250`; `zigux/tests/fixtures/phase6_bsearch_vectors.zig` fixes `query_count = 16`; and `zigux/tests/phase6_bsearch_perf.zig` enforces the direct budget formula `std.math.log2_int_ceil(usize, case.len) + 1` across witness, average, and worst-case comparator counts while still printing the live `ns_per_lookup` evidence for each case",
-        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
+        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_20B_UPDATED` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
         "- hexdump exact thresholds: `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still pins `16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`, `32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`, `16B-ascii-g4` at `reps = 20_000` with `max_slowdown_pct = 550`, and `16B-ascii-g8` at `reps = 20_000` with `max_slowdown_pct = 600`, and `zigux/tests/phase6_hexdump_perf.zig` keeps the same four-case helper-local replay aligned with that fixture matrix",
     ],
     PHASE6_BUILD_PATH: [
@@ -280,6 +282,11 @@ SELF_TEST_CASES = [
     ),
     (
         PHASE6_HELPER_EVIDENCE_MANIFEST_PATH,
+        '          "IPV4_20B_UPDATED",',
+        '          "IPV4_20B_STALE",',
+    ),
+    (
+        PHASE6_HELPER_EVIDENCE_MANIFEST_PATH,
         '          "IPV4_60B"',
         '          "IPV4_64B"',
     ),
@@ -302,6 +309,11 @@ SELF_TEST_CASES = [
         PHASE6_HELPER_PARITY_MANIFEST_PATH,
         '        "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",',
         '        "bound_budget_formula": "std.math.log2_int_floor(len) + 1",',
+    ),
+    (
+        PHASE6_HELPER_PARITY_MANIFEST_PATH,
+        '          "IPV4_20B_UPDATED",',
+        '          "IPV4_20B_STALE",',
     ),
     (
         PHASE6_HELPER_PARITY_MANIFEST_PATH,
@@ -385,8 +397,8 @@ SELF_TEST_CASES = [
     ),
     (
         PHASE6_PERF_SURVEY_PATH,
-        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
-        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 175`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
+        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_20B_UPDATED` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
+        "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 175`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_20B_UPDATED` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
     ),
     (
         PHASE6_PERF_SURVEY_PATH,
