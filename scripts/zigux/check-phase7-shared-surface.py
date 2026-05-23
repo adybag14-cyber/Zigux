@@ -142,6 +142,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
     "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, and sample-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.",
     "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper, survey, and sample-boundary replay through the current `test_step.dependOn(...)` handoff list.",
+    "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.",
     "## Current repo-reality gaps",
     "- none currently",
 ]
@@ -166,7 +167,7 @@ REQUIRED_FILES = [
     Path("lib/argv_split.zig"),
     Path("lib/rbtree.zig"),
 ]
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 27
 
 
 class ValidationError(RuntimeError):
@@ -301,6 +302,7 @@ def run_self_test() -> None:
         ("missing_catalog_build_graph_sentence", CATALOG_PATH, "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.", "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig` and `../../lib/cmdline.zig` into the shared Phase 7 build graph."),
         ("missing_catalog_dedicated_route_sentence", CATALOG_PATH, "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, and sample-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.", "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper routes through `phase7-string-helpers-test`, `phase7-cmdline-test`, `phase7-argv-split-test`, and `phase7-rbtree-test`."),
         ("missing_catalog_shared_test_step_sentence", CATALOG_PATH, "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper, survey, and sample-boundary replay through the current `test_step.dependOn(...)` handoff list.", "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper replay through the current `test_step.dependOn(...)` handoff list."),
+        ("missing_catalog_phase7_validate_sentence", CATALOG_PATH, "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.", "- `zigux/Makefile` keeps the shared Phase 7 routes explicit while broader wrapper routes remain outside this packet."),
         ("missing_phase7_validate_route", MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
         ("missing_phase7_validate_run", MAKEFILE_PATH, "$(PYTHON) scripts/zigux/validate-phase7.py", "$(PYTHON) scripts/zigux/check-phase7-shared-surface.py"),
         ("missing_manifest_build_wiring_companion", MANIFEST_PATH, '"scripts/zigux/check-phase7-build-wiring.py",', '"scripts/zigux/check-phase7-build-route.py",'),
