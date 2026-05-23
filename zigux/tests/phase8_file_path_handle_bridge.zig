@@ -219,7 +219,7 @@ test "phase 8 file-path-handle bridge helper keeps fdinfo map info parsing compa
 }
 
 test "phase 8 file-path-handle bridge helper keeps malformed fdinfo values explicit" {
-    var info: file_path_handle_bridge.FdinfoMapInfo = .{};
+    var info = file_path_handle_bridge.FdinfoMapInfo{};
     try std.testing.expectError(
         error.InvalidInteger,
         file_path_handle_bridge.applyFdinfoMapInfoLine(&info, "map_flags:\t-1"),
