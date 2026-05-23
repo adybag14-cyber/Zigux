@@ -569,6 +569,40 @@ test "runGenksymsCrc preserves leading carriage returns while trimming trailing 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") == null);
 }
 
+test "runGenksymsCrc skips a blank visible-leading-carriage-return continuation before an embedded NUL at exact-buffer EOF" {
+    var exact_then_blank_visible_cr_then_nul = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 4);
+    defer exact_then_blank_visible_cr_then_nul.deinit(std.testing.allocator);
+    try exact_then_blank_visible_cr_then_nul.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try exact_then_blank_visible_cr_then_nul.append(std.testing.allocator, '\r');
+    try exact_then_blank_visible_cr_then_nul.append(std.testing.allocator, '\r');
+    try exact_then_blank_visible_cr_then_nul.append(std.testing.allocator, 0);
+    try exact_then_blank_visible_cr_then_nul.append(std.testing.allocator, 'c');
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(exact_then_blank_visible_cr_then_nul.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(exact_then_blank_visible_cr_then_nul.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(exact_crc);
+    const blank_visible_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("\r\r")});
+    defer std.testing.allocator.free(blank_visible_crc);
+    const trailing_only_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("c")});
+    defer std.testing.allocator.free(trailing_only_crc);
+    const untruncated_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("\r\r\x00c")});
+    defer std.testing.allocator.free(untruncated_crc);
+    const unsplit_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(exact_then_blank_visible_cr_then_nul.items)});
+    defer std.testing.allocator.free(unsplit_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, blank_visible_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trailing_only_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, untruncated_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, unsplit_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 1);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\\r\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"c\"") == null);
+}
+
 test "runGenksymsCrc preserves leading carriage returns while trimming trailing carriage returns in a visible split continuation before the next line" {
     var split_then_visible_leading_and_trailing_crlf = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 10);
     defer split_then_visible_leading_and_trailing_crlf.deinit(std.testing.allocator);
