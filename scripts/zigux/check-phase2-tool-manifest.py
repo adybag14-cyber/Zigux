@@ -16,6 +16,10 @@ REQUIRED_TOP_LEVEL = {
     "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
 
+REQUIRED_REPO_REALITY_GAPS = (
+    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+)
+
 KCONFIG_CONF_STDOUT_PACKET = (
     "zigux/tests/fixtures/kconfig_bridge/oldaskconfig_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/syncconfig_expected.json",
@@ -126,7 +130,6 @@ REQUIRED_PRESENT_SURFACES = {
     ),
     "archive_support": (
         "third_party/README.md",
-        "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
     ),
     "make_wrappers": (
         "zigux/Makefile",
@@ -149,6 +152,7 @@ REQUIRED_PRESENT_SURFACES = {
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     ),
     "fixdep_support": (
+        "scripts/basic/fixdep.c",
         "scripts/zigux/check-phase2-fixdep-gate.py",
         "scripts/zigux/check-fixdep-diff.py",
         "scripts/zigux/fixdep.zig",
@@ -244,9 +248,8 @@ REQUIRED_NOTE_MARKERS = (
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep the dedicated manifest guards, the primary artifact_diff helper, and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, scripts/zigux/artifact_diff.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
     "Keep the returned install-zig archive verification checker, staged pinned-archive helper, and the stage-helper contract plus selftest packet explicit beside the local-first archive workflow, archive README contract, and installer helper so the shared Phase 2 tool packet matches the live phase2-toolchain and validate-phase2 routes.",
-    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+    "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, the pinned archive filename plus digest and size contract, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet while the payload itself stays listed under repo-reality gaps until same-lane work rematerializes it.",
 )
-
 
 def read_manifest(path: Path) -> dict:
     try:
@@ -254,11 +257,9 @@ def read_manifest(path: Path) -> dict:
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def find_duplicate_strings(entries: list[str]) -> list[str]:
     seen: set[str] = set()
@@ -269,10 +270,8 @@ def find_duplicate_strings(entries: list[str]) -> list[str]:
         seen.add(entry)
     return duplicates
 
-
 def is_repo_relative_path(entry: str) -> bool:
     return not entry.startswith("make -C ")
-
 
 def iter_required_repo_paths() -> tuple[tuple[str, str], ...]:
     return tuple(
@@ -281,7 +280,6 @@ def iter_required_repo_paths() -> tuple[tuple[str, str], ...]:
         for entry in entries
         if is_repo_relative_path(entry)
     )
-
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     manifest = read_manifest(root / MANIFEST)
@@ -312,8 +310,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             for entry in string_entries:
                 if is_repo_relative_path(entry) and not (root / entry).exists():
                     issues.append(("MISSING_SURFACE_PATH", f"{category}:{entry}"))
-    if manifest.get("repo_reality_gaps") != []:
-        issues.append(("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps"))
+    if manifest.get("repo_reality_gaps") != list(REQUIRED_REPO_REALITY_GAPS):
+        issues.append(("REPO_REALITY_GAPS_MISMATCH", "repo_reality_gaps"))
     notes = manifest.get("notes")
     if not isinstance(notes, list):
         issues.append(("MISSING_NOTES", "notes"))
@@ -331,7 +329,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("NOTE_ORDER_MISMATCH", "notes"))
     return issues
 
-
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
@@ -344,11 +341,9 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         print(f"{code}_END")
     return 1
 
-
 def write_manifest(path: Path, manifest: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-
 
 def build_self_test_manifest() -> dict:
     return {
@@ -357,16 +352,14 @@ def build_self_test_manifest() -> dict:
             category: list(entries)
             for category, entries in REQUIRED_PRESENT_SURFACES.items()
         },
-        "repo_reality_gaps": [],
+        "repo_reality_gaps": list(REQUIRED_REPO_REALITY_GAPS),
         "notes": list(REQUIRED_NOTE_MARKERS),
     }
-
 
 def build_self_test_root(root: Path) -> None:
     write_manifest(root / MANIFEST, build_self_test_manifest())
     for _, entry in iter_required_repo_paths():
         write_text(root / entry, "present\n")
-
 
 def run_self_test() -> int:
     expected_case_count = (
@@ -457,11 +450,11 @@ def run_self_test() -> int:
             checks_run += 1
 
         manifest = build_self_test_manifest()
-        manifest["repo_reality_gaps"] = ["unexpected-gap"]
+        manifest["repo_reality_gaps"] = []
         write_manifest(manifest_path, manifest)
         for _, entry in iter_required_repo_paths():
             write_text(root / entry, "present\n")
-        assert ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps") in collect_issues(root)
+        assert ("REPO_REALITY_GAPS_MISMATCH", "repo_reality_gaps") in collect_issues(root)
         checks_run += 1
 
         manifest = build_self_test_manifest()
@@ -519,7 +512,6 @@ def run_self_test() -> int:
     print(f"PHASE2_TOOL_MANIFEST_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Keep the Phase 2 tool manifest aligned with the current repo-tooling packet."
@@ -535,7 +527,6 @@ def main() -> int:
         return emit_issues(issues)
     print("PHASE2_TOOL_MANIFEST=pass")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
