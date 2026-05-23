@@ -119,6 +119,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`",
     "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py`",
