@@ -24,8 +24,12 @@ MAKEFILE_LINES = (
 EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
+EXPECTED_REVIEW_STATUS_BY_MODE = {
+    "archive_required": "pinned bootstrap archive",
+    "route_contract_only": "route contract only",
+}
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def read_text(path: Path) -> str:
@@ -135,20 +139,29 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not isinstance(target, str) or not target.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"index={index}:target"))
             continue
-        target = target.strip()
-        if target in seen_targets:
-            issues.append(("DUPLICATE_CROSS_TARGET", target))
-        seen_targets.add(target)
+        exact_target = target
+        normalized_target = target.strip()
+        if exact_target != normalized_target:
+            issues.append(("INVALID_CROSS_TARGET_ENTRY", f"index={index}:target"))
+            continue
+        if normalized_target in seen_targets:
+            issues.append(("DUPLICATE_CROSS_TARGET", normalized_target))
+        seen_targets.add(normalized_target)
 
         if route != ROUTE:
-            issues.append(("INVALID_CROSS_TARGET_ROUTE", target))
-        if not isinstance(review_status, str) or not review_status.strip():
-            issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:review_status"))
+            issues.append(("INVALID_CROSS_TARGET_ROUTE", normalized_target))
+        if not isinstance(review_status, str) or not review_status:
+            issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{normalized_target}:review_status"))
+        elif review_status != review_status.strip():
+            issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", normalized_target))
         if validation_mode not in ALLOWED_VALIDATION_MODES:
-            issues.append(("INVALID_CROSS_TARGET_MODE", target))
+            issues.append(("INVALID_CROSS_TARGET_MODE", normalized_target))
             continue
+        expected_review_status = EXPECTED_REVIEW_STATUS_BY_MODE[validation_mode]
+        if review_status != expected_review_status:
+            issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", normalized_target))
         if validation_mode == "archive_required":
-            archive_required_targets.add(target)
+            archive_required_targets.add(normalized_target)
 
     if archive_required_targets != set(archive_target_scope):
         issues.append(("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", ",".join(sorted(archive_required_targets))))
@@ -273,7 +286,9 @@ def run_self_test() -> int:
         fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["cross_targets"][0]["validation_mode"] = "route_contract_only"
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
-        assert ("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", "") in collect_issues(root)
+        issues = collect_issues(root)
+        assert ("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", "") in issues
+        assert ("INVALID_CROSS_TARGET_REVIEW_STATUS", "x86_64-linux") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -303,9 +318,33 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["review_status"] = " route contract only "
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_REVIEW_STATUS", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["review_status"] = "needs archive"
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_REVIEW_STATUS", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["cross_targets"][1]["validation_mode"] = "unexpected_mode"
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_MODE", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["target"] = " aarch64-linux "
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "index=1:target") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
