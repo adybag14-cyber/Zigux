@@ -12,15 +12,20 @@ Authenticated sample-root readback still directly exposes this bounded non-runti
 
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 
-Fresh mixed reread on 2026-05-20 keeps the broader non-runtime trace-events sample-local companions in a split state rather than a missing state:
+Fresh mixed reread on 2026-05-23 keeps the dedicated survey note and the broader non-runtime trace-events companions in a split state rather than a missing state.
+
+This survey note is directly readable again on current `master` and should stay grouped with the shared reminder packet rather than with the still-split sample-local companion set:
 
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
+
+The broader non-runtime trace-events sample-local companions still remain on the split authenticated-versus-public path in this lane:
+
 - `samples/zigux/trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-Those paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-20.
+Those four paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-23.
 
 The shared `zigux/tests/phase5_build.zig` route remains useful support material too, and the current lane reread now returns that path directly again. Keep it framed as returned shared build-route evidence rather than as part of the broader sample-local companion set.
 
@@ -36,7 +41,7 @@ Keep the approved formatting idiom bounded to the current landed reminder packet
 - `scripts/zigux/check-phase5-review-guide-surface.py`
 - `zigux/tests/README.md`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is returned shared build-route evidence again rather than companion-only support, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, `Documentation/zigux/phase5-trace-events-sample-survey.md` is directly readable again as a shared reminder surface, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is returned shared build-route evidence again rather than companion-only support, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
 
 Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `"iter=12"` and keeps the sample in `.initialized`.
 
