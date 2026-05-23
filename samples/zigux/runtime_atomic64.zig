@@ -429,7 +429,7 @@ test "runtime atomic64 sample rejects re-selftest without disturbing lifecycle s
     try std.testing.expectEqual(before_rejected_exit_selftest.exit_runs, after_rejected_exit_selftest.exit_runs);
 }
 
-test "runtime atomic64 sample rejects re-init without disturbing initialized and exited summaries" {
+test "runtime atomic64 sample rejects re-init without disturbing initialized, selftest-complete, and exited summaries" {
     var module = RuntimeAtomic64Sample{};
     try module.init(-41);
 
@@ -454,6 +454,33 @@ test "runtime atomic64 sample rejects re-init without disturbing initialized and
     try std.testing.expectEqual(before_rejected_init_summary.exit_runs, after_rejected_init_summary.exit_runs);
 
     _ = try module.runSelftest();
+
+    const before_rejected_selftest_snapshot = module.lifecycleSnapshot();
+    const before_rejected_selftest_summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest_snapshot.stage);
+    try std.testing.expect(before_rejected_selftest_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(@as(i64, -41), before_rejected_selftest_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest_summary.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init(11));
+
+    const after_rejected_selftest_snapshot = module.lifecycleSnapshot();
+    const after_rejected_selftest_summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, after_rejected_selftest_snapshot.stage);
+    try std.testing.expect(after_rejected_selftest_snapshot.allows_counter_ops);
+    try std.testing.expectEqual(
+        before_rejected_selftest_summary.counter_snapshot,
+        after_rejected_selftest_summary.counter_snapshot,
+    );
+    try std.testing.expectEqual(before_rejected_selftest_summary.init_runs, after_rejected_selftest_summary.init_runs);
+    try std.testing.expectEqual(
+        before_rejected_selftest_summary.selftest_runs,
+        after_rejected_selftest_summary.selftest_runs,
+    );
+    try std.testing.expectEqual(before_rejected_selftest_summary.exit_runs, after_rejected_selftest_summary.exit_runs);
+
     try module.exit();
 
     const before_rejected_exit_snapshot = module.lifecycleSnapshot();
@@ -465,7 +492,7 @@ test "runtime atomic64 sample rejects re-init without disturbing initialized and
     try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_summary.exit_runs);
 
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.init(11));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init(13));
 
     const after_rejected_exit_snapshot = module.lifecycleSnapshot();
     const after_rejected_exit_summary = module.summary();
