@@ -390,6 +390,10 @@ def run_self_test() -> int:
             ),
             (
                 CLEANUP_COMPANION_PATH,
+                "separate failure-mode replay",
+            ),
+            (
+                CLEANUP_COMPANION_PATH,
                 "build-inventory checker",
             ),
             (
@@ -430,6 +434,10 @@ def run_self_test() -> int:
             ),
             (
                 SURVEY_PATH,
+                "standalone targetless-unregister witness pair likewise stays",
+            ),
+            (
+                SURVEY_PATH,
                 "without promoting itself into the shared three-entry build inventory",
             ),
             (
@@ -450,11 +458,27 @@ def run_self_test() -> int:
             ),
             (
                 WITNESS_PATH,
+                'try expectContains(companion, "separate failure-mode replay");',
+            ),
+            (
+                WITNESS_PATH,
+                'try expectContains(survey, "standalone targetless-unregister witness pair likewise stays");',
+            ),
+            (
+                WITNESS_PATH,
+                'try expectContains(survey, "without promoting itself into the shared three-entry build inventory");',
+            ),
+            (
+                WITNESS_PATH,
                 f'const matrix = try readRepoFile("{VALIDATION_MATRIX_PATH}");',
             ),
             (
                 WITNESS_PATH,
                 'try expectContains(matrix, "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`");',
+            ),
+            (
+                WITNESS_PATH,
+                'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
             ),
             (
                 WITNESS_PATH,
