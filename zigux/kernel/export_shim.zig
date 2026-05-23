@@ -64,6 +64,18 @@ pub fn currentVersion() Version {
     return version.current();
 }
 
+pub fn hasCurrentAbiMajor(value: u32) bool {
+    return version.hasCurrentAbiMajor(value);
+}
+
+pub fn hasCurrentAbiMinor(value: u32) bool {
+    return version.hasCurrentAbiMinor(value);
+}
+
+pub fn hasCurrentHeaderFamilyRevision(value: u32) bool {
+    return version.hasCurrentHeaderFamilyRevision(value);
+}
+
 pub fn versionMatchesCurrent(candidate: Version) bool {
     return version.matchesCurrent(candidate);
 }
@@ -214,7 +226,7 @@ test "export shim relays boundary header compatibility through status helpers" {
     try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_version.flags);
 }
 
-test "export shim relays starter version compatibility through status helpers" {
+test "export shim relays starter version component predicates and compatibility through status helpers" {
     const live = currentVersion();
     const stale_major = Version{
         .abi_major = version.abi_major + 1,
@@ -236,11 +248,23 @@ test "export shim relays starter version compatibility through status helpers" {
     const invalid_minor = validateVersion(stale_minor);
     const invalid_revision = validateVersion(stale_revision);
 
+    try testing.expect(hasCurrentAbiMajor(live.abi_major));
+    try testing.expect(hasCurrentAbiMinor(live.abi_minor));
+    try testing.expect(hasCurrentHeaderFamilyRevision(live.header_family_revision));
     try testing.expect(versionMatchesCurrent(live));
+    try testing.expect(!hasCurrentAbiMajor(stale_major.abi_major));
+    try testing.expect(!hasCurrentAbiMinor(stale_minor.abi_minor));
+    try testing.expect(!hasCurrentHeaderFamilyRevision(stale_revision.header_family_revision));
     try testing.expect(!versionMatchesCurrent(stale_major));
     try testing.expect(!versionMatchesCurrent(stale_minor));
     try testing.expect(!versionMatchesCurrent(stale_revision));
 
+    try testing.expectEqual(version.hasCurrentAbiMajor(live.abi_major), hasCurrentAbiMajor(live.abi_major));
+    try testing.expectEqual(version.hasCurrentAbiMinor(live.abi_minor), hasCurrentAbiMinor(live.abi_minor));
+    try testing.expectEqual(
+        version.hasCurrentHeaderFamilyRevision(live.header_family_revision),
+        hasCurrentHeaderFamilyRevision(live.header_family_revision),
+    );
     try testing.expectEqual(version.validate(live), valid);
     try testing.expectEqual(version.validate(stale_major), invalid_major);
     try testing.expectEqual(version.validate(stale_minor), invalid_minor);
