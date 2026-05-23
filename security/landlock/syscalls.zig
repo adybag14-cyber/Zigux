@@ -213,6 +213,7 @@ pub const RulesetFdStubPlan = struct {
 
 pub const RulesetReleaseRequest = struct {
     file_present: bool = true,
+    private_data_present: bool = true,
     ruleset_present: bool = true,
 };
 
@@ -524,7 +525,7 @@ pub const SyscallsHelperLab = struct {
         if (!request.file_present) {
             return error.MissingFile;
         }
-        if (!request.ruleset_present) {
+        if (!request.private_data_present or !request.ruleset_present) {
             return error.MissingRuleset;
         }
 
@@ -1012,9 +1013,12 @@ test "landlock syscalls ruleset release keeps private-data handoff and zero retu
     try std.testing.expect(plan.returns_zero);
 }
 
-test "landlock syscalls ruleset release rejects missing file or ruleset state" {
+test "landlock syscalls ruleset release rejects missing file private-data or ruleset state" {
     try std.testing.expectError(error.MissingFile, SyscallsHelperLab.planFopRulesetRelease(.{
         .file_present = false,
+    }));
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planFopRulesetRelease(.{
+        .private_data_present = false,
     }));
     try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planFopRulesetRelease(.{
         .ruleset_present = false,
