@@ -125,7 +125,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(survey_note, "manifest-backed ownership packet");
     try expectContains(survey_note, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
     try expectContains(survey_note, "Keep the direct sample zero-length and rejected range-mutation replay explicit when reminder text summarizes sample-local range, summary, and parse stability.");
-    try expectContains(survey_note, "Keep `samples/zigux/runtime_bitmap_cold_stage_guard.zig` explicit as the returned cold-stage sample-root guard companion; it is visible on the trusted path but still sits outside the shared `zigux/tests/phase9_build.zig` bundle.");
+    try expectContains(survey_note, "Keep `samples/zigux/runtime_bitmap_cold_stage_guard.zig` explicit as the returned cold-stage sample-root guard companion; it is visible on the trusted path and the shared `zigux/tests/phase9_build.zig` bundle now reruns it through the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route plus the aggregate `phase9-runtime-bitmap-tests` handle.");
     try expectNotContains(survey_note, "returns missing for `zigux/tests/runtime_bitmap_diff.zig`");
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
@@ -137,7 +137,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(module_slice_note, "none on the trusted current-tree read path");
-    try expectContains(module_slice_note, "The shared `zigux/tests/phase9_build.zig` bundle reruns the direct sample, loader, module, survey, diff gate, and top-bit companion through the dedicated `phase9-runtime-bitmap-top-bit-tests` route plus the aggregate `phase9-runtime-bitmap-tests` handle; the cold-stage guard remains visible sample-root proof only.");
+    try expectContains(module_slice_note, "The shared `zigux/tests/phase9_build.zig` bundle reruns the direct sample, cold-stage guard, loader, module, survey, diff gate, and top-bit companion through the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` and `phase9-runtime-bitmap-top-bit-tests` routes plus the aggregate `phase9-runtime-bitmap-tests` handle.");
 
     try expectContains(lane_sequencing_note, "### 3. The runtime bitmap side now returns a broader direct packet without promoting the broader shared runtime-loader boundaries");
     try expectContains(lane_sequencing_note, "`zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` now return on the trusted path as the module-side descriptor and lifecycle packet plus the bounded diff-side summary replay packet");
@@ -198,8 +198,9 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-top-bit-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-cold-stage-guard-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-tests\"");
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_bitmap_cold_stage_guard") == null);
+    try expectContains(phase9_build, "runtime_bitmap_cold_stage_guard");
 
     try expectContains(sample_file, "pub const sample_review_focus = [_]SampleFocus");
     try expectContains(sample_file, ".top_bit_contract,");
