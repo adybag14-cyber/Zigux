@@ -177,4 +177,29 @@ test "phase10 virtio input verify keeps teardown and status-drain wrapper parity
     try std.testing.expectEqualStrings(identity_before.name, identity_after.name);
     try std.testing.expectEqualStrings(identity_before.serial, identity_after.serial);
     try std.testing.expectEqualStrings(identity_before.phys, identity_after.phys);
+
+    const queue_after_reset = queue_callback_preflight.summarize(&device);
+    try std.testing.expectEqualStrings(
+        "event_queue_unconfigured",
+        queue_callback_preflight.blockerTag(queue_after_reset.blocker.?),
+    );
+    try std.testing.expect(!queue_after_reset.ready_for_queue_callbacks);
+
+    const registration_after_reset = registration_preflight.summarize(&device);
+    try std.testing.expectEqualStrings(
+        "event_queue_unconfigured",
+        registration_preflight.blockerTag(registration_after_reset.blocker.?),
+    );
+    try std.testing.expect(!registration_preflight.queuePlanReady(registration_after_reset));
+    try std.testing.expect(!registration_after_reset.device_ready);
+    try std.testing.expect(!registration_preflight.readyForRegistration(registration_after_reset));
+
+    const probe_after_reset = probe_preflight.summarize(&device);
+    try std.testing.expect(probe_preflight.identityReady(probe_after_reset));
+    try std.testing.expectEqualStrings(
+        "event_queue_unconfigured",
+        probe_preflight.blockerTag(probe_after_reset.blocker.?),
+    );
+    try std.testing.expect(!probe_preflight.queuePlanReady(probe_after_reset));
+    try std.testing.expect(!probe_preflight.readyForProbeHandoff(probe_after_reset));
 }
