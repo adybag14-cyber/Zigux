@@ -72,6 +72,11 @@ REQUIRED_FILES = (
     STRING_HELPER_REL,
 )
 
+EXPECTED_WORKFLOW_MARKERS = (
+    "run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test",
+    "run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py",
+)
+
 EXPECTED_HELPERS = [
     "tools/lib/argv_split.zig",
     "tools/lib/bitmap.zig",
@@ -289,6 +294,11 @@ def require_exact_occurrence(text: str, label: str, needle: str) -> list[str]:
     return [] if count == 1 else [f"{label}:expected_once:actual_count={count}:{needle}"]
 
 
+def require_exact_line_occurrence(text: str, label: str, needle: str) -> list[str]:
+    count = sum(1 for line in text.splitlines() if line.strip() == needle.strip())
+    return [] if count == 1 else [f"{label}:expected_once:actual_count={count}:{needle}"]
+
+
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
 
@@ -335,6 +345,10 @@ def collect_failures(root: Path) -> list[str]:
         count = makefile_text.count(marker)
         if count:
             failures.append(f"{ZIGUX_MAKEFILE_REL.as_posix()}:forbidden_marker:actual_count={count}:{marker}")
+
+    workflow_text = load_text(root, WORKFLOW_REL)
+    for marker in EXPECTED_WORKFLOW_MARKERS:
+        failures.extend(require_exact_line_occurrence(workflow_text, f"{WORKFLOW_REL.as_posix()}:required", marker))
 
     try:
         manifest = load_json_with_duplicate_tracking(load_text(root, MANIFEST_REL))
@@ -396,6 +410,7 @@ def make_fixture_tree(root: Path) -> None:
 
     write_text(root / PHASE1_CLOSURE_REL, "# Phase 1 Closure\n\n" + "\n".join(EXPECTED_CLOSURE_MARKERS.values()) + "\n")
     write_text(root / ZIGUX_MAKEFILE_REL, "\n".join(EXPECTED_MAKEFILE_MARKERS) + "\n")
+    write_text(root / WORKFLOW_REL, "\n".join(EXPECTED_WORKFLOW_MARKERS) + "\n")
     write_text(
         root / MANIFEST_REL,
         json.dumps(
@@ -458,6 +473,8 @@ def run_self_test() -> int:
         ("missing_shared_tests_route", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["shared_tests_route"] + "\n", "", 1))),
         ("missing_validator_state", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["validator_state"] + "\n", "", 1))),
         ("stale_string_sysfs_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["string_sysfs_review"], "`PHASE1_STRING_SYSFS_REVIEW=drifted string sysfs review marker`", 1))),
+        ("missing_find_bit_bench_anchor_workflow_self_test", lambda root: write_text(root / WORKFLOW_REL, load_text(root, WORKFLOW_REL).replace(EXPECTED_WORKFLOW_MARKERS[0] + "\n", "", 1))),
+        ("missing_find_bit_bench_anchor_workflow_check", lambda root: write_text(root / WORKFLOW_REL, load_text(root, WORKFLOW_REL).replace(EXPECTED_WORKFLOW_MARKERS[1] + "\n", "", 1))),
         ("bad_helper_count", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "helper_count": 99}, indent=2) + "\n")),
         ("stale_lane_rule_summary", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))["lane_sequencing"], "rule_summary": "drifted rule summary"}}, indent=2) + "\n")),
         ("stale_anti_overlap_rule", lambda root: write_text(root / MANIFEST_REL, json.dumps({**json.loads(load_text(root, MANIFEST_REL)), "lane_sequencing": {**json.loads(load_text(root, MANIFEST_REL))["lane_sequencing"], "anti_overlap_rule": "drifted anti-overlap rule"}}, indent=2) + "\n")),
