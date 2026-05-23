@@ -125,6 +125,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "make -C zigux phase6-bsearch-test",
     "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-perf",
+    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
     "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-test",
     "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
@@ -208,7 +209,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 50
+SELF_TEST_CASE_COUNT = 51
 
 
 class ValidationError(RuntimeError):
@@ -529,6 +530,12 @@ def run_self_test() -> None:
         scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["current_shared_replay_inventory"].remove("make -C zigux phase6-perf")
+        write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
+        manifest["current_shared_replay_inventory"].remove("python3 scripts/zigux/check-phase6-bsearch-c-parity.py")
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
