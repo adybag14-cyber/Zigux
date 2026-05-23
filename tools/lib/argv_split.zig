@@ -192,6 +192,24 @@ test "argvSplit keeps quotes backslashes and equals literal inside tokens" {
     try std.testing.expectEqualStrings("key=value", result.argv[3]);
 }
 
+test "argvSplit matches ASCII separator classification byte-for-byte before the first nul" {
+    var byte: u8 = 1;
+    while (byte < 0x80) : (byte += 1) {
+        var input = [_]u8{ 'a', 'l', 'p', 'h', 'a', byte, 'b', 'e', 't', 'a', 0, 't', 'a', 'i', 'l' };
+        var result = try argvSplit(std.testing.allocator, input[0..]);
+        defer result.deinit();
+
+        if (std.ascii.isWhitespace(byte)) {
+            try std.testing.expectEqual(@as(usize, 2), result.argc());
+            try std.testing.expectEqualStrings("alpha", result.argv[0]);
+            try std.testing.expectEqualStrings("beta", result.argv[1]);
+        } else {
+            try std.testing.expectEqual(@as(usize, 1), result.argc());
+            try std.testing.expectEqualStrings(input[0..10], result.argv[0]);
+        }
+    }
+}
+
 test "countArgc stops at the first embedded nul byte" {
     try std.testing.expectEqual(@as(usize, 0), countArgc(cStringPrefix("\x00ignored tail")));
     try std.testing.expectEqual(@as(usize, 2), countArgc(cStringPrefix("alpha beta\x00gamma delta")));
