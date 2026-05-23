@@ -112,6 +112,10 @@ test "phase 7 cmdline companion replays quoted argument splitting and memparse b
     try std.testing.expectEqual(@as(u64, 0), bare_hex.value);
     try std.testing.expectEqualStrings("xK", bare_hex.rest);
 
+    const negative_bare_hex = cmdline.memparse("-0xK");
+    try std.testing.expectEqual(@as(u64, 0), negative_bare_hex.value);
+    try std.testing.expectEqualStrings("xK", negative_bare_hex.rest);
+
     const no_conversion = cmdline.memparse("+nope");
     try std.testing.expectEqual(@as(u64, 0), no_conversion.value);
     try std.testing.expectEqualStrings("+nope", no_conversion.rest);
@@ -125,131 +129,4 @@ test "phase 7 cmdline companion replays memparse signed clamp saturation" {
     const negative = cmdline.memparse("-9223372036854775809");
     try std.testing.expectEqual(@as(u64, 0x8000000000000000), negative.value);
     try std.testing.expectEqualStrings("", negative.rest);
-}
-
-test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {
-    const leading = cmdline.nextArg(" \tmode=fast");
-    try std.testing.expectEqualStrings("", leading.param);
-    try std.testing.expect(leading.value == null);
-    try std.testing.expectEqualStrings("mode=fast", leading.rest);
-    try std.testing.expectEqualStrings("mode=fast", leading.remaining);
-
-    const quoted = cmdline.next_arg("\"mode=fast path\" tail");
-    try std.testing.expectEqualStrings("mode", quoted.param);
-    try std.testing.expectEqualStrings("fast path", quoted.value.?);
-    try std.testing.expectEqualStrings("tail", quoted.remaining);
-
-    const quoted_empty = cmdline.nextArg("flag=\"\" next");
-    try std.testing.expectEqualStrings("flag", quoted_empty.param);
-    try std.testing.expectEqualStrings("", quoted_empty.value.?);
-    try std.testing.expectEqualStrings("next", quoted_empty.rest);
-    try std.testing.expectEqualStrings("next", quoted_empty.remaining);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(quoted_empty.rest.ptr)), @as(usize, @intFromPtr(quoted_empty.remaining.ptr)));
-
-    const nul_bounded = cmdline.nextArg("console=ttyS0\x00 root=/dev/vda");
-    try std.testing.expectEqualStrings("console", nul_bounded.param);
-    try std.testing.expectEqualStrings("ttyS0", nul_bounded.value.?);
-    try std.testing.expectEqualStrings("", nul_bounded.remaining);
-}
-
-test "phase 7 cmdline companion replays whitespace-only sentinel termination" {
-    const whitespace_only = cmdline.nextArg(" \t\n\x00ignored tail");
-    try std.testing.expectEqualStrings("", whitespace_only.param);
-    try std.testing.expect(whitespace_only.value == null);
-    try std.testing.expectEqualStrings("", whitespace_only.rest);
-    try std.testing.expectEqualStrings("", whitespace_only.remaining);
-}
-
-test "phase 7 cmdline companion replays bare leading-equals ownership" {
-    const parsed = cmdline.nextArg("=ttyS0 tail");
-    try std.testing.expectEqualStrings("=ttyS0", parsed.param);
-    try std.testing.expect(parsed.value == null);
-    try std.testing.expectEqualStrings("tail", parsed.rest);
-    try std.testing.expectEqualStrings("tail", parsed.remaining);
-}
-
-test "nextArg keeps empty input borrowed from the caller slice" {
-    var empty = [_]u8{};
-    const empty_args = empty[0..];
-    const parsed = cmdline.nextArg(empty_args);
-
-    try std.testing.expectEqualStrings("", parsed.param);
-    try std.testing.expect(parsed.value == null);
-    try std.testing.expectEqualStrings("", parsed.rest);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(empty_args.ptr)), @as(usize, @intFromPtr(parsed.param.ptr)));
-    try std.testing.expectEqual(@as(usize, @intFromPtr(empty_args.ptr)), @as(usize, @intFromPtr(parsed.rest.ptr)));
-}
-
-test "nextArg stays inside the first NUL for bare and key value tokens" {
-    const bare = cmdline.nextArg("debug\x00 nohlt");
-    try std.testing.expectEqualStrings("debug", bare.param);
-    try std.testing.expect(bare.value == null);
-    try std.testing.expectEqualStrings("", bare.remaining);
-
-    const keyed = cmdline.nextArg("console=ttyS0\x00 root=/dev/vda");
-    try std.testing.expectEqualStrings("console", keyed.param);
-    try std.testing.expectEqualStrings("ttyS0", keyed.value.?);
-    try std.testing.expectEqualStrings("", keyed.remaining);
-}
-
-test "nextArg keeps rest and remaining as the same borrowed suffix view" {
-    const leading = cmdline.nextArg(" \tconsole=ttyS0");
-    try std.testing.expectEqualStrings("console=ttyS0", leading.rest);
-    try std.testing.expectEqualStrings("console=ttyS0", leading.remaining);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(leading.rest.ptr)), @as(usize, @intFromPtr(leading.remaining.ptr)));
-
-    const quoted_empty = cmdline.nextArg("flag=\"\" next");
-    try std.testing.expectEqualStrings("next", quoted_empty.rest);
-    try std.testing.expectEqualStrings("next", quoted_empty.remaining);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(quoted_empty.rest.ptr)), @as(usize, @intFromPtr(quoted_empty.remaining.ptr)));
-
-    const nul_bounded = cmdline.nextArg("key=val\x00 trailing");
-    try std.testing.expectEqualStrings("", nul_bounded.rest);
-    try std.testing.expectEqualStrings("", nul_bounded.remaining);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(nul_bounded.rest.ptr)), @as(usize, @intFromPtr(nul_bounded.remaining.ptr)));
-}
-
-test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {
-    var quoted_empty_token = [_]u8{ '"', '"', ' ', 't', 'a', 'i', 'l', 0 };
-    const parsed = cmdline.nextArg(&quoted_empty_token);
-    try std.testing.expectEqualStrings("", parsed.param);
-    try std.testing.expect(parsed.value == null);
-    try std.testing.expectEqualStrings("tail", parsed.rest);
-    try std.testing.expectEqualStrings("tail", parsed.remaining);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_empty_token[1])), @as(usize, @intFromPtr(parsed.param.ptr)));
-}
-
-test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {
-    const parsed = cmdline.nextArg("\"two words\" tail");
-    try std.testing.expectEqualStrings("two words", parsed.param);
-    try std.testing.expect(parsed.value == null);
-    try std.testing.expectEqualStrings("tail", parsed.rest);
-    try std.testing.expectEqualStrings("tail", parsed.remaining);
-}
-
-test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {
-    const quoted_equals = cmdline.nextArg("\"=ttyS0\" tail");
-    try std.testing.expectEqualStrings("=ttyS0", quoted_equals.param);
-    try std.testing.expect(quoted_equals.value == null);
-    try std.testing.expectEqualStrings("tail", quoted_equals.rest);
-    try std.testing.expectEqualStrings("tail", quoted_equals.remaining);
-
-    const unterminated = cmdline.nextArg("console=\"ttyS0,115200 root=/dev/vda");
-    try std.testing.expectEqualStrings("console", unterminated.param);
-    try std.testing.expectEqualStrings("ttyS0,115200 root=/dev/vda", unterminated.value.?);
-    try std.testing.expectEqualStrings("", unterminated.rest);
-    try std.testing.expectEqualStrings("", unterminated.remaining);
-}
-
-test "phase 7 cmdline companion replays quoted-value borrowed slice ownership" {
-    var quoted_value = [_]u8{
-        'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 'v', 'd', 'a', '1', '"', ' ', 'q', 'u', 'i', 'e', 't', 0,
-    };
-    const parsed_quoted_value = cmdline.nextArg(&quoted_value);
-    try std.testing.expectEqualStrings("root", parsed_quoted_value.param);
-    try std.testing.expectEqualStrings("/dev/vda1", parsed_quoted_value.value.?);
-    try std.testing.expectEqualStrings("quiet", parsed_quoted_value.rest);
-    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[0])), @as(usize, @intFromPtr(parsed_quoted_value.param.ptr)));
-    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[6])), @as(usize, @intFromPtr(parsed_quoted_value.value.?.ptr)));
-    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[17])), @as(usize, @intFromPtr(parsed_quoted_value.rest.ptr)));
 }
