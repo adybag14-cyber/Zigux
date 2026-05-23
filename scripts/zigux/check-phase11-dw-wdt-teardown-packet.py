@@ -15,8 +15,10 @@ REQUIRED_FILES = {
     "platform_plan": Path("Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"),
     "manifest": Path("zigux/tests/phase11_dw_wdt_manifest.json"),
     "registration_scaffold": Path("zigux/tests/phase11_dw_wdt_registration_scaffold.zig"),
+    "restart": Path("drivers/watchdog/dw_wdt_restart.zig"),
     "verify": Path("drivers/watchdog/dw_wdt_verify.zig"),
     "pm": Path("drivers/watchdog/dw_wdt_pm.zig"),
+    "pm_scaffold": Path("drivers/watchdog/dw_wdt_pm_scaffold.zig"),
 }
 
 ALIGNMENT_NOTE_MARKERS = [
@@ -63,6 +65,17 @@ REGISTRATION_SCAFFOLD_MARKERS = [
     "dw_wdt.RegistrationScaffoldState.ready_to_register",
 ]
 
+RESTART_MARKERS = [
+    'pub const anchor_path = "drivers/watchdog/dw_wdt.c";',
+    'test "phase11 dw_wdt restart summary keeps missing drvdata explicit" {',
+    "try std.testing.expect(summary.keeps_missing_drvdata_explicit);",
+    'test "phase11 dw_wdt restart summary keeps missing timeout image explicit" {',
+    "try std.testing.expect(summary.keeps_missing_timeout_image_explicit);",
+    'test "phase11 dw_wdt restart summary keeps restart register writes explicit" {',
+    'try std.testing.expectEqualStrings("watchdog_set_restart_priority",',
+    "try std.testing.expect(summary.blocked_on_live_mmio);",
+]
+
 VERIFY_MARKERS = [
     'const dw_wdt = @import("dw_wdt.zig");',
     'test "phase11 dw_wdt verify keeps registration-blocking failure paths explicit" {',
@@ -100,6 +113,16 @@ PM_MARKERS = [
     'test "phase11 dw_wdt pm shutdown keeps idle no-hook teardown explicit" {',
 ]
 
+PM_SCAFFOLD_MARKERS = [
+    'pub const anchor_path = "drivers/watchdog/dw_wdt.c";',
+    'test "phase11 dw_wdt pm scaffold quiesces a stoppable watchdog before suspend" {',
+    "try std.testing.expectEqual(SuspendDisposition.quiesce_before_suspend, suspend_report.disposition);",
+    'test "phase11 dw_wdt pm scaffold keeps no-way-out hardware running across suspend and resume" {',
+    "try std.testing.expectEqual(ResumeDisposition.keep_running_without_restore, resume_report.disposition);",
+    'test "phase11 dw_wdt pm scaffold keeps live-mmio blocker explicit for running hardware" {',
+    "try std.testing.expectEqual(ResumeDisposition.blocked_on_live_mmio, resume_report.disposition);",
+]
+
 EXPECTED_MANIFEST_LANE = "P11-L05"
 EXPECTED_MANIFEST_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
 VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
@@ -115,8 +138,10 @@ MARKERS_BY_LABEL = {
     "clock_plan": CLOCK_PLAN_MARKERS,
     "platform_plan": PLATFORM_PLAN_MARKERS,
     "registration_scaffold": REGISTRATION_SCAFFOLD_MARKERS,
+    "restart": RESTART_MARKERS,
     "verify": VERIFY_MARKERS,
     "pm": PM_MARKERS,
+    "pm_scaffold": PM_SCAFFOLD_MARKERS,
 }
 
 
@@ -275,9 +300,11 @@ def run_self_test() -> None:
             ("clock_plan", CLOCK_PLAN_MARKERS[0]),
             ("platform_plan", PLATFORM_PLAN_MARKERS[1]),
             ("gap_note", GAP_NOTE_MARKERS[1]),
+            ("restart", RESTART_MARKERS[5]),
             ("verify", VERIFY_MARKERS[3]),
             ("pm", PM_MARKERS[8]),
             ("pm", PM_MARKERS[13]),
+            ("pm_scaffold", PM_SCAFFOLD_MARKERS[5]),
         ]
         for index, (label, marker) in enumerate(marker_cases, start=1):
             case_root = root / f"marker_case_{index}"
