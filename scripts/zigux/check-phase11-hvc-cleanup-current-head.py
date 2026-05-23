@@ -57,6 +57,9 @@ MATRIX_MARKERS = (
     "flush intent",
     "`hvc_install()` ownership",
     "`hvc_cleanup()` tty-port",
+    "`hvc_kick()` wakeup-cue",
+    "notifier-irq",
+    "modem-control helper summaries reviewable on current `master`",
 )
 
 VERIFY_MARKERS = (
@@ -86,7 +89,11 @@ DRIVER_MARKERS = (
     "pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {",
     "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {",
     "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {",
+    "pub fn summarizeCleanupPrerequisite(",
     "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+    "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {",
+    "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {",
+    "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
 )
 
 PROOF_MARKERS = (
@@ -106,6 +113,14 @@ PROOF_MARKERS = (
     'try expectContains(matrix_doc, "flush intent");',
     'try expectContains(matrix_doc, "`hvc_install()` ownership");',
     'try expectContains(matrix_doc, "`hvc_cleanup()` tty-port");',
+    'test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to matrix evidence" {',
+    'try expectContains(matrix_doc, "`hvc_kick()` wakeup-cue");',
+    'try expectContains(matrix_doc, "notifier-irq");',
+    'try expectContains(matrix_doc, "modem-control helper summaries reviewable on current `master`");',
+    'try expectContains(driver, "pub fn summarizeCleanupPrerequisite(");',
+    'try expectContains(driver, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {");',
+    'try expectContains(driver, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {");',
+    'try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");',
 )
 
 
@@ -215,12 +230,15 @@ def run_self_test() -> int:
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_console_manifest.json`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
             (MATRIX_PATH, "`hvc_cleanup()` tty-port"),
+            (MATRIX_PATH, "`hvc_kick()` wakeup-cue"),
             (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`"),
             (DRIVER_PATH, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {"),
+            (DRIVER_PATH, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {"),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps missing teardown anchors explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps route boundaries explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps verify-boundary failure modes explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {'),
+            (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to matrix evidence" {'),
             (TARGETLESS_WITNESS_CHECKER_PATH, "PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass"),
             (BUILD_PATH, 'phase11-hvc-cleanup-packet-proof'),
         ]
