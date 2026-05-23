@@ -292,7 +292,6 @@ def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
     if marker not in text:
         raise SystemExit(f"self-test-fixture-missing:{rel_path}:{marker}")
 
-    (root / rel_path).writeText = None
     (root / rel_path).write_text(text.replace(marker, ""), encoding="utf-8")
     result = run_validator(root)
     expected = f"missing-marker:{rel_path}:{marker}"
