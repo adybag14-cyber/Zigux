@@ -61,6 +61,7 @@ MARKERS = {
         "Keep the direct validation routes explicit in that same guidance too: `zig test samples/zigux/bytestream_fifo.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay visible as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays visible as current directly readable shared build-route companion evidence for this bytestream packet rather than as sample-local proof.",
         "keep the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit alongside the registered teardown, post-`exit()` rejection, and anchor-replay rejection packet",
         "Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.",
+        "`zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the companion-only validation route for the attr-group contract while `zigux/tests/phase5_build.zig` remains the directly readable shared build-route companion for this packet",
     ),
     DOCS_ROOT_PATH: (
         "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.",
@@ -211,7 +212,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 25
+    expected_case_count = 26
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -246,6 +247,16 @@ def run_self_test() -> int:
             "guide_kobject_exit_split_marker",
             collect_failures(mutated),
             [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][4]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_guide_kobject_attr_group_validation_route_marker"
+        seed(mutated)
+        write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][6], ""))
+        expect_exact(
+            "guide_kobject_attr_group_validation_route_marker",
+            collect_failures(mutated),
+            [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][6]}"],
         )
         checks_run += 1
 
@@ -466,6 +477,7 @@ def run_self_test() -> int:
             [
                 f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][1]}",
                 f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][3]}",
+                f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][6]}",
                 "guide:missing_path:zigux/tests/phase5_build.zig",
             ],
         )
