@@ -152,6 +152,28 @@
           "64B",
           "1501B"
         ],
+        "ipv4_fast_path_cases": [
+          {
+            "label": "IPV4_20B",
+            "iterations": 600000,
+            "max_slowdown_pct": 100
+          },
+          {
+            "label": "IPV4_20B_UPDATED",
+            "iterations": 600000,
+            "max_slowdown_pct": 100
+          },
+          {
+            "label": "IPV4_24B",
+            "iterations": 500000,
+            "max_slowdown_pct": 100
+          },
+          {
+            "label": "IPV4_60B",
+            "iterations": 250000,
+            "max_slowdown_pct": 100
+          }
+        ],
         "ipv4_fast_path_case_labels": [
           "IPV4_20B",
           "IPV4_20B_UPDATED",
