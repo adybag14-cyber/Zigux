@@ -51,9 +51,12 @@ EXPECTED_PARITY_DIRECT_EVIDENCE = [
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "scripts/zigux/validate-phase6.py",
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "scripts/zigux/check-phase6-perf-threshold-markers.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 EXPECTED_PUBLIC_TREE_COMPANIONS = []
 EXPECTED_EVIDENCE_CURRENT_GAPS = [
@@ -78,8 +81,8 @@ REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- remaining direct-readback gaps after the authenticated 2026-05-22 recovery: `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`",
     "- current posture: direct helper readback is restored for the helper, focused replay, perf replay, fixture surface, dedicated corpus checker, direct C parity runner, direct C parity harness, direct C parity checker, and slice note. A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`, while `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` still remain outside shipped evidence",
     "- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, direct C parity runner, direct C parity harness, direct C parity checker, and slice note, so the checksum row now ships the same external parity review hook as the other portability-sensitive Phase 6 helpers without reopening hexdump work",
-    "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/validate-phase6.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `Documentation/zigux/phase6-perf-gate-survey.md`.",
-    "Authenticated follow-up readback on 2026-05-22 directly recovered `Documentation/zigux/phase6-perf-gate-survey.md` and `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` again, so broader reminder surfaces can keep both the shared survey and the checksum-hexdump plus perf-threshold guard surfaces inside the directly readable shared packet instead of treating either surface as fallback-only evidence.",
+    "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/validate-phase6.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, `scripts/zigux/check-phase6-hexdump-route.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `Documentation/zigux/phase6-perf-gate-survey.md`.",
+    "Authenticated follow-up readback on 2026-05-22 directly recovered `Documentation/zigux/phase6-perf-gate-survey.md` and `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` again, so broader reminder surfaces can keep the shared survey plus the base64-bsearch, checksum-hexdump, and perf-threshold guard surfaces inside the directly readable shared packet instead of treating any of those guards as fallback-only evidence.",
 ]
 REQUIRED_VALIDATOR_SNIPPETS = [
     'HELPER_EVIDENCE_MANIFEST = Path("zigux/tests/phase6_helper_evidence_manifest.json")',
@@ -102,7 +105,7 @@ EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
 ]
-SELF_TEST_CASE_COUNT = 30
+SELF_TEST_CASE_COUNT = 33
 
 
 class ValidationError(RuntimeError):
@@ -287,9 +290,15 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
         cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
+        cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-hexdump-packet.py")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-hexdump-route.py")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": "phase6-helper-evidence"})))
         cases_run += 1
