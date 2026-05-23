@@ -2,7 +2,7 @@ const std = @import("std");
 const runtime_loader = @import("runtime_loader");
 const contract = @import("runtime_loader_contract");
 
-const AllocatorHandoff = contract.AllocatorHandoff;
+const AllocatorHandoff = contract.AllatorHandoff;
 const HandoffStage = contract.HandoffStage;
 const LoadPlan = contract.LoadPlan;
 const PreparedRequest = runtime_loader.PreparedRequest;
@@ -381,6 +381,19 @@ test "shared runtime loader keeps prepared selftest-hook and handoff-stage label
     );
     var kretprobe_request = try runtime_loader.prepareRequest(kretprobe_plan);
 
+    kretprobe_request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.PreparedPlanDrift, kretprobe_request.requestRuntimeLoad());
+    try std.testing.expectEqual(RequestState.prepared, kretprobe_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        kretprobe_request.prepared_plan,
+        kretprobe_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        kretprobe_request.plan,
+        kretprobe_plan,
+    ));
+
+    kretprobe_request.plan = kretprobe_plan;
     kretprobe_request.plan.init_flow.handoff_stage = .selftest_complete;
     kretprobe_request.plan.init_flow.selftest_runs = 1;
     try std.testing.expectError(error.PreparedPlanDrift, kretprobe_request.requestRuntimeLoad());
@@ -434,6 +447,15 @@ test "shared runtime loader keeps waiting selftest-hook and handoff-stage labels
     var kretprobe_request = try runtime_loader.prepareRequest(kretprobe_plan);
     const kretprobe_pending = try kretprobe_request.requestRuntimeLoad();
 
+    kretprobe_request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.PreparedPlanDrift, kretprobe_request.releaseWithoutSubstrate());
+    try expectWaitingRequestSnapshot(
+        kretprobe_request,
+        kretprobe_plan,
+        kretprobe_pending,
+    );
+
+    kretprobe_request.plan = kretprobe_pending;
     kretprobe_request.plan.init_flow.handoff_stage = .selftest_complete;
     kretprobe_request.plan.init_flow.selftest_runs = 1;
     try std.testing.expectError(error.PreparedPlanDrift, kretprobe_request.releaseWithoutSubstrate());
