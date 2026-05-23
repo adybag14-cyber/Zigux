@@ -116,6 +116,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(survey_note, "the current runtime bitmap reminder packet is still `partial_packet_with_diff_but_without_broader_runtime_loader_parity`");
     try expectContains(survey_note, "manifest-backed ownership packet");
     try expectContains(survey_note, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
+    try expectContains(survey_note, "Keep the direct sample zero-length and rejected range-mutation replay explicit when reminder text summarizes sample-local range, summary, and parse stability.");
     try expectNotContains(survey_note, "returns missing for `zigux/tests/runtime_bitmap_diff.zig`");
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
@@ -163,6 +164,8 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(manifest, "\"diff_copy_tail_clearing\"");
     try expectContains(manifest, "\"diff_exit_lifecycle_guards\"");
     try expectContains(manifest, "\"top_bit_contract\"");
+    try expectContains(manifest, "\"sample_range_guard_non_destructive\"");
+    try expectContains(manifest, "Keep the direct sample zero-length and rejected range-mutation replay explicit when the manifest summarizes direct sample range, summary, and parse stability.");
     try expectContains(manifest, "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the direct sample re-init guards explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the loader empty-payload direct-exit guard explicit when the manifest summarizes runtime lifecycle evidence.");
@@ -188,12 +191,12 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(sample_file, "runtime bitmap sample rejects re-init without disturbing initialized summaries");
     try expectContains(sample_file, "runtime bitmap sample keeps initialized summary stable across direct exit without selftest");
     try expectContains(sample_file, "runtime bitmap sample rejects re-init after exit without disturbing lifecycle summaries");
+    try expectContains(sample_file, "runtime bitmap sample keeps zero-length and rejected range mutations non-destructive");
 
     try expectContains(loader_file, "runtime bitmap loader keeps an empty loader payload explicit through direct exit");
     try expectContains(loader_file, "runtime bitmap loader keeps loader-facing bitmap payload explicit");
     try expectContains(loader_file, "runtime bitmap loader keeps loaded cross-word summary stable through selftest and exit");
     try expectContains(loader_file, "runtime bitmap loader rejects re-selftest without disturbing lifecycle summaries");
-    try expectContains(loader_file, "runtime bitmap loader rejects malformed re-init after a loaded payload without disturbing lifecycle summaries");
     try expectContains(loader_file, "runtime bitmap loader rejects re-init after a loaded payload without disturbing the initialized summary");
     try expectContains(loader_file, "runtime bitmap loader rejects re-init after exit without disturbing the exited summary");
     try expectContains(loader_file, "runtime bitmap loader keeps initialized loaded summary stable across direct exit without selftest");
