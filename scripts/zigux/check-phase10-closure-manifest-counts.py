@@ -55,6 +55,14 @@ REQUIRED_MMIO_SCOREBOARD_EVIDENCE = [
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
 ]
 
+REQUIRED_LAB_VALIDATION_EVIDENCE = [
+    "scripts/zigux/check-phase10-closure-manifest-counts.py",
+    "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/validate-phase10-closure.py",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+]
+
 REQUIRED_FOCUSED_HARNESS_REPLAYS = {
     "drivers/virtio/virtio_ring_publish_readiness.zig": [
         "phase10 ring publish-readiness wrapper replay",
@@ -153,6 +161,25 @@ def collect_drift(manifest: dict) -> list[str]:
                 f"{item!r}:missing"
             )
 
+    lab_only_driver_validation = scoreboard.get("lab_only_driver_validation")
+    if not isinstance(lab_only_driver_validation, dict):
+        drift.append("roadmap_parity_scoreboard:lab_only_driver_validation:missing")
+        return drift
+
+    lab_validation_evidence = lab_only_driver_validation.get("evidence")
+    if not isinstance(lab_validation_evidence, list) or not lab_validation_evidence:
+        drift.append(
+            "roadmap_parity_scoreboard:lab_only_driver_validation:evidence:missing"
+        )
+        return drift
+
+    for item in REQUIRED_LAB_VALIDATION_EVIDENCE:
+        if item not in lab_validation_evidence:
+            drift.append(
+                "roadmap_parity_scoreboard:lab_only_driver_validation:"
+                f"{item!r}:missing"
+            )
+
     focused_harness_replays = manifest.get("focused_harness_replays")
     if not isinstance(focused_harness_replays, dict):
         drift.append("focused_harness_replays:missing")
@@ -236,6 +263,10 @@ def fixture_manifest() -> dict:
             "mmio_wrappers": {
                 "status": "starter_landed",
                 "evidence": REQUIRED_MMIO_SCOREBOARD_EVIDENCE,
+            },
+            "lab_only_driver_validation": {
+                "status": "starter_landed",
+                "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE,
             },
         },
         "focused_harness_replays": REQUIRED_FOCUSED_HARNESS_REPLAYS,
@@ -492,6 +523,34 @@ def run_self_test() -> int:
         cases += 1
 
         broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "scripts/zigux/check-phase10-closure-manifest-counts.py"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'scripts/zigux/check-phase10-closure-manifest-counts.py':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "zigux/Makefile"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/Makefile':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
         broken["focused_harness_replays"]["drivers/virtio/virtio_ring_publish_readiness.zig"] = []
         write_manifest(broken)
         expect_contains(
@@ -624,6 +683,10 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_EXACT_CHECK_COUNT={len(REQUIRED_EXACT_CHECKS)}")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_RING_EVIDENCE_COUNT={len(REQUIRED_RING_SCOREBOARD_EVIDENCE)}")
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_MMIO_EVIDENCE_COUNT={len(REQUIRED_MMIO_SCOREBOARD_EVIDENCE)}")
+    print(
+        "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_LAB_VALIDATION_EVIDENCE_COUNT="
+        f"{len(REQUIRED_LAB_VALIDATION_EVIDENCE)}"
+    )
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_FOCUSED_HARNESS_REPLAY_COUNT={len(REQUIRED_FOCUSED_HARNESS_REPLAYS)}")
     return 0
 
