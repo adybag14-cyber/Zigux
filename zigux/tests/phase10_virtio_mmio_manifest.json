@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "The shared Phase 10 build step remains the narrowest honest place to keep the landed MMIO helper, verify replay, and survey replay reviewable together."
+      "why_now": "The shared Phase 10 build step remains the narrowest honest place to keep the landed MMIO helper, the dedicated `phase10-virtio-mmio-lab-tests` replay route, the wrapper-facing verify replay, and the dedicated survey replay reviewable together."
     },
     {
       "id": "phase10-virtio-core-lab-starter",
@@ -129,14 +129,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_mmio.zig",
-      "why_now": "The dedicated MMIO replay keeps probe gating, queue readiness, interrupt-ack disposition, feature negotiation, config-write plan freshness, config-write apply observation, and config-write disposition reviewable as VM-friendly lab validation."
+      "why_now": "The dedicated MMIO replay stays visible through the shared `phase10-virtio-mmio-lab-tests` route and keeps probe gating, queue readiness, interrupt-ack disposition, feature negotiation, config-write plan freshness, and config-write disposition reviewable as VM-friendly lab validation."
     },
     {
       "id": "phase10-virtio-mmio-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_mmio_survey.zig",
-      "why_now": "The dedicated survey replay rereads the MMIO survey note beside the shared build gate without widening into transport-backed lifecycle claims."
+      "why_now": "The dedicated survey replay stays visible through the shared `phase10-virtio-mmio-survey-tests` route and rereads the MMIO survey note beside the shared build gate without widening into transport-backed lifecycle claims."
     },
     {
       "id": "phase10-virtio-mmio-survey-note",
