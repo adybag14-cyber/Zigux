@@ -10,7 +10,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_PANIC_POLICY_BLOB_SHA=d05afcf0c0ef4e5558f8d8094bedf831c413407c`
 - `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-plus-init-flow-owned-state-and-reset-gates`
-- `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=01a6b30ab444a9b6be66eb1fb3a0e3666f55863a`
+- `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=a59ffbcf90ab65c031c3f069b1e5ed63b50dd708`
 - `PHASE3_UNSAFE_POLICY_PATH=zigux/helpers/unsafe_policy.zig`
 - `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-access-boundary-surface-and-permit-audit-aliases`
 - `PHASE3_UNSAFE_POLICY_BLOB_SHA=a39a2ca8b62783ce9b87c2dde5b8721126a2b2c3`
