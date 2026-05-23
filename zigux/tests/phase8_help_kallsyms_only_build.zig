@@ -9,32 +9,20 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const help_root_module = b.createModule(.{
-        .root_source_file = b.path("phase8_help.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    help_root_module.addImport("help", help_module);
 
     const kallsyms_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/symbol/kallsyms.zig"),
         .target = target,
         .optimize = optimize,
     });
-    const kallsyms_root_module = b.createModule(.{
-        .root_source_file = b.path("phase8_kallsyms.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    kallsyms_root_module.addImport("kallsyms", kallsyms_module);
 
     const help_tests = b.addTest(.{
         .name = "phase8-help-tests",
-        .root_module = help_root_module,
+        .root_module = help_module,
     });
     const kallsyms_tests = b.addTest(.{
         .name = "phase8-kallsyms-tests",
-        .root_module = kallsyms_root_module,
+        .root_module = kallsyms_module,
     });
 
     const run_help_tests = b.addRunArtifact(help_tests);
