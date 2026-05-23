@@ -165,6 +165,16 @@ EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY = (
     "to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, "
     "replacement, detach, and reseed paths that the shared smoke route does not replay exactly"
 )
+EXPECTED_RBTREE_TRAVERSAL_REPLAY_KEYS = [
+    "empty_root",
+    "insert_order",
+    "reverse_order",
+    "replace_order",
+    "erase_init_order",
+    "postorder_count",
+    "erase_init_node_empty",
+    "cleared_node_empty",
+]
 EXPECTED_STRING_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the "
     "string review packet and this lane note unless dedicated shared sysfs fixture keys land; "
@@ -294,6 +304,7 @@ MANIFEST_EXPECTATIONS = {
     ("review_anchors", "tools/lib/rbtree.zig", "low_level_alias_anchor"): 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
     ("review_anchors", "tools/lib/rbtree.zig", "phase1_helper_replay_anchor"): 'test "phase1 host-tools smoke exercises live helper behavior"',
     ("review_anchors", "tools/lib/rbtree.zig", "cached_leftmost_fixture_keys"): ["cached_leftmost_return_serials"],
+    ("review_anchors", "tools/lib/rbtree.zig", "traversal_replay_keys"): EXPECTED_RBTREE_TRAVERSAL_REPLAY_KEYS,
     ("review_anchors", "tools/lib/rbtree.zig", "duplicate_search_replay_keys"): [
         "find_found_key",
         "find_missing",
@@ -446,6 +457,7 @@ def sample_manifest() -> str:
             "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
             "phase1_helper_replay_anchor": 'test "phase1 host-tools smoke exercises live helper behavior"',
             "cached_leftmost_fixture_keys": ["cached_leftmost_return_serials"],
+            "traversal_replay_keys": EXPECTED_RBTREE_TRAVERSAL_REPLAY_KEYS,
             "duplicate_search_replay_keys": [
                 "find_found_key",
                 "find_missing",
