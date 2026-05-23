@@ -42,6 +42,7 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     try expectContains(survey_note, "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`");
     try expectContains(survey_note, "lab-only driver validation");
     try expectSurveyedCommitAlignment(allocator, survey_note, manifest);
+    try expectContains(survey_note, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md");
     try expectContains(survey_note, "drivers/virtio/virtio_input_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_input_registration_preflight.zig");
@@ -65,6 +66,7 @@ test "phase10 virtio input manifest keeps the restored replay ids and blocked li
     const manifest = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_input_manifest.json");
     defer allocator.free(manifest);
 
+    try expectContains(manifest, "\"preexisting_phase10_tests_root_review_companion_present\": true");
     try expectContains(manifest, "\"preexisting_virtio_core_zig_present\": true");
     try expectContains(manifest, "\"preexisting_virtio_ring_zig_present\": true");
     try expectContains(manifest, "\"preexisting_virtio_mmio_survey_present\": true");
