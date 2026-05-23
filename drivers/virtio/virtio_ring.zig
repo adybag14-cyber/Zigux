@@ -26,6 +26,16 @@ pub const QueueShapeSummary = struct {
     uses_indirect_descriptors: bool,
 };
 
+pub const QueueRegistrationSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    descriptor_count: u16,
+    layout: QueueLayout,
+    uses_event_idx: bool,
+    uses_indirect_descriptors: bool,
+    registered_queue_count: usize,
+};
+
 pub const QueueNotificationSummary = struct {
     anchor: []const u8,
     queue_index: u16,
@@ -435,6 +445,22 @@ pub const VirtioRingLab = struct {
             .layout = slot.layout,
             .uses_event_idx = slot.uses_event_idx,
             .uses_indirect_descriptors = slot.uses_indirect_descriptors,
+        };
+    }
+
+    pub fn queueRegistrationSummary(self: *const Self, queue_index: u16) !QueueRegistrationSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .descriptor_count = slot.descriptor_count,
+            .layout = slot.layout,
+            .uses_event_idx = slot.uses_event_idx,
+            .uses_indirect_descriptors = slot.uses_indirect_descriptors,
+            .registered_queue_count = self.registered_queue_count,
         };
     }
 
