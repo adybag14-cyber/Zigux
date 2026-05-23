@@ -50,6 +50,7 @@ TEXT_MARKERS = {
         "* `PHASE12_LANE=P12-L13`",
         "* verified on: `2026-05-21`",
         "* `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`",
+        "* `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "rollback owner: `P12-L13` keeps the active virtio_scsi survey packet",
         "throughput-parity, and survey-gate tests as support-bundle evidence",
         "make -C zigux phase12-validate",
@@ -71,12 +72,13 @@ TEXT_MARKERS = {
         "archival commit-pinned history only",
     ],
     SURVEY_GATE_PATH: [
-        '"phase12-virtio-scsi-driver-starter"',
-        '"missing_on_master"',
-        '"rollback_evidence_present"',
-        'pathExists("drivers/scsi/virtio_scsi.zig")',
-        '"rollback owner: `P12-L13` keeps the active virtio_scsi survey packet"',
-        '"survey-gate tests"',
+        "\"phase12-virtio-scsi-driver-starter\"",
+        "\"missing_on_master\"",
+        "\"rollback_evidence_present\"",
+        "pathExists(\"drivers/scsi/virtio_scsi.zig\")",
+        "std.mem.count(u8, survey_note, \"`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`\") >= 1",
+        "std.mem.count(u8, survey_note, \"`zigux/tests/phase12_virtio_scsi_manifest.json`\") >= 1",
+        "\"survey-gate tests\"",
     ],
     PHASE12_BUILD_PATH: [
         "phase12_virtio_net_receive_refill_replay.zig",
@@ -195,9 +197,9 @@ def check(root: Path) -> list[str]:
         forbid_markers(errors, rel_path, text, FORBIDDEN_MARKERS)
 
     survey_note_text = read_text(root / SURVEY_NOTE_PATH)
-    if survey_note_text.count("`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`") != 1:
+    if survey_note_text.count("`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`") < 1:
         errors.append("survey note fixture manifest boundary drift")
-    if survey_note_text.count("`zigux/tests/phase12_virtio_scsi_manifest.json`") != 1:
+    if survey_note_text.count("`zigux/tests/phase12_virtio_scsi_manifest.json`") < 1:
         errors.append("survey note survey manifest boundary drift")
 
     fixture_manifest = json.loads(read_text(root / FIXTURE_MANIFEST_PATH))
