@@ -9,15 +9,32 @@ test "phase8 perf-buffer poll helper entrypoints stay explicit" {
     try std.testing.expect(@hasDecl(perf_buffer_poll, "BufferObservation"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "WaitObservation"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "ReadyBufferSummary"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "ReadyBufferAttemptLookupDisposition"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "ReadyBufferAttemptLookupSummary"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "ReadyBufferAttemptLookupError"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "ProcessRecordObservation"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "ProcessRecordSummary"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "PollSummary"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "PollExecutionSummary"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "PollExecutionResult"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "BufferFdLookupDisposition"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "BufferFdLookupSummary"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "BufferFdLookupError"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "ReadyBufferFdLookupError"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "BufferWindowObservation"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "BufferWindowLookupDisposition"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "BufferWindowLookupSummary"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "BufferWindowLookupError"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "ReadyBufferWindowLookupError"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "PollError"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "classifyObservedWaitResult"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "classifyWaitClass"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizeReadyBuffers"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizeReadyBufferAttemptLookup"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveReadyBufferAttemptLookup"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveReadyBufferAttemptAtIndex"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveReadyBufferAttemptIndexReturn"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveReadyBufferAttemptLookupReturn"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizeProcessRecords"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizePoll"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizePollFromWaitResult"));
@@ -25,6 +42,20 @@ test "phase8 perf-buffer poll helper entrypoints stay explicit" {
     try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizePollExecutionFromWaitResult"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "resolvePollExecutionResultFromWaitResult"));
     try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizePollExecutionResultFromWaitResult"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizeBufferFdLookup"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveBufferFdAtIndex"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveBufferFd"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveBufferFdLookupReturn"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveBufferFdLookupReturnAtIndex"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveReadyBufferFdAtAttempt"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveReadyBufferFdLookupReturnAtAttempt"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "summarizeBufferWindowLookup"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveBufferWindowMappedSizeAtIndex"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveBufferWindowMappedSize"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturn"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturnAtIndex"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveReadyBufferWindowMappedSizeAtAttempt"));
+    try std.testing.expect(@hasDecl(perf_buffer_poll, "resolveReadyBufferWindowLookupReturnAtAttempt"));
 }
 
 test "phase8 perf-buffer poll keeps wait classification and buffer summaries stable" {
@@ -163,6 +194,105 @@ test "phase8 perf-buffer poll keeps execution summaries and returns stable" {
         buffer_state_failure.disposition,
     );
     try std.testing.expectEqual(@as(i32, -105), buffer_state_failure.return_value);
+}
+
+test "phase8 perf-buffer poll keeps ready-buffer lookup wrappers stable" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_fds = [_]?i32{ null, 9, null, 21 };
+
+    try std.testing.expectEqual(
+        @as(i32, 9),
+        try perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &buffer_fds, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 21),
+        try perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &buffer_fds, 1),
+    );
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &buffer_fds, 2),
+    );
+
+    const short_fds = [_]?i32{ null, 9 };
+    try std.testing.expectError(
+        error.InvalidIndex,
+        perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &short_fds, 1),
+    );
+
+    const missing_fd = [_]?i32{ null, 9, null, null };
+    try std.testing.expectError(
+        error.MissingFd,
+        perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &missing_fd, 1),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 9),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &buffer_fds, 0),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &short_fds, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &missing_fd, 1),
+    );
+
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 4096),
+        try perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 0),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8192),
+        try perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 1),
+    );
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 2),
+    );
+
+    const short_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+    };
+    try std.testing.expectError(
+        error.InvalidIndex,
+        perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &short_windows, 1),
+    );
+
+    const missing_window = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        null,
+    };
+    try std.testing.expectError(
+        error.MissingWindow,
+        perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &missing_window, 1),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &buffer_windows, 0),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &short_windows, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &missing_window, 1),
+    );
 }
 
 test "phase8 perf-buffer poll rejects impossible hand-built summaries and mismatched ready waits" {
