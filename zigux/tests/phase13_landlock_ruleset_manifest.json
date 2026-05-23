@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L12",
+  "lane_key": "P13-L10",
   "phase": "Phase 13",
   "surveyed_commit": "master-readback-2026-05-23",
   "anchor": "security/landlock/ruleset.c",
@@ -31,7 +31,7 @@
       "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "security/landlock/ruleset.zig",
-      "why_now": "Current master ships a bounded Landlock ruleset helper lab for planRulesetCreation(), planRuleTreeSearch(), and planInsertRuleBranch(), keeping access-mask capture, search-path reviewability, and fresh-insert versus matched-rule branch planning explicit without claiming live rb-tree mutation or hierarchy ownership."
+      "why_now": "Current master ships a bounded Landlock ruleset helper lab for planRulesetCreation(), planRuleTreeSearch(), and planInsertRuleBranch(), keeping access-mask capture, search-path reviewability, fresh-insert planning, matched level-zero access-extension planning, and matched-rule layer-append planning explicit without claiming live rb-tree mutation or hierarchy ownership."
     },
     {
       "id": "phase13-landlock-ruleset-survey-note",
