@@ -65,6 +65,8 @@ The preferred next packet is:
 3. keep the current manifest, owner notes, scaffold, restart helper, PM helper pair, and DesignWare checker pair aligned before reopening broader helper-backed claims
 4. leave imported-running-state handoff reviewable inside the scaffold without widening into live platform registration, MMIO execution, or survey-only overclaiming
 
+The scaffold export now keeps optional APB-clock acquisition outcome fields visible beside the existing timer-clock, reset-release, imported-running, and missing-timer-clock summaries so the surviving DesignWare replay stays aligned with the packet note.
+
 ## Explicit non-goals
 
 Do not widen this packet into:
