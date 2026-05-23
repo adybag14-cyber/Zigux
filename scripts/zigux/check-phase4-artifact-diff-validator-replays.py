@@ -23,6 +23,35 @@ EXPECTED_VALIDATOR_REPLAY_MARKERS = [
     'CheckSpec(\n        "phase4-artifact-diff-validator-replays",\n        ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py"),\n    ),',
 ]
 
+EXPECTED_VALIDATOR_OUTPUT_MARKERS = [
+    '"phase4-artifact-diff-contract-self-test": (',
+    '"ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",',
+    '"ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24",',
+    '"ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES="',
+    '"phase4-artifact-diff-contract": (',
+    '"ARTIFACT_DIFF_CONTRACT=pass",',
+    '"ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=25",',
+    '"ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",',
+    '"ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30",',
+    '"phase4-artifact-diff-determinism-self-test": (',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass",',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12",',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES="',
+    '"phase4-artifact-diff-determinism": (',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM=pass",',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=11",',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=0",',
+    '"phase4-artifact-diff-validator-replays-self-test": (',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST=pass",',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14",',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES="',
+    '"phase4-artifact-diff-validator-replays": (',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass",',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present",',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",',
+]
+
 EXPECTED_REPO_REALITY_HANDOFF_MARKERS = [
     "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
     "Direct authenticated contents reads in this runtime now return `scripts/zigux/validate-phase4.py` directly, while `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still flap on that same route; public raw fallback rereads continue to return the full set on current `master`, matching the broader review packet's recovered note-and-checker companions.",
@@ -127,6 +156,11 @@ def check(root: Path) -> tuple[str, list[str]]:
             EXPECTED_VALIDATOR_REPLAY_MARKERS,
             "validator_surface",
         )
+        assert_markers(
+            validator_text,
+            EXPECTED_VALIDATOR_OUTPUT_MARKERS,
+            "validator_output_marker_surface",
+        )
         return "validator_present", EXPECTED_VALIDATOR_REPLAY_MARKERS
 
     note_text = read_text(
@@ -176,7 +210,10 @@ def make_artifact_diff_note_fixture(root: Path) -> None:
 def make_validator_fixture(root: Path) -> None:
     write(
         root / VALIDATOR_REL,
-        "\n".join(EXPECTED_VALIDATOR_REPLAY_MARKERS) + "\n",
+        "\n".join([
+            *EXPECTED_VALIDATOR_REPLAY_MARKERS,
+            *EXPECTED_VALIDATOR_OUTPUT_MARKERS,
+        ]) + "\n",
     )
     write(root / NOTE_REL, "# note placeholder\n")
     make_artifact_diff_note_fixture(root)
@@ -216,7 +253,7 @@ def run_self_test() -> int:
         covered_cases.append("validator_marker_round_trip")
 
         make_validator_fixture(root)
-        write(root / VALIDATOR_REL, "\n".join(EXPECTED_VALIDATOR_REPLAY_MARKERS[1:]) + "\n")
+        write(root / VALIDATOR_REL, "\n".join(EXPECTED_VALIDATOR_REPLAY_MARKERS[1:] + EXPECTED_VALIDATOR_OUTPUT_MARKERS) + "\n")
         try:
             check(root)
         except AssertionError:
@@ -234,7 +271,7 @@ def run_self_test() -> int:
             raise AssertionError("expected validator_marker_drift to fail closed")
 
         make_validator_fixture(root)
-        trimmed_markers = EXPECTED_VALIDATOR_REPLAY_MARKERS[:-2]
+        trimmed_markers = EXPECTED_VALIDATOR_REPLAY_MARKERS + EXPECTED_VALIDATOR_OUTPUT_MARKERS[:-1]
         write(root / VALIDATOR_REL, "\n".join(trimmed_markers) + "\n")
         try:
             check(root)
@@ -368,7 +405,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the Phase 4 artifact-diff validator replay surface either "
-            "keeps the shipped validator hooks or keeps the current repo-reality "
+            "keeps the shipped validator hook set explicit or keeps the current repo-reality "
             "handoff truthful when exact validator readback is unavailable."
         )
     )
