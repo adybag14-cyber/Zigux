@@ -21,6 +21,8 @@ Authenticated contents readback in this run directly returned:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `samples/zigux/kobject_example_attr_group_contract.zig`
+- `zigux/tests/phase5_kobject_attr_group_contract.zig`
+- `zigux/tests/phase5_kobject_attr_group_contract_survey.zig`
 - `zigux/tests/phase5_kobject_example.zig`
 - `zigux/tests/phase5_build.zig`
 
@@ -33,7 +35,7 @@ Fresh public current-`master` fallback remains the honest companion path for the
 
 That means the strongest current packet for this lane is:
 
-- the direct sample-owned replay, bounded attr-group companion, and shared build-route companion are current direct evidence again
+- the direct sample-owned replay, bounded attr-group companion, focused attr-group replay, attr-group survey guard, and shared build-route companion are current direct evidence again
 - the dedicated manifest and survey replay remain current public-tree-backed companions in this runtime
 - connector-local `404` results on the companion paths are a readback limitation here, not proof that the packet vanished from `master`
 
@@ -51,7 +53,7 @@ Keep these cues explicit:
 - `runInputValidationReplay()` keeps the shared `baz`/`bar` dispatch, invalid-integer rejection, and unknown-attribute rejection explicit while the sample remains in the `registered` stage
 - `ownershipSummary()` and sample-owned `runOwnershipReplay()` still keep the cold, initialized, registered, and exited lifecycle packet explicit
 - the exit split stays explicit as `abandoned_before_registration` for the initialized-only exit path and `tore_down_registered_attributes` for the registered teardown path
-- `samples/zigux/kobject_example_attr_group_contract.zig` stays the bounded companion for the `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, and NULL-terminated attribute-list slot rather than a fifth Phase 5 sample
+- `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` together keep the bounded `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, NULL-terminated attribute-list slot, and shared build-route linkage explicit rather than turning that companion into a fifth Phase 5 sample
 
 ## Contributor refresh prompts
 
@@ -59,8 +61,9 @@ When a same-lane change touches this anchor or one of its shared reminder surfac
 
 - does the note still treat `zigux/tests/phase5_build.zig` as the current directly readable shared build-route companion rather than parking it in the public-tree-backed bucket?
 - does the note still treat `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` as current public-tree-backed companions instead of direct readback proof in this runtime?
+- does the note still treat `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` as current direct evidence for the bounded attr-group companion packet?
 - does the surrounding shared packet in `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the same mixed direct-versus-public-tree-backed split?
-- do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` still describe the same bounded ownership-and-lifetime packet across the sample root, focused replay, manifest, survey replay, and shared build route?
+- do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, and the attr-group companion packet still describe the same bounded ownership-and-lifetime surface across the sample root, focused replay, companion survey guard, survey note, and shared build route?
 
 ## Non-goals
 
@@ -75,4 +78,4 @@ This note still does not claim:
 
 Leave this lane parked unless a fresh reread changes one bounded fact inside the same packet.
 
-If the lane reopens soon, start with `Documentation/zigux/phase5-kobject-sample-survey.md` and verify only whether the current direct sample-owned replay, bounded attr-group companion, shared build-route companion, and public-tree-backed manifest-plus-survey companions still keep the same split before widening anything else.
+If the lane reopens soon, start with `Documentation/zigux/phase5-kobject-sample-survey.md` and verify only whether the current direct sample-owned replay, bounded attr-group companion, focused attr-group replay, dedicated attr-group survey guard, shared build-route companion, and public-tree-backed manifest-plus-survey companions still keep the same split before widening anything else.
