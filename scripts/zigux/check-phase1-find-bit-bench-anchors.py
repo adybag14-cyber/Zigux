@@ -140,50 +140,17 @@ def run_self_test() -> None:
     assert kind == "pass", (kind, payload)
     case_count += 1
 
-    kind, payload = validate_find_bit_source(build_sample_source("andnot_gap_test"))
-    assert kind == "missing_test_markers", (kind, payload)
-    assert payload == ["andnot_gap_test"]
-    case_count += 1
+    for label in REQUIRED_TEST_MARKERS:
+        kind, payload = validate_find_bit_source(build_sample_source(label))
+        assert kind == "missing_test_markers", (label, kind, payload)
+        assert payload == [label], (label, payload)
+        case_count += 1
 
-    kind, payload = validate_find_bit_source(build_sample_source("boundary_tail_test"))
-    assert kind == "missing_test_markers", (kind, payload)
-    assert payload == ["boundary_tail_test"]
-    case_count += 1
-
-    kind, payload = validate_find_bit_source(build_sample_source("single_word_tail_test"))
-    assert kind == "missing_test_markers", (kind, payload)
-    assert payload == ["single_word_tail_test"]
-    case_count += 1
-
-    kind, payload = validate_find_bit_source(build_sample_source("find_first_andnot_gap"))
-    assert kind == "missing_source_markers", (kind, payload)
-    assert payload == ["find_first_andnot_gap"]
-    case_count += 1
-
-    kind, payload = validate_find_bit_source(build_sample_source("find_next_or_past_end"))
-    assert kind == "missing_source_markers", (kind, payload)
-    assert payload == ["find_next_or_past_end"]
-    case_count += 1
-
-    kind, payload = validate_find_bit_source(build_sample_source("find_next_andnot_past_end"))
-    assert kind == "missing_source_markers", (kind, payload)
-    assert payload == ["find_next_andnot_past_end"]
-    case_count += 1
-
-    kind, payload = validate_find_bit_source(build_sample_source("find_last_zero_sized"))
-    assert kind == "missing_source_markers", (kind, payload)
-    assert payload == ["find_last_zero_sized"]
-    case_count += 1
-
-    kind, payload = validate_find_bit_source(build_sample_source("find_next_clump8_untouched"))
-    assert kind == "missing_source_markers", (kind, payload)
-    assert payload == ["find_next_clump8_untouched"]
-    case_count += 1
-
-    kind, payload = validate_find_bit_source(build_sample_source("find_clump8_low_level_alias_past_end"))
-    assert kind == "missing_source_markers", (kind, payload)
-    assert payload == ["find_clump8_low_level_alias_past_end"]
-    case_count += 1
+    for label in REQUIRED_SOURCE_MARKERS:
+        kind, payload = validate_find_bit_source(build_sample_source(label))
+        assert kind == "missing_source_markers", (label, kind, payload)
+        assert payload == [label], (label, payload)
+        case_count += 1
 
     with tempfile.TemporaryDirectory(prefix="phase1-find-bit-bench-anchors-") as tmp:
         source_path = Path(tmp) / "find_bit.zig"
