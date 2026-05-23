@@ -42,7 +42,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
 
     try expectContains(parity_note, "`PHASE9_STATUS=active`");
     try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L01`");
-    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-22-first-loadable-parity-bitmap-module-direct-packet`");
+    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-23-first-loadable-parity-bitmap-diff-direct-packet`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`");
     try expectContains(parity_note, "`samples/zigux/runtime_atomic64.zig`");
@@ -64,7 +64,6 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_survey.zig`");
     try expectContains(parity_note, "`zigux/tests/phase9_build.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_module.zig`");
-    try expectContains(parity_note, "These bitmap-facing surfaces are not directly readable on the same trusted path:");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(parity_note, "These shared runtime-loader-facing surfaces are directly readable on current `master`:");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader.zig`");
@@ -73,6 +72,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "phase9-runtime-atomic64-diff");
     try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-module-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-sample-tests` route name");
+    try expectContains(parity_note, "the bounded bitmap sample, loader, survey, top-bit, module, and diff routes");
     try expectContains(parity_note, "the build-local `phase9-runtime-loader-shared-tests` route name");
     try expectContains(parity_note, "the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle");
     try expectContains(
@@ -87,7 +87,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     try expectContains(
         parity_note,
-        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet with restored module proof but blocked diff follow-through.",
+        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet, and the still-partial bitmap reminder packet with restored module and diff proof but without broader shared runtime-loader parity.",
     );
 
     try expectContains(atomic64_manifest, "\"phase\": \"Phase 9\"");
