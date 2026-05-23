@@ -55,6 +55,8 @@ const bitmap_diff_source = @embedFile("bitmap_diff.zig");
 const bitmap_live_helper_replay_source = @embedFile("phase4_bitmap_live_helper_replay.zig");
 
 const phase4_build_source = @embedFile("phase4_build.zig");
+const validator_source = @embedFile("../../scripts/zigux/validate-phase4.py");
+const validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
 const gate_evidence_source = @embedFile("../../Documentation/zigux/phase4-gate-evidence.md");
 
 fn gitBlobShaHex(source: []const u8) [40]u8 {
@@ -115,16 +117,13 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
 
     try std.testing.expectEqualStrings("4a4c07e5f7b90fc96f06c86a17d3d30aa0d5b694", manifest.helper_replay_blob_sha);
 
-    try std.testing.expectEqualStrings("cf3eed67995c7c2b634169a88277a97b37cbc6b0", manifest.shared_validator_blob_sha);
-
-    try std.testing.expectEqualStrings("0c243dd80d8ff192d43c3f2db0ca36a2f8e5f77c", manifest.shared_matrix_blob_sha);
-
-    try std.testing.expectEqualStrings("4a0cefd8477a547af7a4a8dfb281b186a4ff6ee0", manifest.gate_evidence_blob_sha);
-
-    try std.testing.expectEqualStrings("86f88d03cd82e2e11ea6ed4a02175b77b472fdb4", manifest.phase4_build_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_diff_source), manifest.live_gate_blob_sha);
 
     try std.testing.expectEqualStrings(&gitBlobShaHex(bitmap_live_helper_replay_source), manifest.helper_replay_blob_sha);
+
+    try std.testing.expectEqualStrings(&gitBlobShaHex(validator_source), manifest.shared_validator_blob_sha);
+
+    try std.testing.expectEqualStrings(&gitBlobShaHex(validation_matrix_source), manifest.shared_matrix_blob_sha);
 
     try std.testing.expectEqualStrings(&gitBlobShaHex(gate_evidence_source), manifest.gate_evidence_blob_sha);
 
@@ -191,10 +190,6 @@ test "phase 4 bitmap survey keeps the broader gate-evidence handoff explicit" {
 
     _ = parsed.value;
 
-    try expectContains(gate_evidence_source, "PHASE4_BITMAP_DIFF_BLOB_SHA=683160d3a86552a2a1be34b445fd6e0fb38dc122");
-
-    try expectContains(gate_evidence_source, "PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=4a4c07e5f7b90fc96f06c86a17d3d30aa0d5b694");
-
     try expectContains(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19");
 
     try expectContains(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44");
@@ -203,26 +198,43 @@ test "phase 4 bitmap survey keeps the broader gate-evidence handoff explicit" {
 
     try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44");
 
-    try expectContains(gate_evidence_source, "Documentation/zigux/phase4-reversible-delivery-evidence.md");
+    try expectContains(gate_evidence_source, "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true");
 
     try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-gate-evidence.py");
 
-    try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-perf-baseline-packet.py");
+    try expectContains(
+        gate_evidence_source,
+        "The broader bitmap rollback packet is intentionally outside this exact-readback note on current `master`",
+    );
+
+    try expectContains(
+        gate_evidence_source,
+        "the public `zigux/tests` tree no longer exposes `zigux/tests/bitmap_diff.zig` or `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+    );
+
+    try expectContains(
+        gate_evidence_source,
+        "The broader bitmap reviewability details still belong in the surrounding matrix and reminder packet",
+    );
+
+    try expectContains(gate_evidence_source, "zigux/tests/phase4_perf_baseline_manifest.json");
+
+    try expectContains(gate_evidence_source, "zigux/tests/phase4_perf_baseline_survey.zig");
 
     try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-workflow-route-counts.py");
 
-    try expectContains(gate_evidence_source, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig");
+    try expectContains(gate_evidence_source, "make -C zigux phase4-validate");
 
-    try expectContains(gate_evidence_source, "make -C zigux phase4-perf-baseline-survey");
+    try expectContains(gate_evidence_source, "make -C zigux phase4-test");
 
     try expectContains(
         gate_evidence_source,
         "PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
     );
 
-    try expectContains(gate_evidence_source, "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m");
-
     try expectContains(gate_evidence_source, "make -C zigux phase4-kprobe-example-survey");
+
+    try expectContains(gate_evidence_source, "make -C zigux phase4-test-fsmount-survey");
 }
 
 test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
