@@ -8,7 +8,7 @@ from pathlib import Path
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BENCH_PATH = Path("scripts/zigux/check-phase1-bench.py")
-MIN_CASE_COUNT = 35
+MIN_CASE_COUNT = 41
 
 REQUIRED_WORKFLOW_MARKERS = (
     "- name: Self-test current Phase 1 bench checker",
@@ -20,27 +20,31 @@ REQUIRED_BENCH_MARKERS = (
     'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
     'print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")',
     'kind, payload = load_runtime_bench_source(source_path)',
-    'assert kind == "missing_bench_source_file"',
-    'assert kind == "bench_source_missing_markers"',
-    'assert kind == "expectations_duplicate_keys"',
-    'assert kind == "expectations_duplicate_iteration_keys"',
-    'assert kind == "expectations_duplicate_exact_checksum_keys"',
-    'assert kind == "expectations_duplicate_checksums"',
-    'assert kind == "missing_rbtree_iterations"',
-    'assert kind == "rbtree_iteration_mismatch"',
-    'assert kind == "missing_rbtree_exact_checksums"',
-    'assert kind == "missing_bitmap_exact_checksums"',
-    'assert kind == "missing_find_bit_exact_checksums"',
-    'assert kind == "missing_string_exact_checksums"',
-    'assert kind == "missing_hweight_exact_checksums"',
-    'assert kind == "missing_list_sort_exact_checksums"',
-    'assert kind == "exact_checksum_mismatch"',
-    'assert kind == "expectations_checksums_bitmap_exact_required"',
-    'assert kind == "expectations_checksums_find_bit_exact_required"',
-    'assert kind == "expectations_checksums_string_exact_required"',
-    'assert kind == "expectations_checksums_hweight_exact_required"',
-    'assert kind == "expectations_checksums_list_sort_exact_required"',
-    'assert kind == "expectations_checksums_rbtree_exact_required"',
+    'assert_case(kind == "missing_bench_source_file"',
+    'assert_case(kind == "pass", "loaded bench source pass"',
+    'assert_case(kind == "bench_source_missing_markers", "missing find_bit marker"',
+    'assert_case(payload == ["find_edge_checksum_print"], "missing find_bit marker payload"',
+    'assert_case(kind == "bench_source_missing_markers", "missing rbtree marker"',
+    'assert_case(payload == ["rbtree_cached_print"], "missing rbtree marker payload"',
+    'assert_case(kind == "expectations_duplicate_keys", "duplicate top-level key"',
+    'assert_case(kind == "expectations_duplicate_iteration_keys", "duplicate iteration key"',
+    'assert_case(kind == "expectations_duplicate_exact_checksum_keys", "duplicate exact checksum key"',
+    'assert_case(kind == "expectations_duplicate_checksums", "duplicate checksum list"',
+    'assert_case(kind == "missing_rbtree_iterations", "missing rbtree iteration expectation"',
+    'assert_case(kind == "rbtree_iteration_mismatch", "rbtree iteration mismatch"',
+    'assert_case(kind == "missing_rbtree_exact_checksums", "missing rbtree exact"',
+    'assert_case(kind == "missing_bitmap_exact_checksums", "missing exact category"',
+    'assert_case(kind == "missing_find_bit_exact_checksums", "missing exact category"',
+    'assert_case(kind == "missing_string_exact_checksums", "missing exact category"',
+    'assert_case(kind == "missing_hweight_exact_checksums", "missing exact category"',
+    'assert_case(kind == "missing_list_sort_exact_checksums", "missing exact category"',
+    'assert_case(kind == "exact_checksum_mismatch", "output case kind"',
+    'assert_case(kind == "expectations_checksums_bitmap_exact_required", "expectation exact requirement"',
+    'assert_case(kind == "expectations_checksums_find_bit_exact_required", "expectation exact requirement"',
+    'assert_case(kind == "expectations_checksums_string_exact_required", "expectation exact requirement"',
+    'assert_case(kind == "expectations_checksums_hweight_exact_required", "expectation exact requirement"',
+    'assert_case(kind == "expectations_checksums_list_sort_exact_required", "expectation exact requirement"',
+    'assert_case(kind == "expectations_checksums_rbtree_exact_required", "expectation exact requirement"',
 )
 
 
@@ -91,27 +95,31 @@ jobs:
         "#!/usr/bin/env python3",
         "def run_self_test() -> None:",
         "    kind, payload = load_runtime_bench_source(source_path)",
-        '    assert kind == "missing_bench_source_file"',
-        '    assert kind == "bench_source_missing_markers"',
-        '    assert kind == "expectations_duplicate_keys"',
-        '    assert kind == "expectations_duplicate_iteration_keys"',
-        '    assert kind == "expectations_duplicate_exact_checksum_keys"',
-        '    assert kind == "expectations_duplicate_checksums"',
-        '    assert kind == "missing_rbtree_iterations"',
-        '    assert kind == "rbtree_iteration_mismatch"',
-        '    assert kind == "missing_rbtree_exact_checksums"',
-        '    assert kind == "missing_bitmap_exact_checksums"',
-        '    assert kind == "missing_find_bit_exact_checksums"',
-        '    assert kind == "missing_string_exact_checksums"',
-        '    assert kind == "missing_hweight_exact_checksums"',
-        '    assert kind == "missing_list_sort_exact_checksums"',
-        '    assert kind == "exact_checksum_mismatch"',
-        '    assert kind == "expectations_checksums_bitmap_exact_required"',
-        '    assert kind == "expectations_checksums_find_bit_exact_required"',
-        '    assert kind == "expectations_checksums_string_exact_required"',
-        '    assert kind == "expectations_checksums_hweight_exact_required"',
-        '    assert kind == "expectations_checksums_list_sort_exact_required"',
-        '    assert kind == "expectations_checksums_rbtree_exact_required"',
+        '    assert_case(kind == "missing_bench_source_file", "missing bench source", (kind, payload))',
+        '    assert_case(kind == "pass", "loaded bench source pass", (kind, payload))',
+        '    assert_case(kind == "bench_source_missing_markers", "missing find_bit marker", (kind, payload))',
+        '    assert_case(payload == ["find_edge_checksum_print"], "missing find_bit marker payload", payload)',
+        '    assert_case(kind == "bench_source_missing_markers", "missing rbtree marker", (kind, payload))',
+        '    assert_case(payload == ["rbtree_cached_print"], "missing rbtree marker payload", payload)',
+        '    assert_case(kind == "expectations_duplicate_keys", "duplicate top-level key", (kind, payload))',
+        '    assert_case(kind == "expectations_duplicate_iteration_keys", "duplicate iteration key", (kind, payload))',
+        '    assert_case(kind == "expectations_duplicate_exact_checksum_keys", "duplicate exact checksum key", (kind, payload))',
+        '    assert_case(kind == "expectations_duplicate_checksums", "duplicate checksum list", (kind, payload))',
+        '    assert_case(kind == "missing_rbtree_iterations", "missing rbtree iteration expectation", (kind, payload))',
+        '    assert_case(kind == "rbtree_iteration_mismatch", "rbtree iteration mismatch", (kind, payload))',
+        '    assert_case(kind == "missing_rbtree_exact_checksums", "missing rbtree exact", (key, kind, payload))',
+        '    assert_case(kind == "missing_bitmap_exact_checksums", "missing exact category", (reason, kind, payload))',
+        '    assert_case(kind == "missing_find_bit_exact_checksums", "missing exact category", (reason, kind, payload))',
+        '    assert_case(kind == "missing_string_exact_checksums", "missing exact category", (reason, kind, payload))',
+        '    assert_case(kind == "missing_hweight_exact_checksums", "missing exact category", (reason, kind, payload))',
+        '    assert_case(kind == "missing_list_sort_exact_checksums", "missing exact category", (reason, kind, payload))',
+        '    assert_case(kind == "exact_checksum_mismatch", "output case kind", (expected_kind, kind, payload))',
+        '    assert_case(kind == "expectations_checksums_bitmap_exact_required", "expectation exact requirement", (reason, kind, payload))',
+        '    assert_case(kind == "expectations_checksums_find_bit_exact_required", "expectation exact requirement", (reason, kind, payload))',
+        '    assert_case(kind == "expectations_checksums_string_exact_required", "expectation exact requirement", (reason, kind, payload))',
+        '    assert_case(kind == "expectations_checksums_hweight_exact_required", "expectation exact requirement", (reason, kind, payload))',
+        '    assert_case(kind == "expectations_checksums_list_sort_exact_required", "expectation exact requirement", (reason, kind, payload))',
+        '    assert_case(kind == "expectations_checksums_rbtree_exact_required", "expectation exact requirement", (reason, kind, payload))',
     ]
     bench_lines.extend(["    case_count += 1"] * MIN_CASE_COUNT)
     bench_lines.extend(
@@ -149,14 +157,14 @@ def run_self_test() -> None:
 
         write_sample_root(root)
         bench_text = read_text(root / BENCH_PATH).replace(
-            'assert kind == "missing_rbtree_exact_checksums"\n',
+            'assert_case(kind == "missing_rbtree_exact_checksums", "missing rbtree exact", (key, kind, payload))\n',
             "",
             1,
         )
         (root / BENCH_PATH).write_text(bench_text, encoding="utf-8")
         kind, payload = validate_root(root)
         assert kind == "missing_bench_markers", (kind, payload)
-        assert payload == ['assert kind == "missing_rbtree_exact_checksums"']
+        assert payload == ['assert_case(kind == "missing_rbtree_exact_checksums", "missing rbtree exact"']
         case_count += 1
 
         write_sample_root(root)
