@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L18",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-22",
+  "surveyed_commit": "master-readback-2026-05-23",
   "anchor": "drivers/tty/hvc/hvc_console.h",
   "roadmap_position": "adjacent notifier/list_head evidence beside the Phase 13 shared-helper anchors",
   "survey_summary": {
@@ -46,11 +46,11 @@
       "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, HVC-header, and returned zigux/Makefile versus missing shared-route distinction visible without widening into the shared Phase 13 build shard."
     },
     "scripts/zigux/validate-phase13-release.py": {
-      "sha": "557b0ff722a87c31f06829a255b18e550cce1a21",
+      "sha": "3e3afacdc4aef07dbd139b9347f4400f2ca0ede3",
       "behavior": "Keeps the shared Phase 13 release reminder packet aligned while treating the missing notifier-chain helper, dedicated notifier ABI header, and missing shared build-route names as repo-reality gaps."
     },
     "zigux/Makefile": {
-      "sha": "73e62472ae62a7d3b1e5ec773af5c7b5d35ec0d8",
+      "sha": "0c742bb7e78aa97a19edb4a5749666e765675173",
       "behavior": "The file is present on current master, but it still does not expose make -C zigux phase13-validate or make -C zigux phase13 as shipped adjacent-packet routes."
     }
   },
