@@ -149,7 +149,6 @@ REQUIRED_PRESENT_SURFACES = {
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     ),
     "fixdep_support": (
-        "scripts/basic/fixdep.c",
         "scripts/zigux/check-phase2-fixdep-gate.py",
         "scripts/zigux/check-fixdep-diff.py",
         "scripts/zigux/fixdep.zig",
