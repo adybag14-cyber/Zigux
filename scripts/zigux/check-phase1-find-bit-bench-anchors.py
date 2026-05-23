@@ -11,6 +11,7 @@ ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 FIND_BIT = ROOT / "tools" / "lib" / "find_bit.zig"
 
 REQUIRED_TEST_MARKERS = {
+    "andnot_gap_test": 'test "find first and next set bits across words, with andnot gaps explicit" {',
     "boundary_head_test": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
     "boundary_tail_test": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
     "single_word_tail_test": 'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start" {',
@@ -25,6 +26,7 @@ REQUIRED_TEST_MARKERS = {
 }
 
 REQUIRED_SOURCE_MARKERS = {
+    "find_first_andnot_gap": "findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3)",
     "find_next_boundary": "findNextBit(&set_map, nbits, boundary)",
     "find_next_and_boundary": "findNextAndBit(&and_lhs, &and_rhs, nbits, boundary)",
     "find_next_andnot_boundary": "findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)",
@@ -75,6 +77,9 @@ def load_find_bit_source(path: Path) -> tuple[str, object]:
 
 def build_sample_source(omit_label: str | None = None) -> str:
     lines = [
+        'test "find first and next set bits across words, with andnot gaps explicit" {',
+        "    _ = findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3);",
+        "}",
         'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
         "    _ = findNextBit(&set_map, nbits, boundary);",
         "    _ = findNextAndBit(&and_lhs, &and_rhs, nbits, boundary);",
@@ -135,6 +140,11 @@ def run_self_test() -> None:
     assert kind == "pass", (kind, payload)
     case_count += 1
 
+    kind, payload = validate_find_bit_source(build_sample_source("andnot_gap_test"))
+    assert kind == "missing_test_markers", (kind, payload)
+    assert payload == ["andnot_gap_test"]
+    case_count += 1
+
     kind, payload = validate_find_bit_source(build_sample_source("boundary_tail_test"))
     assert kind == "missing_test_markers", (kind, payload)
     assert payload == ["boundary_tail_test"]
@@ -143,6 +153,11 @@ def run_self_test() -> None:
     kind, payload = validate_find_bit_source(build_sample_source("single_word_tail_test"))
     assert kind == "missing_test_markers", (kind, payload)
     assert payload == ["single_word_tail_test"]
+    case_count += 1
+
+    kind, payload = validate_find_bit_source(build_sample_source("find_first_andnot_gap"))
+    assert kind == "missing_source_markers", (kind, payload)
+    assert payload == ["find_first_andnot_gap"]
     case_count += 1
 
     kind, payload = validate_find_bit_source(build_sample_source("find_next_or_past_end"))
