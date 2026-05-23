@@ -96,6 +96,11 @@ DRIVER_MARKERS = (
     "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {",
     "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {",
     "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
+    "const targetless_hangup_short_circuit = request.notifier_registered and",
+    ".targetless_hangup_short_circuit = targetless_hangup_short_circuit,",
+    "try std.testing.expect(!active.targetless_hangup_short_circuit);",
+    "try std.testing.expect(targetless.targetless_hangup_short_circuit);",
+    "try std.testing.expect(!invalid.targetless_hangup_short_circuit);",
 )
 
 PROOF_MARKERS = (
@@ -123,6 +128,11 @@ PROOF_MARKERS = (
     'try expectContains(driver, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {");',
     'try expectContains(driver, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {");',
     'try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");',
+    'try expectContains(driver, "const targetless_hangup_short_circuit = request.notifier_registered and");',
+    'try expectContains(driver, ".targetless_hangup_short_circuit = targetless_hangup_short_circuit,");',
+    'try expectContains(driver, "try std.testing.expect(!active.targetless_hangup_short_circuit);");',
+    'try expectContains(driver, "try std.testing.expect(targetless.targetless_hangup_short_circuit);");',
+    'try expectContains(driver, "try std.testing.expect(!invalid.targetless_hangup_short_circuit);");',
 )
 
 
@@ -238,11 +248,13 @@ def run_self_test() -> int:
             (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`"),
             (DRIVER_PATH, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {"),
             (DRIVER_PATH, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {"),
+            (DRIVER_PATH, "const targetless_hangup_short_circuit = request.notifier_registered and"),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps missing teardown anchors explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps route boundaries explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps verify-boundary failure modes explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to matrix evidence" {'),
+            (PROOF_PATH, 'try expectContains(driver, "try std.testing.expect(targetless.targetless_hangup_short_circuit);");'),
             (TARGETLESS_WITNESS_CHECKER_PATH, "PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass"),
             (BUILD_PATH, 'phase11-hvc-cleanup-packet-proof'),
         ]
