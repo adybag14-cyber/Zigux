@@ -82,6 +82,7 @@ REQUIRED_FILE_MARKERS = {
     MMIO_PATH: (
         "pub fn readInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *const volatile T) PolicyError!T {",
         "pub fn writeInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *volatile T, value: T) PolicyError!void {",
+        "pub fn exchangeInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *volatile T, value: T) PolicyError!T {",
         "pub fn writeMaskedInteropPolicy(",
     ),
     NARROW_PATH: (
@@ -118,6 +119,12 @@ SELF_TEST_CASES = (
         "unsafe policy raw-bridge require alias drift",
         UNSAFE_POLICY_PATH,
         REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][8],
+        "marker",
+    ),
+    (
+        "mmio exchange interop-policy marker drift",
+        MMIO_PATH,
+        REQUIRED_FILE_MARKERS[MMIO_PATH][2],
         "marker",
     ),
     ("narrow const-slice marker drift", NARROW_PATH, REQUIRED_FILE_MARKERS[NARROW_PATH][4], "marker"),
