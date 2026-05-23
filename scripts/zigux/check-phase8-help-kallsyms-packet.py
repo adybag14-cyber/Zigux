@@ -118,6 +118,15 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
         'test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"',
     ),
+    HELP_SOURCE: (
+        'pub const default_command_prefix = "perf-";',
+        "pub fn trimCommandPrefix(",
+        "pub fn computePrettyLayout(",
+        "pub fn renderPrettyStringList(",
+        "pub fn renderCommandSections(",
+        'test "renderPrettyStringList keeps the same row-major pretty layout as help.c" {',
+        'test "renderCommandSections keeps stable headers for main and fallback command groups" {',
+    ),
     KALLSYMS_BUILD: (
         "../../tools/lib/symbol/kallsyms.zig",
         "phase8-kallsyms-only-tests",
