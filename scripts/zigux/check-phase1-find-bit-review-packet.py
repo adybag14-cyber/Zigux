@@ -351,11 +351,11 @@ def run_self_test() -> int:
         ("duplicate_anchor", 'helper_anchor:test "clump8 past-end scans return without reading bitmap words":expected=1:actual=2'),
         (
             "manifest_invalid_json",
-            "manifest:invalid_json:Expecting property name enclosed in double quotes:line=1:column=2",
+            "manifest:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1",
         ),
         (
             "fixture_invalid_json",
-            "fixture:invalid_json:Expecting property name enclosed in double quotes:line=1:column=2",
+            "fixture:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1",
         ),
         (
             "manifest_duplicate_review_packet_summary",
