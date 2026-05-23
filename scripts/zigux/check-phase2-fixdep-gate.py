@@ -33,21 +33,29 @@ REQUIRED_FILES = (
 )
 
 FIXDEP_REQUIRED_EXACT_LINES = (
+    'test "config parsing trims _MODULE and deduplicates symbols" {',
+    'test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {',
+    'test "config parsing accepts CONFIG tokens after punctuation" {',
+    'test "config parsing stops at the first embedded NUL" {',
     'test "dep parsing returns NoTargets for comment-only depfiles" {',
     'test "dep parsing keeps escaped spaces inside tokens" {',
     'test "dep parsing continues dependency lines across escaped newlines" {',
     'test "dep parsing accepts CRLF lines and continuations" {',
+    'test "dep parsing does not continue bare carriage-return lines" {',
     'test "dep parsing skips bytes after the first embedded NUL" {',
-    'test "config parsing stops at the first embedded NUL" {',
-    'test "escaped hash dependency survives concatenated target comment path" {',
-    'test "escaped colon dependency survives concatenated target comment path" {',
-    'test "read failure wording matches C perror prefix" {',
+    'test "ignored and no-parse file classification matches fixdep rules" {',
     'test "file read errors map to C-style messages" {',
+    'test "file read errors map short reads to unexpected end of file" {',
+    'test "exact read size helper rejects short reads" {',
     'test "path error wording keeps the dedicated fstat prefix" {',
     'test "open dependency file classification keeps input-output failures on the C-style path" {',
+    'test "open dependency file classification preserves unrelated open failures" {',
+    'test "read failure wording matches C perror prefix" {',
     'test "output write failure uses C-style wording" {',
     'test "flush helper preserves the primary error" {',
     'test "dependency file reads beyond the legacy one mebibyte ceiling" {',
+    'test "escaped hash dependency survives concatenated target comment path" {',
+    'test "escaped colon dependency survives concatenated target comment path" {',
 )
 
 FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
@@ -410,6 +418,14 @@ def build_self_test_root(root: Path) -> None:
         resolve(root, FIXDEP_REL),
         "\n".join(
             (
+                'test "config parsing trims _MODULE and deduplicates symbols" {',
+                "}",
+                'test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {',
+                "}",
+                'test "config parsing accepts CONFIG tokens after punctuation" {',
+                "}",
+                'test "config parsing stops at the first embedded NUL" {',
+                "}",
                 'test "dep parsing returns NoTargets for comment-only depfiles" {',
                 "}",
                 'test "dep parsing keeps escaped spaces inside tokens" {',
@@ -418,27 +434,35 @@ def build_self_test_root(root: Path) -> None:
                 "}",
                 'test "dep parsing accepts CRLF lines and continuations" {',
                 "}",
+                'test "dep parsing does not continue bare carriage-return lines" {',
+                "}",
                 'test "dep parsing skips bytes after the first embedded NUL" {',
                 "}",
-                'test "config parsing stops at the first embedded NUL" {',
-                "}",
-                'test "escaped hash dependency survives concatenated target comment path" {',
-                "}",
-                'test "escaped colon dependency survives concatenated target comment path" {',
-                "}",
-                'test "read failure wording matches C perror prefix" {',
+                'test "ignored and no-parse file classification matches fixdep rules" {',
                 "}",
                 'test "file read errors map to C-style messages" {',
+                "}",
+                'test "file read errors map short reads to unexpected end of file" {',
+                "}",
+                'test "exact read size helper rejects short reads" {',
                 "}",
                 'test "path error wording keeps the dedicated fstat prefix" {',
                 "}",
                 'test "open dependency file classification keeps input-output failures on the C-style path" {',
+                "}",
+                'test "open dependency file classification preserves unrelated open failures" {',
+                "}",
+                'test "read failure wording matches C perror prefix" {',
                 "}",
                 'test "output write failure uses C-style wording" {',
                 "}",
                 'test "flush helper preserves the primary error" {',
                 "}",
                 'test "dependency file reads beyond the legacy one mebibyte ceiling" {',
+                "}",
+                'test "escaped hash dependency survives concatenated target comment path" {',
+                "}",
+                'test "escaped colon dependency survives concatenated target comment path" {',
                 "}",
             )
         )
@@ -611,7 +635,7 @@ def run_self_test() -> int:
         cases[0]["name"] = ""
         path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("INVALID_FIXDEP_CASE_NAME", "index=0:name=''" ) in issues
+        assert ("INVALID_FIXDEP_CASE_NAME", "index=0:name=''") in issues
         checks_run += 1
 
         for marker in CLOSURE_REQUIRED_MARKERS:
