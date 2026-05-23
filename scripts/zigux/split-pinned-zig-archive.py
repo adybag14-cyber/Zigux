@@ -290,6 +290,10 @@ def run_self_test() -> int:
         lambda root, source, output_dir, metadata: source.write_bytes(payload[:-1]),
         "to be",
     )
+    expect_failure(
+        lambda root, source, output_dir, metadata: source.write_bytes(b"0" * len(payload)),
+        "to have sha256",
+    )
     with tempfile.TemporaryDirectory(prefix="split_archive_chunk_bytes_") as tmp_dir:
         root, source = write_fixture(Path(tmp_dir), payload)
         expected_sha = hashlib.sha256(payload).hexdigest()
