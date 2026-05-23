@@ -300,7 +300,6 @@ def run_self_test() -> int:
 
         bridge_test_path = root / BRIDGE_TEST_PATH
         original_bridge_test = bridge_test_path.read_text(encoding="utf-8")
-        bridge_test_path.writeText = None
         bridge_test_path.write_text(
             original_bridge_test.replace(
                 "planning-only `planTokenPreparation()` gating",
