@@ -302,6 +302,18 @@ def duplicate_marker(root: Path, relative_path: Path, marker: str) -> None:
     write_text(root, relative_path, text.replace(marker, marker + "\n" + marker, 1))
 
 
+def remove_workflow_step(root: Path, step_name: str, run_command: str) -> None:
+    block = workflow_step_block(step_name, run_command)
+    text = load_text(root, WORKFLOW_REL)
+    write_text(root, WORKFLOW_REL, text.replace(block + "\n", "", 1))
+
+
+def duplicate_workflow_step(root: Path, step_name: str, run_command: str) -> None:
+    block = workflow_step_block(step_name, run_command)
+    text = load_text(root, WORKFLOW_REL)
+    write_text(root, WORKFLOW_REL, text.replace(block, block + "\n" + block, 1))
+
+
 def reorder_workflow(root: Path) -> None:
     steps = list(WORKFLOW_PACKET_STEPS)
     steps[-1], steps[-2] = steps[-2], steps[-1]
@@ -329,9 +341,24 @@ def run_self_test() -> int:
 
     for marker in REQUIRED_BUILD_LINES:
         cases.append((f"missing_build_line:{marker}", ("remove", TESTS_BUILD_REL, marker)))
+        cases.append((f"duplicate_build_line:{marker}", ("duplicate", TESTS_BUILD_REL, marker)))
 
     for marker in REQUIRED_SMOKE_LINES:
         cases.append((f"missing_smoke_line:{marker}", ("remove", PHASE1_SMOKE_REL, marker)))
+        cases.append((f"duplicate_smoke_line:{marker}", ("duplicate", PHASE1_SMOKE_REL, marker)))
+
+    cases.extend(
+        [
+            ("missing_predecessor_workflow_step", ("remove_workflow", PREDECESSOR_STEP[0], PREDECESSOR_STEP[1])),
+            ("duplicate_predecessor_workflow_step", ("duplicate_workflow", PREDECESSOR_STEP[0], PREDECESSOR_STEP[1])),
+            ("missing_successor_workflow_step", ("remove_workflow", SUCCESSOR_STEP[0], SUCCESSOR_STEP[1])),
+            ("duplicate_successor_workflow_step", ("duplicate_workflow", SUCCESSOR_STEP[0], SUCCESSOR_STEP[1])),
+        ]
+    )
+
+    for step_name, run_command in WORKFLOW_PACKET_STEPS:
+        cases.append((f"missing_workflow_step:{step_name}", ("remove_workflow", step_name, run_command)))
+        cases.append((f"duplicate_workflow_step:{step_name}", ("duplicate_workflow", step_name, run_command)))
 
     cases.extend(
         [
@@ -353,6 +380,10 @@ def run_self_test() -> int:
                     remove_marker(root, mutation[1], mutation[2])
                 elif kind == "duplicate":
                     duplicate_marker(root, mutation[1], mutation[2])
+                elif kind == "remove_workflow":
+                    remove_workflow_step(root, mutation[1], mutation[2])
+                elif kind == "duplicate_workflow":
+                    duplicate_workflow_step(root, mutation[1], mutation[2])
                 elif kind == "reorder_workflow":
                     reorder_workflow(root)
                 elif kind == "forbidden_workflow":
