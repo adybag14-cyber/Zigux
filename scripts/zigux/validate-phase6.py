@@ -103,6 +103,8 @@ EXPECTED_SHARED_DIRECT_EVIDENCE = [
     "scripts/zigux/validate-phase6.py",
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "scripts/zigux/check-phase6-perf-threshold-markers.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
@@ -221,7 +223,7 @@ EXPECTED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-c-parity.py",
 ]
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 17
 
 
 class ValidationError(RuntimeError):
@@ -640,6 +642,44 @@ def run_self_test() -> None:
                                 "shared_direct_evidence"
                             ]
                             if item != "scripts/zigux/check-phase6-perf-threshold-markers.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "shared_direct_evidence": [
+                            item
+                            for item in read_json(root / HELPER_PARITY_MANIFEST)[
+                                "shared_direct_evidence"
+                            ]
+                            if item != "scripts/zigux/check-phase6-hexdump-packet.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "shared_direct_evidence": [
+                            item
+                            for item in read_json(root / HELPER_PARITY_MANIFEST)[
+                                "shared_direct_evidence"
+                            ]
+                            if item != "scripts/zigux/check-phase6-hexdump-route.py"
                         ],
                     },
                     indent=2,
