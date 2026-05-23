@@ -61,6 +61,7 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn strpbrk(buf: []const u8, accept: []const u8) ?usize {",
     "pub fn strspn(buf: []const u8, accept: []const u8) usize {",
     "pub fn strcspn(buf: []const u8, reject: []const u8) usize {",
+    "pub fn strnstr(buf: []const u8, needle: []const u8, count: usize) ?usize {",
     "pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {",
     "pub fn strlen(buf: []const u8) usize {",
     "pub fn strnlen(buf: []const u8, count: usize) usize {",
