@@ -484,7 +484,6 @@ def run_self_test() -> None:
         write_sample_root(root)
         case_count += 1
 
-        manifest_path.writeText if False else None
         manifest_path.write_text("{\n", encoding="utf-8")
         try:
             load_manifest(root)
