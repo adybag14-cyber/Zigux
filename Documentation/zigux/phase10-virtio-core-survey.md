@@ -95,7 +95,7 @@ The honest current lane checks are direct repository readback plus the existing 
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_core_survey.zig`
 
-No attached-Zig replay was available in this run because there is still no writable live Zigux checkout in this workspace. The current core survey packet is still strong enough to read directly: the driver-id helper pair, the dedicated survey gate, the dedicated checker, the shared validator, the closure manifest, and the shared build route are all visible on current `master`, so the remaining same-lane follow-through is only to keep those truthfulness surfaces aligned while the transport-facing bridge stays blocked.
+An attached-Zig replay was available in this run through a scratch current-`master` core packet rebuilt from live connector readback. `zig test zigux/tests/phase10_virtio_core_survey.zig` now remains the narrowest honest same-lane replay here: it keeps the dedicated survey gate aligned with the returned core verify replay, the focused reset-queue and interrupt-compound-ack replays, the closure-manifest evidence, and the compact-form manifest markers that still define the current packet. The remaining same-lane follow-through is still to keep those truthfulness surfaces aligned while the transport-facing bridge stays blocked.
 
 ## Next bounded step
 
@@ -103,4 +103,5 @@ Keep the follow-through inside the same core packet only:
 
 - keep `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `scripts/zigux/check-phase10-core-packet.py` aligned whenever the current core packet gains or drops directly re-readable guardrails
 - keep broader core-packet truthfulness and any future manifest-or-slice follow-through under the live `P10-L01` core owner lane rather than widening into ring, MMIO, input, or transport-backed lifecycle work
-- if a writable checkout becomes available, rerun the narrowest honest replay with `zig build phase10-virtio-core-survey-tests --build-file zigux/tests/phase10_build.zig` and `zig build phase10-virtio-driver-id-tests --build-file zigux/tests/phase10_build.zig` before widening any further
+- rerun `zig test zigux/tests/phase10_virtio_core_survey.zig` whenever the survey note, slice note, core manifest, closure manifest, or shared Phase 10 build route changes in a way that could hide roadmap-backed core evidence behind JSON formatting or stale note text
+- if a writable full checkout becomes available, extend that replay to `zig build phase10-virtio-core-survey-tests --build-file zigux/tests/phase10_build.zig` and `zig build phase10-virtio-driver-id-tests --build-file zigux/tests/phase10_build.zig` before widening any further
