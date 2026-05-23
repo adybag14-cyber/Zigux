@@ -25,10 +25,6 @@ Current `master` still does not materialize the direct helper-local replay, revi
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `zigux/tests/phase13_build.zig`
 
-Current `master` also keeps `zigux/Makefile` present without exposing a dedicated Phase 13 landlock replay route through:
-- `make -C zigux phase13-validate`
-- `make -C zigux phase13`
-
 Keep that live shape explicit as a bounded helper starter plus helper-local slice, governance, survey, and packet-checker set, with the direct replay, reviewability, manifest, and shared-build companions still absent, not as a claim that live FD installation, file-buffer handling, credential replacement, or full Landlock enforcement shipped in Zigux.
 
 Keep these neighboring surfaces distinct:
