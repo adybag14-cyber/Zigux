@@ -85,7 +85,7 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 28
 
 
 class ValidationError(RuntimeError):
@@ -534,6 +534,18 @@ def run_self_test() -> None:
                 "zigux/tests/phase6_base64.zig",
             ),
             "base64 dedicated_slowdown_replay drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                "scripts/zigux/check-phase6-base64-corpus-determinism.py",
+                "scripts/zigux/check-phase6-base64-c-parity.py",
+            ),
+            "base64 checker surface drifted",
         )
         cases_run += 1
         scaffold_repo(root)
