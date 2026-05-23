@@ -168,12 +168,24 @@ CONFDATA_MANIFEST_STATIC_FIELDS = {
 
 CONF_HELPER_ANCHOR_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
 CONFDATA_HELPER_ANCHOR_CONST = "REQUIRED_CONFDATA_HELPER_ANCHORS"
+CONF_HELPER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
+CONF_HELPER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 
 VALID_CONF_HELPER_ANCHORS = (
     "conf bridge mode surface stays aligned with conf.c long options",
     "conf bridge emits explicit empty allconfig override for allmodconfig",
     "conf bridge emits randconfig tunables when present",
     "conf bridge emits savedefconfig mode argument before kconfig",
+)
+VALID_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES = (
+    "allmodconfig",
+    "randconfig",
+)
+VALID_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES = (
+    "allmodconfig",
+    "allnoconfig",
+    "allyesconfig",
+    "randconfig",
 )
 
 VALID_CONFDATA_HELPER_ANCHORS = (
@@ -392,7 +404,7 @@ VALID_CASES_PAYLOAD = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 30
+EXPECTED_SELF_TEST_CASE_COUNT = 34
 
 
 def read_text(path: Path) -> str:
@@ -437,10 +449,14 @@ def extract_string_sequence(module_text: str, const_name: str) -> tuple[str, ...
     raise ValueError(f"missing constant {const_name}")
 
 
-def load_bridge_checker_anchor_packets(bridge_checker_text: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+def load_bridge_checker_anchor_packets(
+    bridge_checker_text: str,
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     return (
         extract_string_sequence(bridge_checker_text, CONF_HELPER_ANCHOR_CONST),
         extract_string_sequence(bridge_checker_text, CONFDATA_HELPER_ANCHOR_CONST),
+        extract_string_sequence(bridge_checker_text, CONF_HELPER_IMPLICIT_OMISSION_MODES_CONST),
+        extract_string_sequence(bridge_checker_text, CONF_HELPER_EXPLICIT_OVERRIDE_MODES_CONST),
     )
 
 
@@ -456,7 +472,10 @@ def extract_dict_case_list(raw_cases: list[object], *, entry_code: str) -> tuple
 
 
 def build_conf_manifest_payload(
-    conf_cases: list[dict[str, object]], conf_helper_anchors: tuple[str, ...]
+    conf_cases: list[dict[str, object]],
+    conf_helper_anchors: tuple[str, ...],
+    implicit_omission_modes: tuple[str, ...],
+    explicit_override_modes: tuple[str, ...],
 ) -> dict[str, object]:
     return {
         **CONF_MANIFEST_STATIC_FIELDS,
@@ -472,6 +491,8 @@ def build_conf_manifest_payload(
             if case["mode"] in ("allnoconfig", "allyesconfig", "alldefconfig")
         ],
         "allconfig_override_packet": [case["expected"] for case in conf_cases if "allconfig" in case],
+        "helper_local_allconfig_implicit_omission_modes": list(implicit_omission_modes),
+        "helper_local_allconfig_explicit_override_modes": list(explicit_override_modes),
         "randconfig_env_packet": [
             case["expected"] for case in conf_cases if "seed" in case or "probability" in case
         ],
@@ -558,7 +579,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_BRIDGE_CHECKER_MARKERS", f"{marker}:count={count}"))
 
-    conf_helper_anchors, confdata_helper_anchors = load_bridge_checker_anchor_packets(bridge_checker_text)
+    (
+        conf_helper_anchors,
+        confdata_helper_anchors,
+        implicit_omission_modes,
+        explicit_override_modes,
+    ) = load_bridge_checker_anchor_packets(bridge_checker_text)
 
     conf_cases: list[dict[str, object]] = []
     confdata_cases: list[dict[str, object]] = []
@@ -665,7 +691,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.extend(
                 collect_manifest_field_issues(
                     conf_manifest,
-                    expected_fields=build_conf_manifest_payload(conf_cases, conf_helper_anchors),
+                    expected_fields=build_conf_manifest_payload(
+                        conf_cases,
+                        conf_helper_anchors,
+                        implicit_omission_modes,
+                        explicit_override_modes,
+                    ),
                     invalid_payload_code="INVALID_CONF_MANIFEST_PAYLOAD",
                     field_mismatch_code="CONF_MANIFEST_FIELD_MISMATCH",
                 )
@@ -708,10 +739,14 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 def render_bridge_checker_stub(
     conf_helper_anchors: tuple[str, ...] = VALID_CONF_HELPER_ANCHORS,
     confdata_helper_anchors: tuple[str, ...] = VALID_CONFDATA_HELPER_ANCHORS,
+    implicit_omission_modes: tuple[str, ...] = VALID_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
+    explicit_override_modes: tuple[str, ...] = VALID_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
 ) -> str:
     return (
         f"{CONF_HELPER_ANCHOR_CONST} = {conf_helper_anchors!r}\n"
-        f"{CONFDATA_HELPER_ANCHOR_CONST} = {confdata_helper_anchors!r}\n\n"
+        f"{CONFDATA_HELPER_ANCHOR_CONST} = {confdata_helper_anchors!r}\n"
+        f"{CONF_HELPER_IMPLICIT_OMISSION_MODES_CONST} = {implicit_omission_modes!r}\n"
+        f"{CONF_HELPER_EXPLICIT_OVERRIDE_MODES_CONST} = {explicit_override_modes!r}\n\n"
         "def marker_packet(case, cmd, group_name):\n"
         '    if group_name == "conf_cases" and "silent" in case and not isinstance(case["silent"], bool):\n'
         "        return None\n"
@@ -743,7 +778,12 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         resolve_path(root, CONF_MANIFEST),
         json.dumps(
-            build_conf_manifest_payload(VALID_CASES_PAYLOAD["conf_cases"], VALID_CONF_HELPER_ANCHORS),
+            build_conf_manifest_payload(
+                VALID_CASES_PAYLOAD["conf_cases"],
+                VALID_CONF_HELPER_ANCHORS,
+                VALID_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
+                VALID_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
+            ),
             indent=2,
         )
         + "\n",
@@ -984,6 +1024,28 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CONF_MANIFEST)
         payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["helper_local_allconfig_implicit_omission_modes"] = []
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert any(
+            code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_allconfig_implicit_omission_modes:")
+            for code, value in collect_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONF_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["helper_local_allconfig_explicit_override_modes"] = []
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert any(
+            code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_allconfig_explicit_override_modes:")
+            for code, value in collect_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CONF_MANIFEST)
+        payload = json.loads(path.read_text(encoding="utf-8"))
         payload["syncconfig_env_packet"] = []
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert any(
@@ -1008,6 +1070,24 @@ def run_self_test() -> int:
         path.write_text(render_bridge_checker_stub(conf_helper_anchors=("drifted anchor",)), encoding="utf-8")
         assert any(
             code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_anchors:")
+            for code, value in collect_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(render_bridge_checker_stub(implicit_omission_modes=("drifted-implicit",)), encoding="utf-8")
+        assert any(
+            code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_allconfig_implicit_omission_modes:")
+            for code, value in collect_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        path.write_text(render_bridge_checker_stub(explicit_override_modes=("drifted-explicit",)), encoding="utf-8")
+        assert any(
+            code == "CONF_MANIFEST_FIELD_MISMATCH" and value.startswith("helper_local_allconfig_explicit_override_modes:")
             for code, value in collect_issues(root)
         )
         checks_run += 1
