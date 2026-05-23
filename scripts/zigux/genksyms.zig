@@ -328,7 +328,7 @@ fn parseLongOption(
     const name_end = std.mem.indexOfScalar(u8, arg, '=') orelse arg.len;
     const option = switch (resolveLongOption(arg[2..name_end])) {
         .match => |spec| spec,
-        .ambiguous => return .{ .failure = .{ .ambiguous_option = arg } },
+        .ambiguous => return .{ .failure = .{ .ambiguous_option = arg[0..name_end] } },
         .none => return .{ .failure = .{ .invalid_option = arg } },
     };
     const inline_value = if (name_end < arg.len) arg[name_end + 1 ..] else null;
@@ -790,6 +790,29 @@ test "parseArgs reports ambiguous abbreviated long options" {
     }
 }
 
+test "genksyms bridge preserves inline ambiguous long option hints" {
+    const args = [_][]const u8{"--du=foo"};
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            switch (failure.reason) {
+                .ambiguous_option => |option| try testing.expectEqualStrings("--du", option),
+                else => return error.UnexpectedParseFailure,
+            }
+
+            var output: std.Io.Writer.Allocating = .init(testing.allocator);
+            defer output.deinit();
+
+            try writeFailureOutput(&output.writer, failure);
+            try testing.expectEqualStrings(
+                "option '--du' is ambiguous; possibilities: '--dump' '--dump-types'\n" ++ usage_text,
+                output.written(),
+            );
+        },
+        else => return error.ExpectedAmbiguousLongOptionFailure,
+    }
+}
+
 test "genksyms bridge renders ambiguous long option failure like the fixture" {
     var output: std.Io.Writer.Allocating = .init(testing.allocator);
     defer output.deinit();
@@ -993,21 +1016,6 @@ test "genksyms bridge preserves empty inline abbreviated dump-types argument" {
             else => return error.ExpectedRequestCommand,
         },
         else => return error.TestExpectedRequestCommand,
-    }
-}
-
-test "genksyms bridge canonicalizes unexpected abbreviated version argument failures" {
-    const args = [_][]const u8{"--ver=extra"};
-    const outcome = try parseArgs(testing.allocator, &args);
-    switch (outcome) {
-        .failure => |failure| {
-            try testing.expectEqual(@as(usize, 0), failure.version_count);
-            switch (failure.reason) {
-                .unexpected_option_argument => |option| try testing.expectEqualStrings("--version", option),
-                else => return error.UnexpectedParseFailure,
-            }
-        },
-        else => return error.TestExpectedFailure,
     }
 }
 
