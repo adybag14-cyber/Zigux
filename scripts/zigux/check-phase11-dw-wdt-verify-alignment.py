@@ -16,7 +16,7 @@ FILES = {
     "pm": "drivers/watchdog/dw_wdt_pm.zig",
 }
 
-EXPECTED_MANIFEST_LANE = "P11-L05"
+EXPECTED_MANIFEST_LANE = "P11-L10"
 EXPECTED_MANIFEST_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
 VERIFY_DESTINATION = "drivers/watchdog/dw_wdt_verify.zig"
 VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
@@ -41,7 +41,7 @@ NOTE_MARKERS = [
     "- active current-head continuity note owner: `P11-Y03`",
     "- current authenticated contents no longer keep the older returned validation-matrix story directly readable through the same bridge that serves the rest of this packet",
     "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
-    "- `zigux/tests/phase11_dw_wdt_manifest.json` still records archival continuity `P11-L05` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` now records deeper platform-registration scaffold continuity `P11-L10` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- the active routing split now keeps owner-note truthfulness on `P11-Y03`, survey-only follow-through on `P11-L09`, and deeper platform-registration scaffold follow-through on `P11-L10`; do not reserve `P11-L05` unless the packet collapses back to the older survey-era shape",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge",
     "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
@@ -261,7 +261,7 @@ def run_self_test() -> None:
         shutil.copytree(fixture, bad_lane)
         manifest_path = bad_lane / FILES["manifest"]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["lane_key"] = "P11-L10"
+        manifest["lane_key"] = "P11-L05"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_failure(bad_lane, "manifest lane_key mismatch")
         case_count += 1
