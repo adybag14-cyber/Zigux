@@ -250,6 +250,8 @@ def run_self_test() -> int:
         checks_run += 1
 
         manifest_path = root / MANIFEST_REL
+        validator_path = root / VALIDATOR_REL
+        matrix_path = root / MATRIX_REL
 
         payload = load_json(manifest_path)
         payload["present_surfaces"]["unexpected_bucket"] = ["unexpected.txt"]
@@ -310,7 +312,130 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        matrix_path = root / MATRIX_REL
+        write_json(manifest_path, [])
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            f"invalid manifest root shape: {manifest_path}",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
+        payload["present_surfaces"] = []
+        write_json(manifest_path, payload)
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            f"invalid manifest present_surfaces shape: {manifest_path}",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
+        payload["present_surfaces"]["policy"] = "drifted"
+        write_json(manifest_path, payload)
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            f"invalid manifest surface list shape for policy: {manifest_path}",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        validator_text = validator_path.read_text(encoding="utf-8")
+        validator_path.write_text(
+            validator_text.replace(
+                'EXPECTED_MANIFEST_POLICY = ("policy-a.json",)\n',
+                'EXPECTED_MANIFEST_POLICY = ["policy-a.json"]\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "validator.EXPECTED_MANIFEST_POLICY must stay tuple[str, ...]",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                "VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (\n"
+                '    ("review_surfaces", "EXPECTED_MANIFEST_REVIEW_SURFACES"),\n'
+                '    ("closure_notes", "EXPECTED_MANIFEST_CLOSURE_NOTES"),\n'
+                '    ("validators", "EXPECTED_MANIFEST_VALIDATORS"),\n'
+                '    ("checkers", "EXPECTED_MANIFEST_CHECKERS"),\n'
+                '    ("bridge_helpers", "EXPECTED_MANIFEST_BRIDGE_HELPERS"),\n'
+                '    ("fixture_roster", "EXPECTED_MANIFEST_FIXTURE_ROSTER"),\n'
+                '    ("policy", "EXPECTED_MANIFEST_POLICY"),\n'
+                ")\n",
+                'VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = "drifted"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must stay a tuple",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    ("policy", "EXPECTED_MANIFEST_POLICY"),\n',
+                '    "policy",\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS must stay tuple[tuple[str, str], ...]",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                "DIRECT_MANIFEST_SURFACE_EXPECTATIONS = {\n"
+                '    "bootstrap_helpers": (\n'
+                '        "scripts/zigux/install-zig.py",\n'
+                '        "scripts/zigux/stage-pinned-zig-archive.py",\n'
+                "    ),\n"
+                '    "checkers": (\n'
+                '        "scripts/zigux/check-extra.py",\n'
+                "    ),\n"
+                "}\n",
+                'DIRECT_MANIFEST_SURFACE_EXPECTATIONS = "drifted"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.DIRECT_MANIFEST_SURFACE_EXPECTATIONS must stay dict[str, tuple[str, ...]]",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        matrix_text = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            matrix_text.replace(
+                '    Path("scripts/zigux/check-extra.py"),\n',
+                '    "scripts/zigux/check-extra.py",\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            "matrix.EXTRA_REQUIRED_FILES must stay tuple[Path, ...]",
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
         matrix_text = matrix_path.read_text(encoding="utf-8")
         matrix_path.write_text(
             matrix_text.replace(
@@ -324,7 +449,6 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        matrix_path = root / MATRIX_REL
         matrix_text = matrix_path.read_text(encoding="utf-8")
         matrix_path.write_text(
             matrix_text.replace(
@@ -340,9 +464,29 @@ def run_self_test() -> int:
         ) in collect_issues(root)
         checks_run += 1
 
+        build_self_test_root(root)
+        (root / MATRIX_REL).unlink()
+        assert_system_exit_contains(
+            lambda: collect_issues(root),
+            f"unable to load module: {root / MATRIX_REL}",
+        )
+        checks_run += 1
+
     print("PHASE2_CLOSURE_MATRIX_COVERAGE_SELF_TEST=pass")
     print(f"PHASE2_CLOSURE_MATRIX_COVERAGE_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
+
+
+def assert_system_exit_contains(action, expected_substring: str) -> None:
+    try:
+        action()
+    except SystemExit as exc:
+        if expected_substring not in str(exc):
+            raise AssertionError(
+                f"expected SystemExit containing {expected_substring!r}; saw {exc!r}"
+            ) from exc
+        return
+    raise AssertionError(f"expected SystemExit containing {expected_substring!r}")
 
 
 def main() -> int:
