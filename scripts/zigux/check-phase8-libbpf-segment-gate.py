@@ -13,6 +13,7 @@ SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
+LIBBPF_SEGMENTS_TEST_PATH = "zigux/tests/phase8_libbpf_segments.zig"
 VERIFY_PATH = "tools/lib/bpf/zigux_segments/verify.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
@@ -48,6 +49,7 @@ REQUIRED_FILES = [
     MAKEFILE_PATH,
     "zigux/tests/README.md",
     BUILD_PATH,
+    LIBBPF_SEGMENTS_TEST_PATH,
     BRIDGE_TEST_PATH,
     BRIDGE_BUILD_PATH,
     BRIDGE_BOUNDARY_GUARD_PATH,
@@ -74,6 +76,12 @@ BUILD_MARKERS = [
     "../../tools/lib/bpf/zigux_segments/verify.zig",
     "phase8-libbpf-segment-verify-tests",
     "Run focused Phase 8 libbpf segment verify build",
+]
+LIBBPF_SEGMENTS_TEST_MARKERS = [
+    'test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {',
+    'test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit" {',
+    'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
+    'test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier shards visible" {',
 ]
 VERIFY_MARKERS = [
     "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
@@ -137,6 +145,7 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
         VALIDATOR_PATH: VALIDATOR_MARKERS,
         MAKEFILE_PATH: MAKEFILE_MARKERS,
         BUILD_PATH: BUILD_MARKERS,
+        LIBBPF_SEGMENTS_TEST_PATH: LIBBPF_SEGMENTS_TEST_MARKERS,
         VERIFY_PATH: VERIFY_MARKERS,
         BRIDGE_TEST_PATH: BRIDGE_TEST_MARKERS,
         BRIDGE_BUILD_PATH: BRIDGE_BUILD_MARKERS,
@@ -244,6 +253,7 @@ def clone_fixture(root: Path) -> None:
     write(root, "zigux/tests/README.md", "# zigux/tests\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n- `zigux/tests/phase8_libbpf_segments_only_build.zig`\n")
     write(root, MAKEFILE_PATH, "phase8-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py\n\nphase8-libbpf-segments-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all\n")
     write(root, BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const libbpf_segment_verify_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const libbpf_segment_verify_tests = b.addTest(.{\n        .name = "phase8-libbpf-segment-verify-tests",\n        .root_module = libbpf_segment_verify_module,\n    });\n    const run_libbpf_segment_verify_tests = b.addRunArtifact(libbpf_segment_verify_tests);\n    const test_step = b.step("test", "Run focused Phase 8 libbpf segment verify build");\n    test_step.dependOn(&run_libbpf_segment_verify_tests.step);\n}\n')
+    write(root, LIBBPF_SEGMENTS_TEST_PATH, "\n".join(LIBBPF_SEGMENTS_TEST_MARKERS) + "\n")
     write(root, BRIDGE_TEST_PATH, "\n".join(BRIDGE_TEST_MARKERS) + "\n")
     write(root, BRIDGE_BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const file_path_handle_bridge_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const file_path_handle_bridge_root_module = b.createModule(.{\n        .root_source_file = b.path("phase8_file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    file_path_handle_bridge_root_module.addImport("file_path_handle_bridge", file_path_handle_bridge_module);\n    const file_path_handle_bridge_tests = b.addTest(.{\n        .name = "phase8-file-path-handle-bridge-tests",\n        .root_module = file_path_handle_bridge_root_module,\n    });\n    const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);\n    const test_step = b.step("test", "Run focused Phase 8 file-path-handle bridge tests");\n    test_step.dependOn(&run_file_path_handle_bridge_tests.step);\n}\n')
     write(root, BRIDGE_BOUNDARY_GUARD_PATH, "\n".join(BRIDGE_BOUNDARY_GUARD_MARKERS) + "\n")
@@ -291,6 +301,24 @@ def run_self_test() -> int:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:build_marker")
         build_path.write_text(original_build, encoding="utf-8")
 
+        libbpf_segments_test_path = root / LIBBPF_SEGMENTS_TEST_PATH
+        original_libbpf_segments_test = libbpf_segments_test_path.read_text(encoding="utf-8")
+        libbpf_segments_test_path.write_text(
+            original_libbpf_segments_test.replace(
+                'test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier shards visible" {',
+                'test "phase 8 libbpf-segment compatibility witness keeps verifier shards visible" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expected_libbpf_segments_test_marker = (
+            f"{LIBBPF_SEGMENTS_TEST_PATH}:"
+            'test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier shards visible" {'
+        )
+        if expected_libbpf_segments_test_marker not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:libbpf_segments_test_marker")
+        libbpf_segments_test_path.write_text(original_libbpf_segments_test, encoding="utf-8")
+
         makefile_path = root / MAKEFILE_PATH
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(original_makefile.replace("phase8-libbpf-segments-test:", "phase8-libbpf-test:", 1), encoding="utf-8")
@@ -312,7 +340,7 @@ def run_self_test() -> int:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_test_marker")
         bridge_test_path.write_text(original_bridge_test, encoding="utf-8")
 
-        bridge_test_path.write_text(
+        bridge_test_path.writeText(
             original_bridge_test.replace(
                 'test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {',
                 'test "phase 8 file-path handle bridge helper stays wired into the replay routes" {',
@@ -397,7 +425,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -433,7 +461,7 @@ def main() -> int:
     print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT="
-        f"{len(SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_BOUNDARY_GUARD_MARKERS) + len(BRIDGE_MANIFEST_SYNC_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
+        f"{len(SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(LIBBPF_SEGMENTS_TEST_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_BOUNDARY_GUARD_MARKERS) + len(BRIDGE_MANIFEST_SYNC_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
     )
     return 0
 
