@@ -159,6 +159,16 @@ test "argvSplit treats a leading nul byte as blank input" {
     try std.testing.expectEqual(@as(usize, 0), result.argv.len);
 }
 
+test "argvSplit treats carriage return vertical tab and form feed as separators" {
+    var result = try argvSplit(std.testing.allocator, "alpha\r\x0bbeta\x0cgamma\x00delta");
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 3), result.argc());
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+    try std.testing.expectEqualStrings("beta", result.argv[1]);
+    try std.testing.expectEqualStrings("gamma", result.argv[2]);
+}
+
 test "countArgc stops at the first embedded nul byte" {
     try std.testing.expectEqual(@as(usize, 0), countArgc(cStringPrefix("\x00ignored tail")));
     try std.testing.expectEqual(@as(usize, 2), countArgc(cStringPrefix("alpha beta\x00gamma delta")));
