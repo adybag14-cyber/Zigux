@@ -103,7 +103,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 5
 
 
 def read_text(path: Path) -> str:
@@ -155,6 +155,12 @@ def run_self_test() -> None:
         survey_marker = 'try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");'
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
+
+        write_fixture_root(root)
+        fixture_path = root / "zigux/tests/fixtures/phase7_rbtree.json"
+        fixture_marker = '"packet": "phase7-rbtree-parity-fixture"'
+        fixture_path.write_text(read_text(fixture_path).replace(fixture_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree.json: {fixture_marker}"])
 
         write_fixture_root(root)
         manifest_path = root / "zigux/tests/phase7_rbtree_manifest.json"
