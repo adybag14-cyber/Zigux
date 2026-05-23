@@ -135,6 +135,7 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
         "StorageBacking.embedded_fixed_buffer",
         "reviewContract().focus",
         "keep remaining-capacity, rollover, occupancy, and queue-shape cues explicit through `runRemainingCapacityReplay()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`",
+        "keep the direct `available()` helper explicit as the first remaining-capacity cue at cold, initialized, preview, wrapped, full, replay-complete, reset, and exited boundaries instead of leaving free-space review to derived queue-length math alone",
         "draining `\\\"hello\\\"` into a three-byte buffer yields `\\\"hel\\\"`",
         "partial `enqueueSlice()` truncation at the last two slots",
         "authenticated GitHub contents reads in this environment now recover `zigux/tests/phase5_build.zig` directly again",
