@@ -100,6 +100,27 @@ pub const ReceiveQueueRefillSummary = struct {
     requested_alloc_len: u32,
 };
 
+pub const ReceiveQueueRefillBatchRequest = struct {
+    queue_capacity: u16,
+    buffers_posted: u16,
+    batch_limit: u16 = 0,
+};
+
+pub const ReceiveQueueRefillBatchPlan = struct {
+    anchor: []const u8,
+    planned_queue_pairs: u16,
+    rx_queue_count: u16,
+    queue_capacity: u16,
+    buffers_posted: u16,
+    missing_buffers: u16,
+    refill_count: u16,
+    buffers_after_refill: u16,
+    queue_will_be_full: bool,
+    refill_path: ReceiveQueueRefillPath,
+    total_posted_bytes: u32,
+    total_allocation_bytes: u32,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -263,6 +284,37 @@ pub const VirtioNetProbeLab = struct {
         };
     }
 
+    pub fn planReceiveQueueRefillBatch(
+        self: *Self,
+        request: ReceiveQueueRefillBatchRequest,
+    ) !ReceiveQueueRefillBatchPlan {
+        if (request.queue_capacity == 0) return error.InvalidQueueCapacity;
+        if (request.buffers_posted > request.queue_capacity) return error.InvalidBuffersPosted;
+
+        const summary = try self.summarizeReceiveQueueRefill();
+        const missing_buffers = request.queue_capacity - request.buffers_posted;
+        const refill_count = if (request.batch_limit == 0)
+            missing_buffers
+        else
+            @min(missing_buffers, request.batch_limit);
+        const buffers_after_refill = try checkedAddU16(request.buffers_posted, refill_count);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .planned_queue_pairs = summary.planned_queue_pairs,
+            .rx_queue_count = summary.rx_queue_count,
+            .queue_capacity = request.queue_capacity,
+            .buffers_posted = request.buffers_posted,
+            .missing_buffers = missing_buffers,
+            .refill_count = refill_count,
+            .buffers_after_refill = buffers_after_refill,
+            .queue_will_be_full = buffers_after_refill == request.queue_capacity,
+            .refill_path = summary.refill_path,
+            .total_posted_bytes = try checkedMulU32(summary.requested_len, refill_count),
+            .total_allocation_bytes = try checkedMulU32(summary.requested_alloc_len, refill_count),
+        };
+    }
+
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) * rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
@@ -275,6 +327,11 @@ pub const VirtioNetProbeLab = struct {
 
     fn checkedAddU32(lhs: u32, rhs: u32) !u32 {
         const value = @as(u64, lhs) + rhs;
+        return std.math.cast(u32, value) orelse error.BufferLengthOverflow;
+    }
+
+    fn checkedMulU32(lhs: u32, rhs: u16) !u32 {
+        const value = @as(u64, lhs) * rhs;
         return std.math.cast(u32, value) orelse error.BufferLengthOverflow;
     }
 
