@@ -154,7 +154,7 @@ OPTIONAL_WORKFLOW_PACKET_STEPS = (
 
 PHASE1_PACKET_PREDECESSOR = (
     "Validate current Phase 2 tool packet",
-    "python3 scripts/zigux/validate-phase2.py",
+        "python3 scripts/zigux/validate-phase2.py",
 )
 PHASE1_PACKET_SUCCESSOR = (
     "Self-test current Phase 4 repo-reality warning checker",
@@ -197,6 +197,16 @@ REQUIRED_MARKERS = {
         "  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
         "  * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`",
     ),
+    CLOSURE_VALIDATOR_REL: (
+        'FIND_BIT_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-review-packet.py")',
+        'FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")',
+        '    "find_bit_bench_anchor_guard": "`PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`",',
+        '    "route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",',
+        '    "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",',
+        '    "validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",',
+        '    (FIND_BIT_REVIEW_CHECKER_REL, "phase1-find-bit-review-packet"),',
+        '    (FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),',
+    ),
 }
 
 
@@ -228,12 +238,6 @@ def workflow_run_line(run_command: str) -> str:
 
 def workflow_step_block(step_name: str, run_command: str) -> str:
     return f"      - name: {step_name}\n        run: {run_command}"
-
-
-def replace_once(text: str, old: str, new: str) -> str:
-    if old not in text:
-        raise ValueError(f"missing text to replace: {old}")
-    return text.replace(old, new, 1)
 
 
 def workflow_step_names(text: str) -> list[str]:
