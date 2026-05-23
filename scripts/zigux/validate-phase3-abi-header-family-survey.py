@@ -20,6 +20,7 @@ UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 VERSION_BINDING_PATH = Path("zigux/bindings/version.zig")
 DEV_T_BINDING_PATH = Path("zigux/bindings/dev_t.zig")
+HEADER_FAMILY_BINDING_PATH = Path("zigux/bindings/header_family.zig")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 
@@ -35,12 +36,14 @@ REQUIRED_MARKERS = {
         "PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig",
         "PHASE3_VERSION_BINDING_PATH=zigux/bindings/version.zig",
         "PHASE3_DEV_T_BINDING_PATH=zigux/bindings/dev_t.zig",
+        "PHASE3_HEADER_FAMILY_BINDING_PATH=zigux/bindings/header_family.zig",
         "PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "- `include/linux/zigux.h` keeps the Linux-facing header-family relay bounded to `zigux_uapi_version_current()`, the `zigux_uapi_version_has_current_*()` helpers, `zigux_uapi_version_matches_current()`, and `zigux_uapi_validate_version()` rather than introducing a second semantic owner.",
         "- `include/zigux/abi.h` remains the canonical owner for `zigux_boundary_header`, `zigux_export_status`, `zigux_default_header()`, `zigux_compatible_header()`, `zigux_abi_version_is_current()`, `zigux_header_is_canonical()`, `zigux_header_is_compatible()`, `zigux_header_extends_boundary()`, `zigux_header_requested_extra_bytes()`, and `zigux_header_canonicalize()`.",
         "- `include/zigux/dev_t.h` remains the canonical owner for the starter `dev_t` limits, `zigux_dev_t_fields_make()`, `zigux_mkdev()`, `zigux_major()`, `zigux_minor()`, `zigux_dev_t_fields_is_valid()`, and `zigux_dev_t_fields_range_is_valid()`.",
         "- `zigux/uapi/version.zig` and `zigux/bindings/version.zig` keep the current version packet aligned through `current()`, `matchesCurrent()`, the `hasCurrent*` helper family, and the shared size, alignment, and field-offset constants.",
         "- `zigux/uapi/dev_t.zig` and `zigux/bindings/dev_t.zig` keep the starter `dev_t` packet aligned through `init()`, `makeDeviceNumber()`, `majorFromDeviceNumber()`, `minorFromDeviceNumber()`, `fieldsFromDeviceNumber()`, `validate()`, and `validateRange()`.",
+        "- `zigux/bindings/header_family.zig` now keeps the shared header-family binding relay explicit through `currentVersion()`, `versionMatchesCurrent()`, `currentBoundaryHeader()`, `compatibleBoundaryHeader()`, `boundaryHeaderRequestedExtraBytes()`, `initDevTFields()`, `fieldsFromDeviceNumber()`, `validateVersionStatus()`, `validateDevTFieldsStatus()`, and `validateDevTRangeStatus()` without creating a third semantic owner beside the canonical headers and starter bindings.",
         "Current `master` no longer has a packet-local repo-reality gap for the bounded header-family survey follow-through itself.",
     ),
     VALIDATOR_PATH: (
@@ -57,6 +60,7 @@ REQUIRED_MARKERS = {
     MANIFEST_PATH: (
         '"Documentation/zigux/phase3-abi-header-family-survey.md"',
         '"scripts/zigux/validate-phase3-abi-header-family-survey.py"',
+        '"zigux/bindings/header_family.zig"',
     ),
     LINUX_HEADER_PATH: (
         "static inline struct zigux_uapi_version zigux_uapi_version_current(void) {",
@@ -107,6 +111,22 @@ REQUIRED_MARKERS = {
         "pub fn validate(fields: Fields) bool {",
         "pub fn validateRange(start: Fields, end: Fields) bool {",
     ),
+    HEADER_FAMILY_BINDING_PATH: (
+        "pub const abi_major: u32 = uapi_version.abi_major;",
+        "pub const abi_minor: u32 = uapi_version.abi_minor;",
+        "pub const header_family_revision: u32 = uapi_version.header_family_revision;",
+        "pub const abi_version: u16 = abi.ABI_VERSION;",
+        "pub const uapi_dev_t_packet_present: u32 = 1;",
+        "pub fn currentVersion() Version {",
+        "pub fn versionMatchesCurrent(version: Version) bool {",
+        "pub fn currentBoundaryHeader(flags: u16) BoundaryHeader {",
+        "pub fn boundaryHeaderRequestedExtraBytes(header: BoundaryHeader) u32 {",
+        "pub fn initDevTFields(major: u32, minor: u32) DevTFields {",
+        "pub fn fieldsFromDeviceNumber(device_number: u32) DevTFields {",
+        "pub fn validateVersionStatus(version: Version) ExportStatus {",
+        "pub fn validateDevTFieldsStatus(fields: DevTFields) ExportStatus {",
+        "pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {",
+    ),
     LAYOUT_TEST_PATH: (
         'test "export and uapi version layouts stay aligned" {',
         'test "export shim relays version compatibility without widening the boundary" {',
@@ -155,6 +175,25 @@ REQUIRED_DEV_T_BINDING_ALIASES = {
     "fields_align": "uapi.fields_align",
     "major_offset": "uapi.major_offset",
     "minor_offset": "uapi.minor_offset",
+}
+
+REQUIRED_HEADER_FAMILY_BINDING_ALIASES = {
+    "abi_major": "uapi_version.abi_major",
+    "abi_minor": "uapi_version.abi_minor",
+    "header_family_revision": "uapi_version.header_family_revision",
+    "abi_version": "abi.ABI_VERSION",
+    "uapi_dev_t_packet_present": "1",
+    "version_size": "version_binding.version_size",
+    "version_align": "version_binding.version_align",
+    "abi_major_offset": "version_binding.abi_major_offset",
+    "abi_minor_offset": "version_binding.abi_minor_offset",
+    "header_family_revision_offset": "version_binding.header_family_revision_offset",
+    "fields_size": "dev_t_binding.fields_size",
+    "fields_align": "dev_t_binding.fields_align",
+    "major_offset": "dev_t_binding.major_offset",
+    "minor_offset": "dev_t_binding.minor_offset",
+    "max_major": "dev_t_binding.max_major",
+    "max_minor": "dev_t_binding.max_minor",
 }
 
 LINUX_VERSION_HELPER_MAP = {
@@ -372,6 +411,56 @@ pub fn validateRange(start: Fields, end: Fields) bool {
 }
 """
 
+SAMPLE_HEADER_FAMILY_BINDING = """\
+pub const abi_major: u32 = uapi_version.abi_major;
+pub const abi_minor: u32 = uapi_version.abi_minor;
+pub const header_family_revision: u32 = uapi_version.header_family_revision;
+pub const abi_version: u16 = abi.ABI_VERSION;
+pub const uapi_dev_t_packet_present: u32 = 1;
+pub const version_size: usize = version_binding.version_size;
+pub const version_align: usize = version_binding.version_align;
+pub const abi_major_offset: usize = version_binding.abi_major_offset;
+pub const abi_minor_offset: usize = version_binding.abi_minor_offset;
+pub const header_family_revision_offset: usize = version_binding.header_family_revision_offset;
+pub const fields_size: usize = dev_t_binding.fields_size;
+pub const fields_align: usize = dev_t_binding.fields_align;
+pub const major_offset: usize = dev_t_binding.major_offset;
+pub const minor_offset: usize = dev_t_binding.minor_offset;
+pub const max_major: u32 = dev_t_binding.max_major;
+pub const max_minor: u32 = dev_t_binding.max_minor;
+pub fn currentVersion() Version {
+    return version_binding.current();
+}
+pub fn versionMatchesCurrent(version: Version) bool {
+    return version_binding.matchesCurrent(version);
+}
+pub fn currentBoundaryHeader(flags: u16) BoundaryHeader {
+    return abi.defaultHeader(flags);
+}
+pub fn boundaryHeaderRequestedExtraBytes(header: BoundaryHeader) u32 {
+    return header.size;
+}
+pub fn initDevTFields(major: u32, minor: u32) DevTFields {
+    return dev_t_binding.init(major, minor);
+}
+pub fn fieldsFromDeviceNumber(device_number: u32) DevTFields {
+    return dev_t_binding.fieldsFromDeviceNumber(device_number);
+}
+pub fn validateVersionStatus(version: Version) ExportStatus {
+    _ = version;
+    return undefined;
+}
+pub fn validateDevTFieldsStatus(fields: DevTFields) ExportStatus {
+    _ = fields;
+    return undefined;
+}
+pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {
+    _ = start;
+    _ = end;
+    return undefined;
+}
+"""
+
 SAMPLE_FILE_CONTENTS = {
     LINUX_HEADER_PATH: SAMPLE_LINUX_HEADER,
     DEV_T_HEADER_PATH: SAMPLE_DEV_T_HEADER,
@@ -379,6 +468,7 @@ SAMPLE_FILE_CONTENTS = {
     UAPI_DEV_T_PATH: SAMPLE_UAPI_DEV_T,
     VERSION_BINDING_PATH: SAMPLE_VERSION_BINDING,
     DEV_T_BINDING_PATH: SAMPLE_DEV_T_BINDING,
+    HEADER_FAMILY_BINDING_PATH: SAMPLE_HEADER_FAMILY_BINDING,
 }
 
 
@@ -517,6 +607,7 @@ def validate_repo(repo_root: Path) -> list[str]:
     uapi_dev_t_text = texts.get(UAPI_DEV_T_PATH)
     version_binding_text = texts.get(VERSION_BINDING_PATH)
     dev_t_binding_text = texts.get(DEV_T_BINDING_PATH)
+    header_family_binding_text = texts.get(HEADER_FAMILY_BINDING_PATH)
 
     if linux_header_text is not None and uapi_version_text is not None:
         _append_define_to_const_issues(
@@ -551,6 +642,14 @@ def validate_repo(repo_root: Path) -> list[str]:
             "zigux/bindings/dev_t.zig",
             _parse_zig_consts(dev_t_binding_text),
             REQUIRED_DEV_T_BINDING_ALIASES,
+            issues,
+        )
+
+    if header_family_binding_text is not None:
+        _append_binding_alias_issues(
+            "zigux/bindings/header_family.zig",
+            _parse_zig_consts(header_family_binding_text),
+            REQUIRED_HEADER_FAMILY_BINDING_ALIASES,
             issues,
         )
 
@@ -642,6 +741,11 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_HEADER_FAMILY_BINDING_PATH=zigux/bindings/header_family.zig",
+            "expected missing survey header-family-binding marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
             "expected missing survey layout-gate marker was not reported",
         ),
@@ -671,6 +775,11 @@ def run_self_test() -> int:
             "expected missing manifest header-family survey marker was not reported",
         ),
         (
+            MANIFEST_PATH,
+            '"zigux/bindings/header_family.zig"',
+            "expected missing manifest header-family binding marker was not reported",
+        ),
+        (
             LINUX_HEADER_PATH,
             "static inline struct zigux_export_status zigux_uapi_validate_version(",
             "expected missing linux-header validate-version marker was not reported",
@@ -684,6 +793,11 @@ def run_self_test() -> int:
             VERSION_BINDING_PATH,
             "pub fn hasCurrentHeaderFamilyRevision(value: u32) bool {",
             "expected missing version-binding header-family revision marker was not reported",
+        ),
+        (
+            HEADER_FAMILY_BINDING_PATH,
+            "pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {",
+            "expected missing header-family binding range-status marker was not reported",
         ),
         (
             LAYOUT_TEST_PATH,
@@ -718,6 +832,13 @@ def run_self_test() -> int:
             "pub const minor_bits = uapi.major_bits;",
             "wrong zigux/bindings/dev_t.zig alias for minor_bits: 'uapi.major_bits' != 'uapi.minor_bits'",
             "expected dev_t binding alias drift was not reported",
+        ),
+        (
+            HEADER_FAMILY_BINDING_PATH,
+            "pub const abi_major: u32 = uapi_version.abi_major;",
+            "pub const abi_major: u32 = uapi_version.abi_minor;",
+            "wrong zigux/bindings/header_family.zig alias for abi_major: 'uapi_version.abi_minor' != 'uapi_version.abi_major'",
+            "expected header-family binding alias drift was not reported",
         ),
         (
             DEV_T_HEADER_PATH,
