@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 23
 
 
 def read_text(path: Path) -> str:
@@ -233,6 +233,11 @@ def run_self_test() -> None:
         write_fixture_root(root)
         helper_path = root / "lib" / "rbtree.zig"
         helper_marker = "pub fn eraseInit(node: *Node, root: *Root) void {"
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"lib/rbtree.zig: {helper_marker}"])
+
+        write_fixture_root(root)
+        helper_marker = "pub fn rb_next_postorder"
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"lib/rbtree.zig: {helper_marker}"])
 
