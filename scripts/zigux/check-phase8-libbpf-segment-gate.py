@@ -82,6 +82,7 @@ VERIFY_MARKERS = [
 ]
 BRIDGE_TEST_MARKERS = [
     'test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {',
+    'test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {',
     "planning-only `resolveReusePinnedMapAttempt()` gating",
     "planning-only `planTokenPreparation()` gating",
     'try std.testing.expect(std.mem.indexOf(u8, helper_source, "bpf_obj_get(") == null);',
@@ -307,6 +308,22 @@ def run_self_test() -> int:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_test_marker")
         bridge_test_path.write_text(original_bridge_test, encoding="utf-8")
 
+        bridge_test_path.write_text(
+            original_bridge_test.replace(
+                'test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {',
+                'test "phase 8 file-path handle bridge helper stays wired into the replay routes" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expected_bridge_route_marker = (
+            f"{BRIDGE_TEST_PATH}:"
+            'test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {'
+        )
+        if expected_bridge_route_marker not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_route_marker")
+        bridge_test_path.write_text(original_bridge_test, encoding="utf-8")
+
         bridge_build_path = root / BRIDGE_BUILD_PATH
         original_bridge_build = bridge_build_path.read_text(encoding="utf-8")
         bridge_build_path.write_text(
@@ -372,7 +389,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
