@@ -113,6 +113,34 @@ test "phase3 abi keeps raw boundary header rejection and shim validation aligned
     try std.testing.expect(std.meta.eql(export_shim.errorStatus(-22, .kernel), stale_status));
 }
 
+test "phase3 abi keeps header-family boundary status relay aligned with export shim" {
+    const canonical = header_family.currentBoundaryHeader(0x2A);
+    const expanded = header_family.compatibleBoundaryHeader(@sizeOf(header_family.BoundaryHeader) + 8, 0x2A);
+    const undersized = header_family.BoundaryHeader{
+        .size = @sizeOf(header_family.BoundaryHeader) - 1,
+        .abi_version = header_family.abi_version,
+        .flags = 0x2A,
+    };
+    const stale = header_family.BoundaryHeader{
+        .size = @sizeOf(header_family.BoundaryHeader),
+        .abi_version = header_family.abi_version + 1,
+        .flags = 0x2A,
+    };
+    const header_ok = header_family.validateBoundaryHeaderStatus(canonical);
+    const header_ok_expanded = header_family.validateBoundaryHeaderStatus(expanded);
+    const header_bad_size = header_family.validateBoundaryHeaderStatus(undersized);
+    const header_bad_version = header_family.validateBoundaryHeaderStatus(stale);
+
+    try std.testing.expect(header_family.statusIsOk(header_ok));
+    try std.testing.expect(header_family.statusIsOk(header_ok_expanded));
+    try std.testing.expect(!header_family.statusIsOk(header_bad_size));
+    try std.testing.expect(!header_family.statusIsOk(header_bad_version));
+    try std.testing.expect(std.meta.eql(export_shim.validateBoundaryHeader(canonical), header_ok));
+    try std.testing.expect(std.meta.eql(export_shim.validateBoundaryHeader(expanded), header_ok_expanded));
+    try std.testing.expect(std.meta.eql(export_shim.validateBoundaryHeader(undersized), header_bad_size));
+    try std.testing.expect(std.meta.eql(export_shim.validateBoundaryHeader(stale), header_bad_version));
+}
+
 test "phase3 abi keeps version and dev_t relays explicit" {
     const current = export_shim.currentVersion();
     const fields = export_shim.makeDevTFields(42, 7);
