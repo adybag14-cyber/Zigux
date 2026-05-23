@@ -39,11 +39,14 @@
       "zig_helper": "lib/base64.zig",
       "focused_helper_replay": "zigux/tests/phase6_base64.zig",
       "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",
+      "focused_direct_c_parity_replay": "zigux/tests/phase6_base64_c_parity.zig",
+      "direct_c_parity_harness": "zigux/tests/fixtures/phase6_base64_c_harness.c",
       "fixture_surfaces": [
         "zigux/tests/fixtures/phase6_base64_vectors.zig"
       ],
       "checker_surfaces": [
-        "scripts/zigux/check-phase6-base64-corpus-determinism.py"
+        "scripts/zigux/check-phase6-base64-corpus-determinism.py",
+        "scripts/zigux/check-phase6-base64-c-parity.py"
       ],
       "slice_note": "Documentation/zigux/phase6-base64-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
@@ -76,6 +79,8 @@
       "zig_helper": "lib/bsearch.zig",
       "focused_helper_replay": "zigux/tests/phase6_bsearch.zig",
       "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
+      "direct_c_parity_replay": "zigux/tests/phase6_bsearch_c_parity.zig",
+      "direct_c_parity_harness": "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
       "focused_c_abi_replays": [
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "zigux/tests/phase6_bsearch_c_abi_budget.zig"
@@ -118,6 +123,8 @@
       "zig_helper": "lib/checksum.zig",
       "focused_helper_replay": "zigux/tests/phase6_checksum.zig",
       "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig",
+      "direct_c_parity_replay": "zigux/tests/phase6_checksum_c_parity.zig",
+      "direct_c_parity_harness": "zigux/tests/fixtures/phase6_checksum_c_harness.c",
       "fixture_surfaces": [
         "zigux/tests/fixtures/phase6_checksum_vectors.zig"
       ],
