@@ -35,6 +35,7 @@ ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json
 ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20
+EXPECTED_PIN_SELF_TEST_CASES = 19
 
 DIRECT_READBACK_PACKET = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
