@@ -148,21 +148,29 @@ def run_self_test() -> int:
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_validate_route_policy_") as tmp_dir:
         root = Path(tmp_dir)
-        expected = ["phase2-toolchain", "phase2-tools", "phase2-validate", "phase2-cross"]
+        expected = [
+            "phase2-toolchain",
+            "phase2-tools",
+            "phase2-kconfig",
+            "phase2-cross",
+            "phase2-genksyms",
+            "phase2-fixdep",
+            "phase2-validate",
+        ]
 
         build_self_test_root(root, expected, expected)
         assert run_check(root) == 0
         checks += 1
 
-        build_self_test_root(root, ["phase2-toolchain", "phase2-validate", "phase2-cross"], expected)
+        build_self_test_root(root, ["phase2-toolchain", "phase2-tools", "phase2-cross", "phase2-validate"], expected)
         assert run_check(root) == 1
         checks += 1
 
-        build_self_test_root(root, ["phase2-toolchain", "phase2-cross", "phase2-tools", "phase2-validate"], expected)
+        build_self_test_root(root, ["phase2-toolchain", "phase2-tools", "phase2-kconfig", "phase2-validate", "phase2-cross", "phase2-genksyms", "phase2-fixdep"], expected)
         assert run_check(root) == 1
         checks += 1
 
-        build_self_test_root(root, ["phase2-toolchain", "phase2-tools", "phase2-validate", "phase2-tools"], expected)
+        build_self_test_root(root, ["phase2-toolchain", "phase2-tools", "phase2-kconfig", "phase2-cross", "phase2-genksyms", "phase2-fixdep", "phase2-kconfig"], expected)
         try:
             run_check(root)
         except SystemExit as exc:
@@ -171,7 +179,7 @@ def run_self_test() -> int:
         else:
             raise AssertionError("duplicate checker routes did not abort")
 
-        build_self_test_root(root, expected, ["phase2-toolchain", "phase2-tools", "phase2-validate", "phase2-tools"])
+        build_self_test_root(root, expected, ["phase2-toolchain", "phase2-tools", "phase2-kconfig", "phase2-cross", "phase2-genksyms", "phase2-fixdep", "phase2-kconfig"])
         try:
             run_check(root)
         except SystemExit as exc:
