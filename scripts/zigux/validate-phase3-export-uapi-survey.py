@@ -388,6 +388,21 @@ def run_self_test() -> int:
             "expected missing export-shim catalog-selftest make route marker was not reported",
         ),
         (
+            SHARED_CHECK_RUNNER_PATH,
+            '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+            "expected missing shared check-runner export/uapi survey route marker was not reported",
+        ),
+        (
+            SHARED_CHECK_RUNNER_PATH,
+            '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
+            "expected missing shared check-runner export/uapi shared build marker was not reported",
+        ),
+        (
+            SHARED_CHECK_RUNNER_PATH,
+            '"phase3-validate"',
+            "expected missing shared check-runner phase3-validate marker was not reported",
+        ),
+        (
             C_HEADER_SMOKE_PATH,
             "zigux_validate_boundary_header(",
             "expected missing c-header smoke boundary-validation marker was not reported",
