@@ -521,6 +521,10 @@ def run_self_test() -> int:
                 "targetless_unregister_request_sanitized: bool,",
             ),
             (
+                DRIVER_PATH,
+                "keeps_live_notifier_execution_out_of_scope: bool,",
+            ),
+            (
                 WITNESS_PATH,
                 'try expectContains(companion, "separate failure-mode replay");',
             ),
