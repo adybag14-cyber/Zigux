@@ -164,6 +164,20 @@ def collect_failures(root: Path) -> list[str]:
                 "review checklist entry prompt is missing required stay-in-C policy boundary marker"
             )
 
+        entry_prompt_required_markers = manifest.get(
+            "review_checklist_entry_prompt_required_markers"
+        )
+        if not entry_prompt_required_markers:
+            failures.append(
+                "review-process manifest is missing review_checklist_entry_prompt_required_markers"
+            )
+        else:
+            for marker in entry_prompt_required_markers:
+                if marker not in checklist_entry_prompt:
+                    failures.append(
+                        f"review checklist entry prompt is missing required explicit marker: {marker}"
+                    )
+
     if GOVERNANCE_SCOPE_FIELD not in manifest["stay_in_c_closeout_fields"]:
         failures.append(
             "review-process manifest is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note"
@@ -276,6 +290,11 @@ def _sample_manifest() -> str:
             "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
             "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
             "review_checklist_stay_in_c_policy_boundary_rule": "`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
+            "review_checklist_entry_prompt_required_markers": [
+                "required approver set",
+                "rollback owner",
+                "evidence archive path",
+            ],
             "review_process_required_metadata_markers": [
                 "`PHASE15_PACKET_OWNER=Architecture Council`",
                 "`PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-review-process-handoff.py && zig test zigux/tests/phase15_architecture_council_review_process.zig && zig build test --build-file zigux/tests/phase15_architecture_council_review_process_build.zig`",
@@ -606,7 +625,7 @@ def _sample_indefinite_c_policy() -> str:
 def _sample_review_checklist() -> str:
     return """# Zigux Review Checklist
 
-  * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details, and `Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording?
+  * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit, including the required approver set, rollback owner, and evidence archive path, while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details, and `Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording?
 """
 
 
@@ -675,27 +694,27 @@ def _sample_gap_note() -> str:
 
 
 def _sample_test_file() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
-test "placeholder focused review-process replay exists" {
+test \"placeholder focused review-process replay exists\" {
     try std.testing.expect(true);
 }
 """
 
 
 def _sample_build_gate() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const review_process_module = b.createModule(.{
-        .root_source_file = b.path("phase15_architecture_council_review_process.zig"),
+        .root_source_file = b.path(\"phase15_architecture_council_review_process.zig\"),
     });
     const review_process_tests = b.addTest(.{
-        .name = "phase15-architecture-council-review-process-tests",
+        .name = \"phase15-architecture-council-review-process-tests\",
         .root_module = review_process_module,
     });
     const run_review_process_tests = b.addRunArtifact(review_process_tests);
-    const test_step = b.step("test", "Run the focused Phase 15 Architecture Council review-process test");
+    const test_step = b.step(\"test\", \"Run the focused Phase 15 Architecture Council review-process test\");
     test_step.dependOn(&run_review_process_tests.step);
 }
 """
@@ -739,6 +758,7 @@ def run_self_test() -> int:
         if failures != ["review-process note is missing required review field: roadmap phase"]:
             raise AssertionError(f"unexpected roadmap-phase failure: {failures}")
 
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         manifest_data = json.loads(_sample_manifest())
         manifest_data["stay_in_c_closeout_fields"] = [
             field
@@ -837,12 +857,13 @@ def run_self_test() -> int:
             _sample_review_process().replace(
                 "- governance lane sequencing link or explicit scope note\n",
                 "",
-                1,
+                2,
             ),
         )
         failures = collect_failures(root)
         if failures != [
-            "review-process note is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note"
+            "review-process note is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note",
+            "review-process note is missing supporting context field: governance lane sequencing link or explicit scope note",
         ]:
             raise AssertionError(f"unexpected stay-in-c governance-note failure: {failures}")
 
@@ -852,12 +873,13 @@ def run_self_test() -> int:
             _sample_decision_record_template().replace(
                 "- governance lane sequencing link or explicit scope note:\n",
                 "",
-                1,
+                2,
             ),
         )
         failures = collect_failures(root)
         if failures != [
-            "decision-record template is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note"
+            "decision-record template is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note",
+            "decision-record template is missing supporting context field: governance lane sequencing link or explicit scope note",
         ]:
             raise AssertionError(f"unexpected stay-in-c governance-template failure: {failures}")
 
@@ -905,6 +927,21 @@ def run_self_test() -> int:
             "shared-summary gap note is missing newly landed path: `scripts/zigux/check-phase15-readiness-gate-packet.py`"
         ]:
             raise AssertionError(f"unexpected shared-gap-readiness-checker failure: {failures}")
+
+        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace(
+                "required approver set, ",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "review checklist entry prompt is missing required explicit marker: required approver set"
+        ]:
+            raise AssertionError(f"unexpected checklist-required-approver failure: {failures}")
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
     return 0
