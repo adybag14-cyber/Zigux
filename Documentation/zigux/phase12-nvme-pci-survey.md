@@ -4,7 +4,7 @@ This note restores the bounded survey packet for `drivers/nvme/host/pci.c` on cu
 
 ## Status
 
-- `PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_shared_build_direct_replay_present`
+- `PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_dedicated_build_present_shared_build_absent`
 - `PHASE12_SLICE=nvme-pci-survey`
 - lane owner: `P12-L08`
 - roadmap anchor: `drivers/nvme/host/pci.c`
@@ -25,7 +25,7 @@ This note restores the bounded survey packet for `drivers/nvme/host/pci.c` on cu
 - current `master` carries `zigux/tests/phase12_nvme_pci_manifest.json`
 - current `master` carries `zigux/tests/phase12_nvme_pci_build.zig`
 - current `master` carries `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
-- the bounded packet remains driver-local even though `zigux/tests/phase12_build.zig` now wires the NVMe direct replay into the shared `phase12-smoke` and `phase12` routes; the dedicated survey gate still stays packet-local beside the manifest and survey note
+- the shared `zigux/tests/phase12_build.zig` route still stays virtio-net-only, so the bounded NVMe packet remains driver-local through the dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`; the dedicated survey gate still stays packet-local beside the manifest and survey note
 - the truthful runtime boundary is still below live DMA mapping, PRP or SGL construction, blk-mq request ownership, interrupt completion, timeout recovery, and transport-backed queue execution
 
 ## Roadmap gap versus current packet
@@ -40,7 +40,7 @@ The current bounded packet only proves reviewability for:
 - reset freeze summaries and frozen queue-restore host-DMA budgeting
 - dropped-backlog retirement review
 - rollback-gate review
-- one shared smoke-first direct replay route for the bounded NVMe packet
+- one dedicated direct replay route for the bounded NVMe packet
 
 The current bounded packet still does not prove:
 
@@ -53,12 +53,12 @@ The current bounded packet still does not prove:
 
 ## Why this survey matters
 
-The manifest already claims that the survey note and dedicated survey gate are present. Keeping the note aligned with the newly shared direct replay keeps the packet fail-closed again, so the roadmap gap stays explicit instead of splitting across stale route wording.
+The manifest already claims that the survey note and dedicated survey gate are present. Keeping the note aligned with the still-dedicated direct replay keeps the packet fail-closed again, so the roadmap gap stays explicit instead of splitting across stale shared-route wording.
 
 ## Next bounded step
 
 If the NVMe packet moves again, keep the next step inside the same driver-local boundary:
 
 1. refresh the survey note, survey gate, and manifest together
-2. repair one bounded direct replay or verifier drift if it appears
-3. leave dedicated survey-gate promotion, throughput evidence, and live transport execution to their own later Phase 12 follow-up lane
+2. repair one bounded direct replay, dedicated build, or verifier drift if it appears
+3. leave shared-route promotion, throughput evidence, and live transport execution to their own later Phase 12 follow-up lane
