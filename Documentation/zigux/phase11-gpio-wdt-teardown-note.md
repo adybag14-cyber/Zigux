@@ -55,6 +55,10 @@ The current host-free teardown review packet keeps these handoffs explicit:
 - `watchdogDrvdataCheckpointSummary()` and `rebootGlueCheckpointSummary()` as
   the bounded ownership-to-reboot-glue handoff before the first
   `watchdog_stop_on_reboot()` request surface
+- `platformCleanupCheckpointSummary()` as the bounded cleanup-ordering bridge
+  between teardown and remove handoff before any live platform cleanup
+  callback, platform-driver removal, watchdog-core unregister side effects, or
+  host-backed shutdown execution claim
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md` as the
   companion surface that keeps the bounded remove-handoff packet explicit
   without claiming live platform cleanup callbacks, platform-driver removal,
@@ -63,11 +67,12 @@ The current host-free teardown review packet keeps these handoffs explicit:
   register-device request surface
 
 The returned driver-backed packet also keeps the stop-transition, direct
-nowayout-policy proof, reboot-glue handoff, remove-handoff boundary, and
-teardown-ownership boundaries visible without claiming live
-`watchdog_set_drvdata()` execution, live `watchdog_stop_on_reboot()`
-execution, live GPIO execution, live platform cleanup callbacks, platform
-cleanup callbacks, or host-backed shutdown behavior.
+nowayout-policy proof, reboot-glue handoff, platform-cleanup checkpoint,
+remove-handoff boundary, and teardown-ownership boundaries visible without
+claiming live `watchdog_set_drvdata()` execution, live
+`watchdog_stop_on_reboot()` execution, live GPIO execution, live platform
+cleanup callbacks, platform cleanup callbacks, or host-backed shutdown
+behavior.
 
 ## Bounded Meaning
 
