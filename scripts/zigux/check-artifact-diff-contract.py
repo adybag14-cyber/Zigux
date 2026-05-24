@@ -227,6 +227,11 @@ def assert_contract_output(lines: list[str]) -> None:
         raise AssertionError("full contract catalog drifted")
 
 
+def assert_help_output(root: Path) -> None:
+    run_case(root, ["-h"], expected_exit=0, expected_lines=HELP_LINES, repeat_count=2)
+    run_case(root, ["--help"], expected_exit=0, expected_lines=HELP_LINES, repeat_count=2)
+
+
 def run_case(
     root: Path,
     args: list[str],
@@ -316,7 +321,7 @@ def run_check(root: Path) -> int:
     assert_helper_self_test_output(
         run_case(root, ["--self-test"], expected_exit=0, expected_lines=HELPER_SELF_TEST_LINES, repeat_count=2)
     )
-    run_case(root, ["-h"], expected_exit=0, expected_lines=HELP_LINES, repeat_count=2)
+    assert_help_output(root)
     run_error_case(
         root,
         [],
@@ -673,7 +678,10 @@ def run_self_test() -> int:
     expect_assertion("review_note_marker_drift", lambda: assert_review_note_markers(bad_marker))
     covered.append("review_note_marker_drift")
 
-    assert_lines(HELP_LINES, HELP_LINES, "help round trip")
+    with tempfile.TemporaryDirectory(prefix="zigux_artifact_diff_contract_help_") as tmp_dir:
+        fixture_root = Path(tmp_dir)
+        make_live_helper_fixture(fixture_root)
+        assert_help_output(fixture_root)
     covered.append("cli_help_round_trip")
 
     bad_help = list(HELP_LINES)
