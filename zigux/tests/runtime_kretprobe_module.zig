@@ -256,3 +256,46 @@ test "runtime kretprobe sample keeps duplicate registration and failed exit roll
     try std.testing.expectEqual(@as(usize, 2), selftested_after_exit.completed_instances);
     try std.testing.expectEqual(@as(?i32, 42), selftested_after_exit.last_retval);
 }
+
+test "runtime kretprobe sample keeps failed unregister rollback explicit while a return instance is still active at the module boundary" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.init();
+    try module.registerProbe();
+    try module.recordEntry();
+
+    const before_failed_unregister = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, before_failed_unregister.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_unregister.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_unregister.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_unregister.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_unregister.registration_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_unregister.unregistration_runs);
+    try std.testing.expect(before_failed_unregister.probe_registered);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_unregister.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_unregister.completed_instances);
+    try std.testing.expectEqual(@as(?i32, null), before_failed_unregister.last_retval);
+
+    try std.testing.expectError(error.OutstandingReturnInstance, module.unregisterProbe());
+    try expectSnapshotStable(before_failed_unregister, module.lifecycleSnapshot());
+
+    try module.recordReturn(21);
+
+    const before_cleanup = module.lifecycleSnapshot();
+    try std.testing.expect(before_cleanup.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_cleanup.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_cleanup.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 21), before_cleanup.last_retval);
+
+    try module.unregisterProbe();
+    try module.exit();
+
+    const after_exit = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqual(before_cleanup.init_runs, after_exit.init_runs);
+    try std.testing.expectEqual(before_cleanup.selftest_runs, after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectEqual(before_cleanup.registration_runs, after_exit.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.unregistration_runs);
+    try std.testing.expectEqual(before_cleanup.completed_instances, after_exit.completed_instances);
+    try std.testing.expectEqual(before_cleanup.last_retval, after_exit.last_retval);
+}
