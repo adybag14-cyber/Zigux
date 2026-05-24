@@ -12,6 +12,7 @@ REQUIRED_MARKERS = (
     "Phase 14 notes",
     "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
     "`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`",
+    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
 )
 
 FORBIDDEN_PHASE15_MARKERS = (
@@ -19,7 +20,6 @@ FORBIDDEN_PHASE15_MARKERS = (
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
-    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
     "`scripts/zigux/validate-phase15.py`",
 )
@@ -47,6 +47,7 @@ def _sample_docs_readme() -> str:
 Phase 14 notes
 `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
 `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`
+`Documentation/zigux/phase15-study-only-anchor-accounting.md`
 """
 
 
@@ -80,6 +81,22 @@ def run_self_test() -> int:
         ]
         if errors != expected:
             raise AssertionError(f"unexpected errors for missing phase-14 gap marker case: {errors}")
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "`Documentation/zigux/phase15-study-only-anchor-accounting.md`\n",
+                "",
+                1,
+            ),
+        )
+        errors = collect_alignment_errors(root)
+        expected = [
+            "docs_readme:missing:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"
+        ]
+        if errors != expected:
+            raise AssertionError(f"unexpected errors for missing study-only marker case: {errors}")
         case_count += 1
 
         _write(root / DOCS_README_PATH, _sample_docs_readme() + "Phase 15 notes\n")
