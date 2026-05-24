@@ -97,10 +97,10 @@ test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthfu
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("unresolved_on_master", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-21", manifest.verified_on);
+    try std.testing.expectEqualStrings("2026-05-24", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(!manifest.survey_summary.preexisting_virtio_scsi_zig_present);
@@ -183,9 +183,9 @@ test "phase12 virtio scsi fixture manifest keeps rollback-only presence and abse
     defer parsed.deinit();
     const fixture = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L13", fixture.lane_key);
+    try std.testing.expectEqualStrings("P12-L09", fixture.lane_key);
     try std.testing.expectEqualStrings("rollback_evidence_presence_manifest", fixture.fixture_kind);
-    try std.testing.expectEqualStrings("2026-05-21", fixture.verified_on);
+    try std.testing.expectEqualStrings("2026-05-24", fixture.verified_on);
     try std.testing.expect(fixture.required_paths.len == 10);
     try std.testing.expect(fixture.expected_absent_paths.len == 5);
 
@@ -202,8 +202,8 @@ test "phase12 virtio scsi survey note stays aligned with rollback evidence" {
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=rollback-evidence-only-live-starter-missing") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L13") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "verified on: `2026-05-21`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L09") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "verified on: `2026-05-24`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "throughput-parity, and survey-gate tests as support-bundle evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback-only split machine-checkable") != null);
@@ -219,7 +219,7 @@ test "phase12 virtio scsi fallback catalog keeps archival replay distinct from c
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "exact coverage evidence refreshed on `2026-05-24`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "authenticated contents view now returns this refreshed archival catalog body on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "public raw `master` fallback still serves the older `2026-05-21` archival body for this same path as of `2026-05-24`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "public raw `master` fallback still serves the older `2026-05-23` archival body for this same path as of `2026-05-24`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "scripts/zigux/check-phase12-cross-compile-smoke.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "check-phase12-cross-compile-smoke.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
