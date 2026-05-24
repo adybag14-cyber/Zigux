@@ -186,6 +186,13 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_sample_present);
     try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    for (manifest.gaps) |gap| {
+        try std.testing.expect(gap.id.len > 0);
+        try std.testing.expect(isAllowedStatus(gap.status));
+        try std.testing.expect(gap.kind.len > 0);
+        try std.testing.expect(gap.zigux_destination.len > 0);
+        try std.testing.expect(gap.why_now.len > 0);
+    }
     try std.testing.expectEqualStrings("string_helpers_sample", manifest.sample_replay_contract.descriptor_name);
     try std.testing.expectEqual(@as(i32, 1), manifest.sample_replay_contract.matched_index);
     try std.testing.expectEqual(@as(usize, 7), manifest.sample_replay_contract.checked_focus.len);
