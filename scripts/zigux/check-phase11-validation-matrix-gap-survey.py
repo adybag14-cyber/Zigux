@@ -41,7 +41,17 @@ REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS = (
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
 )
+REQUIRED_FOCUSED_DIRECT_BUILD_CHECKS = (
+    "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test",
+    "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py",
+)
+REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS = (
+    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+)
 REQUIRED_VALIDATE_PHASE11_MARKERS = (
+    '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py")',
     '("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig")',
     '("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig")',
 )
@@ -58,6 +68,7 @@ SURVEY_MARKERS = [
     "The same narrower continuity packet also stays `layout_assert`-backed through `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` and `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, so keep those surviving ABI proof shards explicit as adjacent HVC continuity evidence instead of treating the three build routes as prose-only review support.",
     "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
     "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "The same narrower continuity packet now also records 2 focused direct build checker routes through `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test` and `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`, together with 2 focused direct build replays through `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.",
     "The shared `phase11-validate` route also now carries `zigux/tests/phase11_hvc_modem_control_proof_build.zig` as a focused HVC teardown-or-failure-mode proof outside the narrower three-entry build inventory",
     "The shared `phase11-validate` route also now carries `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as focused watchdog teardown-or-failure-mode proofs outside the narrower three-entry HVC build inventory, so keep those shared watchdog replay routes explicit beside the returned driver-local matrices instead of reducing the shared gate to HVC-only proof coverage.",
     "That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap on current `master`: the repo does not yet rematerialize a broader shared replay or survey route that would carry cross-driver public-struct ABI proof beyond those surviving `layout_assert` shards.",
@@ -137,6 +148,8 @@ def run_check(root: Path) -> None:
     expect_exact_string_list("dedicated_survey_replays", inventory.get("dedicated_survey_replays"), REQUIRED_DEDICATED_SURVEY_REPLAYS)
     expect_exact_string_list("shared_adjunct_replays", inventory.get("shared_adjunct_replays"), REQUIRED_SHARED_ADJUNCT_REPLAYS)
     expect_exact_string_list("shared_adjunct_build_replays", inventory.get("shared_adjunct_build_replays"), REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS)
+    expect_exact_string_list("focused_direct_build_checks", inventory.get("focused_direct_build_checks"), REQUIRED_FOCUSED_DIRECT_BUILD_CHECKS)
+    expect_exact_string_list("focused_direct_build_replays", inventory.get("focused_direct_build_replays"), REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS)
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -172,92 +185,101 @@ def run_self_test() -> None:
             "dedicated_survey_replays": list(REQUIRED_DEDICATED_SURVEY_REPLAYS),
             "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
             "shared_adjunct_build_replays": list(REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS),
+            "focused_direct_build_checks": list(REQUIRED_FOCUSED_DIRECT_BUILD_CHECKS),
+            "focused_direct_build_replays": list(REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS),
         }, indent=2) + "\n", encoding="utf-8")
         (fixture_root / FILES["validate_phase11"]).parent.mkdir(parents=True, exist_ok=True)
         (fixture_root / FILES["validate_phase11"]).write_text("\n".join(REQUIRED_VALIDATE_PHASE11_MARKERS) + "\n", encoding="utf-8")
         (fixture_root / FILES["makefile"]).parent.mkdir(parents=True, exist_ok=True)
         (fixture_root / FILES["makefile"]).write_text("\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n", encoding="utf-8")
         run_check(fixture_root)
-        for index, marker in enumerate(SURVEY_MARKERS[:6], start=1):
-            case_root = tmpdir / f"required_{index}"
+        case_count = 1
+        for marker in SURVEY_MARKERS[:6]:
+            case_root = tmpdir / f"required_{case_count}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES["matrix_gap_note"]
             path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             expect_failure(case_root, marker)
-        dedicated_witness_root = tmpdir / "required_dedicated_witness"
-        shutil.copytree(fixture_root, dedicated_witness_root, dirs_exist_ok=True)
-        path = dedicated_witness_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[6]
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-        expect_failure(dedicated_witness_root, marker)
-        dedicated_witness_guard_root = tmpdir / "required_dedicated_witness_guard"
-        shutil.copytree(fixture_root, dedicated_witness_guard_root, dirs_exist_ok=True)
-        path = dedicated_witness_guard_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[7]
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-        expect_failure(dedicated_witness_guard_root, marker)
-        modem_control_root = tmpdir / "required_modem_control_route"
-        shutil.copytree(fixture_root, modem_control_root, dirs_exist_ok=True)
-        path = modem_control_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[8]
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-        expect_failure(modem_control_root, marker)
-        watchdog_route_root = tmpdir / "required_watchdog_routes"
-        shutil.copytree(fixture_root, watchdog_route_root, dirs_exist_ok=True)
-        path = watchdog_route_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[9]
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-        expect_failure(watchdog_route_root, marker)
-        abi_gap_root = tmpdir / "required_abi_gap"
-        shutil.copytree(fixture_root, abi_gap_root, dirs_exist_ok=True)
-        path = abi_gap_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[10]
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-        expect_failure(abi_gap_root, marker)
-        makefile_route_root = tmpdir / "required_makefile_route"
-        shutil.copytree(fixture_root, makefile_route_root, dirs_exist_ok=True)
-        path = makefile_route_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[11]
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-        expect_failure(makefile_route_root, marker)
+            case_count += 1
+        for marker in SURVEY_MARKERS[6:13]:
+            case_root = tmpdir / f"required_{case_count}"
+            shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
+            path = case_root / FILES["matrix_gap_note"]
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            expect_failure(case_root, marker)
+            case_count += 1
         forbidden_root = tmpdir / "forbidden"
         shutil.copytree(fixture_root, forbidden_root, dirs_exist_ok=True)
         path = forbidden_root / FILES["matrix_gap_note"]
         marker = FORBIDDEN_MARKERS[0]
         path.write_text(path.read_text(encoding="utf-8") + "\n" + marker + "\n", encoding="utf-8")
         expect_failure(forbidden_root, marker)
+        case_count += 1
         bad_inventory_root = tmpdir / "bad_inventory"
         shutil.copytree(fixture_root, bad_inventory_root, dirs_exist_ok=True)
         inventory = json.loads((bad_inventory_root / FILES["inventory"]).read_text(encoding="utf-8"))
         inventory["build_test_names"] = inventory["build_test_names"][:-1]
         (bad_inventory_root / FILES["inventory"]).write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
         expect_failure(bad_inventory_root, "build_test_names does not match")
+        case_count += 1
+        missing_focused_checks_inventory = tmpdir / "missing_focused_checks_inventory"
+        shutil.copytree(fixture_root, missing_focused_checks_inventory, dirs_exist_ok=True)
+        inventory = json.loads((missing_focused_checks_inventory / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["focused_direct_build_checks"] = inventory["focused_direct_build_checks"][:-1]
+        (missing_focused_checks_inventory / FILES["inventory"]).write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
+        expect_failure(missing_focused_checks_inventory, "focused_direct_build_checks does not match")
+        case_count += 1
+        missing_focused_replays_inventory = tmpdir / "missing_focused_replays_inventory"
+        shutil.copytree(fixture_root, missing_focused_replays_inventory, dirs_exist_ok=True)
+        inventory = json.loads((missing_focused_replays_inventory / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["focused_direct_build_replays"] = inventory["focused_direct_build_replays"][:-1]
+        (missing_focused_replays_inventory / FILES["inventory"]).write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
+        expect_failure(missing_focused_replays_inventory, "focused_direct_build_replays does not match")
+        case_count += 1
+        missing_validate_focused_selftest = tmpdir / "missing_validate_focused_selftest"
+        shutil.copytree(fixture_root, missing_validate_focused_selftest, dirs_exist_ok=True)
+        path = missing_validate_focused_selftest / FILES["validate_phase11"]
+        marker = REQUIRED_VALIDATE_PHASE11_MARKERS[0]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(missing_validate_focused_selftest, marker)
+        case_count += 1
+        missing_validate_focused_live = tmpdir / "missing_validate_focused_live"
+        shutil.copytree(fixture_root, missing_validate_focused_live, dirs_exist_ok=True)
+        path = missing_validate_focused_live / FILES["validate_phase11"]
+        marker = REQUIRED_VALIDATE_PHASE11_MARKERS[1]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(missing_validate_focused_live, marker)
+        case_count += 1
         missing_validate_dw_restart_root = tmpdir / "missing_validate_dw_restart"
         shutil.copytree(fixture_root, missing_validate_dw_restart_root, dirs_exist_ok=True)
         path = missing_validate_dw_restart_root / FILES["validate_phase11"]
-        marker = REQUIRED_VALIDATE_PHASE11_MARKERS[0]
+        marker = REQUIRED_VALIDATE_PHASE11_MARKERS[2]
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
         expect_failure(missing_validate_dw_restart_root, marker)
+        case_count += 1
         missing_validate_gpio_root = tmpdir / "missing_validate_gpio_nowayout"
         shutil.copytree(fixture_root, missing_validate_gpio_root, dirs_exist_ok=True)
         path = missing_validate_gpio_root / FILES["validate_phase11"]
-        marker = REQUIRED_VALIDATE_PHASE11_MARKERS[1]
+        marker = REQUIRED_VALIDATE_PHASE11_MARKERS[3]
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
         expect_failure(missing_validate_gpio_root, marker)
+        case_count += 1
         missing_makefile_dw_restart_root = tmpdir / "missing_makefile_dw_restart"
         shutil.copytree(fixture_root, missing_makefile_dw_restart_root, dirs_exist_ok=True)
         path = missing_makefile_dw_restart_root / FILES["makefile"]
         marker = REQUIRED_MAKEFILE_MARKERS[0]
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
         expect_failure(missing_makefile_dw_restart_root, marker)
+        case_count += 1
         missing_makefile_gpio_root = tmpdir / "missing_makefile_gpio_nowayout"
         shutil.copytree(fixture_root, missing_makefile_gpio_root, dirs_exist_ok=True)
         path = missing_makefile_gpio_root / FILES["makefile"]
         marker = REQUIRED_MAKEFILE_MARKERS[1]
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
         expect_failure(missing_makefile_gpio_root, marker)
+        case_count += 1
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=18")
+        print(f"PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT={case_count}")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
