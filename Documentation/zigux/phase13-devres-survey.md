@@ -13,7 +13,7 @@ This document records the bounded `P13-L07` survey lane around the current `lib/
 
 The Phase 13 roadmap still keeps `lib/devres.c` in the shared-helper tranche, and that means the survey has to stay honest about two things at once:
 
-- what current `master` really ships today for helper-first DMA, scatterlist, iounmap, iomap planning, and iomap cleanup-handoff evidence
+- what current `master` really ships today for helper-first DMA, scatterlist, iounmap, helper-first iomap planning evidence, and iomap cleanup-handoff evidence
 - which MMIO, non-posted wrapper, and arch-memtype safety helpers are still missing from the live `lib/devres.zig` packet even though the roadmap-backed devres lane still needs those gaps kept visible
 
 The honest same-lane task is therefore not to pretend the wider direct helper packet has come back. It is to record the shipped DMA, scatterlist, iounmap, iomap planner, and helper-side cleanup-handoff surfaces, fail closed on the blocked live DMA and scatterlist ownership boundaries, and explicitly keep the missing non-posted or arch-memtype helper family visible as a repo-reality gap instead of letting the survey collapse into adjacent DMA-only ownership.
