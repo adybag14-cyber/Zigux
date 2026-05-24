@@ -212,6 +212,74 @@ EXPECTED_DIRECT_HELPERS = (
     "tools/lib/string.zig",
 )
 
+EXPECTED_SHARED_FIXTURE_FIELDS = {
+    "tools/lib/argv_split.zig": (
+        "argc",
+        "argv",
+        "blank_argc",
+    ),
+    "tools/lib/cmdline.zig": (
+        "decimal_k",
+        "hex_m",
+        "invalid",
+        "octal_k",
+    ),
+    "tools/lib/ctype.zig": (
+        "isalnum_A",
+        "isalpha_z",
+        "isdigit_7",
+        "isodigit_7",
+        "isodigit_8",
+        "ispunct_bang",
+        "isspace_tab",
+        "isxdigit_f",
+        "mask_A",
+        "mask_a",
+        "mask_space",
+        "tolower_A",
+        "toupper_z",
+    ),
+    "tools/lib/hweight.zig": (
+        "w16",
+        "w32",
+        "w64",
+        "w8",
+        "wlong",
+    ),
+    "tools/lib/list_sort.zig": (
+        "bool_sorted_keys",
+        "bool_sorted_ordinals",
+        "tri_sorted_keys",
+        "tri_sorted_ordinals",
+    ),
+    "tools/lib/slab.zig": (
+        "alloc_count_after_kmalloc",
+        "alloc_count_after_kmalloc_array",
+        "alloc_count_after_kmalloc_array_free",
+        "alloc_count_after_kmalloc_free",
+        "array_zeroed",
+        "null_without_reclaim",
+        "slab_is_available",
+        "zero_after_kmalloc",
+    ),
+    "tools/lib/str_error_r.zig": (
+        "enoent",
+        "unknown",
+    ),
+    "tools/lib/vsprintf.zig": (
+        "pad_len",
+        "pad_text",
+        "scnprintf_len",
+        "scnprintf_text",
+    ),
+    "tools/lib/zalloc.zig": (
+        "freed_is_null",
+        "value_freed_is_null",
+        "value_zeroed",
+        "zeroed",
+    ),
+}
+
 EXPECTED_RULE_SUMMARY = (
     "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, "
     "while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local "
@@ -226,12 +294,10 @@ EXPECTED_ANTI_OVERLAP_RULE = (
 )
 
 EXPECTED_MANIFEST_PATH = "zigux/tests/fixtures/phase1_helper_manifest.json"
-EXPECTED_REPLAY_BLOCKED_HELPER = "tools/lib/slab.zig"
-EXPECTED_REPLAY_BLOCKED_FIXTURE_PREFIX = "slab."
 EXPECTED_REPLAY_BLOCKER = {
     "id": "phase1_helpers_zig_slab_zero_after_kmalloc",
     "kind": "fixture_mismatch",
-    "path": EXPECTED_REPLAY_BLOCKED_HELPER,
+    "path": "tools/lib/slab.zig",
     "field": "slab.zero_after_kmalloc",
     "expected": True,
     "actual": False,
@@ -290,27 +356,74 @@ def resolve_field(payload: dict[str, object], dotted: str) -> object | None:
     return current
 
 
-def validate_review_anchor(helper_path: str, review_anchor: object, fixture: dict[str, object], failures: list[str]) -> None:
+def validate_review_anchor(
+    helper_path: str,
+    review_anchor: object,
+    fixture: dict[str, object],
+    failures: list[str],
+) -> None:
     if not isinstance(review_anchor, dict):
-        failures.append(issue(f"review_anchor_type:{helper_path}", "dict", type(review_anchor).__name__))
+        failures.append(
+            issue(f"review_anchor_type:{helper_path}", "dict", type(review_anchor).__name__)
+        )
         return
+
     helper_fixture = fixture.get(HELPER_TO_FIXTURE[helper_path])
     if not isinstance(helper_fixture, dict):
-        failures.append(issue(f"fixture_helper_type:{helper_path}", "dict", type(helper_fixture).__name__))
+        failures.append(
+            issue(f"fixture_helper_type:{helper_path}", "dict", type(helper_fixture).__name__)
+        )
         return
+
     for field_name, expected in EXPECTED_EXACT_REVIEW_FIELDS.get(helper_path, {}).items():
         actual = tuple(review_anchor.get(field_name, []))
         if actual != expected:
-            failures.append(issue(f"review_anchor_exact:{helper_path}:{field_name}", expected, actual))
+            failures.append(
+                issue(f"review_anchor_exact:{helper_path}:{field_name}", expected, actual)
+            )
+
     for field_name, field_value in review_anchor.items():
         if not field_name.endswith(("_keys", "_fields")):
             continue
         if not isinstance(field_value, list):
-            failures.append(issue(f"review_anchor_dynamic_type:{helper_path}:{field_name}", "list", type(field_value).__name__))
+            failures.append(
+                issue(
+                    f"review_anchor_dynamic_type:{helper_path}:{field_name}",
+                    "list",
+                    type(field_value).__name__,
+                )
+            )
             continue
         missing = tuple(item for item in field_value if item not in helper_fixture)
         if missing:
-            failures.append(issue(f"review_anchor_dynamic_missing:{helper_path}:{field_name}", (), missing))
+            failures.append(
+                issue(
+                    f"review_anchor_dynamic_missing:{helper_path}:{field_name}",
+                    (),
+                    missing,
+                )
+            )
+
+
+def validate_shared_fixture_fields(
+    helper_path: str,
+    fixture: dict[str, object],
+    failures: list[str],
+) -> None:
+    fixture_key = HELPER_TO_FIXTURE[helper_path]
+    helper_fixture = fixture.get(fixture_key)
+    if not isinstance(helper_fixture, dict):
+        failures.append(
+            issue(f"shared_fixture_type:{helper_path}", "dict", type(helper_fixture).__name__)
+        )
+        return
+
+    actual_fields = tuple(sorted(helper_fixture.keys()))
+    expected_fields = tuple(sorted(EXPECTED_SHARED_FIXTURE_FIELDS[helper_path]))
+    if actual_fields != expected_fields:
+        failures.append(
+            issue(f"shared_fixture_fields:{helper_path}", expected_fields, actual_fields)
+        )
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -346,11 +459,18 @@ def collect_failures(root: Path) -> list[str]:
     if manifest.get("status") != "closed":
         failures.append(issue("manifest_status", "closed", manifest.get("status")))
     if manifest.get("helper_count") != len(EXPECTED_HELPERS):
-        failures.append(issue("manifest_helper_count", len(EXPECTED_HELPERS), manifest.get("helper_count")))
+        failures.append(
+            issue("manifest_helper_count", len(EXPECTED_HELPERS), manifest.get("helper_count"))
+        )
     if tuple(manifest.get("helpers", [])) != EXPECTED_HELPERS:
-        failures.append(issue("manifest_helpers", EXPECTED_HELPERS, tuple(manifest.get("helpers", []))))
-    if tuple(sorted(fixture.keys())) != tuple(sorted(EXPECTED_FIXTURE_KEYS)):
-        failures.append(issue("fixture_keys", tuple(sorted(EXPECTED_FIXTURE_KEYS)), tuple(sorted(fixture.keys()))))
+        failures.append(
+            issue("manifest_helpers", EXPECTED_HELPERS, tuple(manifest.get("helpers", [])))
+        )
+
+    actual_fixture_keys = tuple(sorted(fixture.keys()))
+    expected_fixture_keys = tuple(sorted(EXPECTED_FIXTURE_KEYS))
+    if actual_fixture_keys != expected_fixture_keys:
+        failures.append(issue("fixture_keys", expected_fixture_keys, actual_fixture_keys))
     for helper_path, fixture_key in HELPER_TO_FIXTURE.items():
         if fixture_key not in fixture:
             failures.append(f"fixture_key_missing_for_helper:{helper_path}:{fixture_key}")
@@ -358,63 +478,133 @@ def collect_failures(root: Path) -> list[str]:
     manifest_lane = manifest.get("lane_sequencing", {})
     blocker_lane = blockers.get("lane_sequencing", {})
     if tuple(manifest_lane.get("shared_replay_parked_helpers", [])) != EXPECTED_SHARED_HELPERS:
-        failures.append(issue("manifest_shared_helpers", EXPECTED_SHARED_HELPERS, tuple(manifest_lane.get("shared_replay_parked_helpers", []))))
+        failures.append(
+            issue(
+                "manifest_shared_helpers",
+                EXPECTED_SHARED_HELPERS,
+                tuple(manifest_lane.get("shared_replay_parked_helpers", [])),
+            )
+        )
     if tuple(manifest_lane.get("direct_anchor_followup_helpers", [])) != EXPECTED_DIRECT_HELPERS:
-        failures.append(issue("manifest_direct_helpers", EXPECTED_DIRECT_HELPERS, tuple(manifest_lane.get("direct_anchor_followup_helpers", []))))
+        failures.append(
+            issue(
+                "manifest_direct_helpers",
+                EXPECTED_DIRECT_HELPERS,
+                tuple(manifest_lane.get("direct_anchor_followup_helpers", [])),
+            )
+        )
     if manifest_lane.get("rule_summary") != EXPECTED_RULE_SUMMARY:
-        failures.append(issue("manifest_rule_summary", EXPECTED_RULE_SUMMARY, manifest_lane.get("rule_summary")))
+        failures.append(
+            issue("manifest_rule_summary", EXPECTED_RULE_SUMMARY, manifest_lane.get("rule_summary"))
+        )
     if manifest_lane.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
-        failures.append(issue("manifest_anti_overlap_rule", EXPECTED_ANTI_OVERLAP_RULE, manifest_lane.get("anti_overlap_rule")))
+        failures.append(
+            issue(
+                "manifest_anti_overlap_rule",
+                EXPECTED_ANTI_OVERLAP_RULE,
+                manifest_lane.get("anti_overlap_rule"),
+            )
+        )
+
     if blocker_lane.get("manifest") != EXPECTED_MANIFEST_PATH:
-        failures.append(issue("blocker_manifest_path", EXPECTED_MANIFEST_PATH, blocker_lane.get("manifest")))
+        failures.append(
+            issue("blocker_manifest_path", EXPECTED_MANIFEST_PATH, blocker_lane.get("manifest"))
+        )
     if tuple(blocker_lane.get("shared_replay_parked_helpers", [])) != EXPECTED_SHARED_HELPERS:
-        failures.append(issue("blocker_shared_helpers", EXPECTED_SHARED_HELPERS, tuple(blocker_lane.get("shared_replay_parked_helpers", []))))
+        failures.append(
+            issue(
+                "blocker_shared_helpers",
+                EXPECTED_SHARED_HELPERS,
+                tuple(blocker_lane.get("shared_replay_parked_helpers", [])),
+            )
+        )
     if tuple(blocker_lane.get("direct_anchor_followup_helpers", [])) != EXPECTED_DIRECT_HELPERS:
-        failures.append(issue("blocker_direct_helpers", EXPECTED_DIRECT_HELPERS, tuple(blocker_lane.get("direct_anchor_followup_helpers", []))))
+        failures.append(
+            issue(
+                "blocker_direct_helpers",
+                EXPECTED_DIRECT_HELPERS,
+                tuple(blocker_lane.get("direct_anchor_followup_helpers", [])),
+            )
+        )
     if blocker_lane.get("shared_replay_parked_helper_count") != len(EXPECTED_SHARED_HELPERS):
-        failures.append(issue("blocker_shared_count", len(EXPECTED_SHARED_HELPERS), blocker_lane.get("shared_replay_parked_helper_count")))
+        failures.append(
+            issue(
+                "blocker_shared_count",
+                len(EXPECTED_SHARED_HELPERS),
+                blocker_lane.get("shared_replay_parked_helper_count"),
+            )
+        )
     if blocker_lane.get("direct_anchor_followup_helper_count") != len(EXPECTED_DIRECT_HELPERS):
-        failures.append(issue("blocker_direct_count", len(EXPECTED_DIRECT_HELPERS), blocker_lane.get("direct_anchor_followup_helper_count")))
+        failures.append(
+            issue(
+                "blocker_direct_count",
+                len(EXPECTED_DIRECT_HELPERS),
+                blocker_lane.get("direct_anchor_followup_helper_count"),
+            )
+        )
     if blocker_lane.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
-        failures.append(issue("blocker_anti_overlap_rule", EXPECTED_ANTI_OVERLAP_RULE, blocker_lane.get("anti_overlap_rule")))
+        failures.append(
+            issue(
+                "blocker_anti_overlap_rule",
+                EXPECTED_ANTI_OVERLAP_RULE,
+                blocker_lane.get("anti_overlap_rule"),
+            )
+        )
 
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
         failures.append(issue("review_anchors_type", "dict", type(review_anchors).__name__))
     else:
-        actual_keys = tuple(sorted(review_anchors.keys()))
-        expected_keys = tuple(sorted(EXPECTED_REVIEW_ANCHOR_HELPERS))
-        if actual_keys != expected_keys:
-            failures.append(issue("review_anchor_keys", expected_keys, actual_keys))
+        actual_review_anchor_keys = tuple(sorted(review_anchors.keys()))
+        expected_review_anchor_keys = tuple(sorted(EXPECTED_REVIEW_ANCHOR_HELPERS))
+        if actual_review_anchor_keys != expected_review_anchor_keys:
+            failures.append(
+                issue("review_anchor_keys", expected_review_anchor_keys, actual_review_anchor_keys)
+            )
         for helper_path in EXPECTED_REVIEW_ANCHOR_HELPERS:
             validate_review_anchor(helper_path, review_anchors.get(helper_path), fixture, failures)
 
+    for helper_path in EXPECTED_SHARED_HELPERS:
+        validate_shared_fixture_fields(helper_path, fixture, failures)
+
     if blockers.get("status") != "parked":
         failures.append(issue("blockers_status", "parked", blockers.get("status")))
+
     replay = blockers.get("replay", {})
     replay_blockers = replay.get("blockers", [])
     if replay.get("path") != "zigux/tests/phase1_helpers.zig":
         failures.append(issue("replay_path", "zigux/tests/phase1_helpers.zig", replay.get("path")))
     if replay.get("state") != "blocked":
         failures.append(issue("replay_state", "blocked", replay.get("state")))
-    if not isinstance(replay_blockers, list) or len(replay_blockers) != 1 or not isinstance(replay_blockers[0], dict):
+    if not isinstance(replay_blockers, list) or len(replay_blockers) != 1 or not isinstance(
+        replay_blockers[0], dict
+    ):
         failures.append("replay_blocker_shape")
     else:
-        first = replay_blockers[0]
+        replay_blocker = replay_blockers[0]
         for key, expected in EXPECTED_REPLAY_BLOCKER.items():
-            if first.get(key) != expected:
-                failures.append(issue(f"replay_blocker:{key}", expected, first.get(key)))
-        blocked_helper = first.get("path")
+            if replay_blocker.get(key) != expected:
+                failures.append(issue(f"replay_blocker:{key}", expected, replay_blocker.get(key)))
+        blocked_helper = replay_blocker.get("path")
         if blocked_helper not in EXPECTED_SHARED_HELPERS:
-            failures.append(issue("replay_blocked_helper_family", EXPECTED_SHARED_HELPERS, blocked_helper))
-        blocked_field = first.get("field")
+            failures.append(
+                issue("replay_blocked_helper_family", EXPECTED_SHARED_HELPERS, blocked_helper)
+            )
+        blocked_field = replay_blocker.get("field")
         fixture_key = HELPER_TO_FIXTURE.get(blocked_helper) if isinstance(blocked_helper, str) else None
         if fixture_key is None:
             failures.append(issue("replay_blocked_helper_mapping", "known_helper", blocked_helper))
         elif not isinstance(blocked_field, str) or not blocked_field.startswith(f"{fixture_key}."):
             failures.append(issue("replay_blocked_field_prefix", f"{fixture_key}.", blocked_field))
-        if resolve_field(fixture, EXPECTED_REPLAY_BLOCKER["field"]) != EXPECTED_REPLAY_BLOCKER["expected"]:
-            failures.append(issue("fixture_blocked_field_value", EXPECTED_REPLAY_BLOCKER["expected"], resolve_field(fixture, EXPECTED_REPLAY_BLOCKER["field"])))
+        blocked_value = resolve_field(fixture, EXPECTED_REPLAY_BLOCKER["field"])
+        if blocked_value != EXPECTED_REPLAY_BLOCKER["expected"]:
+            failures.append(
+                issue(
+                    "fixture_blocked_field_value",
+                    EXPECTED_REPLAY_BLOCKER["expected"],
+                    blocked_value,
+                )
+            )
 
     c_harness = blockers.get("c_harness", {})
     if c_harness.get("path") != EXPECTED_C_HARNESS_PATH:
@@ -424,13 +614,24 @@ def collect_failures(root: Path) -> list[str]:
     if c_harness.get("reason") != EXPECTED_C_HARNESS_REASON:
         failures.append(issue("c_harness_reason", EXPECTED_C_HARNESS_REASON, c_harness.get("reason")))
     if c_harness.get("helper_count") != len(EXPECTED_HELPERS):
-        failures.append(issue("c_harness_helper_count", len(EXPECTED_HELPERS), c_harness.get("helper_count")))
+        failures.append(
+            issue("c_harness_helper_count", len(EXPECTED_HELPERS), c_harness.get("helper_count"))
+        )
     if tuple(c_harness.get("helpers", [])) != EXPECTED_HELPERS:
-        failures.append(issue("c_harness_helpers", EXPECTED_HELPERS, tuple(c_harness.get("helpers", []))))
+        failures.append(
+            issue("c_harness_helpers", EXPECTED_HELPERS, tuple(c_harness.get("helpers", [])))
+        )
     if c_harness.get("blocker_id") != EXPECTED_C_HARNESS_BLOCKER_ID:
-        failures.append(issue("c_harness_blocker_id", EXPECTED_C_HARNESS_BLOCKER_ID, c_harness.get("blocker_id")))
+        failures.append(
+            issue(
+                "c_harness_blocker_id",
+                EXPECTED_C_HARNESS_BLOCKER_ID,
+                c_harness.get("blocker_id"),
+            )
+        )
     if (root / EXPECTED_C_HARNESS_PATH).exists():
         failures.append(issue("c_harness_present", False, True))
+
     return failures
 
 
@@ -449,30 +650,48 @@ def sample_manifest() -> dict[str, object]:
         "review_anchors": {
             "tools/lib/argv_split.zig": {"next_safe_step_note": "ok"},
             "tools/lib/bitmap.zig": {
-                "parity_fixture_keys": list(EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/bitmap.zig"]["parity_fixture_keys"]),
-                "partial_xor_review_fields": list(EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/bitmap.zig"]["partial_xor_review_fields"]),
+                "parity_fixture_keys": list(
+                    EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/bitmap.zig"]["parity_fixture_keys"]
+                ),
+                "partial_xor_review_fields": list(
+                    EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/bitmap.zig"]["partial_xor_review_fields"]
+                ),
                 "shared_logical_fixture_keys": ["weight", "and_result"],
                 "shared_range_fixture_keys": ["range_after_set", "empty_after_zero"],
                 "next_safe_step_note": "ok",
             },
             "tools/lib/find_bit.zig": {
-                "tail_clamp_fixture_keys": list(EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/find_bit.zig"]["tail_clamp_fixture_keys"]),
-                "tail_inclusive_boundary_fixture_keys": list(EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/find_bit.zig"]["tail_inclusive_boundary_fixture_keys"]),
+                "tail_clamp_fixture_keys": list(
+                    EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/find_bit.zig"]["tail_clamp_fixture_keys"]
+                ),
+                "tail_inclusive_boundary_fixture_keys": list(
+                    EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/find_bit.zig"][
+                        "tail_inclusive_boundary_fixture_keys"
+                    ]
+                ),
                 "next_safe_step_note": "ok",
             },
             "tools/lib/list_sort.zig": {
-                "parity_fixture_keys": list(EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/list_sort.zig"]["parity_fixture_keys"]),
+                "parity_fixture_keys": list(
+                    EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/list_sort.zig"]["parity_fixture_keys"]
+                ),
                 "next_safe_step_note": "ok",
             },
             "tools/lib/rbtree.zig": {
-                "parity_fixture_keys": list(EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/rbtree.zig"]["parity_fixture_keys"]),
-                "cached_leftmost_fixture_keys": list(EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/rbtree.zig"]["cached_leftmost_fixture_keys"]),
+                "parity_fixture_keys": list(
+                    EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/rbtree.zig"]["parity_fixture_keys"]
+                ),
+                "cached_leftmost_fixture_keys": list(
+                    EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/rbtree.zig"]["cached_leftmost_fixture_keys"]
+                ),
                 "traversal_replay_keys": ["empty_root", "insert_order"],
                 "duplicate_search_replay_keys": ["find_found_key", "next_match_terminal_null"],
                 "next_safe_step_note": "ok",
             },
             "tools/lib/string.zig": {
-                "parity_fixture_keys": list(EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/string.zig"]["parity_fixture_keys"]),
+                "parity_fixture_keys": list(
+                    EXPECTED_EXACT_REVIEW_FIELDS["tools/lib/string.zig"]["parity_fixture_keys"]
+                ),
                 "next_safe_step_note": "ok",
             },
         },
@@ -508,7 +727,11 @@ def sample_blockers() -> dict[str, object]:
 
 def sample_fixture() -> dict[str, object]:
     return {
-        "argv_split": {"argc": 3},
+        "argv_split": {
+            "argc": 3,
+            "argv": ["alpha", "beta", "gamma"],
+            "blank_argc": 0,
+        },
         "bitmap": {
             "alloc_words": 2,
             "zalloc_words": 2,
@@ -526,8 +749,27 @@ def sample_fixture() -> dict[str, object]:
             "range_after_set": [1],
             "empty_after_zero": True,
         },
-        "cmdline": {"decimal_k": {"value": 1}},
-        "ctype": {"mask_A": 65},
+        "cmdline": {
+            "decimal_k": {"value": 65536, "rest": " rest"},
+            "hex_m": {"value": 33554432, "rest": ""},
+            "invalid": {"value": 0, "rest": "xyz"},
+            "octal_k": {"value": 8192, "rest": ""},
+        },
+        "ctype": {
+            "isalnum_A": True,
+            "isalpha_z": True,
+            "isdigit_7": True,
+            "isodigit_7": True,
+            "isodigit_8": False,
+            "ispunct_bang": True,
+            "isspace_tab": True,
+            "isxdigit_f": True,
+            "mask_A": 65,
+            "mask_a": 66,
+            "mask_space": 160,
+            "tolower_A": 97,
+            "toupper_z": 90,
+        },
         "find_bit": {
             "tail_clamped_first": 1,
             "tail_clamped_next": 2,
@@ -541,7 +783,13 @@ def sample_fixture() -> dict[str, object]:
             "tail_inclusive_boundary_zero": 10,
             "tail_inclusive_boundary_and": 11,
         },
-        "hweight": {"w8": 4},
+        "hweight": {
+            "w16": 8,
+            "w32": 16,
+            "w64": 32,
+            "w8": 4,
+            "wlong": 8,
+        },
         "list_sort": {
             "tri_sorted_keys": [1],
             "tri_sorted_ordinals": [0],
@@ -553,7 +801,7 @@ def sample_fixture() -> dict[str, object]:
             "insert_order": [1],
             "reverse_order": [1],
             "replace_order": [1],
-            "erase_init_order": [1],
+            "erase_init_order":  [1],
             "postorder_count": 1,
             "erase_init_node_empty": True,
             "cleared_node_empty": True,
@@ -565,8 +813,20 @@ def sample_fixture() -> dict[str, object]:
             "next_match_terminal_null": True,
             "cached_leftmost_return_serials": [0],
         },
-        "slab": {"zero_after_kmalloc": True},
-        "str_error_r": {"enoent": "ok"},
+        "slab": {
+            "alloc_count_after_kmalloc": 1,
+            "alloc_count_after_kmalloc_array": 1,
+            "alloc_count_after_kmalloc_array_free": 0,
+            "alloc_count_after_kmalloc_free": 0,
+            "array_zeroed": True,
+            "null_without_reclaim": True,
+            "slab_is_available": True,
+            "zero_after_kmalloc": True,
+        },
+        "str_error_r": {
+            "enoent": "No such file or directory",
+            "unknown": "INTERNAL ERROR",
+        },
         "string": {
             "strtobool_y": True,
             "strtobool_on": True,
@@ -585,21 +845,34 @@ def sample_fixture() -> dict[str, object]:
             "memchr_inv_index": 0,
             "memchr_inv_none": True,
         },
-        "vsprintf": {"scnprintf_text": "x"},
-        "zalloc": {"zeroed": True},
+        "vsprintf": {
+            "pad_len": 7,
+            "pad_text": "id=7    ",
+            "scnprintf_len": 7,
+            "scnprintf_text": "zigux:7",
+        },
+        "zalloc": {
+            "freed_is_null": True,
+            "value_freed_is_null": True,
+            "value_zeroed": True,
+            "zeroed": True,
+        },
     }
 
 
 def build_sample_root(root: Path) -> None:
     (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux/tests/fixtures").mkdir(parents=True, exist_ok=True)
+
     artifact_lines = [
         "#!/usr/bin/env python3",
         'MODE_CHOICES = ("text", "json", "bytes")',
         'LEGACY_MODE_ALIASES = {"sha256": "bytes"}',
         "SELF_TEST_CASES = [",
     ]
-    artifact_lines.extend(f'    "{case}",' for case in EXPECTED_ARTIFACT_LITERALS["SELF_TEST_CASES"])
+    artifact_lines.extend(
+        f'    "{case}",' for case in EXPECTED_ARTIFACT_LITERALS["SELF_TEST_CASES"]
+    )
     artifact_lines.extend(
         [
             "]",
@@ -609,15 +882,26 @@ def build_sample_root(root: Path) -> None:
             "",
         ]
     )
-    (root / "scripts/zigux/artifact_diff.py").write_text("\n".join(artifact_lines), encoding="utf-8")
-    (root / "zigux/tests/fixtures/phase1_helper_manifest.json").write_text(json.dumps(sample_manifest(), indent=2) + "\n", encoding="utf-8")
-    (root / "zigux/tests/fixtures/phase1_replay_blockers.json").write_text(json.dumps(sample_blockers(), indent=2) + "\n", encoding="utf-8")
-    (root / "zigux/tests/fixtures/phase1_helpers.json").write_text(json.dumps(sample_fixture(), separators=(",", ":")) + "\n", encoding="utf-8")
+    (root / "scripts/zigux/artifact_diff.py").write_text(
+        "\n".join(artifact_lines), encoding="utf-8"
+    )
+    (root / "zigux/tests/fixtures/phase1_helper_manifest.json").write_text(
+        json.dumps(sample_manifest(), indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (root / "zigux/tests/fixtures/phase1_replay_blockers.json").write_text(
+        json.dumps(sample_blockers(), indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (root / "zigux/tests/fixtures/phase1_helpers.json").write_text(
+        json.dumps(sample_fixture(), separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
 
 
-def mutate_json(path: Path, fn) -> None:
+def mutate_json(path: Path, mutate) -> None:
     data = json.loads(path.read_text(encoding="utf-8"))
-    fn(data)
+    mutate(data)
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
@@ -625,16 +909,84 @@ def run_self_test() -> int:
     cases = (
         ("success", None),
         ("missing_file", lambda root: (root / "scripts/zigux/artifact_diff.py").unlink()),
-        ("artifact_case_drift", lambda root: (root / "scripts/zigux/artifact_diff.py").write_text("#!/usr/bin/env python3\nSELF_TEST_CASES=[]\n", encoding="utf-8")),
-        ("review_anchor_key_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", lambda data: data["review_anchors"].pop("tools/lib/string.zig"))),
-        ("dynamic_key_type_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", lambda data: data["review_anchors"]["tools/lib/rbtree.zig"].__setitem__("traversal_replay_keys", "drift"))),
-        ("dynamic_key_missing_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", lambda data: data["review_anchors"]["tools/lib/rbtree.zig"].__setitem__("duplicate_search_replay_keys", ["missing"]))),
-        ("blocker_manifest_pointer_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_replay_blockers.json", lambda data: data["lane_sequencing"].__setitem__("manifest", "drift.json"))),
-        ("replay_blocked_helper_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_replay_blockers.json", lambda data: data["replay"]["blockers"][0].__setitem__("path", "tools/lib/bitmap.zig"))),
-        ("c_harness_blocker_id_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_replay_blockers.json", lambda data: data["c_harness"].__setitem__("blocker_id", "drift"))),
-        ("fixture_key_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_helpers.json", lambda data: data["slab"].__setitem__("zero_after_kmalloc", False))),
-        ("blocker_reason_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_replay_blockers.json", lambda data: data["c_harness"].__setitem__("reason", "drift"))),
+        (
+            "artifact_case_drift",
+            lambda root: (root / "scripts/zigux/artifact_diff.py").write_text(
+                "#!/usr/bin/env python3\nSELF_TEST_CASES=[]\n",
+                encoding="utf-8",
+            ),
+        ),
+        (
+            "review_anchor_key_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data["review_anchors"].pop("tools/lib/string.zig"),
+            ),
+        ),
+        (
+            "dynamic_key_type_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data["review_anchors"]["tools/lib/rbtree.zig"].__setitem__(
+                    "traversal_replay_keys", "drift"
+                ),
+            ),
+        ),
+        (
+            "dynamic_key_missing_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data["review_anchors"]["tools/lib/rbtree.zig"].__setitem__(
+                    "duplicate_search_replay_keys", ["missing"]
+                ),
+            ),
+        ),
+        (
+            "shared_fixture_field_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_helpers.json",
+                lambda data: data["vsprintf"].pop("pad_len"),
+            ),
+        ),
+        (
+            "blocker_manifest_pointer_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_replay_blockers.json",
+                lambda data: data["lane_sequencing"].__setitem__("manifest", "drift.json"),
+            ),
+        ),
+        (
+            "replay_blocked_helper_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_replay_blockers.json",
+                lambda data: data["replay"]["blockers"][0].__setitem__(
+                    "path", "tools/lib/bitmap.zig"
+                ),
+            ),
+        ),
+        (
+            "c_harness_blocker_id_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_replay_blockers.json",
+                lambda data: data["c_harness"].__setitem__("blocker_id", "drift"),
+            ),
+        ),
+        (
+            "fixture_blocked_field_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_helpers.json",
+                lambda data: data["slab"].__setitem__("zero_after_kmalloc", False),
+            ),
+        ),
+        (
+            "blocker_reason_drift",
+            lambda root: mutate_json(
+                root / "zigux/tests/fixtures/phase1_replay_blockers.json",
+                lambda data: data["c_harness"].__setitem__("reason", "drift"),
+            ),
+        ),
     )
+
     for name, mutation in cases:
         with tempfile.TemporaryDirectory(prefix="lane09_alignment_") as tmpdir:
             root = Path(tmpdir)
@@ -651,6 +1003,7 @@ def run_self_test() -> int:
             elif not failures:
                 print(f"self-test:{name}:expected_failure")
                 return 1
+
     print("PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
@@ -661,23 +1014,34 @@ def main() -> int:
     parser.add_argument("--root")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+
     if args.self_test:
         return run_self_test()
+
     failures = collect_failures(repo_root(args.root))
     if failures:
         print("PHASE1_ARTIFACT_BLOCKER_ALIGNMENT=fail")
         for failure in failures:
             print(failure)
         return 1
+
     print("PHASE1_ARTIFACT_BLOCKER_ALIGNMENT=pass")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_SHARED_HELPER_COUNT={len(EXPECTED_SHARED_HELPERS)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_DIRECT_HELPER_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_FIXTURE_HELPER_COUNT={len(EXPECTED_FIXTURE_KEYS)}")
+    print(
+        f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_SHARED_FIXTURE_GUARD_COUNT={len(EXPECTED_SHARED_FIXTURE_FIELDS)}"
+    )
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_BLOCKED_FIELD={EXPECTED_REPLAY_BLOCKER['field']}")
     print("PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_C_HARNESS_PRESENT=False")
-    print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_REVIEW_ANCHOR_HELPER_COUNT={len(EXPECTED_REVIEW_ANCHOR_HELPERS)}")
-    print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_ARTIFACT_SELF_TEST_CASE_COUNT={len(EXPECTED_ARTIFACT_LITERALS['SELF_TEST_CASES'])}")
+    print(
+        f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_REVIEW_ANCHOR_HELPER_COUNT={len(EXPECTED_REVIEW_ANCHOR_HELPERS)}"
+    )
+    print(
+        "PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_ARTIFACT_SELF_TEST_CASE_COUNT="
+        f"{len(EXPECTED_ARTIFACT_LITERALS['SELF_TEST_CASES'])}"
+    )
     return 0
 
 
