@@ -104,6 +104,15 @@ EXPECTED_HELPER_FIXTURE_MAP = {
     "tools/lib/zalloc.zig": "zalloc",
 }
 
+EXPECTED_REVIEW_ANCHOR_HELPERS = (
+    "tools/lib/argv_split.zig",
+    "tools/lib/bitmap.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/string.zig",
+)
+
 EXPECTED_REVIEW_ANCHOR_FIXTURE_FIELDS = {
     "tools/lib/bitmap.zig": {
         "parity_fixture_keys": (
@@ -305,6 +314,46 @@ def resolve_field_path(payload: dict[str, object], field_path: str) -> object | 
     return current
 
 
+def validate_dynamic_review_anchor_fixture_fields(
+    *,
+    helper_path: str,
+    review_anchor: dict[str, object],
+    helper_fixture: dict[str, object],
+    failures: list[str],
+) -> None:
+    for field_name, field_value in review_anchor.items():
+        if not field_name.endswith(("_keys", "_fields")):
+            continue
+        if not isinstance(field_value, list):
+            failures.append(
+                issue(
+                    f"review_anchor_dynamic_field_type:{helper_path}:{field_name}",
+                    "list",
+                    type(field_value).__name__,
+                )
+            )
+            continue
+        if not all(isinstance(item, str) for item in field_value):
+            actual_types = tuple(type(item).__name__ for item in field_value)
+            failures.append(
+                issue(
+                    f"review_anchor_dynamic_item_types:{helper_path}:{field_name}",
+                    ("str",) * len(field_value),
+                    actual_types,
+                )
+            )
+            continue
+        missing = tuple(key for key in field_value if key not in helper_fixture)
+        if missing:
+            failures.append(
+                issue(
+                    f"review_anchor_dynamic_field_presence:{helper_path}:{field_name}",
+                    (),
+                    missing,
+                )
+            )
+
+
 def validate_fixture_key_fields(
     *,
     helper_path: str,
@@ -335,6 +384,13 @@ def validate_fixture_key_fields(
                     missing,
                 )
             )
+
+    validate_dynamic_review_anchor_fixture_fields(
+        helper_path=helper_path,
+        review_anchor=review_anchor,
+        helper_fixture=helper_fixture,
+        failures=failures,
+    )
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -420,10 +476,11 @@ def collect_failures(root: Path) -> list[str]:
         failures.append(issue("review_anchors_type", "dict", type(review_anchors).__name__))
         return failures
     review_anchor_keys = tuple(sorted(review_anchors.keys()))
-    expected_review_anchor_keys = tuple(sorted(EXPECTED_HELPER_FIXTURE_MAP.keys()))
+    expected_review_anchor_keys = tuple(sorted(EXPECTED_REVIEW_ANCHOR_HELPERS))
     if review_anchor_keys != expected_review_anchor_keys:
         failures.append(issue("review_anchor_keys", expected_review_anchor_keys, review_anchor_keys))
-    for helper_path, fixture_key in EXPECTED_HELPER_FIXTURE_MAP.items():
+    for helper_path in EXPECTED_REVIEW_ANCHOR_HELPERS:
+        fixture_key = EXPECTED_HELPER_FIXTURE_MAP[helper_path]
         validate_fixture_key_fields(
             helper_path=helper_path,
             fixture_key=fixture_key,
@@ -641,13 +698,55 @@ def sample_manifest() -> dict[str, object]:
 
 def sample_review_anchors() -> dict[str, dict[str, object]]:
     anchors: dict[str, dict[str, object]] = {}
-    for helper_path in EXPECTED_HELPERS:
+    rbtree_traversal_replay_keys = [
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+    ]
+    rbtree_duplicate_search_replay_keys = [
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "match_iterator_serials",
+        "next_match_terminal_null",
+    ]
+    bitmap_shared_logical_fixture_keys = [
+        "weight",
+        "and_result",
+        "and_values",
+        "andnot_result",
+        "andnot_values",
+        "or_values",
+        "xor_values",
+        "equal",
+        "intersects",
+        "subset",
+    ]
+    bitmap_shared_range_fixture_keys = [
+        "range_after_set",
+        "range_after_clear",
+        "full_after_fill",
+        "empty_after_zero",
+    ]
+    for helper_path in EXPECTED_REVIEW_ANCHOR_HELPERS:
         fixture_name = EXPECTED_HELPER_FIXTURE_MAP[helper_path]
         anchor = {
             "next_safe_step_note": f"Keep {fixture_name} bounded to its current manifest packet unless fixture drift appears.",
         }
         for field_name, expected_keys in EXPECTED_REVIEW_ANCHOR_FIXTURE_FIELDS.get(helper_path, {}).items():
             anchor[field_name] = list(expected_keys)
+        if helper_path == "tools/lib/rbtree.zig":
+            anchor["traversal_replay_keys"] = list(rbtree_traversal_replay_keys)
+            anchor["duplicate_search_replay_keys"] = list(rbtree_duplicate_search_replay_keys)
+        if helper_path == "tools/lib/bitmap.zig":
+            anchor["shared_logical_fixture_keys"] = list(bitmap_shared_logical_fixture_keys)
+            anchor["shared_range_fixture_keys"] = list(bitmap_shared_range_fixture_keys)
         anchors[helper_path] = anchor
     return anchors
 
@@ -924,6 +1023,24 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "review_anchor_dynamic_field_type_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data["review_anchors"]["tools/lib/rbtree.zig"].__setitem__(
+                    "traversal_replay_keys", "drift"
+                ),
+            ),
+        ),
+        (
+            "review_anchor_dynamic_field_presence_drift",
+            lambda root: _mutate_json(
+                root / "zigux/tests/fixtures/phase1_helper_manifest.json",
+                lambda data: data["review_anchors"]["tools/lib/rbtree.zig"].__setitem__(
+                    "duplicate_search_replay_keys", ["missing_fixture_key"]
+                ),
+            ),
+        ),
+        (
             "review_anchor_missing_fixture_field",
             lambda root: _mutate_json(
                 root / "zigux/tests/fixtures/phase1_helpers.json",
@@ -1044,11 +1161,11 @@ def main() -> int:
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_SHARED_HELPER_COUNT={len(EXPECTED_SHARED_HELPERS)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_DIRECT_HELPER_COUNT={len(EXPECTED_DIRECT_HELPERS)}")
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_FIXTURE_HELPER_COUNT={len(EXPECTED_FIXTURE_KEYS)}")
-    print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_BLOCKED_FIELD={EXPECTED_REPLAY_BLOCKER_FIELD}")
+    print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_BLOCKED_FIELD={EXPECTED_REPLAY_BLOCKER_FIELD})
     print(f"PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_C_HARNESS_PRESENT={EXPECTED_C_HARNESS_PRESENT}")
     print(
         "PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_REVIEW_ANCHOR_HELPER_COUNT="
-        f"{len(EXPECTED_HELPER_FIXTURE_MAP)}"
+        f"{len(EXPECTED_REVIEW_ANCHOR_HELPERS)}"
     )
     print(
         "PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_ARTIFACT_SELF_TEST_CASE_COUNT="
