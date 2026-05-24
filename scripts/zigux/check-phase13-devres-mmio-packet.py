@@ -51,6 +51,8 @@ SURVEY_MARKERS = [
     "`Documentation/zigux/phase13-devres-iomap-planner.md` records a landed pure `devm_of_iomap()` planning surface",
     "`zigux/tests/phase13_devres_iomap_planner_manifest.json` marks the packet as `starter_landed`",
     "helper-first iomap planning through `planDeviceTreeIomap(...)`",
+    "helper-side iomap cleanup handoff in `lib/devres.zig`",
+    "`.provides_of_iomap_cleanup_handoff_planning = true` and `planDeviceTreeIomapCleanupHandoff(...)`",
     "blocked `phase13-devres-missing-devm-ioremap-np-surface`",
     "blocked `phase13-devres-missing-devm-arch-phys-wc-add-surface`",
     "blocked `phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface`",
@@ -98,6 +100,8 @@ IOMAP_NOTE_MARKERS = [
     "translated size is preserved when a requested region is denied as busy",
     "requested region is released again when remap later fails",
     "requested non-posted mapping type stays attached to the planning surface",
+    "successful helper-first remap hands off to `devm_iounmap()` cleanup planning",
+    "cleanup handoff consumes the matching release record or still warns when the release record is missing",
     "devm_ioremap_np()",
     "devm_iounmap()",
     "devm_arch_phys_wc_add()",
@@ -110,6 +114,9 @@ IOMAP_MANIFEST_MARKERS = [
     "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
     "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
     "\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+    "\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+    "\"cleanup_release_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+    "planDeviceTreeIomapCleanupHandoff",
     "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
     "\"id\": \"phase13-devres-missing-devm-arch-phys-wc-add-surface\"",
     "\"id\": \"phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface\"",
@@ -120,6 +127,8 @@ IOMAP_MANIFEST_MARKERS = [
 
 IOMAP_REPLAY_MARKERS = [
     "phase13 devres descriptor records helper-first iomap planning",
+    "phase13 devres iomap cleanup handoff materializes helper-first iounmap cleanup after successful remap",
+    "phase13 devres iomap cleanup handoff keeps missing release records warnable",
     "phase13 devres iomap planner manifest records the landed helper-first mmio scope",
     "phase13 devres iomap planner note keeps the helper-first mmio slice bounded",
     "phase13 devres iomap planner checker stays packet-local",
@@ -127,9 +136,11 @@ IOMAP_REPLAY_MARKERS = [
 
 HELPER_REQUIRED_MARKERS = [
     ".provides_of_iomap_planning = true",
+    ".provides_of_iomap_cleanup_handoff_planning = true",
     ".provides_iounmap_cleanup_planning = true",
     ".touches_live_mmio = false",
     "pub fn planDeviceTreeIomap",
+    "pub fn planDeviceTreeIomapCleanupHandoff",
     "pub fn planManagedIounmapCleanup",
 ]
 
@@ -251,16 +262,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in SURVEY_MARKERS
-                if marker != "blocked `phase13-devres-live-device-tree-walks`"
+                if marker != "`.provides_of_iomap_cleanup_handoff_planning = true` and `planDeviceTreeIomapCleanupHandoff(...)`"
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "survey:missing_marker:blocked `phase13-devres-live-device-tree-walks`",
+                "survey:missing_marker:`.provides_of_iomap_cleanup_handoff_planning = true` and `planDeviceTreeIomapCleanupHandoff(...)`",
             ],
-            "missing_survey_device_tree_gap_failed",
+            "missing_survey_cleanup_handoff_marker_failed",
         )
         case_count += 1
 
@@ -289,6 +300,25 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in IOMAP_MANIFEST_MARKERS
+                if marker != "\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "iomap_manifest:missing_marker:\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+            ],
+            "missing_iomap_cleanup_handoff_owner_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / IOMAP_MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in IOMAP_MANIFEST_MARKERS
                 if marker != "\"id\": \"phase13-devres-live-arch-memtype-mutation\""
             )
             + "\n",
@@ -308,6 +338,21 @@ def run_self_test() -> int:
             validate(root),
             [f"missing_file:{IOMAP_MANIFEST_PATH.as_posix()}"],
             "missing_iomap_manifest_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
+            "\n".join(
+                marker for marker in HELPER_REQUIRED_MARKERS if marker != ".provides_of_iomap_cleanup_handoff_planning = true"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["helper:missing_marker:.provides_of_iomap_cleanup_handoff_planning = true"],
+            "missing_helper_cleanup_handoff_flag_failed",
         )
         case_count += 1
 
