@@ -692,6 +692,62 @@ pub fn rb_next_postorder(node: ?*const Node) ?*Node {
     return nextPostorder(node);
 }
 
+test "rbtree replaceNode keeps plain-root traversal and lookup aliases stable" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const key_cmp = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 15 };
+    var replacement_entry = Entry{ .key = 10 };
+    var root = Root.init();
+
+    add(&root_entry.node, &root, less);
+    add(&left_entry.node, &root, less);
+    add(&right_entry.node, &root, less);
+
+    const want_left = @as(i32, 5);
+    const want_root = @as(i32, 10);
+    const want_missing = @as(i32, 99);
+
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), find(&want_left, &root, key_cmp));
+    try std.testing.expectEqual(@as(?*Node, &root_entry.node), rb_find(&want_root, &root, key_cmp));
+    try std.testing.expect(find(&want_missing, &root, key_cmp) == null);
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), first(&root));
+    try std.testing.expectEqual(@as(?*Node, &right_entry.node), rb_last(&root));
+
+    rb_replace_node(&root_entry.node, &replacement_entry.node, &root);
+
+    try std.testing.expectEqual(@as(?*Node, &replacement_entry.node), root.node);
+    try std.testing.expectEqual(@as(?*Node, &replacement_entry.node), find(&want_root, &root, key_cmp));
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), first(&root));
+    try std.testing.expectEqual(@as(?*Node, &right_entry.node), last(&root));
+    try std.testing.expectEqual(@as(?*Node, &replacement_entry.node), next(&left_entry.node));
+    try std.testing.expectEqual(@as(?*Node, &replacement_entry.node), rb_prev(&right_entry.node));
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), prev(&replacement_entry.node));
+    try std.testing.expectEqual(@as(?*Node, &right_entry.node), rb_next(&replacement_entry.node));
+}
+
 test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged" {
     const Entry = struct {
         key: i32,
