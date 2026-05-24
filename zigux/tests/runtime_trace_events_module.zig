@@ -162,5 +162,5 @@ test "runtime trace-events sample keeps initialized-stage exit replay explicit a
     try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
     try std.testing.expectEqual(before_exit.last_register_label, after_exit.last_register_label);
-    try std.testing.expectEqual(before_exit.last_unregisterLabel, after_exit.last_unregisterLabel);
+    try std.testing.expectEqual(before_exit.last_unregister_label, after_exit.last_unregister_label);
 }
