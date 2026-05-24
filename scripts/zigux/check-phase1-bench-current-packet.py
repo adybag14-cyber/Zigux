@@ -237,7 +237,7 @@ def run_self_test() -> int:
             BENCH_CHECKER_REL,
             "for key, value, expected_kind in (",
             "for key, value, expected_kind in (",
-            (("# interleaved tuple comment", "# interleaved tuple comment", "# interleaved tuple comment"),),
+            ('("# interleaved tuple comment", "# interleaved tuple comment", "# interleaved tuple comment"),',),
         )
         issues = collect_issues(root)
         if issues:
