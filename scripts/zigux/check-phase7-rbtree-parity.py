@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -269,6 +269,11 @@ def run_self_test() -> None:
 
         write_fixture_root(root)
         survey_path = root / "zigux/tests/phase7_rbtree_survey.zig"
+        survey_marker = 'try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree.json");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
+
+        write_fixture_root(root)
         survey_marker = 'try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");'
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}"])
