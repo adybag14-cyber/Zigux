@@ -72,6 +72,23 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
         matched,
     );
 
+    try env.set("PATH", "/usr/bin");
+    const unmatched = try exec_cmd.setupPathWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        .{ .device = 11, .inode = 7 },
+        .{ .device = 9, .inode = 99 },
+    );
+    defer std.testing.allocator.free(unmatched);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        unmatched,
+    );
+
     try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "");
     try exec_cmd.setArgv0Path(std.testing.allocator, &state, "tools");
     try env.set("PATH", "");
