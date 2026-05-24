@@ -92,3 +92,56 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers track bits dropped by shifts" {
+    const value8: u32 = 0b1101_0111;
+    try std.testing.expectEqual(
+        swHweight8(value8),
+        swHweight8(value8 >> 1) + @as(u32, @intFromBool((value8 & 1) != 0)),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight8(value8),
+        __sw_hweight8((value8 << 1) & 0xff) + @as(u32, @intFromBool((value8 & 0x80) != 0)),
+    );
+
+    const value16: u32 = 0x96d3;
+    try std.testing.expectEqual(
+        swHweight16(value16),
+        swHweight16(value16 >> 1) + @as(u32, @intFromBool((value16 & 1) != 0)),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight16(value16),
+        __sw_hweight16((value16 << 1) & 0xffff) + @as(u32, @intFromBool((value16 & 0x8000) != 0)),
+    );
+
+    const value32: u32 = 0x96d3_a5c7;
+    try std.testing.expectEqual(
+        swHweight32(value32),
+        swHweight32(value32 >> 1) + @as(u32, @intFromBool((value32 & 1) != 0)),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight32(value32),
+        __sw_hweight32(value32 << 1) + @as(u32, @intFromBool((value32 & 0x8000_0000) != 0)),
+    );
+
+    const value64: u64 = 0x96d3_a5c7_f0e1_b84d;
+    try std.testing.expectEqual(
+        swHweight64(value64),
+        swHweight64(value64 >> 1) + @as(u64, @intFromBool((value64 & 1) != 0)),
+    );
+    try std.testing.expectEqual(
+        __sw_hweight64(value64),
+        __sw_hweight64(value64 << 1) + @as(u64, @intFromBool((value64 & 0x8000_0000_0000_0000) != 0)),
+    );
+
+    const value_long: usize = if (@sizeOf(usize) == 4) 0x96d3_a5c7 else 0x96d3_a5c7_f0e1_b84d;
+    const long_top_bit: usize = @as(usize, 1) << (@bitSizeOf(usize) - 1);
+    try std.testing.expectEqual(
+        hweightLong(value_long),
+        hweightLong(value_long >> 1) + @as(usize, @intFromBool((value_long & 1) != 0)),
+    );
+    try std.testing.expectEqual(
+        hweight_long(value_long),
+        hweight_long(value_long << 1) + @as(usize, @intFromBool((value_long & long_top_bit) != 0)),
+    );
+}
