@@ -89,6 +89,8 @@ REQUIRED_HEXDUMP_LINUX_STYLE_RERUN_ROUTES = [
 ]
 EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT = "zigux/tests/phase6_hexdump_perf_matrix.zig"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
+EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 EXPECTED_CHECKSUM_CASES = {
     "64B": {"iterations": 200000, "max_slowdown_pct": 150},
     "1501B": {"iterations": 12000, "max_slowdown_pct": 150},
@@ -107,7 +109,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 47
+SELF_TEST_CASE_COUNT = 49
 
 
 class ValidationError(RuntimeError):
@@ -190,6 +192,8 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
     if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
         raise ValidationError("helper-evidence surveyed_head drifted")
+    if manifest.get("lane_scope") != EXPECTED_EVIDENCE_LANE_SCOPE:
+        raise ValidationError("helper-evidence lane_scope drifted")
 
     companions = manifest.get("current_direct_readback_companions")
     if not isinstance(companions, list):
@@ -238,6 +242,8 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
     if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
         raise ValidationError("helper-parity surveyed_head drifted")
+    if manifest.get("lane_scope") != EXPECTED_PARITY_LANE_SCOPE:
+        raise ValidationError("helper-parity lane_scope drifted")
 
     checksum = get_helper(manifest, "checksum")
     hexdump = get_helper(manifest, "hexdump")
@@ -298,6 +304,7 @@ def scaffold_repo(root: Path) -> None:
         "packet": "phase6-helper-evidence",
         "phase": "Phase 6",
         "surveyed_head": EXPECTED_SURVEYED_HEAD,
+        "lane_scope": EXPECTED_EVIDENCE_LANE_SCOPE,
         "current_direct_readback_companions": [REQUIRED_DIRECT_READBACK_COMPANION],
         "helpers": [
             {"key": "checksum", "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_cases": [{"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100}, {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100}], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS}},
@@ -309,6 +316,7 @@ def scaffold_repo(root: Path) -> None:
         "packet": "phase6-helper-parity",
         "phase": "Phase 6",
         "surveyed_head": EXPECTED_SURVEYED_HEAD,
+        "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
         "helpers": [
             {"key": "checksum", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS, "linux_style_rerun_routes": ["make -C zigux phase6-checksum-perf-matrix-test", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-perf"]}},
             {"key": "hexdump", "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES, "perf_matrix_preflight": EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT, "current_perf_evidence": {"cases": [{"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175}, {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600}], "linux_style_rerun_routes": ["make -C zigux phase6-hexdump-review", "make -C zigux phase6-hexdump-perf-matrix-test", "make -C zigux phase6-hexdump-perf", "make -C zigux phase6-perf"]}}
@@ -319,17 +327,6 @@ def scaffold_repo(root: Path) -> None:
 def mutate_text(path: Path, old: str, new: str) -> None:
     content = read_text(path)
     write(path, content.replace(old, new, 1))
-
-
-def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
-    mutate()
-    try:
-        validate(root)
-    except ValidationError as exc:
-        if expected_fragment not in str(exc):
-            raise AssertionError(f"expected {expected_fragment!r} in {str(exc)!r}") from exc
-    else:
-        raise AssertionError("expected validation failure")
 
 
 def run_self_test() -> None:
@@ -350,6 +347,7 @@ def run_self_test() -> None:
             (SURVEY_PATH, "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`", "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 575`", "32B-ascii-g2"),
             (MAKEFILE_PATH, "phase6-hexdump-review:", "phase6-hexdump-scan:", "phase6-hexdump-review:"),
             (MAKEFILE_PATH, "phase6-hexdump-perf:", "phase6-hexdump-test:", "phase6-hexdump-perf:"),
+            (EVIDENCE_MANIFEST_PATH, '"lane_scope": "shared helper-evidence rows and machine-readable manifest only"', '"lane_scope": "shared helper-evidence rows only"', "helper-evidence lane_scope drifted"),
             (EVIDENCE_MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"', '"scripts/zigux/check-phase6-present-entrypoints.py"', "check-phase6-checksum-hexdump-perf-markers.py"),
             (EVIDENCE_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-22"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-evidence surveyed_head drifted"),
             (EVIDENCE_MANIFEST_PATH, '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig"', '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum.zig"', "checksum dedicated_slowdown_replay drifted"),
@@ -366,6 +364,7 @@ def run_self_test() -> None:
             (EVIDENCE_MANIFEST_PATH, '"label": "IPV4_60B"', '"label": "IPV4_64B"', "checksum evidence ipv4 fast path perf case drift"),
             (EVIDENCE_MANIFEST_PATH, '"ipv4_fast_path_case_labels": [\n          "IPV4_20B",\n          "IPV4_20B_UPDATED",\n          "IPV4_24B",\n          "IPV4_60B"\n        ]', '"ipv4_fast_path_case_labels": ["IPV4_20B", "IPV4_24B", "IPV4_64B"]', "checksum evidence ipv4_fast_path_case_labels drifted"),
             (EVIDENCE_MANIFEST_PATH, '"reps": 10000', '"reps": 8000', "hexdump evidence 32B-ascii-g2 reps drifted"),
+            (PARITY_MANIFEST_PATH, '"lane_scope": "shared helper-parity rows and machine-readable manifest only"', '"lane_scope": "shared helper-parity rows only"', "helper-parity lane_scope drifted"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-checksum-corpus-evidence.py",\n        "scripts/zigux/check-phase6-checksum-c-parity.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]', "checksum checker surface drifted"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-hexdump-packet.py"]', "hexdump checker surface drifted"),
             (PARITY_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-22"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-parity surveyed_head drifted"),
