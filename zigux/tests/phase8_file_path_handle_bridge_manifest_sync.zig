@@ -73,3 +73,21 @@ test "phase 8 file-path handle bridge manifest keeps the landed helper wording e
         "\"why_now\": \"The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects.\"",
     );
 }
+
+test "phase 8 file-path handle bridge slice keeps the landed helper rationale aligned with the manifest" {
+    const note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(note);
+
+    try expectContains(
+        note,
+        "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.",
+    );
+    try expectContains(
+        note,
+        "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.",
+    );
+}
