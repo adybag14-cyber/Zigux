@@ -75,6 +75,15 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
         "zigux/tests/phase15_readiness_gate_manifest.json",
         manifest.direct_packet_paths[34],
     );
+    try std.testing.expectEqual(@as(usize, 5), manifest.phase15_validate_checkers.len);
+    try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase15-docs-readme-alignment.py",
+        manifest.phase15_validate_checkers[0],
+    );
+    try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase15-shared-summary-gap.py",
+        manifest.phase15_validate_checkers[4],
+    );
     try std.testing.expectEqual(@as(usize, 1), manifest.still_missing_broader_paths.len);
     try std.testing.expectEqualStrings(
         "zigux/tests/phase15_build.zig",
@@ -82,6 +91,7 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     );
     try std.testing.expect(manifest.repo_evidence.phase15_readiness_packet_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scripts_readme_checker_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_build_zig_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
