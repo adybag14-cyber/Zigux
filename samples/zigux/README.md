@@ -123,3 +123,15 @@ Current `master` does ship one bounded `*string*` companion through `samples/zig
 Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.
 
 Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets instead of treating this directory as proof that dedicated string, cmdline, argv, rbtree, kasprintf, strarray, printf, vsprintf, or broad format samples have landed here.
+
+## Kobject validation routes
+
+Keep the current direct kobject validation routes explicit from the sample root too:
+
+* `zig test samples/zigux/kobject_example.zig` stays the sample-owned self-check for the ownership-and-lifetime packet
+* `zigux/tests/phase5_build.zig` now also keeps the named `phase5-kobject-example-sample-selfcheck` step explicit for that same sample-owned self-check route
+* `zig test --dep kobject_example_sample -Mroot=zigux/tests/phase5_kobject_example.zig -Mkobject_example_sample=samples/zigux/kobject_example.zig` stays the focused replay route for the same packet
+* `zig test zigux/tests/phase5_kobject_example_survey.zig` stays the survey-packet guard for the sample-owned replay, the public-tree-backed manifest-and-survey split, and the shared build-route companion in this runtime
+* `zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the companion-only validation route for the bounded attr-group packet
+* `zig test --dep kobject_attr_group_contract -Mroot=zigux/tests/phase5_kobject_attr_group_contract.zig -Mkobject_attr_group_contract=samples/zigux/kobject_example_attr_group_contract.zig` stays the focused replay route for that bounded attr-group packet
+* `zig test zigux/tests/phase5_kobject_attr_group_contract_survey.zig` stays the survey-guard route that checks the companion, focused replay, and shared build-route markers together
