@@ -38,6 +38,9 @@ Treat the current matrix packet as:
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
+This is a current-head HVC continuity packet rather than a whole-Phase-11
+replay roster.
+
 Current contents reads stay aligned with the smaller companion stack, so keep
 route claims bounded to `make -C zigux phase11-validate` until `zigux/Makefile`
 exposes a dedicated `make -C zigux phase11-hvc-survey` step. The witness shard
