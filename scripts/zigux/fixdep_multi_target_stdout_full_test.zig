@@ -20,7 +20,7 @@ const FailingCapture = struct {
 
     pub fn print(self: *@This(), comptime fmt: []const u8, args: anytype) error{OutputWrite}!void {
         const rendered = std.fmt.allocPrint(self.allocator, fmt, args) catch return error.OutputWrite;
-        defer std.testing.allocator.free(rendered);
+        defer self.allocator.free(rendered);
 
         const remaining = self.fail_after -| self.list.items.len;
         const writable = @min(remaining, rendered.len);
@@ -60,10 +60,17 @@ test "runFixdep keeps the multi-target prelude before output write failures" {
 
     const hash_depfile_path = try std.fmt.allocPrint(
         std.testing.allocator,
-        "{s}/shared\\\\#config.h",
+        "{s}/shared\\#config.h",
         .{base_path},
     );
     defer std.testing.allocator.free(hash_depfile_path);
+
+    const hash_visible_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/shared#config.h",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(hash_visible_path);
 
     const second_config_path = try std.fmt.allocPrint(
         std.testing.allocator,
