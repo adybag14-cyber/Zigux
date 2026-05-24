@@ -78,18 +78,12 @@ def run_self_test() -> int:
         if baseline:
             raise SystemExit(f"self-test-baseline-failed:{baseline}")
 
-        mutations = (
-            (BUILD_PATH, '"phase8-help-tests"'),
-            (BUILD_PATH, '"phase8-kallsyms-tests"'),
-            (BUILD_PATH, "test_step.dependOn(&run_help_tests.step);"),
-            (BUILD_PATH, "test_step.dependOn(&run_kallsyms_tests.step);"),
-        )
-
-        for rel_path, marker in mutations:
-            case_root = Path(tmp) / f"case_{cases}"
-            shutil.copytree(baseline_root, case_root)
-            assert_missing_case(case_root, rel_path, marker)
-            cases += 1
+        for rel_path, markers in REQUIRED_MARKERS.items():
+            for marker in markers:
+                case_root = Path(tmp) / f"case_{cases}"
+                shutil.copytree(baseline_root, case_root)
+                assert_missing_case(case_root, rel_path, marker)
+                cases += 1
 
         missing_file_root = Path(tmp) / f"case_{cases}"
         shutil.copytree(baseline_root, missing_file_root)
