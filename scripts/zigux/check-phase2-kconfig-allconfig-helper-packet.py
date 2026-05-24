@@ -51,6 +51,10 @@ REQUIRED_PHASE2_VALIDATE_MARKERS = [
 REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS = [
     '"`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",',
     'KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")',
+    'EXPECTED_CONF_CASE_DETAILS = [',
+    'EXPECTED_CONF_MANIFEST = {',
+    'EXPECTED_CONFDATA_CASE_DETAILS = [',
+    'EXPECTED_CONFDATA_MANIFEST = {',
 ]
 
 REQUIRED_TOOL_MANIFEST_CHECKERS = [
@@ -60,7 +64,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 12
+EXPECTED_SELF_TEST_CASE_COUNT = 14
 
 
 def read_json(path: Path) -> object:
@@ -370,6 +374,40 @@ def run_self_test() -> int:
         assert (
             "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
             REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0],
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
+        write_text(
+            phase2_closure_validate_path,
+            "\n".join(
+                marker
+                for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
+                if marker != 'EXPECTED_CONF_CASE_DETAILS = ['
+            )
+            + "\n",
+        )
+        assert (
+            "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
+            'EXPECTED_CONF_CASE_DETAILS = [',
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
+        write_text(
+            phase2_closure_validate_path,
+            "\n".join(
+                marker
+                for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
+                if marker != 'EXPECTED_CONFDATA_MANIFEST = {'
+            )
+            + "\n",
+        )
+        assert (
+            "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
+            'EXPECTED_CONFDATA_MANIFEST = {',
         ) in collect_issues(root)
         checks_run += 1
 
