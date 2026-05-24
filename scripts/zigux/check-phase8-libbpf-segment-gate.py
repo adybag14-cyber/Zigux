@@ -7,7 +7,14 @@ from pathlib import Path
 import sys
 import tempfile
 
-ROOT = Path(__file__).resolve().parents[2]
+def _default_root() -> Path:
+    resolved = Path(__file__).resolve()
+    if len(resolved.parents) >= 3:
+        return resolved.parents[2]
+    return resolved.parent
+
+
+ROOT = _default_root()
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
@@ -89,7 +96,9 @@ VERIFY_MARKERS = [
     "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
     "resolveNextOnlineCpuRouteBufferFdAtIndex",
     "resolveNextOnlineCpuRouteBufferFdReturnAtIndex",
+    "resolveReadyBufferFdAtAttempt",
     "resolveReadyBufferFdLookupReturnAtAttempt",
+    "resolveReadyBufferWindowMappedSizeAtAttempt",
     "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
     "resolveReadyBufferWindowLookupReturnAtAttempt",
     "formatLibbpfBpfLinkType",
@@ -116,13 +125,10 @@ BRIDGE_BOUNDARY_GUARD_MARKERS = [
 ]
 BRIDGE_MANIFEST_SYNC_MARKERS = [
     'test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {',
-    '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
-    '"why_now": "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow."',
-    '"slug": "map-reuse-compatibility", "status": "starter_landed"',
-    '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."',
+    '"lane_key": "P8-L13"',
+    '"id": "P8-L13-S07"',
     '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
-    '"why_now": "This remaining file-path and handle bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred."',
-    '"why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects."',
+    "planning-only token-readiness gating as a reviewable landed helper slice",
 ]
 BRIDGE_HELPER_MARKERS = [
     "pub fn resolveReusePinnedMapAttempt(",
@@ -265,7 +271,7 @@ def clone_fixture(root: Path) -> None:
     write(root, BRIDGE_BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const file_path_handle_bridge_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const file_path_handle_bridge_root_module = b.createModule(.{\n        .root_source_file = b.path("phase8_file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    file_path_handle_bridge_root_module.addImport("file_path_handle_bridge", file_path_handle_bridge_module);\n    const file_path_handle_bridge_tests = b.addTest(.{\n        .name = "phase8-file-path-handle-bridge-tests",\n        .root_module = file_path_handle_bridge_root_module,\n    });\n    const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);\n    const test_step = b.step("test", "Run focused Phase 8 file-path-handle bridge tests");\n    test_step.dependOn(&run_file_path_handle_bridge_tests.step);\n}\n')
     write(root, BRIDGE_BOUNDARY_GUARD_PATH, "\n".join(BRIDGE_BOUNDARY_GUARD_MARKERS) + "\n")
     write(root, BRIDGE_MANIFEST_SYNC_PATH, "\n".join(BRIDGE_MANIFEST_SYNC_MARKERS) + "\n")
-    write(root, VERIFY_PATH, 'pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdReturnAtIndex() void {}\npub fn resolveReadyBufferFdLookupReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowMappedSizeReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowLookupReturnAtAttempt() void {}\npub fn formatLibbpfBpfLinkType() void {}\n')
+    write(root, VERIFY_PATH, 'pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdReturnAtIndex() void {}\npub fn resolveReadyBufferFdAtAttempt() void {}\npub fn resolveReadyBufferFdLookupReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowMappedSizeAtAttempt() void {}\npub fn resolveReadyBufferWindowMappedSizeReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowLookupReturnAtAttempt() void {}\npub fn formatLibbpfBpfLinkType() void {}\n')
     write(root, BRIDGE_HELPER_PATH, "\n".join(BRIDGE_HELPER_MARKERS) + "\n")
     write(root, MANIFEST_PATH, fixture_manifest())
     write(root, SURVEY_PATH, fixture_survey())
@@ -351,6 +357,42 @@ def run_self_test() -> int:
 
         verify_path = root / VERIFY_PATH
         original_verify = verify_path.read_text(encoding="utf-8")
+        verify_path.write_text(
+            original_verify.replace(
+                "resolveReadyBufferFdAtAttempt",
+                "resolveReadyBufferFdAtIndex",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{VERIFY_PATH}:resolveReadyBufferFdAtAttempt" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:verify_fd_direct_marker")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
+        verify_path.write_text(
+            original_verify.replace(
+                "resolveReadyBufferFdLookupReturnAtAttempt",
+                "resolveReadyBufferFdLookupReturnAtIndex",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{VERIFY_PATH}:resolveReadyBufferFdLookupReturnAtAttempt" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:verify_fd_return_marker")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
+        verify_path.write_text(
+            original_verify.replace(
+                "resolveReadyBufferWindowMappedSizeAtAttempt",
+                "resolveReadyBufferWindowMappedSizeAtIndex",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{VERIFY_PATH}:resolveReadyBufferWindowMappedSizeAtAttempt" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:verify_window_size_direct_marker")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
         verify_path.write_text(
             original_verify.replace(
                 "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
@@ -468,15 +510,15 @@ def run_self_test() -> int:
         original_manifest_sync = manifest_sync_path.read_text(encoding="utf-8")
         manifest_sync_path.write_text(
             original_manifest_sync.replace(
-                '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."',
-                '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into reopen-side-effect drift."',
+                'test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {',
+                'test "phase 8 file-path handle bridge manifest keeps the helper wording explicit" {',
                 1,
             ),
             encoding="utf-8",
         )
         expected_manifest_sync_marker = (
             f"{BRIDGE_MANIFEST_SYNC_PATH}:"
-            '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."'
+            'test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {'
         )
         if expected_manifest_sync_marker not in validate(root)[1]:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:manifest_sync_marker")
@@ -504,7 +546,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=20")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=22")
     return 0
 
 def main() -> int:
