@@ -75,6 +75,7 @@ Fresh repo inspection supports these narrower conclusions:
 - the landed `phase10-virtio-input-status-drain-helper`
 - the landed `phase10-virtio-input-status-drain-replay`
 - the landed `phase10-virtio-input-teardown-preflight-helper`
+- the landed `phase10-virtio-input-teardown-preflight-replay`
 - the landed `phase10-virtio-input-teardown-observation-helper`
 - the landed `phase10-virtio-input-teardown-observation-replay`
 - the landed `phase10-virtio-input-verify-replay`
