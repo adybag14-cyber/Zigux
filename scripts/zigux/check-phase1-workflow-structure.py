@@ -28,6 +28,8 @@ PHASE1_BLOCK_LINES = (
     "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
     "run: python3 scripts/zigux/validate-phase1-closure.py",
+    "run: python3 scripts/zigux/check-phase1-workflow-structure.py --self-test",
+    "run: python3 scripts/zigux/check-phase1-workflow-structure.py",
 )
 
 PHASE3_SELFTEST_LINE = "run: python3 scripts/zigux/validate_phase3_selftest.py"
@@ -212,6 +214,10 @@ def sample_workflow(include_preflight: bool = False) -> str:
             "        run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
             "      - name: Check current Phase 1 closure packet",
             "        run: python3 scripts/zigux/validate-phase1-closure.py",
+            "      - name: Self-test current Phase 1 workflow structure checker",
+            "        run: python3 scripts/zigux/check-phase1-workflow-structure.py --self-test",
+            "      - name: Check current Phase 1 workflow structure packet",
+            "        run: python3 scripts/zigux/check-phase1-workflow-structure.py",
             "      - name: Self-test current Phase 3 interop packet",
             "        run: python3 scripts/zigux/validate_phase3_selftest.py",
             "      - name: Run current Phase 3 ABI dump replay",
