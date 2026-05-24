@@ -179,6 +179,8 @@ REQUIRED_MARKERS = {
         "\"phase10-virtio-input-queue-callback-preflight-tests\"",
         "\"phase10-virtio-input-registration-preflight-tests\"",
         "\"phase10-virtio-input-status-drain-tests\"",
+        "\"phase10-virtio-input-teardown-preflight-tests\"",
+        "run_phase10_virtio_input_teardown_preflight_tests.step",
         "\"phase10-virtio-input-teardown-observation-tests\"",
         "\"phase10-virtio-input-survey-tests\"",
         "\"phase10-virtio-input-verify-tests\"",
@@ -398,6 +400,18 @@ SELF_TEST_MUTATIONS = [
         "run_phase10_virtio_driver_id_tests.step",
         "run_phase10_virtio_driver_id_tests_missing.step",
         "zigux/tests/phase10_build.zig:run_phase10_virtio_driver_id_tests.step",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "\"phase10-virtio-input-teardown-preflight-tests\"",
+        "\"phase10-virtio-input-teardown-preflight-tests-missing\"",
+        "zigux/tests/phase10_build.zig:\"phase10-virtio-input-teardown-preflight-tests\"",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "run_phase10_virtio_input_teardown_preflight_tests.step",
+        "run_phase10_virtio_input_teardown_preflight_tests_missing.step",
+        "zigux/tests/phase10_build.zig:run_phase10_virtio_input_teardown_preflight_tests.step",
     ),
     (
         "zigux/tests/phase10_build.zig",
