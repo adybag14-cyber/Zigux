@@ -80,6 +80,7 @@ EXPECTED_REVIEW_FIELDS = {
         "weighted_tail_count_anchor": 'test "bitmap weighted or and xor clamp counts to the declared tail window"',
         "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
         "scnprintf_cross_word_anchor": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
+        "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
         "partial_xor_review_fields": ["partial_xor_nbits", "partial_xor_masked_values"],
         "review_packet_summary": (
             "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, "
