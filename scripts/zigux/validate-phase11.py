@@ -40,6 +40,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
     "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
     "scripts/zigux/check-phase11-build-inventory.py",
+    "scripts/zigux/check-phase11-validate-manifest-roster.py",
     "scripts/zigux/check-phase11-focused-direct-build-replays.py",
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
@@ -98,6 +99,14 @@ CHECKS = (
     CheckSpec(
         "phase11-validation-self-test",
         ("python", "scripts/zigux/validate-phase11.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-validate-manifest-roster-self-test",
+        ("python", "scripts/zigux/check-phase11-validate-manifest-roster.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-validate-manifest-roster",
+        ("python", "scripts/zigux/check-phase11-validate-manifest-roster.py"),
     ),
     CheckSpec(
         "phase11-build-inventory-self-test",
@@ -419,6 +428,7 @@ def run_self_test() -> int:
             "drivers/tty/hvc/hvc_console.h",
             "drivers/tty/hvc/hvc_console.zig",
             "scripts/zigux/check-phase11-build-inventory.py",
+            "scripts/zigux/check-phase11-validate-manifest-roster.py",
             "scripts/zigux/check-phase11-focused-direct-build-replays.py",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
             "scripts/zigux/check-phase11-header-boundary-packet.py",
@@ -477,6 +487,8 @@ def run_self_test() -> int:
 
         for script_rel, spec_name in (
             ("scripts/zigux/validate-phase11.py", "phase11-validation-self-test"),
+            ("scripts/zigux/check-phase11-validate-manifest-roster.py", "phase11-validate-manifest-roster-self-test"),
+            ("scripts/zigux/check-phase11-validate-manifest-roster.py", "phase11-validate-manifest-roster"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
             ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays-self-test"),
