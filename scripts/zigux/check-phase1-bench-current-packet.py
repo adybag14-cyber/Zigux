@@ -263,8 +263,36 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-reordered-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / BENCH_CHECKER_REL
+        text = path.read_text(encoding="utf-8")
+        old = "\n".join(
+            (
+                'kind, payload = validate_output(base_expectations(), status_mismatch_output)',
+                'assert_case(kind == "status", "status mismatch output", (kind, payload))',
+                'assert_case(payload == ("pass", "fail"), "status mismatch output payload", payload)',
+            )
+        )
+        new = "\n".join(
+            (
+                'assert_case(kind == "status", "status mismatch output", (kind, payload))',
+                'kind, payload = validate_output(base_expectations(), status_mismatch_output)',
+                'assert_case(payload == ("pass", "fail"), "status mismatch output payload", payload)',
+            )
+        )
+        path.write_text(text.replace(old, new, 1), encoding="utf-8")
+        issues = collect_issues(root)
+        expected_prefix = f"{BENCH_CHECKER_REL}:assert_block:status_mismatch_output = ok_output.replace("
+        if len(issues) != 1 or not issues[0].startswith(expected_prefix):
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=reordered_expected_lines_fail_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=3")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
