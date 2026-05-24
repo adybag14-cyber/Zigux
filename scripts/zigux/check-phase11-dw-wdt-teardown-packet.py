@@ -13,6 +13,8 @@ REQUIRED_FILES = {
     "gap_note": Path("Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md"),
     "clock_plan": Path("Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md"),
     "platform_plan": Path("Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"),
+    "provenance": Path("Documentation/zigux/phase11-dw-wdt-provenance-readback.md"),
+    "survey": Path("Documentation/zigux/phase11-dw-wdt-survey.md"),
     "manifest": Path("zigux/tests/phase11_dw_wdt_manifest.json"),
     "registration_scaffold": Path("zigux/tests/phase11_dw_wdt_registration_scaffold.zig"),
     "restart": Path("drivers/watchdog/dw_wdt_restart.zig"),
@@ -52,6 +54,26 @@ PLATFORM_PLAN_MARKERS = [
     "the broader direct-driver or replay-backed packet this note used to claim",
     "the two current DesignWare truthfulness checkers",
     "- the bounded PM helper pair `drivers/watchdog/dw_wdt_pm.zig` and `drivers/watchdog/dw_wdt_pm_scaffold.zig`",
+]
+
+PROVENANCE_MARKERS = [
+    "# Phase 11 DesignWare Watchdog Provenance Readback",
+    "- current authenticated contents reads now materialize `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, `drivers/watchdog/dw_wdt_pm_scaffold.zig`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`.",
+    "- current authenticated contents reads still do not rematerialize `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, or `zigux/tests/phase11_dw_wdt.zig`, so those broader driver, verify-helper, and direct replay surfaces remain fallback-visible evidence in this environment rather than part of the same authenticated current-head packet.",
+    "- the authenticated current-head packet is now internally aligned on the shared build-route boundary and the current bounded lifecycle inventory: the manifest still marks `phase11-build-gate` as `shared_gap_current_head` with `preexisting_phase11_build_present` false, while the returned survey note, validation matrix, and focused survey gate all match that same current-head gap and keep the restart-summary plus PM-helper follow-through explicit.",
+    "- the roadmap still keeps this family inside Phase 11 simple-driver starter discipline: keep owner-packet truthfulness and scaffold truthfulness bounded, and leave the next substantive step on platform-backed acquisition or MMIO follow-through rather than widening into unrelated watchdog behavior.",
+]
+
+SURVEY_MARKERS = [
+    "# Phase 11 DesignWare Watchdog Survey",
+    "The current lane-local packet is `P11-L10`. Authenticated current-head rereads",
+    "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,",
+    "`Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,",
+    "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`,",
+    "`drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`,",
+    "Those same authenticated contents rereads do not rematerialize",
+    "The shared `zigux/tests/phase11_build.zig` route remains a shared current-head",
+    "The next bounded same-lane step is still the ready-next manifest gap:",
 ]
 
 REGISTRATION_SCAFFOLD_MARKERS = [
@@ -129,6 +151,8 @@ MARKERS_BY_LABEL = {
     "gap_note": GAP_NOTE_MARKERS,
     "clock_plan": CLOCK_PLAN_MARKERS,
     "platform_plan": PLATFORM_PLAN_MARKERS,
+    "provenance": PROVENANCE_MARKERS,
+    "survey": SURVEY_MARKERS,
     "registration_scaffold": REGISTRATION_SCAFFOLD_MARKERS,
     "restart": RESTART_MARKERS,
     "pm": PM_MARKERS,
@@ -294,6 +318,10 @@ def run_self_test() -> None:
             ("clock_plan", CLOCK_PLAN_MARKERS[4]),
             ("platform_plan", PLATFORM_PLAN_MARKERS[1]),
             ("gap_note", GAP_NOTE_MARKERS[1]),
+            ("provenance", PROVENANCE_MARKERS[1]),
+            ("provenance", PROVENANCE_MARKERS[3]),
+            ("survey", SURVEY_MARKERS[2]),
+            ("survey", SURVEY_MARKERS[7]),
             ("registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[0]),
             ("registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[4]),
             ("restart", RESTART_MARKERS[1]),
