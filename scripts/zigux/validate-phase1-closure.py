@@ -30,6 +30,7 @@ PHASE1_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequenc
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+WORKFLOW_PREFLIGHT_CHECKER_REL = Path("scripts/zigux/check-phase1-workflow-preflight.py")
 STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 FIND_BIT_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-review-packet.py")
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
@@ -55,6 +56,7 @@ REQUIRED_FILES = (
     DOCS_ROOT_REL,
     REVIEW_CHECKLIST_REL,
     SCRIPTS_README_REL,
+    WORKFLOW_PREFLIGHT_CHECKER_REL,
     STRING_REVIEW_CHECKER_REL,
     FIND_BIT_REVIEW_CHECKER_REL,
     DIRECT_OWNER_CHECKER_REL,
@@ -126,8 +128,10 @@ EXPECTED_CLOSURE_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
     "helper_count": "`PHASE1_HELPER_COUNT=13`",
-    "reminder_packet": "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "reminder_packet": "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-workflow-preflight.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
     "gap_packet": "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    "workflow_preflight_guard": "`PHASE1_WORKFLOW_PREFLIGHT_GUARD=python3 scripts/zigux/check-phase1-workflow-preflight.py`",
+    "workflow_preflight_insertion_point": "`PHASE1_WORKFLOW_PREFLIGHT_INSERTION_POINT=Setup Python,Self-test current Phase 1 workflow preflight checker,Preflight current Phase 1 workflow viability,Setup pinned Zig toolchain`",
     "closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
@@ -255,6 +259,7 @@ EXPECTED_STRING_REVIEW_ANCHORS = {
 }
 
 DELEGATED_CHECKERS = (
+    (WORKFLOW_PREFLIGHT_CHECKER_REL, "phase1-workflow-preflight"),
     (STRING_REVIEW_CHECKER_REL, "phase1-string-review-packet"),
     (FIND_BIT_REVIEW_CHECKER_REL, "phase1-find-bit-review-packet"),
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
@@ -460,6 +465,8 @@ def run_self_test() -> int:
         ("missing_restore_state", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["restore_state"] + "\n", "", 1))),
         ("old_next_step_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["next_step"], "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface against the restored closure note and closure validator`", 1))),
         ("forbidden_old_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL) + "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`\n")),
+        ("missing_workflow_preflight_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["workflow_preflight_guard"] + "\n", "", 1))),
+        ("stale_workflow_preflight_insertion_point", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["workflow_preflight_insertion_point"], "`PHASE1_WORKFLOW_PREFLIGHT_INSERTION_POINT=Setup Python,Preflight current Phase 1 workflow viability,Setup pinned Zig toolchain`", 1))),
         ("missing_find_bit_bench_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["find_bit_bench_guard"] + "\n", "", 1))),
         ("missing_rbtree_bench_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["rbtree_bench_guard"] + "\n", "", 1))),
         ("missing_find_bit_bench_anchor_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["find_bit_bench_anchor_guard"] + "\n", "", 1))),
@@ -494,6 +501,8 @@ def run_self_test() -> int:
         ("stale_string_counted_search_review_anchors", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "counted_search_review_anchors")),
         ("stale_string_strnchr_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "strnchr_review_summary")),
         ("stale_string_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/string.zig", "next_safe_step_note")),
+        ("missing_workflow_preflight_checker", lambda root: (root / WORKFLOW_PREFLIGHT_CHECKER_REL).unlink()),
+        ("failing_workflow_preflight_checker", lambda root: make_checker_stub(root / WORKFLOW_PREFLIGHT_CHECKER_REL, ok=False)),
         ("missing_string_checker", lambda root: (root / STRING_REVIEW_CHECKER_REL).unlink()),
         ("failing_string_checker", lambda root: make_checker_stub(root / STRING_REVIEW_CHECKER_REL, ok=False)),
         ("missing_find_bit_review_checker", lambda root: (root / FIND_BIT_REVIEW_CHECKER_REL).unlink()),
