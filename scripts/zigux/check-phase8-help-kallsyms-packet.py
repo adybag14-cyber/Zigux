@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import io
 import tempfile
+from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -213,6 +215,13 @@ def emit_result(result: ValidationResult) -> int:
     return 0
 
 
+def emit_captured_result(root: Path) -> tuple[int, str]:
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        exit_code = emit_result(validate_root(root))
+    return exit_code, buffer.getvalue()
+
+
 def _passing_fixture(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
         if relative_path in FILE_MARKERS:
@@ -255,6 +264,39 @@ def run_self_test() -> int:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
                 path.write_text(original, encoding="utf-8")
                 case_count += 1
+
+        output_case_root = root / "output_case"
+        _passing_fixture(output_case_root)
+        crlf_marker = "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names"
+        kallsyms_slice_path = output_case_root / KALLSYMS_SLICE
+        kallsyms_slice_path.write_text(
+            _read(kallsyms_slice_path).replace(crlf_marker, ""),
+            encoding="utf-8",
+        )
+        exit_code, output = emit_captured_result(output_case_root)
+        expected_marker = f"{KALLSYMS_SLICE}:{crlf_marker}"
+        if exit_code != 1:
+            raise AssertionError("expected emit_result to fail for a missing kallsyms slice marker")
+        if "PHASE8_HELP_KALLSYMS_PACKET=fail" not in output:
+            raise AssertionError("expected fail banner in captured output")
+        if "PHASE8_HELP_KALLSYMS_MISSING_MARKERS_START" not in output:
+            raise AssertionError("expected missing marker banner in captured output")
+        if expected_marker not in output:
+            raise AssertionError(f"expected missing marker in captured output: {expected_marker}")
+        case_count += 1
+
+        missing_file_case_root = root / "missing_file_output_case"
+        _passing_fixture(missing_file_case_root)
+        (missing_file_case_root / KALLSYMS_SOURCE).unlink()
+        exit_code, output = emit_captured_result(missing_file_case_root)
+        expected_file = KALLSYMS_SOURCE.as_posix()
+        if exit_code != 1:
+            raise AssertionError("expected emit_result to fail for a missing kallsyms helper file")
+        if "PHASE8_HELP_KALLSYMS_MISSING_FILES_START" not in output:
+            raise AssertionError("expected missing file banner in captured output")
+        if expected_file not in output:
+            raise AssertionError(f"expected missing file in captured output: {expected_file}")
+        case_count += 1
 
         for relative_path in REQUIRED_FILES:
             path = root / relative_path
