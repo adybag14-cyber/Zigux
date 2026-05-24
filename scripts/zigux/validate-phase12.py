@@ -85,6 +85,18 @@ LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
 )
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
+# Keep the shared validator fail-closed against the returned Phase 12 packet
+# guards it already names, without widening into blocked transport behavior.
+PHASE12_PACKET_CHECKERS = (
+    BUILD_ONLY_CHECKER_PATH,
+    RELEASE_READINESS_CHECKER_PATH,
+    COMPLEX_DRIVER_LANE_CHECKER_PATH,
+    LIBBPF_SNAPSHOT_CHECKER_PATH,
+    LIBBPF_LANE_MARKER_CHECKER_PATH,
+    HEAVY_CONSUMER_PACKET_CHECKER_PATH,
+    VIRTIO_SCSI_PACKET_CHECKER_PATH,
+)
+
 # Keep the shared Phase 12 validator scoped to stable support-surface wording.
 # Exact blob pins in the raw-coverage note belong to the neighboring fallback lane.
 RAW_GITHUB_BRIDGE_MARKERS = [
@@ -687,7 +699,9 @@ def main() -> int:
         print("PHASE12_PACKET_DRIFT_END")
         return 1
 
-    checker_failures = run_checker(args.root, VIRTIO_SCSI_PACKET_CHECKER_PATH)
+    checker_failures: list[str] = []
+    for checker_path in PHASE12_PACKET_CHECKERS:
+        checker_failures.extend(run_checker(args.root, checker_path))
     if checker_failures:
         print("PHASE12_VALIDATION=fail")
         print("PHASE12_PACKET_DRIFT_START")
