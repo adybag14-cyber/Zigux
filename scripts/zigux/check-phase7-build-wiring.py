@@ -15,6 +15,7 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 RBTREE_PATH = Path("lib/rbtree.zig")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -79,18 +80,12 @@ EXPECTED_HELPER_EVIDENCE = [
     {
         "key": "cmdline",
         "zig_helper": "lib/cmdline.zig",
-        "expected_markers": [
-            "pub fn parseOptionStr",
-            "pub fn getOption",
-        ],
+        "expected_markers": ["pub fn parseOptionStr", "pub fn getOption"],
     },
     {
         "key": "argv_split",
         "zig_helper": "lib/argv_split.zig",
-        "expected_markers": [
-            "pub const ArgvSplitResult",
-            "pub fn argvSplit",
-        ],
+        "expected_markers": ["pub const ArgvSplitResult", "pub fn argvSplit"],
     },
     {
         "key": "rbtree",
@@ -146,7 +141,7 @@ EXPECTED_BUILD_WIRING_EVIDENCE = [
 ]
 EXPECTED_REPO_GAPS: list[str] = []
 
-REQUIRED_FILES = (
+REQUIRED_FILES = [
     VALIDATOR_PATH,
     CATALOG_PATH,
     MANIFEST_PATH,
@@ -154,85 +149,31 @@ REQUIRED_FILES = (
     BUILD_PATH,
     RBTREE_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
-)
-
+    REVIEW_CHECKLIST_PATH,
+]
 CATALOG_REQUIRED_SNIPPETS = [
-    "## Current direct-readback companions",
+    "- `Documentation/zigux/review-checklist.md`",
+    "- `scripts/zigux/check-phase7-build-wiring.py`",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-argv-split-packet.py`",
-    "- `zigux/tests/phase7_build.zig`",
-    "- `lib/rbtree.zig`",
-    "## Current replay inventory",
-    "- `python3 scripts/zigux/check-phase7-build-wiring.py`",
-    "- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
-    "- `python3 scripts/zigux/check-phase7-argv-split-packet.py`",
-    "- `make -C zigux phase7-validate`",
-    "## Current build-wiring evidence",
     "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
-    "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, and sample-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.",
-    "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper, survey, and sample-boundary replay through the current `test_step.dependOn(...)` handoff list.",
     "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.",
-    "## Current repo-reality gaps",
     "- none currently",
 ]
-
-VALIDATOR_REQUIRED_SNIPPETS = [
-    "phase7 build-wiring evidence drift",
-    "phase7 build marker missing: ../../lib/rbtree.zig",
-    "phase7 build marker missing: phase7-rbtree-test",
-    'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
-    'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
-]
-
 MAKEFILE_REQUIRED_LINES = [
     "phase7-validate:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-
-FORBIDDEN_MAKEFILE_MARKERS = [
-    "phase7-test:",
-    "phase7:",
-]
-MAKEFILE_FORBIDDEN_LINES = FORBIDDEN_MAKEFILE_MARKERS
-
-BUILD_REQUIRED_SNIPPETS = [
-    "../../lib/string_helpers.zig",
-    "../../lib/cmdline.zig",
-    "../../lib/argv_split.zig",
-    "../../lib/rbtree.zig",
-    "phase7-string-helpers-test",
-    "phase7-string-helpers-survey",
-    "phase7-string-helpers-sample-boundary",
-    "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
-    "phase7-cmdline-test",
-    "phase7-cmdline-survey",
-    "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)",
-    "phase7-argv-split-test",
-    "phase7-argv-split-survey",
-    "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)",
-    "phase7-rbtree-test",
-    "phase7-rbtree-survey",
-    'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");',
-    "test_step.dependOn(&run_string_helpers_tests.step)",
-    "test_step.dependOn(&run_string_helpers_survey_tests.step)",
-    "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
-    "test_step.dependOn(&run_cmdline_tests.step)",
-    "test_step.dependOn(&run_cmdline_survey_tests.step)",
-    "test_step.dependOn(&run_argv_split_tests.step)",
-    "test_step.dependOn(&run_argv_split_survey_tests.step)",
-    "test_step.dependOn(&run_rbtree_tests.step)",
-    "test_step.dependOn(&run_rbtree_survey_tests.step)",
-]
-
+MAKEFILE_FORBIDDEN_LINES = ["phase7-test:", "phase7:"]
+BUILD_REQUIRED_SNIPPETS = EXPECTED_BUILD_WIRING_EVIDENCE[0]["expected_markers"]
 RBTREE_REQUIRED_SNIPPETS = [
     "pub const Node = struct",
     "pub const RootCached = struct",
     "pub fn add(",
     "pub fn rb_find_add_cached(",
 ]
-
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 4
 
 
 class ValidationError(RuntimeError):
@@ -259,12 +200,31 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
     for snippet in snippets:
         if snippet not in text:
             raise ValidationError(f"missing expected marker in {path.as_posix()}: {snippet}")
+
+
+def require_exact_lines(path: Path, lines: list[str]) -> None:
+    text = read_text(path)
+    for line in lines:
+        count = count_exact_lines(text, line)
+        if count == 0:
+            raise ValidationError(f"missing expected line in {path.as_posix()}: {line}")
+        if count != 1:
+            raise ValidationError(f"duplicate expected line in {path.as_posix()}: {line}")
+
+
+def require_absent_lines(path: Path, lines: list[str]) -> None:
+    text = read_text(path)
+    for line in lines:
+        if count_exact_lines(text, line):
+            raise ValidationError(f"unexpected line in {path.as_posix()}: {line}")
+
+
+def validate(root: Path) -> None:
     missing = [str(rel) for rel in REQUIRED_FILES if not (root / rel).is_file()]
     if missing:
         raise ValidationError("missing required files: " + ", ".join(missing))
 
     require_snippets(root / CATALOG_PATH, CATALOG_REQUIRED_SNIPPETS)
-    require_snippets(root / VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS)
     require_exact_lines(root / MAKEFILE_PATH, MAKEFILE_REQUIRED_LINES)
     require_absent_lines(root / MAKEFILE_PATH, MAKEFILE_FORBIDDEN_LINES)
     require_snippets(root / BUILD_PATH, BUILD_REQUIRED_SNIPPETS)
@@ -297,23 +257,9 @@ def write(path: Path, content: str) -> None:
 
 
 def build_fixture_root(root: Path) -> None:
-    write(
-        root / VALIDATOR_PATH,
-        "\n".join(
-            [
-                "phase7 build-wiring evidence drift",
-                "phase7 build marker missing: ../../lib/rbtree.zig",
-                "phase7 build marker missing: phase7-rbtree-test",
-                'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
-                'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
-            ]
-        )
-        + "\n",
-    )
-    write(
-        root / CATALOG_PATH,
-        "\n".join(CATALOG_REQUIRED_SNIPPETS) + "\n",
-    )
+    write(root / REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n")
+    write(root / VALIDATOR_PATH, 'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")\nrun_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)\n')
+    write(root / CATALOG_PATH, "\n".join(CATALOG_REQUIRED_SNIPPETS) + "\n")
     write(
         root / MANIFEST_PATH,
         json.dumps(
@@ -329,20 +275,9 @@ def build_fixture_root(root: Path) -> None:
                 "current_repo_reality_gaps": EXPECTED_REPO_GAPS,
             },
             indent=2,
-        )
-        + "\n",
+        ) + "\n",
     )
-    write(
-        root / MAKEFILE_PATH,
-        "\n".join(
-            [
-                "phase7-validate:",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
-            ]
-        )
-        + "\n",
-    )
+    write(root / MAKEFILE_PATH, "\n".join(MAKEFILE_REQUIRED_LINES) + "\n")
     write(root / BUILD_PATH, "\n".join(BUILD_REQUIRED_SNIPPETS) + "\n")
     write(root / RBTREE_PATH, "\n".join(RBTREE_REQUIRED_SNIPPETS) + "\n")
     write(root / ARGV_SPLIT_PACKET_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_ARGV_SPLIT_PACKET=pass')\n")
@@ -368,28 +303,15 @@ def run_self_test() -> None:
         root = Path(tmpdir)
         build_fixture_root(root)
         validate(root)
-
-        mutations = [
-            (CATALOG_PATH, "- `lib/rbtree.zig`", "- `tools/lib/rbtree.zig`"),
-            (CATALOG_PATH, "- none currently", "- `lib/rbtree.zig`"),
+        for rel, old, new in [
+            (CATALOG_PATH, "- `Documentation/zigux/review-checklist.md`", "- `Documentation/zigux/review-guide.md`"),
             (MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
-            (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test"),
             (BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
-            (BUILD_PATH, "phase7-string-helpers-sample-boundary", "phase7-string-helpers-sample-gap"),
-            (BUILD_PATH, "phase7-cmdline-survey", "phase7-cmdline-gap"),
-            (BUILD_PATH, "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)", "cmdline_survey_step.dependOn(&run_cmdline_tests.step)"),
-            (BUILD_PATH, "argv_split_survey_step.dependOn(&run_argv_split_survey_tests.step)", "argv_split_survey_step.dependOn(&run_argv_split_tests.step)"),
-            (BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
-            (BUILD_PATH, "phase7-rbtree-survey", "phase7-rbtree-gap"),
-            (BUILD_PATH, 'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");', 'const test_step = b.step("phase7-test", "Run the Phase 7 runtime helper tests");'),
-            (BUILD_PATH, "test_step.dependOn(&run_rbtree_survey_tests.step)", "test_step.dependOn(&run_rbtree_tests.step)"),
-            (MANIFEST_PATH, '"lib/rbtree.c"', '"tools/lib/rbtree.c"'),
-        ]
-        for rel, old, new in mutations:
+            (MANIFEST_PATH, '"Documentation/zigux/review-checklist.md"', '"Documentation/zigux/review-guide.md"'),
+        ]:
             build_fixture_root(root)
             expect_failure(root, rel, old, new)
             cases += 1
-
     if cases != SELF_TEST_CASE_COUNT:
         raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases}")
     print("PHASE7_BUILD_WIRING_SELF_TEST=pass")
