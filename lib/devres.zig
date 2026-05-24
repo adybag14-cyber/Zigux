@@ -9,6 +9,7 @@ pub const ModuleDescriptor = struct {
     provides_of_iomap_planning: bool,
     provides_of_iomap_cleanup_handoff_planning: bool,
     provides_iounmap_cleanup_planning: bool,
+    provides_ioport_unmap_call_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
     touches_live_mmio: bool,
@@ -113,6 +114,14 @@ pub const ManagedIounmapCleanupPlan = struct {
     warns_on_release_miss: bool,
 };
 
+pub const ManagedIoportUnmapPlan = struct {
+    anchor: []const u8,
+    tracked_address: usize,
+    candidate_address: usize,
+    release_matches: bool,
+    warns_on_release_miss: bool,
+};
+
 pub const DevresHelperLab = struct {
     fn requireReleaseRecordAllocated(release_record_allocated: bool) !void {
         if (!release_record_allocated) {
@@ -161,6 +170,7 @@ pub const DevresHelperLab = struct {
             .provides_of_iomap_planning = true,
             .provides_of_iomap_cleanup_handoff_planning = true,
             .provides_iounmap_cleanup_planning = true,
+            .provides_ioport_unmap_call_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
             .touches_live_mmio = false,
@@ -293,6 +303,18 @@ pub const DevresHelperLab = struct {
             .warns_on_release_miss = !release_record_matches,
         };
     }
+
+    pub fn planManagedIoportUnmap(tracked_address: usize, candidate_address: usize) ManagedIoportUnmapPlan {
+        const release_matches = tracked_address == candidate_address;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .tracked_address = tracked_address,
+            .candidate_address = candidate_address,
+            .release_matches = release_matches,
+            .warns_on_release_miss = !release_matches,
+        };
+    }
 };
 
 const std = @import("std");
@@ -310,6 +332,7 @@ test "descriptor stays helper-local" {
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_of_iomap_cleanup_handoff_planning);
     try std.testing.expect(descriptor.provides_iounmap_cleanup_planning);
+    try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
     try std.testing.expect(!descriptor.touches_live_mmio);
@@ -623,4 +646,24 @@ test "iounmap cleanup planning stays inert when no mapping owner exists" {
     try std.testing.expect(!cleanup.releases_from_devres);
     try std.testing.expect(!cleanup.release_record_consumed);
     try std.testing.expect(!cleanup.warns_on_release_miss);
+}
+
+test "ioport unmap planning consumes an exact pointer match without a warning" {
+    const plan = DevresHelperLab.planManagedIoportUnmap(0xf000, 0xf000);
+
+    try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.tracked_address);
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.candidate_address);
+    try std.testing.expect(plan.release_matches);
+    try std.testing.expect(!plan.warns_on_release_miss);
+}
+
+test "ioport unmap planning keeps release misses warnable" {
+    const plan = DevresHelperLab.planManagedIoportUnmap(0xf000, 0xf010);
+
+    try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+    try std.testing.expectEqual(@as(usize, 0xf000), plan.tracked_address);
+    try std.testing.expectEqual(@as(usize, 0xf010), plan.candidate_address);
+    try std.testing.expect(!plan.release_matches);
+    try std.testing.expect(plan.warns_on_release_miss);
 }
