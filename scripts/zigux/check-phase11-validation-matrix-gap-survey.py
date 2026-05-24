@@ -11,6 +11,8 @@ from pathlib import Path
 FILES = {
     "matrix_gap_note": "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
     "inventory": "zigux/tests/fixtures/phase11_build_inventory.json",
+    "validate_phase11": "scripts/zigux/validate-phase11.py",
+    "makefile": "zigux/Makefile",
 }
 REQUIRED_BUILD_TEST_NAMES = (
     "phase11-hvc-hv-ops-layout-proof-tests",
@@ -38,6 +40,14 @@ REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS = (
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+)
+REQUIRED_VALIDATE_PHASE11_MARKERS = (
+    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig")',
+    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig")',
+)
+REQUIRED_MAKEFILE_MARKERS = (
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
 )
 SURVEY_MARKERS = [
     "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
@@ -96,6 +106,13 @@ def expect_exact_object_list(label: str, actual: object, expected: tuple[dict[st
         raise CheckError(f"{label} does not match the current-head HVC continuity packet")
 
 
+def require_text_markers(label: str, text: str, markers: tuple[str, ...]) -> None:
+    normalized = normalize_whitespace(text)
+    for marker in markers:
+        if normalize_whitespace(marker) not in normalized:
+            raise CheckError(f"missing marker in {label}: {marker}")
+
+
 def run_check(root: Path) -> None:
     survey_text = read_text(root, FILES["matrix_gap_note"])
     normalized = " ".join(survey_text.split())
@@ -105,6 +122,10 @@ def run_check(root: Path) -> None:
     for marker in FORBIDDEN_MARKERS:
         if normalize_whitespace(marker) in normalized:
             raise CheckError(f"forbidden marker in matrix_gap_note: {marker}")
+    validate_phase11_text = read_text(root, FILES["validate_phase11"])
+    makefile_text = read_text(root, FILES["makefile"])
+    require_text_markers("validate_phase11", validate_phase11_text, REQUIRED_VALIDATE_PHASE11_MARKERS)
+    require_text_markers("makefile", makefile_text, REQUIRED_MAKEFILE_MARKERS)
     inventory = json.loads(read_text(root, FILES["inventory"]))
     if not isinstance(inventory, dict):
         raise CheckError("expected object in inventory")
@@ -151,6 +172,10 @@ def run_self_test() -> None:
             "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
             "shared_adjunct_build_replays": list(REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS),
         }, indent=2) + "\n", encoding="utf-8")
+        (fixture_root / FILES["validate_phase11"]).parent.mkdir(parents=True, exist_ok=True)
+        (fixture_root / FILES["validate_phase11"]).write_text("\n".join(REQUIRED_VALIDATE_PHASE11_MARKERS) + "\n", encoding="utf-8")
+        (fixture_root / FILES["makefile"]).parent.mkdir(parents=True, exist_ok=True)
+        (fixture_root / FILES["makefile"]).write_text("\n".join(REQUIRED_MAKEFILE_MARKERS) + "\n", encoding="utf-8")
         run_check(fixture_root)
         for index, marker in enumerate(SURVEY_MARKERS[:6], start=1):
             case_root = tmpdir / f"required_{index}"
@@ -206,8 +231,32 @@ def run_self_test() -> None:
         inventory["build_test_names"] = inventory["build_test_names"][:-1]
         (bad_inventory_root / FILES["inventory"]).write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
         expect_failure(bad_inventory_root, "build_test_names does not match")
+        missing_validate_dw_restart_root = tmpdir / "missing_validate_dw_restart"
+        shutil.copytree(fixture_root, missing_validate_dw_restart_root, dirs_exist_ok=True)
+        path = missing_validate_dw_restart_root / FILES["validate_phase11"]
+        marker = REQUIRED_VALIDATE_PHASE11_MARKERS[0]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(missing_validate_dw_restart_root, marker)
+        missing_validate_gpio_root = tmpdir / "missing_validate_gpio_nowayout"
+        shutil.copytree(fixture_root, missing_validate_gpio_root, dirs_exist_ok=True)
+        path = missing_validate_gpio_root / FILES["validate_phase11"]
+        marker = REQUIRED_VALIDATE_PHASE11_MARKERS[1]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(missing_validate_gpio_root, marker)
+        missing_makefile_dw_restart_root = tmpdir / "missing_makefile_dw_restart"
+        shutil.copytree(fixture_root, missing_makefile_dw_restart_root, dirs_exist_ok=True)
+        path = missing_makefile_dw_restart_root / FILES["makefile"]
+        marker = REQUIRED_MAKEFILE_MARKERS[0]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(missing_makefile_dw_restart_root, marker)
+        missing_makefile_gpio_root = tmpdir / "missing_makefile_gpio_nowayout"
+        shutil.copytree(fixture_root, missing_makefile_gpio_root, dirs_exist_ok=True)
+        path = missing_makefile_gpio_root / FILES["makefile"]
+        marker = REQUIRED_MAKEFILE_MARKERS[1]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(missing_makefile_gpio_root, marker)
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=14")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=18")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
