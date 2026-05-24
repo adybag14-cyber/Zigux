@@ -45,6 +45,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+    "scripts/zigux/check-phase11-focused-direct-build-replays.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
     "scripts/zigux/validate-phase11.py",
@@ -144,6 +145,14 @@ CHECKS = (
     CheckSpec(
         "phase11-hvc-targetless-unregister-witness",
         ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
+    ),
+    CheckSpec(
+        "phase11-focused-direct-build-replays-self-test",
+        ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-focused-direct-build-replays",
+        ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),
     ),
     CheckSpec(
         "phase11-dw-wdt-teardown-packet-self-test",
@@ -403,6 +412,7 @@ def run_self_test() -> int:
             "drivers/tty/hvc/hvc_console.zig",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+            "scripts/zigux/check-phase11-focused-direct-build-replays.py",
             "zigux/Makefile",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -469,6 +479,8 @@ def run_self_test() -> int:
             ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head"),
             ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness-self-test"),
             ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness"),
+            ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays-self-test"),
+            ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays"),
             ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet-self-test"),
             ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet"),
             ("scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "phase11-dw-wdt-verify-alignment-self-test"),
