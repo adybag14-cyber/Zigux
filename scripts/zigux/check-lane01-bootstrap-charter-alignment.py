@@ -9,6 +9,16 @@ README_PATH = Path("zigux-alpha/README.md")
 ROADMAP_PATH = Path("zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md")
 LEDGER_PATH = Path("zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md")
 
+LINKED_PATHS = (
+    README_PATH,
+    ROADMAP_PATH,
+    LEDGER_PATH,
+    Path("Documentation/zigux/README.md"),
+    Path("Documentation/zigux/review-checklist.md"),
+    Path("Documentation/zigux/freeze-map.md"),
+    Path("Documentation/zigux/phase15-freeze-map-governance.md"),
+)
+
 README_MARKERS = (
     "`zigux-alpha` is the Zigux bootstrap workspace.",
     "Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.",
@@ -34,6 +44,10 @@ LEDGER_MARKERS = (
     "Later lane-level expansion stays traceable through the roadmap, the live repo, and current lane notes until a reviewed continuation of this ledger lands.",
 )
 
+README_HEADINGS = ("Rules", "Active product surfaces", "Start here")
+ROADMAP_HEADINGS = ("## Purpose", "## Bootstrap Status Note", "## Inputs Reviewed")
+LEDGER_HEADINGS = ("## Commit Train", "## Scope Note")
+
 
 def collect_missing_markers(root: Path) -> list[str]:
     readme = (root / README_PATH).read_text(encoding="utf-8")
@@ -51,6 +65,49 @@ def collect_missing_markers(root: Path) -> list[str]:
         if marker not in ledger:
             missing.append(f"ledger:{marker}")
     return missing
+
+
+def collect_missing_paths(root: Path) -> list[str]:
+    missing: list[str] = []
+    for path in LINKED_PATHS:
+        if not (root / path).is_file():
+            missing.append(str(path))
+    return missing
+
+
+def _heading_positions(text: str, headings: tuple[str, ...], prefix: str) -> list[int] | list[str]:
+    positions: list[int] = []
+    missing: list[str] = []
+    for heading in headings:
+        position = text.find(heading)
+        if position == -1:
+            missing.append(f"{prefix}:{heading}")
+        else:
+            positions.append(position)
+    if missing:
+        return missing
+    return positions
+
+
+def collect_section_order_errors(root: Path) -> list[str]:
+    readme = (root / README_PATH).read_text(encoding="utf-8")
+    roadmap = (root / ROADMAP_PATH).read_text(encoding="utf-8")
+    ledger = (root / LEDGER_PATH).read_text(encoding="utf-8")
+
+    errors: list[str] = []
+    for text, headings, prefix in (
+        (readme, README_HEADINGS, "readme-heading"),
+        (roadmap, ROADMAP_HEADINGS, "roadmap-heading"),
+        (ledger, LEDGER_HEADINGS, "ledger-heading"),
+    ):
+        positions = _heading_positions(text, headings, prefix)
+        if positions and isinstance(positions[0], str):
+            errors.extend(positions)  # type: ignore[arg-type]
+            continue
+        heading_positions = positions  # type: ignore[assignment]
+        if heading_positions != sorted(heading_positions):
+            errors.append(f"{prefix}-order:{'->'.join(headings)}")
+    return errors
 
 
 def _write(path: Path, text: str) -> None:
@@ -93,11 +150,15 @@ This roadmap remains the planning baseline for Zigux bootstrap sequencing and ph
 For later-lane current-state decisions after the bounded early commit train recorded in `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`, confirm the live repo tree, `Documentation/zigux/README.md`, and active lane notes before treating every later phase packet below as already materialized on `master`.
 
 This roadmap is written for commit-and-push execution inside `Zigux`, starting in `zigux-alpha/` and then expanding into the real product locations as phases are approved.
+
+## Inputs Reviewed
 """
 
 
 def _sample_ledger() -> str:
     return """# Zigux Alpha Bootstrap Commit Ledger
+
+## Commit Train
 
 25. `docs(zigux): reopen and close broadened Phase 2 tranche`
 
@@ -108,6 +169,16 @@ def _sample_ledger() -> str:
 """
 
 
+def _write_support_files(root: Path) -> None:
+    _write(root / Path("Documentation/zigux/README.md"), "# docs\n")
+    _write(root / Path("Documentation/zigux/review-checklist.md"), "# checklist\n")
+    _write(root / Path("Documentation/zigux/freeze-map.md"), "# freeze map\n")
+    _write(
+        root / Path("Documentation/zigux/phase15-freeze-map-governance.md"),
+        "# governance\n",
+    )
+
+
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_lane01_charter_") as tmp_dir:
@@ -115,9 +186,14 @@ def run_self_test() -> int:
         _write(root / README_PATH, _sample_readme())
         _write(root / ROADMAP_PATH, _sample_roadmap())
         _write(root / LEDGER_PATH, _sample_ledger())
+        _write_support_files(root)
 
         if collect_missing_markers(root):
-            raise AssertionError("baseline Lane 01 charter fixture should pass")
+            raise AssertionError("baseline Lane 01 charter fixture should pass markers")
+        if collect_missing_paths(root):
+            raise AssertionError("baseline Lane 01 charter fixture should pass linked-path checks")
+        if collect_section_order_errors(root):
+            raise AssertionError("baseline Lane 01 charter fixture should pass section-order checks")
         case_count += 1
 
         _write(
@@ -235,6 +311,61 @@ def run_self_test() -> int:
         ]
         if missing != expected:
             raise AssertionError(f"unexpected missing markers for ledger follow-through case: {missing}")
+        _write(root / LEDGER_PATH, _sample_ledger())
+        case_count += 1
+
+        (root / Path("Documentation/zigux/freeze-map.md")).unlink()
+        missing_paths = collect_missing_paths(root)
+        expected = ["Documentation/zigux/freeze-map.md"]
+        if missing_paths != expected:
+            raise AssertionError(f"unexpected missing linked paths: {missing_paths}")
+        _write(root / Path("Documentation/zigux/freeze-map.md"), "# freeze map\n")
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace(
+                "Rules\n"
+                "- Keep product planning and bootstrap artifacts here first.\n"
+                "- Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.\n"
+                "- The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.\n\n"
+                "Active product surfaces\n",
+                "Active product surfaces\n"
+                "- `Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.\n"
+                "- `Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.\n"
+                "- `scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.\n\n"
+                "Rules\n"
+                "- Keep product planning and bootstrap artifacts here first.\n"
+                "- Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.\n"
+                "- The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.\n\n",
+                1,
+            ),
+        )
+        order_errors = collect_section_order_errors(root)
+        expected = ["readme-heading-order:Rules->Active product surfaces->Start here"]
+        if order_errors != expected:
+            raise AssertionError(f"unexpected README section-order errors: {order_errors}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / ROADMAP_PATH,
+            _sample_roadmap().replace(
+                "## Purpose\n\n"
+                "This document turns the `zigux_bundle_v2.zip` planning bundle into an actionable product roadmap for Zigux.\n\n"
+                "## Bootstrap Status Note\n",
+                "## Bootstrap Status Note\n\n"
+                "This roadmap remains the planning baseline for Zigux bootstrap sequencing and phase intent.\n\n"
+                "## Purpose\n\n"
+                "This document turns the `zigux_bundle_v2.zip` planning bundle into an actionable product roadmap for Zigux.\n\n",
+                1,
+            ),
+        )
+        order_errors = collect_section_order_errors(root)
+        expected = ["roadmap-heading-order:## Purpose->## Bootstrap Status Note->## Inputs Reviewed"]
+        if order_errors != expected:
+            raise AssertionError(f"unexpected roadmap section-order errors: {order_errors}")
+        _write(root / ROADMAP_PATH, _sample_roadmap())
         case_count += 1
 
     print("LANE01_BOOTSTRAP_CHARTER_ALIGNMENT_SELF_TEST=pass")
@@ -268,7 +399,23 @@ def main() -> int:
             print(f"ERROR: {item}")
         return 1
 
+    missing_paths = collect_missing_paths(args.root)
+    if missing_paths:
+        for item in missing_paths:
+            print(f"ERROR: missing-linked-path:{item}")
+        return 1
+
+    order_errors = collect_section_order_errors(args.root)
+    if order_errors:
+        for item in order_errors:
+            print(f"ERROR: {item}")
+        return 1
+
     print("Lane 01 bootstrap charter alignment check passed.")
+    print(f"LANE01_BOOTSTRAP_CHARTER_ALIGNMENT_LINKED_PATH_COUNT={len(LINKED_PATHS)}")
+    print(f"LANE01_BOOTSTRAP_CHARTER_ALIGNMENT_README_ORDER={'->'.join(README_HEADINGS)}")
+    print(f"LANE01_BOOTSTRAP_CHARTER_ALIGNMENT_ROADMAP_ORDER={'->'.join(ROADMAP_HEADINGS)}")
+    print(f"LANE01_BOOTSTRAP_CHARTER_ALIGNMENT_LEDGER_ORDER={'->'.join(LEDGER_HEADINGS)}")
     return 0
 
 
