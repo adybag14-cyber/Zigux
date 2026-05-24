@@ -13,10 +13,13 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 REQUIRED_VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"',
+    '"scripts/zigux/check-phase3-abi-support-packet.py"',
     '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
     '"python3 scripts/zigux/check-phase3-abi.py"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"',
+    '"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"',
+    '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
     '"python3 scripts/zigux/validate-phase3.py --self-test"',
     '"python3 scripts/zigux/validate-phase3.py"',
     '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
@@ -59,6 +62,7 @@ REQUIRED_MANIFEST_FIELDS = {
 
 REQUIRED_PACKET_FILES = (
     "scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
+    "scripts/zigux/check-phase3-abi-support-packet.py",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "Documentation/zigux/phase3-validator-support-surface.md",
@@ -94,6 +98,8 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
+    "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-abi-support-packet.py",
     "python3 scripts/zigux/validate-phase3.py --self-test",
     "python3 scripts/zigux/validate-phase3.py",
     "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
@@ -247,10 +253,13 @@ def run_self_test() -> int:
 
         validator_cases = (
             ('"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator packet-file marker drift was not reported"),
+            ('"scripts/zigux/check-phase3-abi-support-packet.py"', "expected support-packet validator file-marker drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi.py --self-test"', "expected shared ABI self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi.py"', "expected shared ABI direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"', "expected validator self-test route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator direct route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"', "expected support-packet self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-abi-support-packet.py"', "expected support-packet direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3.py --self-test"', "expected validate-phase3 self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3.py"', "expected validate-phase3 direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"', "expected selftest-surface self-test validator-route drift was not reported"),
@@ -293,6 +302,7 @@ def run_self_test() -> int:
 
         packet_file_cases = (
             ("scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected checker packet-file drift was not reported"),
+            ("scripts/zigux/check-phase3-abi-support-packet.py", "expected support-packet packet-file drift was not reported"),
             ("Documentation/zigux/phase3-export-uapi-boundary-survey.md", "expected export-uapi survey note packet-file drift was not reported"),
             ("scripts/zigux/validate-phase3-export-uapi-survey.py", "expected export-uapi survey validator packet-file drift was not reported"),
             ("Documentation/zigux/phase3-validator-support-surface.md", "expected validator-support note packet-file drift was not reported"),
@@ -334,6 +344,8 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-abi.py", "expected shared ABI direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test", "expected checker self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected checker direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test", "expected support-packet self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-abi-support-packet.py", "expected support-packet direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3.py --self-test", "expected validate-phase3 self-test route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3.py", "expected validate-phase3 direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-selftest-surface.py --self-test", "expected selftest-surface self-test route drift was not reported"),
@@ -392,7 +404,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=104")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=110")
     return 0
 
 
