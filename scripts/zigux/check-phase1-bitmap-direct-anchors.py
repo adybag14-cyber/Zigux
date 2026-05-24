@@ -53,6 +53,10 @@ REQUIRED_SOURCE_MARKERS = {
     "bitmap_alloc_alias": "pub fn bitmap_alloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {",
     "bitmap_zalloc_alias": "pub fn bitmap_zalloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {",
     "bitmap_free_alias": "pub fn bitmap_free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {",
+    "or_multiword_tail_assert": "try std.testing.expectEqualSlices(Word, &[_]Word{ 0b11_1101, 0b01_0111 }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });",
+    "weighted_or_direct_count": "try std.testing.expectEqual(@as(usize, 2), direct_or_weight);",
+    "weighted_xor_direct_count": "try std.testing.expectEqual(@as(usize, 2), direct_xor_weight);",
+    "weighted_or_masked_count": "try std.testing.expectEqual(@as(usize, 2), weight(&direct_or, nbits));",
 }
 
 
