@@ -72,6 +72,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content",
         "the focused replay still expects `startup_64\\r` on the chunked-reader path while the wrapper contract keeps that same raw carriage-return behavior below broader parser redesign work",
         "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names",
+        "authenticated GitHub contents reads still fail for the dedicated kallsyms helper, focused test, and focused build file paths",
+        "the current container and devbox still could not replay those same raw file fetches directly, so this run still stops short of a local helper replay even though the public raw readback is now coherent",
     ),
     TOOLING_LANE_SEQUENCE: (
         "current public default-branch raw readback now also serves `tools/lib/symbol/kallsyms.zig`, so the shared owner map should treat the helper path as readable current-tree evidence while the mixed help-plus-kallsyms build shard stays a shared validation route instead of turning help-local and symbol-local follow-through into one owner",
