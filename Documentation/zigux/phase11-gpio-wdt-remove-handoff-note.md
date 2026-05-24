@@ -22,6 +22,8 @@ The current remove-handoff-facing gpio packet on `master` is:
 - `drivers/watchdog/gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -57,6 +59,11 @@ shared-build files as current-head evidence.
   driver-remove, and watchdog-unregister ordering explicit before any live
   platform cleanup callback, platform-driver removal, watchdog-core unregister,
   or host-backed shutdown claim.
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig` keeps
+  `platformCleanupCheckpointSummary()` and `summarizeRemoveHandoff()` directly
+  replayed as a dedicated cleanup-to-remove packet without claiming live
+  platform cleanup callbacks, platform-driver removal, watchdog-core
+  unregister, or host-backed shutdown execution.
 - `summarizeRemoveHandoff()` keeps the dedicated remove-handoff summary itself
   explicit before any live platform cleanup callback, platform-driver removal,
   watchdog-core unregister, or host-backed shutdown claim.
@@ -69,6 +76,6 @@ execution, or hardware-backed validation.
 
 ## Next Blocked Step
 
-The next honest gpio-only follow-through remains wider focused replay or
-manifest recovery, or another equally small gpio watchdog truthfulness repair,
-rather than new runtime behavior.
+The next honest gpio-only follow-through remains manifest recovery, checker
+upkeep, or another equally small gpio watchdog truthfulness repair, rather than
+new runtime behavior.
