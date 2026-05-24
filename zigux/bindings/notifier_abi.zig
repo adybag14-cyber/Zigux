@@ -378,6 +378,36 @@ test "list helper rejects a broken backlink" {
     try std.testing.expect(!listHasConsistentBacklinks(&head));
 }
 
+test "list helper reports a missing first node pointer" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    head.next = 0;
+    head.prev = @intFromPtr(&head);
+
+    const breakage = firstBrokenBacklink(&head) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.expected_prev);
+    try std.testing.expectEqual(@as(usize, 0), breakage.actual_prev);
+    try std.testing.expect(!listHasConsistentBacklinks(&head));
+}
+
+test "list helper reports a missing tail next pointer" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var first = ListHead{ .next = 0, .prev = 0 };
+    var second = ListHead{ .next = 0, .prev = 0 };
+    head.next = @intFromPtr(&first);
+    head.prev = @intFromPtr(&second);
+    first.next = @intFromPtr(&second);
+    first.prev = @intFromPtr(&head);
+    second.next = 0;
+    second.prev = @intFromPtr(&first);
+
+    const breakage = firstBrokenBacklink(&head) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 2), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&second)), breakage.expected_prev);
+    try std.testing.expectEqual(@as(usize, 0), breakage.actual_prev);
+    try std.testing.expect(!listHasConsistentBacklinks(&head));
+}
+
 test "hlist helper accepts an empty head" {
     const head = HListHead{ .first = 0 };
 
@@ -405,4 +435,18 @@ test "hlist helper rejects a broken prev-link" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
     try std.testing.expect(!hlistHasConsistentPrevLinks(&head));
+}
+
+test "hlist helper accepts a consistent two-node chain" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&head.first);
+    second.next = 0;
+    second.pprev = @intFromPtr(&first.next);
+
+    try std.testing.expect(firstBrokenPrevLink(&head) == null);
+    try std.testing.expect(hlistHasConsistentPrevLinks(&head));
 }
