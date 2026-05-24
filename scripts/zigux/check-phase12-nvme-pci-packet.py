@@ -55,14 +55,15 @@ EXPECTED_ROADMAP_GAP_CHECK = {
         ),
     },
     "queueing_correctness": {
-        "status": "starter_verifier_direct_test_manifest_and_survey_gate_present_shared_build_direct_replay_present",
+        "status": "starter_verifier_direct_test_manifest_and_survey_gate_present_dedicated_build_present_shared_build_absent",
         "current_surface_markers": (
+            "dedicated direct-build route",
             "dedicated survey gate",
-            "shared build wiring",
-            "live queue execution",
+            "`zigux/tests/phase12_build.zig` still stays virtio_net-only",
         ),
         "blocked_by_markers": (
-            "shared Phase 12 build route",
+            "dedicated survey gate",
+            "dedicated direct-build route",
             "transport-backed queue execution",
         ),
     },
@@ -80,14 +81,15 @@ EXPECTED_ROADMAP_GAP_CHECK = {
         ),
     },
     "segmented_rollout": {
-        "status": "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_shared_build_direct_replay_present",
+        "status": "driver_local_slice_note_manifest_survey_note_and_survey_gate_present_dedicated_build_present_shared_build_absent",
         "current_surface_markers": (
             "fallback map",
-            "reopen-governance note",
-            "dedicated slice note",
+            "dedicated direct-build route",
+            "`zigux/tests/phase12_build.zig` still remains virtio_net-only",
         ),
         "blocked_by_markers": (
-            "shared Phase 12 build route",
+            "dedicated survey gate",
+            "dedicated direct-build route",
             "transport-backed queue execution",
         ),
     },
@@ -105,7 +107,7 @@ EXPECTED_GAPS = {
         "zigux_destination": "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
     },
     "phase12-nvme-direct-replay": {
-        "status": "landed_on_master_shared_build_present",
+        "status": "landed_on_master_dedicated_build_present",
         "kind": "validation",
         "zigux_destination": "zigux/tests/phase12_nvme_pci.zig",
     },
@@ -115,7 +117,7 @@ EXPECTED_GAPS = {
         "zigux_destination": "zigux/tests/phase12_nvme_pci_manifest.json",
     },
     "phase12-nvme-shared-build-route": {
-        "status": "direct_replay_present_shared_build_wired_survey_gate_standalone",
+        "status": "shared_build_absent_dedicated_build_present_survey_gate_standalone",
         "kind": "validation",
         "zigux_destination": "zigux/tests/phase12_build.zig",
     },
@@ -125,7 +127,7 @@ EXPECTED_GAPS = {
         "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
     },
     "phase12-nvme-survey-note": {
-        "status": "survey_present_shared_direct_replay_route_present",
+        "status": "survey_present_dedicated_direct_build_only",
         "kind": "documentation",
         "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
     },
