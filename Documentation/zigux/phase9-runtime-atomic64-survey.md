@@ -44,14 +44,14 @@ That means the honest current packet is the direct atomic64 starter packet toget
 1. `zigux/tests/runtime_atomic64_module.zig` keeps the direct lifecycle packet reviewable.
 2. `zigux/tests/runtime_atomic64_diff.zig` keeps the `lib/atomic64_test.c` operation families machine-checkable.
 3. `zigux/tests/runtime_atomic64_survey.zig` and `zigux/tests/runtime_atomic64_manifest.json` keep the direct sample leg, note packet, and exact bounded blocker wording fail-closed.
-4. `zigux/tests/phase9_build.zig` keeps `phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-tests`, and `phase9-runtime-loader-shared-tests` explicit, including `zig build phase9-runtime-atomic64-sample-tests --build-file zigux/tests/phase9_build.zig`.
+4. `zigux/tests/phase9_build.zig` keeps `phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-tests`, `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-command-env-boundary-guard-tests`, and `phase9-runtime-loader-shared-tests` explicit, including `zig build phase9-runtime-atomic64-sample-tests --build-file zigux/tests/phase9_build.zig`.
 5. The shared Phase 9 reminder packet keeps the broader runtime-substrate blocker explicit instead of being treated as proof that the missing runtime substrate has already landed.
 
 ## Loader Reminder Evidence
 
 The visible shared-loader reminder packet keeps a prepared `RuntimeAtomic64LoadSummary` snapshot reviewable without claiming live loader binding. The packet keeps the anchor, checked operation families, counter snapshot, and selftest-run count reviewable even when later counter mutation, later selftest activity, or later exit activity changes the live sample.
 
-The same shared-loader reminder packet also keeps the allocator/init-flow replay explicit, keeps the command/environment boundary guard explicit, keeps the returned bitmap-loader companion visible, and keeps the direct shared runtime-load transition guard that keeps the loader stage and shared release state synchronized even if the shared request advances before the loader-owned release path runs.
+The same shared-loader reminder packet also keeps the dedicated `phase9-runtime-loader-allocator-init-flow-tests` and `phase9-runtime-loader-command-env-boundary-guard-tests` reruns explicit, keeps the allocator/init-flow replay explicit, keeps the command/environment boundary guard explicit, keeps the returned bitmap-loader companion visible, and keeps the direct shared runtime-load transition guard that keeps the loader stage and shared release state synchronized even if the shared request advances before the loader-owned release path runs.
 
 ## Boundaries
 
