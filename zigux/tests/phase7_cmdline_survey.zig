@@ -123,6 +123,8 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");
     try expectContains(helper, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");
     try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");
+    try expectContains(helper, "test \\\"getOption getOptions and memparse stay inside the first NUL byte\\\" {");
+    try expectContains(helper, "test \\\"nextArg stays inside the first NUL for bare and key value tokens\\\" {");
     try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {");
     try expectContains(helper, "test \\\"getOptions expands negative ranges and negative upper bounds\\\" {");
     try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");
@@ -137,6 +139,9 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper_companion, "try std.testing.expectEqualStrings(\\\"2,9\\\", descending_rest);");
     try expectContains(helper_companion, "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture");
     try expectContains(helper_companion, "phase 7 cmdline companion replays validator-only getOption cursor movement");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays first-NUL boundary borrowing");
+    try expectContains(helper_companion, "try std.testing.expectEqual(@intFromPtr(&option_input[2]), @intFromPtr(option_rest.ptr));");
+    try expectContains(helper_companion, "try std.testing.expectEqual(@intFromPtr(&next_arg_input[13]), @intFromPtr(parsed_arg.remaining.ptr));");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries");
     try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");
 
