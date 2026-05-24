@@ -46,13 +46,13 @@ Aligned reminder surfaces in this run:
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
-- `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `scripts/zigux/README.md`
 
 Those surfaces already keep the landed trace-events packet explicit, keep the selected-string plus `iter=%d` formatting cue positioned as the approved bounded formatting reminder instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 They also should keep the broader non-runtime trace-events companions framed as current public-tree-backed companion or shared reminder vocabulary until the contents route actually returns those files again.
+`Documentation/zigux/README.md` is not counted as aligned in this run because its current Phase 5 packet still omits this directly readable survey note even though the narrower trace-events reminder packet already keeps it explicit elsewhere on current `master`.
 The same current reminder packet also stays checker-backed in this run: `scripts/zigux/check-phase5-review-guide-surface.py` still guards the direct-proof, public-tree-backed-companion, and no-extra-sample wording across `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` instead of leaving the approved formatting story as guide-only prose.
 
 A fresh 2026-05-20 sample-root reread in this run confirms the shared sample-root reminder is still aligned on the narrow direct packet:
