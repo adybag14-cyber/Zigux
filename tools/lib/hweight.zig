@@ -92,3 +92,30 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers preserve popcount under bit reversal" {
+    const value8: u32 = 0b0011_0101;
+    const reversed8: u8 = @bitReverse(@as(u8, @intCast(value8)));
+    try std.testing.expectEqual(swHweight8(value8), swHweight8(reversed8));
+    try std.testing.expectEqual(__sw_hweight8(value8), __sw_hweight8(reversed8));
+
+    const value16: u32 = 0x12b0;
+    const reversed16: u16 = @bitReverse(@as(u16, @intCast(value16)));
+    try std.testing.expectEqual(swHweight16(value16), swHweight16(reversed16));
+    try std.testing.expectEqual(__sw_hweight16(value16), __sw_hweight16(reversed16));
+
+    const value32: u32 = 0x1234_a5c0;
+    const reversed32: u32 = @bitReverse(value32);
+    try std.testing.expectEqual(swHweight32(value32), swHweight32(reversed32));
+    try std.testing.expectEqual(__sw_hweight32(value32), __sw_hweight32(reversed32));
+
+    const value64: u64 = 0x0123_4567_89ab_cdef;
+    const reversed64: u64 = @bitReverse(value64);
+    try std.testing.expectEqual(swHweight64(value64), swHweight64(reversed64));
+    try std.testing.expectEqual(__sw_hweight64(value64), __sw_hweight64(reversed64));
+
+    const value_long: usize = if (@sizeOf(usize) == 4) 0x1234_a5c0 else 0x0123_4567_89ab_cdef;
+    const reversed_long: usize = @bitReverse(value_long);
+    try std.testing.expectEqual(hweightLong(value_long), hweightLong(reversed_long));
+    try std.testing.expectEqual(hweight_long(value_long), hweight_long(reversed_long));
+}
