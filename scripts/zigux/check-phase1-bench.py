@@ -537,6 +537,20 @@ def run_self_test() -> None:
     assert_case(payload == ["status"], "duplicate top-level payload", payload)
     case_count += 1
 
+    missing_rbtree_iteration_expectations = base_expectations()
+    del missing_rbtree_iteration_expectations["iterations"]["PHASE1_BENCH_RBTREE_ITERATIONS"]
+    kind, payload = validate_expectations(missing_rbtree_iteration_expectations)
+    assert_case(kind == "expectations_missing_rbtree_iterations", "missing rbtree expectation iteration", (kind, payload))
+    assert_case(payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"], "missing rbtree expectation iteration payload", payload)
+    case_count += 1
+
+    missing_rbtree_exact_expectations = base_expectations()
+    del missing_rbtree_exact_expectations["exact_checksums"]["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
+    kind, payload = validate_expectations(missing_rbtree_exact_expectations)
+    assert_case(kind == "expectations_checksums_rbtree_exact_required", "missing rbtree expectation exact checksum", (kind, payload))
+    assert_case(payload == "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", "missing rbtree expectation exact checksum payload", payload)
+    case_count += 1
+
     ok_output = "\n".join(
         [
             "PHASE1_BENCH=pass",
@@ -565,6 +579,22 @@ def run_self_test() -> None:
 
     kind, payload = validate_output(base_expectations(), ok_output)
     assert_case(kind == "pass", "output pass", (kind, payload))
+    case_count += 1
+
+    missing_rbtree_iteration_output = "\n".join(
+        line for line in ok_output.splitlines() if line != "PHASE1_BENCH_RBTREE_ITERATIONS=4000"
+    )
+    kind, payload = validate_output(base_expectations(), missing_rbtree_iteration_output)
+    assert_case(kind == "missing_rbtree_iterations", "missing rbtree output iteration", (kind, payload))
+    assert_case(payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"], "missing rbtree output iteration payload", payload)
+    case_count += 1
+
+    missing_rbtree_exact_output = "\n".join(
+        line for line in ok_output.splitlines() if line != "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12"
+    )
+    kind, payload = validate_output(base_expectations(), missing_rbtree_exact_output)
+    assert_case(kind == "missing_rbtree_exact_checksums", "missing rbtree output exact checksum", (kind, payload))
+    assert_case(payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"], "missing rbtree output exact checksum payload", payload)
     case_count += 1
 
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
