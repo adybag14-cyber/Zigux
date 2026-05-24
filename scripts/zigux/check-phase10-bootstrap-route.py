@@ -25,6 +25,9 @@ CHECK_RUN_LINE = f"run: {CHECK_CMD}\n"
 VALIDATE_RUN_LINE = f"run: {VALIDATE_CMD}\n"
 TEST_RUN_LINE = f"run: {TEST_CMD}\n"
 MAKE_VALIDATE_TARGET = "phase10-validate:\n"
+MAKE_BOOTSTRAP_CMD = (
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py\n"
+)
 MAKE_VALIDATE_CMD = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py\n"
 MAKE_CLOSURE_CMD = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py\n"
 MAKE_COUNTS_CMD = (
@@ -107,12 +110,15 @@ def check_workflow(text: str) -> None:
 
 def check_makefile(text: str) -> None:
     section = section_between(text, MAKE_VALIDATE_TARGET, MAKE_TEST_TARGET, "phase10 make route")
+    require_marker(section, MAKE_BOOTSTRAP_CMD, "phase10 make bootstrap checker command")
     require_marker(section, MAKE_COUNTS_CMD, "phase10 manifest-count checker command")
     require_marker(section, MAKE_VALIDATE_CMD, "phase10 make validate command")
     require_marker(section, MAKE_CLOSURE_CMD, "phase10 make closure command")
+    require_exact_count(section, MAKE_BOOTSTRAP_CMD, 1, "phase10 make route command")
     require_exact_count(section, MAKE_COUNTS_CMD, 1, "phase10 make route command")
     require_exact_count(section, MAKE_VALIDATE_CMD, 1, "phase10 make route command")
     require_exact_count(section, MAKE_CLOSURE_CMD, 1, "phase10 make route command")
+    require_order(section, MAKE_BOOTSTRAP_CMD, MAKE_TESTS_README_CMD, "phase10 make route order")
     require_order(section, MAKE_TESTS_README_CMD, MAKE_COUNTS_CMD, "phase10 make route order")
     require_order(section, MAKE_COUNTS_CMD, MAKE_VALIDATE_CMD, "phase10 make route order")
     require_order(section, MAKE_VALIDATE_CMD, MAKE_CLOSURE_CMD, "phase10 make route order")
@@ -144,19 +150,19 @@ jobs:
         run: make -C zigux phase10-test
 """
     good_makefile = """phase10-validate:
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-shared-freeze-boundary.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-harness-coverage.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-closure-manifest-counts.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-shared-freeze-boundary.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-ring-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-harness-coverage.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-closure-manifest-counts.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py
 
 phase10-test:
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
 """
     good_note = """# Phase 10 Closure Evidence
 The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.
@@ -215,6 +221,18 @@ The shared closure-manifest count guard now stays explicit through `scripts/zigu
         assert "workflow step order" in str(exc) or "workflow command order" in str(exc)
     else:
         raise AssertionError("expected reordered workflow failure")
+
+    bad_makefile_missing_bootstrap = good_makefile.replace(
+        MAKE_BOOTSTRAP_CMD,
+        "",
+        1,
+    )
+    try:
+        check_makefile(bad_makefile_missing_bootstrap)
+    except SystemExit as exc:
+        assert "phase10 make bootstrap checker command" in str(exc)
+    else:
+        raise AssertionError("expected missing phase10 bootstrap checker command failure")
 
     bad_makefile_missing_counts = good_makefile.replace(
         MAKE_COUNTS_CMD,
@@ -321,7 +339,7 @@ The shared closure-manifest count guard now stays explicit through `scripts/zigu
         raise AssertionError("expected missing note count-guard phrase failure")
 
     print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass")
-    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
