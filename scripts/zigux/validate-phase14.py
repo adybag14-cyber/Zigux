@@ -43,6 +43,9 @@ RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-ex
 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH = (
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
 )
+SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH = (
+    "scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py"
+)
 RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-guardrail.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -76,6 +79,7 @@ REQUIRED_FILES = [
     SHARED_SMOKE_ROUTE_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
     ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
+    SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
@@ -205,6 +209,12 @@ REQUIRED_MARKERS = {
         "PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass",
         "phase14 rollback-threshold sequencing packet validated",
     ],
+    SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH: [
+        "PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST=pass",
+        "`PHASE14_LANE_KEY=P14-L11`",
+        "`phase14-skbuff-live-ownership-blocker`",
+        "Check that the dedicated Phase 14 skbuff survey stays aligned with the current review-only stay-in-C guardrail wording.",
+    ],
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
         "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
         "`PHASE14_LANE_KEY=P14-L16`",
@@ -233,6 +243,10 @@ REQUIRED_MARKERS = {
         "scripts/zigux/validate-phase14.py",
         "scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
         "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+        "scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py --self-test",
+        "scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py",
+        "scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test",
+        "scripts/zigux/check-phase14-rcu-rollback-guardrail.py",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     ],
@@ -240,6 +254,8 @@ REQUIRED_MARKERS = {
         '"shared_smoke_surfaces": [',
         '"scripts/zigux/check-phase14-rollback-threshold-sequencing.py"',
         '"phase14_validate_runs_rollback_threshold_sequencing": true',
+        '"scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py"',
+        '"phase14_validate_runs_skbuff_stay_in_c_guardrail": true',
         '"Documentation/zigux/phase14-core-boundary-traceability.md"',
         '"scripts/zigux/check-phase14-release-boundary-exact-counts.py"',
         '"smoke_commands": [',
@@ -334,6 +350,19 @@ def fixture_text(rel_path: str) -> str:
         SCRIPTS_README_PATH: "# scripts/zigux",
         TESTS_README_PATH: "# zigux/tests",
     }
+    if rel_path == SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH:
+        return (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "# PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST=pass\n"
+            "# `PHASE14_LANE_KEY=P14-L11`\n"
+            "# `phase14-skbuff-live-ownership-blocker`\n"
+            "# Check that the dedicated Phase 14 skbuff survey stays aligned with the current review-only stay-in-C guardrail wording.\n"
+            "if \"--self-test\" in sys.argv:\n"
+            "    print(\"PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST=pass\")\n"
+            "else:\n"
+            "    print(\"PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL=pass\")\n"
+        )
     if rel_path == RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH:
         return (
             "#!/usr/bin/env python3\n"
@@ -368,15 +397,15 @@ def write_fixture_tree(root: Path) -> None:
         write_text(root / rel_path, fixture_text(rel_path))
 
 
-def checker_script_path(root: Path) -> Path:
-    candidate = root / RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH
+def checker_script_path(root: Path, rel_path: str) -> Path:
+    candidate = root / rel_path
     if candidate.exists():
         return candidate
-    return ROOT / RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH
+    return ROOT / rel_path
 
 
-def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
-    command = [sys.executable, str(checker_script_path(root))]
+def run_guardrail_checker(root: Path, rel_path: str, *, self_test: bool) -> list[str]:
+    command = [sys.executable, str(checker_script_path(root, rel_path))]
     if self_test:
         command.append("--self-test")
     else:
@@ -389,10 +418,7 @@ def run_rcu_guardrail_checker(root: Path, *, self_test: bool) -> list[str]:
     output = [line for line in (completed.stdout + completed.stderr).splitlines() if line.strip()]
     if not output:
         output = ["checker exited with no output"]
-    return [
-        f"subcheck_fail:{RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH}:{line}"
-        for line in output
-    ]
+    return [f"subcheck_fail:{rel_path}:{line}" for line in output]
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -416,18 +442,23 @@ def run_self_test() -> int:
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
-        checker_failures = run_rcu_guardrail_checker(base, self_test=True)
-        if checker_failures:
-            raise SystemExit(
-                "fixture tree should pass the dedicated RCU rollback guardrail self-test "
-                f"but failed: {checker_failures!r}"
-            )
+        for rel_path in (
+            SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
+            RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
+        ):
+            checker_failures = run_guardrail_checker(base, rel_path, self_test=True)
+            if checker_failures:
+                raise SystemExit(
+                    "fixture tree should pass the dedicated Phase 14 guardrail self-tests "
+                    f"but failed: {checker_failures!r}"
+                )
 
         missing_file_cases = [
             SHARED_SMOKE_ROUTE_CHECKER_PATH,
             RELEASE_BOUNDARY_CHECKER_PATH,
             RING_BUFFER_SURVEY_PATH,
             ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
+            SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
@@ -445,6 +476,7 @@ def run_self_test() -> int:
         marker_cases = [
             (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][0]),
             (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][7]),
+            (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][9]),
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][2]),
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][1]),
             (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][3]),
@@ -456,6 +488,10 @@ def run_self_test() -> int:
                 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
                 REQUIRED_MARKERS[ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH][0],
             ),
+            (
+                SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
+                REQUIRED_MARKERS[SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH][0],
+            ),
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
             (RING_BUFFER_MANIFEST_PATH, REQUIRED_MARKERS[RING_BUFFER_MANIFEST_PATH][0]),
@@ -464,8 +500,10 @@ def run_self_test() -> int:
             (SMOKE_SURVEY_PATH, REQUIRED_MARKERS[SMOKE_SURVEY_PATH][4]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][1]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][2]),
-            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][5]),
-            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][9]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][3]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][4]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][7]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][10]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
@@ -486,8 +524,9 @@ def main() -> int:
             "Validate the current bounded Phase 14 shared smoke packet around the live "
             "`phase14-validate` route, the shared route checker, the shared smoke manifest, "
             "the freeze-map study-only inventory, the release-boundary exact-count guard, the ring-buffer study-only packet, the dedicated "
-            "rollback-threshold sequencing checker, the dedicated RCU rollback "
-            "guardrail, and the returned workqueue reviewability shard."
+            "rollback-threshold sequencing checker, the dedicated skbuff stay-in-C "
+            "guardrail, the dedicated RCU rollback guardrail, and the returned workqueue "
+            "reviewability shard."
         )
     )
     parser.add_argument(
@@ -508,7 +547,21 @@ def main() -> int:
 
     failures = validate(args.root)
     if not failures:
-        failures.extend(run_rcu_guardrail_checker(args.root, self_test=False))
+        failures.extend(
+            run_guardrail_checker(
+                args.root,
+                SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
+                self_test=False,
+            )
+        )
+    if not failures:
+        failures.extend(
+            run_guardrail_checker(
+                args.root,
+                RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
+                self_test=False,
+            )
+        )
     if failures:
         print("PHASE14_VALIDATION=fail")
         print("PHASE14_PACKET_DRIFT_START")
