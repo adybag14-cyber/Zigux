@@ -12,7 +12,7 @@ Authenticated sample-root readback still directly exposes this bounded non-runti
 
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 
-Fresh mixed reread on 2026-05-23 keeps the dedicated survey note and the broader non-runtime trace-events companions in a split state rather than a missing state.
+Fresh mixed reread on 2026-05-24 keeps the dedicated survey note and the broader non-runtime trace-events companions in a split state rather than a missing state.
 
 This survey note is directly readable again on current `master` and should stay grouped with the shared reminder packet rather than with the still-split sample-local companion set:
 
@@ -25,7 +25,7 @@ The broader non-runtime trace-events sample-local companions still remain on the
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-Those four paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-23.
+Those four paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, and current `master` now also visibly wires the focused replay packet through `zigux/tests/phase5_build.zig` plus the focused replay `zigux/tests/phase5_trace_events_sample.zig`, but the authenticated contents route used for this lane still does not return the whole broader companion set through one consistent path.
 
 The shared `zigux/tests/phase5_build.zig` route remains useful support material too, and the current lane reread now returns that path directly again. Keep it framed as returned shared build-route evidence rather than as part of the broader sample-local companion set.
 
@@ -69,6 +69,18 @@ Those checks confirmed this current sample behavior:
 - `runDestinationSizingReplay()` now has an explicit exact-fit sizing proof in the recorded check set: for all five strings, `requiredIterationMessageLen(...)` and `requiredSelectedIterationMessageLen(...)` still match the exact `bufPrint(...)` result lengths, exact-size destinations still succeed, one-byte-short destinations still fail with `error.NoSpaceLeft`, the sample stays in `.initialized`, and `replay_runs` remains `0`.
 - lifecycle boundaries still fail closed: replay before `init()` and `exit()` before initialization both reject with `error.InvalidLifecycleTransition`; negative replay input rejects with `error.InvalidIterationCount`; replay after `exit()` rejects again; the successful replay-plus-exit path leaves `init_runs`, `replay_runs`, and `exit_runs` at `1` each.
 - bounded destination behavior is still directly covered too: `formatIterationMessageInto(12, [5]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` returns `"iter=12"` and keeps the sample in the `.initialized` stage; `formatSelectedIterationMessageInto(3, [11]u8)` still fails with `error.NoSpaceLeft`, while `formatSelectedIterationMessageInto(3, [12]u8)` still returns `"Frodo iter=3"`.
+
+## Narrowed roadmap gap
+
+This note exists to preserve the approved formatting idiom, but it should no longer be read as evidence that the trace-events roadmap gap is only a formatting reminder.
+
+Current `master` now visibly carries broader Phase 5 trace-events proof through the shared `zigux/tests/phase5_build.zig` routes and the focused replay `zigux/tests/phase5_trace_events_sample.zig`, which keeps payload shape, conditional event families, function-callback registration, ownership, lifetime, and the public review contract reviewable on current `master`.
+
+So the remaining same-lane gap against the roadmap is now a proof-shape gap, not an idiom-gap:
+- the approved formatting cue still belongs here and should stay bounded to the shared reminder packet
+- the broader non-runtime trace-events packet is visibly present on current `master`
+- this runtime still does not return the whole broader companion set through one consistent authenticated contents path
+- same-lane reminder surfaces therefore must not undercount the broader replay evidence, and also must not promote that broader packet to fully returned direct authenticated proof before the contents route actually does so
 
 ## Review boundary
 
