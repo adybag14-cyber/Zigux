@@ -323,6 +323,7 @@ def _sample_manifest() -> str:
                 "the retained `freeze_in_c` decision",
                 "the current blocker",
                 "the required approver set",
+                "governance lane sequencing link or explicit scope note",
                 "`retired_from_active_discussion` state",
                 "the automatic return-to-blocked trigger",
                 "the reopen triggers",
@@ -489,6 +490,7 @@ If a freeze-in-C review closes without a status change, the closeout record must
 - the retained `freeze_in_c` decision
 - the current blocker
 - the required approver set
+- governance lane sequencing link or explicit scope note
 - `retired_from_active_discussion` state
 - the automatic return-to-blocked trigger
 - the reopen triggers
@@ -545,6 +547,7 @@ This is a review packet template, not approval by itself.
 - the retained `freeze_in_c` decision:
 - the current blocker:
 - the required approver set:
+- governance lane sequencing link or explicit scope note:
 - `retired_from_active_discussion` state:
 - the automatic return-to-blocked trigger:
 - the reopen triggers:
@@ -807,6 +810,36 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected review-outcome-marker failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace(
+                "- governance lane sequencing link or explicit scope note\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "review-process note is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note"
+        ]:
+            raise AssertionError(f"unexpected stay-in-c governance-note failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / DECISION_RECORD_TEMPLATE_PATH,
+            _sample_decision_record_template().replace(
+                "- governance lane sequencing link or explicit scope note:\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "decision-record template is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note"
+        ]:
+            raise AssertionError(f"unexpected stay-in-c governance-template failure: {failures}")
+
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
             root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
