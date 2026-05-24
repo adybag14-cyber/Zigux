@@ -94,11 +94,12 @@ or `zigux/tests/phase11_build.zig` routes.
   keep the broader matrix-gap, targetless-unregister, DesignWare, bcm2835, and
   gpio checker chain explicit beside that narrower inventory packet.
   The same shared validator packet and `make -C zigux phase11-validate`
-  wrapper now cover eleven focused proof builds through
+  wrapper now cover twelve focused proof builds through
   `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`,
   `zigux/tests/phase11_dw_wdt_build.zig`,
   `zigux/tests/phase11_dw_wdt_restart_build.zig`,
   `zigux/tests/phase11_dw_wdt_pm_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`,
   `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
@@ -106,7 +107,7 @@ or `zigux/tests/phase11_build.zig` routes.
   `zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
   `zigux/tests/phase11_hvc_modem_control_proof_build.zig`, and
   `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, so keep that
-  eleven-proof-build packet explicit instead of reducing the current shared gate to
+  twelve-proof-build packet explicit instead of reducing the current shared gate to
   the narrower HVC inventory alone.
 - `zigux/tests/phase11_build.zig` is not part of the current shared packet on
   `master`
@@ -142,6 +143,7 @@ deterministic and reviewable:
   `zig build test --build-file zigux/tests/phase11_dw_wdt_build.zig`,
   `zig build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig`,
   `zig build test --build-file zigux/tests/phase11_dw_wdt_pm_build.zig`,
+  `zig build test --build-file zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
   `zig build test --build-file zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
   `zig build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`,
   `zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
