@@ -104,6 +104,7 @@
     "python3 scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "python3 scripts/zigux/run-phase3-checks.py",
+    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
