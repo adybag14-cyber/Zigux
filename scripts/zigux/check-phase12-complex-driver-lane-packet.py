@@ -45,6 +45,7 @@ FORBIDDEN_PRESENT_PATHS = (
 NOTE_MARKERS = (
     "`PHASE12_LANE=complex-driver-shared-release-packet`",
     "anti-overlap checker: `scripts/zigux/check-phase12-complex-driver-lane-packet.py`",
+    "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
     "`drivers/net/virtio_net_queue_resume.zig`, `drivers/net/virtio_net_receive_refill_replay.zig`, `drivers/net/virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_post_reset_replay.zig`, and `drivers/net/virtio_net_throughput_parity.zig` are now present on `master`.",
     "`zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig` are now present on `master` as the directly coupled review packet for that split-helper family.",
     "`zigux/tests/phase12_virtio_net_survey.zig` is also present on `master` as the shared survey gate for that same bounded packet; keep it explicit as reviewability support beside the five replay shards without reviving the older monolithic starter or implying live DMA-safe queue ownership, queue restart parity, or completion-path delivery.",
@@ -218,6 +219,21 @@ def run_self_test() -> int:
             raise AssertionError("expected note marker failure")
 
         write_fixture(root)
+        build_only_marker = "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`"
+        (root / NOTE_PATH).write_text(
+            read_text(root, NOTE_PATH).replace(build_only_marker, "", 1),
+            encoding="utf-8",
+        )
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "phase12-complex-driver-lane-sequencing.md" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected build-only contract marker failure")
+
+        write_fixture(root)
         survey_build_marker = "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`"
         (root / NOTE_PATH).write_text(
             read_text(root, NOTE_PATH).replace(
@@ -239,7 +255,7 @@ def run_self_test() -> int:
             raise AssertionError("expected virtio_scsi survey-build marker failure")
 
         write_fixture(root)
-        (root / WORKFLOW_PATH).write_text("broken\n", encoding="utf-8")
+        (root / WORKFLOW_PATH).writeText("broken\n", encoding="utf-8")
         try:
             check(root)
         except CheckFailure as exc:
