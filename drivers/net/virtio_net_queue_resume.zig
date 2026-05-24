@@ -50,7 +50,13 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
         break :blk .none;
     };
 
-    const can_resume_queues = blocker == .none;
+    const resume_prereqs_ready =
+        !request.queues_frozen and
+        (!request.requires_control_queue_restore or request.control_queue_restored) and
+        request.probe_snapshot_replayed;
+    const resumes_receive_submission = resume_prereqs_ready and request.refill_replay_ready;
+    const resumes_transmit_submission = resume_prereqs_ready and request.transmit_recycle_ready;
+    const can_resume_queues = resumes_receive_submission and resumes_transmit_submission;
     return .{
         .anchor = "drivers/net/virtio_net.c",
         .reset_generation = request.reset_generation,
@@ -62,8 +68,8 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
         .probe_snapshot_replayed = request.probe_snapshot_replayed,
         .requires_control_queue_restore = request.requires_control_queue_restore,
         .blocker = blocker,
-        .resumes_receive_submission = can_resume_queues,
-        .resumes_transmit_submission = can_resume_queues,
+        .resumes_receive_submission = resumes_receive_submission,
+        .resumes_transmit_submission = resumes_transmit_submission,
         .can_resume_queues = can_resume_queues,
     };
 }
@@ -125,7 +131,7 @@ test "queue resume skips control queue restore when the packet says no control q
     try std.testing.expect(summary.can_resume_queues);
 }
 
-test "queue resume still requires refill replay and transmit recycle readiness" {
+test "queue resume keeps receive and transmit submission readiness distinct while the overall gate stays fail-closed" {
     const refill = try summarizeQueueResume(.{
         .reset_generation = 3,
         .receive_queue_pairs = 4,
@@ -135,6 +141,9 @@ test "queue resume still requires refill replay and transmit recycle readiness" 
         .probe_snapshot_replayed = true,
     });
     try std.testing.expectEqual(QueueResumeBlocker.refill_replay, refill.blocker);
+    try std.testing.expect(!refill.resumes_receive_submission);
+    try std.testing.expect(refill.resumes_transmit_submission);
+    try std.testing.expect(!refill.can_resume_queues);
 
     const transmit = try summarizeQueueResume(.{
         .reset_generation = 3,
@@ -145,6 +154,9 @@ test "queue resume still requires refill replay and transmit recycle readiness" 
         .probe_snapshot_replayed = true,
     });
     try std.testing.expectEqual(QueueResumeBlocker.transmit_recycle, transmit.blocker);
+    try std.testing.expect(transmit.resumes_receive_submission);
+    try std.testing.expect(!transmit.resumes_transmit_submission);
+    try std.testing.expect(!transmit.can_resume_queues);
 }
 
 test "queue resume keeps probe snapshot replay explicit before queue submission resumes" {
