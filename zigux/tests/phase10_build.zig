@@ -136,7 +136,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_queue_callback_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_queue_callback_preflight_module.addImport(
         "virtio_input_queue_callback_preflight",
-        virtio_input_queue_callback_preflight_module,
+        phase10_virtio_input_queue_callback_preflight_module,
     );
 
     const phase10_virtio_input_registration_preflight_module = b.createModule(.{
@@ -147,7 +147,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_registration_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_registration_preflight_module.addImport(
         "virtio_input_registration_preflight",
-        virtio_input_registration_preflight_module,
+        phase10_virtio_input_registration_preflight_module,
     );
 
     const phase10_virtio_input_status_drain_module = b.createModule(.{
@@ -169,7 +169,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_teardown_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_teardown_preflight_module.addImport(
         "virtio_input_teardown_preflight",
-        virtio_input_teardown_preflight_module,
+        phase10_virtio_input_teardown_preflight_module,
     );
 
     const virtio_input_teardown_observation_module = b.createModule(.{
@@ -213,6 +213,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_ring_notification_data_readiness_module.addImport("virtio_ring", virtio_ring_module);
+
+    const phase10_virtio_ring_registration_replay_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_ring_registration_replay.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase10_virtio_ring_prepare_kick_idempotent_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_ring_prepare_kick_idempotent.zig"),
@@ -368,6 +374,9 @@ pub fn build(b: *std.Build) void {
     const phase10_virtio_ring_notification_data_readiness_tests = b.addTest(.{ .name = "phase10-virtio-ring-notification-data-readiness-tests", .root_module = phase10_virtio_ring_notification_data_readiness_module });
     const run_phase10_virtio_ring_notification_data_readiness_tests = b.addRunArtifact(phase10_virtio_ring_notification_data_readiness_tests);
 
+    const phase10_virtio_ring_registration_replay_tests = b.addTest(.{ .name = "phase10-virtio-ring-registration-replay-tests", .root_module = phase10_virtio_ring_registration_replay_module });
+    const run_phase10_virtio_ring_registration_replay_tests = b.addRunArtifact(phase10_virtio_ring_registration_replay_tests);
+
     const phase10_virtio_ring_verify_tests = b.addTest(.{ .name = "phase10-virtio-ring-verify-tests", .root_module = virtio_ring_verify_module });
     const run_phase10_virtio_ring_verify_tests = b.addRunArtifact(phase10_virtio_ring_verify_tests);
 
@@ -454,6 +463,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_input_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_registration_replay_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);
