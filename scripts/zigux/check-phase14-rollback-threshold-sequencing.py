@@ -417,6 +417,21 @@ def run_self_test() -> int:
             root,
             SMOKE_NOTE_PATH,
             fixture_smoke_note().replace(
+                "    * workqueue-boundary-shard drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("workqueue-boundary-shard drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected workqueue boundary trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
                 "    * ring-buffer-survey drift\n",
                 "",
                 1,
@@ -447,6 +462,21 @@ def run_self_test() -> int:
             root,
             SMOKE_NOTE_PATH,
             fixture_smoke_note().replace(
+                "    * build-side exact-readback-gap drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("build-side exact-readback-gap drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected build-side exact-readback gap trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
                 "    * wrapper-route drift\n",
                 "",
                 1,
@@ -455,6 +485,36 @@ def run_self_test() -> int:
         if not any("wrapper-route drift" in error for error in check(root)):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
             print("expected trigger-catalog drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
+                "    * attached-toolchain guidance drift inside the shared smoke note\n",
+                "",
+                1,
+            ),
+        )
+        if not any("attached-toolchain guidance drift inside the shared smoke note" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected attached-toolchain guidance trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
+                "  * `PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE=packet_local_only`\n",
+                "",
+                1,
+            ),
+        )
+        if not any("PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE=packet_local_only" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected attached-toolchain guidance marker drift to fail")
             return 1
 
         write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
@@ -517,7 +577,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=14")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
