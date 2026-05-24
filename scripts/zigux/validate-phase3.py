@@ -752,7 +752,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + 34}")
+    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + len(packet_file_checks) + len(replay_route_checks) + 6}")
     return 0
 
 
