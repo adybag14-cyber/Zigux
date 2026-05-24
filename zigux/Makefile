@@ -292,10 +292,16 @@ phase11-validate:
 phase12-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-complex-driver-lane-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-cross-compile-smoke.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-cross-compile-smoke.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-snapshot.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-virtio-net-packet.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-virtio-net-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase12.py
