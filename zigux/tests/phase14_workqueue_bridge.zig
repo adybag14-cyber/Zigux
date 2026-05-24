@@ -137,3 +137,22 @@ test "phase14 workqueue bridge scheduler-visible worker-state handoff stays expl
     try std.testing.expect(std.mem.indexOf(u8, scheduler_handoff.next_focus, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, scheduler_handoff.next_focus, "shared reminder surface") != null);
 }
+
+test "phase14 workqueue bridge max-active retuning handoff stays explicit and in C" {
+    const retuning_handoff = workqueue_bridge.WorkqueueBridgeLab.maxActiveRetuningHandoff();
+
+    try std.testing.expectEqualStrings("workqueue_set_max_active/__queue_work", retuning_handoff.anchor_symbol);
+    try std.testing.expect(retuning_handoff.ownership == .stay_in_c);
+    try std.testing.expectEqual(@as(usize, 4), retuning_handoff.observed_fields.len);
+    try std.testing.expectEqualStrings("pwq->inactive_works", retuning_handoff.observed_fields[0]);
+    try std.testing.expectEqualStrings("pwq->nr_active", retuning_handoff.observed_fields[1]);
+    try std.testing.expectEqualStrings("wq->max_active", retuning_handoff.observed_fields[2]);
+    try std.testing.expectEqualStrings("pool->last_progress_ts", retuning_handoff.observed_fields[3]);
+    try std.testing.expectEqualStrings(workqueue_bridge.WorkqueueBridgeLab.currentSliceId(), retuning_handoff.current_slice_id);
+    try std.testing.expect(std.mem.indexOf(u8, retuning_handoff.blocked_by, "inactive-list promotion") != null);
+    try std.testing.expect(std.mem.indexOf(u8, retuning_handoff.blocked_by, "ordered-workqueue sequencing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, retuning_handoff.blocked_by, "runtime max_active retuning") != null);
+    try std.testing.expect(std.mem.indexOf(u8, retuning_handoff.blocked_by, "stay-in-C governance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, retuning_handoff.next_focus, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, retuning_handoff.next_focus, "shared reminder surface") != null);
+}
