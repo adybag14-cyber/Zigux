@@ -49,6 +49,7 @@ SURVEY_MARKERS = [
     "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
     "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "The shared `phase11-validate` route also now carries `zigux/tests/phase11_hvc_modem_control_proof_build.zig` as a focused HVC teardown-or-failure-mode proof outside the narrower three-entry build inventory",
+    "The shared `phase11-validate` route also now carries `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as focused watchdog teardown-or-failure-mode proofs outside the narrower three-entry HVC build inventory, so keep those shared watchdog replay routes explicit beside the returned driver-local matrices instead of reducing the shared gate to HVC-only proof coverage.",
     "That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap on current `master`: the repo does not yet rematerialize a broader shared replay or survey route that would carry cross-driver public-struct ABI proof beyond those surviving `layout_assert` shards.",
     "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
 ]
@@ -160,21 +161,39 @@ def run_self_test() -> None:
         dedicated_witness_root = tmpdir / "required_dedicated_witness"
         shutil.copytree(fixture_root, dedicated_witness_root, dirs_exist_ok=True)
         path = dedicated_witness_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[7]
+        marker = SURVEY_MARKERS[6]
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
         expect_failure(dedicated_witness_root, marker)
+        dedicated_witness_guard_root = tmpdir / "required_dedicated_witness_guard"
+        shutil.copytree(fixture_root, dedicated_witness_guard_root, dirs_exist_ok=True)
+        path = dedicated_witness_guard_root / FILES["matrix_gap_note"]
+        marker = SURVEY_MARKERS[7]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(dedicated_witness_guard_root, marker)
         modem_control_root = tmpdir / "required_modem_control_route"
         shutil.copytree(fixture_root, modem_control_root, dirs_exist_ok=True)
         path = modem_control_root / FILES["matrix_gap_note"]
         marker = SURVEY_MARKERS[8]
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
         expect_failure(modem_control_root, marker)
+        watchdog_route_root = tmpdir / "required_watchdog_routes"
+        shutil.copytree(fixture_root, watchdog_route_root, dirs_exist_ok=True)
+        path = watchdog_route_root / FILES["matrix_gap_note"]
+        marker = SURVEY_MARKERS[9]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(watchdog_route_root, marker)
         abi_gap_root = tmpdir / "required_abi_gap"
         shutil.copytree(fixture_root, abi_gap_root, dirs_exist_ok=True)
         path = abi_gap_root / FILES["matrix_gap_note"]
-        marker = SURVEY_MARKERS[9]
+        marker = SURVEY_MARKERS[10]
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
         expect_failure(abi_gap_root, marker)
+        makefile_route_root = tmpdir / "required_makefile_route"
+        shutil.copytree(fixture_root, makefile_route_root, dirs_exist_ok=True)
+        path = makefile_route_root / FILES["matrix_gap_note"]
+        marker = SURVEY_MARKERS[11]
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+        expect_failure(makefile_route_root, marker)
         forbidden_root = tmpdir / "forbidden"
         shutil.copytree(fixture_root, forbidden_root, dirs_exist_ok=True)
         path = forbidden_root / FILES["matrix_gap_note"]
@@ -188,7 +207,7 @@ def run_self_test() -> None:
         (bad_inventory_root / FILES["inventory"]).write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
         expect_failure(bad_inventory_root, "build_test_names does not match")
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=11")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=14")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
