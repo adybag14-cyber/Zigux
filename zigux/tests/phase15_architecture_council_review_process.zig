@@ -79,7 +79,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
         manifest.decision_record_template_study_only_rule,
     );
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_fields.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.supporting_context_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_outcome_fields.len);
@@ -91,6 +91,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 26), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.shared_gap_expected_missing_paths.len);
 
+    try expectSliceContains(manifest.stay_in_c_closeout_fields, "governance lane sequencing link or explicit scope note");
     try expectSliceContains(manifest.supporting_context_fields, "governance lane sequencing link or explicit scope note");
     try expectSliceContains(manifest.supporting_context_fields, "study-only anchor accounting link or explicit freeze-map-anchor confirmation");
     try expectSliceContains(manifest.review_outcome_fields, "closeout result");
