@@ -24,6 +24,17 @@ EXPECTED_EXPLICIT_OVERRIDE_MODES = [
     "randconfig",
 ]
 
+EXPECTED_ALLCONFIG_SENTINEL_PACKET = [
+    "allnoconfig_expected.json",
+    "allyesconfig_expected.json",
+    "alldefconfig_expected.json",
+]
+
+EXPECTED_ALLCONFIG_OVERRIDE_PACKET = [
+    "allmodconfig_expected.json",
+    "randconfig_expected.json",
+]
+
 REQUIRED_HELPER_ANCHORS = [
     "conf bridge emits explicit empty allconfig override for allmodconfig",
     "conf bridge emits randconfig tunables when present",
@@ -34,7 +45,7 @@ REQUIRED_HELPER_ANCHORS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 7
+EXPECTED_SELF_TEST_CASE_COUNT = 9
 
 
 def read_json(path: Path) -> object:
@@ -96,6 +107,24 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             (
                 "CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES_MISMATCH",
                 f"actual={explicit_modes!r}:expected={EXPECTED_EXPLICIT_OVERRIDE_MODES!r}",
+            )
+        )
+
+    allconfig_sentinel_packet = manifest.get("allconfig_sentinel_packet")
+    if allconfig_sentinel_packet != EXPECTED_ALLCONFIG_SENTINEL_PACKET:
+        issues.append(
+            (
+                "CONF_HELPER_LOCAL_ALLCONFIG_SENTINEL_PACKET_MISMATCH",
+                f"actual={allconfig_sentinel_packet!r}:expected={EXPECTED_ALLCONFIG_SENTINEL_PACKET!r}",
+            )
+        )
+
+    allconfig_override_packet = manifest.get("allconfig_override_packet")
+    if allconfig_override_packet != EXPECTED_ALLCONFIG_OVERRIDE_PACKET:
+        issues.append(
+            (
+                "CONF_HELPER_LOCAL_ALLCONFIG_OVERRIDE_PACKET_MISMATCH",
+                f"actual={allconfig_override_packet!r}:expected={EXPECTED_ALLCONFIG_OVERRIDE_PACKET!r}",
             )
         )
 
@@ -169,6 +198,8 @@ def build_self_test_root(root: Path) -> None:
             {
                 "helper_local_allconfig_implicit_omission_modes": EXPECTED_IMPLICIT_OMISSION_MODES,
                 "helper_local_allconfig_explicit_override_modes": EXPECTED_EXPLICIT_OVERRIDE_MODES,
+                "allconfig_sentinel_packet": EXPECTED_ALLCONFIG_SENTINEL_PACKET,
+                "allconfig_override_packet": EXPECTED_ALLCONFIG_OVERRIDE_PACKET,
             },
             indent=2,
         )
@@ -210,6 +241,30 @@ def run_self_test() -> int:
         write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
         assert any(
             code == "CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES_MISMATCH"
+            for code, _ in collect_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest_path = root / CONF_MANIFEST.relative_to(ROOT)
+        manifest = read_json(manifest_path)
+        assert isinstance(manifest, dict)
+        manifest["allconfig_sentinel_packet"] = ["drifted_expected.json"]
+        write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(
+            code == "CONF_HELPER_LOCAL_ALLCONFIG_SENTINEL_PACKET_MISMATCH"
+            for code, _ in collect_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest_path = root / CONF_MANIFEST.relative_to(ROOT)
+        manifest = read_json(manifest_path)
+        assert isinstance(manifest, dict)
+        manifest["allconfig_override_packet"] = ["drifted_expected.json"]
+        write_text(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(
+            code == "CONF_HELPER_LOCAL_ALLCONFIG_OVERRIDE_PACKET_MISMATCH"
             for code, _ in collect_issues(root)
         )
         checks_run += 1
@@ -277,6 +332,12 @@ def main() -> int:
     )
     print(
         f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_EXPLICIT_OVERRIDE_MODE_COUNT={len(EXPECTED_EXPLICIT_OVERRIDE_MODES)}"
+    )
+    print(
+        f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_ALLCONFIG_SENTINEL_PACKET_COUNT={len(EXPECTED_ALLCONFIG_SENTINEL_PACKET)}"
+    )
+    print(
+        f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_ALLCONFIG_OVERRIDE_PACKET_COUNT={len(EXPECTED_ALLCONFIG_OVERRIDE_PACKET)}"
     )
     print(f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_HELPER_ANCHOR_COUNT={len(REQUIRED_HELPER_ANCHORS)}")
     return 0
