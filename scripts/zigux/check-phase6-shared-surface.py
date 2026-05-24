@@ -19,6 +19,8 @@ VALIDATOR_PATH = Path("scripts/zigux/validate-phase6.py")
 EXPECTED_EVIDENCE_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
+EXPECTED_EVIDENCE_SURVEYED_HEAD = "current-master-readback-2026-05-24"
+EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
 EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-24"
 EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 EXPECTED_PARITY_PURPOSE = (
@@ -147,7 +149,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 44
+SELF_TEST_CASE_COUNT = 46
 
 
 class ValidationError(RuntimeError):
@@ -229,6 +231,10 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-parity packet drift")
     if evidence.get("phase") != EXPECTED_PHASE or parity.get("phase") != EXPECTED_PHASE:
         raise ValidationError("phase6 phase drift")
+    if evidence.get("surveyed_head") != EXPECTED_EVIDENCE_SURVEYED_HEAD:
+        raise ValidationError("phase6 helper-evidence surveyed-head drift")
+    if evidence.get("lane_scope") != EXPECTED_EVIDENCE_LANE_SCOPE:
+        raise ValidationError("phase6 helper-evidence lane-scope drift")
     if parity.get("surveyed_head") != EXPECTED_PARITY_SURVEYED_HEAD:
         raise ValidationError("phase6 helper-parity surveyed-head drift")
     if parity.get("lane_scope") != EXPECTED_PARITY_LANE_SCOPE:
@@ -297,6 +303,8 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": EXPECTED_EVIDENCE_PACKET,
                 "phase": EXPECTED_PHASE,
+                "surveyed_head": EXPECTED_EVIDENCE_SURVEYED_HEAD,
+                "lane_scope": EXPECTED_EVIDENCE_LANE_SCOPE,
                 "current_direct_readback_companions": EXPECTED_EVIDENCE_DIRECT_COMPANIONS,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "current_repo_reality_gaps": EXPECTED_EVIDENCE_CURRENT_GAPS,
@@ -385,6 +393,10 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": "phase6-helper-parity"})))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"phase": "Phase 5"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "current-master-readback-2026-05-23"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"lane_scope": "shared helper-evidence rows only"})))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-helper-parity-catalog.md")))
         cases_run += 1
