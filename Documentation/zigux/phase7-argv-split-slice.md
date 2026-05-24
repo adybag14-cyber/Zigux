@@ -8,7 +8,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_SLICE=argv-split-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L09`
 - lane-key note: `P7-L09` keeps the dedicated argv-split packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
-- scope: keep the Phase 7 argv-split lane limited to the current helper-local slice anchor, dedicated replay, dedicated fixture vectors, and the no-standalone-argv-sample boundary
+- scope: keep the Phase 7 argv-split lane limited to the current helper-local helper, slice anchor, dedicated replay, dedicated survey, dedicated manifest, dedicated checker, dedicated fixture vectors, and the no-standalone-argv-sample boundary
 - lane state: current `master` directly carries `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.
 
 ## Why This Slice Exists
