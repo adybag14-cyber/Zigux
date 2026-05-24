@@ -256,6 +256,23 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try expectContains(review_checklist, "`make -C zigux phase8-validate`");
     try expectContains(review_checklist, "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context");
 
+    const packet_checker = try readWorkspaceFile(
+        std.testing.allocator,
+        "scripts/zigux/check-phase8-exec-cmd-packet.py",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(packet_checker);
+    try expectContains(packet_checker, "EXEC_CMD_SLICE = Path(\"Documentation/zigux/phase8-exec-cmd-slice.md\")");
+    try expectContains(packet_checker, "EXEC_CMD_TEST = Path(\"zigux/tests/phase8_exec_cmd.zig\")");
+    try expectContains(packet_checker, "EXEC_CMD_BUILD = Path(\"zigux/tests/phase8_exec_cmd_only_build.zig\")");
+    try expectContains(packet_checker, "`PHASE8_SLICE=exec-cmd-deferred-exec-packet`");
+    try expectContains(packet_checker, "buildDeferredExeclCall()");
+    try expectContains(packet_checker, "buildDeferredExecvCall()");
+    try expectContains(packet_checker, "deferred execution");
+    try expectContains(packet_checker, "queue ownership");
+    try expectContains(packet_checker, "kernel/workqueue.c");
+    try expectContains(packet_checker, "Phase 14");
+
     const validate_phase8 = try readWorkspaceFile(
         std.testing.allocator,
         "scripts/zigux/validate-phase8.py",
