@@ -46,11 +46,11 @@ That packet should keep the selected-string plus `iter=%d` formatting cue explic
 
 Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `"iter=12"` and keeps the sample in `.initialized`.
 
-Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.
+Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` still walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.
 
-Keep the sample-owned review contract explicit too: the bounded formatting companion now centralizes the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.
+Keep the sample-owned review contract explicit too: the bounded formatting companion still centralizes the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.
 
-## Exact checks run on 2026-05-20
+## Exact checks run on 2026-05-24
 
 This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.
 
@@ -58,15 +58,17 @@ The exact checks that passed were:
 
 - `phase 5 trace-events formatting companion keeps the selected-string cue reviewable`
 - `phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable`
+- `phase 5 trace-events formatting companion keeps exact-fit destination sizing reviewable`
 - `phase 5 trace-events formatting companion keeps lifecycle boundaries explicit`
 - `phase 5 trace-events formatting companion keeps bounded destination failures explicit`
 
 Those checks confirmed this current sample behavior:
 
-- `runAnchorReplay(7)` still keeps the roadmap anchor explicit, transitions from `.initialized` to `.replay_complete`, selects `"Gandalf"`, renders `"iter=7"` with length `6`, and keeps the packet tied to the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`.
-- `runStringFormattingCycleReplay()` now keeps the modulo-selected cycle directly reviewable too: it replays all five strings in order, renders `"iter=0"` through `"iter=4"`, stays in `.initialized`, and leaves `replay_runs` at `0`.
+- `runAnchorReplay(7)` still keeps the roadmap anchor explicit, transitions from `.initialized` to `.replay_complete`, selects `"Gandalf"`, renders `"iter=7"` with length `6`, renders `"Gandalf iter=7"` with length `14`, and keeps the packet tied to the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`.
+- `runStringFormattingCycleReplay()` still keeps the modulo-selected cycle directly reviewable: it replays all five strings in order, renders `"iter=0"` through `"iter=4"`, stays in `.initialized`, and leaves `replay_runs` at `0`.
+- `runDestinationSizingReplay()` now has an explicit exact-fit sizing proof in the recorded check set: for all five strings, `requiredIterationMessageLen(...)` and `requiredSelectedIterationMessageLen(...)` still match the exact `bufPrint(...)` result lengths, exact-size destinations still succeed, one-byte-short destinations still fail with `error.NoSpaceLeft`, the sample stays in `.initialized`, and `replay_runs` remains `0`.
 - lifecycle boundaries still fail closed: replay before `init()` and `exit()` before initialization both reject with `error.InvalidLifecycleTransition`; negative replay input rejects with `error.InvalidIterationCount`; replay after `exit()` rejects again; the successful replay-plus-exit path leaves `init_runs`, `replay_runs`, and `exit_runs` at `1` each.
-- bounded destination behavior is now directly covered too: `formatIterationMessageInto(12, [5]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` returns `"iter=12"` and keeps the sample in the `.initialized` stage.
+- bounded destination behavior is still directly covered too: `formatIterationMessageInto(12, [5]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` returns `"iter=12"` and keeps the sample in the `.initialized` stage; `formatSelectedIterationMessageInto(3, [11]u8)` still fails with `error.NoSpaceLeft`, while `formatSelectedIterationMessageInto(3, [12]u8)` still returns `"Frodo iter=3"`.
 
 ## Review boundary
 
