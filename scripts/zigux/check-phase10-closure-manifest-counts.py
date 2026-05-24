@@ -65,8 +65,21 @@ REQUIRED_LAB_VALIDATION_EVIDENCE = [
 ]
 
 REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE = [
+    "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+    "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_status_drain.zig",
     "drivers/virtio/virtio_input_teardown_preflight.zig",
+    "drivers/virtio/virtio_input_teardown_observation.zig",
+    "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_survey.zig",
 ]
 
 REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE = [
@@ -121,6 +134,24 @@ REQUIRED_FOCUSED_HARNESS_REPLAYS = {
     "drivers/virtio/virtio_ring_publish_readiness.zig": [
         "phase10 ring publish-readiness wrapper replay",
     ],
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig": [
+        "phase10 input probe-preflight replay",
+    ],
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
+        "phase10 input queue-callback-preflight replay",
+    ],
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig": [
+        "phase10 input registration-preflight replay",
+    ],
+    "zigux/tests/phase10_virtio_input_status_drain.zig": [
+        "phase10 input status-drain replay",
+    ],
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig": [
+        "phase10 input teardown-preflight replay",
+    ],
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
+        "phase10 input teardown-observation replay",
+    ],
     "zigux/tests/phase10_virtio_mmio.zig": [
         "phase10 mmio lab replay",
     ],
@@ -140,11 +171,9 @@ REQUIRED_MMIO_READY_TRANSPORT_GAP = "phase10-mmio-lifecycle-and-irq-paths"
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
-
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
 
 def collect_drift(manifest: dict) -> list[str]:
     drift: list[str] = []
@@ -153,157 +182,102 @@ def collect_drift(manifest: dict) -> list[str]:
         if not isinstance(listed, list) or not listed:
             drift.append(f"{list_field}:missing")
             continue
-
         count = manifest.get(count_field)
         if not isinstance(count, int):
             drift.append(f"{count_field}:missing")
             continue
-
         actual = len(listed)
         if count != actual:
             drift.append(f"{count_field}:{count}!=len({list_field}):{actual}")
-
     exact_checks = manifest.get("exact_checks")
     if not isinstance(exact_checks, list) or not exact_checks:
         drift.append("exact_checks:missing")
         return drift
-
     indexes: list[int] = []
     for item in REQUIRED_EXACT_CHECKS:
         if item not in exact_checks:
             drift.append(f"exact_checks:{item!r}:missing")
             continue
         indexes.append(exact_checks.index(item))
-
     if len(indexes) == len(REQUIRED_EXACT_CHECKS) and indexes != sorted(indexes):
         drift.append("exact_checks:closure_route:out_of_order")
-
     scoreboard = manifest.get("roadmap_parity_scoreboard", {})
     if not isinstance(scoreboard, dict):
         drift.append("roadmap_parity_scoreboard:missing")
         return drift
-
     virtqueue_wrappers = scoreboard.get("virtqueue_wrappers")
     if not isinstance(virtqueue_wrappers, dict):
         drift.append("roadmap_parity_scoreboard:virtqueue_wrappers:missing")
         return drift
-
     ring_evidence = virtqueue_wrappers.get("evidence")
     if not isinstance(ring_evidence, list) or not ring_evidence:
         drift.append("roadmap_parity_scoreboard:virtqueue_wrappers:evidence:missing")
         return drift
-
     for item in REQUIRED_RING_SCOREBOARD_EVIDENCE:
         if item not in ring_evidence:
-            drift.append(
-                "roadmap_parity_scoreboard:virtqueue_wrappers:"
-                f"{item!r}:missing"
-            )
-
+            drift.append("roadmap_parity_scoreboard:virtqueue_wrappers:" f"{item!r}:missing")
     mmio_wrappers = scoreboard.get("mmio_wrappers")
     if not isinstance(mmio_wrappers, dict):
         drift.append("roadmap_parity_scoreboard:mmio_wrappers:missing")
         return drift
-
     mmio_evidence = mmio_wrappers.get("evidence")
     if not isinstance(mmio_evidence, list) or not mmio_evidence:
         drift.append("roadmap_parity_scoreboard:mmio_wrappers:evidence:missing")
         return drift
-
     for item in REQUIRED_MMIO_SCOREBOARD_EVIDENCE:
         if item not in mmio_evidence:
-            drift.append(
-                "roadmap_parity_scoreboard:mmio_wrappers:"
-                f"{item!r}:missing"
-            )
-
+            drift.append("roadmap_parity_scoreboard:mmio_wrappers:" f"{item!r}:missing")
     lab_only_driver_validation = scoreboard.get("lab_only_driver_validation")
     if not isinstance(lab_only_driver_validation, dict):
         drift.append("roadmap_parity_scoreboard:lab_only_driver_validation:missing")
         return drift
-
     lab_validation_evidence = lab_only_driver_validation.get("evidence")
     if not isinstance(lab_validation_evidence, list) or not lab_validation_evidence:
-        drift.append(
-            "roadmap_parity_scoreboard:lab_only_driver_validation:evidence:missing"
-        )
+        drift.append("roadmap_parity_scoreboard:lab_only_driver_validation:evidence:missing")
         return drift
-
     for item in REQUIRED_LAB_VALIDATION_EVIDENCE:
         if item not in lab_validation_evidence:
-            drift.append(
-                "roadmap_parity_scoreboard:lab_only_driver_validation:"
-                f"{item!r}:missing"
-            )
-
+            drift.append("roadmap_parity_scoreboard:lab_only_driver_validation:" f"{item!r}:missing")
     for item in REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE:
         if item not in lab_validation_evidence:
-            drift.append(
-                "roadmap_parity_scoreboard:lab_only_driver_validation:"
-                f"{item!r}:missing"
-            )
-
+            drift.append("roadmap_parity_scoreboard:lab_only_driver_validation:" f"{item!r}:missing")
     for item in REQUIRED_CORE_LAB_VALIDATION_EVIDENCE:
         if item not in lab_validation_evidence:
-            drift.append(
-                "roadmap_parity_scoreboard:lab_only_driver_validation:"
-                f"{item!r}:missing"
-            )
-
+            drift.append("roadmap_parity_scoreboard:lab_only_driver_validation:" f"{item!r}:missing")
     cross_phase_boundary = manifest.get("cross_phase_scoreboard_boundary")
     if not isinstance(cross_phase_boundary, dict):
         drift.append("cross_phase_scoreboard_boundary:missing")
         return drift
-
     reference_samples = cross_phase_boundary.get("reference_samples")
     if not isinstance(reference_samples, dict):
         drift.append("cross_phase_scoreboard_boundary:reference_samples:missing")
         return drift
     if reference_samples.get("status") != "out_of_scope":
-        drift.append(
-            "cross_phase_scoreboard_boundary:reference_samples:status:"
-            f"{reference_samples.get('status')!r}!='out_of_scope'"
-        )
+        drift.append("cross_phase_scoreboard_boundary:reference_samples:status:" f"{reference_samples.get('status')!r}!='out_of_scope'")
     reference_sample_evidence = reference_samples.get("evidence")
     if not isinstance(reference_sample_evidence, list) or not reference_sample_evidence:
-        drift.append(
-            "cross_phase_scoreboard_boundary:reference_samples:evidence:missing"
-        )
+        drift.append("cross_phase_scoreboard_boundary:reference_samples:evidence:missing")
         return drift
     for item in REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE:
         if item not in reference_sample_evidence:
-            drift.append(
-                "cross_phase_scoreboard_boundary:reference_samples:"
-                f"{item!r}:missing"
-            )
-
+            drift.append("cross_phase_scoreboard_boundary:reference_samples:" f"{item!r}:missing")
     runtime_starters = cross_phase_boundary.get("runtime_starters")
     if not isinstance(runtime_starters, dict):
         drift.append("cross_phase_scoreboard_boundary:runtime_starters:missing")
         return drift
     if runtime_starters.get("status") != "out_of_scope":
-        drift.append(
-            "cross_phase_scoreboard_boundary:runtime_starters:status:"
-            f"{runtime_starters.get('status')!r}!='out_of_scope'"
-        )
+        drift.append("cross_phase_scoreboard_boundary:runtime_starters:status:" f"{runtime_starters.get('status')!r}!='out_of_scope'")
     runtime_starter_evidence = runtime_starters.get("evidence")
     if not isinstance(runtime_starter_evidence, list) or not runtime_starter_evidence:
-        drift.append(
-            "cross_phase_scoreboard_boundary:runtime_starters:evidence:missing"
-        )
+        drift.append("cross_phase_scoreboard_boundary:runtime_starters:evidence:missing")
         return drift
     for item in REQUIRED_RUNTIME_STARTER_SCOREBOARD_EVIDENCE:
         if item not in runtime_starter_evidence:
-            drift.append(
-                "cross_phase_scoreboard_boundary:runtime_starters:"
-                f"{item!r}:missing"
-            )
-
+            drift.append("cross_phase_scoreboard_boundary:runtime_starters:" f"{item!r}:missing")
     landed_core_helper_evidence = manifest.get("landed_core_helper_evidence")
     if not isinstance(landed_core_helper_evidence, dict):
         drift.append("landed_core_helper_evidence:missing")
         return drift
-
     for path, required_labels in REQUIRED_LANDED_CORE_HELPER_EVIDENCE.items():
         helper_labels = landed_core_helper_evidence.get(path)
         if not isinstance(helper_labels, list) or not helper_labels:
@@ -311,15 +285,11 @@ def collect_drift(manifest: dict) -> list[str]:
             continue
         for label in required_labels:
             if label not in helper_labels:
-                drift.append(
-                    f"landed_core_helper_evidence:{path}:{label!r}:missing"
-                )
-
+                drift.append(f"landed_core_helper_evidence:{path}:{label!r}:missing")
     focused_harness_replays = manifest.get("focused_harness_replays")
     if not isinstance(focused_harness_replays, dict):
         drift.append("focused_harness_replays:missing")
         return drift
-
     for path, required_labels in REQUIRED_FOCUSED_HARNESS_REPLAYS.items():
         replay_labels = focused_harness_replays.get(path)
         if not isinstance(replay_labels, list) or not replay_labels:
@@ -327,55 +297,30 @@ def collect_drift(manifest: dict) -> list[str]:
             continue
         for label in required_labels:
             if label not in replay_labels:
-                drift.append(
-                    f"focused_harness_replays:{path}:{label!r}:missing"
-                )
-
+                drift.append(f"focused_harness_replays:{path}:{label!r}:missing")
     ready_transport_followups = manifest.get("ready_transport_followups")
     if not isinstance(ready_transport_followups, dict):
         drift.append("ready_transport_followups:missing")
         return drift
-
     input_followup = ready_transport_followups.get(REQUIRED_INPUT_READY_TRANSPORT_PATH)
     if input_followup != REQUIRED_INPUT_READY_TRANSPORT_GAP:
-        drift.append(
-            "ready_transport_followups:"
-            f"{REQUIRED_INPUT_READY_TRANSPORT_PATH}:{input_followup!r}!={REQUIRED_INPUT_READY_TRANSPORT_GAP!r}"
-        )
-
+        drift.append("ready_transport_followups:" f"{REQUIRED_INPUT_READY_TRANSPORT_PATH}:{input_followup!r}!={REQUIRED_INPUT_READY_TRANSPORT_GAP!r}")
     mmio_followup = ready_transport_followups.get(REQUIRED_MMIO_READY_TRANSPORT_PATH)
     if mmio_followup != REQUIRED_MMIO_READY_TRANSPORT_GAP:
-        drift.append(
-            "ready_transport_followups:"
-            f"{REQUIRED_MMIO_READY_TRANSPORT_PATH}:{mmio_followup!r}!={REQUIRED_MMIO_READY_TRANSPORT_GAP!r}"
-        )
-
+        drift.append("ready_transport_followups:" f"{REQUIRED_MMIO_READY_TRANSPORT_PATH}:{mmio_followup!r}!={REQUIRED_MMIO_READY_TRANSPORT_GAP!r}")
     blocked_transport_gaps = manifest.get("blocked_transport_gaps")
     if not isinstance(blocked_transport_gaps, dict):
         drift.append("blocked_transport_gaps:missing")
         return drift
-
     core_blocked_gap = blocked_transport_gaps.get(REQUIRED_CORE_BLOCKED_TRANSPORT_PATH)
     if core_blocked_gap != REQUIRED_CORE_BLOCKED_TRANSPORT_GAP:
-        drift.append(
-            "blocked_transport_gaps:"
-            f"{REQUIRED_CORE_BLOCKED_TRANSPORT_PATH}:{core_blocked_gap!r}!={REQUIRED_CORE_BLOCKED_TRANSPORT_GAP!r}"
-        )
-
+        drift.append("blocked_transport_gaps:" f"{REQUIRED_CORE_BLOCKED_TRANSPORT_PATH}:{core_blocked_gap!r}!={REQUIRED_CORE_BLOCKED_TRANSPORT_GAP!r}")
     input_blocked_gap = blocked_transport_gaps.get(REQUIRED_INPUT_READY_TRANSPORT_PATH)
     if input_blocked_gap != REQUIRED_INPUT_READY_TRANSPORT_GAP:
-        drift.append(
-            "blocked_transport_gaps:"
-            f"{REQUIRED_INPUT_READY_TRANSPORT_PATH}:{input_blocked_gap!r}!={REQUIRED_INPUT_READY_TRANSPORT_GAP!r}"
-        )
-
+        drift.append("blocked_transport_gaps:" f"{REQUIRED_INPUT_READY_TRANSPORT_PATH}:{input_blocked_gap!r}!={REQUIRED_INPUT_READY_TRANSPORT_GAP!r}")
     mmio_blocked_gap = blocked_transport_gaps.get(REQUIRED_MMIO_READY_TRANSPORT_PATH)
     if mmio_blocked_gap != REQUIRED_MMIO_READY_TRANSPORT_GAP:
-        drift.append(
-            "blocked_transport_gaps:"
-            f"{REQUIRED_MMIO_READY_TRANSPORT_PATH}:{mmio_blocked_gap!r}!={REQUIRED_MMIO_READY_TRANSPORT_GAP!r}"
-        )
-
+        drift.append("blocked_transport_gaps:" f"{REQUIRED_MMIO_READY_TRANSPORT_PATH}:{mmio_blocked_gap!r}!={REQUIRED_MMIO_READY_TRANSPORT_GAP!r}")
     return drift
 
 
@@ -398,30 +343,16 @@ def fixture_manifest() -> dict:
         "tests": [f"test-{index}" for index in range(21)],
         "exact_checks": REQUIRED_EXACT_CHECKS,
         "roadmap_parity_scoreboard": {
-            "virtqueue_wrappers": {
-                "status": "starter_landed",
-                "evidence": REQUIRED_RING_SCOREBOARD_EVIDENCE,
-            },
-            "mmio_wrappers": {
-                "status": "starter_landed",
-                "evidence": REQUIRED_MMIO_SCOREBOARD_EVIDENCE,
-            },
+            "virtqueue_wrappers": {"status": "starter_landed", "evidence": REQUIRED_RING_SCOREBOARD_EVIDENCE},
+            "mmio_wrappers": {"status": "starter_landed", "evidence": REQUIRED_MMIO_SCOREBOARD_EVIDENCE},
             "lab_only_driver_validation": {
                 "status": "starter_landed",
-                "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE
-                + REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE
-                + REQUIRED_CORE_LAB_VALIDATION_EVIDENCE,
+                "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE + REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE + REQUIRED_CORE_LAB_VALIDATION_EVIDENCE,
             },
         },
         "cross_phase_scoreboard_boundary": {
-            "reference_samples": {
-                "status": "out_of_scope",
-                "evidence": REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE,
-            },
-            "runtime_starters": {
-                "status": "out_of_scope",
-                "evidence": REQUIRED_RUNTIME_STARTER_SCOREBOARD_EVIDENCE,
-            },
+            "reference_samples": {"status": "out_of_scope", "evidence": REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE},
+            "runtime_starters": {"status": "out_of_scope", "evidence": REQUIRED_RUNTIME_STARTER_SCOREBOARD_EVIDENCE},
         },
         "landed_core_helper_evidence": REQUIRED_LANDED_CORE_HELPER_EVIDENCE,
         "focused_harness_replays": REQUIRED_FOCUSED_HARNESS_REPLAYS,
@@ -435,6 +366,7 @@ def fixture_manifest() -> dict:
             REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
         },
     }
+}
 
 
 def write_fixture(root: Path) -> None:
@@ -869,6 +801,34 @@ def run_self_test() -> int:
         cases += 1
 
         broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "drivers/virtio/virtio_input_queue_callback_preflight.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'drivers/virtio/virtio_input_queue_callback_preflight.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "zigux/tests/phase10_virtio_input_survey.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/tests/phase10_virtio_input_survey.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
         broken["cross_phase_scoreboard_boundary"]["reference_samples"]["evidence"] = [
             item
             for item in broken["cross_phase_scoreboard_boundary"]["reference_samples"]["evidence"]
@@ -978,6 +938,16 @@ def run_self_test() -> int:
         expect_contains(
             validate(root)[1],
             "focused_harness_replays:zigux/tests/phase10_virtio_mmio_survey.zig:missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        del broken["focused_harness_replays"]["zigux/tests/phase10_virtio_input_teardown_preflight.zig"]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:zigux/tests/phase10_virtio_input_teardown_preflight.zig:missing",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
