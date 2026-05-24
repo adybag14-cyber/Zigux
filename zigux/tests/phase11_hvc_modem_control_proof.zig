@@ -57,6 +57,25 @@ test "phase11 hvc console keeps clear-only requests distinct from DTR assertion 
     try std.testing.expect(!summary.dtr_rts_asserted);
 }
 
+test "phase11 hvc console keeps dedicated dtr_rts callbacks distinct from tiocmset masks" {
+    const summary = hvc_console.summarizeModemControlHandoff(.{
+        .tiocmget_available = false,
+        .tiocmset_available = false,
+        .dtr_rts_available = true,
+        .set_mask_requested = true,
+        .clear_mask_requested = true,
+        .dtr_rts_asserted = true,
+    });
+
+    try std.testing.expect(!summary.get_surface_visible);
+    try std.testing.expect(!summary.set_surface_visible);
+    try std.testing.expect(summary.dtr_rts_surface_visible);
+    try std.testing.expect(!summary.set_mask_requested);
+    try std.testing.expect(!summary.clear_mask_requested);
+    try std.testing.expect(summary.dtr_rts_asserted);
+    try std.testing.expect(summary.keeps_live_modem_control_execution_out_of_scope);
+}
+
 test "phase11 hvc console keeps hupcl teardown distinct from callback-backed modem control" {
     const teardown = hvc_console.summarizeCloseTeardown(.{
         .tty_detached = true,
