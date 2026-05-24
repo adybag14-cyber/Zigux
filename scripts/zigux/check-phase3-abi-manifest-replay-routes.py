@@ -72,6 +72,7 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"make -C zigux phase3-test"',
     '"make -C zigux phase3"',
     '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
+    '"make -C zigux phase3-low-level-wrappers-test"',
     '"make -C zigux phase3-export-uapi-layout"',
     '"make -C zigux phase3-export-uapi-layout-test"',
 )
@@ -424,7 +425,7 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/validate-phase3-export-uapi-survey.py", "expected export-uapi survey direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py", "expected export-uapi c-header smoke route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test", "expected policy-unsafe self-test route drift was not reported"),
-            ("python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py", "expected policy-unsafe direct route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"', "expected policy-unsafe direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test", "expected low-level-wrapper self-test route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "expected low-level-wrapper direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test", "expected header-governance self-test route drift was not reported"),
