@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -60,6 +60,7 @@ SURFACE_PATHS = (
     "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "scripts/zigux/artifact_diff.py",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
@@ -411,6 +412,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         resolve(root, "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig").unlink()
         assert ("MISSING_SURFACE_PATHS", "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        resolve(root, "scripts/zigux/artifact_diff.py").unlink()
+        assert ("MISSING_SURFACE_PATHS", "scripts/zigux/artifact_diff.py") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
