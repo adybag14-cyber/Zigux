@@ -8,14 +8,14 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_LANE_KEY=P15-L02`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-23`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-24`
 - role: keep the current Phase 15 governance packet honest now that the dedicated validator exists as a directly readable maintenance gate, while the broader build and route companions still remain blocked on current `master`
 
 ## Why this note exists
 
 Phase 15 is a governance tranche. The work here is about freeze-map discipline, review boundaries, and honest Architecture Council handoff, not a hidden deep-core delivery push.
 
-Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the parity-scorecard survey, the Architecture Council review-process note, the Architecture Council decision-record template, the indefinite-C policy note, the governance-lane sequencing note, the handoff note plus focused replay, the shared-summary gap note, the review checklist, the focused freeze-map governance replay, the dedicated review-process manifest plus focused replay plus focused build replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the focused parity-scorecard machine-readable companion plus focused replay, the focused review-checklist study-only alignment checker, the focused Phase 15 tests-readme alignment checker, the focused handoff-note checker, the dedicated readiness-packet checker, the focused indefinite-C lane-owner replay, and the newly materialized `scripts/zigux/validate-phase15.py` validator. At the same time, direct reads still return missing for the broader shared-build companion and the Makefile and workflow routes that would make the larger Phase 15 replay packet one-command or shared-CI ready.
+Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the parity-scorecard survey, the Architecture Council review-process note, the Architecture Council decision-record template, the indefinite-C policy note, the deep-core blocker survey, the study-only anchor accounting note, the governance-lane sequencing note, the handoff note plus focused replay, the shared-summary gap note, the review checklist, the focused freeze-map governance replay, the dedicated review-process manifest plus focused replay plus focused build replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the focused parity-scorecard machine-readable companion plus focused replay, the focused review-checklist study-only alignment checker, the focused Phase 15 tests-readme alignment checker, the focused handoff-note checker, the dedicated readiness-packet checker, the focused indefinite-C lane-owner replay, and the newly materialized `scripts/zigux/validate-phase15.py` validator. At the same time, direct reads still return missing for the broader shared-build companion and the Makefile and workflow routes that would make the larger Phase 15 replay packet one-command or shared-CI ready.
 
 This survey keeps those two truths together:
 
@@ -32,6 +32,8 @@ This survey keeps those two truths together:
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-deep-core-blocker-survey.md`
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
@@ -61,7 +63,7 @@ This survey keeps those two truths together:
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
-Current `master` does materialize both `zigux/tests/phase15_architecture_council_review_process_build.zig` and `zigux/tests/phase15_freeze_map_governance.zig`, so keep both the focused build-file replay and the focused freeze-map governance replay explicit in this readiness packet instead of undercounting the already-landed governance evidence.
+Current `master` does materialize both `zigux/tests/phase15_architecture_council_review_process_build.zig` and `zigux/tests/phase15_freeze_map_governance.zig`, so keep both the focused build-file replay and the focused freeze-map governance replay explicit in this readiness packet instead of undercounting the already-landed governance evidence. The dedicated deep-core blocker survey and the study-only anchor accounting note are also directly readable on current `master`, so keep both governance-only accounting surfaces explicit in this readiness packet instead of leaving the handoff support packet narrower than current repo reality.
 
 These directly readable paths are enough to support maintenance-mode truthfulness work on the core readiness packet, and `python3 scripts/zigux/validate-phase15.py` now gives that packet a direct validator-first replay.
 
