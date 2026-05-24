@@ -235,6 +235,10 @@ test "phase 9 runtime atomic64 note family records the current shared-loader rem
     try expectContains(survey_note_source, "zigux/tests/README.md");
     try expectContains(survey_note_source, "zigux/Makefile");
     try expectContains(survey_note_source, "review-only evidence");
+    try expectContains(survey_note_source, "prepared `RuntimeAtomic64LoadSummary` snapshot reviewable");
+    try expectContains(survey_note_source, "later counter mutation");
+    try expectContains(survey_note_source, "later selftest activity");
+    try expectContains(survey_note_source, "later exit activity");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_gap_survey.zig");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_selftest_complete_exit_parity.zig");
     try expectLacks(survey_note_source, "scripts/zigux/kconfig/conf_bridge.zig");
