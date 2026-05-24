@@ -35,7 +35,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio core survey gate keeps verify, driver-model, and focused replay surfaces explicit" {
+test "phase10 virtio core survey gate keeps verify, checker, driver-model, and focused replay surfaces explicit" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -64,6 +64,12 @@ test "phase10 virtio core survey gate keeps verify, driver-model, and focused re
     const core_replay = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_core.zig");
     defer allocator.free(core_replay);
 
+    const core_packet_checker = try readRepoRelative(
+        allocator,
+        "scripts/zigux/check-phase10-core-packet.py",
+    );
+    defer allocator.free(core_packet_checker);
+
     try expectContains(survey_note, "drivers/virtio/virtio_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_core_reset_queue.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig");
@@ -88,6 +94,14 @@ test "phase10 virtio core survey gate keeps verify, driver-model, and focused re
     try expectContains(shared_build_file, "phase10_step.dependOn(&phase10_virtio_core_survey.step);");
     try expectContains(shared_build_file, "smoke_step.dependOn(&phase10_virtio_core_survey.step);");
     try expectContains(shared_build_file, "test_step.dependOn(&phase10_virtio_core_survey.step);");
+    try expectContains(core_packet_checker, "\"lane_key\": \"P10-L01\",");
+    try expectContains(core_packet_checker, "phase10-driver-id-helper");
+    try expectContains(core_packet_checker, "phase10-driver-id-coverage-disposition-helper");
+    try expectContains(core_packet_checker, "phase10-core-probe-remove-lifecycle");
+    try expectContains(core_packet_checker, "\"drivers/virtio/virtio_driver_id.zig\"");
+    try expectContains(core_packet_checker, "\"zigux/tests/phase10_virtio_driver_id.zig\"");
+    try expectContains(core_packet_checker, "\"zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig\"");
+    try expectContains(core_packet_checker, ".name = \"phase10-virtio-core-survey-tests\"");
     try expectContains(compact_closure_manifest, "\"drivers/virtio/virtio_verify.zig\"");
     try expectContains(compact_closure_manifest, "\"zigux/tests/phase10_virtio_core_reset_queue.zig\"");
     try expectContains(compact_closure_manifest, "\"zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig\"");
