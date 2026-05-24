@@ -5,7 +5,7 @@
   "doc_count": 7,
   "manifest_count": 4,
   "driver_count": 4,
-  "test_count": 26,
+  "test_count": 28,
   "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
@@ -71,10 +71,12 @@
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_ring_publish_readiness.zig",
         "drivers/virtio/virtio_input_teardown_preflight.zig",
+        "drivers/virtio/virtio_input_teardown_observation.zig",
         "drivers/virtio/virtio_input_verify.zig",
         "zigux/tests/phase10_virtio_input.zig",
         "zigux/tests/phase10_virtio_input_probe_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+        "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_status_drain.zig",
@@ -255,6 +257,9 @@
     "zigux/tests/phase10_virtio_input_registration_preflight.zig": [
       "phase10 input registration-preflight replay"
     ],
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig": [
+      "phase10 input teardown-preflight replay"
+    ],
     "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
       "phase10 input teardown-observation replay"
     ],
@@ -344,6 +349,7 @@
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
@@ -351,7 +357,8 @@
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
     "drivers/virtio/virtio_mmio_verify.zig",
-    "zigux/tests/phase10_virtio_mmio_survey.zig"
+    "zigux/tests/phase10_virtio_mmio_survey.zig",
+    "zigux/tests/phase10_build.zig"
   ],
   "exact_checks": [
     "python3 scripts/zigux/check-phase10-bootstrap-route.py",
