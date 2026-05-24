@@ -468,6 +468,41 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
 }
 
+test "setupPath preserves the inherited exec-path string while normalizing PATH entries" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try env.set(config.exec_path_env, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin");
+
+    const new_path = try setupPath(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(new_path);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        new_path,
+    );
+    try std.testing.expectEqualStrings(new_path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("tools/bin", env.get(config.exec_path_env).?);
+}
+
 test "setupPathWithPwd falls back to cwd when logical PWD identity does not match" {
     const config = Config{
         .exec_name = "perf",
