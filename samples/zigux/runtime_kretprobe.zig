@@ -124,7 +124,7 @@ pub const RuntimeKretprobeSample = struct {
         self.unregistration_runs += 1;
     }
 
-    pub fn runSelftest(self: *Self) !SelftestSummary {
+    pub fn runSelftest(self: *Self) !void {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
         try self.registerProbe();
@@ -339,4 +339,61 @@ test "runtime kretprobe sample keeps failed exit rollback explicit while a probe
     try std.testing.expectEqual(before_exit.unregistration_runs, after_exit.unregistration_runs);
     try std.testing.expectEqual(before_exit.completed_instances, after_exit.completed_instances);
     try std.testing.expectEqual(before_exit.last_retval, after_exit.last_retval);
+}
+
+test "runtime kretprobe sample keeps duplicate registration rollback explicit across initialized and selftested stages" {
+    var initialized = RuntimeKretprobeSample{};
+    try initialized.init();
+    try initialized.registerProbe();
+
+    const initialized_before = initialized.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_before.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_before.registration_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before.unregistration_runs);
+    try std.testing.expect(initialized_before.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before.completed_instances);
+    try std.testing.expectEqual(@as(?i32, null), initialized_before.last_retval);
+
+    try std.testing.expectError(error.ProbeAlreadyRegistered, initialized.registerProbe());
+    try expectSnapshotStable(initialized_before, initialized.lifecycleSnapshot());
+
+    try initialized.unregisterProbe();
+    try initialized.exit();
+    const initialized_after_exit = initialized.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, initialized_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_after_exit.exit_runs);
+
+    var selftested = RuntimeKretprobeSample{};
+    try selftested.init();
+    _ = try selftested.runSelftest();
+    try selftested.registerProbe();
+
+    const selftested_before = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftested_before.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftested_before.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), selftested_before.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before.unregistration_runs);
+    try std.testing.expect(selftested_before.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), selftested_before.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), selftested_before.last_retval);
+
+    try std.testing.expectError(error.ProbeAlreadyRegistered, selftested.registerProbe());
+    try expectSnapshotStable(selftested_before, selftested.lifecycleSnapshot());
+
+    try selftested.recordEntry();
+    try selftested.recordReturn(42);
+    try selftested.unregisterProbe();
+    try selftested.exit();
+    const selftested_after_exit = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, selftested_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_after_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), selftested_after_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 42), selftested_after_exit.last_retval);
 }
