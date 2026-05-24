@@ -19,18 +19,26 @@ EXPECTED_LINES = (
 )
 
 
+def _heading_indexes(lines: list[str], heading: str) -> list[int]:
+    return [index for index, line in enumerate(lines) if line == heading]
+
+
 def extract_rules_packet(root: Path) -> tuple[str, ...]:
     readme_lines = (root / README_PATH).read_text(encoding="utf-8").splitlines()
 
-    try:
-        start = readme_lines.index(SECTION_HEADING)
-    except ValueError as exc:
-        raise AssertionError(f"missing heading: {SECTION_HEADING}") from exc
+    rule_indexes = _heading_indexes(readme_lines, SECTION_HEADING)
+    if not rule_indexes:
+        raise AssertionError(f"missing heading: {SECTION_HEADING}")
+    if len(rule_indexes) != 1:
+        raise AssertionError(f"duplicate heading: {SECTION_HEADING}")
+    start = rule_indexes[0]
 
-    try:
-        end = readme_lines.index(NEXT_HEADING, start + 1)
-    except ValueError as exc:
-        raise AssertionError(f"missing heading: {NEXT_HEADING}") from exc
+    next_indexes = [index for index in _heading_indexes(readme_lines, NEXT_HEADING) if index > start]
+    if not next_indexes:
+        raise AssertionError(f"missing heading: {NEXT_HEADING}")
+    if len(next_indexes) != 1:
+        raise AssertionError(f"duplicate heading: {NEXT_HEADING}")
+    end = next_indexes[0]
 
     return tuple(line for line in readme_lines[start + 1 : end] if line.strip())
 
@@ -97,6 +105,27 @@ def run_self_test() -> int:
         errors = check_rules_packet(root)
         if errors != ["missing heading: Active product surfaces"]:
             raise AssertionError(f"unexpected missing-next-heading error: {errors}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(root / README_PATH, _sample_readme().replace("Rules\n", "Rules\nRules\n", 1))
+        errors = check_rules_packet(root)
+        if errors != ["duplicate heading: Rules"]:
+            raise AssertionError(f"unexpected duplicate-rules error: {errors}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace(
+                "Active product surfaces\n",
+                "Active product surfaces\nActive product surfaces\n",
+                1,
+            ),
+        )
+        errors = check_rules_packet(root)
+        if errors != ["duplicate heading: Active product surfaces"]:
+            raise AssertionError(f"unexpected duplicate-next-heading error: {errors}")
         _write(root / README_PATH, _sample_readme())
         case_count += 1
 
@@ -191,6 +220,7 @@ def main() -> int:
 
     print("Lane 01 bootstrap Rules packet check passed.")
     print(f"LANE01_BOOTSTRAP_RULE_COUNT={len(EXPECTED_LINES)}")
+    print("LANE01_BOOTSTRAP_RULES_PACKET_SECTION_ORDER=Rules->ActiveProductSurfaces")
     return 0
 
 
