@@ -376,6 +376,10 @@ def run_self_test() -> int:
             "missing_or_symbol",
             "helper_symbol:pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {:expected=1:actual=0",
         ),
+        (
+            "fixture_tail_inclusive_boundary_and_drift",
+            "fixture:tail_inclusive_boundary_and:expected_current_packet",
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
@@ -495,6 +499,13 @@ def run_self_test() -> int:
         write_text(tmp_root, HELPER_REL, helper_text)
         if cases[15][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_or_symbol")
+
+        build_sample_repo(tmp_root)
+        fixture = load_json(tmp_root, FIXTURE_REL)
+        fixture["find_bit"]["tail_inclusive_boundary_and"] = 0
+        write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
+        if cases[16][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:fixture_tail_inclusive_boundary_and_drift")
 
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
