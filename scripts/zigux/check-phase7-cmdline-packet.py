@@ -88,9 +88,9 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline companion replays memparse signed clamp saturation" {',
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
-        '"anchor": "lib/cmdline.c"',
-        '"current_master_state": "helper_slice_test_survey_manifest_anchor"',
-        '"scripts/zigux/check-phase7-cmdline-packet.py"',
+        '\"anchor\": \"lib/cmdline.c\"',
+        '\"current_master_state\": \"helper_slice_test_survey_manifest_anchor\"',
+        '\"scripts/zigux/check-phase7-cmdline-packet.py\"',
         "helper-local survey-manifest-checker truthfulness packet",
         "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
         "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
@@ -130,7 +130,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 69
+SELF_TEST_CASE_COUNT = 70
 
 
 def read_text(path: Path) -> str:
@@ -311,6 +311,16 @@ def run_self_test() -> None:
         remove_once(checker_path, checker_marker)
         expect_missing_marker(
             "missing_checker_helper_path_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = "FORBIDDEN_MARKERS = {"
+        remove_once(checker_path, checker_marker)
+        expect_missing_marker(
+            "missing_checker_forbidden_markers_block_marker",
             tmp_root,
             f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
         )
