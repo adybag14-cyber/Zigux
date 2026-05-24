@@ -316,6 +316,31 @@ test "phase11 dw_wdt pm resume keeps imported-running handoff explicit" {
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
 
+test "phase11 dw_wdt pm resume keeps imported-running precedence explicit over idle restore" {
+    const summary = summarizePmResume(.{
+        .drvdata_published = true,
+        .hardware_running = false,
+        .timeout_programmed = true,
+        .imported_running = true,
+        .reset_control_available = false,
+        .stop_on_reboot_registered = false,
+        .restart_priority_registered = false,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(
+        PmResumeState.import_running_state_then_restore_hooks,
+        summary.state,
+    );
+    try std.testing.expect(!summary.reset_release_ready);
+    try std.testing.expect(!summary.timeout_reprogram_requested);
+    try std.testing.expect(summary.imported_running_state);
+    try std.testing.expect(!summary.restore_stop_on_reboot_requested);
+    try std.testing.expect(!summary.restore_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
 test "phase11 dw_wdt pm resume keeps idle restore path explicit" {
     const summary = summarizePmResume(.{
         .drvdata_published = true,
@@ -381,6 +406,28 @@ test "phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idl
     try std.testing.expect(!restored.blocked_on_live_mmio);
 }
 
+test "phase11 dw_wdt pm resume keeps running ready-to-restore path explicit when timeout is already programmed" {
+    const summary = summarizePmResume(.{
+        .drvdata_published = true,
+        .hardware_running = true,
+        .timeout_programmed = true,
+        .imported_running = false,
+        .reset_control_available = true,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = false,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(PmResumeState.restore_idle_hooks, summary.state);
+    try std.testing.expect(summary.reset_release_ready);
+    try std.testing.expect(!summary.timeout_reprogram_requested);
+    try std.testing.expect(!summary.imported_running_state);
+    try std.testing.expect(summary.restore_stop_on_reboot_requested);
+    try std.testing.expect(!summary.restore_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
 test "phase11 dw_wdt pm shutdown keeps missing drvdata explicit" {
     const summary = summarizePmShutdown(.{
         .drvdata_published = false,
@@ -398,7 +445,7 @@ test "phase11 dw_wdt pm shutdown keeps missing drvdata explicit" {
     try std.testing.expect(!summary.clear_restart_priority_requested);
     try std.testing.expect(!summary.pretimeout_mask_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
-    try std.testing.expect(!summary.blocked_on_live_mmio);
+    try std.testing.expect(!summary.blocked_onLive_mmio);
 }
 
 test "phase11 dw_wdt pm shutdown keeps running teardown stop and hook removal explicit" {
