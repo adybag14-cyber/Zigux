@@ -6,37 +6,41 @@ import tempfile
 from pathlib import Path
 
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
+HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
+SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
+LANE_SEQ_NOTE_PATH = Path("Documentation/zigux/phase15-governance-lane-sequencing.md")
 
-REQUIRED_MARKERS = (
+DOCS_REQUIRED_MARKERS = (
+    "Phase 14 notes",
+    "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
+)
+
+DOCS_FORBIDDEN_MARKERS = (
     "Phase 15 notes",
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
-    "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
-    "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
-    "`scripts/zigux/check-phase15-shared-summary-gap.py`",
-    "`scripts/zigux/check-phase15-review-process-handoff.py`",
-    "`scripts/zigux/validate-phase15.py`",
-    "`zigux/tests/phase15_readiness_gate_manifest.json`",
-    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
-    "without implying any Architecture Council approval for a freeze-map status change",
-    "the shared Phase 15 docs-root handoff should also keep",
-    "the named reopen trigger",
-    "deep-core blocker-posture change",
-    "treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence",
-    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet",
-    "keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim",
+)
+
+HANDOFF_REQUIRED_MARKERS = (
+    "`Documentation/zigux/README.md`, which still stops at Phase 14 on current `master` and should stay treated as an active shared-summary gap source until a dedicated Phase 15 docs-root reminder lands and aligns with `scripts/zigux/check-phase15-docs-readme-alignment.py` plus the directly materialized governance packet",
+    "keep the broad docs-root reminder surface `Documentation/zigux/README.md` in the shared-summary gap bucket until a dedicated Phase 15 reminder lands there, and only treat it as routine drift-follow-through after that wording exists and starts to diverge from the directly materialized governance packet",
+)
+
+SHARED_GAP_REQUIRED_MARKERS = (
+    "## Current shared-summary watchpoints",
+    "`Documentation/zigux/README.md`",
+    "if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims",
+)
+
+LANE_SEQ_REQUIRED_MARKERS = (
+    "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` are shared reminder surfaces that may summarize the parked packet, but they do not own freeze-map status decisions themselves",
 )
 
 
-def collect_missing_markers(root: Path) -> list[str]:
-    source = (root / DOCS_README_PATH).read_text(encoding="utf-8")
-    missing: list[str] = []
-    for marker in REQUIRED_MARKERS:
-        if marker not in source:
-            missing.append(f"docs_readme:{marker}")
-    return missing
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 
 def _write(path: Path, text: str) -> None:
@@ -44,135 +48,140 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def collect_failures(root: Path) -> list[str]:
+    failures: list[str] = []
+
+    for rel in (
+        DOCS_README_PATH,
+        HANDOFF_NOTE_PATH,
+        SHARED_GAP_NOTE_PATH,
+        LANE_SEQ_NOTE_PATH,
+    ):
+        if not (root / rel).exists():
+            failures.append(f"missing_file:{rel}")
+    if failures:
+        return failures
+
+    docs_readme = _read(root / DOCS_README_PATH)
+    handoff_note = _read(root / HANDOFF_NOTE_PATH)
+    shared_gap_note = _read(root / SHARED_GAP_NOTE_PATH)
+    lane_seq_note = _read(root / LANE_SEQ_NOTE_PATH)
+
+    for marker in DOCS_REQUIRED_MARKERS:
+        if marker not in docs_readme:
+            failures.append(f"docs_readme:missing:{marker}")
+
+    for marker in DOCS_FORBIDDEN_MARKERS:
+        if marker in docs_readme:
+            failures.append(f"docs_readme:unexpected_phase15_marker:{marker}")
+
+    for marker in HANDOFF_REQUIRED_MARKERS:
+        if marker not in handoff_note:
+            failures.append(f"handoff:missing:{marker}")
+
+    for marker in SHARED_GAP_REQUIRED_MARKERS:
+        if marker not in shared_gap_note:
+            failures.append(f"shared_gap:missing:{marker}")
+
+    for marker in LANE_SEQ_REQUIRED_MARKERS:
+        if marker not in lane_seq_note:
+            failures.append(f"lane_seq:missing:{marker}")
+
+    return failures
+
+
 def _sample_docs_readme() -> str:
-    return """Scope
-Phase 15 notes
-`Documentation/zigux/phase15-readiness-gate-survey.md`
-`Documentation/zigux/phase15-handoff-next-steps-survey.md`
-`Documentation/zigux/phase15-governance-lane-sequencing.md`
-`Documentation/zigux/phase15-study-only-anchor-accounting.md`
-`scripts/zigux/check-phase15-docs-readme-alignment.py`
-`scripts/zigux/check-phase15-scripts-readme-alignment.py`
-`scripts/zigux/check-phase15-shared-summary-gap.py`
-`scripts/zigux/check-phase15-review-process-handoff.py`
-`scripts/zigux/validate-phase15.py`
-`zigux/tests/phase15_readiness_gate_manifest.json`
-`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-without implying any Architecture Council approval for a freeze-map status change
-the shared Phase 15 docs-root handoff should also keep
-the named reopen trigger
-deep-core blocker-posture change
-treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence
-`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet
-keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim
+    return """# Zigux Documentation
+
+Phase 14 notes
+- `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
 """
+
+
+def _sample_handoff_note() -> str:
+    return """# Phase 15 Handoff Next Steps Survey
+
+- `Documentation/zigux/README.md`, which still stops at Phase 14 on current `master` and should stay treated as an active shared-summary gap source until a dedicated Phase 15 docs-root reminder lands and aligns with `scripts/zigux/check-phase15-docs-readme-alignment.py` plus the directly materialized governance packet
+- keep the broad docs-root reminder surface `Documentation/zigux/README.md` in the shared-summary gap bucket until a dedicated Phase 15 reminder lands there, and only treat it as routine drift-follow-through after that wording exists and starts to diverge from the directly materialized governance packet
+"""
+
+
+def _sample_shared_gap_note() -> str:
+    return """# Phase 15 Shared Summary Gap
+
+## Current shared-summary watchpoints
+
+- `Documentation/zigux/README.md`
+
+## Recovery rule
+
+- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+"""
+
+
+def _sample_lane_seq_note() -> str:
+    return """# Phase 15 Governance Lane Sequencing
+
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` are shared reminder surfaces that may summarize the parked packet, but they do not own freeze-map status decisions themselves
+"""
+
+
+def _seed(root: Path) -> None:
+    _write(root / DOCS_README_PATH, _sample_docs_readme())
+    _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
+    _write(root / SHARED_GAP_NOTE_PATH, _sample_shared_gap_note())
+    _write(root / LANE_SEQ_NOTE_PATH, _sample_lane_seq_note())
 
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase15_docs_readme_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase15_docs_readme_gap_") as tmp_dir:
         root = Path(tmp_dir)
-        _write(root / DOCS_README_PATH, _sample_docs_readme())
+        _seed(root)
 
-        if collect_missing_markers(root):
-            raise AssertionError("baseline docs README fixture should pass")
+        failures = collect_failures(root)
+        if failures:
+            raise AssertionError(f"baseline fixture should pass: {failures}")
         case_count += 1
 
+        unexpected_phase15_root = root / "unexpected_phase15"
+        _seed(unexpected_phase15_root)
         _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "`Documentation/zigux/phase15-study-only-anchor-accounting.md`\n", "", 1
-            ),
+            unexpected_phase15_root / DOCS_README_PATH,
+            _sample_docs_readme() + "Phase 15 notes\n",
         )
-        missing = collect_missing_markers(root)
-        if missing != ["docs_readme:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"]:
-            raise AssertionError(
-                f"unexpected missing markers for study-only accounting case: {missing}"
-            )
+        failures = collect_failures(unexpected_phase15_root)
+        expected = ["docs_readme:unexpected_phase15_marker:Phase 15 notes"]
+        if failures != expected:
+            raise AssertionError(f"unexpected Phase 15 marker failure: {failures}")
         case_count += 1
 
+        missing_handoff_root = root / "missing_handoff"
+        _seed(missing_handoff_root)
         _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace("`scripts/zigux/check-phase15-docs-readme-alignment.py`\n", "", 1),
-        )
-        missing = collect_missing_markers(root)
-        if missing != ["docs_readme:`scripts/zigux/check-phase15-docs-readme-alignment.py`"]:
-            raise AssertionError(f"unexpected missing markers for docs checker case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "without implying any Architecture Council approval for a freeze-map status change\n",
+            missing_handoff_root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace(
+                HANDOFF_REQUIRED_MARKERS[0] + "\n",
                 "",
                 1,
             ),
         )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:without implying any Architecture Council approval for a freeze-map status change"
-        ]
-        if missing != expected:
-            raise AssertionError(f"unexpected missing markers for approval-posture case: {missing}")
+        failures = collect_failures(missing_handoff_root)
+        expected = [f"handoff:missing:{HANDOFF_REQUIRED_MARKERS[0]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected handoff failure: {failures}")
         case_count += 1
 
+        missing_shared_gap_root = root / "missing_shared_gap"
+        _seed(missing_shared_gap_root)
         _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace("deep-core blocker-posture change\n", "", 1),
+            missing_shared_gap_root / SHARED_GAP_NOTE_PATH,
+            _sample_shared_gap_note().replace("`Documentation/zigux/README.md`\n", "", 1),
         )
-        missing = collect_missing_markers(root)
-        if missing != ["docs_readme:deep-core blocker-posture change"]:
-            raise AssertionError(f"unexpected missing markers for blocker-posture case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence\n",
-                "",
-                1,
-            ),
-        )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence"
-        ]
-        if missing != expected:
-            raise AssertionError(f"unexpected missing markers for validator-gap case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet\n",
-                "",
-                1,
-            ),
-        )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet"
-        ]
-        if missing != expected:
-            raise AssertionError(f"unexpected missing markers for lane-owner packet case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim\n",
-                "",
-                1,
-            ),
-        )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim"
-        ]
-        if missing != expected:
-            raise AssertionError(
-                f"unexpected missing markers for truthfulness-maintenance case: {missing}"
-            )
+        failures = collect_failures(missing_shared_gap_root)
+        expected = ["shared_gap:missing:`Documentation/zigux/README.md`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected shared-gap failure: {failures}")
         case_count += 1
 
     print("PHASE15_DOCS_README_ALIGNMENT_SELF_TEST=pass")
@@ -182,28 +191,19 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify that the docs-root Phase 15 summary still names the parked governance packet honestly."
+        description="Verify that the docs-root Phase 15 reminder state matches the current shared-summary gap posture."
     )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=Path.cwd(),
-        help="repository root containing Documentation/zigux/README.md",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="exercise the checker against synthetic docs-root fixtures",
-    )
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    missing = collect_missing_markers(args.root)
-    if missing:
-        for item in missing:
-            print(f"ERROR: {item}")
+    failures = collect_failures(args.root)
+    if failures:
+        for failure in failures:
+            print(f"ERROR: {failure}")
         return 1
 
     print("Phase 15 docs README alignment check passed.")
