@@ -58,6 +58,14 @@ BUILD_MARKERS = (
     "phase12-virtio-net-survey-tests",
 )
 
+FORBIDDEN_BUILD_MARKERS = (
+    "../../drivers/net/virtio_net.zig",
+    '"phase12_virtio_net.zig"',
+    "phase12-virtio-net-tests",
+    '"phase12_virtio_net_syntax_lab.zig"',
+    "phase12-virtio-net-syntax-lab-tests",
+)
+
 MAKEFILE_MARKERS = (
     "phase12-validate:",
     "scripts/zigux/check-phase12-cross-compile-smoke.py --self-test",
@@ -116,7 +124,9 @@ def check(root: Path) -> None:
         str(VIRTIO_NET_SURVEY_PATH),
     )
     require_markers(read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS, str(WORKFLOW_PATH))
-    require_markers(read_text(root, BUILD_PATH), BUILD_MARKERS, str(BUILD_PATH))
+    build_text = read_text(root, BUILD_PATH)
+    require_markers(build_text, BUILD_MARKERS, str(BUILD_PATH))
+    require_absent(build_text, FORBIDDEN_BUILD_MARKERS, str(BUILD_PATH))
     require_markers(read_text(root, MAKEFILE_PATH), MAKEFILE_MARKERS, str(MAKEFILE_PATH))
     require_markers(
         read_text(root, VALIDATOR_PATH),
@@ -202,6 +212,21 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected build marker failure")
+
+        write_fixture(root)
+        path = root / BUILD_PATH
+        path.write_text(
+            path.read_text(encoding="utf-8") + FORBIDDEN_BUILD_MARKERS[-1] + "\n",
+            encoding="utf-8",
+        )
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "zigux/tests/phase12_build.zig" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected stale build marker failure")
 
         write_fixture(root)
         (root / MAKEFILE_PATH).write_text("phase12-smoke:\n", encoding="utf-8")
