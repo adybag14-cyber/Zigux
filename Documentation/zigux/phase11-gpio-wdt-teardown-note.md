@@ -9,7 +9,7 @@ surfaces that already describe the host-free teardown and stop-policy packet.
 
 - `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_docs_and_proof_packet`
 - teardown evidence remains bounded to the returned gpio driver, direct proofs,
-  and coupled docs packet
+  dedicated replay routes, and coupled docs packet
 - remaining follow-through is still wider focused replay or manifest recovery,
   live GPIO descriptor lookup, platform-driver registration, watchdog-core
   registration, live platform cleanup callbacks, reboot-backed teardown
@@ -20,16 +20,21 @@ surfaces that already describe the host-free teardown and stop-policy packet.
 The current teardown-facing GPIO packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
+- `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
+- `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-These returned driver, direct proofs, and documentation surfaces keep the
-teardown packet readable without promoting absent wider replay, survey,
-manifest, or shared-build files into current-head evidence.
+These returned driver, direct proofs, dedicated replay routes, and
+documentation surfaces keep the teardown packet readable without promoting
+absent wider replay, survey, manifest, or shared-build files into current-head
+evidence.
 
 ## What The Landed Teardown Packet Covers
 
@@ -38,6 +43,11 @@ The current host-free teardown review packet keeps these handoffs explicit:
 - `summarizeTeardown()` and the bounded stop-request outcomes it records
 - `requestStop()` and the split between watchdog-core stop policy and hardware
   `always-running` behavior
+- `zigux/tests/phase11_gpio_wdt_preflight_review.zig` as the direct preflight
+  proof surface that keeps `descriptorPreflightSummary()`,
+  `timeoutPropertyCheckpointSummary()`, `platformDrvdataCheckpointSummary()`,
+  and `watchdogDrvdataCheckpointSummary()` explicit before reboot glue or
+  register-device execution claims
 - `nowayoutPolicySummary()` as a directly replayed checkpoint through
   `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`, keeping the
   bounded stopped, blocked-by-nowayout, and kept-running split explicit without
@@ -49,6 +59,10 @@ The current host-free teardown review packet keeps these handoffs explicit:
   proof surface that keeps the first bounded register-device request, the paired
   failure summary, and the teardown-facing stop-policy split tied to the
   reboot-glue boundary without claiming live watchdog-core registration
+- `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`, and
+  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as the
+  dedicated bounded replay routes for the returned teardown packet
 - `timeoutPropertyCheckpointSummary()` and
   `platformDrvdataCheckpointSummary()` as the ordering anchors that still feed
   the bounded register-device and teardown summaries
@@ -71,14 +85,13 @@ nowayout-policy proof, reboot-glue handoff, platform-cleanup checkpoint,
 remove-handoff boundary, and teardown-ownership boundaries visible without
 claiming live `watchdog_set_drvdata()` execution, live
 `watchdog_stop_on_reboot()` execution, live GPIO execution, live platform
-cleanup callbacks, platform cleanup callbacks, or host-backed shutdown
-behavior.
+cleanup callbacks, or host-backed shutdown behavior.
 
 ## Bounded Meaning
 
-This note records the returned teardown summaries and direct proofs only. It
-does not claim live GPIO descriptor acquisition, `platform_set_drvdata()`
-execution, `watchdog_set_drvdata()` execution,
+This note records the returned teardown summaries, direct proofs, and dedicated
+replay routes only. It does not claim live GPIO descriptor acquisition,
+`platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
 `watchdog_stop_on_reboot()` execution,
 `devm_watchdog_register_device()` execution, platform-driver registration, live
 reboot-hook registration, live platform cleanup callbacks, live remove-hook
