@@ -18,14 +18,14 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 - The roadmap-backed conf bridge scaffold is still landed. This lane does not show a missing bridge, checker, or fixture family that needs to be recreated from scratch.
 - The earlier bare-`randconfig` drift is no longer live on current `master`: `scripts/zigux/kconfig/conf_bridge.zig` now keeps the sentinel path narrowed to `allnoconfig`, `allyesconfig`, and `alldefconfig`, while `cases.json` and `conf_manifest.json` continue to model `randconfig` only through the explicit override packet.
 - The older checker-parity follow-through is no longer live either: current `master` now carries the live helper-anchor inventory in both `scripts/zigux/kconfig/conf_bridge.zig` and `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `scripts/zigux/check-kconfig-bridge.py` now fails closed on manifest-side bridge-anchor parity by exact-checking `helper_local_anchors` against `REQUIRED_CONF_HELPER_ANCHORS`.
-- The next safe bridge-local move is to keep behavior, expected-output, and note surfaces parked unless a fresh conf-side drift appears on current `master`.
+- The remaining bridge-local drift is reminder-only: `Documentation/zigux/phase2-conf-bridge-survey.md` is the dedicated current-master note for this conf-side packet, but `Documentation/zigux/phase2-closure.md` still undercounts that bridge-family reminder surface by listing the bridge source, checker, fixtures, and manifests without naming this survey note.
 
 ## Survey Result
 - `current master` does not have a remaining roadmap gap at the level of conf bridge scaffolding.
-- The live Phase 2 packet still contains the bridge source, checker, fixture roster, manifest, and shared closure reminder surfaces expected for the bounded `conf.c` bridge.
-- The honest survey-level result is that the earlier `randconfig` drift and the checker-manifest helper-anchor parity follow-through are both already closed on current `master`, so no fresh scaffold, expected-output, or bridge-note correction remains inside this packet today.
+- The live Phase 2 packet still contains the bridge source, checker, fixture roster, manifest, dedicated survey note, and shared closure reminder surfaces expected for the bounded `conf.c` bridge.
+- The honest survey-level result is that bridge behavior, expected-output, and checker-manifest helper-anchor parity are already closed on current `master`; the only fresh same-family follow-through visible today is one closure-side reminder correction so the shared Phase 2 closure packet names this dedicated conf bridge survey explicitly.
 
 ## Next Bounded Step
-- Leave this survey parked.
-- If the family reopens, reread `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/check-kconfig-bridge.py`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` together before choosing between a new bridge-local behavior-to-fixture repair and a new checker-local parity correction.
+- Reopen only one bridge-local closure reminder correction in `Documentation/zigux/phase2-closure.md` so the shared Phase 2 closure packet explicitly names `Documentation/zigux/phase2-conf-bridge-survey.md` beside the existing conf bridge source, checker, fixtures, and manifest references.
+- Keep behavior, expected-output, manifest-shape, and checker implementation parked unless a later current-master reread shows a new conf-side drift in those exact surfaces.
 - Do not widen this note into broader Phase 2 closure maintenance, fixture-output replay, or confdata work unless the bridge-only reminder surfaces drift again.
