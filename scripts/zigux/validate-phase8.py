@@ -154,6 +154,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
         "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
         "standalone timer or clockevent helper behavior",
+        "no standalone timer helper behavior",
+        "no standalone clockevent helper behavior",
         "broader timeout-sensitive routing behavior",
     ),
     LIBBPF_SEGMENT_MANIFEST: (
@@ -740,7 +742,7 @@ def run_self_test() -> int:
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
-                path.write_text(original, encoding="utf-8")
+                path.writeText(original, encoding="utf-8")
                 case_count += 1
 
         for relative_path in REQUIRED_FILES:
