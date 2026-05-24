@@ -2,18 +2,7 @@ const std = @import("std");
 const bsearch = @import("bsearch");
 const fixtures = @import("fixtures/phase6_bsearch_vectors.zig");
 
-const CountedKey = struct {
-    target: u32,
-    comparisons: *usize,
-};
-
-const CountedOpaqueKey = struct {
-    target: u32,
-    comparisons: *usize,
-};
-
-fn compareCountedInt(key: *const CountedKey, item: *const u32) i32 {
-    key.comparisons.* += 1;
+fn compareDirectInt(key: *const u32, item: *const u32) i32 {
     return switch (std.math.order(key.target, item.*)) {
         .lt => -1,
         .eq => 0,
@@ -490,6 +479,124 @@ test "phase 6 bsearch accepts runtime-selected native order comparator pointers"
         try std.testing.expectEqual(case.expected.upper, bsearch.bsearchUpperBoundIndex(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(u32), case.compare));
         try std.testing.expectEqual(case.expected, bsearch.bsearchEqualRangeIndex(&case.target, @ptrCast(case.items.ptr), case.items.len, @sizeOf(u32), case.compare));
     }
+}
+
+test "phase 6 bsearch runtime-selected native order comparator pointers keep mutable aliases write-through aligned" {
+    const typed_ascending_compare = compareDirectOrderInt;
+    const typed_descending_compare = compareDirectDescendingOrderInt;
+    const raw_ascending_compare: bsearch.RawOrderComparator = compareDirectOpaqueOrderInt;
+    const raw_descending_compare: bsearch.RawOrderComparator = compareDirectOpaqueDescendingOrderInt;
+
+    var typed_values = fixtures.representative_ascending_values;
+    const typed_key = @as(u32, 24);
+    const typed_hit = bsearch.searchMutable(u32, u32, &typed_key, typed_values[0..], typed_ascending_compare) orelse return error.ExpectedMatch;
+    typed_hit.* = 25;
+    try std.testing.expectEqual(@as(u32, 25), typed_values[7]);
+
+    const raw_key = @as(u32, 25);
+    const raw_hit = bsearch.bsearchMutable(&raw_key, @ptrCast(typed_values[0..].ptr), typed_values.len, @sizeOf(u32), raw_ascending_compare) orelse return error.ExpectedMatch;
+    const typed_raw_hit: *u32 = @ptrCast(@alignCast(raw_hit));
+    typed_raw_hit.* = 26;
+    try std.testing.expectEqual(@as(u32, 26), typed_values[7]);
+
+    var ascending_duplicates = fixtures.representative_duplicate_values;
+    const ascending_duplicate_key = @as(u32, 21);
+    const typed_lower = bsearch.lowerBoundMutable(u32, u32, &ascending_duplicate_key, ascending_duplicates[0..], typed_ascending_compare) orelse return error.ExpectedMatch;
+    typed_lower.* = 22;
+    try std.testing.expectEqual(@as(u32, 22), ascending_duplicates[4]);
+
+    const typed_upper = bsearch.upperBoundMutable(u32, u32, &ascending_duplicate_key, ascending_duplicates[0..], typed_ascending_compare) orelse return error.ExpectedMatch;
+    typed_upper.* = 23;
+    try std.testing.expectEqual(@as(u32, 23), ascending_duplicates[7]);
+
+    var raw_ascending_duplicates = fixtures.representative_duplicate_values;
+    const raw_lower = bsearch.bsearchLowerBoundMutable(&ascending_duplicate_key, @ptrCast(raw_ascending_duplicates[0..].ptr), raw_ascending_duplicates.len, @sizeOf(u32), raw_ascending_compare) orelse return error.ExpectedMatch;
+    const typed_raw_lower: *u32 = @ptrCast(@alignCast(raw_lower));
+    typed_raw_lower.* = 22;
+    try std.testing.expectEqual(@as(u32, 22), raw_ascending_duplicates[4]);
+
+    const raw_upper = bsearch.bsearchUpperBoundMutable(&ascending_duplicate_key, @ptrCast(raw_ascending_duplicates[0..].ptr), raw_ascending_duplicates.len, @sizeOf(u32), raw_ascending_compare) orelse return error.ExpectedMatch;
+    const typed_raw_upper: *u32 = @ptrCast(@alignCast(raw_upper));
+    typed_raw_upper.* = 23;
+    try std.testing.expectEqual(@as(u32, 23), raw_ascending_duplicates[7]);
+
+    var typed_descending_duplicates = fixtures.representative_descending_duplicate_values;
+    const descending_duplicate_key = @as(u32, 21);
+    const typed_descending_range = bsearch.equalRangeMutable(u32, u32, &descending_duplicate_key, typed_descending_duplicates[0..], typed_descending_compare);
+    try std.testing.expectEqual(@as(usize, 3), typed_descending_range.len);
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 21, 21, 21 }, typed_descending_range);
+    typed_descending_range[0] = 22;
+    typed_descending_range[typed_descending_range.len - 1] = 20;
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 45, 42, 39, 22, 21, 20, 12, 9, 6, 3 }, typed_descending_duplicates[0..]);
+
+    var raw_descending_duplicates = fixtures.representative_descending_duplicate_values;
+    const raw_descending_bytes = bsearch.bsearchEqualRangeMutable(&descending_duplicate_key, @ptrCast(raw_descending_duplicates[0..].ptr), raw_descending_duplicates.len, @sizeOf(u32), raw_descending_compare);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(u32)), raw_descending_bytes.len);
+    const typed_raw_descending_ptr: [*]u32 = @ptrCast(@alignCast(raw_descending_bytes.ptr));
+    const typed_raw_descending = typed_raw_descending_ptr[0 .. raw_descending_bytes.len / @sizeOf(u32)];
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 21, 21, 21 }, typed_raw_descending);
+    typed_raw_descending[0] = 22;
+    typed_raw_descending[typed_raw_descending.len - 1] = 20;
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 45, 42, 39, 22, 21, 20, 12, 9, 6, 3 }, raw_descending_duplicates[0..]);
+}
+
+test "phase 6 bsearch runtime-selected c abi comparator pointers keep mutable aliases write-through aligned" {
+    const typed_ascending_compare = compareCDirectInt;
+    const typed_descending_compare = compareCDirectDescendingInt;
+    const raw_ascending_compare: bsearch.CRawComparator = compareCOpaqueInt;
+    const raw_descending_compare: bsearch.CRawComparator = compareCOpaqueDescendingInt;
+
+    var typed_values = fixtures.representative_ascending_values;
+    const typed_key = @as(u32, 24);
+    const typed_hit = bsearch.searchMutable(u32, u32, &typed_key, typed_values[0..], typed_ascending_compare) orelse return error.ExpectedMatch;
+    typed_hit.* = 25;
+    try std.testing.expectEqual(@as(u32, 25), typed_values[7]);
+
+    const raw_key = @as(u32, 25);
+    const raw_hit = bsearch.bsearchMutable(&raw_key, @ptrCast(typed_values[0..].ptr), typed_values.len, @sizeOf(u32), raw_ascending_compare) orelse return error.ExpectedMatch;
+    const typed_raw_hit: *u32 = @ptrCast(@alignCast(raw_hit));
+    typed_raw_hit.* = 26;
+    try std.testing.expectEqual(@as(u32, 26), typed_values[7]);
+
+    var ascending_duplicates = fixtures.representative_duplicate_values;
+    const ascending_duplicate_key = @as(u32, 21);
+    const typed_lower = bsearch.lowerBoundMutable(u32, u32, &ascending_duplicate_key, ascending_duplicates[0..], typed_ascending_compare) orelse return error.ExpectedMatch;
+    typed_lower.* = 22;
+    try std.testing.expectEqual(@as(u32, 22), ascending_duplicates[4]);
+
+    const typed_upper = bsearch.upperBoundMutable(u32, u32, &ascending_duplicate_key, ascending_duplicates[0..], typed_ascending_compare) orelse return error.ExpectedMatch;
+    typed_upper.* = 23;
+    try std.testing.expectEqual(@as(u32, 23), ascending_duplicates[7]);
+
+    var raw_ascending_duplicates = fixtures.representative_duplicate_values;
+    const raw_lower = bsearch.bsearchLowerBoundMutable(&ascending_duplicate_key, @ptrCast(raw_ascending_duplicates[0..].ptr), raw_ascending_duplicates.len, @sizeOf(u32), raw_ascending_compare) orelse return error.ExpectedMatch;
+    const typed_raw_lower: *u32 = @ptrCast(@alignCast(raw_lower));
+    typed_raw_lower.* = 22;
+    try std.testing.expectEqual(@as(u32, 22), raw_ascending_duplicates[4]);
+
+    const raw_upper = bsearch.bsearchUpperBoundMutable(&ascending_duplicate_key, @ptrCast(raw_ascending_duplicates[0..].ptr), raw_ascending_duplicates.len, @sizeOf(u32), raw_ascending_compare) orelse return error.ExpectedMatch;
+    const typed_raw_upper: *u32 = @ptrCast(@alignCast(raw_upper));
+    typed_raw_upper.* = 23;
+    try std.testing.expectEqual(@as(u32, 23), raw_ascending_duplicates[7]);
+
+    var typed_descending_duplicates = fixtures.representative_descending_duplicate_values;
+    const descending_duplicate_key = @as(u32, 21);
+    const typed_descending_range = bsearch.equalRangeMutable(u32, u32, &descending_duplicate_key, typed_descending_duplicates[0..], typed_descending_compare);
+    try std.testing.expectEqual(@as(usize, 3), typed_descending_range.len);
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 21, 21, 21 }, typed_descending_range);
+    typed_descending_range[0] = 22;
+    typed_descending_range[typed_descending_range.len - 1] = 20;
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 45, 42, 39, 22, 21, 20, 12, 9, 6, 3 }, typed_descending_duplicates[0..]);
+
+    var raw_descending_duplicates = fixtures.representative_descending_duplicate_values;
+    const raw_descending_bytes = bsearch.bsearchEqualRangeMutable(&descending_duplicate_key, @ptrCast(raw_descending_duplicates[0..].ptr), raw_descending_duplicates.len, @sizeOf(u32), raw_descending_compare);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(u32)), raw_descending_bytes.len);
+    const typed_raw_descending_ptr: [*]u32 = @ptrCast(@alignCast(raw_descending_bytes.ptr));
+    const typed_raw_descending = typed_raw_descending_ptr[0 .. raw_descending_bytes.len / @sizeOf(u32)];
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 21, 21, 21 }, typed_raw_descending);
+    typed_raw_descending[0] = 22;
+    typed_raw_descending[typed_raw_descending.len - 1] = 20;
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 45, 42, 39, 22, 21, 20, 12, 9, 6, 3 }, raw_descending_duplicates[0..]);
 }
 
 test "phase 6 bsearch keeps symbol fixtures searchable through typed bounds" {
