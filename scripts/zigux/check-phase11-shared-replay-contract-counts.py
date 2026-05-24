@@ -224,6 +224,21 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        for label, replacement in (
+            ("build_test_names", ["a", "b"]),
+            ("shared_test_depend_steps", ["unexpected-step"]),
+            ("dedicated_survey_replays", ["unexpected-survey"]),
+            ("shared_adjunct_replays", ["a", "b"]),
+            ("shared_adjunct_build_replays", ["a", "b"]),
+        ):
+            wrong_count = tmpdir / f"wrong_{label}"
+            shutil.copytree(fixture, wrong_count, dirs_exist_ok=True)
+            inventory = read_json(wrong_count / INVENTORY_PATH)
+            inventory[label] = replacement
+            write(wrong_count / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+            expect_failure(wrong_count, f"{label} count mismatch")
+            case_count += 1
+
         wrong_inventory = tmpdir / "wrong_inventory"
         shutil.copytree(fixture, wrong_inventory, dirs_exist_ok=True)
         inventory = read_json(wrong_inventory / INVENTORY_PATH)
