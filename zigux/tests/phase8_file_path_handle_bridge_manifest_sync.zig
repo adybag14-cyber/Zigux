@@ -91,3 +91,37 @@ test "phase 8 file-path handle bridge slice keeps the landed helper rationale al
         "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.",
     );
 }
+
+test "phase 8 bridge boundary survey keeps the mixed-source helper packet and deferred side-effect boundary explicit" {
+    const note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(note);
+
+    try expectContains(
+        note,
+        "Current `master` still keeps the mixed-source bridge packet reviewable, but the readable sources stay split in this runtime.",
+    );
+    try expectContains(
+        note,
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+    );
+    try expectContains(
+        note,
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+    );
+    try expectContains(
+        note,
+        "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`",
+    );
+    try expectContains(
+        note,
+        "That packet stays smaller than live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior.",
+    );
+    try expectContains(
+        note,
+        "The timing-adjacent poll reminder also stays explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and the shared `phase8` routes; that dedicated packet keeps no standalone timer helper behavior, no standalone clockevent helper behavior, and no broader timeout-sensitive routing behavior explicit while the surrounding setup-side bridge remains deferred.",
+    );
+}
