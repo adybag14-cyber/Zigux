@@ -278,7 +278,6 @@ def run_self_test() -> int:
 
         survey_path = root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
-        survey_path.writeText = survey_path.write_text
         survey_path.write_text(original_survey.replace("ready_buffer_attempt_verify.zig", "ready_buffer_attempt_review.zig", 1), encoding="utf-8")
         if f"{SURVEY_PATH}:{SURVEY_MARKERS[0]}" not in validate(root)[1]:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:survey_marker")
