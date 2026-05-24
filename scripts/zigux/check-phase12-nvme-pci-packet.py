@@ -17,6 +17,9 @@ MANIFEST_PATH = Path("zigux/tests/phase12_nvme_pci_manifest.json")
 DIRECT_BUILD_PATH = Path("zigux/tests/phase12_nvme_pci_build.zig")
 DIRECT_REPLAY_PATH = Path("zigux/tests/phase12_nvme_pci.zig")
 VERIFIER_PATH = Path("drivers/nvme/host/pci_verify.zig")
+FALLBACK_MAP_PATH = Path(
+    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
+)
 
 EXPECTED_LANE_KEY = "P12-L08"
 EXPECTED_PHASE = "Phase 12"
@@ -161,6 +164,22 @@ VERIFIER_MARKERS = (
     "nvme pci recovery reservation replay debt summary keeps admin replay blocker ahead of stale descriptor debt",
 )
 
+FALLBACK_MAP_MARKERS = (
+    "## Current-Master Raw Path Map",
+    "Base raw URL prefix:",
+    "`https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/`",
+    "- starter shard raw path: `drivers/nvme/host/pci.zig`",
+    "- verifier shard raw path: `drivers/nvme/host/pci_verify.zig`",
+    "- direct replay raw path: `zigux/tests/phase12_nvme_pci.zig`",
+    "- dedicated direct-build raw path: `zigux/tests/phase12_nvme_pci_build.zig`",
+    "- slice note raw path: `Documentation/zigux/phase12-nvme-pci-slice.md`",
+    "- survey note raw path: `Documentation/zigux/phase12-nvme-pci-survey.md`",
+    "- survey gate raw path: `zigux/tests/phase12_nvme_pci_survey.zig`",
+    "- manifest anchor raw path: `zigux/tests/phase12_nvme_pci_manifest.json`",
+    "- reopen-governance raw path: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`",
+    "- keep this current-master raw-path map as a browser-side routing aid only; it does not turn the NVMe gap-note companion into a commit-pinned fallback artifact",
+)
+
 
 class CheckFailure(RuntimeError):
     pass
@@ -202,10 +221,17 @@ def check_manifest(root: Path) -> int:
     require(manifest.get("lane_key") == EXPECTED_LANE_KEY, "nvme_pci manifest lane_key drifted")
     require(manifest.get("phase") == EXPECTED_PHASE, "nvme_pci manifest phase drifted")
     require(manifest.get("anchor") == EXPECTED_ANCHOR, "nvme_pci manifest anchor drifted")
-    require(manifest.get("roadmap_destinations") == EXPECTED_ROADMAP_DESTINATIONS, "nvme_pci manifest roadmap destinations drifted")
+    require(
+        manifest.get("roadmap_destinations") == EXPECTED_ROADMAP_DESTINATIONS,
+        "nvme_pci manifest roadmap destinations drifted",
+    )
 
     surveyed_commit = manifest.get("surveyed_commit", "")
-    require(len(surveyed_commit) == 40 and all(ch in "0123456789abcdef" for ch in surveyed_commit), "nvme_pci manifest surveyed_commit is not a 40-char lowercase hex sha")
+    require(
+        len(surveyed_commit) == 40
+        and all(ch in "0123456789abcdef" for ch in surveyed_commit),
+        "nvme_pci manifest surveyed_commit is not a 40-char lowercase hex sha",
+    )
     require_iso_date(
         manifest.get("verified_on"),
         "nvme_pci manifest verified_on",
@@ -221,10 +247,21 @@ def check_manifest(root: Path) -> int:
     for slug, expected in EXPECTED_ROADMAP_GAP_CHECK.items():
         section = roadmap_gap_check.get(slug)
         require(isinstance(section, dict), f"nvme_pci roadmap gap section missing: {slug}")
-        require(section.get("required_by_roadmap") is True, f"nvme_pci roadmap gap section lost required_by_roadmap: {slug}")
+        require(
+            section.get("required_by_roadmap") is True,
+            f"nvme_pci roadmap gap section lost required_by_roadmap: {slug}",
+        )
         require(section.get("status") == expected["status"], f"nvme_pci roadmap gap status drifted: {slug}")
-        require_markers(section.get("current_surface", ""), expected["current_surface_markers"], f"nvme_pci roadmap current_surface[{slug}]")
-        require_markers(section.get("blocked_by", ""), expected["blocked_by_markers"], f"nvme_pci roadmap blocked_by[{slug}]")
+        require_markers(
+            section.get("current_surface", ""),
+            expected["current_surface_markers"],
+            f"nvme_pci roadmap current_surface[{slug}]",
+        )
+        require_markers(
+            section.get("blocked_by", ""),
+            expected["blocked_by_markers"],
+            f"nvme_pci roadmap blocked_by[{slug}]",
+        )
 
     gaps = manifest.get("gaps")
     require(isinstance(gaps, list), "nvme_pci manifest gaps field is not a list")
@@ -238,11 +275,21 @@ def check_manifest(root: Path) -> int:
         require(gap is not None, f"nvme_pci manifest missing gap: {gap_id}")
         require(gap.get("status") == expected["status"], f"nvme_pci gap status drifted: {gap_id}")
         require(gap.get("kind") == expected["kind"], f"nvme_pci gap kind drifted: {gap_id}")
-        require(gap.get("zigux_destination") == expected["zigux_destination"], f"nvme_pci gap destination drifted: {gap_id}")
+        require(
+            gap.get("zigux_destination") == expected["zigux_destination"],
+            f"nvme_pci gap destination drifted: {gap_id}",
+        )
         require_existing_path(root, expected["zigux_destination"])
 
     for relative_path in EXTRA_REQUIRED_PATHS:
         require_existing_path(root, relative_path)
+
+    fallback_map_text = read_text(root, FALLBACK_MAP_PATH)
+    require_markers(
+        fallback_map_text,
+        FALLBACK_MAP_MARKERS,
+        "nvme_pci fallback map",
+    )
 
     direct_build_text = read_text(root, DIRECT_BUILD_PATH)
     require_markers(direct_build_text, DIRECT_BUILD_MARKERS, "nvme_pci direct build route")
@@ -287,10 +334,12 @@ def write_fixture(root: Path) -> None:
                 ],
             },
             indent=2,
-        ) + "\n",
+        )
+        + "\n",
         DIRECT_BUILD_PATH: "\n".join(DIRECT_BUILD_MARKERS) + "\n",
         DIRECT_REPLAY_PATH: "\n".join(DIRECT_REPLAY_MARKERS) + "\n",
         VERIFIER_PATH: "\n".join(VERIFIER_MARKERS) + "\n",
+        FALLBACK_MAP_PATH: "\n".join(FALLBACK_MAP_MARKERS) + "\n",
     }
     for relative_path, text in fixture_files.items():
         absolute_path = root / relative_path
@@ -305,6 +354,7 @@ def write_fixture(root: Path) -> None:
             root / DIRECT_BUILD_PATH,
             root / DIRECT_REPLAY_PATH,
             root / VERIFIER_PATH,
+            root / FALLBACK_MAP_PATH,
         ):
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
@@ -312,7 +362,11 @@ def write_fixture(root: Path) -> None:
     for relative_path in EXTRA_REQUIRED_PATHS:
         absolute_path = root / relative_path
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path in (root / DIRECT_BUILD_PATH, root / DIRECT_REPLAY_PATH, root / VERIFIER_PATH):
+        if absolute_path in (
+            root / DIRECT_BUILD_PATH,
+            root / DIRECT_REPLAY_PATH,
+            root / VERIFIER_PATH,
+        ):
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
@@ -404,6 +458,20 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected shared-build-route drift to fail")
+
+        write_fixture(root)
+        (root / FALLBACK_MAP_PATH).write_text(
+            "## Current-Master Raw Path Map\n",
+            encoding="utf-8",
+        )
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "fallback map" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected fallback-map marker drift to fail")
 
         write_fixture(root)
         (root / DIRECT_BUILD_PATH).write_text("phase12_nvme_pci.zig\n", encoding="utf-8")
