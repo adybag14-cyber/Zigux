@@ -129,6 +129,11 @@ EXPECTED_REVIEW_FIELDS = {
             "tail_clamped_last",
             "tail_clamped_empty_last",
         ],
+        "tail_inclusive_boundary_fixture_keys": [
+            "tail_inclusive_boundary_next",
+            "tail_inclusive_boundary_zero",
+            "tail_inclusive_boundary_and",
+        ],
         "next_safe_step_note": (
             "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor "
             "drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, "
@@ -461,6 +466,18 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:review_anchor_value=tools/lib/find_bit.zig:tail_clamp_fixture_keys",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_inclusive_boundary_fixture_keys"].pop(),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/find_bit.zig:tail_inclusive_boundary_fixture_keys",
         )
         case_count += 1
 
