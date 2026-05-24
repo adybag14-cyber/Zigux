@@ -600,6 +600,27 @@ test "split-read exact non-ELF header exits with stderr at EOF" {
     try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
 }
 
+test "split-read exact non-ELF header ignores later read failure and exits with stderr" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 9, 7, 8 },
+        .fail_on_call = 3,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 2), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+}
+
 test "split-read empty input exits with stderr after immediate EOF" {
     var reader = SplitReader{
         .bytes = &[_]u8{},
