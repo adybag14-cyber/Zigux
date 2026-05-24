@@ -220,7 +220,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 57
+SELF_TEST_CASE_COUNT = 58
 
 
 def read_text(path: Path) -> str:
@@ -585,6 +585,16 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         sample_boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
+        sample_boundary_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_sample_boundary.zig"][0]
+        remove_once(sample_boundary_path, sample_boundary_marker)
+        expect_missing_marker(
+            "missing_sample_boundary_policy_name_marker",
+            tmp_root,
+            f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         sample_boundary_marker = DEVM_FOLLOW_ON_MARKER
         remove_once(sample_boundary_path, sample_boundary_marker)
         expect_missing_marker("missing_sample_boundary_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
