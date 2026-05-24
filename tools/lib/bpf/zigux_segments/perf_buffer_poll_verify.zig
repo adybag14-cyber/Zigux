@@ -295,6 +295,33 @@ test "phase8 perf-buffer poll keeps ready-buffer lookup wrappers stable" {
     );
 }
 
+test "phase8 perf-buffer poll keeps missing-ready-buffer precedence ahead of slot-shape failures" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{},
+    };
+    const short_fds = [_]?i32{null};
+    const short_windows = [_]?perf_buffer_poll.BufferWindowObservation{};
+
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &short_fds, 0),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &short_fds, 0),
+    );
+
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        perf_buffer_poll.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &short_windows, 0),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &short_windows, 0),
+    );
+}
+
 test "phase8 perf-buffer poll rejects impossible hand-built summaries and mismatched ready waits" {
     const impossible_timeout = perf_buffer_poll.PollExecutionSummary{
         .poll = .{
