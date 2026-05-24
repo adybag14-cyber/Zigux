@@ -11,6 +11,7 @@ Fresh mixed readback on 2026-05-23 confirmed these current sample-root files on 
 * `samples/zigux/kobject_example.zig`
 * `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
+* `samples/zigux/kretprobe_example_instance_budget_contract.zig`
 * `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_atomic64.zig`
@@ -70,6 +71,10 @@ Keep that kretprobe packet framed as the approved in-memory handler and teardown
 * the focused test pair keeps outstanding-instance exit rejection, recovered duration `60`, `entry_stamp_ns = -1` reset, and post-exit `recordMissedInstance()` rejection explicit
 * `zig test samples/zigux/kretprobe_example.zig`, `zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig`, and `zig test zigux/tests/phase5_kretprobe_example_survey.zig` stay explicit as the sample-owned self-check, focused replay, and survey guard routes, while `zigux/tests/phase5_build.zig` remains current directly readable shared build-route companion evidence only
 * keep `register_kretprobe`, `unregister_kretprobe`, `pt_regs or regs_return_value`, and loadable module wiring out of scope
+
+Current `master` also ships `samples/zigux/kretprobe_example_instance_budget_contract.zig` as a bounded kretprobe companion. Keep that file framed as reviewability help for the Linux `func` parameter, shared `0o644` mode, default `kernel_clone`, one-word private-data shape, and the `nmissed` / `maxactive` cue rather than as a fifth Phase 5 sample family.
+Keep `zig test samples/zigux/kretprobe_example_instance_budget_contract.zig` explicit as the companion-only validation route for that bounded kretprobe packet while `zigux/tests/phase5_build.zig` stays the current directly readable shared build-route companion for the broader kretprobe packet.
+Keep `zig test --dep kretprobe_example_instance_budget_contract -Mroot=zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig -Mkretprobe_example_instance_budget_contract=samples/zigux/kretprobe_example_instance_budget_contract.zig` explicit as the focused replay route for that bounded kretprobe packet, while `zigux/tests/phase5_build.zig` keeps rerunning the sample-owned self-checks together with the focused replay, survey gate, and instance-budget companion checks for the broader kretprobe packet.
 
 Current `master` also keeps the bounded non-runtime trace-events packet visible through the broader sample-root companion `samples/zigux/trace_events_sample.zig`, the direct formatting companion `samples/zigux/trace_events_string_formatting_sample.zig`, and the shared Phase 5 reminder packet.
 
