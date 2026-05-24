@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const survey_note_source = @embedFile("../../Documentation/zigux/phase9-runtime-atomic64-survey.md");
+const module_slice_note_source = @embedFile("../../Documentation/zigux/phase9-runtime-atomic64-module-slice.md");
 
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
@@ -191,13 +192,31 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     const blocked_gap = findGap(manifest.gaps, "runtime-atomic64-live-loader-binding") orelse return error.MissingBlockedGap;
     try std.testing.expectEqualStrings("blocked_on_runtime_substrate", blocked_gap.status);
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", blocked_gap.zigux_destination);
+
+    try expectLacks(manifest_json, "scripts/zigux/kconfig/conf_bridge.zig");
+    try expectLacks(manifest_json, "scripts/zigux/kconfig/confdata_bridge.zig");
+    try expectLacks(manifest_json, "rust/exports.c");
+    try expectLacks(manifest_json, "zigux/kernel/export_shim.zig");
 }
 
-test "phase 9 runtime atomic64 survey note records the current shared-loader reminder packet" {
+test "phase 9 runtime atomic64 note family records the current shared-loader reminder packet without older config or export markers" {
     try expectContains(survey_note_source, "zigux/tests/runtime_loader_allocator_init_flow.zig");
     try expectContains(survey_note_source, "zigux/kernel/runtime_loader_command_env_boundary_guard.zig");
     try expectContains(survey_note_source, "samples/zigux/runtime_bitmap_loader.zig");
     try expectContains(survey_note_source, "review-only evidence");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_gap_survey.zig");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_selftest_complete_exit_parity.zig");
+    try expectLacks(survey_note_source, "scripts/zigux/kconfig/conf_bridge.zig");
+    try expectLacks(survey_note_source, "scripts/zigux/kconfig/confdata_bridge.zig");
+    try expectLacks(survey_note_source, "rust/exports.c");
+    try expectLacks(survey_note_source, "zigux/kernel/export_shim.zig");
+
+    try expectContains(module_slice_note_source, "zigux/tests/runtime_loader_allocator_init_flow.zig");
+    try expectContains(module_slice_note_source, "zigux/kernel/runtime_loader_command_env_boundary_guard.zig");
+    try expectContains(module_slice_note_source, "samples/zigux/runtime_bitmap_loader.zig");
+    try expectContains(module_slice_note_source, "review-only evidence");
+    try expectLacks(module_slice_note_source, "scripts/zigux/kconfig/conf_bridge.zig");
+    try expectLacks(module_slice_note_source, "scripts/zigux/kconfig/confdata_bridge.zig");
+    try expectLacks(module_slice_note_source, "rust/exports.c");
+    try expectLacks(module_slice_note_source, "zigux/kernel/export_shim.zig");
 }
