@@ -74,15 +74,25 @@ static inline int zigux_uapi_boundary_header_has_current_abi_version(uint16_t ab
     return abi_version == (uint16_t)ZIGUX_ABI_VERSION;
 }
 
+static inline int zigux_uapi_boundary_header_is_compatible_size(uint32_t size)
+{
+    return size >= (uint32_t)sizeof(zigux_boundary_header);
+}
+
+static inline int zigux_uapi_boundary_header_is_canonical_size(uint32_t size)
+{
+    return size == (uint32_t)sizeof(zigux_boundary_header);
+}
+
 static inline int zigux_uapi_boundary_header_is_canonical(zigux_boundary_header header)
 {
-    return header.size == (uint32_t)sizeof(zigux_boundary_header) &&
+    return zigux_uapi_boundary_header_is_canonical_size(header.size) &&
         zigux_uapi_boundary_header_has_current_abi_version(header.abi_version);
 }
 
 static inline int zigux_uapi_boundary_header_is_compatible(zigux_boundary_header header)
 {
-    return header.size >= (uint32_t)sizeof(zigux_boundary_header) &&
+    return zigux_uapi_boundary_header_is_compatible_size(header.size) &&
         zigux_uapi_boundary_header_has_current_abi_version(header.abi_version);
 }
 
@@ -142,12 +152,12 @@ static inline int zigux_boundary_header_is_current_abi_version(uint16_t abi_vers
 
 static inline int zigux_boundary_header_is_compatible_size(uint32_t size)
 {
-    return size >= (uint32_t)sizeof(zigux_boundary_header);
+    return zigux_uapi_boundary_header_is_compatible_size(size);
 }
 
 static inline int zigux_boundary_header_is_canonical_size(uint32_t size)
 {
-    return size == (uint32_t)sizeof(zigux_boundary_header);
+    return zigux_uapi_boundary_header_is_canonical_size(size);
 }
 
 static inline int zigux_boundary_header_is_compatible(zigux_boundary_header header)
