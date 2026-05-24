@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L16",
   "phase": "Phase 12",
-  "surveyed_commit": "8d84eb459b76323b2fe0646ad00ef13c310db0be",
+  "surveyed_commit": "d7f441e2f83331fe1d617a9fc972e5cf38e8c474",
   "tracked_file_count": 4,
   "tracked_paths": [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
@@ -15,6 +15,7 @@
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
     "Documentation/zigux/phase12-release-coordination-matrix.md"
   ],
+  "deterministic_artifact_fingerprint": "21226c2adcf2e352701d1694b888db942f601eab80a570cafbc942de4008ce01",
   "files": [
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
@@ -34,13 +35,13 @@
     }
   ],
   "verification_evidence": {
-    "checked_at_utc": "2026-05-24T18:58:00Z",
+    "checked_at_utc": "2026-05-24T18:55:01Z",
     "readback_mode": "github-contents-readback",
     "checker": {
       "path": "scripts/zigux/check-phase12-libbpf-snapshot.py",
-      "blob_sha": "92759632d6db2a6419de41d561aa8c5ffba6dd05",
-      "modified_at_utc": "2026-05-22T11:09:00Z",
-      "self_test_case_count": 29
+      "blob_sha": "16e74da580e376a7fb4ba3ced7b4309a3d582c3f",
+      "modified_at_utc": "2026-05-24T18:55:01Z",
+      "self_test_case_count": 31
     },
     "current_note_blobs": [
       {
