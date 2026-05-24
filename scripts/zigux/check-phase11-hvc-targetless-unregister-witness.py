@@ -498,6 +498,10 @@ def run_self_test() -> int:
             ),
             (
                 VERIFY_BOUNDARY_PATH,
+                "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge",
+            ),
+            (
+                VERIFY_BOUNDARY_PATH,
                 "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable",
             ),
             (
