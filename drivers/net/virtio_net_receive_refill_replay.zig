@@ -16,6 +16,7 @@ pub const ReceiveRefillReplayRequest = struct {
     receive_buffers_after_restore: u16,
     descriptors_posted_after_restore: u16,
     control_queue_restored: bool,
+    requires_control_queue_restore: bool = true,
 };
 
 pub const ReceiveRefillReplaySummary = struct {
@@ -27,6 +28,7 @@ pub const ReceiveRefillReplaySummary = struct {
     receive_buffers_after_restore: u16,
     descriptors_posted_after_restore: u16,
     control_queue_restored: bool,
+    requires_control_queue_restore: bool,
     queue_pairs_preserved: bool,
     refill_budget_preserved: bool,
     descriptors_reposted: bool,
@@ -52,7 +54,9 @@ pub fn summarizeReceiveRefillReplay(
         request.descriptors_posted_after_restore >= request.receive_buffers_after_restore;
 
     const blocker: ReceiveRefillReplayBlocker = blk: {
-        if (!request.control_queue_restored) break :blk .control_queue_restore;
+        if (request.requires_control_queue_restore and !request.control_queue_restored) {
+            break :blk .control_queue_restore;
+        }
         if (!queue_pairs_preserved) break :blk .queue_pair_restore;
         if (!refill_budget_preserved) break :blk .refill_budget_restore;
         if (!descriptors_reposted) break :blk .descriptor_repost;
@@ -68,6 +72,7 @@ pub fn summarizeReceiveRefillReplay(
         .receive_buffers_after_restore = request.receive_buffers_after_restore,
         .descriptors_posted_after_restore = request.descriptors_posted_after_restore,
         .control_queue_restored = request.control_queue_restored,
+        .requires_control_queue_restore = request.requires_control_queue_restore,
         .queue_pairs_preserved = queue_pairs_preserved,
         .refill_budget_preserved = refill_budget_preserved,
         .descriptors_reposted = descriptors_reposted,
@@ -119,6 +124,26 @@ test "receive refill replay keeps control queue restore ahead of later refill wo
         summary.blocker,
     );
     try std.testing.expect(!summary.replay_ready);
+}
+
+test "receive refill replay skips control queue restore when the packet says no control queue is present" {
+    const summary = try summarizeReceiveRefillReplay(.{
+        .reset_generation = 2,
+        .receive_queue_pairs_before_reset = 2,
+        .receive_queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .descriptors_posted_after_restore = 128,
+        .control_queue_restored = false,
+        .requires_control_queue_restore = false,
+    });
+
+    try std.testing.expect(!summary.requires_control_queue_restore);
+    try std.testing.expect(summary.queue_pairs_preserved);
+    try std.testing.expect(summary.refill_budget_preserved);
+    try std.testing.expect(summary.descriptors_reposted);
+    try std.testing.expectEqual(ReceiveRefillReplayBlocker.none, summary.blocker);
+    try std.testing.expect(summary.replay_ready);
 }
 
 test "receive refill replay requires queue-pair restore before budget replay" {
