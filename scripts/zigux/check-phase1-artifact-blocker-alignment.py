@@ -225,10 +225,13 @@ EXPECTED_ANTI_OVERLAP_RULE = (
     "shared fixture keys."
 )
 
+EXPECTED_MANIFEST_PATH = "zigux/tests/fixtures/phase1_helper_manifest.json"
+EXPECTED_REPLAY_BLOCKED_HELPER = "tools/lib/slab.zig"
+EXPECTED_REPLAY_BLOCKED_FIXTURE_PREFIX = "slab."
 EXPECTED_REPLAY_BLOCKER = {
     "id": "phase1_helpers_zig_slab_zero_after_kmalloc",
     "kind": "fixture_mismatch",
-    "path": "tools/lib/slab.zig",
+    "path": EXPECTED_REPLAY_BLOCKED_HELPER,
     "field": "slab.zero_after_kmalloc",
     "expected": True,
     "actual": False,
@@ -239,6 +242,9 @@ EXPECTED_REPLAY_BLOCKER = {
     ),
 }
 
+EXPECTED_C_HARNESS_PATH = "zigux/tests/fixtures/phase1_helpers_c_harness.c"
+EXPECTED_C_HARNESS_STATE = "blocked"
+EXPECTED_C_HARNESS_BLOCKER_ID = "phase1_helpers_c_harness_missing_c_sources"
 EXPECTED_C_HARNESS_REASON = (
     "The old host-side parity route still depends on helper `tools/lib/*.c` inputs that "
     "current master no longer ships beside the Phase 1 `.zig` ports."
@@ -359,6 +365,8 @@ def collect_failures(root: Path) -> list[str]:
         failures.append(issue("manifest_rule_summary", EXPECTED_RULE_SUMMARY, manifest_lane.get("rule_summary")))
     if manifest_lane.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
         failures.append(issue("manifest_anti_overlap_rule", EXPECTED_ANTI_OVERLAP_RULE, manifest_lane.get("anti_overlap_rule")))
+    if blocker_lane.get("manifest") != EXPECTED_MANIFEST_PATH:
+        failures.append(issue("blocker_manifest_path", EXPECTED_MANIFEST_PATH, blocker_lane.get("manifest")))
     if tuple(blocker_lane.get("shared_replay_parked_helpers", [])) != EXPECTED_SHARED_HELPERS:
         failures.append(issue("blocker_shared_helpers", EXPECTED_SHARED_HELPERS, tuple(blocker_lane.get("shared_replay_parked_helpers", []))))
     if tuple(blocker_lane.get("direct_anchor_followup_helpers", [])) != EXPECTED_DIRECT_HELPERS:
@@ -396,17 +404,32 @@ def collect_failures(root: Path) -> list[str]:
         for key, expected in EXPECTED_REPLAY_BLOCKER.items():
             if first.get(key) != expected:
                 failures.append(issue(f"replay_blocker:{key}", expected, first.get(key)))
+        blocked_helper = first.get("path")
+        if blocked_helper not in EXPECTED_SHARED_HELPERS:
+            failures.append(issue("replay_blocked_helper_family", EXPECTED_SHARED_HELPERS, blocked_helper))
+        blocked_field = first.get("field")
+        fixture_key = HELPER_TO_FIXTURE.get(blocked_helper) if isinstance(blocked_helper, str) else None
+        if fixture_key is None:
+            failures.append(issue("replay_blocked_helper_mapping", "known_helper", blocked_helper))
+        elif not isinstance(blocked_field, str) or not blocked_field.startswith(f"{fixture_key}."):
+            failures.append(issue("replay_blocked_field_prefix", f"{fixture_key}.", blocked_field))
         if resolve_field(fixture, EXPECTED_REPLAY_BLOCKER["field"]) != EXPECTED_REPLAY_BLOCKER["expected"]:
             failures.append(issue("fixture_blocked_field_value", EXPECTED_REPLAY_BLOCKER["expected"], resolve_field(fixture, EXPECTED_REPLAY_BLOCKER["field"])))
 
     c_harness = blockers.get("c_harness", {})
+    if c_harness.get("path") != EXPECTED_C_HARNESS_PATH:
+        failures.append(issue("c_harness_path", EXPECTED_C_HARNESS_PATH, c_harness.get("path")))
+    if c_harness.get("state") != EXPECTED_C_HARNESS_STATE:
+        failures.append(issue("c_harness_state", EXPECTED_C_HARNESS_STATE, c_harness.get("state")))
     if c_harness.get("reason") != EXPECTED_C_HARNESS_REASON:
         failures.append(issue("c_harness_reason", EXPECTED_C_HARNESS_REASON, c_harness.get("reason")))
     if c_harness.get("helper_count") != len(EXPECTED_HELPERS):
         failures.append(issue("c_harness_helper_count", len(EXPECTED_HELPERS), c_harness.get("helper_count")))
     if tuple(c_harness.get("helpers", [])) != EXPECTED_HELPERS:
         failures.append(issue("c_harness_helpers", EXPECTED_HELPERS, tuple(c_harness.get("helpers", []))))
-    if (root / "zigux/tests/fixtures/phase1_helpers_c_harness.c").exists():
+    if c_harness.get("blocker_id") != EXPECTED_C_HARNESS_BLOCKER_ID:
+        failures.append(issue("c_harness_blocker_id", EXPECTED_C_HARNESS_BLOCKER_ID, c_harness.get("blocker_id")))
+    if (root / EXPECTED_C_HARNESS_PATH).exists():
         failures.append(issue("c_harness_present", False, True))
     return failures
 
@@ -460,7 +483,7 @@ def sample_blockers() -> dict[str, object]:
     return {
         "status": "parked",
         "lane_sequencing": {
-            "manifest": "zigux/tests/fixtures/phase1_helper_manifest.json",
+            "manifest": EXPECTED_MANIFEST_PATH,
             "shared_replay_parked_helper_count": len(EXPECTED_SHARED_HELPERS),
             "shared_replay_parked_helpers": list(EXPECTED_SHARED_HELPERS),
             "direct_anchor_followup_helper_count": len(EXPECTED_DIRECT_HELPERS),
@@ -473,12 +496,12 @@ def sample_blockers() -> dict[str, object]:
             "blockers": [dict(EXPECTED_REPLAY_BLOCKER)],
         },
         "c_harness": {
-            "path": "zigux/tests/fixtures/phase1_helpers_c_harness.c",
-            "state": "blocked",
+            "path": EXPECTED_C_HARNESS_PATH,
+            "state": EXPECTED_C_HARNESS_STATE,
             "reason": EXPECTED_C_HARNESS_REASON,
             "helper_count": len(EXPECTED_HELPERS),
             "helpers": list(EXPECTED_HELPERS),
-            "blocker_id": "phase1_helpers_c_harness_missing_c_sources",
+            "blocker_id": EXPECTED_C_HARNESS_BLOCKER_ID,
         },
     }
 
@@ -606,6 +629,9 @@ def run_self_test() -> int:
         ("review_anchor_key_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", lambda data: data["review_anchors"].pop("tools/lib/string.zig"))),
         ("dynamic_key_type_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", lambda data: data["review_anchors"]["tools/lib/rbtree.zig"].__setitem__("traversal_replay_keys", "drift"))),
         ("dynamic_key_missing_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", lambda data: data["review_anchors"]["tools/lib/rbtree.zig"].__setitem__("duplicate_search_replay_keys", ["missing"]))),
+        ("blocker_manifest_pointer_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_replay_blockers.json", lambda data: data["lane_sequencing"].__setitem__("manifest", "drift.json"))),
+        ("replay_blocked_helper_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_replay_blockers.json", lambda data: data["replay"]["blockers"][0].__setitem__("path", "tools/lib/bitmap.zig"))),
+        ("c_harness_blocker_id_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_replay_blockers.json", lambda data: data["c_harness"].__setitem__("blocker_id", "drift"))),
         ("fixture_key_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_helpers.json", lambda data: data["slab"].__setitem__("zero_after_kmalloc", False))),
         ("blocker_reason_drift", lambda root: mutate_json(root / "zigux/tests/fixtures/phase1_replay_blockers.json", lambda data: data["c_harness"].__setitem__("reason", "drift"))),
     )
