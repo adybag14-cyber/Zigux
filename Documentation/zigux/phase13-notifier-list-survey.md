@@ -22,6 +22,7 @@ As of `2026-05-24`, current `master` keeps this adjacent notifier-facing packet 
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 - `include/zigux/abi.h`
+- `zigux/Makefile`
 - `drivers/tty/hvc/hvc_console.h`
 - `scripts/zigux/validate-phase13-release.py`
 Current authenticated readback fixes that shipped adjacent packet to these exact file states:
