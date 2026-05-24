@@ -117,7 +117,7 @@ REQUIRED_MARKERS = {
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
-        "- Shared libbpf heavy-consumer packet: keep `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` aligned around the parked reviewability packet.",
+        "- Shared libbpf heavy-consumer packet: keep `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, and `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` aligned around the parked reviewability packet.",
     ],
     WORKFLOW_PATH: [
         "Self-test current Phase 12 libbpf heavy-consumer packet checker",
@@ -179,6 +179,7 @@ EXACT_COUNT_MARKERS = {
     },
     RELEASE_COORDINATION_MATRIX_PATH: {
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
+        "- Shared libbpf heavy-consumer packet: keep `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, and `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` aligned around the parked reviewability packet.": 1,
     },
     WORKFLOW_PATH: {
         "Self-test current Phase 12 libbpf heavy-consumer packet checker": 1,
