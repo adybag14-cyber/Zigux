@@ -116,6 +116,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-bsearch-perf`
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`
+- `python3 scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`
 - `zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-test`
 - `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`
@@ -126,6 +127,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`
 - `python3 scripts/zigux/check-phase6-hexdump-packet.py`
 - `python3 scripts/zigux/check-phase6-hexdump-route.py`
+- `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-hexdump-review`
 - `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`
