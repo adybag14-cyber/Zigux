@@ -321,8 +321,28 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-workflow-forbidden-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / WORKFLOW_REL
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text + "run: zig build bench --build-file zigux/tests/build.zig\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        expected_issue = (
+            f"{WORKFLOW_REL}:forbidden:"
+            "run: zig build bench --build-file zigux/tests/build.zig:actual=1"
+        )
+        if issues != [expected_issue]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=workflow_forbidden_route_fail_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
