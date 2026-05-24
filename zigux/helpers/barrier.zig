@@ -178,6 +178,40 @@ test "phase3 barrier wrappers keep barrier handoff reviewable" {
     try std.testing.expectEqual(@as(u32, 73), packet.value);
 }
 
+test "phase3 barrier wrappers keep generic fence dispatch handoffs reviewable" {
+    const Packet = struct {
+        staged: u32,
+        published: u32,
+        ready: bool,
+    };
+
+    var packet = Packet{
+        .staged = 0,
+        .published = 0,
+        .ready = false,
+    };
+
+    packet.staged = 0x24;
+    compiler();
+    try fence(.release);
+    packet.published = packet.staged;
+    packet.ready = true;
+
+    try fence(.acquire);
+    try std.testing.expect(packet.ready);
+    try std.testing.expectEqual(@as(u32, 0x24), packet.published);
+
+    packet.ready = false;
+    packet.staged = 0x57;
+    compiler();
+    try fence(.acq_rel);
+    packet.published = packet.staged;
+    try fence(.seq_cst);
+
+    try std.testing.expect(!packet.ready);
+    try std.testing.expectEqual(@as(u32, 0x57), packet.published);
+}
+
 test "phase3 barrier wrappers keep store-load handoffs reviewable" {
     const Packet = struct {
         staged: u32,
