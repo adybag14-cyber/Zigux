@@ -10,7 +10,7 @@ const local_build_path = "zigux/tests/phase8_cpu_mask_local_build.zig";
 fn loadRepoText(allocator: std.mem.Allocator, relative_path: []const u8) ![]u8 {
     const full_path = try std.fs.path.join(allocator, &.{ build_options.repo_root, relative_path });
     defer allocator.free(full_path);
-    return std.fs.cwd().readFileAlloc(allocator, full_path, 1024 * 1024);
+    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, full_path, allocator, .limited(1024 * 1024));
 }
 
 fn expectContains(text: []const u8, needle: []const u8) !void {
