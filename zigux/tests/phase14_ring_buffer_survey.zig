@@ -160,8 +160,11 @@ test "phase14 ring-buffer manifest tracks the parked study packet with its full 
     try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-mapping-limitations", "stay_in_c", "shared tracefs lockout boundary", "ring_buffer_resize", "mapped reader pins `resize_disabled`"));
     try std.testing.expect(hasDecisionChecklist(manifest, "read-page-extraction-boundary", "stay_in_c", "partial-copy fallback", "ring_buffer_read_page", "commit-page visibility"));
     try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-reader-serialization-boundary", "stay_in_c", "consumed-page lifetime", "tracing_buffers_splice_read", "pipe-buffer references"));
+    try std.testing.expect(hasDecisionChecklist(manifest, "remote-reader-metadata", "stay_in_c", "callback boundary", "rb_read_remote_meta_page", "callback-driven metadata refresh"));
     try std.testing.expect(hasGap(manifest, "phase14-build-gate-current-master-gap", "restored_via_public_raw_readback", "validation", "zigux/tests/phase14_build.zig", "shared Phase 14 build shard"));
     try std.testing.expect(hasGap(manifest, "phase14-make-target", "resolved_as_drift_retired", "validation", "zigux/Makefile", "does not ship a dedicated `make -C zigux phase14` convenience route"));
+    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-mapped-reader-ioctl-followup", "starter_landed", "boundary_audit", "Documentation/zigux/phase14-ring-buffer-survey.md", "TRACE_MMAP_IOCTL_GET_READER"));
+    try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-remote-reader-followup", "starter_landed", "boundary_audit", "Documentation/zigux/phase14-ring-buffer-survey.md", "rb_read_remote_meta_page()"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-maintenance-handoff", "starter_landed", "maintenance_handoff", "Documentation/zigux/phase14-ring-buffer-survey.md", "explicit reopen conditions"));
     try std.testing.expect(hasGap(manifest, "phase14-ring-buffer-zig-port-blocker", "blocked_on_stay_in_c_evidence", "freeze_map", "kernel/trace/ring_buffer.zig", "years of evidence justify it"));
 }
@@ -231,4 +234,10 @@ test "phase14 ring-buffer survey note keeps the exact compile-route posture expl
     try std.testing.expect(std.mem.indexOf(u8, note, "`/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "these examples stay subordinate to the same study-only, no-parity, no-wrapper-restoration posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "## Mapped-reader ioctl audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`TRACE_MMAP_IOCTL_GET_READER`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`ring_buffer_map_get_reader()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "## Remote-reader metadata audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`rb_read_remote_meta_page()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`__rb_get_reader_page_from_remote()`") != null);
 }
