@@ -292,6 +292,7 @@ def run_self_test() -> int:
             "unexpected_direct_packet_file_failed",
         )
         case_count += 1
+        (root / DIRECT_PACKET_GAP_PATHS[0]).unlink()
 
         seed_fixture_tree(root)
         (root / DMA_BOUNDARY_CHECKER_PATH).unlink()
