@@ -20,6 +20,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const bytestream_fifo_window_contract_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/bytestream_fifo_window_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const kobject_example_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/kobject_example.zig"),
@@ -138,6 +143,20 @@ pub fn build(b: *std.Build) void {
         .root_module = phase5_bytestream_fifo_survey_module,
     });
     const run_phase5_bytestream_fifo_survey_tests = b.addRunArtifact(phase5_bytestream_fifo_survey_tests);
+
+    const phase5_bytestream_fifo_window_contract_tests = b.addTest(.{
+        .name = "phase5-bytestream-fifo-window-contract-tests",
+        .root_module = bytestream_fifo_window_contract_module,
+    });
+    const run_phase5_bytestream_fifo_window_contract_tests =
+        b.addRunArtifact(phase5_bytestream_fifo_window_contract_tests);
+    const phase5_bytestream_fifo_window_contract_step = b.step(
+        "phase5-bytestream-fifo-window-contract",
+        "Run the Phase 5 bytestream FIFO window-contract companion checks",
+    );
+    phase5_bytestream_fifo_window_contract_step.dependOn(
+        &run_phase5_bytestream_fifo_window_contract_tests.step,
+    );
 
     const phase5_kobject_example_sample_selfcheck_tests = b.addTest(.{
         .name = "phase5-kobject-example-sample-selfcheck-tests",
@@ -261,6 +280,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_bytestream_fifo_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
+    test_step.dependOn(&run_phase5_bytestream_fifo_window_contract_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_sample_selfcheck_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_survey_tests.step);
