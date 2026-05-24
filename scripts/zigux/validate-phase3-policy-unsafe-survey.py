@@ -19,6 +19,9 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 MMIO_PATH = Path("zigux/helpers/mmio.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+POLICY_STARTER_PACKET_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
+POLICY_DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
+POLICY_DUMP_EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
 
 BLOB_FIELDS = {
     "PHASE3_LAYOUT_ASSERT_BLOB_SHA": LAYOUT_ASSERT_PATH,
@@ -104,6 +107,23 @@ REQUIRED_FILE_MARKERS = {
         "phase3-policy-dump:",
         "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     ),
+    POLICY_STARTER_PACKET_PATH: (
+        'test "policy starter packet keeps narrow byte and denial symmetry explicit" {',
+        'test "policy starter packet keeps unsafe alias symmetry explicit on shared records" {',
+        'test "policy starter packet keeps unsafe require gates explicit on shared records" {',
+        'test "policy starter packet keeps unsafe boundary and audit semantics explicit" {',
+    ),
+    POLICY_DUMP_PATH: (
+        "const RawBridgeReplay = struct {",
+        "fn rawBridgeReplay(policy: abi.InteropPolicy) RawBridgeReplay {",
+        "const bridge_replay = rawBridgeReplay(policy);",
+        '"bridge_read_ok={any}|bridge_write_ok={any}|narrow={s}|narrow_boundary={s}|narrow_surface={s}\\n",',
+    ),
+    POLICY_DUMP_EXPECTED_PATH: (
+        "safe-default|panic=abort|allocator=caller_provided|init_flow=caller_prepared|explicit_caller=true|owned_state=false|reset_on_init=false|unsafe=none|boundary=typed_safe|surface=safe_only|typed_only=true|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|bridge_read_ok=false|bridge_write_ok=false|narrow=none|narrow_boundary=typed_safe|narrow_surface=safe_only",
+        "raw-bridge-warn|panic=warn|allocator=arena|init_flow=helper_owned_with_reset|explicit_caller=false|owned_state=true|reset_on_init=true|unsafe=raw_pointer_bridge|boundary=raw_pointer_bridge|surface=raw_pointer_bridge_only|typed_only=false|global_fallback=true|warn_only=true|mmio=false|raw_bridge=true|audit=true|bridge_read_ok=true|bridge_write_ok=true|narrow=raw_pointer_bridge|narrow_boundary=raw_pointer_bridge|narrow_surface=raw_pointer_bridge_only",
+        "reserved-invalid|panic=invalid|allocator=invalid|init_flow=invalid|explicit_caller=false|owned_state=false|reset_on_init=false|unsafe=invalid|boundary=invalid|surface=invalid|typed_only=false|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|bridge_read_ok=false|bridge_write_ok=false|narrow=invalid|narrow_boundary=invalid|narrow_surface=invalid",
+    ),
 }
 
 SELF_TEST_CASES = (
@@ -146,7 +166,30 @@ SELF_TEST_CASES = (
         "marker",
     ),
     ("narrow const-slice marker drift", NARROW_PATH, REQUIRED_FILE_MARKERS[NARROW_PATH][4], "marker"),
-    ("starter packet make route drift", MAKEFILE_PATH, REQUIRED_FILE_MARKERS[MAKEFILE_PATH][0], "marker"),
+    (
+        "missing policy starter packet alias-symmetry proof",
+        POLICY_STARTER_PACKET_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_PATH][1],
+        "marker",
+    ),
+    (
+        "missing policy dump raw-bridge replay proof",
+        POLICY_DUMP_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][1],
+        "marker",
+    ),
+    (
+        "missing policy dump expected raw-bridge line",
+        POLICY_DUMP_EXPECTED_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_DUMP_EXPECTED_PATH][1],
+        "marker",
+    ),
+    (
+        "starter packet make route drift",
+        MAKEFILE_PATH,
+        REQUIRED_FILE_MARKERS[MAKEFILE_PATH][0],
+        "marker",
+    ),
 )
 
 SAMPLE_FILE_TEXT = {
@@ -159,6 +202,9 @@ SAMPLE_FILE_TEXT = {
     MMIO_PATH: "\n".join(REQUIRED_FILE_MARKERS[MMIO_PATH]) + "\n",
     NARROW_PATH: "\n".join(REQUIRED_FILE_MARKERS[NARROW_PATH]) + "\n",
     MAKEFILE_PATH: "\n".join(REQUIRED_FILE_MARKERS[MAKEFILE_PATH]) + "\n",
+    POLICY_STARTER_PACKET_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_PATH]) + "\n",
+    POLICY_DUMP_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH]) + "\n",
+    POLICY_DUMP_EXPECTED_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_DUMP_EXPECTED_PATH]) + "\n",
 }
 
 
