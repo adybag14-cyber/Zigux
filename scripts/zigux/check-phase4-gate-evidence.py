@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import hashlib
 import tempfile
 from pathlib import Path
@@ -25,6 +26,7 @@ ATOMIC64_DIFF = Path("zigux/tests/atomic64_diff.zig")
 RUNTIME_ATOMIC64_DIFF = Path("zigux/tests/runtime_atomic64_diff.zig")
 ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
 RUNTIME_ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
+BITMAP_MANIFEST = Path("zigux/tests/phase4_bitmap_diff_manifest.json")
 BITMAP_SURVEY = Path("zigux/tests/phase4_bitmap_diff_survey.zig")
 PERF_SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
@@ -57,7 +59,7 @@ SELF_TEST_CASES = [
     "shared_validator_expected_target_count_drift",
     "shared_validator_expected_self_test_case_count_drift",
     "runtime_atomic64_survey_packet_presence_drift",
-    "bitmap_diff_survey_replay_marker_drift",
+    "bitmap_manifest_gate_evidence_blob_drift",
     "workflow_route_checker_matrix_presence_drift",
     "kprobe_gap_packet_presence_drift",
     "kprobe_owner_drift",
@@ -77,7 +79,7 @@ SELF_TEST_CASES = [
     "missing_phase4_build_file",
     "missing_artifact_diff_helper_file",
     "missing_atomic64_manifest_file",
-    "missing_bitmap_survey_file",
+    "missing_bitmap_manifest_file",
     "missing_perf_survey_file",
     "missing_kprobe_manifest_file",
     "missing_test_fsmount_survey_file",
@@ -211,7 +213,7 @@ MISSING_FILE_CASES = (
     ("missing_phase4_build_file", PHASE4_BUILD),
     ("missing_artifact_diff_helper_file", ARTIFACT_DIFF_HELPER),
     ("missing_atomic64_manifest_file", ATOMIC64_MANIFEST),
-    ("missing_bitmap_survey_file", BITMAP_SURVEY),
+    ("missing_bitmap_manifest_file", BITMAP_MANIFEST),
     ("missing_perf_survey_file", PERF_SURVEY),
     ("missing_kprobe_manifest_file", KPROBE_MANIFEST),
     ("missing_test_fsmount_survey_file", TEST_FSMOUNT_SURVEY),
@@ -280,12 +282,33 @@ def require_blob_pins(root: Path, note_text: str, missing: list[str]) -> None:
         if matches[0] != actual:
             missing.append(f"note:{marker_label}:expected={actual}:actual={matches[0]}")
 
+def require_bitmap_manifest_alignment(root: Path, missing: list[str]) -> None:
+    manifest = json.loads(read_text(root / BITMAP_MANIFEST))
+    expected_note_path = NOTE.as_posix()
+    expected_note_blob = git_blob_sha(root / NOTE)
+    if manifest.get("shared_gate_evidence_path") != expected_note_path:
+        missing.append(
+            "bitmap_manifest:shared_gate_evidence_path:"
+            f"expected={expected_note_path}:actual={manifest.get('shared_gate_evidence_path')}"
+        )
+    if manifest.get("gate_evidence_path") != expected_note_path:
+        missing.append(
+            "bitmap_manifest:gate_evidence_path:"
+            f"expected={expected_note_path}:actual={manifest.get('gate_evidence_path')}"
+        )
+    if manifest.get("gate_evidence_blob_sha") != expected_note_blob:
+        missing.append(
+            "bitmap_manifest:gate_evidence_blob_sha:"
+            f"expected={expected_note_blob}:actual={manifest.get('gate_evidence_blob_sha')}"
+        )
+
 def required_files() -> tuple[Path, ...]:
     return (
         NOTE, MATRIX, DOCS_README, SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST,
         WORKFLOW, MAKEFILE, VALIDATOR, ARTIFACT_DIFF_DOC, ARTIFACT_DIFF_HELPER,
         ARTIFACT_DIFF_CONTRACT_CHECKER, WORKFLOW_ROUTE_CHECKER, ATOMIC64_DIFF,
         RUNTIME_ATOMIC64_DIFF, ATOMIC64_MANIFEST, RUNTIME_ATOMIC64_SURVEY,
+        BITMAP_MANIFEST,
         BITMAP_SURVEY, PERF_SURVEY, KPROBE_MANIFEST, TEST_FSMOUNT_SURVEY,
         PHASE4_BUILD, PHASE9_BUILD, REVERSIBLE_DELIVERY_EVIDENCE, SELF,
     )
@@ -331,6 +354,7 @@ def build_fixture_tree(root: Path) -> None:
         RUNTIME_ATOMIC64_DIFF.as_posix(): "runtime atomic64 diff placeholder\n",
         ATOMIC64_MANIFEST.as_posix(): "runtime atomic64 manifest placeholder\n",
         RUNTIME_ATOMIC64_SURVEY.as_posix(): "runtime atomic64 survey placeholder\n",
+        BITMAP_MANIFEST.as_posix(): "{\n  \"shared_gate_evidence_path\": \"Documentation/zigux/phase4-gate-evidence.md\",\n  \"gate_evidence_path\": \"Documentation/zigux/phase4-gate-evidence.md\",\n  \"gate_evidence_blob_sha\": \"__GATE_EVIDENCE_BLOB_SHA__\"\n}\n",
         BITMAP_SURVEY.as_posix(): "bitmap survey placeholder\n",
         PERF_SURVEY.as_posix(): "perf survey placeholder\n",
         KPROBE_MANIFEST.as_posix(): "kprobe manifest placeholder\n",
@@ -367,6 +391,11 @@ def build_fixture_tree(root: Path) -> None:
         "",
     ])
     write_text(root / NOTE, "\n".join(note_lines))
+    fixtures[BITMAP_MANIFEST.as_posix()] = fixtures[BITMAP_MANIFEST.as_posix()].replace(
+        "__GATE_EVIDENCE_BLOB_SHA__",
+        git_blob_sha(root / NOTE),
+    )
+    write_text(root / BITMAP_MANIFEST, fixtures[BITMAP_MANIFEST.as_posix()])
 
 def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
@@ -379,6 +408,7 @@ def validate_root(root: Path) -> list[str]:
     require_markers(note_text, NOTE_MARKERS, "note", missing)
     require_markers(note_text, ("`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",), "note", missing)
     require_blob_pins(root, note_text, missing)
+    require_bitmap_manifest_alignment(root, missing)
     for marker_label, expected in COUNT_MARKERS:
         require_exact_value(note_text, marker_label, expected, "note", missing)
     require_markers(read_text(root / MATRIX), MATRIX_MARKERS, "matrix", missing)
@@ -419,7 +449,7 @@ def run_self_test() -> None:
             "shared_validator_expected_target_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=18`")),
             "shared_validator_expected_self_test_case_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`")),
             "runtime_atomic64_survey_packet_presence_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`", "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=false`")),
-            "bitmap_diff_survey_replay_marker_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "zigux/tests/phase4_perf_baseline_survey.zig", "zigux/tests/phase4_perf_survey.zig")),
+            "bitmap_manifest_gate_evidence_blob_drift": lambda r: write_text(r / BITMAP_MANIFEST, replace_once(read_text(r / BITMAP_MANIFEST), git_blob_sha(r / NOTE), "0000000000000000000000000000000000000000")),
             "workflow_route_checker_matrix_presence_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "scripts/zigux/check-phase4-workflow-route-counts.py\n", "")),
             "kprobe_gap_packet_presence_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`", "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`")),
             "kprobe_owner_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "survey owner: `Validation and Perf Team`", "survey owner: `Shared Subsystems Pod`")),
