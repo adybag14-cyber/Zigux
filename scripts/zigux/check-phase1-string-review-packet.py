@@ -37,7 +37,7 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn strtomem(dest: []u8, src: []const u8) void {",
     "pub fn strtomem_pad(dest: []u8, src: []const u8, pad: u8) void {",
     "pub fn memtostr(dest: []u8, src: []const u8) void {",
-    "pub fn memtostrPad(dest: []const u8, src: []const u8) void {",
+    "pub fn memtostrPad(dest: []u8, src: []const u8) void {",
     "pub fn memtostr_pad(dest: []u8, src: []const u8) void {",
     "pub fn strEq(lhs: []const u8, rhs: []const u8) bool {",
     "pub fn streq(lhs: []const u8, rhs: []const u8) bool {",
