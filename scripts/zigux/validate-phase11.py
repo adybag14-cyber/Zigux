@@ -503,7 +503,7 @@ def run_self_test() -> int:
             ("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig", "phase11-hvc-targetless-unregister-gap-build"),
         ):
             reset_fixture(fail_build_file=build_file)
-            expect_issue(f"live_failed:{spec.name}:exit=1")
+            expect_issue(f"live_failed:{spec_name}:exit=1")
             case_count += 1
 
         reset_fixture(fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
