@@ -141,13 +141,15 @@ Keep `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability
 
 ### `landlock/ruleset`
 
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `security/landlock/ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 
-Keep `Documentation/zigux/phase13-landlock-ruleset-slice.md` and `Documentation/zigux/phase13-landlock-ruleset-ownership.md` recorded as repo-reality gaps until they rematerialize on current `master`.
+Keep the helper-owned ruleset ownership, slice, survey, starter, focused replay, and checker packet explicit on current `master` instead of leaving the returned ownership and slice notes in the repo-reality-gap bucket.
 
 ### `landlock/syscalls`
 
