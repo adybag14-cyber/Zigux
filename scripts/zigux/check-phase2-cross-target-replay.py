@@ -26,7 +26,8 @@ ZIG_TEST_FILES = (
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_STATUS = "active"
 EXPECTED_ROUTE = "make -C zigux phase2-cross"
-EXPECTED_TARGET_ORDER = ("x86_64-linux", "aarch64-linux")
+REQUIRED_TARGET_ORDER = ("x86_64-linux", "aarch64-linux")
+OPTIONAL_TARGET_ORDER = ("riscv64-linux",)
 EXPECTED_REVIEW_STATUS_BY_MODE = {
     "archive_required": "pinned bootstrap archive",
     "route_contract_only": "route contract only",
@@ -37,7 +38,7 @@ EXPECTED_REQUIRED_MAKE_ROUTES = (
     "phase2-cross",
 )
 DEFAULT_TIMEOUT_SECONDS = 300
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -122,7 +123,7 @@ def load_archive_target_scope(root: Path) -> list[str]:
             raise SystemExit(f"invalid archive_target_scope entry in required file: {policy_path}")
         if value in seen_targets:
             raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}: {value}")
-        if value not in EXPECTED_TARGET_ORDER:
+        if value not in REQUIRED_TARGET_ORDER + OPTIONAL_TARGET_ORDER:
             raise SystemExit(f"unsupported archive_target_scope target in required file: {policy_path}: {value}")
         normalized.append(value)
         seen_targets.add(value)
@@ -194,7 +195,7 @@ def collect_fixture_issues(root: Path) -> list[str]:
             issues.append(f"fixture:duplicate_target:{target}")
         seen_targets.add(target)
 
-        if target not in EXPECTED_TARGET_ORDER:
+        if target not in REQUIRED_TARGET_ORDER + OPTIONAL_TARGET_ORDER:
             issues.append(f"fixture:unexpected_target:{target}")
         if route != EXPECTED_ROUTE:
             issues.append(f"fixture:cross_target_route:{target}:{route!r}")
@@ -207,10 +208,18 @@ def collect_fixture_issues(root: Path) -> list[str]:
         if validation_mode == "archive_required":
             archive_required_targets.add(target)
 
-    if target_order != list(EXPECTED_TARGET_ORDER):
+    if target_order[: len(REQUIRED_TARGET_ORDER)] != list(REQUIRED_TARGET_ORDER):
         issues.append(
             "fixture:target_order_mismatch:"
-            f"expected={list(EXPECTED_TARGET_ORDER)!r}:actual={target_order!r}"
+            f"expected_prefix={list(REQUIRED_TARGET_ORDER)!r}:actual={target_order!r}"
+        )
+        return issues
+
+    optional_targets = target_order[len(REQUIRED_TARGET_ORDER) :]
+    if optional_targets not in ([], list(OPTIONAL_TARGET_ORDER)):
+        issues.append(
+            "fixture:target_order_mismatch:"
+            f"expected_suffix={list(OPTIONAL_TARGET_ORDER)!r}:actual={target_order!r}"
         )
     if archive_required_targets != set(archive_target_scope):
         issues.append(
@@ -368,6 +377,12 @@ def build_self_test_root(root: Path) -> None:
                         "validation_mode": "route_contract_only",
                         "route": EXPECTED_ROUTE,
                     },
+                    {
+                        "target": "riscv64-linux",
+                        "review_status": "route contract only",
+                        "validation_mode": "route_contract_only",
+                        "route": EXPECTED_ROUTE,
+                    },
                 ],
             },
             indent=2,
@@ -511,9 +526,9 @@ def run_self_test() -> int:
         result, output = capture_stdout(run_checked, root, str(zig_path), None, True, DEFAULT_TIMEOUT_SECONDS)
         assert result == 0
         assert "PHASE2_CROSS_TARGET_REPLAY_MODE=all-targets" in output
-        assert "PHASE2_CROSS_TARGET_REPLAY_TARGETS=x86_64-linux,aarch64-linux" in output
+        assert "PHASE2_CROSS_TARGET_REPLAY_TARGETS=x86_64-linux,aarch64-linux,riscv64-linux" in output
         invocations = log_path.read_text(encoding="utf-8").splitlines()
-        assert len(invocations) == len(ZIG_TEST_FILES) * len(EXPECTED_TARGET_ORDER)
+        assert len(invocations) == len(ZIG_TEST_FILES) * 3
         checks_run += 1
 
         build_self_test_root(root)
@@ -557,7 +572,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        fixture_path.write_text("{\n  \"phase\": \"Phase 2\",\n  \"phase\": \"Again\"\n}\n", encoding="utf-8")
+        fixture_path.write_text('{\n  "phase": "Phase 2",\n  "phase": "Again"\n}\n', encoding="utf-8")
         try:
             collect_fixture_issues(root)
         except SystemExit as exc:
@@ -570,6 +585,18 @@ def run_self_test() -> int:
         result, output = capture_stdout(run_checked, root, str(zig_path), "x86_64-linux", False, DEFAULT_TIMEOUT_SECONDS)
         assert result == 0
         assert "PHASE2_CROSS_TARGET_REPLAY_MODE=single-target" in output
+        checks_run += 1
+
+        build_self_test_root(root)
+        log_path = root / "fake-zig-two-target.log"
+        zig_path = root / "fake-zig-two-target.py"
+        build_fake_zig(zig_path, log_path)
+        two_target_fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        two_target_fixture["cross_targets"] = two_target_fixture["cross_targets"][:2]
+        fixture_path.write_text(json.dumps(two_target_fixture, indent=2) + "\n", encoding="utf-8")
+        result, output = capture_stdout(run_checked, root, str(zig_path), None, True, DEFAULT_TIMEOUT_SECONDS)
+        assert result == 0
+        assert "PHASE2_CROSS_TARGET_REPLAY_TARGETS=x86_64-linux,aarch64-linux" in output
         checks_run += 1
 
         build_self_test_root(root)
