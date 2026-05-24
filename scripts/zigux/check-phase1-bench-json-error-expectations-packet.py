@@ -17,13 +17,20 @@ REQUIRED_FILES = (
     BENCH_CHECKER_REL,
 )
 
-REQUIRED_MARKERS = (
+EXPECTED_JSON_ERROR_BLOCK = (
     'if kind == "expectations_json_error":',
+    "exc = payload",
+    "assert isinstance(exc, json.JSONDecodeError)",
     'print("PHASE1_BENCH_CHECK=fail")',
-    'print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")',
     'print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")',
     'print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")',
     'print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")',
+    "return 1",
+)
+
+FORBIDDEN_JSON_ERROR_SECTION_FRAGMENTS = (
+    'print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")',
+    'print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}")',
 )
 
 
@@ -35,24 +42,44 @@ def read_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def extract_section(text: str, first_line: str) -> list[str]:
+    section: list[str] = []
+    capturing = False
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not capturing:
+            if line == first_line:
+                capturing = True
+                section.append(line)
+            continue
+        if not line:
+            return section
+        section.append(line)
+    return section
+
+
 def collect_missing_files(root: Path) -> list[str]:
     return [str(relative_path) for relative_path in REQUIRED_FILES if not (root / relative_path).is_file()]
 
 
-def collect_missing_markers(root: Path) -> list[str]:
+def validate_json_error_section(root: Path) -> tuple[str, object]:
     text = read_text(root, BENCH_CHECKER_REL)
-    return [marker for marker in REQUIRED_MARKERS if marker not in text]
+    first_line = EXPECTED_JSON_ERROR_BLOCK[0]
+    section = extract_section(text, first_line)
+    if not section:
+        return ("missing_json_error_section", first_line)
 
+    unexpected = [
+        fragment
+        for fragment in FORBIDDEN_JSON_ERROR_SECTION_FRAGMENTS
+        if fragment in section
+    ]
+    if unexpected:
+        return ("json_error_section_forbidden_fragments", unexpected)
 
-def validate_marker_order(root: Path) -> tuple[str, object]:
-    text = read_text(root, BENCH_CHECKER_REL)
-    positions = {marker: text.find(marker) for marker in REQUIRED_MARKERS}
-    missing = [marker for marker, position in positions.items() if position < 0]
-    if missing:
-        return ("missing_markers", missing)
-    ordered_positions = [positions[marker] for marker in REQUIRED_MARKERS]
-    if ordered_positions != sorted(ordered_positions):
-        return ("marker_order", list(REQUIRED_MARKERS))
+    if section != list(EXPECTED_JSON_ERROR_BLOCK):
+        return ("json_error_section_mismatch", section)
+
     return ("pass", None)
 
 
@@ -61,14 +88,19 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def write_sample_root(root: Path, include_expectations_marker: bool = True) -> None:
+def write_sample_root(root: Path, *, with_legacy_expectations_echo: bool = False) -> None:
     write_text(root / SELF_CHECKER_REL, "#!/usr/bin/env python3\nprint('fixture')\n")
+
     lines = [
         "#!/usr/bin/env python3",
+        "import json",
+        "",
         'if kind == "expectations_json_error":',
+        "    exc = payload",
+        "    assert isinstance(exc, json.JSONDecodeError)",
         '    print("PHASE1_BENCH_CHECK=fail")',
     ]
-    if include_expectations_marker:
+    if with_legacy_expectations_echo:
         lines.append('    print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")')
     lines.extend(
         [
@@ -86,35 +118,46 @@ def run_self_test() -> None:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_bench_json_error_expectations_") as tmp_dir:
         root = Path(tmp_dir)
+
         write_sample_root(root)
-
         assert collect_missing_files(root) == []
-        assert collect_missing_markers(root) == []
-        assert validate_marker_order(root) == ("pass", None)
-        case_count += 1
-
-        write_sample_root(root, include_expectations_marker=False)
-        assert collect_missing_markers(root) == ['print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")']
-        assert validate_marker_order(root) == (
-            "missing_markers",
-            ['print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")'],
-        )
+        assert validate_json_error_section(root) == ("pass", None)
         case_count += 1
 
         write_sample_root(root)
         bench_checker = root / BENCH_CHECKER_REL
         bench_checker.write_text(
             bench_checker.read_text(encoding="utf-8").replace(
-                '    print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")\n'
-                '    print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")\n',
-                '    print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")\n'
-                '    print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")\n',
+                "    assert isinstance(exc, json.JSONDecodeError)\n",
+                "",
                 1,
             ),
             encoding="utf-8",
         )
-        assert collect_missing_markers(root) == []
-        assert validate_marker_order(root) == ("marker_order", list(REQUIRED_MARKERS))
+        kind, payload = validate_json_error_section(root)
+        assert kind == "json_error_section_mismatch", (kind, payload)
+        assert "assert isinstance(exc, json.JSONDecodeError)" not in payload
+        case_count += 1
+
+        write_sample_root(root)
+        bench_checker.write_text(
+            bench_checker.read_text(encoding="utf-8").replace(
+                '    print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")\n'
+                '    print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")\n',
+                '    print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")\n'
+                '    print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        kind, payload = validate_json_error_section(root)
+        assert kind == "json_error_section_mismatch", (kind, payload)
+        case_count += 1
+
+        write_sample_root(root, with_legacy_expectations_echo=True)
+        kind, payload = validate_json_error_section(root)
+        assert kind == "json_error_section_forbidden_fragments", (kind, payload)
+        assert payload == ['print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")']
         case_count += 1
 
         write_sample_root(root)
@@ -128,7 +171,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the bounded Lane 16 malformed-JSON expectations-path bench packet."
+        description="Validate the bounded Lane 16 malformed-JSON bench packet on current master."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker self-tests.")
     parser.add_argument("--root", help="Validate an alternate Zigux tree root.")
@@ -157,31 +200,22 @@ def main() -> int:
         print("MISSING_PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET_FILES_END")
         return 1
 
-    missing_markers = collect_missing_markers(root)
-    if missing_markers:
+    kind, payload = validate_json_error_section(root)
+    if kind != "pass":
         print("PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET=fail")
-        print("MISSING_PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET_MARKERS_START")
-        for item in missing_markers:
-            print(item)
-        print("MISSING_PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET_MARKERS_END")
-        return 1
-
-    order_kind, order_payload = validate_marker_order(root)
-    if order_kind != "pass":
-        print("PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET=fail")
-        print(f"PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET_REASON={order_kind}")
-        if isinstance(order_payload, list):
-            for item in order_payload:
+        print(f"PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET_REASON={kind}")
+        if isinstance(payload, list):
+            for item in payload:
                 print(item)
         else:
-            print(order_payload)
+            print(payload)
         return 1
 
     print("PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET=pass")
     print(f"PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
-        "PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MARKERS)}"
+        "PHASE1_BENCH_JSON_ERROR_EXPECTATIONS_PACKET_REQUIRED_SECTION_LINE_COUNT="
+        f"{len(EXPECTED_JSON_ERROR_BLOCK)}"
     )
     return 0
 
