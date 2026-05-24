@@ -483,7 +483,7 @@ def run_self_test() -> None:
         if not isinstance(supporting_notes, list):
             raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_supporting_notes_shape")
         supporting_notes[2] = "Documentation/zigux/phase12-libbpf-heavy-consumer-missing.md"
-        (tmp_root / SNAPSHOT_PATH).writeText(
+        (tmp_root / SNAPSHOT_PATH).write_text(
             json.dumps(snapshot, indent=2) + "\n",
             encoding="utf-8",
         )
@@ -592,7 +592,7 @@ def run_self_test() -> None:
             "determinism:files:0:blob_sha",
             "determinism_blob_sha",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         (tmp_root / EXPECTED_DETERMINISM_TRACKED_PATHS[0]).unlink()
         expect_case(
@@ -600,7 +600,7 @@ def run_self_test() -> None:
             f"missing_file:{EXPECTED_DETERMINISM_TRACKED_PATHS[0]}",
             "determinism_supporting_file_presence",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         replace_once(
             tmp_root / SNAPSHOT_PATH,
@@ -612,7 +612,7 @@ def run_self_test() -> None:
             f"snapshot:verification_evidence:readback_mode:{EXPECTED_READBACK_MODE}",
             "snapshot_readback_mode",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         replace_once(
             tmp_root / SNAPSHOT_PATH,
@@ -624,7 +624,7 @@ def run_self_test() -> None:
             f"snapshot:verification_evidence:checker:path:{SELF_REL_PATH.as_posix()}",
             "snapshot_checker_path",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         checker_blob_sha = git_blob_sha(tmp_root / SELF_REL_PATH)
         replace_once(tmp_root / SNAPSHOT_PATH, checker_blob_sha, f"{'2' * 40}")
@@ -633,7 +633,7 @@ def run_self_test() -> None:
             "snapshot:verification_evidence:checker:blob_sha:mismatch",
             "snapshot_checker_blob_sha_mismatch",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         snapshot = load_json(tmp_root / SNAPSHOT_PATH)
         note_blobs = snapshot["verification_evidence"]["current_note_blobs"]
@@ -652,14 +652,14 @@ def run_self_test() -> None:
             ),
             "snapshot_current_note_blob_path",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         snapshot = load_json(tmp_root / SNAPSHOT_PATH)
         note_blobs = snapshot["verification_evidence"]["current_note_blobs"]
         if not isinstance(note_blobs, list):
             raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_current_note_blobs_shape")
         note_blobs[-1]["blob_sha"] = "short-sha"
-        (tmp_root / SNAPSHOT_PATH).writeText(
+        (tmp_root / SNAPSHOT_PATH).write_text(
             json.dumps(snapshot, indent=2) + "\n",
             encoding="utf-8",
         )
@@ -668,14 +668,14 @@ def run_self_test() -> None:
             "snapshot:verification_evidence:current_note_blobs:3:blob_sha",
             "snapshot_current_note_blob_sha",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         snapshot = load_json(tmp_root / SNAPSHOT_PATH)
         note_blobs = snapshot["verification_evidence"]["current_note_blobs"]
         if not isinstance(note_blobs, list):
             raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_current_note_blobs_shape")
         note_blobs[-1]["blob_sha"] = f"{'3' * 40}"
-        (tmp_root / SNAPSHOT_PATH).writeText(
+        (tmp_root / SNAPSHOT_PATH).write_text(
             json.dumps(snapshot, indent=2) + "\n",
             encoding="utf-8",
         )
@@ -684,7 +684,7 @@ def run_self_test() -> None:
             "snapshot:verification_evidence:current_note_blobs:3:blob_sha:mismatch",
             "snapshot_current_note_blob_sha_mismatch",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         replace_once(
             tmp_root / SNAPSHOT_DETERMINISM_PATH,
@@ -696,7 +696,7 @@ def run_self_test() -> None:
             f"determinism:verification_evidence:readback_mode:{EXPECTED_READBACK_MODE}",
             "determinism_readback_mode",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         replace_once(
             tmp_root / SNAPSHOT_DETERMINISM_PATH,
@@ -708,7 +708,7 @@ def run_self_test() -> None:
             f"determinism:verification_evidence:checker:path:{SELF_REL_PATH.as_posix()}",
             "determinism_checker_path",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         checker_blob_sha = git_blob_sha(tmp_root / SELF_REL_PATH)
         replace_once(tmp_root / SNAPSHOT_DETERMINISM_PATH, checker_blob_sha, f"{'4' * 40}")
@@ -717,13 +717,13 @@ def run_self_test() -> None:
             "determinism:verification_evidence:checker:blob_sha:mismatch",
             "determinism_checker_blob_sha_mismatch",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         determinism = load_json(tmp_root / SNAPSHOT_DETERMINISM_PATH)
         determinism["verification_evidence"]["current_helper_blob"]["path"] = (
             "tools/lib/bpf/zigux_segments/verify.zig"
         )
-        (tmp_root / SNAPSHOT_DETERMINISM_PATH).writeText(
+        (tmp_root / SNAPSHOT_DETERMINISM_PATH).write_text(
             json.dumps(determinism, indent=2) + "\n",
             encoding="utf-8",
         )
@@ -735,11 +735,11 @@ def run_self_test() -> None:
             ),
             "determinism_current_helper_blob_path",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         determinism = load_json(tmp_root / SNAPSHOT_DETERMINISM_PATH)
         determinism["verification_evidence"]["current_helper_blob"]["blob_sha"] = f"{'5' * 40}"
-        (tmp_root / SNAPSHOT_DETERMINISM_PATH).writeText(
+        (tmp_root / SNAPSHOT_DETERMINISM_PATH).write_text(
             json.dumps(determinism, indent=2) + "\n",
             encoding="utf-8",
         )
@@ -748,7 +748,7 @@ def run_self_test() -> None:
             "determinism:verification_evidence:current_helper_blob:blob_sha:mismatch",
             "determinism_current_helper_blob_sha_mismatch",
         )
-        build_fixtureTree(tmp_root)
+        build_fixture_tree(tmp_root)
 
         replace_once(
             tmp_root / SNAPSHOT_DETERMINISM_PATH,
