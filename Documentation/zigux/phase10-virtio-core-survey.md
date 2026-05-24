@@ -37,13 +37,39 @@ The bootstrap ledger still stops earlier in the commit train and does not yet re
 - direct readback of `scripts/zigux/check-phase10-core-packet.py` now materializes the dedicated core-packet checker on `master`, so the live guardrail stack is the manifest, survey gate, dedicated checker, shared validator, shared build route, and the closure manifest rather than a mixed-read fallback story
 - that same manifest keeps the risky transport boundary explicit through `phase10-core-dual-implementation-bridge` and `phase10-core-probe-remove-lifecycle`, so this is still lab-only driver validation evidence rather than a true lab driver for probe, full remove, and reset parity
 
+## Roadmap helper parity scoreboard
+
+Fresh repo inspection keeps the roadmap-facing core packet concrete through these narrower same-lane results:
+
+- the landed `phase10-build-gate`
+- the landed `phase10-virtio-core-lab-helper`
+- the landed `phase10-virtio-core-lab-gate`
+- the landed `phase10-core-slice-note`
+- the landed `phase10-core-survey-gate`
+- the landed `phase10-core-attribute-summary-helper`
+- the landed `phase10-core-attribute-summary-replay`
+- the landed `phase10-core-feature-summary-replay`
+- the landed `phase10-core-driver-model-summary-helper`
+- the landed `phase10-core-driver-model-summary-replay`
+- the landed `phase10-core-interrupt-compound-ack-gate`
+- the landed `phase10-core-reset-queue-gate`
+- the landed `phase10-driver-id-helper`
+- the landed `phase10-driver-id-coverage-disposition-helper`
+- the landed `phase10-driver-id-gate`
+- the landed `phase10-core-verify-replay`
+- the landed `phase10-core-packet-checker`
+- the still-blocked `phase10-core-dual-implementation-bridge`
+- the still-blocked `phase10-core-probe-remove-lifecycle`
+
+That scoreboard keeps the current helper, replay, checker, survey-gate, and shared-build evidence tied directly to the roadmap's Phase 10 lab-driver posture without overstating transport-backed lifecycle parity or pretending the bootstrap ledger already closes a dedicated Phase 10 core tranche.
+
 ## Recorded gaps
 
 Current `master` keeps one same-lane roadmap gap explicit:
 
 - still-blocked transport-facing bridge: `phase10-core-dual-implementation-bridge` and `phase10-core-probe-remove-lifecycle` remain outside the allowed Phase 10 core packet until a fresh Architecture Council reopen request attaches new evidence
 
-Within this survey packet itself, the current `master` readback is aligned once the driver-model stage progression stays explicit beside the driver-id helper pair, the dedicated core survey gate, the dedicated core-packet checker, the shared validator, the shared tests-root build route, and the shared build route.
+Within this survey packet itself, the current `master` readback is aligned once the driver-model stage progression stays explicit beside the driver-id helper pair, the dedicated core survey gate, the dedicated core-packet checker, the shared validator, the shared tests-root build route, the shared Phase 10 build route, and the roadmap helper parity scoreboard above.
 
 ## Non-goals
 
