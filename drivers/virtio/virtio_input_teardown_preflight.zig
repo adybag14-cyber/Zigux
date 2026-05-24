@@ -49,3 +49,19 @@ pub fn capabilityStateArmed(summary: TeardownPreflightSummary) bool {
 pub fn preservesIdentity(summary: TeardownPreflightSummary) bool {
     return summary.preserves_identity;
 }
+
+pub fn queuedStatusCount(summary: TeardownPreflightSummary) usize {
+    return summary.queued_status_count;
+}
+
+pub fn suppressedStatusCount(summary: TeardownPreflightSummary) usize {
+    return summary.suppressed_status_count;
+}
+
+pub fn waitingOnPendingStatusDrain(summary: TeardownPreflightSummary) bool {
+    return summary.blocker == .pending_status_drain;
+}
+
+pub fn readyForTeardown(summary: TeardownPreflightSummary) bool {
+    return summary.ready_for_teardown;
+}
