@@ -95,8 +95,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
 
     for marker in VALIDATOR_MARKERS:
-        if marker not in validator_text:
+        marker_count = validator_text.count(marker)
+        if marker_count == 0:
             issues.append(("MISSING_VALIDATOR_MARKER", marker))
+        elif marker_count != 1:
+            issues.append(("DUPLICATE_VALIDATOR_MARKER", f"{marker}:count={marker_count}"))
 
     checker_count = sum(1 for item in checkers if item == CLOSURE_MATRIX_CHECKER)
     if checker_count == 0:
@@ -217,6 +220,50 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        validator_path = resolve(root, VALIDATOR_REL)
+        validator_path.write_text(
+            read_text(validator_path).replace(
+                f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")',
+                (
+                    f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")\n'
+                    f'    payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")'
+                ),
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_VALIDATOR_MARKER",
+            (
+                f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")'
+                ":count=2"
+            ),
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        validator_path = resolve(root, VALIDATOR_REL)
+        validator_path.write_text(
+            read_text(validator_path).replace(
+                f'assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") in collect_issues(root)',
+                (
+                    f'assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") in collect_issues(root)\n'
+                    f'    assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") in collect_issues(root)'
+                ),
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_VALIDATOR_MARKER",
+            (
+                f'assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") '
+                "in collect_issues(root):count=2"
+            ),
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         manifest_path = resolve(root, MANIFEST_REL)
         payload = read_json(manifest_path)
         assert isinstance(payload, dict)
@@ -247,6 +294,25 @@ def run_self_test() -> int:
         payload["present_surfaces"] = []
         write_text(manifest_path, json.dumps(payload, indent=2) + "\n")
         assert ("INVALID_MANIFEST_SHAPE", "present_surfaces") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest_path = resolve(root, MANIFEST_REL)
+        payload = read_json(manifest_path)
+        assert isinstance(payload, dict)
+        payload["present_surfaces"][CHECKERS_SURFACE] = {"unexpected": "shape"}
+        write_text(manifest_path, json.dumps(payload, indent=2) + "\n")
+        assert ("INVALID_MANIFEST_SHAPE", CHECKERS_SURFACE) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve(root, VALIDATOR_REL).unlink()
+        assert ("MISSING_REQUIRED_FILE", VALIDATOR_REL.as_posix()) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve(root, MANIFEST_REL).unlink()
+        assert ("MISSING_REQUIRED_FILE", MANIFEST_REL.as_posix()) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
