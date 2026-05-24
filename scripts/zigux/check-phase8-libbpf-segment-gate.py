@@ -87,6 +87,9 @@ VERIFY_MARKERS = [
     "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
     "resolveNextOnlineCpuRouteBufferFdAtIndex",
     "resolveReadyBufferFdLookupReturnAtAttempt",
+    "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
+    "resolveReadyBufferWindowLookupReturnAtAttempt",
+    "formatLibbpfBpfLinkType",
 ]
 BRIDGE_TEST_MARKERS = [
     'test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {',
@@ -258,7 +261,7 @@ def clone_fixture(root: Path) -> None:
     write(root, BRIDGE_BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const file_path_handle_bridge_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const file_path_handle_bridge_root_module = b.createModule(.{\n        .root_source_file = b.path("phase8_file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    file_path_handle_bridge_root_module.addImport("file_path_handle_bridge", file_path_handle_bridge_module);\n    const file_path_handle_bridge_tests = b.addTest(.{\n        .name = "phase8-file-path-handle-bridge-tests",\n        .root_module = file_path_handle_bridge_root_module,\n    });\n    const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);\n    const test_step = b.step("test", "Run focused Phase 8 file-path-handle bridge tests");\n    test_step.dependOn(&run_file_path_handle_bridge_tests.step);\n}\n')
     write(root, BRIDGE_BOUNDARY_GUARD_PATH, "\n".join(BRIDGE_BOUNDARY_GUARD_MARKERS) + "\n")
     write(root, BRIDGE_MANIFEST_SYNC_PATH, "\n".join(BRIDGE_MANIFEST_SYNC_MARKERS) + "\n")
-    write(root, VERIFY_PATH, 'pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdAtIndex() void {}\npub fn resolveReadyBufferFdLookupReturnAtAttempt() void {}\n')
+    write(root, VERIFY_PATH, 'pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdAtIndex() void {}\npub fn resolveReadyBufferFdLookupReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowMappedSizeReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowLookupReturnAtAttempt() void {}\npub fn formatLibbpfBpfLinkType() void {}\n')
     write(root, BRIDGE_HELPER_PATH, "\n".join(BRIDGE_HELPER_MARKERS) + "\n")
     write(root, MANIFEST_PATH, fixture_manifest())
     write(root, SURVEY_PATH, fixture_survey())
@@ -275,6 +278,7 @@ def run_self_test() -> int:
 
         survey_path = root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
+        survey_path.writeText = survey_path.write_text
         survey_path.write_text(original_survey.replace("ready_buffer_attempt_verify.zig", "ready_buffer_attempt_review.zig", 1), encoding="utf-8")
         if f"{SURVEY_PATH}:{SURVEY_MARKERS[0]}" not in validate(root)[1]:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:survey_marker")
@@ -318,6 +322,44 @@ def run_self_test() -> int:
         if expected_libbpf_segments_test_marker not in validate(root)[1]:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:libbpf_segments_test_marker")
         libbpf_segments_test_path.write_text(original_libbpf_segments_test, encoding="utf-8")
+
+        verify_path = root / VERIFY_PATH
+        original_verify = verify_path.read_text(encoding="utf-8")
+        verify_path.write_text(
+            original_verify.replace(
+                "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
+                "resolveReadyBufferWindowMappedSizeReturnAtIndex",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{VERIFY_PATH}:resolveReadyBufferWindowMappedSizeReturnAtAttempt" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:verify_window_size_marker")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
+        verify_path.write_text(
+            original_verify.replace(
+                "resolveReadyBufferWindowLookupReturnAtAttempt",
+                "resolveReadyBufferWindowLookupReturnAtIndex",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{VERIFY_PATH}:resolveReadyBufferWindowLookupReturnAtAttempt" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:verify_window_lookup_marker")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
+        verify_path.write_text(
+            original_verify.replace(
+                "formatLibbpfBpfLinkType",
+                "formatLibbpfBpfLinkReview",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{VERIFY_PATH}:formatLibbpfBpfLinkType" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:verify_link_formatter_marker")
+        verify_path.write_text(original_verify, encoding="utf-8")
 
         makefile_path = root / MAKEFILE_PATH
         original_makefile = makefile_path.read_text(encoding="utf-8")
@@ -425,7 +467,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
