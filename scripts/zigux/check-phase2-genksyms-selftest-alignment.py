@@ -196,7 +196,10 @@ def build_expected_manifest(
         "cases": [str(case["name"]) for case in case_fixtures],
         "bridge_expected_packet": [str(case["expected_file"]) for case in case_fixtures],
         "help_packet": ["help_expected.json"],
-        "standalone_proof_packet": [VERSION_SIDE_EFFECT_TEST.relative_to(ROOT).as_posix()],
+        "standalone_proof_packet": [
+            VERSION_SIDE_EFFECT_TEST.relative_to(ROOT).as_posix(),
+            AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT).as_posix(),
+        ],
         "process_output_packet": list(process_output_packet),
         "helper_local_anchors": list(helper_local_anchors),
     }
