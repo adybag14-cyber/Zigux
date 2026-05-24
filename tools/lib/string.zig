@@ -955,3 +955,10 @@ test "strnchrNul returns the first match, NUL, or count boundary" {
     try std.testing.expectEqual(@as(usize, 1), strnchrNul(&[_]u8{ 'a', 0, 'b' }, 3, 'z'));
     try std.testing.expectEqual(@as(usize, 1), strnchrnul(&[_]u8{ 'a', 'b', 0 }, 3, 'b'));
 }
+
+test "strchrNul and strchrnul return the first match or terminator boundary" {
+    try std.testing.expectEqual(@as(usize, 1), strchrNul("abc", 'b'));
+    try std.testing.expectEqual(@as(usize, 3), strchrNul("abc", 'z'));
+    try std.testing.expectEqual(@as(usize, 1), strchrNul(&[_]u8{ 'a', 0, 'b' }, 'z'));
+    try std.testing.expectEqual(@as(usize, 1), strchrnul(&[_]u8{ 'a', 'b', 0 }, 'b'));
+}
