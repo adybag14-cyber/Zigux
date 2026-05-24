@@ -31,7 +31,12 @@ EXPECTED_CLOSURE_MARKERS = (
     "`PHASE1_STATUS=parked`",
     "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
     "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
+    "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
+    "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
+    "`PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
+    "`PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns`",
+    "`PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`",
     "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific next_safe_step_note entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.`",
 )
 
@@ -42,16 +47,24 @@ EXPECTED_VALIDATOR_MARKERS = (
     'WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")',
     'MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")',
     '"closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",',
+    '"route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",',
+    '"shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",',
     '"validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",',
+    '"find_bit_bench_guard": "`PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",',
+    '"rbtree_bench_guard": "`PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns`",',
+    '"find_bit_bench_anchor_guard": "`PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`",',
     '"next_step": "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific next_safe_step_note entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.`",',
     '(DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),',
+    '(ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),',
     '(BENCH_CHECKER_REL, "phase1-bench"),',
+    '(FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),',
     '(SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),',
 )
 
 EXPECTED_README_MARKERS = (
     "- `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the shipped bounded Phase 1 reminder checks, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the shipped shared tests-root smoke route",
     "- `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner, bench, shared-reminder, and closure-validator packet explicit from the scripts root",
+    "- `scripts/zigux/check-phase1-route-summary-counts.py`, `make -C zigux phase1-route-summary`, and `.github/workflows/zigux-bootstrap.yml` keep the adjacent Phase 1 route-summary guard explicit beside the narrower reminder packet, so scripts-root follow-through can verify the returned non-Phase-1 Makefile route inventory without promoting the older Phase 1 wrappers back into shipped proof",
     "- `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` are back on current `master`, so bitmap-side follow-through can use that restored closure packet as live reminder evidence instead of replaying older missing validator-first or make-route names by default",
 )
 
@@ -176,10 +189,45 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_route_summary_marker",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS[3] + "\n", "", 1),
+            ),
+        ),
+        (
+            "missing_shared_tests_route_marker",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS[4] + "\n", "", 1),
+            ),
+        ),
+        (
             "forbidden_missing_current_master_marker",
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
                 load_text(root, PHASE1_CLOSURE_REL) + FORBIDDEN_MARKERS[0] + "\n",
+            ),
+        ),
+        (
+            "missing_find_bit_bench_guard",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS[6] + "\n", "", 1),
+            ),
+        ),
+        (
+            "missing_rbtree_bench_guard",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS[7] + "\n", "", 1),
+            ),
+        ),
+        (
+            "missing_find_bit_bench_anchor_guard",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS[8] + "\n", "", 1),
             ),
         ),
         (
@@ -190,17 +238,31 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_validator_route_summary_marker",
+            lambda root: write_text(
+                root / VALIDATOR_REL,
+                load_text(root, VALIDATOR_REL).replace(EXPECTED_VALIDATOR_MARKERS[6] + "\n", "", 1),
+            ),
+        ),
+        (
+            "missing_validator_find_bit_bench_anchor_delegate",
+            lambda root: write_text(
+                root / VALIDATOR_REL,
+                load_text(root, VALIDATOR_REL).replace(EXPECTED_VALIDATOR_MARKERS[14] + "\n", "", 1),
+            ),
+        ),
+        (
             "missing_validator_next_step_marker",
             lambda root: write_text(
                 root / VALIDATOR_REL,
-                load_text(root, VALIDATOR_REL).replace(EXPECTED_VALIDATOR_MARKERS[7] + "\n", "", 1),
+                load_text(root, VALIDATOR_REL).replace(EXPECTED_VALIDATOR_MARKERS[11] + "\n", "", 1),
             ),
         ),
         (
             "missing_validator_shared_reminder_delegate",
             lambda root: write_text(
                 root / VALIDATOR_REL,
-                load_text(root, VALIDATOR_REL).replace(EXPECTED_VALIDATOR_MARKERS[10] + "\n", "", 1),
+                load_text(root, VALIDATOR_REL).replace(EXPECTED_VALIDATOR_MARKERS[15] + "\n", "", 1),
             ),
         ),
         (
@@ -218,10 +280,17 @@ def run_self_test() -> int:
             ),
         ),
         (
-            "missing_readme_restored_closure_line",
+            "missing_readme_route_summary_line",
             lambda root: write_text(
                 root / SCRIPTS_README_REL,
                 load_text(root, SCRIPTS_README_REL).replace(EXPECTED_README_MARKERS[2] + "\n", "", 1),
+            ),
+        ),
+        (
+            "missing_readme_restored_closure_line",
+            lambda root: write_text(
+                root / SCRIPTS_README_REL,
+                load_text(root, SCRIPTS_README_REL).replace(EXPECTED_README_MARKERS[3] + "\n", "", 1),
             ),
         ),
         (
