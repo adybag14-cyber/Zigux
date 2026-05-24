@@ -305,7 +305,7 @@ def run_self_test() -> int:
             "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
             "python3 scripts/zigux/check-phase3-selftest-surface.py",
             "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
-            "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
+            "python3 scripts/zigux/check-phase3-abi-support-packet.py",
             "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
             "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
             "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
