@@ -441,9 +441,8 @@ def run_self_test() -> int:
         )
     )
 
-    cases.append(("missing_file", (MANIFEST_REL, None, "missing_file")))
-    cases.append(("missing_file", (FIND_BIT_HELPER_REL, None, "missing_file")))
-    cases.append(("missing_file", (FIND_BIT_BENCH_ANCHOR_REL, None, "missing_file")))
+    for relative_path in REQUIRED_FILES:
+        cases.append((f"missing_file:{relative_path.as_posix()}", (relative_path, None, "missing_file")))
 
     for name, mutation in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-find-bit-validator-") as tmpdir:
