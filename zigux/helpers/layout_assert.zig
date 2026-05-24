@@ -7,6 +7,16 @@ pub const LayoutError = error{
     OffsetMismatch,
 };
 
+pub const MmioRange = extern struct {
+    base_addr: usize,
+    length: u32,
+    stride: u32,
+};
+
+pub const RbtreeRootView = extern struct {
+    root: usize,
+};
+
 pub fn expectSize(comptime T: type, expected: usize) LayoutError!void {
     if (@sizeOf(T) != expected) return error.SizeMismatch;
 }
@@ -70,6 +80,21 @@ pub fn assertInteropPolicyLayout() LayoutError!void {
     try expectFieldLayout(abi.InteropPolicy, "allocator_mode", 1);
     try expectFieldLayout(abi.InteropPolicy, "unsafe_scope", 2);
     try expectFieldLayout(abi.InteropPolicy, "reserved", 3);
+}
+
+pub fn assertMmioRangeLayout() LayoutError!void {
+    const raw_size = @sizeOf(usize) + @sizeOf(u32) * 2;
+    const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(MmioRange));
+
+    try expectLayout(MmioRange, expected_size, @alignOf(usize));
+    try expectFieldLayout(MmioRange, "base_addr", 0);
+    try expectFieldLayout(MmioRange, "length", @sizeOf(usize));
+    try expectFieldLayout(MmioRange, "stride", @sizeOf(usize) + @sizeOf(u32));
+}
+
+pub fn assertRbtreeRootViewLayout() LayoutError!void {
+    try expectLayout(RbtreeRootView, @sizeOf(usize), @alignOf(usize));
+    try expectFieldLayout(RbtreeRootView, "root", 0);
 }
 
 pub fn assertNotifierBlockLayout() LayoutError!void {
@@ -230,6 +255,11 @@ test "layout assert keeps starter header layouts explicit" {
     try expectFieldLayout(InteropPolicy, "allocator_mode", 1);
     try expectFieldLayout(InteropPolicy, "unsafe_scope", 2);
     try expectFieldLayout(InteropPolicy, "reserved", 3);
+}
+
+test "layout assert reports helper-local range and root layouts explicitly" {
+    try assertMmioRangeLayout();
+    try assertRbtreeRootViewLayout();
 }
 
 test "layout assert reports mismatches without widening the call site" {
