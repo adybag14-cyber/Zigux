@@ -50,6 +50,8 @@ Aligned reminder surfaces in this run:
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `scripts/zigux/README.md`
+- `scripts/zigux/check-phase5-review-guide-surface.py`
+- `zigux/tests/README.md`
 
 Those surfaces already keep the landed trace-events packet explicit, keep the selected-string plus `iter=%d` formatting cue positioned as the approved bounded formatting reminder instead of a standalone Phase 5 formatting sample, and keep the later Phase 9 runtime trace-events family separate from this non-runtime Phase 5 packet.
 They also should keep the broader non-runtime trace-events companions framed as current public-tree-backed companion or shared reminder vocabulary until the contents route actually returns those files again.
