@@ -12,6 +12,7 @@ Fresh mixed readback on 2026-05-23 confirmed these current sample-root files on 
 * `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/kretprobe_example_instance_budget_contract.zig`
+* `samples/zigux/kretprobe_example_probe_spec.zig`
 * `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_atomic64.zig`
@@ -19,10 +20,12 @@ Fresh mixed readback on 2026-05-23 confirmed these current sample-root files on 
 * `samples/zigux/runtime_bitmap_cold_stage_guard.zig`
 * `samples/zigux/runtime_bitmap_loader.zig`
 * `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+* `samples/zigux/runtime_kretprobe.zig`
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
-* `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 * `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
+* `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`
+* `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 
 ## Phase 5 reminder
 
@@ -83,6 +86,7 @@ Keep that trace-events packet framed as the approved selected-string plus `iter=
 * `samples/zigux/trace_events_string_formatting_sample.zig` stays the direct sample-root proof for the bounded formatting companion, while `samples/zigux/trace_events_sample.zig` stays the broader direct sample-root companion for the same roadmap-backed trace-events packet rather than a returned full trace-events port or a fifth sample
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep the shared reminder packet explicit for the same narrow trace-events posture
 * `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` stay the broader direct trace-events companion set that pairs the sample-root example with the focused replay, manifest, and survey guard for the same bounded Phase 5 packet
+* `zig test samples/zigux/trace_events_string_formatting_sample.zig` stays explicit as the sample-owned self-check for the bounded formatting companion, and its current five-test body keeps the selected-string cue, modulo-selected cycle, exact-fit destination sizing, lifecycle boundaries, and bounded destination failures reviewable without widening into a standalone formatting-helper sample
 * keep Phase 9 runtime trace-events files out of this non-runtime Phase 5 proof packet
 
 For the trace-events anchor, current `master` keeps the direct non-runtime evidence split between the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` and the broader trace-events companion set carried by `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, with the shared reminder packet carried by `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep the shared `zigux/tests/phase5_build.zig` route framed as current directly readable shared build-route companion evidence rather than as the only proof of the broader trace-events companion set or as a fifth Phase 5 sample family.
