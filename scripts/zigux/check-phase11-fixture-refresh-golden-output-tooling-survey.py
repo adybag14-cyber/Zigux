@@ -43,7 +43,7 @@ EXPECTED_COUNTS = {
     "shared_test_depend_steps": 0,
     "dedicated_survey_replays": 0,
     "shared_adjunct_build_replays": 3,
-    "exact_current_checks": 10,
+    "exact_current_checks": 11,
 }
 
 
@@ -140,7 +140,7 @@ def build_fixture(root: Path) -> None:
                 "shared_test_depend_steps": [],
                 "dedicated_survey_replays": [],
                 "shared_adjunct_build_replays": ["one", "two", "three"],
-                "exact_current_checks": [str(i) for i in range(10)],
+                "exact_current_checks": [str(i) for i in range(11)],
             },
             indent=2,
         )
