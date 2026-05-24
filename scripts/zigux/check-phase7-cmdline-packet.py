@@ -537,7 +537,7 @@ def run_self_test() -> None:
             ),
             (
                 "missing_companion_first_nul_bare_option_guard_marker",
-                'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
+                'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));',
             ),
             (
                 "missing_companion_empty_entry_option_marker",
