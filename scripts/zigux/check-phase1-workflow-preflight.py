@@ -21,6 +21,8 @@ PREFLIGHT_STEP_BLOCK = (
 
 EXACT_ONCE_LINES = (
     "- name: Setup Python",
+    "uses: actions/setup-python@v6.2.0",
+    "python-version: '3.x'",
     "- name: Self-test current Phase 1 workflow preflight checker",
     "run: python3 scripts/zigux/check-phase1-workflow-preflight.py --self-test",
     "- name: Preflight current Phase 1 workflow viability",
@@ -42,6 +44,8 @@ EXACT_ONCE_LINES = (
 
 ORDERED_LINES = (
     "- name: Setup Python",
+    "uses: actions/setup-python@v6.2.0",
+    "python-version: '3.x'",
     "- name: Self-test current Phase 1 workflow preflight checker",
     "run: python3 scripts/zigux/check-phase1-workflow-preflight.py --self-test",
     "- name: Preflight current Phase 1 workflow viability",
@@ -136,6 +140,8 @@ def build_sample_root(root: Path) -> None:
                 "        uses: actions/checkout@v6.0.2",
                 "      - name: Setup Python",
                 "        uses: actions/setup-python@v6.2.0",
+                "        with:",
+                "          python-version: '3.x'",
                 "      - name: Self-test current Phase 1 workflow preflight checker",
                 "        run: python3 scripts/zigux/check-phase1-workflow-preflight.py --self-test",
                 "      - name: Preflight current Phase 1 workflow viability",
@@ -238,6 +244,16 @@ def run_self_test() -> int:
     cases: list[tuple[str, object | None]] = [
         ("baseline", None),
         ("missing_workflow", lambda root: (root / WORKFLOW_REL).unlink()),
+        ("missing_setup_python_uses", lambda root: remove_line(root, "uses: actions/setup-python@v6.2.0")),
+        (
+            "renamed_setup_python_action",
+            lambda root: replace_line(
+                root,
+                "uses: actions/setup-python@v6.2.0",
+                "uses: actions/setup-python@v6.1.0",
+            ),
+        ),
+        ("missing_setup_python_version", lambda root: remove_line(root, "python-version: '3.x'")),
         (
             "missing_preflight_selftest_step_name",
             lambda root: remove_line(root, "- name: Self-test current Phase 1 workflow preflight checker"),
