@@ -17,6 +17,7 @@ This note keeps the Phase 7 shared-control workspace bootstrap glue reviewable a
 
 ## Current Workspace Bootstrap Glue
 
+- `.github/workflows/zigux-bootstrap.yml` now reruns on every `master` push so exact-head bootstrap status stays attached even when pull-request path filtering misses a live Phase 7 change
 - `.github/workflows/zigux-bootstrap.yml` self-tests `scripts/zigux/check-phase7-shared-control-gap.py` and `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
 - the readable `zigux/Makefile` still exposes only `phase7-validate` for the shared Phase 7 packet
 - `zigux/tests/phase7_build.zig` remains readable non-owner build evidence rather than a returned shared workspace route by itself
