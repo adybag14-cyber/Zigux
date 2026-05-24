@@ -17,6 +17,7 @@ FILES = [
     "drivers/virtio/virtio_input_queue_callback_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_status_drain.zig",
+    "drivers/virtio/virtio_input_teardown_preflight.zig",
     "drivers/virtio/virtio_input_teardown_observation.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
@@ -27,6 +28,7 @@ FILES = [
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_build.zig",
@@ -40,6 +42,7 @@ SLICE_MARKERS = [
     "drivers/virtio/virtio_input_queue_callback_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_status_drain.zig",
+    "drivers/virtio/virtio_input_teardown_preflight.zig",
     "drivers/virtio/virtio_input_teardown_observation.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
@@ -47,6 +50,7 @@ SLICE_MARKERS = [
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
@@ -61,6 +65,7 @@ MODULE_MARKERS = [
     "drivers/virtio/virtio_input_queue_callback_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_status_drain.zig",
+    "drivers/virtio/virtio_input_teardown_preflight.zig",
     "drivers/virtio/virtio_input_teardown_observation.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
@@ -68,6 +73,7 @@ MODULE_MARKERS = [
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
@@ -86,8 +92,10 @@ SURVEY_NOTE_MARKERS = [
     "drivers/virtio/virtio_input_verify.zig",
     "drivers/virtio/virtio_input_queue_callback_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "drivers/virtio/virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
@@ -116,6 +124,8 @@ MANIFEST_MARKERS = [
     '"zigux_destination": "drivers/virtio/virtio_input_registration_preflight.zig"',
     '"id": "phase10-virtio-input-status-drain-helper"',
     '"zigux_destination": "drivers/virtio/virtio_input_status_drain.zig"',
+    '"id": "phase10-virtio-input-teardown-preflight-helper"',
+    '"zigux_destination": "drivers/virtio/virtio_input_teardown_preflight.zig"',
     '"id": "phase10-virtio-input-teardown-observation-helper"',
     '"zigux_destination": "drivers/virtio/virtio_input_teardown_observation.zig"',
     '"id": "phase10-virtio-input-registration-lifecycle"',
@@ -180,6 +190,16 @@ STATUS_DRAIN_HELPER_MARKERS = [
     "return device.drainStatusQueue(completed_count);",
 ]
 
+TEARDOWN_PREFLIGHT_HELPER_MARKERS = [
+    "pub const TeardownPreflightBlocker = enum {",
+    "pub const TeardownPreflightSummary = struct {",
+    "pub fn summarize(device: *const virtio_input.VirtioInputLab) TeardownPreflightSummary {",
+    "pub fn blockerTag(blocker: TeardownPreflightBlocker) []const u8 {",
+    "pub fn runtimeStateArmed(summary: TeardownPreflightSummary) bool {",
+    "pub fn capabilityStateArmed(summary: TeardownPreflightSummary) bool {",
+    "pub fn preservesIdentity(summary: TeardownPreflightSummary) bool {",
+]
+
 TEARDOWN_HELPER_MARKERS = [
     "pub const TeardownObservationSummary = virtio_input.TeardownObservationSummary;",
     "pub fn summarize(device: *const virtio_input.VirtioInputLab) TeardownObservationSummary {",
@@ -202,6 +222,7 @@ BUILD_MARKERS = [
     "phase10_virtio_input_queue_callback_preflight_module",
     "phase10_virtio_input_registration_preflight_module",
     "phase10_virtio_input_status_drain_module",
+    "phase10_virtio_input_teardown_preflight_module",
     "phase10_virtio_input_teardown_observation_module",
     "phase10_virtio_input_survey_module",
     '"phase10-virtio-input-tests"',
@@ -209,6 +230,7 @@ BUILD_MARKERS = [
     '"phase10-virtio-input-queue-callback-preflight-tests"',
     '"phase10-virtio-input-registration-preflight-tests"',
     '"phase10-virtio-input-status-drain-tests"',
+    '"phase10-virtio-input-teardown-preflight-tests"',
     '"phase10-virtio-input-teardown-observation-tests"',
     '"phase10-virtio-input-survey-tests"',
     '"phase10-virtio-input-verify-tests"',
@@ -223,9 +245,11 @@ SURVEY_GATE_MARKERS = [
     "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     '"id": "phase10-virtio-input-survey-gate"',
     '"status": "blocked_on_risky_transport"',
     "the dedicated status-drain helper plus replay",
+    "the dedicated teardown-preflight helper plus replay",
     "teardown-reset parity across reset",
 ]
 
@@ -247,6 +271,9 @@ TEST_MARKERS = {
     "zigux/tests/phase10_virtio_input_status_drain.zig": [
         'test "phase10 virtio input status drain preserves suppressed timestamp counts while draining queued statuses" {',
     ],
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig": [
+        'test "phase10 virtio input teardown preflight blocks reset-local teardown until queued statuses drain" {',
+    ],
     "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
         'test "phase10 virtio input teardown observation keeps identity while resettable runtime state stays explicit" {',
     ],
@@ -261,6 +288,7 @@ CLOSURE_INPUT_HELPER_IDS = [
     "phase10-virtio-input-capability-setup-helper",
     "phase10-virtio-input-multitouch-slot-helper",
     "phase10-virtio-input-probe-preflight-helper",
+    "phase10-virtio-input-teardown-preflight-helper",
     "phase10-virtio-input-teardown-observation-helper",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
@@ -271,14 +299,17 @@ CLOSURE_INPUT_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
 ]
 CLOSURE_LAB_VALIDATION_EVIDENCE = [
+    "drivers/virtio/virtio_input_teardown_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "scripts/zigux/check-phase10-input-packet.py",
@@ -426,6 +457,7 @@ def required_marker_count() -> int:
         + len(QUEUE_CALLBACK_HELPER_MARKERS)
         + len(REGISTRATION_HELPER_MARKERS)
         + len(STATUS_DRAIN_HELPER_MARKERS)
+        + len(TEARDOWN_PREFLIGHT_HELPER_MARKERS)
         + len(TEARDOWN_HELPER_MARKERS)
         + len(VERIFY_HELPER_MARKERS)
         + len(BUILD_MARKERS)
@@ -460,6 +492,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     check_markers(missing_markers, "queue_callback_helper", read_text(root, "drivers/virtio/virtio_input_queue_callback_preflight.zig"), QUEUE_CALLBACK_HELPER_MARKERS)
     check_markers(missing_markers, "registration_helper", read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig"), REGISTRATION_HELPER_MARKERS)
     check_markers(missing_markers, "status_drain_helper", read_text(root, "drivers/virtio/virtio_input_status_drain.zig"), STATUS_DRAIN_HELPER_MARKERS)
+    check_markers(missing_markers, "teardown_preflight_helper", read_text(root, "drivers/virtio/virtio_input_teardown_preflight.zig"), TEARDOWN_PREFLIGHT_HELPER_MARKERS)
     check_markers(missing_markers, "teardown_helper", read_text(root, "drivers/virtio/virtio_input_teardown_observation.zig"), TEARDOWN_HELPER_MARKERS)
     check_markers(missing_markers, "verify_helper", read_text(root, "drivers/virtio/virtio_input_verify.zig"), VERIFY_HELPER_MARKERS)
     check_markers(missing_markers, "phase10_build", read_text(root, "zigux/tests/phase10_build.zig"), BUILD_MARKERS)
@@ -487,6 +520,7 @@ def write_fixture(root: Path) -> None:
             {"id": "phase10-virtio-input-queue-callback-preflight-helper", "status": "starter_landed", "zigux_destination": "drivers/virtio/virtio_input_queue_callback_preflight.zig", "why_now": "helper"},
             {"id": "phase10-virtio-input-registration-preflight-helper", "status": "starter_landed", "zigux_destination": "drivers/virtio/virtio_input_registration_preflight.zig", "why_now": "helper"},
             {"id": "phase10-virtio-input-status-drain-helper", "status": "starter_landed", "zigux_destination": "drivers/virtio/virtio_input_status_drain.zig", "why_now": "helper"},
+            {"id": "phase10-virtio-input-teardown-preflight-helper", "status": "starter_landed", "zigux_destination": "drivers/virtio/virtio_input_teardown_preflight.zig", "why_now": "helper"},
             {"id": "phase10-virtio-input-teardown-observation-helper", "status": "starter_landed", "zigux_destination": "drivers/virtio/virtio_input_teardown_observation.zig", "why_now": "helper"},
             {"id": "phase10-virtio-input-registration-lifecycle", "status": "blocked_on_risky_transport", "zigux_destination": "zigux/tests/phase10_virtio_input.zig", "why_now": "blocked"},
         ],
@@ -509,6 +543,7 @@ def write_fixture(root: Path) -> None:
         "drivers/virtio/virtio_input_queue_callback_preflight.zig": "\n".join(QUEUE_CALLBACK_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_registration_preflight.zig": "\n".join(REGISTRATION_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_status_drain.zig": "\n".join(STATUS_DRAIN_HELPER_MARKERS) + "\n",
+        "drivers/virtio/virtio_input_teardown_preflight.zig": "\n".join(TEARDOWN_PREFLIGHT_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_teardown_observation.zig": "\n".join(TEARDOWN_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_HELPER_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
@@ -588,6 +623,12 @@ def run_self_test() -> int:
                 "slice_note:drivers/virtio/virtio_input_queue_callback_preflight.zig",
             ),
             (
+                "Documentation/zigux/phase10-virtio-input-slice.md",
+                "drivers/virtio/virtio_input_teardown_preflight.zig",
+                "drivers/virtio/virtio_input_teardown_preflight_missing.zig",
+                "slice_note:drivers/virtio/virtio_input_teardown_preflight.zig",
+            ),
+            (
                 "Documentation/zigux/phase10-virtio-input-module-slice.md",
                 "zigux/tests/phase10_virtio_input_survey.zig",
                 "zigux/tests/phase10_virtio_input_survey_missing.zig",
@@ -598,6 +639,12 @@ def run_self_test() -> int:
                 "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
                 "zigux/tests/phase10_virtio_input_queue_callback_preflight_missing.zig",
                 "survey_note:zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-input-survey.md",
+                "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
+                "zigux/tests/phase10_virtio_input_teardown_preflight_missing.zig",
+                "survey_note:zigux/tests/phase10_virtio_input_teardown_preflight.zig",
             ),
             (
                 "Documentation/zigux/phase10-virtio-input-survey.md",
@@ -624,10 +671,22 @@ def run_self_test() -> int:
                 'phase10_build:"phase10-virtio-input-verify-tests"',
             ),
             (
+                "zigux/tests/phase10_build.zig",
+                '"phase10-virtio-input-teardown-preflight-tests"',
+                '"phase10-virtio-input-teardown-preflight-drift"',
+                'phase10_build:"phase10-virtio-input-teardown-preflight-tests"',
+            ),
+            (
                 "drivers/virtio/virtio_input_registration_preflight.zig",
                 "pub fn readyForRegistration(summary: RegistrationPreflightSummary) bool {",
                 "pub fn readyForRegistrationDrift(summary: RegistrationPreflightSummary) bool {",
                 "registration_helper:pub fn readyForRegistration(summary: RegistrationPreflightSummary) bool {",
+            ),
+            (
+                "drivers/virtio/virtio_input_teardown_preflight.zig",
+                "pub fn blockerTag(blocker: TeardownPreflightBlocker) []const u8 {",
+                "pub fn blockerTagDrift(blocker: TeardownPreflightBlocker) []const u8 {",
+                "teardown_preflight_helper:pub fn blockerTag(blocker: TeardownPreflightBlocker) []const u8 {",
             ),
             (
                 "drivers/virtio/virtio_input_verify.zig",
@@ -652,6 +711,12 @@ def run_self_test() -> int:
                 'test "phase10 virtio input probe preflight keeps serial optional while name and phys drive identity" {',
                 'test "phase10 virtio input probe preflight drifts identity expectations" {',
                 'phase10_virtio_input.zig:test "phase10 virtio input probe preflight keeps serial optional while name and phys drive identity" {',
+            ),
+            (
+                "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
+                'test "phase10 virtio input teardown preflight blocks reset-local teardown until queued statuses drain" {',
+                'test "phase10 virtio input teardown preflight drifts reset-local gating" {',
+                'phase10_virtio_input_teardown_preflight.zig:test "phase10 virtio input teardown preflight blocks reset-local teardown until queued statuses drain" {',
             ),
         ]
         for rel_path, old, new, expected in text_cases:
@@ -684,35 +749,37 @@ def run_self_test() -> int:
         expect_json_missing_marker(
             root,
             CLOSURE_MANIFEST_PATH,
-            lambda data: {**data, "landed_input_helper_evidence": {CLOSURE_INPUT_MANIFEST_PATH: [item for item in data["landed_input_helper_evidence"][CLOSURE_INPUT_MANIFEST_PATH] if item != "phase10-virtio-input-status-drain-helper"]}},
-            "closure_manifest:landed_input_helper:phase10-virtio-input-status-drain-helper",
+            lambda data: {**data, "landed_input_helper_evidence": {CLOSURE_INPUT_MANIFEST_PATH: [item for item in data["landed_input_helper_evidence"][CLOSURE_INPUT_MANIFEST_PATH] if item != "phase10-virtio-input-teardown-preflight-helper"]}},
+            "closure_manifest:landed_input_helper:phase10-virtio-input-teardown-preflight-helper",
         )
         expect_json_missing_marker(
             root,
             CLOSURE_MANIFEST_PATH,
-            lambda data: {**data, "focused_harness_replays": {**data["focused_harness_replays"], "zigux/tests/phase10_virtio_input_status_drain.zig": []}},
-            "closure_manifest:focused_harness_replays:zigux/tests/phase10_virtio_input_status_drain.zig",
+            lambda data: {**data, "focused_harness_replays": {**data["focused_harness_replays"], "zigux/tests/phase10_virtio_input_teardown_preflight.zig": []}},
+            "closure_manifest:focused_harness_replays:zigux/tests/phase10_virtio_input_teardown_preflight.zig",
         )
         expect_json_missing_marker(
             root,
             CLOSURE_MANIFEST_PATH,
-            lambda data: {**data, "tests": [item for item in data["tests"] if item != "zigux/tests/phase10_virtio_input_teardown_observation.zig"]},
-            "closure_manifest:tests:zigux/tests/phase10_virtio_input_teardown_observation.zig",
+            lambda data: {**data, "tests": [item for item in data["tests"] if item != "zigux/tests/phase10_virtio_input_teardown_preflight.zig"]},
+            "closure_manifest:tests:zigux/tests/phase10_virtio_input_teardown_preflight.zig",
         )
         expect_json_missing_marker(
             root,
             CLOSURE_MANIFEST_PATH,
-            lambda data: {**data, "roadmap_parity_scoreboard": {"lab_only_driver_validation": {"evidence": [item for item in data["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] if item != "scripts/zigux/check-phase10-input-packet.py"]}}},
-            "closure_manifest:lab_only_driver_validation:scripts/zigux/check-phase10-input-packet.py",
+            lambda data: {**data, "roadmap_parity_scoreboard": {"lab_only_driver_validation": {"evidence": [item for item in data["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] if item != "drivers/virtio/virtio_input_teardown_preflight.zig"]}}},
+            "closure_manifest:lab_only_driver_validation:drivers/virtio/virtio_input_teardown_preflight.zig",
         )
 
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-input-survey.md")
         expect_missing_file(root, "zigux/tests/phase10_virtio_input_survey.zig")
         expect_missing_file(root, "scripts/zigux/check-phase10-harness-coverage.py")
+        expect_missing_file(root, "drivers/virtio/virtio_input_teardown_preflight.zig")
+        expect_missing_file(root, "zigux/tests/phase10_virtio_input_teardown_preflight.zig")
         expect_missing_file(root, "drivers/virtio/virtio_input_verify.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=24")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
