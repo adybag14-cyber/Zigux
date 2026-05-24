@@ -247,6 +247,33 @@ test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier 
         "const type_names_verify = @import(\"type_names_verify.zig\");",
     );
 
+    const online_cpu_verify = try readRepoFile("tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig");
+    defer std.testing.allocator.free(online_cpu_verify);
+    try expectContains(
+        online_cpu_verify,
+        "phase8 online-cpu route helpers keep typed buffer-fd wrappers stable",
+    );
+    try expectContains(
+        online_cpu_verify,
+        "resolveNextOnlineCpuRouteBufferFdAtIndex(",
+    );
+    try expectContains(
+        online_cpu_verify,
+        "phase8 online-cpu route helpers keep errno-shaped buffer-fd wrappers stable",
+    );
+    try expectContains(
+        online_cpu_verify,
+        "resolveNextOnlineCpuRouteBufferFdReturnAtIndex(",
+    );
+    try expectContains(
+        online_cpu_verify,
+        "phase8 online-cpu route helpers fail closed when a hand-built CPU index exceeds i32",
+    );
+    try expectContains(
+        online_cpu_verify,
+        "resolveNextOnlineCpuRouteCpuIndexReturn(impossible)",
+    );
+
     const attempt_verify = try readRepoFile("tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig");
     defer std.testing.allocator.free(attempt_verify);
     try expectContains(
