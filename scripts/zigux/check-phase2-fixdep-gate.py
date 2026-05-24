@@ -76,6 +76,25 @@ FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
     "assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT",
 )
 
+FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
+    "EXPECTED_FIXTURE_FILES = frozenset(",
+    "def validate_fixture_inventory(",
+    "actual_files = {path.name for path in fixture_dir.iterdir() if path.is_file()}",
+    'raise FileNotFoundError(f"{fixture_dir}:missing_fixtures:{\',\'.join(missing)}")',
+    'raise ValueError(f"{fixture_dir}:unexpected_fixtures:{\',\'.join(unexpected)}")',
+    "expected_case = EXPECTED_CASES.get(name)",
+    'raise ValueError(f"{CASES_PATH}:unexpected_name:{name}")',
+    'expected_stdout_name = validated_case.get("expected_stdout", validated_case.get("expected"))',
+    'raise FileNotFoundError(f"{CASES_PATH}:missing_expected_output:{expected_stdout_name}")',
+    "if expected_exit_code != 0:",
+    'expected_stderr_name = validated_case.get("expected_stderr")',
+    'raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")',
+    'if stdout_mode not in (None, "dev_full"):',
+    'raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")',
+    "validate_fixture_inventory()",
+    "cases = validate_cases(load_cases(CASES_PATH))",
+)
+
 REQUIRED_FIXDEP_CASE_NAMES = (
     "sample",
     "sample_multi_target",
@@ -137,6 +156,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(FIXDEP_REQUIRED_EXACT_LINES)
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
+    + len(FIXDEP_DIFF_CONTRACT_EXACT_LINES)
+    + len(FIXDEP_DIFF_CONTRACT_EXACT_LINES)
     + len(REQUIRED_FIXDEP_CASE_NAMES)
     + 9
     + len(CLOSURE_REQUIRED_MARKERS)
@@ -294,6 +315,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             FIXDEP_DIFF_REQUIRED_EXACT_LINES,
             "MISSING_FIXDEP_DIFF_LINE",
             "DUPLICATE_FIXDEP_DIFF_LINE",
+        )
+    )
+    issues.extend(
+        collect_required_exact_lines(
+            fixdep_diff_text,
+            FIXDEP_DIFF_CONTRACT_EXACT_LINES,
+            "MISSING_FIXDEP_DIFF_CONTRACT_LINE",
+            "DUPLICATE_FIXDEP_DIFF_CONTRACT_LINE",
         )
     )
     issues.extend(collect_fixdep_case_issues(resolve(root, FIXDEP_CASES_REL)))
@@ -470,7 +499,13 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(
         resolve(root, FIXDEP_DIFF_REL),
-        "\n".join(FIXDEP_DIFF_REQUIRED_EXACT_LINES) + "\n",
+        "\n".join(
+            (
+                *FIXDEP_DIFF_REQUIRED_EXACT_LINES,
+                *FIXDEP_DIFF_CONTRACT_EXACT_LINES,
+            )
+        )
+        + "\n",
     )
     write_text(
         resolve(root, FIXDEP_CASES_REL),
@@ -582,6 +617,23 @@ def run_self_test() -> int:
             path = resolve(root, FIXDEP_DIFF_REL)
             path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("DUPLICATE_FIXDEP_DIFF_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in FIXDEP_DIFF_CONTRACT_EXACT_LINES:
+            build_self_test_root(root)
+            path = resolve(root, FIXDEP_DIFF_REL)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_FIXDEP_DIFF_CONTRACT_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in FIXDEP_DIFF_CONTRACT_EXACT_LINES:
+            build_self_test_root(root)
+            path = resolve(root, FIXDEP_DIFF_REL)
+            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert (
+                "DUPLICATE_FIXDEP_DIFF_CONTRACT_LINE",
+                f"{marker}:count=2",
+            ) in collect_issues(root)
             checks_run += 1
 
         for name in REQUIRED_FIXDEP_CASE_NAMES:
@@ -750,6 +802,7 @@ def main() -> int:
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_LINE_COUNT={len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_CONTRACT_LINE_COUNT={len(FIXDEP_DIFF_CONTRACT_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_CASE_COUNT={len(REQUIRED_FIXDEP_CASE_NAMES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_PHONY_TARGET_COUNT={len(REQUIRED_MAKEFILE_PHONY_TARGETS)}")
