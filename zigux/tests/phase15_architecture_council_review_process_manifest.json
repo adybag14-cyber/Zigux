@@ -13,6 +13,31 @@
   "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
   "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
   "review_checklist_stay_in_c_policy_boundary_rule": "`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
+  "review_process_required_metadata_markers": [
+    "`PHASE15_PACKET_OWNER=Architecture Council`",
+    "`PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-review-process-handoff.py && zig test zigux/tests/phase15_architecture_council_review_process.zig && zig build test --build-file zigux/tests/phase15_architecture_council_review_process_build.zig`",
+    "`PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`"
+  ],
+  "decision_record_template_metadata_markers": [
+    "`DECISION_RECORD_ID=<replace-with-stable-id>`",
+    "decision record ID:",
+    "`PHASE=Phase 15`",
+    "`LANE_KEY=P15-L08`",
+    "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
+    "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
+    "exact-head provenance exception note:",
+    "`REVIEW_STATUS=<blocked_review|stay_in_c|approved_status_bucket_change>`"
+  ],
+  "decision_record_template_section_headings": [
+    "## Record Metadata",
+    "## Anchor And Ownership",
+    "## Validation And Evidence",
+    "## Stay-In-C Closeout",
+    "## Reopen Evidence",
+    "## Supporting Context",
+    "## Review Outcome",
+    "## Usage Rules"
+  ],
   "required_review_fields": [
     "exact Linux anchor path",
     "roadmap phase",
