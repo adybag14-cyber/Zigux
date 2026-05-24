@@ -171,7 +171,6 @@ def run_self_test() -> int:
             raise AssertionError("expected note marker failure")
 
         write_fixture(root)
-        (root / VIRTIO_NET_SURVEY_PATH).writeText if False else None
         (root / VIRTIO_NET_SURVEY_PATH).write_text("broken\n", encoding="utf-8")
         try:
             check(root)
