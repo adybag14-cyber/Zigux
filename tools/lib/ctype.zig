@@ -31,71 +31,54 @@ pub const table = [_]u8{
 pub fn mask(ch: u8) u8 {
     return table[ch];
 }
-
 pub fn isalnum(ch: u8) bool {
     return (mask(ch) & (_U | _L | _D)) != 0;
 }
-
 pub fn isalpha(ch: u8) bool {
     return (mask(ch) & (_U | _L)) != 0;
 }
-
 pub fn iscntrl(ch: u8) bool {
     return (mask(ch) & _C) != 0;
 }
-
 pub fn isgraph(ch: u8) bool {
     return (mask(ch) & (_P | _U | _L | _D)) != 0;
 }
-
 pub fn islower(ch: u8) bool {
     return (mask(ch) & _L) != 0;
 }
-
 pub fn isprint(ch: u8) bool {
     return (mask(ch) & (_P | _U | _L | _D | _SP)) != 0;
 }
-
 pub fn ispunct(ch: u8) bool {
     return (mask(ch) & _P) != 0;
 }
-
 pub fn isspace(ch: u8) bool {
     return (mask(ch) & _S) != 0;
 }
-
 pub fn isupper(ch: u8) bool {
     return (mask(ch) & _U) != 0;
 }
-
 pub fn isxdigit(ch: u8) bool {
     return (mask(ch) & (_D | _X)) != 0;
 }
-
 pub fn isascii(ch: u8) bool {
     return ch <= 0x7f;
 }
-
 pub fn toascii(ch: u8) u8 {
     return ch & 0x7f;
 }
-
 pub fn isdigit(ch: u8) bool {
     return ch >= '0' and ch <= '9';
 }
-
 pub fn tolower(ch: u8) u8 {
     return if (isupper(ch)) ch + ('a' - 'A') else ch;
 }
-
 pub fn toupper(ch: u8) u8 {
     return if (islower(ch)) ch - ('a' - 'A') else ch;
 }
-
 pub fn fastTolower(ch: u8) u8 {
     return if (isupper(ch)) (ch | 0x20) else ch;
 }
-
 pub fn isodigit(ch: u8) bool {
     return ch >= '0' and ch <= '7';
 }
@@ -162,4 +145,55 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
             try std.testing.expectEqual(byte, fastTolower(byte));
         }
     }
+}
+
+test "ctype casefold idempotence stays truthful across the full byte table" {
+    var ch: u16 = 0;
+    var uppercase_alpha_loss_count: usize = 0;
+    var lowercase_roundtrip_loss_count: usize = 0;
+    var uppercase_idempotence_loss_count: usize = 0;
+    var lowercase_roundtrip_loss_pair_count: usize = 0;
+
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const lowered = tolower(byte);
+        const raised = toupper(byte);
+
+        try std.testing.expectEqual(lowered, tolower(lowered));
+        try std.testing.expectEqual(toupper(lowered), toupper(byte));
+
+        if (byte == 0xFF) {
+            uppercase_idempotence_loss_count += 1;
+            try std.testing.expectEqual(@as(u8, 0xDF), raised);
+            try std.testing.expectEqual(@as(u8, 0xBF), toupper(raised));
+        } else {
+            try std.testing.expectEqual(raised, toupper(raised));
+        }
+
+        if (isalpha(byte) and islower(byte) and !isalpha(raised)) {
+            uppercase_alpha_loss_count += 1;
+            try std.testing.expectEqual(@as(u8, 0xDF), byte);
+            try std.testing.expectEqual(@as(u8, 0xBF), raised);
+            lowercase_roundtrip_loss_count += 1;
+            try std.testing.expectEqual(@as(u8, 0xBF), tolower(raised));
+        } else if (byte == 0xFF) {
+            lowercase_roundtrip_loss_pair_count += 1;
+            try std.testing.expect(isalpha(byte));
+            try std.testing.expect(islower(byte));
+            try std.testing.expectEqual(@as(u8, 0xDF), raised);
+            try std.testing.expectEqual(@as(u8, 0xDF), tolower(raised));
+            try std.testing.expectEqual(@as(u8, 0xFF), lowered);
+        } else if (isalpha(byte)) {
+            try std.testing.expect(isalpha(lowered));
+            try std.testing.expect(isalpha(raised));
+            try std.testing.expectEqual(tolower(raised), tolower(byte));
+        } else {
+            try std.testing.expectEqual(tolower(raised), tolower(byte));
+        }
+    }
+
+    try std.testing.expectEqual(@as(usize, 1), uppercase_alpha_loss_count);
+    try std.testing.expectEqual(@as(usize, 1), lowercase_roundtrip_loss_count);
+    try std.testing.expectEqual(@as(usize, 1), uppercase_idempotence_loss_count);
+    try std.testing.expectEqual(@as(usize, 1), lowercase_roundtrip_loss_pair_count);
 }
