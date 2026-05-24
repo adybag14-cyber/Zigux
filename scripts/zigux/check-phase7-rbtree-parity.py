@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
@@ -231,6 +231,11 @@ def run_self_test() -> None:
         assert validate(root) == ([], [f"scripts/zigux/check-phase7-rbtree-parity.py: {checker_marker}"])
 
         write_fixture_root(root)
+        checker_marker = "MANIFEST_EMPTY_FALLBACK_MARKER = ("
+        checker_path.write_text(read_text(checker_path).replace(checker_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"scripts/zigux/check-phase7-rbtree-parity.py: {checker_marker}"])
+
+        write_fixture_root(root)
         slice_marker = SLICE_AUTHENTICATED_BUILD_MARKER
         marker_path.write_text(read_text(marker_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}"])
@@ -302,7 +307,7 @@ def run_self_test() -> None:
         fixture_path = root / "zigux/tests/fixtures/phase7_rbtree.json"
         fixture_marker = '"packet": "phase7-rbtree-parity-fixture"'
         fixture_path.write_text(read_text(fixture_path).replace(fixture_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree.json: {fixture_marker}"])
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree.json: {fixture_marker}"])
 
         write_fixture_root(root)
         harness_path = root / "zigux/tests/fixtures/phase7_rbtree_c_harness.c"
