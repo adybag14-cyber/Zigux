@@ -101,6 +101,8 @@ test "phase13 devres dma coherent replay anchors the survey-side scatterlist bou
     try requireContains(survey, "`dmam_free_coherent()`");
     try requireContains(survey, "`dma_map_sgtable()`");
     try requireContains(survey, "`sg_table`");
+    try requireContains(survey, "`zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig`");
+    try requireContains(survey, "`zigux/tests/phase13_devres_scatterlist_build.zig`");
 }
 
 test "phase13 devres dma coherent replay keeps scatterlist helper evidence helper-first" {
@@ -120,4 +122,14 @@ test "phase13 devres dma coherent replay keeps scatterlist helper evidence helpe
     try requireContains(replay, "phase13 devres scatterlist release matching stays exact across original and mapped counts");
     try requireContains(replay, "phase13 devres scatterlist planner manifest records the dedicated helper-first packet");
     try requireContains(replay, "phase13 devres scatterlist planner note keeps the helper-first scatterlist slice bounded");
+}
+
+test "phase13 devres dma coherent replay keeps build-shard boundary checks explicit" {
+    const checker = try readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-devres-dma-boundary.py");
+    defer std.testing.allocator.free(checker);
+
+    try requireContains(checker, "DMA_REPLAY_BUILD_PATH = Path(\"zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig\")");
+    try requireContains(checker, "SCATTERLIST_BUILD_PATH = Path(\"zigux/tests/phase13_devres_scatterlist_build.zig\")");
+    try requireContains(checker, "`zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig` keeps the zero-sized coherent allocation replay directly runnable through its dedicated build shard");
+    try requireContains(checker, "`zigux/tests/phase13_devres_scatterlist_build.zig` keeps the helper-first scatterlist replay directly runnable through a dedicated build shard");
 }
