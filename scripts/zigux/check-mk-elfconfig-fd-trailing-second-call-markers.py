@@ -14,6 +14,7 @@ EXPECTED_MARKERS = {
     "fd_trailing_second_call_invalid_class": 'test "fd-backed trailing invalid-class input leaves only trailing bytes for the next call" {',
     "fd_trailing_second_call_not_elf": 'test "fd-backed trailing non-ELF input leaves only trailing bytes for the next call" {',
     "fd_trailing_second_call_hidden_later_header": 'test "fd-backed trailing non-ELF input keeps a later ELF header hidden behind the trailing bytes" {',
+    "fd_trailing_second_call_hidden_later_header_after_success": 'test "fd-backed trailing 64-bit ELF input keeps a later 32-bit ELF header hidden behind the trailing bytes" {',
 }
 EXPECTED_ORDER = list(EXPECTED_MARKERS)
 
@@ -80,6 +81,7 @@ def run_self_test() -> None:
                     EXPECTED_MARKERS["fd_trailing_second_call_elf64"],
                     EXPECTED_MARKERS["fd_trailing_second_call_invalid_class"],
                     EXPECTED_MARKERS["fd_trailing_second_call_not_elf"],
+                    EXPECTED_MARKERS["fd_trailing_second_call_hidden_later_header_after_success"],
                 ]
             )
             + "\n",
