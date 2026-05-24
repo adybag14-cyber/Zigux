@@ -3,7 +3,7 @@
 This survey records the broader helper-parity companion for the bounded Phase 6 leaf-helper packet on `master`.
 
 - surveyed head: `current-master-readback-2026-05-22`
-- lane scope: directly readable helper parity rows and shared companion notes only
+- lane scope: shared helper-parity rows and machine-readable manifest only
 - direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_parity_manifest.json`
 - returned helper-evidence manifest: `zigux/tests/phase6_helper_evidence_manifest.json`
