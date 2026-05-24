@@ -31,6 +31,7 @@ PIN_SCOPE_CHECKER_REL = Path("scripts/zigux/check-phase2-toolchain-pin-scope.py"
 KBUILD_CHECKER_REL = Path("scripts/zigux/check-phase2-kbuild-routes.py")
 KCONFIG_BRIDGE_CHECKER_REL = Path("scripts/zigux/check-kconfig-bridge.py")
 KCONFIG_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-kconfig-selftest-alignment.py")
+KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")
 GENKSYMS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-genksyms-selftest-alignment.py")
 TESTS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-tests-readme-alignment.py")
 CROSS_CHECKER_REL = Path("scripts/zigux/check-phase2-cross.py")
@@ -107,6 +108,7 @@ REQUIRED_FILES = (
     KBUILD_CHECKER_REL,
     KCONFIG_BRIDGE_CHECKER_REL,
     KCONFIG_ALIGNMENT_REL,
+    KCONFIG_ALLCONFIG_HELPER_PACKET_REL,
     GENKSYMS_ALIGNMENT_REL,
     TESTS_ALIGNMENT_REL,
     CROSS_CHECKER_REL,
@@ -154,6 +156,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`",
     "`scripts/zigux/check-kconfig-bridge.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
     "`scripts/zigux/check-phase2-genksyms-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
@@ -212,6 +215,8 @@ REQUIRED_CLOSURE_MARKERS = (
     "`python3 scripts/zigux/check-kconfig-bridge.py`",
     "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
     "`python3 scripts/zigux/check-phase2-tool-manifest.py --self-test`",
     "`python3 scripts/zigux/check-phase2-tool-manifest.py`",
     "`python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test`",
@@ -271,6 +276,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
     "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
@@ -306,6 +313,8 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
@@ -351,6 +360,7 @@ EXPECTED_MANIFEST_CHECKERS = (
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "scripts/zigux/check-phase2-kbuild-routes.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -522,28 +532,28 @@ EXPECTED_GENKSYMS_MANIFEST = {
 }
 
 EXPECTED_CONF_CASE_DETAILS = [
-    {"name": "oldaskconfig", "args": ["oldaskconfig", "Kconfig"], "expected": "oldaskconfig_expected.json"},
-    {"name": "syncconfig", "args": ["syncconfig", "Kconfig"], "expected": "syncconfig_expected.json"},
-    {"name": "oldconfig", "args": ["oldconfig", "Kconfig"], "expected": "oldconfig_expected.json"},
-    {"name": "allnoconfig", "args": ["allnoconfig", "Kconfig"], "expected": "allnoconfig_expected.json"},
-    {"name": "allyesconfig", "args": ["allyesconfig", "Kconfig"], "expected": "allyesconfig_expected.json"},
-    {"name": "allmodconfig", "args": ["allmodconfig", "Kconfig"], "expected": "allmodconfig_expected.json"},
-    {"name": "alldefconfig", "args": ["alldefconfig", "Kconfig"], "expected": "alldefconfig_expected.json"},
-    {"name": "randconfig", "args": ["randconfig", "Kconfig"], "expected": "randconfig_expected.json"},
-    {"name": "defconfig", "args": ["defconfig", "arch/arm64/configs/defconfig", "Kconfig"], "expected": "defconfig_expected.json"},
-    {"name": "savedefconfig", "args": ["savedefconfig", "configs/minimal_defconfig", "Kconfig"], "expected": "savedefconfig_expected.json"},
-    {"name": "listnewconfig", "args": ["listnewconfig", "Kconfig"], "expected": "listnewconfig_expected.json"},
-    {"name": "helpnewconfig", "args": ["helpnewconfig", "Kconfig"], "expected": "helpnewconfig_expected.json"},
-    {"name": "olddefconfig", "args": ["olddefconfig", "Kconfig"], "expected": "olddefconfig_expected.json"},
-    {"name": "yes2modconfig", "args": ["yes2modconfig", "Kconfig"], "expected": "yes2modconfig_expected.json"},
-    {"name": "mod2yesconfig", "args": ["mod2yesconfig", "Kconfig"], "expected": "mod2yesconfig_expected.json"},
-    {"name": "mod2noconfig", "args": ["mod2noconfig", "Kconfig"], "expected": "mod2noconfig_expected.json"},
+    {"name": "oldaskconfig", "mode": "oldaskconfig", "expected": "oldaskconfig_expected.json"},
+    {"name": "syncconfig", "mode": "syncconfig", "expected": "syncconfig_expected.json"},
+    {"name": "oldconfig", "mode": "oldconfig", "expected": "oldconfig_expected.json"},
+    {"name": "allnoconfig", "mode": "allnoconfig", "expected": "allnoconfig_expected.json"},
+    {"name": "allyesconfig", "mode": "allyesconfig", "expected": "allyesconfig_expected.json"},
+    {"name": "allmodconfig", "mode": "allmodconfig", "expected": "allmodconfig_expected.json"},
+    {"name": "alldefconfig", "mode": "alldefconfig", "expected": "alldefconfig_expected.json"},
+    {"name": "randconfig", "mode": "randconfig", "expected": "randconfig_expected.json"},
+    {"name": "defconfig", "mode": "defconfig", "expected": "defconfig_expected.json"},
+    {"name": "savedefconfig", "mode": "savedefconfig", "expected": "savedefconfig_expected.json"},
+    {"name": "listnewconfig", "mode": "listnewconfig", "expected": "listnewconfig_expected.json"},
+    {"name": "helpnewconfig", "mode": "helpnewconfig", "expected": "helpnewconfig_expected.json"},
+    {"name": "olddefconfig", "mode": "olddefconfig", "expected": "olddefconfig_expected.json"},
+    {"name": "yes2modconfig", "mode": "yes2modconfig", "expected": "yes2modconfig_expected.json"},
+    {"name": "mod2yesconfig", "mode": "mod2yesconfig", "expected": "mod2yesconfig_expected.json"},
+    {"name": "mod2noconfig", "mode": "mod2noconfig", "expected": "mod2noconfig_expected.json"},
 ]
 
 EXPECTED_CONF_MANIFEST = {
     "tool": "scripts/zigux/kconfig/conf_bridge.zig",
     "status": "closed",
-    "mode": "bounded request-plan bridge",
+    "mode": "bounded allconfig bridge",
     "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
     "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "case_count": 16,
@@ -583,45 +593,21 @@ EXPECTED_CONF_MANIFEST = {
         "mod2yesconfig_expected.json",
         "mod2noconfig_expected.json",
     ],
+    "helper_local_allconfig_implicit_omission_modes": [
+        "allmodconfig",
+        "randconfig",
+    ],
+    "helper_local_allconfig_explicit_override_modes": [
+        "allmodconfig",
+        "allnoconfig",
+        "allyesconfig",
+        "randconfig",
+    ],
     "helper_local_anchors": [
-        "conf bridge emits oldaskconfig mode argument before kconfig",
-        "conf bridge emits syncconfig mode argument before kconfig",
-        "conf bridge emits oldconfig mode argument before kconfig",
-        "conf bridge emits allnoconfig mode argument before kconfig",
-        "conf bridge emits allyesconfig mode argument before kconfig",
-        "conf bridge emits allmodconfig mode argument before kconfig",
-        "conf bridge emits alldefconfig mode argument before kconfig",
-        "conf bridge emits randconfig mode argument before kconfig",
-        "conf bridge emits olddefconfig mode argument before kconfig",
-        "conf bridge emits yes2modconfig mode argument before kconfig",
-        "conf bridge emits mod2yesconfig mode argument before kconfig",
-        "conf bridge emits mod2noconfig mode argument before kconfig",
-        "conf bridge emits listnewconfig mode argument before kconfig",
-        "conf bridge emits helpnewconfig mode argument before kconfig",
-        "conf bridge keeps helpnewconfig mode argument even when silent is set",
-        "bridge options parser rejects duplicate allconfig arguments",
-        "bridge options parser rejects missing allconfig argument",
-        "bridge options parser rejects duplicate env overrides",
-        "bridge options parser rejects duplicate kconfig paths",
-        "bridge options parser rejects helpnewconfig without a kconfig path",
-        "bridge options parser rejects defconfig with missing path",
-        "bridge options parser rejects savedefconfig with missing path",
-        "conf bridge emits defconfig mode argument before defconfig path",
-        "conf bridge emits savedefconfig mode argument before kconfig",
-        "conf bridge escapes low control bytes in JSON strings",
-        "mode argument validation rejects bridge option shaped defconfig payload",
-        "mode argument validation accepts defconfig path that only starts with silent",
-        "mode argument validation still accepts ordinary path text with equals",
-        "bridge options parser accepts explicit allconfig override for allmodconfig",
-        "bridge options parser accepts syncconfig nosilentupdate",
-        "bridge options parser keeps empty syncconfig nosilentupdate unset",
-        "bridge options parser accepts generic silent flag",
-        "bridge options parser accepts silent alongside randconfig options",
-        "bridge options parser rejects duplicate silent flag",
-        "bridge options parser rejects duplicate randconfig probability",
-        "bridge options parser rejects unexpected options for mode",
-        "bridge options parser keeps empty randconfig tunables unset",
-        "bridge options parser rejects duplicate mode specific options",
+        "conf bridge emits explicit empty allconfig override for allmodconfig",
+        "conf bridge emits randconfig tunables when present",
+        "conf bridge emits explicit randconfig allconfig override when present",
+        "conf bridge omits randconfig allconfig sentinel without explicit override",
     ],
 }
 
@@ -976,6 +962,21 @@ def run_self_test() -> int:
         closure_path = resolve(root, PHASE2_CLOSURE_REL)
         closure_path.write_text(replace_once(closure_path.read_text(encoding="utf-8"), "`Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`"), encoding="utf-8")
         assert ("MISSING_CLOSURE_MARKER", "`Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        closure_path = resolve(root, PHASE2_CLOSURE_REL)
+        closure_path.write_text(
+            replace_once(
+                closure_path.read_text(encoding="utf-8"),
+                "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "MISSING_CLOSURE_MARKER",
+            "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
