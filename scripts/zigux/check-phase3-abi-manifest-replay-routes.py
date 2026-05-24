@@ -13,6 +13,8 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 REQUIRED_VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"',
+    '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
+    '"python3 scripts/zigux/check-phase3-abi.py"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"',
     '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
@@ -32,10 +34,13 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/check-phase3-policy-dump.py"',
     '"python3 scripts/zigux/validate_phase3_selftest.py"',
     '"python3 scripts/zigux/run-phase3-checks.py"',
+    '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
     '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
     '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
     '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
     '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
+    '"zig build phase3-dump --build-file zigux/tests/build.zig"',
+    '"zig build phase3-test --build-file zigux/tests/build.zig"',
 )
 
 REQUIRED_MANIFEST_FIELDS = {
@@ -63,6 +68,8 @@ REQUIRED_PACKET_FILES = (
 )
 
 REQUIRED_REPLAY_ROUTES = (
+    "python3 scripts/zigux/check-phase3-abi.py --self-test",
+    "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
     "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
@@ -82,10 +89,16 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "python3 scripts/zigux/run-phase3-checks.py",
+    "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "zig build phase3-dump --build-file zigux/tests/build.zig",
+    "zig build phase3-test --build-file zigux/tests/build.zig",
+    "make -C zigux phase3-dump",
+    "make -C zigux phase3-test",
+    "make -C zigux phase3",
 )
 
 
@@ -200,6 +213,8 @@ def run_self_test() -> int:
 
         validator_cases = (
             ('"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator packet-file marker drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-abi.py --self-test"', "expected shared ABI self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-abi.py"', "expected shared ABI direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"', "expected validator self-test route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator direct route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"', "expected selftest-surface self-test validator-route drift was not reported"),
@@ -209,6 +224,7 @@ def run_self_test() -> int:
             ('"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"', "expected export-uapi survey self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"', "expected export-uapi survey direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"', "expected export-uapi c-header smoke validator-route drift was not reported"),
+            ('"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"', "expected shared ABI core build validator-route drift was not reported"),
             ('"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"', "expected export-uapi layout build validator-route drift was not reported"),
             ('"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"', "expected export-uapi layout test validator-route drift was not reported"),
             ('"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"', "expected export-shim validator-route drift was not reported"),
@@ -223,6 +239,8 @@ def run_self_test() -> int:
             ('"python3 scripts/zigux/validate_phase3_selftest.py"', "expected selftest-driver validator-route drift was not reported"),
             ('"python3 scripts/zigux/run-phase3-checks.py"', "expected runner validator-route drift was not reported"),
             ('"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"', "expected policy-dump build validator-route drift was not reported"),
+            ('"zig build phase3-dump --build-file zigux/tests/build.zig"', "expected shared ABI dump build validator-route drift was not reported"),
+            ('"zig build phase3-test --build-file zigux/tests/build.zig"', "expected shared ABI aggregate build validator-route drift was not reported"),
         )
         for marker, failure_message in validator_cases:
             _populate_repo(repo_root)
@@ -256,6 +274,8 @@ def run_self_test() -> int:
             _expect_issue(issues, expected, failure_message)
 
         replay_route_cases = (
+            ("python3 scripts/zigux/check-phase3-abi.py --self-test", "expected shared ABI self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-abi.py", "expected shared ABI direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test", "expected checker self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected checker direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-selftest-surface.py --self-test", "expected selftest-surface self-test route drift was not reported"),
@@ -273,9 +293,15 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-policy-dump.py", "expected policy-dump direct route drift was not reported"),
             ("python3 scripts/zigux/validate_phase3_selftest.py", "expected selftest-driver route drift was not reported"),
             ("python3 scripts/zigux/run-phase3-checks.py", "expected runner route drift was not reported"),
+            ("zig build phase3-abi-core-packet --build-file zigux/tests/build.zig", "expected shared ABI core build route drift was not reported"),
             ("zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig", "expected export-uapi layout build route drift was not reported"),
             ("zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig", "expected export-uapi layout test route drift was not reported"),
             ("zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "expected policy-dump build route drift was not reported"),
+            ("zig build phase3-dump --build-file zigux/tests/build.zig", "expected shared ABI dump build route drift was not reported"),
+            ("zig build phase3-test --build-file zigux/tests/build.zig", "expected shared ABI aggregate build route drift was not reported"),
+            ("make -C zigux phase3-dump", "expected shared ABI dump make route drift was not reported"),
+            ("make -C zigux phase3-test", "expected shared ABI aggregate make route drift was not reported"),
+            ("make -C zigux phase3", "expected shared ABI top-level make route drift was not reported"),
         )
         for route, failure_message in replay_route_cases:
             _populate_repo(repo_root)
@@ -298,7 +324,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=57")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=70")
     return 0
 
 
