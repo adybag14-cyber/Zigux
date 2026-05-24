@@ -49,6 +49,7 @@ EXPECTED_PROOF_FANOUT_MARKERS = (
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
     "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
@@ -59,7 +60,7 @@ REQUIRED_CONTRACT_MARKERS = (
     "3 shared adjunct proof replays",
     "3 adjunct build replays",
     "10 HVC current-head exact command markers",
-    "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
+    "`make -C zigux phase11-validate` wrapper now cover eleven focused proof builds through",
 )
 
 
@@ -152,7 +153,7 @@ def build_fixture(root: Path) -> None:
                 "3 shared adjunct proof replays",
                 "3 adjunct build replays",
                 "10 HVC current-head exact command markers",
-                "`make -C zigux phase11-validate` wrapper now cover ten focused proof builds through",
+                "`make -C zigux phase11-validate` wrapper now cover eleven focused proof builds through",
                 *EXPECTED_EXACT_CURRENT_CHECKS,
                 *EXPECTED_PROOF_FANOUT_MARKERS,
             ]
