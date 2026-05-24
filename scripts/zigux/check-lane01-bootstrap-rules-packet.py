@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import tempfile
+from pathlib import Path
+
+README_PATH = Path("zigux-alpha/README.md")
+SECTION_HEADING = "Rules"
+NEXT_HEADING = "Active product surfaces"
+EXPECTED_LINES = (
+    "- Keep product planning and bootstrap artifacts here first.",
+    "- Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.",
+    "- The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.",
+    "- Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.",
+    "- Do not create `zigux-alpha/ports/` or any mirror-tree equivalent.",
+    "- Treat ZAR as the research and proving repo and Zigux as the product repo.",
+    "- On Windows, use a case-sensitive repo directory or a Linux filesystem for this repo.",
+)
+
+
+def extract_rules_packet(root: Path) -> tuple[str, ...]:
+    readme_lines = (root / README_PATH).read_text(encoding="utf-8").splitlines()
+
+    try:
+        start = readme_lines.index(SECTION_HEADING)
+    except ValueError as exc:
+        raise AssertionError(f"missing heading: {SECTION_HEADING}") from exc
+
+    try:
+        end = readme_lines.index(NEXT_HEADING, start + 1)
+    except ValueError as exc:
+        raise AssertionError(f"missing heading: {NEXT_HEADING}") from exc
+
+    return tuple(line for line in readme_lines[start + 1 : end] if line.strip())
+
+
+def check_rules_packet(root: Path) -> list[str]:
+    try:
+        packet = extract_rules_packet(root)
+    except AssertionError as exc:
+        return [str(exc)]
+
+    if packet != EXPECTED_LINES:
+        return [
+            "rules packet mismatch",
+            f"expected:{EXPECTED_LINES!r}",
+            f"actual:{packet!r}",
+        ]
+
+    return []
+
+
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def _sample_readme() -> str:
+    return """# zigux-alpha
+
+`zigux-alpha` is the Zigux bootstrap workspace.
+
+Rules
+- Keep product planning and bootstrap artifacts here first.
+- Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.
+- The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.
+- Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.
+- Do not create `zigux-alpha/ports/` or any mirror-tree equivalent.
+- Treat ZAR as the research and proving repo and Zigux as the product repo.
+- On Windows, use a case-sensitive repo directory or a Linux filesystem for this repo.
+
+Active product surfaces
+- `Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.
+"""
+
+
+def run_self_test() -> int:
+    case_count = 0
+    with tempfile.TemporaryDirectory(prefix="zigux_lane01_rules_packet_") as tmp_dir:
+        root = Path(tmp_dir)
+        _write(root / README_PATH, _sample_readme())
+
+        errors = check_rules_packet(root)
+        if errors:
+            raise AssertionError(f"baseline Lane 01 rules fixture should pass: {errors}")
+        case_count += 1
+
+        _write(root / README_PATH, _sample_readme().replace("Rules\n", "", 1))
+        errors = check_rules_packet(root)
+        if errors != ["missing heading: Rules"]:
+            raise AssertionError(f"unexpected rules-heading error: {errors}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace(
+                "- Do not create `zigux-alpha/ports/` or any mirror-tree equivalent.\n",
+                "",
+                1,
+            ),
+        )
+        errors = check_rules_packet(root)
+        if not errors or errors[0] != "rules packet mismatch":
+            raise AssertionError(f"expected missing-line mismatch, got: {errors}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace(
+                "- Treat ZAR as the research and proving repo and Zigux as the product repo.\n"
+                "- On Windows, use a case-sensitive repo directory or a Linux filesystem for this repo.\n",
+                "- On Windows, use a case-sensitive repo directory or a Linux filesystem for this repo.\n"
+                "- Treat ZAR as the research and proving repo and Zigux as the product repo.\n",
+                1,
+            ),
+        )
+        errors = check_rules_packet(root)
+        if not errors or errors[0] != "rules packet mismatch":
+            raise AssertionError(f"expected reorder mismatch, got: {errors}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace(
+                "- Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.\n",
+                "- Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.\n"
+                "- Keep `zigux-alpha/` open for future subsystem mirrors.\n",
+                1,
+            ),
+        )
+        errors = check_rules_packet(root)
+        if not errors or errors[0] != "rules packet mismatch":
+            raise AssertionError(f"expected extra-line mismatch, got: {errors}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(root / README_PATH, _sample_readme().replace("Active product surfaces\n", "Start here\n", 1))
+        errors = check_rules_packet(root)
+        if errors != ["missing heading: Active product surfaces"]:
+            raise AssertionError(f"unexpected next-heading error: {errors}")
+        case_count += 1
+
+    print("LANE01_BOOTSTRAP_RULES_PACKET_SELF_TEST=pass")
+    print(f"LANE01_BOOTSTRAP_RULES_PACKET_SELF_TEST_CASES={case_count}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Verify that the Lane 01 bootstrap Rules packet remains aligned."
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=Path.cwd(),
+        help="repository root containing zigux-alpha/README.md",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="exercise the checker against synthetic Lane 01 README fixtures",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    errors = check_rules_packet(args.root)
+    if errors:
+        for error in errors:
+            print(f"ERROR: {error}")
+        return 1
+
+    print("Lane 01 bootstrap Rules packet check passed.")
+    print(f"LANE01_BOOTSTRAP_RULE_COUNT={len(EXPECTED_LINES)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
