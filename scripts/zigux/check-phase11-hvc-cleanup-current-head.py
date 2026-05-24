@@ -368,6 +368,8 @@ def run_self_test() -> int:
             (TARGETLESS_WITNESS_CHECKER_PATH, 'const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");'),
             (TARGETLESS_WITNESS_CHECKER_PATH, 'const survey = try readRepoFile("Documentation/zigux/phase11-hvc-console-survey.md");'),
             (TARGETLESS_WITNESS_CHECKER_PATH, 'const matrix = try readRepoFile("Documentation/zigux/phase11-hvc-console-validation-matrix.md");'),
+            (TARGETLESS_WITNESS_CHECKER_PATH, 'try expectContains(companion, "separate failure-mode replay");'),
+            (TARGETLESS_WITNESS_CHECKER_PATH, 'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");'),
             (TARGETLESS_WITNESS_PATH, 'test "phase11 hvc notifier witness records current-head targetless unregister sanitizer" {'),
             (TARGETLESS_WITNESS_PATH, 'try expectContains(companion, "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`");'),
             (TARGETLESS_WITNESS_BUILD_PATH, '.name = "phase11-hvc-targetless-unregister-gap",'),
