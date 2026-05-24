@@ -55,6 +55,7 @@ REQUIRED_SOURCE_MARKERS = {
     "bitmap_free_alias": "pub fn bitmap_free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {",
     "range_first_word_assert": "try std.testing.expectEqual(@as(Word, firstWordMask(start)), map[0]);",
     "range_last_partial_assert": "try std.testing.expectEqual(lastWordMask(start + len), map[3]);",
+    "fill_tail_clamp_assert": "try std.testing.expect(full(&full_map, nbits));",
     "empty_buffer_preserved_assert": "try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa, 0xaa }, &buffer);",
     "or_multiword_tail_assert": "try std.testing.expectEqualSlices(Word, &[_]Word{ 0b11_1101, 0b01_0111 }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });",
     "weighted_or_direct_count": "try std.testing.expectEqual(@as(usize, 2), direct_or_weight);",
@@ -62,6 +63,7 @@ REQUIRED_SOURCE_MARKERS = {
     "weighted_or_masked_count": "try std.testing.expectEqual(@as(usize, 2), weight(&direct_or, nbits));",
     "weighted_and_direct_count": "try std.testing.expectEqual(@as(usize, 1), direct_and_weight);",
     "weighted_andnot_direct_count": "try std.testing.expectEqual(@as(usize, 1), direct_andnot_weight);",
+    "complement_tail_mask_assert": "try std.testing.expectEqual((~src[1]) & lastWordMask(nbits), direct[1]);",
 }
 
 
