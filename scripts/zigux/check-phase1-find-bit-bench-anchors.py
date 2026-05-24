@@ -27,6 +27,7 @@ REQUIRED_TEST_MARKERS = {
     "underscore_andnot_alias_test": 'test "low-level underscore aliases mirror the primary find helpers, including andnot" {',
     "linux_andnot_alias_test": 'test "Linux-style aliases mirror the primary find helpers, including andnot" {',
     "last_bit_tail_test": 'test "find last bit clamps tail words to nbits" {',
+    "last_bit_empty_test": 'test "find last bit returns nbits when no set bits remain" {',
 }
 
 REQUIRED_SOURCE_PRESENT_MARKERS = {
@@ -41,6 +42,8 @@ REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_first_andnot_gap": "findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3)",
     "find_last_tail_single_word": "findLastBit(&single_word, single_word_nbits)",
     "find_last_zero_sized": "findLastBit(&populated, 0)",
+    "find_last_empty_bitmap": "findLastBit(&bitmap, nbits)",
+    "find_last_empty_zero": "findLastBit(&empty, 0)",
     "find_next_past_end": "findNextBit(&empty, 7, 11)",
     "find_next_zero_past_end": "findNextZeroBit(&empty, 7, 11)",
     "find_next_and_past_end": "findNextAndBit(&empty, &empty, 7, 11)",
@@ -194,6 +197,10 @@ def build_sample_source(
         "}",
         'test "find last bit clamps tail words to nbits" {',
         "    _ = findLastBit(&single_word, single_word_nbits);",
+        "}",
+        'test "find last bit returns nbits when no set bits remain" {',
+        "    _ = findLastBit(&bitmap, nbits);",
+        "    _ = findLastBit(&empty, 0);",
         "}",
     ]
 
