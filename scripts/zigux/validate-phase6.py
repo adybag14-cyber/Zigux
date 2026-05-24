@@ -85,7 +85,7 @@ EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS = [
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "scripts/zigux/check-phase6-perf-threshold-markers.py",
     "scripts/zigux/check-phase6-hexdump-packet.py",
-    "scripts/zigux/check-phase6-hexdump-route.py",
+    "scripts/zigux/check-phase6-hexdump-route.py"
 ]
 EXPECTED_SHARED_DIRECT_EVIDENCE = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
@@ -104,7 +104,7 @@ EXPECTED_SHARED_DIRECT_EVIDENCE = [
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "scripts/zigux/check-phase6-perf-threshold-markers.py",
     "scripts/zigux/check-phase6-hexdump-packet.py",
-    "scripts/zigux/check-phase6-hexdump-route.py",
+    "scripts/zigux/check-phase6-hexdump-route.py"
 ]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
@@ -140,6 +140,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "make -C zigux phase6-checksum-perf",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
     "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
@@ -228,7 +229,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 class ValidationError(RuntimeError):
@@ -580,6 +581,25 @@ def run_self_test() -> None:
                                 "current_direct_readback_companions"
                             ]
                             if item != "scripts/zigux/check-phase6-perf-threshold-markers.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "current_shared_replay_inventory": [
+                            item
+                            for item in read_json(root / HELPER_EVIDENCE_MANIFEST)[
+                                "current_shared_replay_inventory"
+                            ]
+                            if item != "python3 scripts/zigux/check-phase6-perf-threshold-markers.py"
                         ],
                     },
                     indent=2,
