@@ -79,6 +79,7 @@ REQUIRED_PATHS = (
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+    "zigux/tests/phase10_virtio_ring_registration_replay.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
 )
@@ -268,6 +269,10 @@ def run_self_test() -> int:
             "missing_input_survey_path",
         )
         assert_missing_required_path(
+            "zigux/tests/phase10_virtio_ring_registration_replay.zig",
+            "missing_ring_registration_replay_path",
+        )
+        assert_missing_required_path(
             "scripts/zigux/check-phase10-closure-manifest-counts.py",
             "missing_closure_manifest_counts_checker_path",
         )
@@ -344,7 +349,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=21")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
