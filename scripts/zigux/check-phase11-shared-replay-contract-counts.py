@@ -23,7 +23,7 @@ EXPECTED_COUNTS = {
     "dedicated_survey_replays": 0,
     "shared_adjunct_replays": 3,
     "shared_adjunct_build_replays": 3,
-    "exact_current_checks": 10,
+    "exact_current_checks": 11,
 }
 
 EXPECTED_EXACT_CURRENT_CHECKS = (
@@ -37,6 +37,7 @@ EXPECTED_EXACT_CURRENT_CHECKS = (
     "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
 )
 
 EXPECTED_PROOF_FANOUT_MARKERS = (
@@ -59,7 +60,7 @@ REQUIRED_CONTRACT_MARKERS = (
     "0 dedicated survey replays",
     "3 shared adjunct proof replays",
     "3 adjunct build replays",
-    "10 HVC current-head exact command markers",
+    "11 HVC current-head exact command markers",
     "`make -C zigux phase11-validate` wrapper now cover eleven focused proof builds through",
 )
 
@@ -152,7 +153,7 @@ def build_fixture(root: Path) -> None:
                 "0 dedicated survey replays",
                 "3 shared adjunct proof replays",
                 "3 adjunct build replays",
-                "10 HVC current-head exact command markers",
+                "11 HVC current-head exact command markers",
                 "`make -C zigux phase11-validate` wrapper now cover eleven focused proof builds through",
                 *EXPECTED_EXACT_CURRENT_CHECKS,
                 *EXPECTED_PROOF_FANOUT_MARKERS,
@@ -185,12 +186,12 @@ def run_self_test() -> int:
         write(
             wrong_contract / CONTRACT_PATH,
             read_text(wrong_contract / CONTRACT_PATH).replace(
-                "10 HVC current-head exact command markers",
-                "8 HVC current-head exact command markers",
+                "11 HVC current-head exact command markers",
+                "9 HVC current-head exact command markers",
                 1,
             ),
         )
-        expect_failure(wrong_contract, "10 HVC current-head exact command markers")
+        expect_failure(wrong_contract, "11 HVC current-head exact command markers")
         case_count += 1
 
         missing_contract_check = tmpdir / "missing_contract_check"
