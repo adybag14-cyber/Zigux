@@ -80,7 +80,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It records the 
   * the directly readable workqueue boundary shard:
     * `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` are directly readable again on current `master`, so the shared smoke packet should keep the workqueue reviewability foothold explicit even while the broader executable layer stays partial
     * workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L04`, surveyed commit `9b98d3b9c812840bf279508030be0b8de093736c`, current slice `phase14-workqueue-scheduler-visible-worker-state-refinement`, posture `blocked_maintenance`, blocked `phase14-workqueue-live-execution-blocker`
-    * `phase14-workqueue-reviewability-tests` -> `phase14_workqueue_reviewability.zig` -> `full_bundle_only`
+    * the bridge-local trusted rerun still stops at `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while `make -C zigux phase14-validate` remains the broader shared packet-local validation route rather than bridge-local proof
   * the directly readable ring-buffer survey companion:
     * `zigux/tests/phase14_ring_buffer_survey.zig` is directly readable again on current `master`, so the shared smoke packet should keep the study-only ring-buffer survey foothold explicit even while the build-side and broader executable layer stay partial
   * the directly readable dedicated RCU survey companion:
