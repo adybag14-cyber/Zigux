@@ -2,7 +2,7 @@
 
 This survey records the broader helper-parity companion for the bounded Phase 6 leaf-helper packet on `master`.
 
-- surveyed head: `current-master-readback-2026-05-22`
+- surveyed head: `current-master-readback-2026-05-24`
 - lane scope: directly readable helper parity rows and shared companion notes only
 - direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_parity_manifest.json`
@@ -68,5 +68,7 @@ Use this compact index as the row-level roadmap check first. The detailed helper
 Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/validate-phase6.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, `scripts/zigux/check-phase6-hexdump-route.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `Documentation/zigux/phase6-perf-gate-survey.md`.
 
 Authenticated follow-up readback on 2026-05-22 directly recovered `Documentation/zigux/phase6-perf-gate-survey.md` and `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` again, so broader reminder surfaces can keep the shared survey plus the base64-bsearch, checksum-hexdump, and perf-threshold guard surfaces inside the directly readable shared packet instead of treating any of those guards as fallback-only evidence.
+
+Authenticated current-master reread on 2026-05-24 reconfirmed direct access to `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/validate-phase6.py`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`, while `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` still returned 404.
 
 Reopen this catalog only when one of the four roadmap anchors gains or loses a truthful helper-evidence row on `master`.
