@@ -85,11 +85,14 @@ def check_workflow(text: str) -> None:
         require_exact_line(text, line, label)
 
     for step, label in (
+        (ARCHIVE_CHECK_STEP, "archive check step"),
+        (INSTALL_SELF_TEST_STEP, "installer self-test step"),
         (STAGE_HELPER_SELF_TEST_STEP, "stage helper self-test step"),
         (CONTRACT_SELF_TEST_STEP, "contract self-test step"),
         (CONTRACT_CHECK_STEP, "contract check step"),
         (SELF_TEST_STEP, "self checker self-test step"),
         (CHECK_STEP, "self checker check step"),
+        (NEXT_STEP, "next phase anchor"),
     ):
         require_exact_line(text, step, label)
 
@@ -128,6 +131,22 @@ jobs:
     case_count = 1
 
     for broken_text, expected in (
+        (
+            good_workflow.replace(
+                "      - name: Check current pinned Zig archive packet\n",
+                "",
+                1,
+            ),
+            ARCHIVE_CHECK_STEP,
+        ),
+        (
+            good_workflow.replace(
+                "      - name: Self-test current Zig installer helper\n",
+                "",
+                1,
+            ),
+            INSTALL_SELF_TEST_STEP,
+        ),
         (
             good_workflow.replace(
                 "      - name: Self-test current staged pinned Zig archive helper\n"
@@ -180,6 +199,34 @@ jobs:
             case_count += 1
         else:
             raise AssertionError(f"expected failure for {expected}")
+
+    duplicate_archive_step = good_workflow.replace(
+        "      - name: Check current pinned Zig archive packet\n",
+        "      - name: Check current pinned Zig archive packet\n"
+        "      - name: Check current pinned Zig archive packet\n",
+        1,
+    )
+    try:
+        check_workflow(duplicate_archive_step)
+    except SystemExit as exc:
+        assert ARCHIVE_CHECK_STEP in str(exc), str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected duplicate archive check step failure")
+
+    duplicate_install_step = good_workflow.replace(
+        "      - name: Self-test current Zig installer helper\n",
+        "      - name: Self-test current Zig installer helper\n"
+        "      - name: Self-test current Zig installer helper\n",
+        1,
+    )
+    try:
+        check_workflow(duplicate_install_step)
+    except SystemExit as exc:
+        assert INSTALL_SELF_TEST_STEP in str(exc), str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected duplicate installer self-test step failure")
 
     duplicate_step = good_workflow.replace(
         "      - name: Self-test current staged pinned Zig archive helper\n",
