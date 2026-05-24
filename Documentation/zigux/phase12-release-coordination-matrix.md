@@ -20,7 +20,7 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`
 - validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`
-- adjacent shared support companions: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` stay explicit beside that validator-first bundle so the compact PMO summary does not undercount the current shared support packet
+- adjacent shared support companions: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` stay explicit beside that validator-first bundle so the compact PMO summary does not undercount the current shared support packet
 - shared replay wiring: `zigux/tests/phase12_build.zig` and `.github/workflows/zigux-bootstrap.yml`; `zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on `master`
 
 ## Owner Split
