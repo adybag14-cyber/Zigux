@@ -173,7 +173,11 @@ RBTREE_REQUIRED_SNIPPETS = [
     "pub fn add(",
     "pub fn rb_find_add_cached(",
 ]
-SELF_TEST_CASE_COUNT = 4
+VALIDATOR_REQUIRED_SNIPPETS = [
+    'BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")',
+    "run_checker(root, BUILD_WIRING_CHECKER_PATH)",
+]
+SELF_TEST_CASE_COUNT = 6
 
 
 class ValidationError(RuntimeError):
@@ -229,6 +233,7 @@ def validate(root: Path) -> None:
     require_absent_lines(root / MAKEFILE_PATH, MAKEFILE_FORBIDDEN_LINES)
     require_snippets(root / BUILD_PATH, BUILD_REQUIRED_SNIPPETS)
     require_snippets(root / RBTREE_PATH, RBTREE_REQUIRED_SNIPPETS)
+    require_snippets(root / VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS)
 
     manifest = read_json(root / MANIFEST_PATH)
     if manifest.get("packet") != EXPECTED_PACKET:
@@ -258,7 +263,13 @@ def write(path: Path, content: str) -> None:
 
 def build_fixture_root(root: Path) -> None:
     write(root / REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n")
-    write(root / VALIDATOR_PATH, 'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")\nrun_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)\n')
+    write(
+        root / VALIDATOR_PATH,
+        'BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")\n'
+        'run_checker(root, BUILD_WIRING_CHECKER_PATH)\n'
+        'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")\n'
+        'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)\n',
+    )
     write(root / CATALOG_PATH, "\n".join(CATALOG_REQUIRED_SNIPPETS) + "\n")
     write(
         root / MANIFEST_PATH,
@@ -308,6 +319,8 @@ def run_self_test() -> None:
             (MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
             (BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
             (MANIFEST_PATH, '"Documentation/zigux/review-checklist.md"', '"Documentation/zigux/review-guide.md"'),
+            (VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS[0], 'BUILD_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")'),
+            (VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS[1], "run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)"),
         ]:
             build_fixture_root(root)
             expect_failure(root, rel, old, new)
