@@ -288,6 +288,9 @@ REQUIRED_MARKERS = {
         "formatLibbpfError",
     ),
     ONLINE_CPU_ROUTING_PATH: (
+        "pub fn advanceOnlineCpuCursor(",
+        "pub fn summarizeNextOnlineCpuRoute(",
+        "pub fn summarizeOnlineCpuRouting(",
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
         'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
