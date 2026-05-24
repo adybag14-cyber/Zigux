@@ -62,6 +62,7 @@ EXPECTED_PROOF_FANOUT_MARKERS = (
     "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
@@ -78,7 +79,7 @@ REQUIRED_CONTRACT_MARKERS = (
     "2 focused direct build checker routes",
     "2 focused direct build replays",
     "11 HVC current-head exact command markers",
-    "`make -C zigux phase11-validate` wrapper now cover twelve focused proof builds through",
+    "`make -C zigux phase11-validate` wrapper now cover thirteen focused proof builds through",
 )
 
 REQUIRED_WORKFLOW_MARKERS = (
@@ -205,7 +206,7 @@ def build_fixture(root: Path) -> None:
                 "2 focused direct build checker routes",
                 "2 focused direct build replays",
                 "11 HVC current-head exact command markers",
-                "`make -C zigux phase11-validate` wrapper now cover twelve focused proof builds through",
+                "`make -C zigux phase11-validate` wrapper now cover thirteen focused proof builds through",
                 *EXPECTED_EXACT_CURRENT_CHECKS,
                 *EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS,
                 *EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS,
@@ -333,6 +334,22 @@ def run_self_test() -> int:
         expect_failure(
             missing_proof_fanout_marker,
             "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
+        )
+        case_count += 1
+
+        missing_remove_handoff_proof = tmpdir / "missing_remove_handoff_proof"
+        shutil.copytree(fixture, missing_remove_handoff_proof, dirs_exist_ok=True)
+        write(
+            missing_remove_handoff_proof / CONTRACT_PATH,
+            read_text(missing_remove_handoff_proof / CONTRACT_PATH).replace(
+                "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_remove_handoff_proof,
+            "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
         )
         case_count += 1
 
