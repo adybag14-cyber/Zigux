@@ -192,6 +192,7 @@ REQUIRED_MARKERS = {
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
         "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard",
     ],
     RAW_GITHUB_COVERAGE_PATH: [
@@ -380,7 +381,9 @@ REQUIRED_MARKERS = {
 }
 
 EXACT_COUNT_MARKERS = {
-    RELEASE_COORDINATION_MATRIX_PATH: {},
+    RELEASE_COORDINATION_MATRIX_PATH: {
+        "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
+    },
 }
 
 FORBIDDEN_MARKERS = {
