@@ -64,6 +64,8 @@ REQUIRED_PATHS = (
     "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig",
     "zigux/tests/phase11_dw_wdt_build.zig",
     "zigux/tests/phase11_dw_wdt_pm_build.zig",
+    "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
+    "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
@@ -175,6 +177,10 @@ CHECKS = (
     CheckSpec(
         "phase11-dw-wdt-pm-build",
         ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_pm_build.zig"),
+    ),
+    CheckSpec(
+        "phase11-gpio-wdt-preflight-review-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig"),
     ),
     CheckSpec(
         "phase11-gpio-wdt-register-device-glue-review-build",
@@ -411,6 +417,8 @@ def run_self_test() -> int:
             "drivers/watchdog/dw_wdt_pm.zig",
             "drivers/watchdog/dw_wdt_pm_scaffold.zig",
             "zigux/tests/phase11_dw_wdt_restart_build.zig",
+            "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
+            "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
             "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
             "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
         ):
@@ -480,6 +488,7 @@ def run_self_test() -> int:
             ("zigux/tests/phase11_dw_wdt_build.zig", "phase11-dw-wdt-build"),
             ("zigux/tests/phase11_dw_wdt_restart_build.zig", "phase11-dw-wdt-restart-build"),
             ("zigux/tests/phase11_dw_wdt_pm_build.zig", "phase11-dw-wdt-pm-build"),
+            ("zigux/tests/phase11_gpio_wdt_preflight_review_build.zig", "phase11-gpio-wdt-preflight-review-build"),
             ("zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig", "phase11-gpio-wdt-register-device-glue-review-build"),
             ("zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig", "phase11-gpio-wdt-nowayout-policy-review-build"),
             ("zigux/tests/phase11_hvc_hv_ops_layout_build.zig", "phase11-hvc-hv-ops-layout-build"),
