@@ -456,6 +456,18 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_clamp_fixture_keys"].pop(),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/find_bit.zig:tail_clamp_fixture_keys",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest["review_anchors"]["tools/lib/rbtree.zig"]["cached_root_followup_anchors"].remove(
                         'test "rbtree cached-root Linux-style aliases mirror the primary helpers"'
                     ),
