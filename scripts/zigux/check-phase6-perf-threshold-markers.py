@@ -301,6 +301,11 @@ SELF_TEST_CASES = [
         '          "make -C zigux phase6-perf-gate"',
     ),
     (
+        PHASE6_HELPER_EVIDENCE_MANIFEST_PATH,
+        '          "make -C zigux phase6-hexdump-perf",',
+        '          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-perf",',
+    ),
+    (
         PHASE6_HELPER_PARITY_MANIFEST_PATH,
         '        "max_decode_slowdown_pct": 325,',
         '        "max_decode_slowdown_pct": 350,',
@@ -329,6 +334,11 @@ SELF_TEST_CASES = [
         PHASE6_HELPER_PARITY_MANIFEST_PATH,
         '          "make -C zigux phase6-perf"',
         '          "make -C zigux phase6-perf-gate"',
+    ),
+    (
+        PHASE6_HELPER_PARITY_MANIFEST_PATH,
+        '          "make -C zigux phase6-hexdump-perf",',
+        '          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-perf",',
     ),
     (
         BSEARCH_VECTORS_PATH,
@@ -516,7 +526,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    if args.self_test:
+    if args.self-test:
         run_self_test()
         return 0
 
