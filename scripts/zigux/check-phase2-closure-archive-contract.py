@@ -9,7 +9,10 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 PHASE2_CLOSURE = Path("Documentation/zigux/phase2-closure.md")
 ARCHIVE_CONTRACT_CHECKER = Path("scripts/zigux/check-phase2-archive-contract-packet.py")
+CLOSURE_ARCHIVE_CONTRACT_CHECKER = Path("scripts/zigux/check-phase2-closure-archive-contract.py")
+VALIDATE_PHASE2 = Path("scripts/zigux/validate-phase2.py")
 VALIDATE_PHASE2_CLOSURE = Path("scripts/zigux/validate-phase2-closure.py")
+MAKEFILE = Path("zigux/Makefile")
 
 PAYLOAD = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
 
@@ -26,6 +29,16 @@ REQUIRED_VALIDATE_CLOSURE_MARKERS = (
     '"`scripts/zigux/check-phase2-archive-contract-packet.py`",',
     '"`python3 scripts/zigux/check-phase2-archive-contract-packet.py --self-test`",',
     '"`python3 scripts/zigux/check-phase2-archive-contract-packet.py`",',
+)
+
+REQUIRED_VALIDATE_PHASE2_MARKERS = (
+    '"scripts/zigux/check-phase2-closure-archive-contract.py",',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-closure-archive-contract.py",',
+)
+
+REQUIRED_MAKEFILE_LINES = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-archive-contract-packet.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-closure-archive-contract.py",
 )
 
 
@@ -55,6 +68,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in REQUIRED_VALIDATE_CLOSURE_MARKERS:
         if marker not in validate_closure_text:
             issues.append(("MISSING_VALIDATE_CLOSURE_MARKER", marker))
+
+    validate_phase2_text = read_text(root, VALIDATE_PHASE2)
+    for marker in REQUIRED_VALIDATE_PHASE2_MARKERS:
+        if marker not in validate_phase2_text:
+            issues.append(("MISSING_VALIDATE_PHASE2_MARKER", marker))
+
+    makefile_text = read_text(root, MAKEFILE)
+    for marker in REQUIRED_MAKEFILE_LINES:
+        if marker not in makefile_text:
+            issues.append(("MISSING_MAKEFILE_LINE", marker))
 
     archive_checker_text = read_text(root, ARCHIVE_CONTRACT_CHECKER)
     if PAYLOAD not in archive_checker_text:
@@ -101,9 +124,37 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(
         root,
+        VALIDATE_PHASE2,
+        "\n".join(
+            (
+                "REQUIRED_PATHS = (",
+                '    "scripts/zigux/check-phase2-closure-archive-contract.py",',
+                ")",
+                "PHASE2_VALIDATE_ROUTE_LINES = (",
+                '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-closure-archive-contract.py",',
+                ")",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        MAKEFILE,
+        "\n".join(
+            (
+                "phase2-validate:",
+                "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-archive-contract-packet.py",
+                "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-closure-archive-contract.py",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
         ARCHIVE_CONTRACT_CHECKER,
         f'PAYLOAD = "{PAYLOAD}"\n',
     )
+    write_text(root, CLOSURE_ARCHIVE_CONTRACT_CHECKER, "present\n")
 
 
 def run_self_test() -> int:
@@ -122,6 +173,16 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, VALIDATE_PHASE2_CLOSURE, "# broken\n")
         assert any(code == "MISSING_VALIDATE_CLOSURE_MARKER" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, VALIDATE_PHASE2, "# broken\n")
+        assert any(code == "MISSING_VALIDATE_PHASE2_MARKER" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MAKEFILE, "phase2-validate:\n")
+        assert any(code == "MISSING_MAKEFILE_LINE" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
