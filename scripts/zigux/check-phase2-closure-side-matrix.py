@@ -13,10 +13,15 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 CLOSURE_MATRIX_CHECKER = "scripts/zigux/check-phase2-closure-matrix.py"
+SHARED_VALIDATOR_REL = Path("scripts/zigux/validate-phase2.py")
 VALIDATOR_REL = Path("scripts/zigux/validate-phase2-closure.py")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 CHECKERS_SURFACE = "checkers"
 CLOSURE_MATRIX_CHECKER_LINE = f'    "{CLOSURE_MATRIX_CHECKER}",'
+SHARED_VALIDATOR_MARKERS = (
+    f'CLOSURE_MATRIX_CHECKER = "{CLOSURE_MATRIX_CHECKER}"',
+    "    CLOSURE_MATRIX_CHECKER,",
+)
 
 VALIDATOR_MARKERS = (
     f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")',
@@ -53,10 +58,13 @@ def read_json(path: Path) -> object:
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
+    shared_validator_path = resolve(root, SHARED_VALIDATOR_REL)
     validator_path = resolve(root, VALIDATOR_REL)
     manifest_path = resolve(root, MANIFEST_REL)
     checker_path = resolve(root, Path(CLOSURE_MATRIX_CHECKER))
 
+    if not shared_validator_path.exists():
+        issues.append(("MISSING_REQUIRED_FILE", SHARED_VALIDATOR_REL.as_posix()))
     if not validator_path.exists():
         issues.append(("MISSING_REQUIRED_FILE", VALIDATOR_REL.as_posix()))
     if not manifest_path.exists():
@@ -66,6 +74,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if issues:
         return issues
 
+    shared_validator_text = read_text(shared_validator_path)
     validator_text = read_text(validator_path)
     manifest = read_json(manifest_path)
 
@@ -82,6 +91,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(checkers, list) or not all(isinstance(item, str) for item in checkers):
         issues.append(("INVALID_MANIFEST_SHAPE", CHECKERS_SURFACE))
         return issues
+
+    for marker in SHARED_VALIDATOR_MARKERS:
+        marker_count = shared_validator_text.count(marker)
+        if marker_count == 0:
+            issues.append(("MISSING_SHARED_VALIDATOR_MARKER", marker))
+        elif marker_count != 1:
+            issues.append(("DUPLICATE_SHARED_VALIDATOR_MARKER", f"{marker}:count={marker_count}"))
 
     validator_marker_count = validator_text.count(CLOSURE_MATRIX_CHECKER_LINE)
     if validator_marker_count < 2:
@@ -130,12 +146,21 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_self_test_root(root: Path) -> None:
+    shared_validator = f"""#!/usr/bin/env python3
+from __future__ import annotations
+
+CLOSURE_MATRIX_CHECKER = \"{CLOSURE_MATRIX_CHECKER}\"
+REQUIRED_PATHS = (
+    \"scripts/zigux/check-zig-toolchain.py\",
+    CLOSURE_MATRIX_CHECKER,
+)
+"""
     validator = f"""#!/usr/bin/env python3
 from __future__ import annotations
 
 EXPECTED_MANIFEST_CHECKERS = (
-    "scripts/zigux/check-zig-toolchain.py",
-    "{CLOSURE_MATRIX_CHECKER}",
+    \"scripts/zigux/check-zig-toolchain.py\",
+    \"{CLOSURE_MATRIX_CHECKER}\",
 )
 
 def collect_issues(root):
@@ -143,15 +168,15 @@ def collect_issues(root):
 
 def run_self_test():
     payload = {{
-        "present_surfaces": {{
-            "{CHECKERS_SURFACE}": [
-                "scripts/zigux/check-zig-toolchain.py",
-                "{CLOSURE_MATRIX_CHECKER}",
+        \"present_surfaces\": {{
+            \"{CHECKERS_SURFACE}\": [
+                \"scripts/zigux/check-zig-toolchain.py\",
+                \"{CLOSURE_MATRIX_CHECKER}\",
             ]
         }}
     }}
-    payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")
-    assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") in collect_issues(root)
+    payload[\"present_surfaces\"][\"{CHECKERS_SURFACE}\"].remove(\"{CLOSURE_MATRIX_CHECKER}\")
+    assert (\"MISSING_MANIFEST_SURFACE\", \"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}\") in collect_issues(root)
     return payload
 """
     manifest = {
@@ -166,6 +191,7 @@ def run_self_test():
         },
     }
 
+    write_text(resolve(root, SHARED_VALIDATOR_REL), shared_validator)
     write_text(resolve(root, VALIDATOR_REL), validator)
     write_text(resolve(root, Path(CLOSURE_MATRIX_CHECKER)), "present\n")
     write_text(resolve(root, MANIFEST_REL), json.dumps(manifest, indent=2) + "\n")
@@ -179,6 +205,31 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
+        shared_validator_path = resolve(root, SHARED_VALIDATOR_REL)
+        shared_validator_path.write_text(
+            read_text(shared_validator_path).replace(SHARED_VALIDATOR_MARKERS[0] + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert ("MISSING_SHARED_VALIDATOR_MARKER", SHARED_VALIDATOR_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        shared_validator_path = resolve(root, SHARED_VALIDATOR_REL)
+        shared_validator_path.write_text(
+            read_text(shared_validator_path).replace(
+                SHARED_VALIDATOR_MARKERS[1],
+                SHARED_VALIDATOR_MARKERS[1] + "\n" + SHARED_VALIDATOR_MARKERS[1],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_SHARED_VALIDATOR_MARKER",
+            f"{SHARED_VALIDATOR_MARKERS[1]}:count=2",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         validator_path = resolve(root, VALIDATOR_REL)
         validator_path.write_text(
             read_text(validator_path).replace(CLOSURE_MATRIX_CHECKER_LINE + "\n", "", 1),
@@ -207,7 +258,7 @@ def run_self_test() -> int:
         validator_path = resolve(root, VALIDATOR_REL)
         validator_path.write_text(
             read_text(validator_path).replace(
-                f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")',
+                f'payload[\"present_surfaces\"][\"{CHECKERS_SURFACE}\"].remove(\"{CLOSURE_MATRIX_CHECKER}\")',
                 "# drifted",
                 1,
             ),
@@ -215,7 +266,7 @@ def run_self_test() -> int:
         )
         assert (
             "MISSING_VALIDATOR_MARKER",
-            f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")',
+            f'payload[\"present_surfaces\"][\"{CHECKERS_SURFACE}\"].remove(\"{CLOSURE_MATRIX_CHECKER}\")',
         ) in collect_issues(root)
         checks_run += 1
 
@@ -223,10 +274,10 @@ def run_self_test() -> int:
         validator_path = resolve(root, VALIDATOR_REL)
         validator_path.write_text(
             read_text(validator_path).replace(
-                f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")',
+                f'payload[\"present_surfaces\"][\"{CHECKERS_SURFACE}\"].remove(\"{CLOSURE_MATRIX_CHECKER}\")',
                 (
-                    f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")\n'
-                    f'    payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")'
+                    f'payload[\"present_surfaces\"][\"{CHECKERS_SURFACE}\"].remove(\"{CLOSURE_MATRIX_CHECKER}\")\n'
+                    f'    payload[\"present_surfaces\"][\"{CHECKERS_SURFACE}\"].remove(\"{CLOSURE_MATRIX_CHECKER}\")'
                 ),
                 1,
             ),
@@ -235,7 +286,7 @@ def run_self_test() -> int:
         assert (
             "DUPLICATE_VALIDATOR_MARKER",
             (
-                f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")'
+                f'payload[\"present_surfaces\"][\"{CHECKERS_SURFACE}\"].remove(\"{CLOSURE_MATRIX_CHECKER}\")'
                 ":count=2"
             ),
         ) in collect_issues(root)
@@ -245,10 +296,10 @@ def run_self_test() -> int:
         validator_path = resolve(root, VALIDATOR_REL)
         validator_path.write_text(
             read_text(validator_path).replace(
-                f'assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") in collect_issues(root)',
+                f'assert (\"MISSING_MANIFEST_SURFACE\", \"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}\") in collect_issues(root)',
                 (
-                    f'assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") in collect_issues(root)\n'
-                    f'    assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") in collect_issues(root)'
+                    f'assert (\"MISSING_MANIFEST_SURFACE\", \"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}\") in collect_issues(root)\n'
+                    f'    assert (\"MISSING_MANIFEST_SURFACE\", \"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}\") in collect_issues(root)'
                 ),
                 1,
             ),
@@ -257,7 +308,7 @@ def run_self_test() -> int:
         assert (
             "DUPLICATE_VALIDATOR_MARKER",
             (
-                f'assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") '
+                f'assert (\"MISSING_MANIFEST_SURFACE\", \"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}\") '
                 "in collect_issues(root):count=2"
             ),
         ) in collect_issues(root)
@@ -306,6 +357,11 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        resolve(root, SHARED_VALIDATOR_REL).unlink()
+        assert ("MISSING_REQUIRED_FILE", SHARED_VALIDATOR_REL.as_posix()) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         resolve(root, VALIDATOR_REL).unlink()
         assert ("MISSING_REQUIRED_FILE", VALIDATOR_REL.as_posix()) in collect_issues(root)
         checks_run += 1
@@ -327,7 +383,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check the closure-side validator and Phase 2 tool manifest for closure-matrix coverage."
+        description="Check the closure-side validator, shared validator, and Phase 2 tool manifest for closure-matrix coverage."
     )
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
