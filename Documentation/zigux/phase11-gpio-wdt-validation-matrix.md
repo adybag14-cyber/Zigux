@@ -18,6 +18,7 @@ Zigux Phase 11 simple-driver packet.
 The current gpio watchdog matrix packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `drivers/watchdog/gpio_wdt_verify.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
@@ -48,6 +49,7 @@ Treat the current gpio watchdog matrix packet as the driver-plus-docs-plus-proof
 packet below:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `drivers/watchdog/gpio_wdt_verify.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
@@ -62,13 +64,13 @@ packet below:
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-The returned driver, focused preflight proof, focused register-device glue
-proof, focused nowayout policy proof, focused remove-handoff proof, dedicated
-bounded replay routes, plus the paired module slice, teardown note, and
-remove-handoff note keep the bounded `platformDriverIdentitySummary()`,
-`watchdogMetadataSummary()`, `probeSummary()`, `descriptorRequestSummary()`,
-`descriptorPreflightSummary()`, `timeoutPropertyCheckpointSummary()`,
-`platformDrvdataCheckpointSummary()`,
+The returned driver, the driver-backed verify helper, focused preflight proof,
+focused register-device glue proof, focused nowayout policy proof, focused
+remove-handoff proof, dedicated bounded replay routes, plus the paired module
+slice, teardown note, and remove-handoff note keep the bounded
+`platformDriverIdentitySummary()`, `watchdogMetadataSummary()`, `probeSummary()`,
+`descriptorRequestSummary()`, `descriptorPreflightSummary()`,
+`timeoutPropertyCheckpointSummary()`, `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`,
 `registrationIntentCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `registrationHandoffSummary()`, `registrationPlanSummary()`,
@@ -81,6 +83,14 @@ The direct preflight proof keeps `descriptorPreflightSummary()` matched to the
 existing descriptor request packet while also machine-checking the timeout
 property, `platform_set_drvdata()`, and `watchdog_set_drvdata()` ordering
 through one bounded preflight route.
+
+The driver-backed verify helper in `drivers/watchdog/gpio_wdt_verify.zig` keeps
+`registrationPlanSummary()`, `registerDeviceCallSummary()`,
+`registerDeviceFailureSummary()`, `rebootGlueCheckpointSummary()`,
+`summarizeTeardown()`, and `summarizeRemoveHandoff()` compile-local and directly
+replayed beside the dedicated focused proofs without claiming live GPIO,
+platform-driver registration, watchdog-core registration, remove-hook
+execution, or shutdown execution.
 
 The direct nowayout proof keeps `nowayoutPolicySummary()` machine-checked
 across the bounded stopped, blocked-by-nowayout, and kept-running outcomes,
@@ -101,6 +111,11 @@ platform-driver removal, watchdog-core unregister, or shutdown execution.
   reboot-glue handoff, nowayout policy, registration, register-device failure,
   teardown, and remove-handoff checkpoint names directly readable without
   claiming live side effects.
+- direct verify-helper anchor: `drivers/watchdog/gpio_wdt_verify.zig` keeps the
+  current registration-plan, register-device call, register-device failure,
+  reboot-glue checkpoint, teardown, and remove-handoff summaries directly
+  replayable as a driver-backed failure-mode packet without claiming live GPIO,
+  watchdog-core registration, remove-hook execution, or shutdown execution.
 - direct preflight proof anchor:
   `zigux/tests/phase11_gpio_wdt_preflight_review.zig` keeps the descriptor
   preflight alias, timeout-property ordering, and platform/watchdog drvdata
@@ -148,9 +163,10 @@ platform-driver removal, watchdog-core unregister, or shutdown execution.
 
 - Treat this matrix as current-head truthfulness only, not as proof of live
   platform behavior or hardware-backed validation.
-- Keep teardown and failure-mode parity bounded to the current driver, direct
-  proofs, dedicated replay routes, and directly coupled docs packet until a
-  later repo change restores wider replay or build-route surfaces.
+- Keep teardown and failure-mode parity bounded to the current driver, the
+  driver-backed verify helper, direct proofs, dedicated replay routes, and
+  directly coupled docs packet until a later repo change restores wider replay
+  or build-route surfaces.
 - Do not use this note to claim live GPIO descriptor acquisition,
   `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
   `watchdog_stop_on_reboot()` execution,
