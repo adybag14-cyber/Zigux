@@ -21,8 +21,11 @@ EXPECTED_ROUTE = "make -C zigux phase2-cross"
 EXPECTED_REQUIRED_MAKE_ROUTES = (
     "phase2-toolchain",
     "phase2-tools",
-    "phase2-validate",
+    "phase2-kconfig",
     "phase2-cross",
+    "phase2-genksyms",
+    "phase2-fixdep",
+    "phase2-validate",
 )
 EXPECTED_REVIEW_STATUS_BY_TARGET = {
     "x86_64-linux": "pinned bootstrap archive",
@@ -359,10 +362,9 @@ def self_test() -> int:
                 {
                     "archive_sha256": {
                         "x86_64-linux": "sha256-x86_64-linux",
-                        "aarch64-linux": "sha256-aarch64-linux",
                     },
                     "upgrade_policy": {
-                        "archive_target_scope": list(SUPPORTED_CROSS_TARGETS),
+                        "archive_target_scope": ["x86_64-linux"],
                         "required_make_routes": list(EXPECTED_REQUIRED_MAKE_ROUTES),
                     },
                 },
@@ -377,7 +379,7 @@ def self_test() -> int:
                     "phase": "Phase 2",
                     "status": "active",
                     "route": EXPECTED_ROUTE,
-                    "archive_target_scope": list(SUPPORTED_CROSS_TARGETS),
+                    "archive_target_scope": ["x86_64-linux"],
                     "cross_targets": [
                         {
                             "target": "x86_64-linux",
@@ -551,7 +553,7 @@ def self_test() -> int:
                             "phase": "Phase 2",
                             "status": "active",
                             "route": EXPECTED_ROUTE,
-                            "archive_target_scope": ["x86_64-linux"],
+                            "archive_target_scope": list(SUPPORTED_CROSS_TARGETS),
                             "cross_targets": [
                                 {
                                     "target": "x86_64-linux",
