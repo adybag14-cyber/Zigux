@@ -5,8 +5,8 @@ Fail-closed checker for the current Phase 14 release-boundary count posture.
 
 This guard keeps the release-boundary packet honest around the exact manifest-
 backed compile-shard counts, the dedicated compile-shard matrix survey, the
-returned manifest posture in the shared smoke survey, the new validator-side
-skbuff compile-route packet, and the still-unreadable build-side or broader
+returned manifest posture in the shared smoke survey, the dedicated validator-side
+skbuff stay-in-C and compile-route packets, and the still-unreadable build-side or broader
 executable-layer gap while cross-reading the shared smoke survey markers that
 define the current Phase 14 route split.
 """
@@ -68,6 +68,7 @@ SURVEY_EXACT_LINE_SNIPPETS = [
     "  * directly readable current-`master` companion surfaces in this lane's current evidence split:",
     "    * `scripts/zigux/check-phase14-shared-smoke-route.py` through the current contents path",
     "    * `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` through the current contents path",
+    "    * `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py` through the current contents path",
     "    * `zigux/tests/phase14_end_to_end_smoke_manifest.json` through the current contents path",
     "  * exact-readback gaps that still belong to this shared note:",
     "    * `zigux/tests/phase14_build.zig`",
@@ -95,6 +96,7 @@ REQUIRED_MANIFEST_VALUES = {
     ("survey_summary", "workflow_runs_phase14_validate"): True,
     ("survey_summary", "workflow_runs_phase14_build"): False,
     ("survey_summary", "workflow_runs_phase14_smoke_shard"): False,
+    ("survey_summary", "phase14_validate_runs_skbuff_stay_in_c_guardrail"): True,
 }
 
 
@@ -322,6 +324,7 @@ def fixture_manifest() -> str:
             "workflow_runs_phase14_validate": True,
             "workflow_runs_phase14_build": False,
             "workflow_runs_phase14_smoke_shard": False,
+            "phase14_validate_runs_skbuff_stay_in_c_guardrail": True,
         },
         "compile_shards": [
             {
@@ -428,6 +431,13 @@ def run_self_test() -> int:
             return 1
 
         write_fixture_tree(base)
+        remove_line(base, SURVEY_PATH, SURVEY_EXACT_LINE_SNIPPETS[3])
+        if not any(SURVEY_EXACT_LINE_SNIPPETS[3] in error for error in check(base)):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected missing skbuff stay-in-c survey marker drift to fail")
+            return 1
+
+        write_fixture_tree(base)
         duplicate_line(base, SURVEY_PATH, SURVEY_EXACT_LINE_SNIPPETS[0])
         if not any(
             error.startswith(
@@ -450,6 +460,18 @@ def run_self_test() -> int:
         ):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
             print("expected compile-shard survey checker marker drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_validate_runs_skbuff_stay_in_c_guardrail"] = False
+        write_manifest_payload(base, manifest)
+        if not any(
+            error.startswith("manifest_value_mismatch:survey_summary.phase14_validate_runs_skbuff_stay_in_c_guardrail")
+            for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected skbuff stay-in-c manifest drift to fail")
             return 1
 
         write_fixture_tree(base)
@@ -493,7 +515,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=9")
+        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=11")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
