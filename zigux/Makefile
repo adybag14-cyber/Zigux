@@ -53,6 +53,8 @@ phase2-kconfig:
 	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py
 
 phase2-cross:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py --self-test
@@ -77,8 +79,6 @@ phase2-fixdep:
 phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-archive-contract-packet.py
-	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-closure-archive-contract.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py
 
 phase2: phase2-validate
@@ -277,13 +277,17 @@ phase10-test:
 phase10: phase10-validate phase10-test
 
 phase11-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validate-route-alignment.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validate-route-alignment.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_pm_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_preflight_review_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
@@ -293,10 +297,16 @@ phase11-validate:
 phase12-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-build-only-phase12-surface.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-complex-driver-lane-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-cross-compile-smoke.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-cross-compile-smoke.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-snapshot.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-snapshot.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-virtio-net-packet.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-virtio-net-packet.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase12.py

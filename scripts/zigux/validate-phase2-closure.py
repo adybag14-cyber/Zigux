@@ -31,6 +31,7 @@ PIN_SCOPE_CHECKER_REL = Path("scripts/zigux/check-phase2-toolchain-pin-scope.py"
 KBUILD_CHECKER_REL = Path("scripts/zigux/check-phase2-kbuild-routes.py")
 KCONFIG_BRIDGE_CHECKER_REL = Path("scripts/zigux/check-kconfig-bridge.py")
 KCONFIG_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-kconfig-selftest-alignment.py")
+KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")
 GENKSYMS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-genksyms-selftest-alignment.py")
 TESTS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-tests-readme-alignment.py")
 CROSS_CHECKER_REL = Path("scripts/zigux/check-phase2-cross.py")
@@ -107,6 +108,7 @@ REQUIRED_FILES = (
     KBUILD_CHECKER_REL,
     KCONFIG_BRIDGE_CHECKER_REL,
     KCONFIG_ALIGNMENT_REL,
+    KCONFIG_ALLCONFIG_HELPER_PACKET_REL,
     GENKSYMS_ALIGNMENT_REL,
     TESTS_ALIGNMENT_REL,
     CROSS_CHECKER_REL,
@@ -154,6 +156,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`",
     "`scripts/zigux/check-kconfig-bridge.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
     "`scripts/zigux/check-phase2-genksyms-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
@@ -212,6 +215,8 @@ REQUIRED_CLOSURE_MARKERS = (
     "`python3 scripts/zigux/check-kconfig-bridge.py`",
     "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
     "`python3 scripts/zigux/check-phase2-tool-manifest.py --self-test`",
     "`python3 scripts/zigux/check-phase2-tool-manifest.py`",
     "`python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test`",
@@ -271,6 +276,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
     "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
@@ -306,6 +313,8 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
@@ -351,6 +360,7 @@ EXPECTED_MANIFEST_CHECKERS = (
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "scripts/zigux/check-phase2-kbuild-routes.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -448,8 +458,7 @@ EXPECTED_GENKSYMS_CASES = [
     {
         "name": "lone_dash_passthrough",
         "args": ["-", "tail.symref"],
-        "expected_file": "lone_dash_passthrough_expected.json",
-    },
+        "expected_file": "lone_dash_passthrough_expected.json"},
     {
         "name": "dash_prefixed_long_option_arguments_as_data",
         "args": ["--reference", "--not-an-option.symref", "--dump-types", "--types-as-data.symtypes"],
@@ -976,6 +985,21 @@ def run_self_test() -> int:
         closure_path = resolve(root, PHASE2_CLOSURE_REL)
         closure_path.write_text(replace_once(closure_path.read_text(encoding="utf-8"), "`Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`"), encoding="utf-8")
         assert ("MISSING_CLOSURE_MARKER", "`Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        closure_path = resolve(root, PHASE2_CLOSURE_REL)
+        closure_path.write_text(
+            replace_once(
+                closure_path.read_text(encoding="utf-8"),
+                "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "MISSING_CLOSURE_MARKER",
+            "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
