@@ -5,7 +5,7 @@ This note records the current bounded Phase 8 file-path and handle bridge helper
 ## Status
 - `PHASE8_STATUS=parked_helper_slice`
 - `PHASE8_SLICE=file-path-handle-bridge`
-- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-23
+- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-24
 - roadmap anchor: `tools/lib/bpf/libbpf.c`
 - intended Zigux destination family: `tools/lib/bpf/zigux_segments/`
 - scope: helper-local fdinfo parsing, reuse-planning, and deferred bridge-boundary truthfulness only
@@ -16,6 +16,10 @@ Current `master` keeps the dedicated helper packet reviewable through `tools/lib
 That landed helper packet keeps bounded `"/proc/%d/fdinfo/%d"` pathname shaping, `parseFdinfoLine()` field splitting, `applyFdinfoMapInfoLine()` decoding, `parseFdinfoMapInfo()` line-by-line parsing, and `summarizeFdinfoMapInfo()` completion reporting explicit for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`.
 
 It also keeps the reused-map-name chooser, helper-only `mapReuseObservationFromFdinfo()` handoff, `summarizeMapReuseCompatibility()`, and `isMapReuseCompatible()` explicit as helper-only comparison surfaces below the broader bridge.
+
+The landed `fdinfo-map-info-helpers` slice therefore still mirrors the manifest rationale exactly: The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.
+
+The sibling `map-reuse-compatibility` slice likewise still mirrors the manifest rationale exactly: The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.
 
 The same packet keeps planning-only `resolveReusePinnedMapAttempt()` gating and planning-only `planTokenPreparation()` gating explicit without promoting direct file or descriptor side effects into landed proof.
 
