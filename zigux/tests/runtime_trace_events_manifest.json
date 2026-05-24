@@ -31,9 +31,9 @@
   },
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
-    "landed_pilot_state": "narrow trace-events sample packet plus family-local survey witness beside a returned bounded phase9_build bundle",
+    "landed_pilot_state": "narrow trace-events sample packet plus family-local survey and module witnesses beside a returned bounded phase9_build bundle",
     "missing_capability": "broader shared runtime-loader and broader shared runtime_* replay family remain absent on current master",
-    "next_gate": "keep the survey note, manifest, survey gate, and module-slice aligned with the surviving sample family and the returned bounded phase9_build bundle while shared loader work stays parked"
+    "next_gate": "keep the survey note, direct module witness, manifest, survey gate, and module-slice aligned with the surviving sample family and the returned bounded phase9_build bundle while shared loader work stays parked"
   },
   "ownership_map": [
     {
@@ -52,13 +52,13 @@
       "surface": "zigux/tests/runtime_trace_events_survey.zig",
       "role": "survey_gate",
       "owner": "P9-L12",
-      "boundary": "Fail-closes on drift between the survey note, module-slice note, manifest, sequencing note, shared workflow guard, and surviving sample family."
+      "boundary": "Fail-closes on drift between the survey note, module-slice note, direct module-boundary witness, manifest, sequencing note, shared workflow guard, and surviving sample family."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
       "role": "module_slice_note",
       "owner": "P9-L12",
-      "boundary": "Keeps the pilot-module slice paired with the family-local survey packet instead of treating shared loader surfaces as returned evidence."
+      "boundary": "Keeps the pilot-module slice paired with the family-local survey and direct module-boundary witnesses instead of treating shared loader surfaces as returned evidence."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
