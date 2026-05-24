@@ -128,6 +128,10 @@ WORKFLOW_REQUIRED_MARKERS = [
     "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
     "python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test",
     "python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py",
+    "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test",
+    "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py",
+    "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test",
+    "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py",
 ]
 
 CONTRACT_REQUIRED_MARKERS = [
@@ -281,6 +285,10 @@ jobs:
       - run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
       - run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test
       - run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py
+      - run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test
+      - run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py
+      - run: python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test
+      - run: python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py
 """
     if rel_path == MAKEFILE_PATH:
         return """PYTHON ?= python3
