@@ -2,6 +2,9 @@ const std = @import("std");
 
 const survey_note_source = @embedFile("../../Documentation/zigux/phase9-runtime-atomic64-survey.md");
 const module_slice_note_source = @embedFile("../../Documentation/zigux/phase9-runtime-atomic64-module-slice.md");
+const docs_root_readme_source = @embedFile("../../Documentation/zigux/README.md");
+const samples_root_readme_source = @embedFile("../../samples/zigux/README.md");
+const tests_root_readme_source = @embedFile("README.md");
 
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
@@ -104,6 +107,14 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -193,6 +204,9 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     try std.testing.expectEqualStrings("blocked_on_runtime_substrate", blocked_gap.status);
     try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", blocked_gap.zigux_destination);
 
+    try expectContains(makefile, "phase9-runtime-atomic64-test:");
+    try expectContains(makefile, "phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all");
+
     try expectLacks(manifest_json, "scripts/zigux/kconfig/conf_bridge.zig");
     try expectLacks(manifest_json, "scripts/zigux/kconfig/confdata_bridge.zig");
     try expectLacks(manifest_json, "rust/exports.c");
@@ -203,6 +217,10 @@ test "phase 9 runtime atomic64 note family records the current shared-loader rem
     try expectContains(survey_note_source, "zigux/tests/runtime_loader_allocator_init_flow.zig");
     try expectContains(survey_note_source, "zigux/kernel/runtime_loader_command_env_boundary_guard.zig");
     try expectContains(survey_note_source, "samples/zigux/runtime_bitmap_loader.zig");
+    try expectContains(survey_note_source, "Documentation/zigux/README.md");
+    try expectContains(survey_note_source, "samples/zigux/README.md");
+    try expectContains(survey_note_source, "zigux/tests/README.md");
+    try expectContains(survey_note_source, "zigux/Makefile");
     try expectContains(survey_note_source, "review-only evidence");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_gap_survey.zig");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_selftest_complete_exit_parity.zig");
@@ -214,9 +232,32 @@ test "phase 9 runtime atomic64 note family records the current shared-loader rem
     try expectContains(module_slice_note_source, "zigux/tests/runtime_loader_allocator_init_flow.zig");
     try expectContains(module_slice_note_source, "zigux/kernel/runtime_loader_command_env_boundary_guard.zig");
     try expectContains(module_slice_note_source, "samples/zigux/runtime_bitmap_loader.zig");
+    try expectContains(module_slice_note_source, "Documentation/zigux/README.md");
+    try expectContains(module_slice_note_source, "samples/zigux/README.md");
+    try expectContains(module_slice_note_source, "zigux/tests/README.md");
+    try expectContains(module_slice_note_source, "zigux/Makefile");
     try expectContains(module_slice_note_source, "review-only evidence");
     try expectLacks(module_slice_note_source, "scripts/zigux/kconfig/conf_bridge.zig");
     try expectLacks(module_slice_note_source, "scripts/zigux/kconfig/confdata_bridge.zig");
     try expectLacks(module_slice_note_source, "rust/exports.c");
     try expectLacks(module_slice_note_source, "zigux/kernel/export_shim.zig");
+
+    try expectContains(docs_root_readme_source, "Phase 9 notes");
+    try expectContains(docs_root_readme_source, "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md");
+    try expectContains(docs_root_readme_source, "samples/zigux/README.md");
+    try expectContains(docs_root_readme_source, "zigux/tests/README.md");
+    try expectContains(docs_root_readme_source, "zigux/tests/phase9_build.zig");
+    try expectContains(docs_root_readme_source, "samples/zigux/runtime_bitmap_loader.zig");
+
+    try expectContains(samples_root_readme_source, "## Phase 9 runtime pilot family");
+    try expectContains(samples_root_readme_source, "samples/zigux/runtime_atomic64.zig");
+    try expectContains(samples_root_readme_source, "samples/zigux/runtime_bitmap_loader.zig");
+    try expectContains(samples_root_readme_source, "Keep that bitmap packet framed as a separate Phase 9 runtime reminder");
+
+    try expectContains(tests_root_readme_source, "## Phase 9 runtime packet");
+    try expectContains(tests_root_readme_source, "zigux/tests/runtime_loader_allocator_init_flow.zig");
+    try expectContains(tests_root_readme_source, "zigux/kernel/runtime_loader_command_env_boundary_guard.zig");
+    try expectContains(tests_root_readme_source, "zigux/tests/phase9_build.zig");
+    try expectContains(tests_root_readme_source, "samples/zigux/runtime_bitmap_loader.zig");
+    try expectContains(tests_root_readme_source, "phase9-runtime-loader-shared-tests");
 }
