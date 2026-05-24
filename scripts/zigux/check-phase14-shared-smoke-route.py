@@ -5,7 +5,8 @@ Fail-closed checker for the bounded Phase 14 shared smoke route.
 
 This guard exists for the lane-local executable path only. It validates that
 the current repo exposes a dedicated `phase14-validate` Makefile route, that
-the route reruns the shared smoke route checker plus the current tests-root
+the Makefile keeps the staged-toolchain fallback chain explicit, that the route
+reruns the shared smoke route checker plus the current tests-root
 smoke-summary checker, validator, rollback-threshold sequencing checker,
 dedicated RCU rollback guardrail, and release-boundary checker packets, and
 that the shared smoke manifest records the same single-route Makefile split
@@ -46,6 +47,16 @@ MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
 ]
 
+MAKEFILE_TOOLCHAIN_MARKERS = [
+    "ZIG_PINNED_TARGET :=",
+    "ZIG_PINNED_CHANNEL :=",
+    "ZIG_PINNED_EXTRACT_ROOT :=",
+    "ZIG_PINNED_EXECUTABLE :=",
+    "ZIG_LOCAL_TOOLCHAIN :=",
+    "ZIG_PINNED_TOOLCHAIN :=",
+    "ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)",
+]
+
 WORKFLOW_MARKERS = [
     "- name: Self-test current Phase 14 shared smoke route checker",
     "run: python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test",
@@ -69,6 +80,9 @@ REQUIRED_MANIFEST_VALUES = {
     ("survey_summary", "workflow_runs_phase14_smoke_shard"): False,
     ("survey_summary", "phase14_validate_runs_rollback_threshold_sequencing"): True,
     ("survey_summary", "phase14_validate_runs_rcu_rollback_guardrail"): True,
+    ("survey_summary", "phase14_make_uses_pinned_toolchain_fallback"): True,
+    ("survey_summary", "phase14_make_uses_local_toolchain_probe"): True,
+    ("survey_summary", "phase14_make_falls_back_to_path_zig"): True,
 }
 
 EXPECTED_COMPILE_SHARDS = [
@@ -175,6 +189,7 @@ def check(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     require_markers(errors, MAKEFILE_PATH, makefile, MAKEFILE_MARKERS)
+    require_markers(errors, MAKEFILE_PATH, makefile, MAKEFILE_TOOLCHAIN_MARKERS)
     require_markers(errors, WORKFLOW_PATH, workflow, WORKFLOW_MARKERS)
     require_absent(errors, WORKFLOW_PATH, workflow, FORBIDDEN_WORKFLOW_MARKERS)
 
@@ -191,7 +206,16 @@ def check(root: Path) -> list[str]:
 
 def fixture_makefile() -> str:
     return """PYTHON ?= python3
+PHASE2_SCRIPT_ROOT := ../scripts/zigux
 ZIGUX_ROOT := ..
+PHASE2_TOOLCHAIN_POLICY := $(PHASE2_SCRIPT_ROOT)/zig-toolchain-policy.json
+ZIG_PINNED_CHANNEL := 0.17.0-dev.87+9b177a7d2
+ZIG_PINNED_TARGET := x86_64-linux
+ZIG_PINNED_EXTRACT_ROOT := $(ZIGUX_ROOT)/.zig-toolchain/zig-$(ZIG_PINNED_TARGET)-$(ZIG_PINNED_CHANNEL)
+ZIG_PINNED_EXECUTABLE := $(firstword $(wildcard $(ZIG_PINNED_EXTRACT_ROOT)/zig $(ZIG_PINNED_EXTRACT_ROOT)/bin/zig))
+ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))
+ZIG_PINNED_TOOLCHAIN := $(if $(ZIG_PINNED_EXECUTABLE),$(ZIG_PINNED_EXECUTABLE),$(ZIG_LOCAL_TOOLCHAIN))
+ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)
 
 .PHONY: phase12-smoke phase12-test phase12 phase14-validate
 
@@ -248,6 +272,9 @@ def fixture_manifest() -> str:
             "workflow_runs_phase14_smoke_shard": False,
             "phase14_validate_runs_rollback_threshold_sequencing": True,
             "phase14_validate_runs_rcu_rollback_guardrail": True,
+            "phase14_make_uses_pinned_toolchain_fallback": True,
+            "phase14_make_uses_local_toolchain_probe": True,
+            "phase14_make_falls_back_to_path_zig": True,
         },
     }
     return json.dumps(payload, indent=2) + "\n"
@@ -281,6 +308,36 @@ def run_self_test() -> int:
         if not any("phase14-validate:" in error for error in check(base)):
             print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
             print("expected missing target marker failure")
+            return 1
+
+        write_fixture_tree(base)
+        write_text(
+            base,
+            MAKEFILE_PATH,
+            fixture_makefile().replace(
+                "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))\n",
+                "",
+                1,
+            ),
+        )
+        if not any("ZIG_LOCAL_TOOLCHAIN :=" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected local toolchain probe marker failure")
+            return 1
+
+        write_fixture_tree(base)
+        write_text(
+            base,
+            MAKEFILE_PATH,
+            fixture_makefile().replace(
+                "ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)\n",
+                "",
+                1,
+            ),
+        )
+        if not any("ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected fallback chain marker failure")
             return 1
 
         write_fixture_tree(base)
@@ -378,6 +435,15 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_make_uses_local_toolchain_probe"] = False
+        write_fixture_manifest(base, manifest)
+        if not any("manifest_value_mismatch:survey_summary.phase14_make_uses_local_toolchain_probe" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected local toolchain manifest drift failure")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
         manifest["compile_shards"][5]["coverage"] = "full_bundle_only"
         write_fixture_manifest(base, manifest)
         if not any("manifest_value_mismatch:compile_shards" in error for error in check(base)):
@@ -386,7 +452,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=9")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -411,7 +477,7 @@ def main() -> int:
         return 1
 
     print("PHASE14_SHARED_SMOKE_ROUTE=pass")
-    print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}")
+    print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(MAKEFILE_TOOLCHAIN_MARKERS) + len(WORKFLOW_MARKERS)}")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_WORKFLOW_MARKERS)}")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_MANIFEST_ASSERTION_COUNT={len(REQUIRED_MANIFEST_VALUES) + 1}")
     return 0
