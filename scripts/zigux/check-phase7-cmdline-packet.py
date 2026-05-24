@@ -67,7 +67,7 @@ REQUIRED_MARKERS = {
         'test "nextArg keeps unterminated quoted values inside the current token" {',
         'test "nextArg keeps parameter and value slices borrowed from caller storage" {',
         'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
-        'test "getOption preserves incomplete hex-prefix and descending-range behavior" {',
+        'test "getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior" {',
         'test "getOptions expands negative ranges and negative upper bounds" {',
         'test "parseOptionStr matches only exact bare options" {',
         'test "memparse saturates signed overflow instead of trapping" {',
@@ -80,7 +80,7 @@ REQUIRED_MARKERS = {
         'try std.testing.expect(cmdline.parseOptionStr("debug,,quiet", ""));',
         'try std.testing.expect(!cmdline.parseOptionStr("debug,", ""));',
         'test "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture" {',
-        'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
+        'test "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries" {',
         'try std.testing.expectEqualStrings("2,9", descending_rest);',
         'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
@@ -401,7 +401,7 @@ def run_self_test() -> None:
             ),
             (
                 "missing_helper_incomplete_hex_descending_marker",
-                'test "getOption preserves incomplete hex-prefix and descending-range behavior" {',
+                'test "getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior" {',
             ),
             (
                 "missing_helper_negative_range_marker",
@@ -553,7 +553,7 @@ def run_self_test() -> None:
             ),
             (
                 "missing_companion_incomplete_hex_descending_marker",
-                'test "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries" {',
+                'test "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries" {',
             ),
             (
                 "missing_companion_descending_range_rest_marker",
