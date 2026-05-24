@@ -21,6 +21,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+    "Documentation/zigux/phase4-validation-lane-sequencing.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
@@ -519,7 +520,7 @@ def build_stub_script(
 ) -> None:
     live_exit_literal = self_test_exit_code if live_exit_code is None else live_exit_code
     self_test_stdout_literal = repr(list(self_test_stdout_lines))
-    live_stdout_literal = repr(list(live_stdout_lines))
+    live_stdout_literal = repr(list(self.live_stdout_lines))
     write_text(
         path,
         "\n".join(
@@ -748,14 +749,14 @@ def run_self_test() -> int:
             "# Artifact Diff Policy",
             "",
             "Current Phase 4 use",
-            "- `scripts/zigux/check-phase4-artifact-diff-determinism.py`",
+            *[f"- `{marker}`" for marker in REQUIRED_ARTIFACT_DOC_MARKERS[1:]],
         ]) + "\n")
         issues = collect_issues(root)
         expected_missing = "artifact_doc_marker_missing:scripts/zigux/check-artifact-diff-contract.py"
         if expected_missing not in issues:
             raise SystemExit(
                 "phase4-validate-self-test:artifact_doc_marker_missing_not_detected:"
-                + ",".join(issues or ["none"]) 
+                + ",".join(issues or ["none"])
             )
 
         reset_fixture_local()
