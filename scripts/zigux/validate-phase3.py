@@ -267,6 +267,8 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py",
+    "python3 scripts/zigux/validate-phase3.py --self-test",
+    "python3 scripts/zigux/validate-phase3.py",
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
@@ -630,6 +632,8 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-dev-t-starter-packet.py", "expected dev-t starter direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test", "expected manifest replay-checker self-test drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected manifest replay-checker direct route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3.py --self-test", "expected shared ABI validator self-test route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3.py", "expected shared ABI validator direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test", "expected policy-unsafe self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-policy-dump.py", "expected policy-dump direct route drift was not reported"),
             ("zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all", "expected dev-t starter build route drift was not reported"),
@@ -748,7 +752,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + 32}")
+    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + 34}")
     return 0
 
 
