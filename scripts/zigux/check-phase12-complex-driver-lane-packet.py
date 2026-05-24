@@ -53,6 +53,8 @@ NOTE_MARKERS = (
     "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12`.",
     "`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, so keep that workflow-side throughput anchor explicit as adjacent bounded `virtio_net` evidence rather than shared smoke-route proof.",
     "fresh repo-first readback now returns `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase12_build.zig` on current `master`.",
+    "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`",
+    "`virtio_scsi` survey, survey-build, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth",
     "`Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` while leaving it outside the shared smoke-first route.",
     "`Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` remains the one commit-pinned direct replay artifact, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` remains the current-master gap-inventory companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors.",
 )
@@ -216,6 +218,27 @@ def run_self_test() -> int:
             raise AssertionError("expected note marker failure")
 
         write_fixture(root)
+        survey_build_marker = "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`"
+        (root / NOTE_PATH).write_text(
+            read_text(root, NOTE_PATH).replace(
+                survey_build_marker,
+                survey_build_marker.replace(
+                    ", `zigux/tests/phase12_virtio_scsi_survey_build.zig`", ""
+                ),
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "phase12-complex-driver-lane-sequencing.md" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected virtio_scsi survey-build marker failure")
+
+        write_fixture(root)
         (root / WORKFLOW_PATH).write_text("broken\n", encoding="utf-8")
         try:
             check(root)
@@ -238,6 +261,7 @@ def run_self_test() -> int:
             raise AssertionError("expected build marker failure")
 
         write_fixture(root)
+        (root / MAKEFILE_PATH).writeText = None
         (root / MAKEFILE_PATH).write_text("phase12-smoke:\n", encoding="utf-8")
         try:
             check(root)
