@@ -383,6 +383,63 @@ test "runtime kretprobe sample keeps failed unregister rollback explicit while a
     try std.testing.expectEqual(before_cleanup.last_retval, after_exit.last_retval);
 }
 
+test "runtime kretprobe sample keeps rejected return-without-entry rollback explicit across initialized and selftested stages" {
+    var initialized = RuntimeKretprobeSample{};
+    try initialized.init();
+    try initialized.registerProbe();
+
+    const before_initialized_rejected_return = initialized.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.initialized, before_initialized_rejected_return.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_rejected_return.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_rejected_return.registration_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.unregistration_runs);
+    try std.testing.expect(before_initialized_rejected_return.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.completed_instances);
+    try std.testing.expectEqual(@as(?i32, null), before_initialized_rejected_return.last_retval);
+
+    try std.testing.expectError(error.ReturnWithoutEntry, initialized.recordReturn(7));
+    try expectSnapshotStable(before_initialized_rejected_return, initialized.lifecycleSnapshot());
+
+    try initialized.unregisterProbe();
+    try initialized.exit();
+    const initialized_after_exit = initialized.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, initialized_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_after_exit.exit_runs);
+
+    var selftested = RuntimeKretprobeSample{};
+    try selftested.init();
+    _ = try selftested.runSelftest();
+    try selftested.registerProbe();
+
+    const before_selftested_rejected_return = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_selftested_rejected_return.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_return.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_return.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_rejected_return.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_selftested_rejected_return.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_return.unregistration_runs);
+    try std.testing.expect(before_selftested_rejected_return.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_rejected_return.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_return.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), before_selftested_rejected_return.last_retval);
+
+    try std.testing.expectError(error.ReturnWithoutEntry, selftested.recordReturn(11));
+    try expectSnapshotStable(before_selftested_rejected_return, selftested.lifecycleSnapshot());
+
+    try selftested.recordEntry();
+    try selftested.recordReturn(42);
+    try selftested.unregisterProbe();
+    try selftested.exit();
+    const selftested_after_exit = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, selftested_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_after_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), selftested_after_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 42), selftested_after_exit.last_retval);
+}
+
 test "runtime kretprobe sample keeps duplicate registration rollback explicit across initialized and selftested stages" {
     var initialized = RuntimeKretprobeSample{};
     try initialized.init();
