@@ -19,6 +19,11 @@ TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
+ROADMAP_STUDY_ONLY_ANCHORS = (
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+)
+
 
 def infer_repo_root() -> Path:
     for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
@@ -167,11 +172,56 @@ def remove_makefile_route_definition(content: str, route: str) -> str:
             skipping = True
             continue
         if skipping:
-            if line.startswith("	"):
+            if line.startswith("\t"):
                 continue
             skipping = False
         kept.append(line)
     return "\n".join(kept) + "\n"
+
+
+def extract_section_lines(text: str, heading: str) -> list[str]:
+    lines = text.splitlines()
+    collected: list[str] = []
+    in_section = False
+    for line in lines:
+        if line.strip() == heading:
+            in_section = True
+            continue
+        if in_section and line.startswith("## "):
+            break
+        if in_section:
+            collected.append(line)
+    return collected
+
+
+def extract_freeze_map_study_only_anchors(text: str) -> list[str]:
+    anchors: list[str] = []
+    for line in extract_section_lines(text, "## Study / Boundary Only"):
+        stripped = line.strip()
+        if stripped.startswith("- `") and stripped.endswith("`"):
+            anchors.append(stripped[3:-1])
+    return anchors
+
+
+def extract_study_only_accounting_anchors(text: str) -> list[str]:
+    anchors: list[str] = []
+    for line in extract_section_lines(text, "## Study-Only Anchor Inventory"):
+        stripped = line.strip()
+        if stripped.startswith("### `") and stripped.endswith("`"):
+            anchors.append(stripped[4:-1])
+    return anchors
+
+
+def validate_exact_study_only_anchor_inventory(
+    failures: list[str],
+    rel_path: str,
+    actual: list[str],
+) -> None:
+    expected = list(ROADMAP_STUDY_ONLY_ANCHORS)
+    if actual != expected:
+        failures.append(
+            f"study_only_anchor_mismatch:{rel_path}:expected={expected}:actual={actual}"
+        )
 
 
 def validate(root: Path) -> list[str]:
@@ -197,11 +247,21 @@ def validate(root: Path) -> list[str]:
     for marker in FREEZE_MAP_REQUIRED_MARKERS:
         if marker not in freeze_map:
             failures.append(f"missing_marker:{FREEZE_MAP_PATH}:{marker}")
+    validate_exact_study_only_anchor_inventory(
+        failures,
+        FREEZE_MAP_PATH,
+        extract_freeze_map_study_only_anchors(freeze_map),
+    )
 
     study_only_accounting = read_text(root, STUDY_ONLY_ACCOUNTING_PATH)
     for marker in STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS:
         if marker not in study_only_accounting:
             failures.append(f"missing_marker:{STUDY_ONLY_ACCOUNTING_PATH}:{marker}")
+    validate_exact_study_only_anchor_inventory(
+        failures,
+        STUDY_ONLY_ACCOUNTING_PATH,
+        extract_study_only_accounting_anchors(study_only_accounting),
+    )
 
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     docs_readme = read_text(root, DOCS_README_PATH)
@@ -253,8 +313,11 @@ def validate(root: Path) -> list[str]:
 def build_freeze_map_fixture_text() -> str:
     return """# Zigux Freeze Map
 
+## Study / Boundary Only
 - `kernel/workqueue.c`
 - `kernel/trace/ring_buffer.c`
+
+## Governance For Freeze-Map Changes
 - shared reminder surfaces that summarize freeze posture must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - shared Phase 9 runtime-pilot freeze-boundary packet must keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `.github/workflows/zigux-bootstrap.yml`, `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit together, keep `zigux/Makefile` explicit only as a readable non-owner surface whose live body now exposes bounded `phase9-runtime-atomic64-test`, `phase9-runtime-bitmap-test`, `phase9-runtime-loader-shared-test`, `phase9-runtime-trace-events-test`, `phase9-first-loadable-runtime-module-parity-test`, and `phase9-test` routes without treating those wrappers as proof that blocked publication, install-root, or deeper runtime-substrate work is complete, keep the returned shared runtime-loader allocator/init-flow and command/environment boundary packet explicit through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, and must treat `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `samples/zigux/runtime_trace_events_loader.zig`, the broader shared `zigux/tests/runtime_*` replay family beyond the returned trace-events survey witness and allocator/init-flow packet, and blocked publication or install-root loader boundaries as historical blocked-boundary vocabulary unless a fresh repo reread proves they returned, so the surviving narrow trace-events packet, the neighboring returned loader packet, and the separate bounded runtime bitmap packet do not imply that `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` has crossed the study-only boundary into delivery-ready runtime-substrate evidence
 """
@@ -265,14 +328,20 @@ def build_study_only_accounting_fixture_text() -> str:
 
 - `PHASE15_STATUS=study_only_accounting_slice_landed`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- `kernel/workqueue.c`
-- `kernel/trace/ring_buffer.c`
-- posture: `study_only`
-- current Phase 15 role: tracked outside the freeze-in-C scorecard
 - current companions: the freeze-map governance note, the parity scorecard, the handoff-next-steps survey, and the shared-summary gap note
 - roadmap reason: boundary-study target first, not a rewrite target
 - speculative direct ports remain future-only and not current product claims
 - no Architecture Council approval is currently recorded for a deep-core status change
+
+## Study-Only Anchor Inventory
+
+### `kernel/workqueue.c`
+- posture: `study_only`
+- current Phase 15 role: tracked outside the freeze-in-C scorecard
+
+### `kernel/trace/ring_buffer.c`
+- posture: `study_only`
+- current Phase 15 role: tracked outside the freeze-in-C scorecard
 
 ## Accounting Rules
 
@@ -431,6 +500,34 @@ def run_self_test() -> int:
             write_text(base / STUDY_ONLY_ACCOUNTING_PATH, current.replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{STUDY_ONLY_ACCOUNTING_PATH}:{marker}")
 
+        seed_fixture_tree(base)
+        write_text(
+            base / FREEZE_MAP_PATH,
+            build_freeze_map_fixture_text().replace(
+                "- `kernel/trace/ring_buffer.c`",
+                "- `kernel/trace/ring_buffer.c`\n- `kernel/sched/core.c`",
+                1,
+            ),
+        )
+        expect_failure(
+            base,
+            "study_only_anchor_mismatch:Documentation/zigux/freeze-map.md:expected=['kernel/workqueue.c', 'kernel/trace/ring_buffer.c']:actual=['kernel/workqueue.c', 'kernel/trace/ring_buffer.c', 'kernel/sched/core.c']",
+        )
+
+        seed_fixture_tree(base)
+        write_text(
+            base / STUDY_ONLY_ACCOUNTING_PATH,
+            build_study_only_accounting_fixture_text().replace(
+                "## Accounting Rules",
+                "### `kernel/sched/core.c`\n- posture: `study_only`\n\n## Accounting Rules",
+                1,
+            ),
+        )
+        expect_failure(
+            base,
+            "study_only_anchor_mismatch:Documentation/zigux/phase15-study-only-anchor-accounting.md:expected=['kernel/workqueue.c', 'kernel/trace/ring_buffer.c']:actual=['kernel/workqueue.c', 'kernel/trace/ring_buffer.c', 'kernel/sched/core.c']",
+        )
+
         for marker in DOCS_README_REQUIRED_MARKERS:
             seed_fixture_tree(base)
             current = build_docs_readme_fixture_text()
@@ -518,6 +615,7 @@ def run_self_test() -> int:
         shutil.rmtree(base, ignore_errors=True)
 
     print("PHASE9_FREEZE_MAP_STUDY_BOUNDARIES_SELF_TEST=pass")
+    print(f"PHASE9_ROADMAP_STUDY_ONLY_ANCHOR_COUNT={len(ROADMAP_STUDY_ONLY_ANCHORS)}")
     print(f"PHASE9_FREEZE_MAP_MARKER_COUNT={len(FREEZE_MAP_REQUIRED_MARKERS)}")
     print(f"PHASE15_STUDY_ONLY_ACCOUNTING_MARKER_COUNT={len(STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS)}")
     print(f"PHASE9_DOCS_README_STUDY_BOUNDARY_MARKER_COUNT={len(DOCS_README_REQUIRED_MARKERS)}")
@@ -535,9 +633,11 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that the Phase 9 freeze-map boundary packet keeps the study-only anchors, "
-            "the reviewer-facing checklist route-back wording, the shared runtime-trace-events reminder surfaces, "
-            "the bounded current Phase 9 Makefile route inventory, and the fuller Phase 15 study-only accounting posture explicit together."
+            "Check that the Phase 9 freeze-map boundary packet keeps the roadmap-backed "
+            "study-only anchors, the reviewer-facing checklist route-back wording, the "
+            "shared runtime-trace-events reminder surfaces, the bounded current Phase 9 "
+            "Makefile route inventory, and the fuller Phase 15 study-only accounting posture "
+            "explicit together."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
@@ -553,6 +653,7 @@ def main() -> int:
             print(f"PHASE9_FREEZE_MAP_STUDY_BOUNDARIES_ERROR={failure}")
         return 1
 
+    print(f"PHASE9_ROADMAP_STUDY_ONLY_ANCHOR_COUNT={len(ROADMAP_STUDY_ONLY_ANCHORS)}")
     print(f"PHASE9_FREEZE_MAP_MARKER_COUNT={len(FREEZE_MAP_REQUIRED_MARKERS)}")
     print(f"PHASE15_STUDY_ONLY_ACCOUNTING_MARKER_COUNT={len(STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS)}")
     print(f"PHASE9_DOCS_README_STUDY_BOUNDARY_MARKER_COUNT={len(DOCS_README_REQUIRED_MARKERS)}")
