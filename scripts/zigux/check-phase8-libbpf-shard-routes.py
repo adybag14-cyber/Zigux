@@ -14,6 +14,8 @@ BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridg
 BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
 MAKEFILE_PATH = "zigux/Makefile"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
+BRIDGE_BOUNDARY_GUARD_TEST_PATH = "zigux/tests/phase8_file_path_handle_boundary_guard.zig"
+BRIDGE_MANIFEST_SYNC_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig"
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 VERIFY_ROUTING_GAP_TEST_PATH = "zigux/tests/phase8_verify_routing_gap.zig"
@@ -46,6 +48,8 @@ REQUIRED_FILES = (
     BRIDGE_SLICE_PATH,
     MAKEFILE_PATH,
     BRIDGE_TEST_PATH,
+    BRIDGE_BOUNDARY_GUARD_TEST_PATH,
+    BRIDGE_MANIFEST_SYNC_TEST_PATH,
     MANIFEST_PATH,
     PHASE8_BUILD_PATH,
     VERIFY_ROUTING_GAP_TEST_PATH,
@@ -121,14 +125,24 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`",
+        "`scripts/zigux/validate-phase8.py`",
         "make -C zigux phase8-file-path-handle-bridge-test",
+        "make -C zigux phase8",
+        "live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior",
     ),
     BRIDGE_SLICE_PATH: (
         "Current helper packet",
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`",
+        "`scripts/zigux/validate-phase8.py`",
+        "`make -C zigux phase8`",
         "resolveReusePinnedMapAttempt()",
         "planTokenPreparation() gating explicit",
+        "no descriptor replacement, transfer, or close ownership semantics",
     ),
     MAKEFILE_PATH: (
         "phase8-libbpf-segments-test:",
@@ -141,6 +155,22 @@ REQUIRED_MARKERS = {
         '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
         '"slug": "map-reuse-compatibility", "status": "starter_landed"',
         '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
+    ),
+    BRIDGE_BOUNDARY_GUARD_TEST_PATH: (
+        'test "phase 8 file-path-handle boundary guard keeps the deferred bridge aligned across the manifest, slice, survey, and shared replay" {',
+        '"slug": "fdinfo-map-info-helpers"',
+        '"slug": "file-path-and-handle-bridge"',
+        "planning-only `planTokenPreparation()` gating",
+        "phase8_file_path_handle_bridge_manifest_sync.zig",
+        "phase8-file-path-handle-boundary-guard-tests",
+        "no descriptor replacement, transfer, or close ownership semantics",
+    ),
+    BRIDGE_MANIFEST_SYNC_TEST_PATH: (
+        'test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {',
+        '"lane_key": "P8-L13"',
+        '"id": "P8-L13-S07"',
+        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
+        "planning-only token-readiness gating as a reviewable landed helper slice",
     ),
     MANIFEST_PATH: (
         '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
