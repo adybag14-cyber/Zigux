@@ -113,6 +113,34 @@ pub fn strtomem_pad(dest: []u8, src: []const u8, pad: u8) void {
     memcpyAndPad(dest, src, @min(dest.len, cStringLen(src)), pad);
 }
 
+pub fn memtostr(dest: []u8, src: []const u8) void {
+    if (dest.len == 0) {
+        return;
+    }
+
+    const copy_len = @min(dest.len - 1, strnlen(src, src.len));
+    if (copy_len != 0) {
+        @memcpy(dest[0..copy_len], src[0..copy_len]);
+    }
+    dest[copy_len] = 0;
+}
+
+pub fn memtostrPad(dest: []u8, src: []const u8) void {
+    if (dest.len == 0) {
+        return;
+    }
+
+    const copy_len = @min(dest.len - 1, strnlen(src, src.len));
+    if (copy_len != 0) {
+        @memcpy(dest[0..copy_len], src[0..copy_len]);
+    }
+    @memset(dest[copy_len..], 0);
+}
+
+pub fn memtostr_pad(dest: []u8, src: []const u8) void {
+    memtostrPad(dest, src);
+}
+
 pub fn skipSpaces(str: []const u8) []const u8 {
     var idx: usize = 0;
     while (idx < str.len and std.ascii.isWhitespace(str[idx])) : (idx += 1) {}
@@ -617,6 +645,33 @@ test "strtomem_pad copies through the first NUL and pads the remaining tail" {
     var buf = [_]u8{ 9, 9, 9, 9, 9 };
     strtomem_pad(buf[0..], &[_]u8{ 'h', 'i', 0, 'x' }, '.');
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', '.', '.', '.' }, buf[0..]);
+}
+
+test "memtostr copies a bounded non-NUL source and adds one terminator" {
+    var buf = [_]u8{ 9, 9, 9, 9, 9 };
+    memtostr(buf[0..], &[_]u8{ 'o', 'k' });
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 0, 9, 9 }, buf[0..]);
+}
+
+test "memtostr stops at embedded NUL without padding the tail" {
+    var buf = [_]u8{ 9, 9, 9, 9, 9 };
+    memtostr(buf[0..], &[_]u8{ 'h', 'i', 0, 'x' });
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 9, 9 }, buf[0..]);
+}
+
+test "memtostrPad zero-pads the remaining tail after copying" {
+    var buf = [_]u8{ 9, 9, 9, 9, 9 };
+    memtostrPad(buf[0..], &[_]u8{ 'a', 'b', 'c' });
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 'c', 0, 0 }, buf[0..]);
+}
+
+test "memtostr helpers keep one-byte destinations terminated" {
+    var direct = [_]u8{7};
+    var alias = [_]u8{8};
+    memtostr(direct[0..], &[_]u8{ 'x' });
+    memtostr_pad(alias[0..], &[_]u8{ 'y' });
+    try std.testing.expectEqual(@as(u8, 0), direct[0]);
+    try std.testing.expectEqual(@as(u8, 0), alias[0]);
 }
 
 test "streq matches C-string equality semantics" {
