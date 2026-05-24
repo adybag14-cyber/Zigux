@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 13
+EXPECTED_SELF_TEST_CASE_COUNT = 14
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -440,6 +440,12 @@ def run_self_test() -> int:
         tests = resolve(root, TESTS_README)
         tests.write_text(tests.read_text(encoding="utf-8").replace(SCRIPTS_MARKERS[0], ""), encoding="utf-8")
         assert any(code == "MISSING_TESTS_MARKERS" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        tests = resolve(root, TESTS_README)
+        tests.write_text(tests.read_text(encoding="utf-8").replace(SCRIPTS_MARKERS[2], ""), encoding="utf-8")
+        assert ("MISSING_TESTS_MARKERS", SCRIPTS_MARKERS[2]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
