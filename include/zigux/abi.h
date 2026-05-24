@@ -84,7 +84,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view;
 
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary {
     uint32_t attempted;
     uint32_t applied;
     uint32_t skipped;
