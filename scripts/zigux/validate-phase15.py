@@ -93,8 +93,7 @@ REQUIRED_NOTE_MARKERS = (
     "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
 )
-WORKFLOW_PHASE15_MARKERS = (
-    "validate-phase15.py",
+WORKFLOW_PHASE15_ROUTE_MARKERS = (
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "make -C zigux phase15",
@@ -123,12 +122,20 @@ def _workflow_has_phase15_route(root: Path) -> bool:
     if not path.exists():
         return False
     workflow = _read_text(path)
-    return any(marker in workflow for marker in WORKFLOW_PHASE15_MARKERS)
+    return any(marker in workflow for marker in WORKFLOW_PHASE15_ROUTE_MARKERS)
 
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-    for rel in (READINESS_NOTE_PATH, MANIFEST_PATH, CHECKER_PATH, SCRIPTS_CHECKER_PATH, VALIDATOR_PATH, MAKEFILE_PATH, WORKFLOW_PATH):
+    for rel in (
+        READINESS_NOTE_PATH,
+        MANIFEST_PATH,
+        CHECKER_PATH,
+        SCRIPTS_CHECKER_PATH,
+        VALIDATOR_PATH,
+        MAKEFILE_PATH,
+        WORKFLOW_PATH,
+    ):
         if not (root / rel).exists():
             failures.append(f"missing_required_path:{rel}")
     if failures:
@@ -231,10 +238,14 @@ def write_fixture_root(root: Path) -> None:
     _write(root / SCRIPTS_CHECKER_PATH, "#!/usr/bin/env python3\n")
     _write(root / VALIDATOR_PATH, "#!/usr/bin/env python3\n")
     _write(root / MAKEFILE_PATH, "phase2-toolchain:\n\t@true\n")
-    _write(root / WORKFLOW_PATH, "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-readiness-gate-packet.py\n")
+    _write(
+        root / WORKFLOW_PATH,
+        "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-readiness-gate-packet.py\n",
+    )
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase15_validate_") as tmp_dir:
         base = Path(tmp_dir)
 
@@ -243,13 +254,15 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
+        case_count += 1
 
         build_root = base / "build"
         write_fixture_root(build_root)
-        _write(build_root / BUILD_PATH, "const std = @import(\"std\");\n")
+        _write(build_root / BUILD_PATH, 'const std = @import("std");\n')
         failures = collect_failures(build_root)
         if failures != [f"unexpected_materialized_path:{BUILD_PATH}"]:
             raise AssertionError(f"unexpected build-path failure: {failures}")
+        case_count += 1
 
         make_root = base / "make"
         write_fixture_root(make_root)
@@ -257,20 +270,44 @@ def run_self_test() -> int:
         failures = collect_failures(make_root)
         if failures != ["unexpected_make_target:phase15-validate"]:
             raise AssertionError(f"unexpected make-target failure: {failures}")
+        case_count += 1
 
         workflow_root = base / "workflow"
         write_fixture_root(workflow_root)
-        _write(workflow_root / WORKFLOW_PATH, "jobs:\n  bootstrap:\n    steps:\n      - run: make -C zigux phase15-validate\n")
+        _write(
+            workflow_root / WORKFLOW_PATH,
+            "jobs:\n  bootstrap:\n    steps:\n      - run: make -C zigux phase15-validate\n",
+        )
         failures = collect_failures(workflow_root)
         if failures != ["unexpected_workflow_route"]:
             raise AssertionError(f"unexpected workflow-route failure: {failures}")
+        case_count += 1
+
+        workflow_validator_root = base / "workflow_validator_only"
+        write_fixture_root(workflow_validator_root)
+        _write(
+            workflow_validator_root / WORKFLOW_PATH,
+            "jobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/validate-phase15.py\n",
+        )
+        failures = collect_failures(workflow_validator_root)
+        if failures:
+            raise AssertionError(
+                f"validator-only workflow should stay allowed: {failures}"
+            )
+        case_count += 1
 
         lane_root = base / "lane"
         write_fixture_root(lane_root)
-        _write(lane_root / MANIFEST_PATH, _sample_manifest().replace('"lane_key": "P15-L02"', '"lane_key": "P15-L99"', 1))
+        _write(
+            lane_root / MANIFEST_PATH,
+            _sample_manifest().replace(
+                '"lane_key": "P15-L02"', '"lane_key": "P15-L99"', 1
+            ),
+        )
         failures = collect_failures(lane_root)
         if failures != ["lane_key:'P15-L99'"]:
             raise AssertionError(f"unexpected lane drift failure: {failures}")
+        case_count += 1
 
         scripts_root = base / "scripts_checker"
         write_fixture_root(scripts_root)
@@ -278,9 +315,10 @@ def run_self_test() -> int:
         failures = collect_failures(scripts_root)
         if failures != [f"missing_required_path:{SCRIPTS_CHECKER_PATH}"]:
             raise AssertionError(f"unexpected scripts-checker failure: {failures}")
+        case_count += 1
 
     print("PHASE15_VALIDATION_SELF_TEST=pass")
-    print("PHASE15_VALIDATION_SELF_TEST_CASES=5")
+    print(f"PHASE15_VALIDATION_SELF_TEST_CASES={case_count}")
     return 0
 
 
@@ -289,7 +327,9 @@ def main() -> int:
         description="Validate the current Phase 15 readiness packet at the validator-first boundary."
     )
     parser.add_argument("--root", type=Path, default=Path.cwd(), help="repository root")
-    parser.add_argument("--self-test", action="store_true", help="run the synthetic validator self-test")
+    parser.add_argument(
+        "--self-test", action="store_true", help="run the synthetic validator self-test"
+    )
     args = parser.parse_args()
 
     if args.self_test:
