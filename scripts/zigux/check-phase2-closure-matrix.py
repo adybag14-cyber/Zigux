@@ -248,6 +248,19 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+def is_materialized_manifest_path(item: str) -> bool:
+    return "/" in item and not item.startswith("make -C ")
+
+
+def iter_direct_materialized_required_files() -> set[Path]:
+    materialized: set[Path] = set()
+    for expected in DIRECT_MANIFEST_SURFACE_EXPECTATIONS.values():
+        for item in expected:
+            if is_materialized_manifest_path(item):
+                materialized.add(Path(item))
+    return materialized
+
+
 def validator_expected_keys(module) -> set[str]:
     keys: set[str] = set()
     for key, attr in VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS:
@@ -299,7 +312,7 @@ def has_exact_line(text: str, marker: str) -> bool:
 
 def collect_checker_issues(module, root: Path) -> list[tuple[str, str]]:
     issues = list(module.collect_issues(root))
-    for rel in EXTRA_REQUIRED_FILES:
+    for rel in iter_required_files(module):
         if not module.resolve(root, rel).exists():
             issues.append(("MISSING_REQUIRED_FILE", rel.as_posix()))
     if any(code == "MISSING_REQUIRED_FILE" for code, _ in issues):
@@ -349,7 +362,11 @@ def assert_system_exit_contains(action, expected_substring: str) -> None:
 
 
 def iter_required_files(module) -> set[Path]:
-    return {*module.REQUIRED_FILES, *EXTRA_REQUIRED_FILES}
+    return {
+        *module.REQUIRED_FILES,
+        *EXTRA_REQUIRED_FILES,
+        *iter_direct_materialized_required_files(),
+    }
 
 
 def iter_seed_files(module) -> set[Path]:
@@ -404,7 +421,10 @@ def collect_manifest_surface_expectations(module, manifest_path: Path) -> list[t
 
 
 def augment_self_test_seed_root(module, root: Path) -> None:
-    for rel in EXTRA_REQUIRED_FILES:
+    seeded_paths = set(module.REQUIRED_FILES)
+    for rel in (*EXTRA_REQUIRED_FILES, *sorted(iter_direct_materialized_required_files())):
+        if rel in seeded_paths:
+            continue
         path = module.resolve(root, rel)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("present\n", encoding="utf-8")
