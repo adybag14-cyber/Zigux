@@ -483,6 +483,10 @@ pub fn strcspn(buf: []const u8, reject: []const u8) usize {
     return limit;
 }
 
+pub fn strstr(buf: []const u8, needle: []const u8) ?usize {
+    return strnstr(buf, needle, cStringLen(buf));
+}
+
 pub fn strnstr(buf: []const u8, needle: []const u8, count: usize) ?usize {
     const limit = strnlen(buf, count);
     const needle_len = cStringLen(needle);
@@ -867,6 +871,13 @@ test "memparse consumes suffix after saturation" {
 test "memparse applies suffixes before signed clamping" {
     const parsed = memparse("-9000000000000K");
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -9216000000000000))), parsed.value);
+}
+
+test "strstr mirrors full-length C-string substring searches" {
+    try std.testing.expectEqual(@as(?usize, 1), strstr("abc", "bc"));
+    try std.testing.expectEqual(@as(?usize, null), strstr(&[_]u8{ 'a', 0, 'b', 'c' }, "bc"));
+    try std.testing.expectEqual(@as(?usize, 1), strstr("abc", &[_]u8{ 'b', 0, 'x' }));
+    try std.testing.expectEqual(@as(?usize, 0), strstr("abc", ""));
 }
 
 test "strnstr honors count and C-string boundaries" {
