@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard against stale dedicated Phase 4 packet claims in zigux/tests/README.md."""
+"""Guard the current narrow Phase 4 packet in zigux/tests/README.md."""
 
 from __future__ import annotations
 
@@ -14,19 +14,15 @@ REQUIRED_PRESENT_MARKERS = (
     "# zigux/tests",
     "This directory is the home of reusable Zigux parity and differential validation harnesses.",
     "## Phase 5 sample packet",
+    "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
+    "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
 )
 
 FORBIDDEN_PHASE4_MARKERS = (
     "## Phase 4",
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
-    "Documentation/zigux/phase4-gate-evidence.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
-    "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "scripts/zigux/check-phase4-perf-baseline-packet.py",
-    "zigux/tests/phase4_perf_baseline_manifest.json",
-    "zigux/tests/phase4_perf_baseline_survey.zig",
-    "zigux/tests/bitmap_diff.zig",
     "make -C zigux phase4-perf-baseline-survey",
     "scripts/zigux/check-phase4-tests-readme-packet.py",
 )
@@ -55,8 +51,8 @@ EXPECTED_SELF_TEST_CASES = 15
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Verify that zigux/tests/README.md does not carry a stale dedicated "
-            "Phase 4 reminder packet."
+            "Verify that zigux/tests/README.md carries the current narrow Phase 4 "
+            "tests-root reminder packet without regressing into older wider packet claims."
         )
     )
     parser.add_argument(
@@ -159,53 +155,53 @@ def run_self_test() -> int:
         ),
         (
             "stale_phase4_gate_evidence_note_reference",
+            baseline.replace(REQUIRED_PRESENT_MARKERS[3] + "\n", "", 1),
+            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[3]}"],
+        ),
+        (
+            "stale_phase4_repo_reality_warning_reference",
             baseline + FORBIDDEN_PHASE4_MARKERS[2] + "\n",
             [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[2]}"],
         ),
         (
-            "stale_phase4_repo_reality_warning_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[3] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[3]}"],
-        ),
-        (
             "stale_phase4_perf_manifest_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[7] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[7]}"],
+            baseline.replace(REQUIRED_PRESENT_MARKERS[4] + "\n", "", 1),
+            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[4]}"],
         ),
         (
             "stale_phase4_perf_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[8] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[8]}"],
+            baseline.replace(REQUIRED_PRESENT_MARKERS[4], "Current direct-readback local perf companion members"),
+            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[4]}"],
         ),
         (
             "stale_phase4_perf_make_route",
-            baseline + FORBIDDEN_PHASE4_MARKERS[10] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[10]}"],
-        ),
-        (
-            "stale_phase4_gate_evidence_checker_reference",
             baseline + FORBIDDEN_PHASE4_MARKERS[4] + "\n",
             [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[4]}"],
         ),
         (
+            "stale_phase4_gate_evidence_checker_reference",
+            baseline.replace("scripts/zigux/check-phase4-gate-evidence.py", "scripts/zigux/check-phase4-gate-evidence-legacy.py"),
+            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[3]}"],
+        ),
+        (
             "stale_phase4_reversible_delivery_checker_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[5] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[5]}"],
+            baseline + FORBIDDEN_PHASE4_MARKERS[3] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[3]}"],
         ),
         (
             "stale_phase4_perf_checker_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[6] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[6]}"],
+            baseline.replace("scripts/zigux/check-phase4-remaining-gap-matrix.py", "scripts/zigux/check-phase4-remaining-gap-matrix-legacy.py"),
+            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[3]}"],
         ),
         (
             "stale_phase4_bitmap_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[9] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[9]}"],
+            baseline.replace("zigux/tests/phase4_perf_baseline_survey.zig", "zigux/tests/phase4_bitmap_diff_survey.zig"),
+            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[4]}"],
         ),
         (
             "stale_phase4_tests_readme_checker_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[11] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[11]}"],
+            baseline + FORBIDDEN_PHASE4_MARKERS[5] + "\n",
+            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[5]}"],
         ),
     )
     if len(cases) != EXPECTED_SELF_TEST_CASES:
