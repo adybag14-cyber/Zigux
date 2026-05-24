@@ -105,7 +105,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -221,6 +221,7 @@ def run_self_test() -> None:
         mutations = [
             ("Documentation/zigux/phase7-cmdline-slice.md", "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "`scripts/zigux/check-phase7-cmdline-packet.py`", ""),
+            ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
             ("lib/cmdline.zig", 'test "getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior" {', ""),
             ("zigux/tests/phase7_cmdline.zig", 'test "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries" {', ""),
             ("zigux/tests/phase7_cmdline_survey.zig", 'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_checker_anchor", manifest.current_master_state);', ""),
