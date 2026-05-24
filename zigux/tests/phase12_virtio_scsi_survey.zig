@@ -217,9 +217,11 @@ test "phase12 virtio scsi fallback catalog keeps archival replay distinct from c
 
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "PHASE12_STATUS=archival-raw-read-fallback") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "exact coverage evidence refreshed on `2026-05-23`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "exact coverage evidence refreshed on `2026-05-24`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "authenticated contents view now returns this refreshed archival catalog body on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "public raw `master` fallback still serves the older `2026-05-21` archival body for this same path as of `2026-05-23`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "public raw `master` fallback still serves the older `2026-05-21` archival body for this same path as of `2026-05-24`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "scripts/zigux/check-phase12-cross-compile-smoke.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "check-phase12-cross-compile-smoke.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, fallback_catalog, "archival commit-pinned history only") != null);
 }
