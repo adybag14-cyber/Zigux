@@ -19,20 +19,23 @@ test "phase10 virtio input teardown preflight blocks reset-local teardown until 
         "pending_status_drain",
         teardown_preflight.blockerTag(summary.blocker.?),
     );
-    try std.testing.expect(!summary.ready_for_teardown);
+    try std.testing.expect(teardown_preflight.waitingOnPendingStatusDrain(summary));
+    try std.testing.expect(!teardown_preflight.readyForTeardown(summary));
     try std.testing.expect(teardown_preflight.runtimeStateArmed(summary));
     try std.testing.expect(!teardown_preflight.capabilityStateArmed(summary));
     try std.testing.expect(teardown_preflight.preservesIdentity(summary));
-    try std.testing.expectEqual(@as(usize, 2), summary.queued_status_count);
-    try std.testing.expectEqual(@as(usize, 0), summary.suppressed_status_count);
+    try std.testing.expectEqual(@as(usize, 2), teardown_preflight.queuedStatusCount(summary));
+    try std.testing.expectEqual(@as(usize, 0), teardown_preflight.suppressedStatusCount(summary));
 
     _ = try device.drainStatusQueue(2);
 
     summary = teardown_preflight.summarize(&device);
     try std.testing.expect(summary.blocker == null);
-    try std.testing.expect(summary.ready_for_teardown);
+    try std.testing.expect(!teardown_preflight.waitingOnPendingStatusDrain(summary));
+    try std.testing.expect(teardown_preflight.readyForTeardown(summary));
     try std.testing.expect(teardown_preflight.runtimeStateArmed(summary));
-    try std.testing.expectEqual(@as(usize, 0), summary.queued_status_count);
+    try std.testing.expectEqual(@as(usize, 0), teardown_preflight.queuedStatusCount(summary));
+    try std.testing.expectEqual(@as(usize, 0), teardown_preflight.suppressedStatusCount(summary));
 }
 
 test "phase10 virtio input teardown preflight keeps suppressed multitouch timestamps non-blocking" {
@@ -54,10 +57,11 @@ test "phase10 virtio input teardown preflight keeps suppressed multitouch timest
 
     const summary = teardown_preflight.summarize(&device);
     try std.testing.expect(summary.blocker == null);
-    try std.testing.expect(summary.ready_for_teardown);
+    try std.testing.expect(!teardown_preflight.waitingOnPendingStatusDrain(summary));
+    try std.testing.expect(teardown_preflight.readyForTeardown(summary));
     try std.testing.expect(teardown_preflight.runtimeStateArmed(summary));
     try std.testing.expect(teardown_preflight.capabilityStateArmed(summary));
     try std.testing.expect(teardown_preflight.preservesIdentity(summary));
-    try std.testing.expectEqual(@as(usize, 0), summary.queued_status_count);
-    try std.testing.expectEqual(@as(usize, 1), summary.suppressed_status_count);
+    try std.testing.expectEqual(@as(usize, 0), teardown_preflight.queuedStatusCount(summary));
+    try std.testing.expectEqual(@as(usize, 1), teardown_preflight.suppressedStatusCount(summary));
 }
