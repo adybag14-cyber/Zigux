@@ -117,7 +117,14 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         validator,
         "\"`make -C zigux phase8-perf-buffer-poll-test`\"",
     );
-    try expectContains(validator, "\"standalone timer or clockevent helper behavior\"");
+    try expectContains(
+        validator,
+        "\"no standalone timer helper behavior\"",
+    );
+    try expectContains(
+        validator,
+        "\"no standalone clockevent helper behavior\"",
+    );
 
     const makefile = try readRepoFile("zigux/Makefile");
     defer std.testing.allocator.free(makefile);
