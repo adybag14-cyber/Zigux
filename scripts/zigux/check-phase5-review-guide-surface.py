@@ -142,6 +142,10 @@ FORBIDDEN_GUIDE_TEXT = (
     "Treat `samples/zigux/runtime_*.zig` as extra Phase 5 evidence.",
 )
 
+FORBIDDEN_SAMPLE_ROOT_TEXT = (
+    "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those three routes directly.",
+)
+
 
 def read_text(root: Path, path: Path) -> str:
     try:
@@ -215,6 +219,7 @@ def collect_failures(root: Path) -> list[str]:
     guide = texts[GUIDE_PATH]
     approved = texts[APPROVED_IDIOM_PATH]
     kobject_survey = texts[KOBJECT_SURVEY_PATH]
+    sample_root = texts[SAMPLE_ROOT_PATH]
     for rel in DIRECT_PACKET_PATHS:
         if f"`{rel}`" not in guide and rel not in guide:
             failures.append(f"guide:missing_path:{rel}")
@@ -245,6 +250,10 @@ def collect_failures(root: Path) -> list[str]:
         if forbidden in guide:
             failures.append(f"guide:forbidden_text:{forbidden}")
 
+    for forbidden in FORBIDDEN_SAMPLE_ROOT_TEXT:
+        if forbidden in sample_root:
+            failures.append(f"sample_root:forbidden_text:{forbidden}")
+
     return failures
 
 
@@ -255,7 +264,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 36
+    expected_case_count = 37
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -414,7 +423,7 @@ def run_self_test() -> int:
             collect_failures(mutated),
             [
                 f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][0]}",
-                f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}",
+                f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}" ,
                 "kobject_survey:missing_path:zigux/tests/phase5_kobject_attr_group_contract_survey.zig",
             ],
         )
@@ -487,6 +496,16 @@ def run_self_test() -> int:
             "forbidden runtime-as-phase5 claim",
             collect_failures(mutated),
             [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[2]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "forbidden_sample_root_kobject_inversion"
+        seed(mutated)
+        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH) + FORBIDDEN_SAMPLE_ROOT_TEXT[0] + "\n")
+        expect_exact(
+            "forbidden sample-root kobject inversion",
+            collect_failures(mutated),
+            [f"sample_root:forbidden_text:{FORBIDDEN_SAMPLE_ROOT_TEXT[0]}"],
         )
         checks_run += 1
 
