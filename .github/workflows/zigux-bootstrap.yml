@@ -529,6 +529,10 @@ jobs:
 
       - name: Run current Phase 9 registration reentry companion tests
         run: zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig
+
+      - name: Run current Phase 9 reinit reexit guard companion tests
+        run: zig test samples/zigux/runtime_trace_events_reinit_reexit_guard.zig
+
       - name: Run current Phase 9 trace-events survey witness
         run: zig test zigux/tests/runtime_trace_events_survey.zig
 
