@@ -105,6 +105,36 @@ test "phase 7 cmdline companion replays validator-only getOption cursor movement
     try std.testing.expectEqualStrings("rest", negative_rest);
 }
 
+test "phase 7 cmdline companion replays first-NUL boundary borrowing" {
+    var option_input = [_]u8{ '1', '6', 0, ',', 't', 'a', 'i', 'l' };
+    var option_rest: []const u8 = option_input[0..];
+    var option_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&option_rest, &option_value));
+    try std.testing.expectEqual(@as(i32, 16), option_value);
+    try std.testing.expectEqualStrings("", option_rest);
+    try std.testing.expectEqual(@intFromPtr(&option_input[2]), @intFromPtr(option_rest.ptr));
+
+    var range_values = [_]i32{ 0, 0, 0, 0 };
+    const range_input = [_]u8{ '3', '-', '4', 0, ',', '9' };
+    const range_rest = cmdline.getOptions(range_input[0..], range_values.len, &range_values);
+    try std.testing.expectEqualStrings("", range_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 3, 4, 0 }, &range_values);
+    try std.testing.expectEqual(@intFromPtr(&range_input[3]), @intFromPtr(range_rest.ptr));
+
+    const memparse_input = [_]u8{ '6', '4', 'K', 0, 'r', 'e', 's', 't' };
+    const parsed_memparse = cmdline.memparse(memparse_input[0..]);
+    try std.testing.expectEqual(@as(u64, 64 << 10), parsed_memparse.value);
+    try std.testing.expectEqualStrings("", parsed_memparse.rest);
+    try std.testing.expectEqual(@intFromPtr(&memparse_input[3]), @intFromPtr(parsed_memparse.rest.ptr));
+
+    const next_arg_input = [_]u8{ 'c', 'o', 'n', 's', 'o', 'l', 'e', '=', 't', 't', 'y', 'S', '0', 0, ' ', 'r', 'o', 'o', 't' };
+    const parsed_arg = cmdline.nextArg(next_arg_input[0..]);
+    try std.testing.expectEqualStrings("console", parsed_arg.param);
+    try std.testing.expectEqualStrings("ttyS0", parsed_arg.value.?);
+    try std.testing.expectEqualStrings("", parsed_arg.remaining);
+    try std.testing.expectEqual(@intFromPtr(&next_arg_input[13]), @intFromPtr(parsed_arg.remaining.ptr));
+}
+
 test "phase 7 cmdline companion replays nextArg empty-input and leading-whitespace ownership borrowing" {
     const empty_input: []const u8 = "";
     const empty = cmdline.nextArg(empty_input);
