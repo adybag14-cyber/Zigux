@@ -163,3 +163,25 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype helper set relationships stay aligned across the full table" {
+    try std.testing.expect(isspace(0xA0));
+    try std.testing.expect(isprint(0xA0));
+    try std.testing.expect(!isgraph(0xA0));
+
+    try std.testing.expect(iscntrl(0x7F));
+    try std.testing.expect(!isprint(0x7F));
+    try std.testing.expect(!isspace(0x7F));
+
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+
+        try std.testing.expectEqual(isalpha(byte) or isdigit(byte), isalnum(byte));
+        try std.testing.expectEqual(isgraph(byte) or (mask(byte) & _SP) != 0, isprint(byte));
+        try std.testing.expectEqual(isprint(byte) and !isspace(byte), isgraph(byte));
+        try std.testing.expectEqual(isgraph(byte) and !isalnum(byte), ispunct(byte));
+        try std.testing.expectEqual(tolower(byte), fastTolower(byte));
+        try std.testing.expectEqual(isdigit(byte) and byte <= '7', isodigit(byte));
+    }
+}
