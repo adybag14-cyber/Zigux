@@ -71,7 +71,7 @@ EXACT_FAMILY_MARKERS = {
         '"PHASE1_BENCH_RBTREE_ITERATIONS",',
         'return ("expectations_checksums_rbtree_exact_required", key)',
         'return ("expectations_missing_rbtree_iterations", missing_rbtree_iterations)',
-        'return ("missing_rbtree_iterations", missing_exact)',
+        'return ("missing_rbtree_iterations", [key])',
         'return ("missing_rbtree_exact_checksums", missing_exact)',
     ),
 }
@@ -189,12 +189,14 @@ def validate_expectations():
     return ("expectations_checksums_rbtree_exact_required", key)
     return ("expectations_missing_rbtree_iterations", missing_rbtree_iterations)
 def validate_output():
+    for key in sorted(required_keys):
+        if parsed.get(key) is None:
+            return ("missing_rbtree_iterations", [key])
     return ("missing_bitmap_exact_checksums", missing_exact)
     return ("missing_find_bit_exact_checksums", missing_exact)
     return ("missing_string_exact_checksums", missing_exact)
     return ("missing_hweight_exact_checksums", missing_exact)
     return ("missing_list_sort_exact_checksums", missing_exact)
-    return ("missing_rbtree_iterations", missing_exact)
     return ("missing_rbtree_exact_checksums", missing_exact)
 """
     workflow_text = """- name: Self-test current Phase 1 bench checker
@@ -260,6 +262,19 @@ def run_self_test() -> None:
         kind, payload = validate(missing_string_root)
         assert kind == "missing_family_markers", (kind, payload)
         assert payload == ['string:return ("missing_string_exact_checksums", missing_exact)']
+        case_count += 1
+
+        missing_rbtree_iteration_root = Path(tmp) / "missing-rbtree-iteration"
+        write_sample_root(missing_rbtree_iteration_root)
+        checker_path = missing_rbtree_iteration_root / CHECKER
+        checker_text = checker_path.read_text(encoding="utf-8").replace(
+            'return ("missing_rbtree_iterations", [key])\n',
+            "",
+        )
+        checker_path.write_text(checker_text, encoding="utf-8")
+        kind, payload = validate(missing_rbtree_iteration_root)
+        assert kind == "missing_family_markers", (kind, payload)
+        assert payload == ['rbtree:return ("missing_rbtree_iterations", [key])']
         case_count += 1
 
         missing_rbtree_closure_root = Path(tmp) / "missing-rbtree-closure"
