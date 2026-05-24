@@ -277,6 +277,8 @@ phase10-test:
 phase10: phase10-validate phase10-test
 
 phase11-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validate-route-alignment.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-validate-route-alignment.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_build.zig
