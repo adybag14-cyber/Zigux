@@ -40,6 +40,9 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
   - `zigux/tests/phase12_build.zig`
   - `scripts/zigux/check-build-only-phase12-surface.py`
 - current contents-bridge shared support bundle during degraded contents reads:
+  - `scripts/zigux/check-phase12-complex-driver-lane-packet.py`
+  - `scripts/zigux/check-phase12-libbpf-snapshot.py`
+  - `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`
   - `scripts/zigux/validate-phase12.py`
   - `scripts/zigux/check-phase12-release-readiness-packet.py`
   - `.github/workflows/zigux-bootstrap.yml`
