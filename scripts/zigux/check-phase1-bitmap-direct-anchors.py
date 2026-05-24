@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+"""Guard the Phase 1 bitmap direct-anchor packet against helper-local drift."""
+
+from __future__ import annotations
+
+import argparse
+import tempfile
+from pathlib import Path
+
+
+HERE = Path(__file__).resolve()
+DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
+BITMAP_REL = Path("tools/lib/bitmap.zig")
+
+REQUIRED_TEST_MARKERS = {
+    "range_edges": 'test "bitmap range helpers preserve edges across whole-word spans" {',
+    "copy_raw_alias": 'test "bitmap copy alias preserves raw source words without tail clearing" {',
+    "copy_tail_extend_alias": 'test "bitmap copy aliases preserve tail clearing and extension semantics" {',
+    "copy_zero_aligned": 'test "bitmap copy and extend handles zero and aligned counts" {',
+    "copy_zero_sized_views": 'test "bitmap copy helpers keep zero-sized destination views untouched" {',
+    "zero_bit_logical": 'test "bitmap zero-bit logical helpers stay explicit" {',
+    "equal_fast_path": 'test "bitmap equal fast path ignores storage beyond an exact word boundary" {',
+    "tail_mask_predicates": 'test "bitmap tail-masked helpers ignore out-of-range differences" {',
+    "tail_mask_counts": 'test "bitmap full empty and weight ignore out-of-range tail bits" {',
+    "xor_window": 'test "bitmap xor keeps caller-selected bit window" {',
+    "xor_multiword_tail": 'test "bitmap xor across a multiword tail still lets callers clamp the last word" {',
+    "or_window": 'test "bitmap or keeps caller-selected bit window" {',
+    "or_multiword_tail": 'test "bitmap or across a multiword tail still lets callers clamp the last word" {',
+    "weighted_or_xor_tail": 'test "bitmap weighted or and xor clamp counts to the declared tail window" {',
+    "weighted_and_andnot_tail": 'test "bitmap weighted and andnot clamp counts to the declared tail window" {',
+    "complement_tail": 'test "bitmap complement clamps partial tails and leaves zero-sized caller views untouched" {',
+    "scnprintf_cross_word": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries" {',
+    "scnprintf_truncation": 'test "bitmap scnprintf truncates and keeps a terminator slot" {',
+    "scnprintf_zero_views": 'test "bitmap scnprintf handles terminator-only and zero-length caller views" {',
+    "scnprintf_empty_buffer": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap" {',
+    "linux_alias_copy_logic": 'test "bitmap Linux-style aliases mirror copy logical range and format helpers" {',
+    "linux_alias_size_alloc": 'test "bitmap Linux-style aliases mirror size state and allocation helpers" {',
+    "allocation_helpers": 'test "bitmap allocation helpers size zero fill and reset optionals" {',
+}
+
+REQUIRED_SOURCE_MARKERS = {
+    "bitmap_copy_alias": "pub fn bitmap_copy(dst: []Word, src: []const Word, nbits: usize) void {",
+    "bitmap_copy_clear_tail_alias": "pub fn bitmap_copy_clear_tail(dst: []Word, src: []const Word, nbits: usize) void {",
+    "bitmap_copy_and_extend_alias": "pub fn bitmap_copy_and_extend(dst: []Word, src: []const Word, count: usize, size: usize) void {",
+    "bitmap_or_alias": "pub fn bitmap_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {",
+    "bitmap_xor_alias": "pub fn bitmap_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {",
+    "bitmap_weighted_or_alias": "pub fn bitmap_weighted_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {",
+    "bitmap_weighted_xor_alias": "pub fn bitmap_weighted_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {",
+    "bitmap_weight_and_alias": "pub fn bitmap_weight_and(src1: []const Word, src2: []const Word, nbits: usize) usize {",
+    "bitmap_weight_andnot_alias": "pub fn bitmap_weight_andnot(src1: []const Word, src2: []const Word, nbits: usize) usize {",
+    "bitmap_complement_alias": "pub fn bitmap_complement(dst: []Word, src: []const Word, nbits: usize) void {",
+    "bitmap_scnprintf_alias": "pub fn bitmap_scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {",
+    "bitmap_alloc_alias": "pub fn bitmap_alloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {",
+    "bitmap_zalloc_alias": "pub fn bitmap_zalloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {",
+    "bitmap_free_alias": "pub fn bitmap_free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {",
+}
+
+
+def repo_root(override: str | None) -> Path:
+    return Path(override).resolve() if override else DEFAULT_ROOT.resolve()
+
+
+def collect_marker_count_failures(text: str, markers: dict[str, str]) -> list[str]:
+    failures: list[str] = []
+    for label, marker in markers.items():
+        count = text.count(marker)
+        if count != 1:
+            failures.append(f"{label}:expected=1:actual={count}")
+    return failures
+
+
+def validate_bitmap_source(text: str) -> tuple[str, object]:
+    test_failures = collect_marker_count_failures(text, REQUIRED_TEST_MARKERS)
+    if test_failures:
+        return ("invalid_test_marker_counts", test_failures)
+
+    source_failures = collect_marker_count_failures(text, REQUIRED_SOURCE_MARKERS)
+    if source_failures:
+        return ("invalid_source_marker_counts", source_failures)
+
+    return ("pass", None)
+
+
+def load_bitmap_source(root: Path) -> tuple[str, object]:
+    path = root / BITMAP_REL
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return ("missing_file", path)
+    return validate_bitmap_source(text)
+
+
+def build_sample_source(omit_label: str | None = None, duplicate_label: str | None = None) -> str:
+    lines = list(REQUIRED_TEST_MARKERS.values()) + list(REQUIRED_SOURCE_MARKERS.values())
+
+    if omit_label is not None:
+        marker = REQUIRED_TEST_MARKERS.get(omit_label, REQUIRED_SOURCE_MARKERS.get(omit_label))
+        assert marker is not None
+        lines = [line for line in lines if line != marker]
+
+    if duplicate_label is not None:
+        marker = REQUIRED_TEST_MARKERS.get(duplicate_label, REQUIRED_SOURCE_MARKERS.get(duplicate_label))
+        assert marker is not None
+        for idx, line in enumerate(lines):
+            if line == marker:
+                lines.insert(idx + 1, line)
+                break
+
+    return "\n".join(lines) + "\n"
+
+
+def run_self_test() -> None:
+    case_count = 0
+
+    kind, payload = validate_bitmap_source(build_sample_source())
+    assert kind == "pass", (kind, payload)
+    case_count += 1
+
+    for label in REQUIRED_TEST_MARKERS:
+        kind, payload = validate_bitmap_source(build_sample_source(omit_label=label))
+        assert kind == "invalid_test_marker_counts", (label, kind, payload)
+        assert payload == [f"{label}:expected=1:actual=0"], (label, payload)
+        case_count += 1
+
+    for label in REQUIRED_SOURCE_MARKERS:
+        kind, payload = validate_bitmap_source(build_sample_source(omit_label=label))
+        assert kind == "invalid_source_marker_counts", (label, kind, payload)
+        assert payload == [f"{label}:expected=1:actual=0"], (label, payload)
+        case_count += 1
+
+    for label in REQUIRED_TEST_MARKERS:
+        kind, payload = validate_bitmap_source(build_sample_source(duplicate_label=label))
+        assert kind == "invalid_test_marker_counts", (label, kind, payload)
+        assert payload == [f"{label}:expected=1:actual=2"], (label, payload)
+        case_count += 1
+
+    for label in REQUIRED_SOURCE_MARKERS:
+        kind, payload = validate_bitmap_source(build_sample_source(duplicate_label=label))
+        assert kind == "invalid_source_marker_counts", (label, kind, payload)
+        assert payload == [f"{label}:expected=1:actual=2"], (label, payload)
+        case_count += 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-bitmap-direct-anchors-") as tmp:
+        root = Path(tmp)
+        kind, payload = load_bitmap_source(root)
+        assert kind == "missing_file", (kind, payload)
+        assert payload == root / BITMAP_REL
+        case_count += 1
+
+        path = root / BITMAP_REL
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(build_sample_source(), encoding="utf-8")
+        kind, payload = load_bitmap_source(root)
+        assert kind == "pass", (kind, payload)
+        case_count += 1
+
+    print("PHASE1_BITMAP_DIRECT_ANCHORS_SELF_TEST=pass")
+    print(f"PHASE1_BITMAP_DIRECT_ANCHORS_SELF_TEST_CASE_COUNT={case_count}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", help="override the repository root for validation")
+    parser.add_argument("--self-test", action="store_true", help="run self-test cases")
+    args = parser.parse_args()
+
+    if args.self_test:
+        run_self_test()
+        return 0
+
+    kind, payload = load_bitmap_source(repo_root(args.root))
+    if kind != "pass":
+        if isinstance(payload, list):
+            for failure in payload:
+                print(failure)
+        else:
+            print(f"{kind}:{payload}")
+        return 1
+
+    print("PHASE1_BITMAP_DIRECT_ANCHORS=pass")
+    print(f"PHASE1_BITMAP_DIRECT_ANCHORS_HELPER={BITMAP_REL.as_posix()}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
