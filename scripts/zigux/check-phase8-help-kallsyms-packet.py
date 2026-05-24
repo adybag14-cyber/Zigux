@@ -98,8 +98,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     SCRIPTS_README: (
         "while treating the returned help, kallsyms, and broader libbpf-segment companions as public-tree-backed broader packet evidence instead of as missing routes or direct scripts-root anchors",
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py` and `scripts/zigux/check-phase8-libbpf-shard-routes.py` rematerialize those broader help, kallsyms, and libbpf-segment companions on `master`",
+        "`Documentation/zigux/phase8-kallsyms-slice.md`",
         "`tools/lib/symbol/kallsyms.zig`",
         "`zigux/tests/phase8_kallsyms.zig`",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
     ),
     VALIDATOR: (
         'HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")',
