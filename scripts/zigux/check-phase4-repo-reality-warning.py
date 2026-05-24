@@ -34,7 +34,7 @@ BITMAP_HELPER_REPLAY = Path("zigux/tests/phase4_bitmap_live_helper_replay.zig")
 ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
 ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 20
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 21
 EXPECTED_PIN_SELF_TEST_CASES = 19
 
 DIRECT_READBACK_PACKET = (
@@ -245,6 +245,12 @@ def run_self_test() -> int:
             "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=19`\n",
         )
         cases += _expect_failure(root, NOTE, "scripts/zigux/check-phase4-tests-readme-packet.py", "scripts/zigux/old-phase4-tests-readme-packet.py")
+        cases += _expect_failure(
+            root,
+            NOTE,
+            NOTE_REQ[4],
+            "Current direct contents reads for the runtime atomic64 packet are omitted here.",
+        )
         cases += _expect_failure(root, DOCS_README, DOCS_README_PHASE4_REQ[0], "docs drift")
         cases += _expect_failure(root, CHECKLIST, CHECKLIST_PHASE4_REQ[0], "checklist drift")
         cases += _expect_failure(root, CHECKLIST, CHECKLIST_PHASE4_REQ[3], "checklist split drift")
