@@ -231,8 +231,7 @@ def run_self_test() -> int:
 
     with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-ordered-") as tmpdir:
         root = Path(tmpdir)
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(root)
+        build_sample_repo(root)
         insert_after(
             root,
             BENCH_CHECKER_REL,
