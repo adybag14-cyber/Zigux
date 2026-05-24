@@ -454,6 +454,42 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("scnprintf_cross_word_anchor"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:scnprintf_cross_word_anchor",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("zero_bit_noop_anchor"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:zero_bit_noop_anchor",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"]["partial_xor_review_fields"].pop(),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:partial_xor_review_fields",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest["review_anchors"]["tools/lib/bitmap.zig"].__setitem__(
                         "review_packet_summary",
                         "drifted bitmap review summary",
@@ -462,6 +498,33 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:review_anchor_value=tools/lib/bitmap.zig:review_packet_summary",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].__setitem__(
+                        "next_safe_step_note",
+                        manifest["review_anchors"]["tools/lib/bitmap.zig"]["next_safe_step_note"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:next_safe_step_note",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/find_bit.zig"]["helper_test_anchors"].pop(),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/find_bit.zig:helper_test_anchors",
         )
         case_count += 1
 
@@ -481,11 +544,41 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/find_bit.zig"].__setitem__(
+                        "andnot_scan_entrypoint_contract",
+                        manifest["review_anchors"]["tools/lib/find_bit.zig"]["andnot_scan_entrypoint_contract"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/find_bit.zig:andnot_scan_entrypoint_contract",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_clamp_fixture_keys"].pop(),
                     write_manifest(root, manifest),
                 )
             )(load_current()),
             "manifest:review_anchor_value=tools/lib/find_bit.zig:tail_clamp_fixture_keys",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/find_bit.zig"].__setitem__(
+                        "next_safe_step_note",
+                        manifest["review_anchors"]["tools/lib/find_bit.zig"]["next_safe_step_note"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/find_bit.zig:next_safe_step_note",
         )
         case_count += 1
 
@@ -534,6 +627,21 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/rbtree.zig"].__setitem__(
+                        "next_safe_step_note",
+                        manifest["review_anchors"]["tools/lib/rbtree.zig"]["next_safe_step_note"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/rbtree.zig:next_safe_step_note",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"].remove(
                         'test "strcmp mirrors C-string lexical ordering"'
                     ),
@@ -541,6 +649,30 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:review_anchor_value=tools/lib/string.zig:helper_test_anchors",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/string.zig"]["memparse_review_anchors"].pop(),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/string.zig:memparse_review_anchors",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/string.zig"]["strcmp_review_anchors"].pop(),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/string.zig:strcmp_review_anchors",
         )
         case_count += 1
 
@@ -607,6 +739,21 @@ def run_self_test() -> None:
             lambda: (
                 lambda manifest: (
                     manifest["review_anchors"]["tools/lib/string.zig"].__setitem__(
+                        "strnchr_review_summary",
+                        manifest["review_anchors"]["tools/lib/string.zig"]["strnchr_review_summary"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/string.zig:strnchr_review_summary",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/string.zig"].__setitem__(
                         "next_safe_step_note",
                         manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] + " drift",
                     ),
@@ -621,11 +768,59 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest.__setitem__("phase", "Phase 0"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:phase=Phase 1",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest.__setitem__("status", "open"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:status=closed",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest.__setitem__("helper_count", 12),
                     write_manifest(root, manifest),
                 )
             )(load_current()),
             "manifest:helper_count=13",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["helpers"].pop(),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:helpers=expected_phase1_helper_list",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["lane_sequencing"]["shared_replay_parked_helpers"].pop(),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:lane_sequencing.shared_replay_parked_helpers",
         )
         case_count += 1
 
@@ -653,6 +848,18 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:lane_sequencing.rule_summary",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["lane_sequencing"].__setitem__("anti_overlap_rule", "drifted anti overlap rule"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:lane_sequencing.anti_overlap_rule",
         )
         case_count += 1
 
