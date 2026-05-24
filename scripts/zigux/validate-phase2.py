@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE = "zigux/Makefile"
+MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 GENKSYMS_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-genksyms-dual-implementation-survey.md"
 FIXDEP_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-fixdep-dual-implementation-survey.md"
 GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
@@ -140,10 +142,11 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
     *GENKSYMS_PROCESS_OUTPUT_FIXTURES,
-    "zigux/tests/fixtures/phase2_tool_manifest.json",
+    MANIFEST,
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/fixdep/cases.json",
+    "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     MAKEFILE,
 )
@@ -182,6 +185,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
@@ -233,6 +238,8 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
@@ -255,6 +262,36 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
+EXPECTED_MANIFEST_ARTIFACT_SUPPORT = (
+    "scripts/zigux/artifact_diff.py",
+    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+)
+EXPECTED_MANIFEST_CROSS_ROUTE_SUPPORT = (
+    "scripts/zigux/check-phase2-cross.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+)
+EXPECTED_MANIFEST_FIXDEP_SUPPORT = (
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/fixdep.zig",
+    "zigux/tests/fixtures/fixdep/cases.json",
+)
+EXPECTED_MANIFEST_MAKE_WRAPPERS = (
+    "zigux/Makefile",
+    "make -C zigux phase2-toolchain",
+    "make -C zigux phase2-tools",
+    "make -C zigux phase2-kconfig",
+    "make -C zigux phase2-cross",
+    "make -C zigux phase2-genksyms",
+    "make -C zigux phase2-fixdep",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+)
+EXPECTED_MANIFEST_POLICY = (
+    "scripts/zigux/zig-toolchain-policy.json",
+)
+
 
 def read_text(root: Path, rel: str) -> str:
     path = root / rel
@@ -268,6 +305,16 @@ def write_text(root: Path, rel: str, content: str) -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def read_json(root: Path, rel: str) -> object:
+    path = root / rel
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
 
 
 def count_exact_lines(text: str, marker: str) -> int:
@@ -302,10 +349,35 @@ def phony_targets_present(text: str) -> set[str]:
     return targets
 
 
+def require_manifest_list(issues: list[tuple[str, str]], manifest: dict[str, object], key: str) -> list[str] | None:
+    surfaces = manifest.get("present_surfaces")
+    if not isinstance(surfaces, dict):
+        issues.append(("INVALID_MANIFEST_SHAPE", "present_surfaces"))
+        return None
+    value = surfaces.get(key)
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        issues.append(("INVALID_MANIFEST_SHAPE", key))
+        return None
+    return list(value)
+
+
+def expect_subset(issues: list[tuple[str, str]], label: str, actual: list[str] | None, expected: tuple[str, ...]) -> None:
+    if actual is None:
+        return
+    for marker in expected:
+        if marker not in actual:
+            issues.append(("MISSING_MANIFEST_SURFACE", f"{label}:{marker}"))
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(root, WORKFLOW)
     makefile_text = read_text(root, MAKEFILE)
+    manifest = read_json(root, MANIFEST)
+
+    if not isinstance(manifest, dict):
+        issues.append(("INVALID_MANIFEST_SHAPE", "root"))
+        return issues
 
     for marker in REQUIRED_WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -332,6 +404,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for rel in REQUIRED_PATHS:
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
+
+    manifest_gaps = manifest.get("repo_reality_gaps")
+    if manifest_gaps != []:
+        issues.append(("UNEXPECTED_MANIFEST_GAPS", repr(manifest_gaps)))
+
+    expect_subset(issues, "artifact_support", require_manifest_list(issues, manifest, "artifact_support"), EXPECTED_MANIFEST_ARTIFACT_SUPPORT)
+    expect_subset(issues, "cross_route_support", require_manifest_list(issues, manifest, "cross_route_support"), EXPECTED_MANIFEST_CROSS_ROUTE_SUPPORT)
+    expect_subset(issues, "fixdep_support", require_manifest_list(issues, manifest, "fixdep_support"), EXPECTED_MANIFEST_FIXDEP_SUPPORT)
+    expect_subset(issues, "make_wrappers", require_manifest_list(issues, manifest, "make_wrappers"), EXPECTED_MANIFEST_MAKE_WRAPPERS)
+    expect_subset(issues, "policy", require_manifest_list(issues, manifest, "policy"), EXPECTED_MANIFEST_POLICY)
 
     return issues
 
@@ -368,8 +450,21 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
+    manifest = {
+        "phase": "Phase 2",
+        "status": "active",
+        "repo_reality_gaps": [],
+        "present_surfaces": {
+            "artifact_support": list(EXPECTED_MANIFEST_ARTIFACT_SUPPORT),
+            "cross_route_support": list(EXPECTED_MANIFEST_CROSS_ROUTE_SUPPORT),
+            "fixdep_support": list(EXPECTED_MANIFEST_FIXDEP_SUPPORT),
+            "make_wrappers": list(EXPECTED_MANIFEST_MAKE_WRAPPERS),
+            "policy": list(EXPECTED_MANIFEST_POLICY),
+        },
+    }
+    write_text(root, MANIFEST, json.dumps(manifest, indent=2) + "\n")
     for rel in REQUIRED_PATHS:
-        if rel != MAKEFILE:
+        if rel not in {MAKEFILE, MANIFEST}:
             write_text(root, rel, "present\n")
 
 
@@ -387,8 +482,9 @@ def run_self_test() -> int:
         + 1
         + len(REQUIRED_MAKEFILE_LINES)
         + len(REQUIRED_MAKEFILE_LINES)
-        + (len(REQUIRED_PATHS) - 1)
+        + (len(REQUIRED_PATHS) - 2)
         + 2
+        + 6
     )
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
@@ -433,7 +529,9 @@ def run_self_test() -> int:
             expect_issue(root, ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2"))
             checks += 1
 
-        for rel in REQUIRED_PATHS[:-1]:
+        for rel in REQUIRED_PATHS:
+            if rel in {MAKEFILE, MANIFEST}:
+                continue
             build_self_test_root(root)
             (root / rel).unlink()
             expect_issue(root, ("MISSING_REQUIRED_PATH", rel))
@@ -449,6 +547,54 @@ def run_self_test() -> int:
                 checks += 1
             else:
                 raise AssertionError(f"missing file did not abort: {rel}")
+
+        build_self_test_root(root)
+        manifest_path = root / MANIFEST
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["artifact_support"].remove("scripts/zigux/artifact_diff.py")
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        expect_issue(root, ("MISSING_MANIFEST_SURFACE", "artifact_support:scripts/zigux/artifact_diff.py"))
+        checks += 1
+
+        build_self_test_root(root)
+        manifest_path = root / MANIFEST
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["cross_route_support"].remove("zigux/tests/fixtures/phase2_cross_targets.json")
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        expect_issue(root, ("MISSING_MANIFEST_SURFACE", "cross_route_support:zigux/tests/fixtures/phase2_cross_targets.json"))
+        checks += 1
+
+        build_self_test_root(root)
+        manifest_path = root / MANIFEST
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["fixdep_support"].remove("scripts/zigux/fixdep.zig")
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        expect_issue(root, ("MISSING_MANIFEST_SURFACE", "fixdep_support:scripts/zigux/fixdep.zig"))
+        checks += 1
+
+        build_self_test_root(root)
+        manifest_path = root / MANIFEST
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["make_wrappers"].remove("make -C zigux phase2-validate")
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        expect_issue(root, ("MISSING_MANIFEST_SURFACE", "make_wrappers:make -C zigux phase2-validate"))
+        checks += 1
+
+        build_self_test_root(root)
+        manifest_path = root / MANIFEST
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["policy"].remove("scripts/zigux/zig-toolchain-policy.json")
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        expect_issue(root, ("MISSING_MANIFEST_SURFACE", "policy:scripts/zigux/zig-toolchain-policy.json"))
+        checks += 1
+
+        build_self_test_root(root)
+        manifest_path = root / MANIFEST
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"] = []
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        expect_issue(root, ("INVALID_MANIFEST_SHAPE", "present_surfaces"))
+        checks += 1
 
     assert checks == expected_case_count
     print("PHASE2_VALIDATION_SELF_TEST=pass")
@@ -472,6 +618,7 @@ def main() -> int:
     print("PHASE2_VALIDATION=pass")
     print(f"PHASE2_VALIDATION_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
+    print("PHASE2_VALIDATION_MANIFEST_SURFACE_GROUP_COUNT=5")
     return 0
 
 
