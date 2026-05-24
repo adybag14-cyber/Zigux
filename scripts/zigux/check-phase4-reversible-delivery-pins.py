@@ -278,6 +278,12 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
+            STATIC_SHA_LINES[3],
+            "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=" + ("0" * 40) + "`",
+        )
+        cases += _expect_failure(
+            root,
+            NOTE,
             "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
             "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21`",
         )
@@ -298,12 +304,6 @@ def run_self_test() -> int:
             NOTE,
             PERF_BASELINE_CHECKER_LINE,
             "Current direct-readback dedicated local-only perf checker: `scripts/zigux/old-phase4-perf-baseline-packet.py`.",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
-            "  * `zigux/tests/phase4_perf_baseline_manifest_drift.json`",
         )
         cases += _expect_failure(
             root,
