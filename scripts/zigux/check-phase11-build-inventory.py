@@ -39,6 +39,16 @@ EXACT_CURRENT_CHECKS = (
     "zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
 )
 
+FOCUSED_DIRECT_BUILD_CHECKS = (
+    "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test",
+    "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py",
+)
+
+REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS = (
+    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+)
+
 BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
@@ -397,6 +407,11 @@ def run_check(root: Path) -> None:
         inventory.get("exact_current_checks"),
         EXACT_CURRENT_CHECKS,
     )
+    expect_exact_string_list(
+        "focused_direct_build_checks",
+        inventory.get("focused_direct_build_checks"),
+        FOCUSED_DIRECT_BUILD_CHECKS,
+    )
     workflow_steps = workflow_steps_from_entries(
         inventory.get("workflow_phase11_steps"),
         "workflow_phase11_steps",
@@ -438,6 +453,11 @@ def run_check(root: Path) -> None:
         inventory.get("shared_adjunct_build_replays"),
         REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS,
     )
+    expect_exact_string_list(
+        "focused_direct_build_replays",
+        inventory.get("focused_direct_build_replays"),
+        REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS,
+    )
 
     replay_pairs = {
         (entry.get("path"), entry.get("marker"))
@@ -472,6 +492,7 @@ def fixture_inventory() -> dict[str, object]:
         ],
         "forbidden_markers": list(FORBIDDEN_BUILD_TEXT_MARKERS),
         "exact_current_checks": list(EXACT_CURRENT_CHECKS),
+        "focused_direct_build_checks": list(FOCUSED_DIRECT_BUILD_CHECKS),
         "workflow_phase11_steps": [
             {"name": name, "run": run}
             for name, run in REQUIRED_WORKFLOW_PHASE11_STEPS
@@ -480,6 +501,7 @@ def fixture_inventory() -> dict[str, object]:
         "shared_split_replays": [],
         "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
         "shared_adjunct_build_replays": list(REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS),
+        "focused_direct_build_replays": list(REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS),
         "shared_replay_markers": [],
     }
 
@@ -791,6 +813,14 @@ def run_self_test() -> int:
         expect_failure(wrong_exact_checks, "exact_current_checks does not match")
         case_count += 1
 
+        wrong_focused_direct_checks = tmpdir / "wrong_focused_direct_checks"
+        shutil.copytree(fixture, wrong_focused_direct_checks, dirs_exist_ok=True)
+        inventory = read_json(wrong_focused_direct_checks / INVENTORY_PATH)
+        inventory["focused_direct_build_checks"] = inventory["focused_direct_build_checks"][:-1]
+        write(wrong_focused_direct_checks / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_focused_direct_checks, "focused_direct_build_checks does not match")
+        case_count += 1
+
         wrong_workflow_steps = tmpdir / "wrong_workflow_steps"
         shutil.copytree(fixture, wrong_workflow_steps, dirs_exist_ok=True)
         inventory = read_json(wrong_workflow_steps / INVENTORY_PATH)
@@ -895,6 +925,20 @@ def run_self_test() -> int:
         expect_failure(
             wrong_adjunct_build_replays,
             "shared_adjunct_build_replays does not match",
+        )
+        case_count += 1
+
+        wrong_focused_direct_replays = tmpdir / "wrong_focused_direct_replays"
+        shutil.copytree(fixture, wrong_focused_direct_replays, dirs_exist_ok=True)
+        inventory = read_json(wrong_focused_direct_replays / INVENTORY_PATH)
+        inventory["focused_direct_build_replays"] = inventory["focused_direct_build_replays"][:-1]
+        write(
+            wrong_focused_direct_replays / INVENTORY_PATH,
+            json.dumps(inventory, indent=2) + "\n",
+        )
+        expect_failure(
+            wrong_focused_direct_replays,
+            "focused_direct_build_replays does not match",
         )
         case_count += 1
 
