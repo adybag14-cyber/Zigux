@@ -17,7 +17,7 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "\"lane_key\": \"P13-L18\"");
     try requireContains(manifest_text, "\"anchor\": \"drivers/tty/hvc/hvc_console.h\"");
-    try requireContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-22\"");
+    try requireContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-24\"");
     try requireContains(manifest_text, "\"exact_current_evidence\": {");
     try requireContains(manifest_text, "\"current_notifier_packet_checker_present\": true");
     try requireContains(manifest_text, "\"current_phase13_notifier_list_manifest_present\": true");
