@@ -220,7 +220,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 51
+SELF_TEST_CASE_COUNT = 52
 
 
 def read_text(path: Path) -> str:
@@ -500,6 +500,12 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        tests_case_boundary_marker = 'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {'
+        remove_once(tests_path, tests_case_boundary_marker)
+        expect_missing_marker("missing_tests_case_boundary_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_case_boundary_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_manifest.json"
         manifest_marker = "dedicated helper-local checker-backed packet reviewability"
         remove_once(manifest_path, manifest_marker)
@@ -515,7 +521,7 @@ def run_self_test() -> None:
 
         manifest_devm_follow_on_marker = DEVM_FOLLOW_ON_MARKER
         remove_once(manifest_path, manifest_devm_follow_on_marker)
-        expect_missing_marker("missing_manifest_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_devm_follow_on_marker}")
+        expect_missing_marker("missing_manifest_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_devm_follow_ON_MARKER}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
