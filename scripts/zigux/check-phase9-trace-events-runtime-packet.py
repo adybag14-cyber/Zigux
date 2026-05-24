@@ -19,6 +19,7 @@ SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
 REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
 EXIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_exit_rollback_guard.zig"
+REINIT_REEXIT_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_reinit_reexit_guard.zig"
 DIRECT_SUMMARY_CHECKER_PATH = "scripts/zigux/check-phase9-trace-events-direct-summary.py"
 SUMMARY_PRESERVATION_CHECKER_PATH = "scripts/zigux/check-phase9-trace-events-summary-preservation.py"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -50,6 +51,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
         "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`",
         "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
+        "`samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`",
         "`zigux/tests/runtime_trace_events_manifest.json`",
         "`zigux/tests/runtime_trace_events_survey.zig`",
         "`Documentation/zigux/phase9-runtime-trace-events-module-slice.md`",
@@ -59,6 +61,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         "The direct sample also keeps rejected re-selftest rollback explicit",
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay",
         "Its paired initialized direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
+        "The reinit/reexit guard companion still keeps lifecycle rollback observability explicit after direct pilot activity",
         "Current `master` also now keeps an adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`",
         "`phase9-runtime-loader-allocator-init-flow-tests`",
         "`phase9-runtime-loader-command-env-boundary-guard-tests`",
@@ -71,12 +74,14 @@ FILE_MARKERS: dict[str, list[str]] = {
         "`Documentation/zigux/phase9-runtime-trace-events-survey.md`",
         "`zigux/tests/runtime_trace_events_manifest.json`",
         "`zigux/tests/runtime_trace_events_survey.zig`",
+        "`samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`",
         ".provides_selftest_hook = true",
         "initialized, selftest_complete, and exited lifecycle tracking",
         "The direct sample also keeps rejected re-selftest rollback explicit: `test \"trace-events sample keeps rejected re-selftest rollback explicit\"` proves `runSelftest()` stays rejected after both the selftest_complete and exited summaries without drift.",
         "The shipped cold-stage guard in `test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\"`",
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay",
         "Its paired initialized-direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
+        "The reinit/reexit companion keeps lifecycle rollback explicit after later direct activity too",
         "sample-local pilot-module reviewability",
         "broader shared runtime-loader packet",
         "`zigux/tests/phase9_build.zig`",
@@ -108,7 +113,9 @@ FILE_MARKERS: dict[str, list[str]] = {
     MANIFEST_PATH: [
         '"lane_key": "P9-L12"',
         '"phase": "Phase 9"',
+        '"surviving_sample_family_files": 5',
         '"direct_sample": "samples/zigux/runtime_trace_events.zig"',
+        '"samples/zigux/runtime_trace_events_reinit_reexit_guard.zig"',
         '"survey_note_path": "Documentation/zigux/phase9-runtime-trace-events-survey.md"',
         '"module_slice_path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"',
         '"manifest_path": "zigux/tests/runtime_trace_events_manifest.json"',
@@ -123,12 +130,14 @@ FILE_MARKERS: dict[str, list[str]] = {
         'try std.testing.expectEqualStrings("P9-L12", manifest.lane_key);',
         'try std.testing.expectEqualStrings("P9-L12", manifest.ownership_map[0].owner);',
         'try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[4].owner);',
+        '"samples/zigux/runtime_trace_events_reinit_reexit_guard.zig"',
         'try expectContains(survey_note, "adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`");',
         'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test");',
         'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py");',
         'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test");',
         'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py");',
         'try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test");',
+        'try expectContains(reinit_reexit_file, "phase9 trace-events sample keeps re-init rollback explicit after initialized, selftest-complete, and exited replay");',
     ],
     PHASE9_BUILD_PATH: [
         '.name = "phase9-runtime-loader-allocator-init-flow-tests"',
@@ -179,6 +188,20 @@ FILE_MARKERS: dict[str, list[str]] = {
         'test "phase9 trace-events sample keeps initialized failed-exit rollback explicit before selftest replay" {',
         'test "phase9 trace-events sample keeps initialized direct-activity exit rollback explicit before selftest replay" {',
         "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);",
+    ],
+    REINIT_REEXIT_GUARD_SAMPLE_PATH: [
+        'test "phase9 trace-events sample keeps re-init rollback explicit after initialized, selftest-complete, and exited replay" {',
+        'test "phase9 trace-events sample keeps re-exit rollback explicit after initialized and selftest-complete replay" {',
+        'try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.init());',
+        'try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.init());',
+        'try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.init());',
+        'try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.exit());',
+        'try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.exit());',
+        'try expectSummaryStable(before_initialized_reinit, initialized_module.summary());',
+        'try expectSummaryStable(before_selftested_reinit, selftested_module.summary());',
+        'try expectSummaryStable(before_exited_reinit, exited_module.summary());',
+        'try expectSummaryStable(before_initialized_reexit, initialized_module.summary());',
+        'try expectSummaryStable(before_selftested_reexit, selftested_module.summary());',
     ],
     DIRECT_SUMMARY_CHECKER_PATH: [
         'DIRECT_SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"',
