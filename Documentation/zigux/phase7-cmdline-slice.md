@@ -4,7 +4,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 ## Status
 
-- `PHASE7_STATUS=helper_local_test_survey_manifest_anchor`
+- `PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`
 - `PHASE7_SLICE=cmdline-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L08`
 - lane-key note: `P7-L08` keeps the dedicated cmdline packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
