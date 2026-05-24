@@ -64,6 +64,11 @@ REQUIRED_LAB_VALIDATION_EVIDENCE = [
     ".github/workflows/zigux-bootstrap.yml",
 ]
 
+REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE = [
+    "drivers/virtio/virtio_input_teardown_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
+]
+
 REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE = [
     "samples/zigux",
     "zigux/tests/phase5_build.zig",
@@ -225,6 +230,13 @@ def collect_drift(manifest: dict) -> list[str]:
         return drift
 
     for item in REQUIRED_LAB_VALIDATION_EVIDENCE:
+        if item not in lab_validation_evidence:
+            drift.append(
+                "roadmap_parity_scoreboard:lab_only_driver_validation:"
+                f"{item!r}:missing"
+            )
+
+    for item in REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE:
         if item not in lab_validation_evidence:
             drift.append(
                 "roadmap_parity_scoreboard:lab_only_driver_validation:"
@@ -397,6 +409,7 @@ def fixture_manifest() -> dict:
             "lab_only_driver_validation": {
                 "status": "starter_landed",
                 "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE
+                + REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE
                 + REQUIRED_CORE_LAB_VALIDATION_EVIDENCE,
             },
         },
@@ -828,6 +841,34 @@ def run_self_test() -> int:
         cases += 1
 
         broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "drivers/virtio/virtio_input_teardown_preflight.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'drivers/virtio/virtio_input_teardown_preflight.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "zigux/tests/phase10_virtio_input_teardown_preflight.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/tests/phase10_virtio_input_teardown_preflight.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
         broken["cross_phase_scoreboard_boundary"]["reference_samples"]["evidence"] = [
             item
             for item in broken["cross_phase_scoreboard_boundary"]["reference_samples"]["evidence"]
@@ -1054,7 +1095,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_MMIO_EVIDENCE_COUNT={len(REQUIRED_MMIO_SCOREBOARD_EVIDENCE)}")
     print(
         "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_LAB_VALIDATION_EVIDENCE_COUNT="
-        f"{len(REQUIRED_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_CORE_LAB_VALIDATION_EVIDENCE)}"
+        f"{len(REQUIRED_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_CORE_LAB_VALIDATION_EVIDENCE)}"
     )
     print(
         "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_REFERENCE_SAMPLE_EVIDENCE_COUNT="
