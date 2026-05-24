@@ -296,8 +296,8 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
-            PERF_BASELINE_CHECKER_LINE,
-            PERF_BASELINE_CHECKER_LINE + "\n" + PERF_BASELINE_CHECKER_LINE,
+            "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
+            "  * `zigux/tests/phase4_perf_baseline_manifest_drift.json`",
         )
         cases += _expect_failure(
             root,
