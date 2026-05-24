@@ -103,6 +103,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-test --build-file zigux/tests/build.zig",
+    "make -C zigux phase3-export-shim-test",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
     "make -C zigux phase3-dump",
@@ -315,6 +316,7 @@ def run_self_test() -> int:
             ("zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "expected policy-dump build route drift was not reported"),
             ("zig build phase3-dump --build-file zigux/tests/build.zig", "expected shared ABI dump build route drift was not reported"),
             ("zig build phase3-test --build-file zigux/tests/build.zig", "expected shared ABI aggregate build route drift was not reported"),
+            ("make -C zigux phase3-export-shim-test", "expected export-shim make route drift was not reported"),
             ("make -C zigux phase3-export-uapi-layout", "expected export-uapi shared make route drift was not reported"),
             ("make -C zigux phase3-export-uapi-layout-test", "expected export-uapi dedicated make route drift was not reported"),
             ("make -C zigux phase3-dump", "expected shared ABI dump make route drift was not reported"),
@@ -342,7 +344,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=79")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=80")
     return 0
 
 
