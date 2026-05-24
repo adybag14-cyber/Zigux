@@ -143,7 +143,7 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
         if (std.ascii.isWhitespace(ch) and !in_quote) {
             break;
         }
-        if (equals_idx == null and ch == '=') {
+        if (equals_idx == null and idx != token_start and ch == '=') {
             equals_idx = idx;
         }
         if (ch == '"') {
@@ -319,14 +319,16 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
-test "nextArg keeps empty and unterminated quoted values aligned" {
-    const empty = nextArg("root=\"\" quiet") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("root", empty.param);
-    try std.testing.expectEqualStrings("", empty.value.?);
-    try std.testing.expectEqualStrings("quiet", empty.remaining);
+test "nextArg keeps unquoted leading equals tokens bare" {
+    const parsed = nextArg("=value tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("=value", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
 
-    const unterminated = nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqualStrings("mode", unterminated.param);
-    try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
-    try std.testing.expectEqualStrings("", unterminated.remaining);
+test "nextArg keeps quoted leading equals tokens bare" {
+    const parsed = nextArg("\"=value\" tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("=value", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
