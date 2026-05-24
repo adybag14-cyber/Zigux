@@ -67,6 +67,8 @@ REQUIRED_MARKERS = {
         'test "nextArg keeps unterminated quoted values inside the current token" {',
         'test "nextArg keeps parameter and value slices borrowed from caller storage" {',
         'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
+        'test "getOption getOptions and memparse stay inside the first NUL byte" {',
+        'test "nextArg stays inside the first NUL for bare and key value tokens" {',
         'test "getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior" {',
         'test "getOptions expands negative ranges and negative upper bounds" {',
         'test "parseOptionStr matches only exact bare options" {',
@@ -84,6 +86,9 @@ REQUIRED_MARKERS = {
         'try std.testing.expectEqualStrings("2,9", descending_rest);',
         'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
+        'test "phase 7 cmdline companion replays first-NUL boundary borrowing" {',
+        'try std.testing.expectEqual(@intFromPtr(&option_input[2]), @intFromPtr(option_rest.ptr));',
+        'try std.testing.expectEqual(@intFromPtr(&next_arg_input[13]), @intFromPtr(parsed_arg.remaining.ptr));',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
         'test "phase 7 cmdline companion replays memparse signed clamp saturation" {',
     ],
@@ -111,8 +116,13 @@ REQUIRED_MARKERS = {
         'try expectContains(helper, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps parameter and value slices borrowed from caller storage\\\" {");',
         'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
+        'try expectContains(helper, "test \\\"getOption getOptions and memparse stay inside the first NUL byte\\\" {");',
+        'try expectContains(helper, "test \\\"nextArg stays inside the first NUL for bare and key value tokens\\\" {");',
         'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
         'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));");',
+        'try expectContains(helper_companion, "phase 7 cmdline companion replays first-NUL boundary borrowing");',
+        'try expectContains(helper_companion, "try std.testing.expectEqual(@intFromPtr(&option_input[2]), @intFromPtr(option_rest.ptr));");',
+        'try expectContains(helper_companion, "try std.testing.expectEqual(@intFromPtr(&next_arg_input[13]), @intFromPtr(parsed_arg.remaining.ptr));");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");',
     ],
     "samples/zigux/README.md": [
@@ -130,7 +140,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 72
+SELF_TEST_CASE_COUNT = 82
 
 
 def read_text(path: Path) -> str:
@@ -400,6 +410,14 @@ def run_self_test() -> None:
                 'test "nextArg keeps rest and remaining as the same borrowed suffix view" {',
             ),
             (
+                "missing_helper_first_nul_boundary_marker",
+                'test "getOption getOptions and memparse stay inside the first NUL byte" {',
+            ),
+            (
+                "missing_helper_nextarg_first_nul_marker",
+                'test "nextArg stays inside the first NUL for bare and key value tokens" {',
+            ),
+            (
                 "missing_helper_incomplete_hex_descending_marker",
                 'test "getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior" {',
             ),
@@ -511,12 +529,32 @@ def run_self_test() -> None:
                 'try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");',
             ),
             (
+                "missing_survey_helper_first_nul_boundary_marker",
+                'try expectContains(helper, "test \\\"getOption getOptions and memparse stay inside the first NUL byte\\\" {");',
+            ),
+            (
+                "missing_survey_helper_nextarg_first_nul_marker",
+                'try expectContains(helper, "test \\\"nextArg stays inside the first NUL for bare and key value tokens\\\" {");',
+            ),
+            (
                 "missing_survey_helper_memparse_signed_clamp_marker",
                 'try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");',
             ),
             (
                 "missing_survey_companion_first_nul_bare_option_marker",
                 'try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));");',
+            ),
+            (
+                "missing_survey_companion_first_nul_title_marker",
+                'try expectContains(helper_companion, "phase 7 cmdline companion replays first-NUL boundary borrowing");',
+            ),
+            (
+                "missing_survey_companion_first_nul_option_ptr_marker",
+                'try expectContains(helper_companion, "try std.testing.expectEqual(@intFromPtr(&option_input[2]), @intFromPtr(option_rest.ptr));");',
+            ),
+            (
+                "missing_survey_companion_first_nul_nextarg_ptr_marker",
+                'try expectContains(helper_companion, "try std.testing.expectEqual(@intFromPtr(&next_arg_input[13]), @intFromPtr(parsed_arg.remaining.ptr));");',
             ),
             (
                 "missing_survey_companion_memparse_signed_clamp_marker",
@@ -537,7 +575,7 @@ def run_self_test() -> None:
             ),
             (
                 "missing_companion_first_nul_bare_option_guard_marker",
-                'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));',
+                'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
             ),
             (
                 "missing_companion_empty_entry_option_marker",
@@ -566,6 +604,18 @@ def run_self_test() -> None:
             (
                 "missing_companion_negative_range_marker",
                 'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
+            ),
+            (
+                "missing_companion_first_nul_boundary_marker",
+                'test "phase 7 cmdline companion replays first-NUL boundary borrowing" {',
+            ),
+            (
+                "missing_companion_first_nul_option_ptr_marker",
+                'try std.testing.expectEqual(@intFromPtr(&option_input[2]), @intFromPtr(option_rest.ptr));',
+            ),
+            (
+                "missing_companion_first_nul_nextarg_ptr_marker",
+                'try std.testing.expectEqual(@intFromPtr(&next_arg_input[13]), @intFromPtr(parsed_arg.remaining.ptr));',
             ),
             (
                 "missing_companion_quoted_argument_memparse_marker",
