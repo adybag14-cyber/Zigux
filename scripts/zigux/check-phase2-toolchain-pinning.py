@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -189,11 +189,21 @@ MANIFEST_BUCKETS = {
     ),
 }
 
+
+def expected_required_make_routes() -> list[str]:
+    routes = []
+    for marker in MANIFEST_BUCKETS["make_wrappers"]:
+        if marker == "make -C zigux phase2":
+            continue
+        routes.append(marker.removeprefix("make -C zigux "))
+    return routes
+
+
 POLICY_EXPECTED = {
     "phase": "Phase 2",
     "channel_minimum_lockstep": True,
     "archive_target_scope": [ARCHIVE_TARGET],
-    "required_make_routes": ["phase2-toolchain", "phase2-validate", "phase2-cross"],
+    "required_make_routes": expected_required_make_routes(),
 }
 
 
@@ -443,6 +453,17 @@ def run_self_test() -> int:
         build_self_test_root(root)
         policy = json.loads(read_text(resolve(root, POLICY)))
         policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain"]
+        write_text(resolve(root, POLICY), json.dumps(policy, indent=2) + "\n")
+        assert any(code == "POLICY_REQUIRED_MAKE_ROUTES_MISMATCH" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        policy = json.loads(read_text(resolve(root, POLICY)))
+        policy["upgrade_policy"]["required_make_routes"] = [
+            "phase2-toolchain",
+            "phase2-validate",
+            "phase2-cross",
+        ]
         write_text(resolve(root, POLICY), json.dumps(policy, indent=2) + "\n")
         assert any(code == "POLICY_REQUIRED_MAKE_ROUTES_MISMATCH" for code, _ in collect_issues(root))
         checks += 1
