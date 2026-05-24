@@ -237,7 +237,7 @@ def run_self_test() -> int:
             BENCH_CHECKER_REL,
             "for key, value, expected_kind in (",
             "for key, value, expected_kind in (",
-            ('("# interleaved tuple comment", "# interleaved tuple comment", "# interleaved tuple comment"),',),
+            (("# interleaved tuple comment", "# interleaved tuple comment", "# interleaved tuple comment"),),
         )
         issues = collect_issues(root)
         if issues:
@@ -291,8 +291,34 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-duplicate-anchor-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / BENCH_CHECKER_REL
+        text = path.read_text(encoding="utf-8")
+        duplicated_anchor = "\n".join(
+            (
+                "status_mismatch_output = ok_output.replace(",
+                "status_mismatch_output = ok_output.replace(",
+            )
+        )
+        path.write_text(
+            text.replace("status_mismatch_output = ok_output.replace(", duplicated_anchor, 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        expected_issue = (
+            f"{BENCH_CHECKER_REL}:marker_count:"
+            "status_mismatch_output = ok_output.replace(:expected=1:actual=2"
+        )
+        if issues != [expected_issue]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=duplicate_first_line_fail_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
