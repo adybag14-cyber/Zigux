@@ -37,6 +37,8 @@ const ApprovedPilotFamily = struct {
     anchor: []const u8,
     entry_symbol: []const u8,
     exit_symbol: []const u8,
+    allocator_handoff: AllocatorHandoff,
+    handoff_stage: HandoffStage,
 };
 
 const approved_pilot_families = [_]ApprovedPilotFamily{
@@ -45,24 +47,32 @@ const approved_pilot_families = [_]ApprovedPilotFamily{
         .anchor = "lib/atomic64_test.c",
         .entry_symbol = "zigux_runtime_atomic64_init",
         .exit_symbol = "zigux_runtime_atomic64_exit",
+        .allocator_handoff = .caller_provided,
+        .handoff_stage = .selftest_complete,
     },
     .{
         .module_name = "runtime_bitmap",
         .anchor = "lib/test_bitmap.c",
         .entry_symbol = "zigux_runtime_bitmap_init",
         .exit_symbol = "zigux_runtime_bitmap_exit",
+        .allocator_handoff = .arena,
+        .handoff_stage = .initialized,
     },
     .{
         .module_name = "runtime_trace_events",
         .anchor = "samples/trace_events/trace-events-sample.c",
         .entry_symbol = "zigux_runtime_trace_events_init",
         .exit_symbol = "zigux_runtime_trace_events_exit",
+        .allocator_handoff = .caller_provided,
+        .handoff_stage = .selftest_complete,
     },
     .{
         .module_name = "runtime_kretprobe",
         .anchor = "samples/kprobes/kretprobe_example.c",
         .entry_symbol = "zigux_runtime_kretprobe_init",
         .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .allocator_handoff = .caller_provided,
+        .handoff_stage = .initialized,
     },
 };
 
@@ -75,7 +85,9 @@ pub fn keepsApprovedPilotFamilyContract(plan: LoadPlan) bool {
         if (std.mem.eql(u8, plan.module_name, family.module_name) and
             std.mem.eql(u8, plan.anchor, family.anchor) and
             std.mem.eql(u8, plan.entry_symbol, family.entry_symbol) and
-            std.mem.eql(u8, plan.exit_symbol, family.exit_symbol))
+            std.mem.eql(u8, plan.exit_symbol, family.exit_symbol) and
+            plan.allocator_handoff == family.allocator_handoff and
+            plan.init_flow.handoff_stage == family.handoff_stage)
         {
             return true;
         }
@@ -189,12 +201,48 @@ test "prepareRequest rejects loader-not-required, pilot-family drift, init-flow 
     try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
     plan.exit_symbol = "zigux_runtime_bitmap_exit";
 
+    plan.allocator_handoff = .caller_provided;
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
+    plan.allocator_handoff = .arena;
+
+    plan.init_flow.handoff_stage = .selftest_complete;
+    plan.init_flow.selftest_runs = 1;
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
+    plan.init_flow.handoff_stage = .initialized;
+    plan.init_flow.selftest_runs = 0;
+
     plan.init_flow.selftest_runs = 1;
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(plan));
     plan.init_flow.selftest_runs = 0;
 
     plan.provides_selftest_hook = false;
     try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(plan));
+}
+
+test "prepareRequest rejects selftest-complete family allocator and handoff-stage drift" {
+    var plan = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    plan.allocator_handoff = .arena;
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
+    plan.allocator_handoff = .caller_provided;
+
+    plan.init_flow.handoff_stage = .initialized;
+    plan.init_flow.selftest_runs = 0;
+    try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
 }
 
 test "PreparedRequest.requestRuntimeLoad preserves the prepared snapshot on drift" {
