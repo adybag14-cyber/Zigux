@@ -30,6 +30,7 @@ EXIT_ROLLBACK_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(@as(usize, 2), after_exit.unregister_transitions);",
     "try std.testing.expectEqualStrings(before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload, after_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);",
     "try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);",
+    'test "phase9 trace-events sample keeps initialized direct-activity exit rollback explicit before selftest replay" {',
     "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);",
 ]
 
@@ -59,6 +60,16 @@ FILE_MARKERS = {
 }
 
 
+FILE_EXACT_ONCE_MARKERS = {
+    EXIT_ROLLBACK_GUARD_SAMPLE_PATH: [
+        'test "phase9 trace-events sample keeps initialized direct-activity exit rollback explicit before selftest replay" {',
+    ],
+    REENTRY_GATE_SAMPLE_PATH: [
+        'test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest" {',
+    ],
+}
+
+
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
@@ -72,6 +83,14 @@ def build_fixture_text(markers: list[str]) -> str:
     return "\n".join(markers) + "\n"
 
 
+def duplicate_marker_occurrence(content: str, marker: str) -> str:
+    return content.replace(marker, f"{marker}\n{marker}", 1)
+
+
+def count_exact_line_occurrences(content: str, marker: str) -> int:
+    return sum(1 for line in content.splitlines() if line == marker)
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     for rel_path, markers in FILE_MARKERS.items():
@@ -83,6 +102,15 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 failures.append(f"missing_marker:{rel_path}:{marker}")
+
+    for rel_path, markers in FILE_EXACT_ONCE_MARKERS.items():
+        if not (root / rel_path).exists():
+            continue
+        text = read_text(root, rel_path)
+        for marker in markers:
+            count = count_exact_line_occurrences(text, marker)
+            if count != 1:
+                failures.append(f"expected_exact_once:{rel_path}:{marker}:count={count}")
     return failures
 
 
@@ -112,6 +140,13 @@ def run_self_test() -> int:
                 write_text(base / rel_path, current.replace(marker, "", 1))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
+        for rel_path, markers in FILE_EXACT_ONCE_MARKERS.items():
+            for marker in markers:
+                seed_fixture_tree(base)
+                current = read_text(base, rel_path)
+                write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
+                expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
+
         for rel_path in FILE_MARKERS:
             seed_fixture_tree(base)
             (base / rel_path).unlink()
@@ -125,6 +160,10 @@ def run_self_test() -> int:
         print(
             "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_REENTRY_MARKER_COUNT="
             f"{len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}"
+        )
+        print(
+            "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_EXACT_ONCE_MARKER_COUNT="
+            f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
         )
         return 0
     finally:
@@ -157,6 +196,10 @@ def main() -> int:
     print(
         "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_REENTRY_MARKER_COUNT="
         f"{len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}"
+    )
+    print(
+        "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_EXACT_ONCE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
     )
     return 0
 
