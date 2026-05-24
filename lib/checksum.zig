@@ -60,18 +60,19 @@ pub fn from64to32(sum: u64) u32 {
     return @intCast(value);
 }
 
-pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
+pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u32, proto: u8) u32 {
     var result = normalize(sum);
     result = add(result, saddr >> 16);
     result = add(result, saddr & 0xffff);
     result = add(result, daddr >> 16);
     result = add(result, daddr & 0xffff);
+    result = add(result, len >> 16);
+    result = add(result, len & 0xffff);
     result = add(result, proto);
-    result = add(result, len);
     return normalize(result);
 }
 
-pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u16 {
+pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u32, proto: u8) u16 {
     return fold(tcpUdpNofold(sum, saddr, daddr, len, proto));
 }
 
@@ -452,8 +453,9 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v4 = add(manual_v4, 0x0001);
     manual_v4 = add(manual_v4, 0xc0a8);
     manual_v4 = add(manual_v4, 0x00c7);
-    manual_v4 = add(manual_v4, 17);
+    manual_v4 = add(manual_v4, 0);
     manual_v4 = add(manual_v4, 6);
+    manual_v4 = add(manual_v4, 17);
     try std.testing.expectEqual(normalize(manual_v4), v4_result);
     try std.testing.expectEqual(fold(v4_result), tcpUdpMagic(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17));
 
@@ -475,6 +477,27 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v6 = add(manual_v6, v6_proto);
     try std.testing.expectEqual(normalize(manual_v6), v6_result);
     try std.testing.expectEqual(fold(v6_result), tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto));
+}
+
+test "tcpUdpNofold keeps IPv4 high-length carries visible" {
+    const payload_seed = partial("phase6", 0);
+    const saddr: u32 = 0xc0a8_0001;
+    const daddr: u32 = 0xc0a8_00c7;
+    const len: u32 = 0x0001_2345;
+    const proto: u8 = 17;
+
+    const result = tcpUdpNofold(payload_seed, saddr, daddr, len, proto);
+    var manual = normalize(payload_seed);
+    manual = add(manual, saddr >> 16);
+    manual = add(manual, saddr & 0xffff);
+    manual = add(manual, daddr >> 16);
+    manual = add(manual, daddr & 0xffff);
+    manual = add(manual, len >> 16);
+    manual = add(manual, len & 0xffff);
+    manual = add(manual, proto);
+
+    try std.testing.expectEqual(normalize(manual), result);
+    try std.testing.expectEqual(fold(result), tcpUdpMagic(payload_seed, saddr, daddr, len, proto));
 }
 
 test "ipFastCsum stays aligned with compute across aligned IPv4 headers" {
