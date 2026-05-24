@@ -228,6 +228,7 @@ REQUIRED_MARKERS = {
         'const logging_verify = @import("logging_verify.zig");',
         'const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");',
         'const perf_buffer_poll_verify = @import("perf_buffer_poll_verify.zig");',
+        'const perf_buffer_ready_window = @import("perf_buffer_ready_window.zig");',
         'const pin_path_verify = @import("pin_path_verify.zig");',
         'const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");',
         'const ready_buffer_fd_verify = @import("ready_buffer_fd_verify.zig");',
@@ -237,6 +238,7 @@ REQUIRED_MARKERS = {
         "std.testing.refAllDecls(logging_verify);",
         "std.testing.refAllDecls(online_cpu_routing_verify);",
         "std.testing.refAllDecls(perf_buffer_poll_verify);",
+        "std.testing.refAllDecls(perf_buffer_ready_window);",
         "std.testing.refAllDecls(pin_path_verify);",
         "std.testing.refAllDecls(ready_buffer_attempt_verify);",
         "std.testing.refAllDecls(ready_buffer_fd_verify);",
@@ -342,7 +344,6 @@ REQUIRED_MARKERS = {
         "formatLibbpfBpfProgType(prog_buffer[0..], 33)",
     ),
 }
-
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
