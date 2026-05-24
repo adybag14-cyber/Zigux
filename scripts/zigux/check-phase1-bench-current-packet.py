@@ -47,56 +47,57 @@ MARKERS = {
     BENCH_CHECKER_REL: (
         "class DuplicateTrackingDict(dict[str, object]):",
         "def parse_output(stdout: str) -> tuple[dict[str, str], dict[str, int]]:",
-        "def print_command_output(label: str, output: str | None) -> None:",
         "print('PHASE1_BENCH_CHECK_SELF_TEST=pass')",
-        "print(f'PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={cases}')",
+        "print(f'PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}')",
     ),
 }
 
 EXPECTED_BLOCKS = {
     BENCH_CHECKER_REL: (
         (
-            "ROOT = Path(__file__).resolve().parents[2]",
-            "EXPECTATIONS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json'",
-            "PHASE1_BENCH = ROOT / 'zigux' / 'tests' / 'phase1_bench.zig'",
+            "HERE = Path(__file__).resolve()",
+            "DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent",
+            'EXPECTATIONS_REL = Path("zigux/tests/fixtures/phase1_bench_expectations.json")',
+            'PHASE1_BENCH_REL = Path("zigux/tests/phase1_bench.zig")',
         ),
         (
-            "except json.JSONDecodeError as exc:",
-            "print('PHASE1_BENCH_CHECK=fail')",
-            "print(f'EXPECTATIONS_JSON_ERROR={exc.msg}')",
-            "print(f'EXPECTATIONS_JSON_LINE={exc.lineno}')",
-            "print(f'EXPECTATIONS_JSON_COLUMN={exc.colno}')",
-            "return 1",
+            'except json.JSONDecodeError as exc:',
+            'return ("expectations_json_error", exc)',
         ),
         (
-            "def validate_bench_source(source: str) -> tuple[str, object]:",
-            "missing_bitmap = [marker for marker in REQUIRED_BITMAP_SOURCE_MARKERS if marker not in source]",
-            "if missing_bitmap:",
-            "return ('missing_bitmap_source_markers', missing_bitmap)",
-            "missing_find_bit = [marker for marker in REQUIRED_FIND_BIT_SOURCE_MARKERS if marker not in source]",
-            "if missing_find_bit:",
-            "return ('missing_find_bit_source_markers', missing_find_bit)",
-            "missing_string = [marker for marker in REQUIRED_STRING_SOURCE_MARKERS if marker not in source]",
-            "if missing_string:",
-            "return ('missing_string_source_markers', missing_string)",
-            "missing_rbtree = [marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker not in source]",
-            "if missing_rbtree:",
-            "return ('missing_rbtree_source_markers', missing_rbtree)",
+            "exact_categories = (",
+            '("missing_rbtree_exact_checksums", RBTREE_REQUIRED_EXACT_CHECKSUMS),',
+            '("missing_bitmap_exact_checksums", BITMAP_REQUIRED_EXACT_CHECKSUMS),',
+            '("missing_find_bit_exact_checksums", FIND_BIT_REQUIRED_EXACT_CHECKSUMS),',
+            '("missing_string_exact_checksums", STRING_REQUIRED_EXACT_CHECKSUMS),',
+            '("missing_hweight_exact_checksums", HWEIGHT_REQUIRED_EXACT_CHECKSUMS),',
+            '("missing_list_sort_exact_checksums", LIST_SORT_REQUIRED_EXACT_CHECKSUMS),',
+            ")",
+            "for reason, keys in exact_categories:",
+            "missing_exact = sorted(key for key in keys if parsed.get(key) is None)",
+            "if missing_exact:",
+            'return (reason, missing_exact)',
+        ),
+        (
+            "result = subprocess.run(",
+            '[zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],',
+            "cwd=str(root),",
+            "capture_output=True,",
+            "text=True,",
+            ")",
         ),
         (
             "kind, payload = validate_output(expectations, result.stdout)",
-            "if kind == 'duplicate':",
+            "if kind != 'pass':",
             "print('PHASE1_BENCH_CHECK=fail')",
-            "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
-            "for key in payload:",
-            "print(key)",
-            "print('DUPLICATE_PHASE1_BENCH_KEYS_END')",
+            "print(f'PHASE1_BENCH_CHECK_REASON={kind}')",
+            "print(payload)",
             "return 1",
         ),
         (
             "print('PHASE1_BENCH_CHECK=pass')",
-            "print(f'PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}')",
-            "print(f'PHASE1_BENCH_SOURCE={PHASE1_BENCH}')",
+            "print(f'PHASE1_BENCH_EXPECTATIONS={expectations_file}')",
+            "print(f'PHASE1_BENCH_SOURCE={phase1_bench}')",
             "print(f'PHASE1_BENCH_ZIG={zig}')",
             "return 0",
         ),
@@ -106,12 +107,6 @@ EXPECTED_BLOCKS = {
 FORBIDDEN_FRAGMENTS = {
     WORKFLOW_REL: (
         "run: python3 scripts/zigux/check-phase1-bench.py\n",
-    ),
-    BENCH_CHECKER_REL: (
-        "PHASE1_BENCH_CHECK_REASON=",
-        'print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}")',
-        'print(f"PHASE1_BENCH_SOURCE={phase1_bench}")',
-        "DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent",
     ),
 }
 
@@ -216,28 +211,41 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         if issues:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print(f"case=base_sample")
+            print("case=base_sample")
             print(f"actual={issues!r}")
             return 1
 
-    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-ordered-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-tuple-ordered-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
         insert_after(
             root,
             BENCH_CHECKER_REL,
-            "kind, payload = validate_output(expectations, result.stdout)",
-            "kind, payload = validate_output(expectations, result.stdout)",
-            (
-                "# interleaved duplicate-output comment",
-                "# interleaved duplicate-output comment",
-                "# interleaved duplicate-output comment",
-            ),
+            "exact_categories = (",
+            '("missing_bitmap_exact_checksums", BITMAP_REQUIRED_EXACT_CHECKSUMS),',
+            ('("missing_placeholder_exact_checksums", PLACEHOLDER_REQUIRED_EXACT_CHECKSUMS),',),
         )
         issues = collect_issues(root)
         if issues:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=interleaved_duplicate_output_lines")
+            print("case=interleaved_tuple_entries")
+            print(f"actual={issues!r}")
+            return 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-run-call-ordered-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        insert_after(
+            root,
+            BENCH_CHECKER_REL,
+            "result = subprocess.run(",
+            "cwd=str(root),",
+            ("timeout=30,",),
+        )
+        issues = collect_issues(root)
+        if issues:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=multiline_run_call_with_interleaved_kwarg")
             print(f"actual={issues!r}")
             return 1
 
@@ -248,16 +256,16 @@ def run_self_test() -> int:
         text = path.read_text(encoding="utf-8")
         old = "\n".join(
             (
-                "if kind == 'duplicate':",
+                "if kind != 'pass':",
                 "print('PHASE1_BENCH_CHECK=fail')",
-                "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
+                "print(f'PHASE1_BENCH_CHECK_REASON={kind}')",
             )
         )
         new = "\n".join(
             (
                 "print('PHASE1_BENCH_CHECK=fail')",
-                "if kind == 'duplicate':",
-                "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
+                "if kind != 'pass':",
+                "print(f'PHASE1_BENCH_CHECK_REASON={kind}')",
             )
         )
         path.write_text(text.replace(old, new, 1), encoding="utf-8")
@@ -265,7 +273,7 @@ def run_self_test() -> int:
         expected_prefix = f"{BENCH_CHECKER_REL}:assert_block:kind, payload = validate_output(expectations, result.stdout)"
         if len(issues) != 1 or not issues[0].startswith(expected_prefix):
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=reordered_duplicate_output_lines_fail_closed")
+            print("case=reordered_validation_result_block_fail_closed")
             print(f"actual={issues!r}")
             return 1
 
@@ -291,7 +299,7 @@ def run_self_test() -> int:
         )
         if issues != [expected_issue]:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=duplicate_duplicate_output_anchor_fail_closed")
+            print("case=duplicate_validation_result_anchor_fail_closed")
             print(f"actual={issues!r}")
             return 1
 
@@ -329,25 +337,6 @@ def run_self_test() -> int:
         if issues != [expected_issue]:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
             print("case=workflow_direct_run_fail_closed")
-            print(f"actual={issues!r}")
-            return 1
-
-    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-bench-checker-forbidden-") as tmpdir:
-        root = Path(tmpdir)
-        build_sample_repo(root)
-        path = root / BENCH_CHECKER_REL
-        text = path.read_text(encoding="utf-8")
-        path.write_text(
-            text + "PHASE1_BENCH_CHECK_REASON=stale_generic_reason\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        expected_issue = (
-            f"{BENCH_CHECKER_REL}:forbidden:PHASE1_BENCH_CHECK_REASON=:actual=1"
-        )
-        if issues != [expected_issue]:
-            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=bench_checker_stale_reason_fail_closed")
             print(f"actual={issues!r}")
             return 1
 
