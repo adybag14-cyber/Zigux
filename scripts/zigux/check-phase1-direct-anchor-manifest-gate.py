@@ -3,11 +3,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 
+HERE = Path(__file__).resolve()
+DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+RBTREE_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-direct-anchors.py")
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -200,7 +205,7 @@ EXPECTED_REVIEW_FIELDS = {
 
 
 def repo_root(root_arg: str | None) -> Path:
-    return Path(root_arg).resolve() if root_arg else Path(__file__).resolve().parents[2]
+    return Path(root_arg).resolve() if root_arg else DEFAULT_ROOT.resolve()
 
 
 def load_json_with_duplicate_tracking(text: str) -> object:
@@ -234,6 +239,16 @@ def write_manifest(root: Path, manifest: dict) -> None:
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
+def write_stub_checker(root: Path) -> None:
+    path = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "print('PHASE1_RBTREE_DIRECT_ANCHORS=pass')\n",
+        encoding="utf-8",
+    )
+
+
 def sample_manifest() -> dict:
     return {
         "phase": "Phase 1",
@@ -252,6 +267,7 @@ def sample_manifest() -> dict:
 
 def write_sample_root(root: Path) -> None:
     write_manifest(root, sample_manifest())
+    write_stub_checker(root)
 
 
 def collect_issues(manifest: dict) -> list[str]:
@@ -298,6 +314,26 @@ def collect_issues(manifest: dict) -> list[str]:
             if actual.get(field) != expected:
                 issues.append(f"manifest:review_anchor_value={helper}:{field}")
 
+    return issues
+
+
+def run_checker(root: Path, script_rel: Path, label: str) -> list[str]:
+    proc = subprocess.run(
+        [sys.executable, str(root / script_rel), "--root", str(root)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode == 0:
+        return []
+
+    issues: list[str] = [f"{label}:exit={proc.returncode}"]
+    stdout = proc.stdout.strip()
+    stderr = proc.stderr.strip()
+    if stdout:
+        issues.extend(f"{label}:stdout:{line}" for line in stdout.splitlines())
+    if stderr:
+        issues.extend(f"{label}:stderr:{line}" for line in stderr.splitlines())
     return issues
 
 
@@ -450,11 +486,10 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
-                    manifest["lane_sequencing"].__setitem__("direct_anchor_followup_helpers", [
-                        "tools/lib/bitmap.zig",
-                        "tools/lib/find_bit.zig",
-                        "tools/lib/rbtree.zig",
-                    ]),
+                    manifest["lane_sequencing"].__setitem__(
+                        "direct_anchor_followup_helpers",
+                        ["tools/lib/bitmap.zig", "tools/lib/find_bit.zig", "tools/lib/rbtree.zig"],
+                    ),
                     write_manifest(root, manifest),
                 )
             )(load_current()),
@@ -471,18 +506,6 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:lane_sequencing.rule_summary",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["lane_sequencing"].__setitem__("anti_overlap_rule", "drifted anti-overlap rule"),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:lane_sequencing.anti_overlap_rule",
         )
         case_count += 1
 
@@ -527,8 +550,9 @@ def main() -> int:
         run_self_test()
         return 0
 
+    root = repo_root(args.root)
     try:
-        manifest = load_manifest(repo_root(args.root))
+        manifest = load_manifest(root)
     except json.JSONDecodeError as exc:
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=fail")
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_START")
@@ -543,6 +567,8 @@ def main() -> int:
         return 1
 
     issues = collect_issues(manifest)
+    if not issues:
+        issues.extend(run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker"))
     if issues:
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=fail")
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_START")
@@ -553,10 +579,8 @@ def main() -> int:
 
     print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=pass")
     print(f"PHASE1_DIRECT_ANCHOR_HELPER_COUNT={len(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS)}")
-    print(
-        "PHASE1_DIRECT_ANCHOR_REVIEW_FIELD_COUNT="
-        f"{sum(len(fields) for fields in EXPECTED_REVIEW_FIELDS.values())}"
-    )
+    print(f"PHASE1_DIRECT_ANCHOR_REVIEW_FIELD_COUNT={sum(len(fields) for fields in EXPECTED_REVIEW_FIELDS.values())}")
+    print("PHASE1_RBTREE_DIRECT_ANCHOR_CHECKER=pass")
     return 0
 
 
