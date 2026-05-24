@@ -31,7 +31,7 @@ EXPECTED_DETERMINISM_TRACKED_PATHS = [
     "tools/lib/bpf/zigux_segments/pin_path.zig",
 ]
 EXPECTED_READBACK_MODE = "github-contents-readback"
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 31
 
 
 def load_json(path: Path) -> dict[str, object]:
@@ -44,9 +44,35 @@ def is_hex_sha(value: object) -> bool:
     return all(ch in "0123456789abcdef" for ch in value)
 
 
+def is_hex_digest(value: object) -> bool:
+    if not isinstance(value, str) or len(value) != 64:
+        return False
+    return all(ch in "0123456789abcdef" for ch in value)
+
+
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
     return hashlib.sha1(f"blob {len(data)}\0".encode("utf-8") + data).hexdigest()
+
+
+def deterministic_artifact_fingerprint(entries: list[tuple[str, str]]) -> str:
+    digest = hashlib.sha256()
+    for rel_path, blob_sha in entries:
+        digest.update(rel_path.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(blob_sha.encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
+def expected_fingerprint(root: Path, tracked_paths: list[str]) -> str | None:
+    entries: list[tuple[str, str]] = []
+    for rel_path in tracked_paths:
+        actual_path = root / rel_path
+        if not actual_path.exists():
+            return None
+        entries.append((rel_path, git_blob_sha(actual_path)))
+    return deterministic_artifact_fingerprint(entries)
 
 
 def collect_tracked_file_missing(
@@ -254,6 +280,14 @@ def collect_snapshot_missing(root: Path) -> list[str]:
         if packet.get(field_name) != EXPECTED_SNAPSHOT_TRACKED_PATHS:
             missing.append(f"snapshot:{field_name}:exact_order")
 
+    fingerprint = packet.get("deterministic_artifact_fingerprint")
+    if not is_hex_digest(fingerprint):
+        missing.append("snapshot:deterministic_artifact_fingerprint:sha256")
+    else:
+        expected = expected_fingerprint(root, EXPECTED_SNAPSHOT_TRACKED_PATHS)
+        if expected is not None and fingerprint != expected:
+            missing.append("snapshot:deterministic_artifact_fingerprint:mismatch")
+
     missing.extend(
         collect_tracked_file_missing(
             root=root,
@@ -305,6 +339,14 @@ def collect_determinism_missing(root: Path) -> list[str]:
 
     if packet.get("tracked_paths") != EXPECTED_DETERMINISM_TRACKED_PATHS:
         missing.append("determinism:tracked_paths:exact_order")
+
+    fingerprint = packet.get("deterministic_artifact_fingerprint")
+    if not is_hex_digest(fingerprint):
+        missing.append("determinism:deterministic_artifact_fingerprint:sha256")
+    else:
+        expected = expected_fingerprint(root, EXPECTED_DETERMINISM_TRACKED_PATHS)
+        if expected is not None and fingerprint != expected:
+            missing.append("determinism:deterministic_artifact_fingerprint:mismatch")
 
     missing.extend(
         collect_tracked_file_missing(
@@ -367,6 +409,9 @@ def build_fixture_tree(root: Path) -> None:
         "tracked_file_count": len(EXPECTED_SNAPSHOT_TRACKED_PATHS),
         "tracked_paths": EXPECTED_SNAPSHOT_TRACKED_PATHS,
         "supporting_notes": EXPECTED_SNAPSHOT_TRACKED_PATHS,
+        "deterministic_artifact_fingerprint": deterministic_artifact_fingerprint(
+            [(entry["path"], entry["blob_sha"]) for entry in snapshot_files]
+        ),
         "files": snapshot_files,
         "verification_evidence": {
             "checked_at_utc": "2026-05-20T18:50:00Z",
@@ -392,6 +437,9 @@ def build_fixture_tree(root: Path) -> None:
         "surveyed_commit": "5ccb94e1380d1f2e236c98d09bc52b2b5f6948c7",
         "tracked_file_count": len(EXPECTED_DETERMINISM_TRACKED_PATHS),
         "tracked_paths": EXPECTED_DETERMINISM_TRACKED_PATHS,
+        "deterministic_artifact_fingerprint": deterministic_artifact_fingerprint(
+            [(EXPECTED_DETERMINISM_TRACKED_PATHS[0], helper_blob_sha)]
+        ),
         "files": [
             {
                 "path": EXPECTED_DETERMINISM_TRACKED_PATHS[0],
@@ -490,6 +538,19 @@ def run_self_test() -> None:
         expect_case(tmp_root, "snapshot:supporting_notes:exact_order", "supporting_notes")
         build_fixture_tree(tmp_root)
 
+        snapshot = load_json(tmp_root / SNAPSHOT_PATH)
+        snapshot["deterministic_artifact_fingerprint"] = f"{'9' * 64}"
+        (tmp_root / SNAPSHOT_PATH).write_text(
+            json.dumps(snapshot, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        expect_case(
+            tmp_root,
+            "snapshot:deterministic_artifact_fingerprint:mismatch",
+            "snapshot_fingerprint_mismatch",
+        )
+        build_fixture_tree(tmp_root)
+
         first_blob_sha = git_blob_sha(tmp_root / EXPECTED_SNAPSHOT_TRACKED_PATHS[0])
         replace_once(tmp_root / SNAPSHOT_PATH, first_blob_sha, f"{'0' * 40}")
         expect_case(tmp_root, "snapshot:files:0:blob_sha:mismatch", "blob_sha_mismatch")
@@ -569,6 +630,19 @@ def run_self_test() -> None:
             tmp_root,
             "determinism:tracked_paths:exact_order",
             "determinism_tracked_paths",
+        )
+        build_fixture_tree(tmp_root)
+
+        determinism = load_json(tmp_root / SNAPSHOT_DETERMINISM_PATH)
+        determinism["deterministic_artifact_fingerprint"] = f"{'8' * 64}"
+        (tmp_root / SNAPSHOT_DETERMINISM_PATH).write_text(
+            json.dumps(determinism, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        expect_case(
+            tmp_root,
+            "determinism:deterministic_artifact_fingerprint:mismatch",
+            "determinism_fingerprint_mismatch",
         )
         build_fixture_tree(tmp_root)
 
