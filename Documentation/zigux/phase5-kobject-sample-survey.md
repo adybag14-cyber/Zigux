@@ -80,6 +80,7 @@ When a same-lane change touches this anchor or one of its shared reminder surfac
 - does the note still treat `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` as current public-tree-backed companions instead of direct readback proof in this runtime?
 - does the note still treat `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` as current direct evidence for the bounded attr-group companion packet?
 - does the surrounding shared packet in `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the same mixed direct-versus-public-tree-backed split?
+- do `runRegistrationOwnershipReplay()` and `runRegisteredBoundaryReplay()` still keep the registered-stage single-claim packet explicit, including duplicate-registration rejection, replay-restart rejection, and the still-usable `foo` roundtrip before exit?
 - do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, and the attr-group companion packet still describe the same bounded ownership-and-lifetime surface across the sample root, focused replay, companion survey guard, survey note, and shared build route?
 
 ## Non-goals
