@@ -36,6 +36,29 @@ pub const PerfCase = struct {
     max_decode_slowdown_pct: u64,
 };
 
+pub const PerfVariant = enum {
+    std,
+    urlsafe,
+    imap,
+};
+
+pub fn parsePerfVariantName(name: []const u8) ?PerfVariant {
+    if (std.mem.eql(u8, name, "std")) {
+        return .std;
+    }
+    if (std.mem.eql(u8, name, "urlsafe")) {
+        return .urlsafe;
+    }
+    if (std.mem.eql(u8, name, "imap")) {
+        return .imap;
+    }
+    return null;
+}
+
+pub fn isImapPerfVariantName(name: []const u8) bool {
+    return parsePerfVariantName(name) == .imap;
+}
+
 pub const standard_cases = [_]EncodeCase{
     .{ .input = "", .expected = "", .padding = true },
     .{ .input = "f", .expected = "Zg==", .padding = true },
@@ -216,6 +239,13 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     try std.testing.expectEqual(perf_payload.len, perf_payload_buf_size);
     try std.testing.expectEqual(expected_payload_fingerprint, perfPayloadFingerprint(perf_payload));
     try std.testing.expect(std.mem.endsWith(u8, perf_payload, &expected_suffix));
+    try std.testing.expectEqual(PerfVariant.std, parsePerfVariantName("std").?);
+    try std.testing.expectEqual(PerfVariant.urlsafe, parsePerfVariantName("urlsafe").?);
+    try std.testing.expectEqual(PerfVariant.imap, parsePerfVariantName("imap").?);
+    try std.testing.expect(parsePerfVariantName("bogus") == null);
+    try std.testing.expect(!isImapPerfVariantName("std"));
+    try std.testing.expect(!isImapPerfVariantName("urlsafe"));
+    try std.testing.expect(isImapPerfVariantName("imap"));
 
     for (perf_cases, 0..) |case, idx| {
         try std.testing.expectEqualStrings(perf_payload, case.payload);
