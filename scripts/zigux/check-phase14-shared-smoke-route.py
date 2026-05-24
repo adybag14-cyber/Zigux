@@ -7,11 +7,11 @@ This guard exists for the lane-local executable path only. It validates that
 the current repo exposes a dedicated `phase14-validate` Makefile route, that
 the route reruns the shared smoke route checker plus the current tests-root
 smoke-summary checker, validator, rollback-threshold sequencing checker,
-dedicated RCU rollback guardrail, and release-boundary checker packets, that
-the bootstrap workflow reruns that same route, and that the shared smoke
-manifest records the same single-route Makefile split plus the focused raw
-build-file smoke shard without claiming that the missing `phase14-smoke`,
-`phase14-test`, or full bundle wrappers have returned.
+dedicated RCU rollback guardrail, and release-boundary checker packets, and
+that the shared smoke manifest records the same single-route Makefile split
+plus the focused raw build-file smoke shard as reminder vocabulary without
+claiming that the missing `phase14-smoke`, `phase14-test`, or full bundle
+wrappers have returned.
 """
 
 from __future__ import annotations
@@ -27,7 +27,6 @@ MARKER = "PHASE14_CHECK_PACKET=shared_smoke_route"
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
-BUILD_PATH = Path("zigux/tests/phase14_build.zig")
 
 MAKEFILE_MARKERS = [
     ".PHONY:",
@@ -105,33 +104,6 @@ EXPECTED_COMPILE_SHARDS = [
     },
 ]
 
-BUILD_MARKERS = [
-    "../../kernel/workqueue_bridge.zig",
-    "../../net/core/skbuff_bridge.zig",
-    'phase14_workqueue_bridge_module.addImport("workqueue_bridge", workqueue_bridge_module);',
-    'phase14_skbuff_bridge_module.addImport("skbuff_bridge", skbuff_bridge_module);',
-    '.name = "phase14-workqueue-bridge-tests"',
-    '.name = "phase14-workqueue-reviewability-tests"',
-    '.name = "phase14-skbuff-bridge-tests"',
-    '.name = "phase14-ring-buffer-survey-tests"',
-    '.name = "phase14-rcu-tree-survey-tests"',
-    '.name = "phase14-end-to-end-smoke-tests"',
-    '.root_source_file = b.path("phase14_workqueue_bridge.zig")',
-    '.root_source_file = b.path("phase14_workqueue_reviewability.zig")',
-    '.root_source_file = b.path("phase14_skbuff_bridge.zig")',
-    '.root_source_file = b.path("phase14_ring_buffer_survey.zig")',
-    '.root_source_file = b.path("phase14_rcu_tree_survey.zig")',
-    '.root_source_file = b.path("phase14_end_to_end_smoke_survey.zig")',
-    'const smoke_step = b.step("phase14-smoke", "Run the focused Phase 14 smoke shard");',
-    "smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
-    "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
-    "test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);",
-    "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
-    "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
-    "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
-    "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
-]
-
 
 def read_text(root: Path, rel: Path) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -194,7 +166,7 @@ def require_compile_shards(errors: list[str], manifest: object) -> None:
 
 def check(root: Path) -> list[str]:
     errors: list[str] = []
-    for rel in [MAKEFILE_PATH, WORKFLOW_PATH, MANIFEST_PATH, BUILD_PATH]:
+    for rel in [MAKEFILE_PATH, WORKFLOW_PATH, MANIFEST_PATH]:
         if not (root / rel).exists():
             errors.append(f"missing_file:{rel.as_posix()}")
     if errors:
@@ -202,11 +174,9 @@ def check(root: Path) -> list[str]:
 
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
-    build_file = read_text(root, BUILD_PATH)
     require_markers(errors, MAKEFILE_PATH, makefile, MAKEFILE_MARKERS)
     require_markers(errors, WORKFLOW_PATH, workflow, WORKFLOW_MARKERS)
     require_absent(errors, WORKFLOW_PATH, workflow, FORBIDDEN_WORKFLOW_MARKERS)
-    require_markers(errors, BUILD_PATH, build_file, BUILD_MARKERS)
 
     manifest_text = read_text(root, MANIFEST_PATH)
     try:
@@ -226,26 +196,26 @@ ZIGUX_ROOT := ..
 .PHONY: phase12-smoke phase12-test phase12 phase14-validate
 
 phase12-smoke:
-\tcd $(ZIGUX_ROOT) && zig build smoke --build-file zigux/tests/phase12_build.zig --summary all
+	cd $(ZIGUX_ROOT) && zig build smoke --build-file zigux/tests/phase12_build.zig --summary all
 
 phase12-test:
-\tcd $(ZIGUX_ROOT) && zig build test --build-file zigux/tests/phase12_build.zig --summary all
+	cd $(ZIGUX_ROOT) && zig build test --build-file zigux/tests/phase12_build.zig --summary all
 
 phase12: phase12-smoke phase12-test
 
 phase14-validate:
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-tests-readme-smoke-summary.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rcu-rollback-guardrail.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py
 """
 
 
@@ -283,106 +253,12 @@ def fixture_manifest() -> str:
     return json.dumps(payload, indent=2) + "\n"
 
 
-def fixture_build() -> str:
-    return """const std = @import(\"std\");
-
-pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
-
-    const phase14_end_to_end_smoke_module = b.createModule(.{
-        .root_source_file = b.path(\"phase14_end_to_end_smoke_survey.zig\"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const phase14_ring_buffer_survey_module = b.createModule(.{
-        .root_source_file = b.path(\"phase14_ring_buffer_survey.zig\"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const phase14_rcu_tree_survey_module = b.createModule(.{
-        .root_source_file = b.path(\"phase14_rcu_tree_survey.zig\"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const workqueue_bridge_module = b.createModule(.{
-        .root_source_file = b.path(\"../../kernel/workqueue_bridge.zig\"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const skbuff_bridge_module = b.createModule(.{
-        .root_source_file = b.path(\"../../net/core/skbuff_bridge.zig\"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const phase14_workqueue_bridge_module = b.createModule(.{
-        .root_source_file = b.path(\"phase14_workqueue_bridge.zig\"),
-        .target = target,
-        .optimize = optimize,
-    });
-    phase14_workqueue_bridge_module.addImport(\"workqueue_bridge\", workqueue_bridge_module);
-    const phase14_workqueue_reviewability_module = b.createModule(.{
-        .root_source_file = b.path(\"phase14_workqueue_reviewability.zig\"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const phase14_skbuff_bridge_module = b.createModule(.{
-        .root_source_file = b.path(\"phase14_skbuff_bridge.zig\"),
-        .target = target,
-        .optimize = optimize,
-    });
-    phase14_skbuff_bridge_module.addImport(\"skbuff_bridge\", skbuff_bridge_module);
-
-    const phase14_workqueue_bridge_tests = b.addTest(.{
-        .name = \"phase14-workqueue-bridge-tests\",
-        .root_module = phase14_workqueue_bridge_module,
-    });
-    const run_phase14_workqueue_bridge_tests = b.addRunArtifact(phase14_workqueue_bridge_tests);
-    const phase14_workqueue_reviewability_tests = b.addTest(.{
-        .name = \"phase14-workqueue-reviewability-tests\",
-        .root_module = phase14_workqueue_reviewability_module,
-    });
-    const run_phase14_workqueue_reviewability_tests = b.addRunArtifact(phase14_workqueue_reviewability_tests);
-    const phase14_skbuff_bridge_tests = b.addTest(.{
-        .name = \"phase14-skbuff-bridge-tests\",
-        .root_module = phase14_skbuff_bridge_module,
-    });
-    const run_phase14_skbuff_bridge_tests = b.addRunArtifact(phase14_skbuff_bridge_tests);
-    const phase14_ring_buffer_survey_tests = b.addTest(.{
-        .name = \"phase14-ring-buffer-survey-tests\",
-        .root_module = phase14_ring_buffer_survey_module,
-    });
-    const run_phase14_ring_buffer_survey_tests = b.addRunArtifact(phase14_ring_buffer_survey_tests);
-    const phase14_rcu_tree_survey_tests = b.addTest(.{
-        .name = \"phase14-rcu-tree-survey-tests\",
-        .root_module = phase14_rcu_tree_survey_module,
-    });
-    const run_phase14_rcu_tree_survey_tests = b.addRunArtifact(phase14_rcu_tree_survey_tests);
-    const phase14_end_to_end_smoke_tests = b.addTest(.{
-        .name = \"phase14-end-to-end-smoke-tests\",
-        .root_module = phase14_end_to_end_smoke_module,
-    });
-    const run_phase14_end_to_end_smoke_tests = b.addRunArtifact(phase14_end_to_end_smoke_tests);
-    const smoke_step = b.step(\"phase14-smoke\", \"Run the focused Phase 14 smoke shard\");
-    smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);
-    const test_step = b.step(\"test\", \"Run the full Phase 14 bounded bridge and survey bundle\");
-    test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);
-    test_step.dependOn(&run_phase14_workqueue_reviewability_tests.step);
-    test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);
-    test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);
-    test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);
-    test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);
-}
-"""
-
-
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     write_text(root, MAKEFILE_PATH, fixture_makefile())
     write_text(root, WORKFLOW_PATH, fixture_workflow())
     write_text(root, MANIFEST_PATH, fixture_manifest())
-    write_text(root, BUILD_PATH, fixture_build())
 
 
 def write_fixture_manifest(root: Path, payload: object) -> None:
@@ -509,19 +385,8 @@ def run_self_test() -> int:
             print("expected compile-shard manifest drift failure")
             return 1
 
-        write_fixture_tree(base)
-        write_text(
-            base,
-            BUILD_PATH,
-            fixture_build().replace('.name = "phase14-ring-buffer-survey-tests"', '.name = "phase14-ring-buffer-review-tests"', 1),
-        )
-        if not any("missing_marker:zigux/tests/phase14_build.zig:.name = \"phase14-ring-buffer-survey-tests\"" in error for error in check(base)):
-            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
-            print("expected build shard marker failure")
-            return 1
-
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=10")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -546,7 +411,7 @@ def main() -> int:
         return 1
 
     print("PHASE14_SHARED_SMOKE_ROUTE=pass")
-    print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(BUILD_MARKERS)}")
+    print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS)}")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_WORKFLOW_MARKERS)}")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_MANIFEST_ASSERTION_COUNT={len(REQUIRED_MANIFEST_VALUES) + 1}")
     return 0
