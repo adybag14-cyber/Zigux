@@ -12,6 +12,7 @@ This note records the bounded Phase 15 parity-accounting surface for the freeze-
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the scorecard remains an honest blocker-accounting packet, not a port-readiness claim
+- the dedicated scorecard note, machine-readable JSON companion, and dedicated Zig guard remain the current owner packet for this blocked-posture accounting slice
 
 ## Purpose
 
@@ -38,6 +39,7 @@ That means the current parity-tracking gap is maintenance-only: keep the scoreca
 ## Current reminder route
 
 - the current checker-backed reminder route exists through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-tests-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `zig test zigux/tests/phase15_parity_scorecard.zig`
+- the machine-readable blocked-posture companion stays explicit through `zigux/tests/phase15_parity_scorecard.json` while the dedicated Zig replay stays reviewable through `zig test zigux/tests/phase15_parity_scorecard.zig`
 - anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - validator-first reminder route is directly readable on current `master` through `python3 scripts/zigux/validate-phase15.py`
 - shared replay build route remains a repo-reality gap on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`
@@ -136,4 +138,4 @@ This scorecard does not claim:
 
 ## Next bounded step
 
-Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording and current-master shared-build or wrapper-gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.
+Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording, machine-readable companion inventory, and current-master shared-build or wrapper-gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.
