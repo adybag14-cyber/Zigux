@@ -6,7 +6,11 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
+ROOT = (
+    Path(__file__).resolve().parents[2]
+    if len(Path(__file__).resolve().parents) >= 3
+    else Path.cwd()
+)
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 
 WORKFLOW_STEPS = (
@@ -36,7 +40,12 @@ WORKFLOW_STEPS = (
     ),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+ROUTE_STEP = (
+    "- name: Run current Phase 2 cross make route",
+    "run: make -C zigux phase2-cross",
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def read_text(path: Path) -> str:
@@ -108,6 +117,36 @@ def collect_workflow_order_issues(text: str) -> list[tuple[str, str]]:
     return issues
 
 
+def collect_route_step_issues(text: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    route_name, route_run = ROUTE_STEP
+    name_count = count_exact_lines(text, route_name)
+    run_count = count_exact_lines(text, route_run)
+
+    if name_count == 0:
+        issues.append(("MISSING_ROUTE_STEP_NAME", route_name))
+    elif name_count != 1:
+        issues.append(("DUPLICATE_ROUTE_STEP_NAME", f"{route_name}:count={name_count}"))
+
+    if run_count == 0:
+        issues.append(("MISSING_ROUTE_STEP_RUN", route_run))
+    elif run_count != 1:
+        issues.append(("DUPLICATE_ROUTE_STEP_RUN", f"{route_run}:count={run_count}"))
+
+    lines = text.splitlines()
+    route_name_index = find_exact_line_index(lines, route_name)
+    route_run_index = find_exact_line_index(lines, route_run)
+    last_cross_run_index = find_exact_line_index(lines, WORKFLOW_STEPS[-1][1])
+
+    if route_name_index is not None and route_run_index is not None:
+        if route_run_index <= route_name_index:
+            issues.append(("ROUTE_STEP_PAIRING_MISMATCH", route_name))
+        if last_cross_run_index is not None and route_name_index <= last_cross_run_index:
+            issues.append(("ROUTE_STEP_ORDER_MISMATCH", route_name))
+
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     workflow_text = read_text(resolve_path(root, WORKFLOW))
 
@@ -132,6 +171,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(collect_workflow_order_issues(workflow_text))
+    issues.extend(collect_route_step_issues(workflow_text))
     return issues
 
 
@@ -153,6 +193,7 @@ def build_self_test_root(root: Path) -> None:
     workflow_lines = ["name: zigux-bootstrap", "", "jobs:", "  bootstrap:", "    steps:"]
     for name_line, run_line in WORKFLOW_STEPS:
         workflow_lines.extend((f"      {name_line}", f"        {run_line}"))
+    workflow_lines.extend((f"      {ROUTE_STEP[0]}", f"        {ROUTE_STEP[1]}"))
     workflow_lines.append("")
     write_text(resolve_path(root, WORKFLOW), "\n".join(workflow_lines))
 
@@ -203,27 +244,49 @@ def run_self_test() -> int:
         for name_line, _ in WORKFLOW_STEPS:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
-            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), name_line, "# removed"), encoding="utf-8")
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), name_line, "# removed"),
+                encoding="utf-8",
+            )
             assert ("MISSING_WORKFLOW_STEP_NAME", name_line) in collect_issues(root)
             checks_run += 1
 
         for _, run_line in WORKFLOW_STEPS:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
-            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), run_line, "run: python3 missing.py"), encoding="utf-8")
+            path.write_text(
+                replace_exact_line(
+                    path.read_text(encoding="utf-8"),
+                    run_line,
+                    "run: python3 missing.py",
+                ),
+                encoding="utf-8",
+            )
             assert ("MISSING_WORKFLOW_STEP_RUN", run_line) in collect_issues(root)
             checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, WORKFLOW)
-        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_STEPS[0][0]), encoding="utf-8")
-        assert ("DUPLICATE_WORKFLOW_STEP_NAME", f"{WORKFLOW_STEPS[0][0]}:count=2") in collect_issues(root)
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_STEPS[0][0]),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_WORKFLOW_STEP_NAME",
+            f"{WORKFLOW_STEPS[0][0]}:count=2",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, WORKFLOW)
-        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_STEPS[0][1]), encoding="utf-8")
-        assert ("DUPLICATE_WORKFLOW_STEP_RUN", f"{WORKFLOW_STEPS[0][1]}:count=2") in collect_issues(root)
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), WORKFLOW_STEPS[0][1]),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_WORKFLOW_STEP_RUN",
+            f"{WORKFLOW_STEPS[0][1]}:count=2",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -236,7 +299,10 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        assert ("WORKFLOW_STEP_ORDER_MISMATCH", WORKFLOW_STEPS[1][0]) in collect_issues(root)
+        assert (
+            "WORKFLOW_STEP_ORDER_MISMATCH",
+            WORKFLOW_STEPS[1][0],
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -249,7 +315,45 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        assert ("WORKFLOW_STEP_PAIRING_MISMATCH", WORKFLOW_STEPS[0][0]) in collect_issues(root)
+        assert (
+            "WORKFLOW_STEP_PAIRING_MISMATCH",
+            WORKFLOW_STEPS[0][0],
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, WORKFLOW)
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), ROUTE_STEP[0], "# removed"),
+            encoding="utf-8",
+        )
+        assert ("MISSING_ROUTE_STEP_NAME", ROUTE_STEP[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, WORKFLOW)
+        path.write_text(
+            replace_exact_line(
+                path.read_text(encoding="utf-8"),
+                ROUTE_STEP[1],
+                "run: make -C zigux phase2-toolchain",
+            ),
+            encoding="utf-8",
+        )
+        assert ("MISSING_ROUTE_STEP_RUN", ROUTE_STEP[1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, WORKFLOW)
+        path.write_text(
+            swap_exact_lines(
+                path.read_text(encoding="utf-8"),
+                ROUTE_STEP[0],
+                WORKFLOW_STEPS[-1][0],
+            ),
+            encoding="utf-8",
+        )
+        assert ("ROUTE_STEP_ORDER_MISMATCH", ROUTE_STEP[0]) in collect_issues(root)
         checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
@@ -259,12 +363,14 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check that the Phase 2 cross workflow packet stays wired into the live route surfaces.")
+    parser = argparse.ArgumentParser(
+        description="Check that the Phase 2 cross workflow packet stays wired into the live route surfaces."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
 
-    if args.self_test:
+    if args.self-test:
         return run_self_test()
 
     issues = collect_issues(args.root.resolve())
