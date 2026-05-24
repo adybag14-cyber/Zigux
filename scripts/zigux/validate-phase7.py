@@ -302,7 +302,7 @@ def run_self_test() -> None:
         scaffold_repo(root)
         validate(root)
         cases = [
-            (MANIFEST_PATH, '"Documentation/zigux/review-checklist.md"', ""),
+            (MANIFEST_PATH, '"Documentation/zigux/review-checklist.md"', '"Documentation/zigux/review-notes.md"'),
             (MANIFEST_PATH, '"pub fn argvSplit"', '"pub fn argvSplitTokens"'),
             (BUILD_PATH, "../../lib/rbtree.zig", ""),
             (MAKEFILE_PATH, "phase7-validate:", ""),
