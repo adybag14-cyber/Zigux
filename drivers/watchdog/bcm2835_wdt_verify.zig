@@ -36,6 +36,35 @@ test "bcm2835 verify helper keeps timeout gates and PM-base handoff readiness ex
     try std.testing.expect(ready.blocked_on_live_platform_registration);
 }
 
+test "bcm2835 verify helper keeps timeout ceiling and non-controller poweroff branch explicit" {
+    try std.testing.expectError(error.TimeoutTooLarge, bcm2835_wdt.summarizePlatformHandoff(.{
+        .heartbeat_sec = bcm2835_wdt.max_timeout_sec + 1,
+        .nowayout = false,
+        .bootloader_running = false,
+        .system_power_controller = false,
+        .poweroff_handler_present = false,
+        .parent_attached = true,
+        .pm_base_present = true,
+    }));
+
+    const no_controller = try bcm2835_wdt.summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .nowayout = false,
+        .bootloader_running = false,
+        .system_power_controller = false,
+        .poweroff_handler_present = true,
+        .parent_attached = true,
+        .pm_base_present = true,
+    });
+    try std.testing.expect(no_controller.parent_attached);
+    try std.testing.expect(no_controller.parent_supplies_pm_base);
+    try std.testing.expect(no_controller.pm_base_handoff_ready);
+    try std.testing.expect(no_controller.register_device_requested);
+    try std.testing.expect(!no_controller.poweroff_handler_claimed);
+    try std.testing.expect(!no_controller.poweroff_handler_conflict);
+    try std.testing.expect(no_controller.blocked_on_live_platform_registration);
+}
+
 test "bcm2835 verify helper keeps poweroff ownership conflict and PM-base blockers distinct" {
     const conflict = try bcm2835_wdt.summarizePlatformHandoff(.{
         .heartbeat_sec = 8,
