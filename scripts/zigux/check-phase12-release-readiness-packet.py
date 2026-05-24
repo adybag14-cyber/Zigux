@@ -42,6 +42,9 @@ PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = (
 )
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
+COMPLEX_DRIVER_LANE_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-complex-driver-lane-packet.py"
+)
 MAKEFILE_PATH = "zigux/Makefile"
 TESTS_README_PATH = "zigux/tests/README.md"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -60,6 +63,7 @@ REQUIRED_FILES = [
     PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
     SCRIPTS_README_PATH,
     VALIDATOR_PATH,
+    COMPLEX_DRIVER_LANE_CHECKER_PATH,
     MAKEFILE_PATH,
     TESTS_README_PATH,
     PHASE12_BUILD_PATH,
@@ -82,9 +86,11 @@ REQUIRED_MARKERS = {
         "keep `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` explicit beside the smoke-first and rollback-lab `virtio_scsi` packet",
     ],
     RELEASE_READINESS_SURVEY_PATH: [
-        "The route story on current `master` is now fully returned rather than split: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again.",
+        "- adjacent release-planning surfaces that are present on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
+        "The route story on current `master` is now fully returned rather than split: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again.",
         "The active shared build route on current `master` is the six-file `virtio_net` smoke-and-test packet in `zigux/tests/phase12_build.zig`: `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig` are the directly wired shared reruns",
         "That means the PMO release notes can treat `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again",
+        "The narrower PMO checker packet is still directly readable on current `master`: `scripts/zigux/check-phase12-release-readiness-packet.py` remains the fail-closed truthfulness guard for the release-readiness note, `scripts/zigux/check-build-only-phase12-surface.py` remains the bounded build-only contract checker, `scripts/zigux/check-phase12-complex-driver-lane-packet.py` remains the shared anti-overlap truthfulness guard for the live split-helper complex-driver packet, and `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` remains the packet-local boundary guard that keeps the rollback-only `virtio_scsi` survey packet distinct from the parked libbpf reviewability packet inside the shared Phase 12 release story.",
     ],
     RELEASE_SEQUENCING_PATH: [
         "Current repo-reality override: the route story on current `master` is now fully returned rather than split. `zigux/Makefile` now exposes shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrappers again",
@@ -308,8 +314,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current narrow Phase 12 release-readiness support bundle "
-            "around the shared release notes, fallback split, and returned wrapper "
-            "state."
+            "around the shared release notes, fallback split, complex-driver "
+            "anti-overlap guard, and returned wrapper state."
         )
     )
     parser.add_argument(
