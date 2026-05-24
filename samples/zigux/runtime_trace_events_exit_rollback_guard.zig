@@ -40,6 +40,11 @@ test "phase9 trace-events sample keeps exit rollback explicit after reusable sel
     const after_failed_exit = module.summary();
     try expectSummaryStable(before_failed_exit, after_failed_exit);
 
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+
+    const after_failed_exit_reinit = module.summary();
+    try expectSummaryStable(before_failed_exit, after_failed_exit_reinit);
+
     const replayed_main_after_failed_exit = try module.emitMainIteration(9);
     try std.testing.expectEqual(@as(usize, 4), replayed_main_after_failed_exit);
 
