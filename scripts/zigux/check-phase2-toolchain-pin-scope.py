@@ -135,7 +135,15 @@ TOOLCHAIN_CHECKER_MARKERS = (
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
-EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate", "phase2-cross"]
+EXPECTED_REQUIRED_ROUTES = [
+    "phase2-toolchain",
+    "phase2-tools",
+    "phase2-kconfig",
+    "phase2-cross",
+    "phase2-genksyms",
+    "phase2-fixdep",
+    "phase2-validate",
+]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
