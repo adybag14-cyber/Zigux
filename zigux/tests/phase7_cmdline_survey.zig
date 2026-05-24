@@ -123,7 +123,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");
     try expectContains(helper, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");
     try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");
-    try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix and descending-range behavior\\\" {");
+    try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {");
     try expectContains(helper, "test \\\"getOptions expands negative ranges and negative upper bounds\\\" {");
     try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");
 
@@ -133,7 +133,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper_companion, "try std.testing.expect(cmdline.parseOptionStr(\\\"debug,,quiet\\\", \\\"\\\"));");
     try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"debug,\\\", \\\"\\\"));");
     try expectContains(helper_companion, "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture");
-    try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries");
     try expectContains(helper_companion, "try std.testing.expectEqualStrings(\\\"2,9\\\", descending_rest);");
     try expectContains(helper_companion, "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture");
     try expectContains(helper_companion, "phase 7 cmdline companion replays validator-only getOption cursor movement");
