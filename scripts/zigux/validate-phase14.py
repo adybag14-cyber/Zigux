@@ -275,6 +275,8 @@ REQUIRED_MARKERS = {
         '"phase14_validate_runs_rollback_threshold_sequencing": true',
         '"scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py"',
         '"phase14_validate_runs_skbuff_stay_in_c_guardrail": true',
+        '"scripts/zigux/check-phase14-skbuff-compile-route.py"',
+        '"shared_manifest_records_skbuff_compile_route_checker": true',
         '"Documentation/zigux/phase14-core-boundary-traceability.md"',
         '"scripts/zigux/check-phase14-release-boundary-exact-counts.py"',
         '"smoke_commands": [',
@@ -549,8 +551,10 @@ def run_self_test() -> int:
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][2]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][3]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][4]),
-            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][7]),
-            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][10]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][5]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][6]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][9]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][12]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
