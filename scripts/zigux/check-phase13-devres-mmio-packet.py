@@ -32,6 +32,14 @@ REQUIRED_FILES = [
     IOMAP_CHECKER_PATH,
 ]
 
+DIRECT_PACKET_GAP_PATHS = [
+    Path("zigux/tests/phase13_devres.zig"),
+    Path("zigux/tests/phase13_devres_reviewability.zig"),
+    Path("zigux/tests/phase13_devres_manifest.json"),
+    Path("scripts/zigux/check-phase13-devres-packet.py"),
+    Path("scripts/zigux/check-phase13-devres-packet-alignment.py"),
+]
+
 SLICE_MARKERS = [
     "# Phase 13 devres Slice",
     "`Documentation/zigux/phase13-devres-iounmap-planner.md`",
@@ -53,6 +61,11 @@ SURVEY_MARKERS = [
     "helper-first iomap planning through `planDeviceTreeIomap(...)`",
     "helper-side iomap cleanup handoff in `lib/devres.zig`",
     "`.provides_of_iomap_cleanup_handoff_planning = true` and `planDeviceTreeIomapCleanupHandoff(...)`",
+    "`zigux/tests/phase13_devres.zig`",
+    "`zigux/tests/phase13_devres_reviewability.zig`",
+    "`zigux/tests/phase13_devres_manifest.json`",
+    "`scripts/zigux/check-phase13-devres-packet.py`",
+    "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
     "blocked `phase13-devres-missing-devm-ioremap-np-surface`",
     "blocked `phase13-devres-missing-devm-arch-phys-wc-add-surface`",
     "blocked `phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface`",
@@ -193,6 +206,12 @@ def validate(root: Path) -> list[str]:
     if issues:
         return issues
 
+    issues.extend(
+        f"unexpected_file:{rel.as_posix()}"
+        for rel in DIRECT_PACKET_GAP_PATHS
+        if (root / rel).exists()
+    )
+
     checks = [
         (SLICE_PATH, SLICE_MARKERS, "slice"),
         (SURVEY_PATH, SURVEY_MARKERS, "survey"),
@@ -245,6 +264,15 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         assert_only(validate(root), [], "baseline_failed")
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(root / DIRECT_PACKET_GAP_PATHS[0], "stale direct packet surface\n")
+        assert_only(
+            validate(root),
+            [f"unexpected_file:{DIRECT_PACKET_GAP_PATHS[0].as_posix()}"],
+            "unexpected_direct_packet_file_failed",
+        )
         case_count += 1
 
         seed_fixture_tree(root)
