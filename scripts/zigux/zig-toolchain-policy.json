@@ -13,8 +13,11 @@
     "required_make_routes": [
       "phase2-toolchain",
       "phase2-tools",
-      "phase2-validate",
-      "phase2-cross"
+      "phase2-kconfig",
+      "phase2-cross",
+      "phase2-genksyms",
+      "phase2-fixdep",
+      "phase2-validate"
     ]
   }
 }
