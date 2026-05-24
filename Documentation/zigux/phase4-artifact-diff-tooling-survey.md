@@ -62,6 +62,10 @@ No remaining owner-and-rollback note readback caveat is left inside this lane on
   * keep this lane parked unless `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `Documentation/zigux/artifact-diff.md`, or this survey moves again
   * if authenticated contents reads stop returning `Documentation/zigux/artifact-diff.md` again in a future runtime, refresh the survey wording and exact determinism markers only for that narrower readback-state change
   * do not widen this lane into validator-marker, matrix, perf, bitmap, atomic64, or starter-gap work
+## Owner And Rollback Reminder
+  * `Documentation/zigux/artifact-diff.md` remains the dedicated owner, review-rule, and rollback note for the shared host-side helper packet, while the broader shared Phase 4 rollback-gate ownership still stays in `Documentation/zigux/phase4-validation-matrix.md`.
+  * the remaining shared artifact-diff catalog-marker follow-through in `scripts/zigux/validate-phase4.py` stays owned by the neighboring validator packet, so this survey should stay note-only unless that validator packet closes first.
+  * if the host-side helper, contract checker, or determinism checker changes published artifact-diff catalog lines, refresh this survey and `Documentation/zigux/artifact-diff.md` together before treating the packet as closed again.
 ## Direct Replay Surface
 
 Current directly readable replay and warning surfaces in this run were:
