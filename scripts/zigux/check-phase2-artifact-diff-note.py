@@ -20,6 +20,8 @@ REQUIRED_FILES = (
     BOOTSTRAP_LEDGER,
 )
 
+PHASE2_CLOSURE_PACKET_PREFIX = "`PHASE2_CURRENT_CLOSURE_PACKET="
+
 FILE_MARKERS = {
     ARTIFACT_NOTE: (
         "# Zigux Artifact-Diff Notes",
@@ -45,6 +47,12 @@ FORBIDDEN_MARKERS = {
     ),
 }
 
+FORBIDDEN_PACKET_MEMBERS = {
+    PHASE2_CLOSURE: (
+        ARTIFACT_NOTE.as_posix(),
+    ),
+}
+
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -53,6 +61,17 @@ def read_text(path: Path) -> str:
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def packet_members(text: str, prefix: str) -> tuple[str, ...]:
+    for line in text.splitlines():
+        if not line.startswith(prefix) or not line.endswith("`"):
+            continue
+        members = line[len(prefix) : -1]
+        if not members:
+            return ()
+        return tuple(member for member in members.split(",") if member)
+    return ()
 
 
 def build_sample_root(root: Path) -> None:
@@ -77,6 +96,7 @@ def build_sample_root(root: Path) -> None:
                 "",
                 FILE_MARKERS[PHASE2_CLOSURE][0],
                 FILE_MARKERS[PHASE2_CLOSURE][1],
+                f"{PHASE2_CLOSURE_PACKET_PREFIX}Documentation/zigux/phase2-closure.md,scripts/zigux/README.md`",
                 "",
             )
         ),
@@ -124,6 +144,9 @@ def collect_issues(root: Path) -> list[str]:
         for marker in FORBIDDEN_MARKERS.get(rel_path, ()):
             if marker in text:
                 issues.append(f"forbidden_marker:{rel_path.as_posix()}:{marker}")
+        for member in FORBIDDEN_PACKET_MEMBERS.get(rel_path, ()):
+            if member in packet_members(text, PHASE2_CLOSURE_PACKET_PREFIX):
+                issues.append(f"forbidden_packet_member:{rel_path.as_posix()}:{member}")
 
     return issues
 
@@ -172,6 +195,31 @@ def run_self_test() -> int:
         expected = f"forbidden_marker:{PHASE2_CLOSURE.as_posix()}:`Documentation/zigux/artifact-diff.md`"
         if expected not in issues:
             raise SystemExit("phase2-artifact-diff-note:self-test:closure_forbidden")
+        cases_run += 1
+
+        build_sample_root(root)
+        write_text(
+            root / PHASE2_CLOSURE,
+            "\n".join(
+                (
+                    "# Phase 2 Closure",
+                    "",
+                    FILE_MARKERS[PHASE2_CLOSURE][0],
+                    FILE_MARKERS[PHASE2_CLOSURE][1],
+                    (
+                        f"{PHASE2_CLOSURE_PACKET_PREFIX}"
+                        "Documentation/zigux/phase2-closure.md,"
+                        "Documentation/zigux/artifact-diff.md,"
+                        "scripts/zigux/README.md`"
+                    ),
+                    "",
+                )
+            ),
+        )
+        issues = collect_issues(root)
+        expected = f"forbidden_packet_member:{PHASE2_CLOSURE.as_posix()}:{ARTIFACT_NOTE.as_posix()}"
+        if expected not in issues:
+            raise SystemExit("phase2-artifact-diff-note:self-test:closure_packet_forbidden")
         cases_run += 1
 
         build_sample_root(root)
@@ -237,6 +285,10 @@ def main() -> int:
     print(
         "PHASE2_ARTIFACT_DIFF_NOTE_FORBIDDEN_MARKER_COUNT="
         f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
+    )
+    print(
+        "PHASE2_ARTIFACT_DIFF_NOTE_FORBIDDEN_PACKET_MEMBER_COUNT="
+        f"{sum(len(members) for members in FORBIDDEN_PACKET_MEMBERS.values())}"
     )
     return 0
 
