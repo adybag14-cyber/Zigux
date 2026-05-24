@@ -266,7 +266,7 @@ def run_self_test() -> int:
         _build_baseline_tree(root)
         check(root)
         for label, _ in CURRENT_HEAD_BLOB_PINS:
-            _build_baseline_tree(root)
+            _build_baseline_TREE(root)
             line = find_status_line(read(root, NOTE), label)
             cases += _expect_failure(root, NOTE, line, line.replace(line[-41:-1], "0" * 40))
         cases += _expect_failure(
@@ -296,6 +296,12 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
+            PERF_BASELINE_CHECKER_LINE,
+            "Current direct-readback dedicated local-only perf checker: `scripts/zigux/old-phase4-perf-baseline-packet.py`.",
+        )
+        cases += _expect_failure(
+            root,
+            NOTE,
             "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
             "  * `zigux/tests/phase4_perf_baseline_manifest_drift.json`",
         )
@@ -316,12 +322,6 @@ def run_self_test() -> int:
             NOTE,
             "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair and its manifest-backed handoff explicit as direct current-head evidence even while the broader Phase 4 companion set remains split between recovered note companions and exact-blob refresh debt.",
             "Current direct contents reads for the runtime atomic64 packet are omitted here.",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
-            "The provenance wording drifted:",
         )
         cases += _expect_failure(
             root,
