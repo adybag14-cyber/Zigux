@@ -295,7 +295,7 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("checksum payload_case_labels drifted")
     validate_case_matrix("checksum ipv4 fast path", checksum_perf.get("ipv4_fast_path_cases"), EXPECTED_CHECKSUM_IPV4_FAST_PATH_CASES)
     if checksum_perf.get("ipv4_fast_path_case_labels") != EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS:
-        raise ValidationError("checksum ipv4 fast_path_case_labels drifted")
+        raise ValidationError("checksum ipv4_fast_path_case_labels drifted")
 
     validate_case_matrix("hexdump", hexdump_perf.get("cases"), EXPECTED_HEXDUMP_CASES)
 
