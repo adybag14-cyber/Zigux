@@ -290,8 +290,8 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
-            "  * `scripts/zigux/check-phase4-tests-readme-packet.py`",
-            "  * `scripts/zigux/check-phase4-tests-review-packet.py`",
+            PERF_BASELINE_CHECKER_LINE,
+            "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-local-perf-baseline-packet.py`.",
         )
         cases += _expect_failure(
             root,
