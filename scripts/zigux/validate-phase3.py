@@ -76,11 +76,13 @@ REQUIRED_SOURCE_MARKERS = {
         'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
         'Path("scripts/zigux/check-phase3-selftest-surface.py")',
         'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
+        'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
         'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
         'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
         'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
         '"PHASE3_ABI_MANIFEST_REPLAY_ROUTES=pass"',
+        '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass"',
     ),
     VALIDATE_PHASE3_SELFTEST_PATH: (
         'Path("scripts/zigux/validate-phase3.py")',
@@ -89,11 +91,14 @@ REQUIRED_SOURCE_MARKERS = {
         'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
         'Path("scripts/zigux/check-phase3-policy-dump.py")',
         'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
+        'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
         'Path("scripts/zigux/check-phase3-selftest-surface.py")',
         'Path("scripts/zigux/run-phase3-checks.py")',
         '"PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass"',
         '"PHASE3_POLICY_DUMP_SELF_TEST=pass"',
         '"PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass"',
+        '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass"',
+        '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT="',
         '"PHASE3_VALIDATE_SELFTEST=pass"',
     ),
     TESTS_BUILD_PATH: (
@@ -528,9 +533,34 @@ def run_self_test() -> int:
                 'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
             ),
             (
+                RUNNER_PATH,
+                'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+            ),
+            (
+                RUNNER_PATH,
+                '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass"\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass"',
+            ),
+            (
                 VALIDATE_PHASE3_SELFTEST_PATH,
                 'Path("scripts/zigux/check-phase3-policy-dump.py")\n',
                 'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-policy-dump.py")',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass"\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass"',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT="\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT="',
             ),
             (
                 ABI_DUMP_PATH,
@@ -835,7 +865,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=28")
+    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + 19}")
     return 0
 
 
