@@ -14,7 +14,16 @@ MAKEFILE = ROOT / "zigux" / "Makefile"
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 VALIDATE_PHASE2_CLOSURE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
+THIRD_PARTY_README = ROOT / "third_party" / "README.md"
 SURFACE_PATHS = (
+    ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
+    ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
+    ROOT / "scripts" / "zigux" / "check-lane05-local-first-archive-workflow.py",
+    ROOT / "scripts" / "zigux" / "check-lane05-local-archive-readme.py",
+    ROOT / "scripts" / "zigux" / "check-lane05-install-zig-archive-verification.py",
+    ROOT / "scripts" / "zigux" / "stage-pinned-zig-archive.py",
+    ROOT / "scripts" / "zigux" / "check-lane05-stage-helper-contract.py",
+    ROOT / "scripts" / "zigux" / "check-lane05-stage-helper-selftest.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
@@ -41,6 +50,7 @@ SURFACE_PATHS = (
     PHASE2_CLOSURE,
     VALIDATE_PHASE2,
     VALIDATE_PHASE2_CLOSURE,
+    THIRD_PARTY_README,
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
@@ -54,6 +64,21 @@ SURFACE_PATHS = (
 )
 
 WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
+    "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
+    "run: python3 scripts/zigux/install-zig.py --self-test",
+    "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
@@ -115,6 +140,26 @@ README_FORBIDDEN_MARKERS = (
 )
 
 REQUIRED_MAKEFILE_LINES = (
+    "phase2-toolchain:",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-first-archive-workflow.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-first-archive-workflow.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/install-zig.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/stage-pinned-zig-archive.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
     "phase2-kconfig:",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
