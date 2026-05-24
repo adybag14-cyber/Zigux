@@ -12,6 +12,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+DIRECT_OWNER_MARKERS_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
+STRING_REVIEW_PACKET_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 RBTREE_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-direct-anchors.py")
 
 
@@ -253,27 +255,29 @@ def write_manifest(root: Path, manifest: dict) -> None:
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
-def write_stub_checker(root: Path) -> None:
-    path = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
+def write_checker(root: Path, script_rel: Path, stdout_lines: list[str], stderr_lines: list[str], exit_code: int) -> None:
+    path = root / script_rel
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        "#!/usr/bin/env python3\n"
-        "print('PHASE1_RBTREE_DIRECT_ANCHORS=pass')\n",
-        encoding="utf-8",
-    )
+    body = ["#!/usr/bin/env python3"]
+    if stderr_lines or exit_code != 0:
+        body.append("import sys")
+    for line in stdout_lines:
+        body.append(f"print({line!r})")
+    for line in stderr_lines:
+        body.append(f"print({line!r}, file=sys.stderr)")
+    if exit_code != 0:
+        body.append(f"raise SystemExit({exit_code})")
+    path.write_text("\n".join(body) + "\n", encoding="utf-8")
 
 
-def write_failing_checker(root: Path) -> None:
-    path = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        "#!/usr/bin/env python3\n"
-        "import sys\n"
-        "print('PHASE1_RBTREE_DIRECT_ANCHORS=fail')\n"
-        "print('cached_root_alias_anchor:expected=1:actual=0', file=sys.stderr)\n"
-        "raise SystemExit(1)\n",
-        encoding="utf-8",
-    )
+def write_stub_checkers(root: Path) -> None:
+    write_checker(root, DIRECT_OWNER_MARKERS_CHECKER_REL, ["PHASE1_DIRECT_OWNER_MARKERS=pass"], [], 0)
+    write_checker(root, STRING_REVIEW_PACKET_CHECKER_REL, ["phase1-string-review-packet:ok"], [], 0)
+    write_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, ["PHASE1_RBTREE_DIRECT_ANCHORS=pass"], [], 0)
+
+
+def write_failing_checker(root: Path, script_rel: Path, stdout_lines: list[str], stderr_lines: list[str]) -> None:
+    write_checker(root, script_rel, stdout_lines, stderr_lines, 1)
 
 
 def sample_manifest() -> dict:
@@ -294,7 +298,7 @@ def sample_manifest() -> dict:
 
 def write_sample_root(root: Path) -> None:
     write_manifest(root, sample_manifest())
-    write_stub_checker(root)
+    write_stub_checkers(root)
 
 
 def collect_issues(manifest: dict) -> list[str]:
@@ -375,6 +379,14 @@ def insert_duplicate_manifest_line(root: Path, needle: str, duplicate_line: str)
     manifest_path = root / MANIFEST_REL
     text = manifest_path.read_text(encoding="utf-8")
     manifest_path.write_text(text.replace(needle, duplicate_line + "\n" + needle, 1), encoding="utf-8")
+
+
+def run_companion_checkers(root: Path) -> list[str]:
+    issues: list[str] = []
+    issues.extend(run_checker(root, DIRECT_OWNER_MARKERS_CHECKER_REL, "direct_owner_markers_checker"))
+    issues.extend(run_checker(root, STRING_REVIEW_PACKET_CHECKER_REL, "string_review_packet_checker"))
+    issues.extend(run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker"))
+    return issues
 
 
 def run_self_test() -> None:
@@ -597,7 +609,42 @@ def run_self_test() -> None:
         write_sample_root(root)
         case_count += 1
 
-        write_failing_checker(root)
+        write_failing_checker(
+            root,
+            DIRECT_OWNER_MARKERS_CHECKER_REL,
+            ["PHASE1_DIRECT_OWNER_MARKERS=fail"],
+            ["Documentation/zigux/phase1-host-helper-lane-sequencing.md:line_0:expected=1:actual=0"],
+        )
+        checker_failures = run_checker(root, DIRECT_OWNER_MARKERS_CHECKER_REL, "direct_owner_markers_checker")
+        assert checker_failures == [
+            "direct_owner_markers_checker:exit=1",
+            "direct_owner_markers_checker:stdout:PHASE1_DIRECT_OWNER_MARKERS=fail",
+            "direct_owner_markers_checker:stderr:Documentation/zigux/phase1-host-helper-lane-sequencing.md:line_0:expected=1:actual=0",
+        ], checker_failures
+        write_sample_root(root)
+        case_count += 1
+
+        write_failing_checker(
+            root,
+            STRING_REVIEW_PACKET_CHECKER_REL,
+            ["phase1-string-review-packet:drift"],
+            ["string_manifest:review_anchors.tools/lib/string.zig.next_safe_step_note:expected=1:actual=0"],
+        )
+        checker_failures = run_checker(root, STRING_REVIEW_PACKET_CHECKER_REL, "string_review_packet_checker")
+        assert checker_failures == [
+            "string_review_packet_checker:exit=1",
+            "string_review_packet_checker:stdout:phase1-string-review-packet:drift",
+            "string_review_packet_checker:stderr:string_manifest:review_anchors.tools/lib/string.zig.next_safe_step_note:expected=1:actual=0",
+        ], checker_failures
+        write_sample_root(root)
+        case_count += 1
+
+        write_failing_checker(
+            root,
+            RBTREE_DIRECT_ANCHOR_CHECKER_REL,
+            ["PHASE1_RBTREE_DIRECT_ANCHORS=fail"],
+            ["cached_root_alias_anchor:expected=1:actual=0"],
+        )
         checker_failures = run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker")
         assert checker_failures == [
             "rbtree_direct_anchor_checker:exit=1",
@@ -656,7 +703,7 @@ def main() -> int:
 
     issues = collect_issues(manifest)
     if not issues:
-        issues.extend(run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker"))
+        issues.extend(run_companion_checkers(root))
     if issues:
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=fail")
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_START")
@@ -668,6 +715,8 @@ def main() -> int:
     print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=pass")
     print(f"PHASE1_DIRECT_ANCHOR_HELPER_COUNT={len(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS)}")
     print(f"PHASE1_DIRECT_ANCHOR_REVIEW_FIELD_COUNT={sum(len(fields) for fields in EXPECTED_REVIEW_FIELDS.values())}")
+    print("PHASE1_DIRECT_OWNER_MARKERS_CHECKER=pass")
+    print("PHASE1_STRING_REVIEW_PACKET_CHECKER=pass")
     print("PHASE1_RBTREE_DIRECT_ANCHOR_CHECKER=pass")
     return 0
 
