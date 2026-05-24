@@ -92,6 +92,117 @@ test "phase8 ready-buffer window helpers keep typed lookup summaries stable" {
     try std.testing.expectEqual(@as(?usize, null), missing.mapped_size);
 }
 
+test "phase8 ready-buffer window helpers keep summary-based wrappers stable" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    const found = perf_buffer_ready_window.summarizeReadyBufferWindowLookupAtAttempt(
+        &buffers,
+        &buffer_windows,
+        0,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4096),
+        try perf_buffer_ready_window.resolveReadyBufferWindowLookup(found),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 4096),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturn(found),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturn(found),
+    );
+
+    const missing_ready = perf_buffer_ready_window.summarizeReadyBufferWindowLookupAtAttempt(
+        &buffers,
+        &buffer_windows,
+        2,
+    );
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        perf_buffer_ready_window.resolveReadyBufferWindowLookup(missing_ready),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturn(missing_ready),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturn(missing_ready),
+    );
+
+    const short_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+    };
+    const invalid = perf_buffer_ready_window.summarizeReadyBufferWindowLookupAtAttempt(
+        &buffers,
+        &short_windows,
+        1,
+    );
+    try std.testing.expectError(
+        error.InvalidIndex,
+        perf_buffer_ready_window.resolveReadyBufferWindowLookup(invalid),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturn(invalid),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturn(invalid),
+    );
+
+    const missing_window = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = 4096 },
+        null,
+        null,
+    };
+    const missing = perf_buffer_ready_window.summarizeReadyBufferWindowLookupAtAttempt(
+        &buffers,
+        &missing_window,
+        1,
+    );
+    try std.testing.expectError(
+        error.MissingWindow,
+        perf_buffer_ready_window.resolveReadyBufferWindowLookup(missing),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturn(missing),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturn(missing),
+    );
+
+    const overflow_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        null,
+        .{ .mapped_size = @as(usize, std.math.maxInt(i32)) + 1 },
+    };
+    const overflow = perf_buffer_ready_window.summarizeReadyBufferWindowLookupAtAttempt(
+        &buffers,
+        &overflow_windows,
+        0,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW)),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturn(overflow),
+    );
+}
+
 test "phase8 ready-buffer window helpers keep typed outputs stable" {
     const buffers = [_]perf_buffer_poll.BufferObservation{
         .{},
