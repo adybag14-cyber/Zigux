@@ -4,11 +4,11 @@
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=first-loadable-runtime-module-parity`
 - `PHASE9_LANE_KEY=P9-L01`
-- `PHASE9_SURVEYED_COMMIT=2026-05-23-first-loadable-parity-shared-loader-reminder-packet`
-- scope: cross-family repo-reality survey for the bounded atomic64 direct packet without a returned family-local loader scaffold, the still-partial bitmap reminder packet with restored cold-stage guard, module, and diff proof, and the narrower shared loader reminder packet only
+- `PHASE9_SURVEYED_COMMIT=2026-05-24-first-loadable-parity-kretprobe-direct-packet-readback`
+- scope: cross-family repo-reality survey for the bounded atomic64 and kretprobe direct packets without returned family-local loader scaffolds, the still-partial bitmap reminder packet with restored cold-stage guard, module, and diff proof, and the narrower shared loader reminder packet only
 
 ## Current Repo Reality
-Trusted current-tree reads on 2026-05-23 now show a split Phase 9 pilot picture: the atomic64 side returns a direct packet without a returned family-local loader scaffold, the bitmap side remains partial but now includes direct cold-stage guard, module, and diff proof, and the narrower shared loader reminder packet is readable without proving shipped loader parity.
+Trusted current-tree reads on 2026-05-24 now show a four-part Phase 9 pilot picture: the atomic64 and kretprobe sides return direct packets without returned family-local loader scaffolds, the bitmap side remains partial but now includes direct cold-stage guard, module, and diff proof, and the narrower shared loader reminder packet is readable without proving shipped loader parity.
 
 These atomic64-facing surfaces are directly readable on current `master`:
 - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
@@ -20,6 +20,13 @@ These atomic64-facing surfaces are directly readable on current `master`:
 - `zigux/tests/runtime_atomic64_manifest.json`
 
 Current `master` now directly materializes the atomic64 sample, survey, and manifest packet beside the already readable module, diff, and family-local note surfaces.
+
+These kretprobe-facing surfaces are directly readable on current `master`:
+- `samples/zigux/runtime_kretprobe.zig`
+- `zigux/tests/runtime_kretprobe_module.zig`
+- `zigux/tests/phase9_build.zig`
+
+Current `master` now directly materializes the kretprobe sample and module lifecycle packet beside the shared Phase 9 build shard, but it still does not return a family-local loader scaffold for that direct packet.
 
 These bitmap-facing surfaces are directly readable on current `master`:
 - `Documentation/zigux/phase9-runtime-bitmap-survey.md`
@@ -45,20 +52,22 @@ The Phase 9 roadmap target is still `first loadable Zigux runtime modules with s
 
 Current `master` does not yet materialize that target as a coherent cross-family packet:
 - the atomic64 side now exposes a direct trusted-path packet around the sample, module, diff, survey, manifest, and family-local notes without a returned family-local loader scaffold
+- the kretprobe side now exposes a direct trusted-path packet around the sample, module-boundary lifecycle replay, and shared build shard without a returned family-local loader scaffold or returned shared loader proof
 - the bitmap side still exposes only a partial trusted-path packet around the direct sample, cold-stage guard companion, loader, top-bit companion, manifest-backed ownership packet, survey gate, bounded build bundle, and restored module and diff proof while broader shared loader completion remains blocked
 - the directly readable shared runtime-loader allocator/init-flow, note, contract, and command/environment boundary surfaces still stop short of shipped install-root, depmod, or end-to-end lifecycle parity proof
-- the shared `zigux/tests/phase9_build.zig` bundle still proves `phase9-runtime-atomic64-diff`, the build-local `phase9-runtime-atomic64-module-tests` route name, the build-local `phase9-runtime-atomic64-sample-tests` route name, the bounded bitmap sample, loader, survey, top-bit, module, and diff routes, the build-local `phase9-runtime-loader-allocator-init-flow-tests` route name, the build-local `phase9-runtime-loader-command-env-boundary-guard-tests` route name, the build-local `phase9-runtime-loader-shared-tests` route name, and the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle; because broader shared loader completion surfaces still remain absent on the same trusted path, those surviving shared-loader and cross-family route names are reminder vocabulary rather than proof that the underlying Phase 9 parity target shipped
+- the shared `zigux/tests/phase9_build.zig` bundle still proves `phase9-runtime-atomic64-diff`, the build-local `phase9-runtime-atomic64-module-tests` route name, the build-local `phase9-runtime-atomic64-sample-tests` route name, the build-local `phase9-runtime-kretprobe-sample-tests` route name, the build-local `phase9-runtime-kretprobe-module-tests` route name, the aggregate `phase9-runtime-kretprobe-tests` route name, the bounded bitmap sample, loader, survey, top-bit, module, and diff routes, the build-local `phase9-runtime-loader-allocator-init-flow-tests` route name, the build-local `phase9-runtime-loader-command-env-boundary-guard-tests` route name, the build-local `phase9-runtime-loader-shared-tests` route name, and the shared `phase9-first-loadable-runtime-module-parity-survey-tests` handle; because broader shared loader completion surfaces still remain absent on the same trusted path, those surviving shared-loader and cross-family route names are reminder vocabulary rather than proof that the underlying Phase 9 parity target shipped
 
 That means this note must not claim shipped cross-family loader parity, shipped runtime-loader handoff parity, or shipped end-to-end module lifecycle parity on current `master`.
 
 ## Boundaries
 Keep this note lane-local and repo-reality-first:
 - do not repair atomic64 family-local survey, module-slice, manifest, or direct-sample wording here; hand that work back to the owning atomic64 family lane
+- do not repair kretprobe family-local sample or module-boundary wording here; hand that work back to the owning kretprobe family lane if that direct packet changes
 - do not repair bitmap family-local survey, module-slice, manifest, or direct-sample wording here; hand that work back to the owning bitmap family lane
 - do not treat broader shared reminder, checklist, or scripts-root truthfulness work as owned here
 - do not infer real runtime execution, depmod publication, or live registration control from the currently readable partial pilot packet
 
 ## Next Bounded Step
-Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet without a returned family-local loader scaffold, and the still-partial bitmap reminder packet with restored cold-stage guard, module, and diff proof but without broader shared runtime-loader parity.
+Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 and kretprobe direct packets without returned family-local loader scaffolds, and the still-partial bitmap reminder packet with restored cold-stage guard, module, and diff proof but without broader shared runtime-loader parity.
 If only one family gains or loses trusted-path coverage, hand the repair back to that owning family lane.
 If the shared runtime-loader substrate returns more than the visible allocator/init-flow, note, contract, and command/environment boundary packet, hand the loader-side proof back to the shared loader lane before reviving cross-family parity claims here.
