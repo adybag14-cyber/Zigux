@@ -19,7 +19,15 @@ REQUIRED_SOURCE_MARKERS = (
     '        print("PHASE2_CROSS_VALIDATE_ROUTE_POLICY=fail")',
     '    print("PHASE2_CROSS_VALIDATE_ROUTE_POLICY=pass")',
     '    print("PHASE2_CROSS_VALIDATE_ROUTE_POLICY_SELF_TEST=pass")',
-    '        expected = ["phase2-toolchain", "phase2-tools", "phase2-validate", "phase2-cross"]',
+    '        expected = [',
+    '            "phase2-toolchain",',
+    '            "phase2-tools",',
+    '            "phase2-kconfig",',
+    '            "phase2-cross",',
+    '            "phase2-genksyms",',
+    '            "phase2-fixdep",',
+    '            "phase2-validate",',
+    '        ]',
 )
 
 REQUIRED_CASE_MARKERS = (
