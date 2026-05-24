@@ -277,6 +277,16 @@ test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
     try std.testing.expectEqualStrings("more", positive_octal.rest);
 }
 
+test "memparse keeps positive overflow saturation aligned with suffix parsing" {
+    const plain = memparse("18446744073709551616rest");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), plain.value);
+    try std.testing.expectEqualStrings("rest", plain.rest);
+
+    const suffixed = memparse("18446744073709551615Ktail");
+    try std.testing.expectEqual(std.math.maxInt(u64), suffixed.value);
+    try std.testing.expectEqualStrings("tail", suffixed.rest);
+}
+
 test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parseOptionStr("quiet,debug,nohlt", "debug"));
     try std.testing.expect(parseOptionStr("quiet,debug\x00,nohlt", "debug"));
@@ -328,5 +338,5 @@ test "nextArg keeps empty and unterminated quoted values aligned" {
     const unterminated = nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("mode", unterminated.param);
     try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
-    try std.testing.expectEqualStrings("", unterminated.remaining);
+    try std.testing.expectEqualStrings("", underminated.remaining);
 }
