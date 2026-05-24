@@ -29,7 +29,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 ## Gates
 
 1. run the focused helper replay
-- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, fold, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable
+- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, fold, replacement, folded and unfolded pseudo-header helpers, aligned fast-path packet reviewable, and the fixture-backed `add16` and `sub16` carry rows explicit
 
 2. run the external checksum C-vs-Zig review hook when touching helper semantics
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
@@ -45,16 +45,17 @@ The current checksum helper surface exercised by this slice covers:
 
 - `add`, `sub`, `shift`, `blockAdd`, and `blockSub`
 - `replace`, `replaceByDiff`, `replace2`, and `replace4`
-- `from32to16`, `fold`, `compute`, and `ipComputeCsum`
+- `from32to16`, `fold`, `unfold`, `add16`, `sub16`, `compute`, and `ipComputeCsum`
 - `tcpUdpNofold`, `tcpUdpMagic`, `tcpUdpV6Nofold`, `tcpUdpV6Magic`, `ipFastCsumIhl`, and `ipFastCsum`
 
 The current tests and fixtures check:
 
 - empty, odd-length, even-length, and seeded partial accumulation
 - replacement and header-edit parity for payload words, IPv4 length edits, and IPv4 address edits
+- fixture-backed `add16` and `sub16` carry rows in both the focused Zig replay and the direct C-vs-Zig parity packet
 - folded and unfolded pseudo-header accumulation parity for IPv4 and IPv6
 - aligned fast-path parity for minimal, updated, and option-bearing IPv4 headers together with the maximum-IHL aligned-header packet
-- an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig helper packet
+- an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface, including the committed `add16` and `sub16` carry rows, stays directly reviewable beside the committed Zig helper packet
 - perf-matrix stability for the committed `64B` and `1501B` fixture payloads with explicit slowdown thresholds
 - aligned-header fast-path perf stability for the committed `IPV4_20B`, `IPV4_20B_UPDATED`, `IPV4_24B`, and `IPV4_60B` fixture headers with explicit slowdown thresholds against `compute()`
 
