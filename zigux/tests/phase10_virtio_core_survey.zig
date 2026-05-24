@@ -35,7 +35,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio core survey gate keeps verify and focused replay surfaces explicit" {
+test "phase10 virtio core survey gate keeps verify, driver-model, and focused replay surfaces explicit" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -58,10 +58,25 @@ test "phase10 virtio core survey gate keeps verify and focused replay surfaces e
     const compact_closure_manifest = try stripAsciiWhitespace(allocator, closure_manifest);
     defer allocator.free(compact_closure_manifest);
 
+    const core_file = try readRepoRelative(allocator, "drivers/virtio/virtio.zig");
+    defer allocator.free(core_file);
+
+    const core_replay = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_core.zig");
+    defer allocator.free(core_replay);
+
     try expectContains(survey_note, "drivers/virtio/virtio_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_core_reset_queue.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig");
+    try expectContains(survey_note, "driverModelSummary()");
+    try expectContains(survey_note, "DriverModelStage");
     try expectContains(survey_note, "phase10-core-probe-remove-lifecycle");
+    try expectContains(core_file, "pub const DriverModelStage = enum {");
+    try expectContains(core_file, "pub const DriverModelSummary = struct {");
+    try expectContains(core_file, "pub fn driverModelSummary(");
+    try expectContains(
+        core_replay,
+        "test \"phase10 virtio core driver model replay keeps wrapper stages reviewable\" {",
+    );
     try expectContains(build_file, "\"phase10-virtio-core-verify-tests\"");
     try expectContains(build_file, "\"phase10-virtio-core-reset-queue-tests\"");
     try expectContains(build_file, "\"phase10-virtio-core-interrupt-compound-ack-tests\"");
