@@ -19,6 +19,7 @@ DEFAULT_ROOT = (
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 MODEM_BUILD_PATH = Path("zigux/tests/phase11_hvc_modem_control_proof_build.zig")
 TARGETLESS_BUILD_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
+VALIDATE_PHASE11_PATH = Path("scripts/zigux/validate-phase11.py")
 
 REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS = (
     "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
@@ -28,6 +29,11 @@ REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS = (
 REQUIRED_FOCUSED_DIRECT_BUILD_CHECKS = (
     "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test",
     "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py",
+)
+
+REQUIRED_VALIDATE_PHASE11_MARKERS = (
+    '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py")',
 )
 
 REQUIRED_MODEM_BUILD_MARKERS = (
@@ -98,6 +104,7 @@ def run_check(root: Path) -> None:
         )
     require_text_markers(root / MODEM_BUILD_PATH, REQUIRED_MODEM_BUILD_MARKERS)
     require_text_markers(root / TARGETLESS_BUILD_PATH, REQUIRED_TARGETLESS_BUILD_MARKERS)
+    require_text_markers(root / VALIDATE_PHASE11_PATH, REQUIRED_VALIDATE_PHASE11_MARKERS)
 
 
 def write(path: Path, text: str) -> None:
@@ -163,11 +170,18 @@ pub fn build(b: *std.Build) void {
 }
 """
 
+FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
+    (\"python\", \"scripts/zigux/check-phase11-focused-direct-build-replays.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-focused-direct-build-replays.py\"),
+)
+"""
+
 
 def build_fixture(root: Path) -> None:
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
     write(root / MODEM_BUILD_PATH, FIXTURE_MODEM_BUILD_TEXT)
     write(root / TARGETLESS_BUILD_PATH, FIXTURE_TARGETLESS_BUILD_TEXT)
+    write(root / VALIDATE_PHASE11_PATH, FIXTURE_VALIDATE_PHASE11_TEXT)
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -228,6 +242,19 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_targetless_marker, '.name = "phase11-hvc-targetless-unregister-gap",')
+        case_count += 1
+
+        missing_validate_marker = tmpdir / "missing_validate_marker"
+        shutil.copytree(fixture, missing_validate_marker, dirs_exist_ok=True)
+        write(
+            missing_validate_marker / VALIDATE_PHASE11_PATH,
+            read_text(missing_validate_marker / VALIDATE_PHASE11_PATH).replace(
+                '    ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),\n',
+                '',
+                1,
+            ),
+        )
+        expect_failure(missing_validate_marker, '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py")')
         case_count += 1
 
         print("PHASE11_FOCUSED_DIRECT_BUILD_REPLAYS_SELF_TEST=pass")
