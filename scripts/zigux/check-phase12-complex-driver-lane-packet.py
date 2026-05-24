@@ -239,7 +239,7 @@ def run_self_test() -> int:
             raise AssertionError("expected virtio_scsi survey-build marker failure")
 
         write_fixture(root)
-        (root / WORKFLOW_PATH).write_text("broken\n", encoding="utf-8")
+        (root / WORKFLOW_PATH).writeText("broken\n", encoding="utf-8")
         try:
             check(root)
         except CheckFailure as exc:
@@ -259,6 +259,22 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected build marker failure")
+
+        write_fixture(root)
+        (root / BUILD_PATH).write_text(
+            read_text(root, BUILD_PATH).replace("smoke_step.dependOn(", "__REMOVED__", 1),
+            encoding="utf-8",
+        )
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "zigux/tests/phase12_build.zig" not in str(exc):
+                raise
+            if "wrong count" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected build count failure")
 
         write_fixture(root)
         (root / MAKEFILE_PATH).write_text("phase12-smoke:\n", encoding="utf-8")
@@ -320,24 +336,31 @@ def run_self_test() -> int:
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
+def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", default=".")
-    parser.add_argument("--self-test", action="store_true")
-    args = parser.parse_args(argv)
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=Path("."),
+        help="Repository root to validate.",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run fixture-backed self-tests.",
+    )
+    args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
     try:
-        check(Path(args.root))
+        check(args.root)
     except CheckFailure as exc:
-        print(f"{CHECK_NAME}=fail")
-        print(f"{CHECK_NAME}_ERROR={exc}")
+        print(f"{CHECK_NAME}=fail:{exc}")
         return 1
 
     print(f"{CHECK_NAME}=pass")
-    print(f"{CHECK_NAME}_SCOPE=complex_driver_lane_truth")
     return 0
 
 
