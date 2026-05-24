@@ -21,7 +21,7 @@ Keep the current lane split explicit:
   `Documentation/zigux/phase11-validation-matrix-gap-survey.md` together with
   the smallest coupled checker updates needed to keep that shared packet honest
 - bcm2835 continuity stays separate from the shared sequencing lane, but fresh
-  raw `master` fallback rereads in this run do rematerialize
+  authenticated contents rereads in this run do rematerialize
   `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, so shared-note
   truthfulness work can keep that returned driver-local matrix explicit without
   widening into bcm2835-only reminder wording, replay claims, or platform-backed
@@ -30,9 +30,9 @@ Keep the current lane split explicit:
   shared-note work should not reopen gpio reminder wording unless the gpio lane
   itself changes
 - DesignWare lane `P11-L10` stays separate from the shared sequencing lane, but
-  raw `master` fallback rereads in this run do rematerialize
-  `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and direct
-  rereads also keep the returned DesignWare docs-owner, checker, driver,
+  authenticated contents rereads in this run do rematerialize
+  `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and those same
+  current-head rereads also keep the returned DesignWare docs-owner, checker, driver,
   registration-scaffold, the optional APB-clock scaffold outcomes, and adjacent
   PM-helper packet explicit through
   `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
@@ -140,17 +140,16 @@ surfaces that were reread in this run:
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
-Current rereads in this run rematerialized the gpio watchdog and HVC
-driver-local validation matrices named by the roadmap together with the
+Current rereads in this run rematerialized the bcm2835, gpio watchdog, HVC, and
+DesignWare driver-local validation matrices named by the roadmap together with the
 narrower HVC current-head continuity packet plus its cleanup companion,
 current-head checker, dedicated targetless-unregister witness checker, build
 inventory, proof-backed adjunct stack, the dedicated modem-control proof pair,
 and the standalone targetless-unregister witness pair.
-Authenticated contents reads still clip
+Authenticated contents reads in this run now rematerialize
 `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` and
-`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, but raw `master`
-fallback rereads rematerialized both driver-local matrix notes, so keep all
-four driver-local validation matrices explicit in the shared current-head packet
+`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so keep all four
+driver-local validation matrices explicit in the shared current-head packet
 while leaving bcm2835 and DesignWare reminder follow-through in their own lanes.
 
 Current rereads in this run also keep
@@ -240,9 +239,9 @@ Use this note to keep the bounded work order honest:
    `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, shared
    build inventory anchor, proof-backed adjunct stack, dedicated modem-control
    proof pair, and standalone targetless-unregister witness pair; keep it
-   explicit that the bcm2835 and DesignWare matrix notes currently return
-   through raw `master` fallback rather than this runtime's authenticated
-   contents bridge, and that the returned shared replay contract does not by
+   explicit that the bcm2835 and DesignWare matrix notes now reread through
+   this runtime's authenticated contents bridge alongside the gpio and HVC
+   matrices, and that the returned shared replay contract does not by
    itself restore its older paired checker scripts or the missing
    `zigux/tests/phase11_build.zig` route.
 4. Keep bcm2835 and DesignWare follow-through parked in their own lanes; do not
@@ -319,7 +318,7 @@ This note does not widen Phase 11 into:
   `make -C zigux phase11-validate` path are back
 - a claim that bcm2835 or DesignWare broader reminder packets, helper stacks, or
   replay routes have all returned just because the driver-local validation
-  matrices now reread through raw `master` fallback
+  matrices now reread directly on current `master`
 - a claim that bcm2835 or gpio reminder packets have been broadly reread beyond
   the watchdog-local surfaces touched in their own lanes
 - a claim that the older DesignWare packet-checker handle is already directly
