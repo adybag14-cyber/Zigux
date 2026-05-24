@@ -444,8 +444,8 @@ test "phase11 dw_wdt pm shutdown keeps missing drvdata explicit" {
     try std.testing.expect(!summary.unregister_stop_on_reboot_requested);
     try std.testing.expect(!summary.clear_restart_priority_requested);
     try std.testing.expect(!summary.pretimeout_mask_requested);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
-    try std.testing.expect(!summary.blocked_onLive_mmio);
 }
 
 test "phase11 dw_wdt pm shutdown keeps running teardown stop and hook removal explicit" {
