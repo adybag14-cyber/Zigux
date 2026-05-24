@@ -55,6 +55,10 @@
     "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig"
   ],
+  "focused_direct_build_checks": [
+    "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test",
+    "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py"
+  ],
   "workflow_phase11_steps": [
     {
       "name": "Validate current Phase 11 support bundle",
@@ -72,6 +76,10 @@
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_build.zig"
+  ],
+  "focused_direct_build_replays": [
+    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
   ],
   "shared_replay_markers": []
 }
