@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import shutil
 import subprocess
 import sys
@@ -386,6 +387,24 @@ def validate(root: Path) -> list[str]:
     return problems
 
 
+def emit_result(problems: list[str]) -> int:
+    if problems:
+        print("PHASE8_LIBBPF_SHARD_ROUTES=fail")
+        print("PHASE8_LIBBPF_SHARD_ROUTES_PROBLEMS_START")
+        for problem in problems:
+            print(problem)
+        print("PHASE8_LIBBPF_SHARD_ROUTES_PROBLEMS_END")
+        return 1
+
+    print("PHASE8_LIBBPF_SHARD_ROUTES=pass")
+    print(f"PHASE8_LIBBPF_SHARD_ROUTES_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(
+        "PHASE8_LIBBPF_SHARD_ROUTES_REQUIRED_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    return 0
+
+
 def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [sys.executable, str(root / SCRIPT_PATH)],
@@ -420,6 +439,10 @@ def assert_missing_case(root: Path, rel_path: str, marker: str) -> None:
     output = result.stdout.strip() or result.stderr.strip() or "no_output"
     if result.returncode == 0:
         raise SystemExit(f"self-test-unexpected-pass:{expected}")
+    if "PHASE8_LIBBPF_SHARD_ROUTES=fail" not in output:
+        raise SystemExit(f"self-test-missing-fail-banner:{output}")
+    if "PHASE8_LIBBPF_SHARD_ROUTES_PROBLEMS_START" not in output:
+        raise SystemExit(f"self-test-missing-problem-banner:{output}")
     if expected not in output:
         raise SystemExit(f"self-test-mismatch:{expected}:{output}")
 
@@ -430,9 +453,22 @@ def run_self_test() -> int:
         baseline_root = Path(tmp) / "baseline"
         make_fixture_root(baseline_root)
         baseline = run_validator(baseline_root)
+        baseline_output = baseline.stdout.strip() or baseline.stderr.strip() or "no_output"
         if baseline.returncode != 0:
-            details = baseline.stdout.strip() or baseline.stderr.strip() or "no_output"
-            raise SystemExit(f"self-test-baseline-failed:{details}")
+            raise SystemExit(f"self-test-baseline-failed:{baseline_output}")
+        if "PHASE8_LIBBPF_SHARD_ROUTES=pass" not in baseline_output:
+            raise SystemExit(f"self-test-missing-pass-banner:{baseline_output}")
+        if (
+            f"PHASE8_LIBBPF_SHARD_ROUTES_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}"
+            not in baseline_output
+        ):
+            raise SystemExit(f"self-test-missing-file-count:{baseline_output}")
+        if (
+            "PHASE8_LIBBPF_SHARD_ROUTES_REQUIRED_MARKER_COUNT="
+            f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+            not in baseline_output
+        ):
+            raise SystemExit(f"self-test-missing-marker-count:{baseline_output}")
 
         for rel_path, markers in REQUIRED_MARKERS.items():
             for marker in markers:
@@ -450,6 +486,10 @@ def run_self_test() -> int:
             output = result.stdout.strip() or result.stderr.strip() or "no_output"
             if result.returncode == 0:
                 raise SystemExit(f"self-test-unexpected-pass:{expected}")
+            if "PHASE8_LIBBPF_SHARD_ROUTES=fail" not in output:
+                raise SystemExit(f"self-test-missing-fail-banner:{output}")
+            if "PHASE8_LIBBPF_SHARD_ROUTES_PROBLEMS_START" not in output:
+                raise SystemExit(f"self-test-missing-problem-banner:{output}")
             if expected not in output:
                 raise SystemExit(f"self-test-mismatch:{expected}:{output}")
             cases += 1
@@ -457,22 +497,23 @@ def run_self_test() -> int:
     return cases
 
 
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
+    parser.add_argument("--self-test", action="store_true")
+    return parser.parse_args(argv)
+
+
 def main(argv: list[str]) -> int:
-    if len(argv) > 1 and argv[1] == "--self-test":
+    args = parse_args(argv)
+    if args.self_test:
         cases = run_self_test()
-        print(f"PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST_CASES={cases}")
+        print("PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST=pass")
+        print(f"PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST_CASE_COUNT={cases}")
         return 0
 
-    root = Path(__file__).resolve().parents[2]
-    problems = validate(root)
-    if problems:
-        for problem in problems:
-            print(problem)
-        return 1
-
-    print("PHASE8_LIBBPF_SHARD_ROUTES=ok")
-    return 0
+    return emit_result(validate(args.root))
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv))
+    raise SystemExit(main(sys.argv[1:]))
