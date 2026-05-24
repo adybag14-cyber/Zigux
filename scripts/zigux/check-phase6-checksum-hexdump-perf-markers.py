@@ -88,7 +88,7 @@ REQUIRED_HEXDUMP_LINUX_STYLE_RERUN_ROUTES = [
     "make -C zigux phase6-perf",
 ]
 EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT = "zigux/tests/phase6_hexdump_perf_matrix.zig"
-EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-24"
 EXPECTED_CHECKSUM_CASES = {
     "64B": {"iterations": 200000, "max_slowdown_pct": 150},
     "1501B": {"iterations": 12000, "max_slowdown_pct": 150},
@@ -351,7 +351,7 @@ def run_self_test() -> None:
             (MAKEFILE_PATH, "phase6-hexdump-review:", "phase6-hexdump-scan:", "phase6-hexdump-review:"),
             (MAKEFILE_PATH, "phase6-hexdump-perf:", "phase6-hexdump-test:", "phase6-hexdump-perf:"),
             (EVIDENCE_MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"', '"scripts/zigux/check-phase6-present-entrypoints.py"', "check-phase6-checksum-hexdump-perf-markers.py"),
-            (EVIDENCE_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-22"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-evidence surveyed_head drifted"),
+            (EVIDENCE_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-24"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-evidence surveyed_head drifted"),
             (EVIDENCE_MANIFEST_PATH, '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig"', '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum.zig"', "checksum dedicated_slowdown_replay drifted"),
             (EVIDENCE_MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-corpus-evidence.py"', '"scripts/zigux/check-phase6-present-entrypoints.py"', "checksum checker surface drifted"),
             (EVIDENCE_MANIFEST_PATH, '"scripts/zigux/check-phase6-hexdump-packet.py"', '"scripts/zigux/check-phase6-hexdump-route.py"', "hexdump checker surface drifted"),
@@ -368,7 +368,7 @@ def run_self_test() -> None:
             (EVIDENCE_MANIFEST_PATH, '"reps": 10000', '"reps": 8000', "hexdump evidence 32B-ascii-g2 reps drifted"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-checksum-corpus-evidence.py",\n        "scripts/zigux/check-phase6-checksum-c-parity.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]', "checksum checker surface drifted"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-hexdump-packet.py"]', "hexdump checker surface drifted"),
-            (PARITY_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-22"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-parity surveyed_head drifted"),
+            (PARITY_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-24"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-parity surveyed_head drifted"),
             (PARITY_MANIFEST_PATH, '"label": "1501B"', '"label": "1500B"', "checksum perf case drift"),
             (PARITY_MANIFEST_PATH, '"iterations": 12000', '"iterations": 16000', "checksum 1501B iterations drifted"),
             (PARITY_MANIFEST_PATH, '"IPV4_60B"', '"IPV4_64B"', "checksum ipv4_fast_path_case_labels drifted"),
