@@ -49,6 +49,7 @@ EXPECTED_VALIDATOR_OUTPUT_MARKERS = [
     '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass",',
     '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present",',
     '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",',
+    '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS="',
     '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",',
 ]
 
@@ -271,7 +272,11 @@ def run_self_test() -> int:
             raise AssertionError("expected validator_marker_drift to fail closed")
 
         make_validator_fixture(root)
-        trimmed_markers = EXPECTED_VALIDATOR_REPLAY_MARKERS + EXPECTED_VALIDATOR_OUTPUT_MARKERS[:-1]
+        trimmed_markers = [
+            marker
+            for marker in EXPECTED_VALIDATOR_REPLAY_MARKERS + EXPECTED_VALIDATOR_OUTPUT_MARKERS
+            if marker != '"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS="'
+        ]
         write(root / VALIDATOR_REL, "\n".join(trimmed_markers) + "\n")
         try:
             check(root)
