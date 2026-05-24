@@ -362,6 +362,26 @@ def run_self_test() -> None:
         expect_failure(missing_why_now, "manifest pm why_now mismatch")
         case_count += 1
 
+        wrong_verify_destination = root / "wrong-verify-destination"
+        shutil.copytree(fixture, wrong_verify_destination)
+        manifest_path = wrong_verify_destination / FILES["manifest"]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for entry in manifest["gaps"]:
+            if entry["id"] == VERIFY_GAP_ID:
+                entry["zigux_destination"] = PM_DESTINATION
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(wrong_verify_destination, "manifest teardown-parity destination mismatch")
+        case_count += 1
+
+        missing_next_gap = root / "missing-next-gap"
+        shutil.copytree(fixture, missing_next_gap)
+        manifest_path = missing_next_gap / FILES["manifest"]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["gaps"] = [entry for entry in manifest["gaps"] if entry["id"] != NEXT_GAP_ID]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(missing_next_gap, f"manifest missing gap entry: {NEXT_GAP_ID}")
+        case_count += 1
+
         print("PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELF_TEST=pass")
         print(f"PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
 
