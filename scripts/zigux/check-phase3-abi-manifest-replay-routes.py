@@ -198,6 +198,11 @@ def run_self_test() -> int:
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator direct route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"', "expected selftest-surface self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-selftest-surface.py"', "expected validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"', "expected export-uapi survey self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"', "expected export-uapi survey direct validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"', "expected export-uapi c-header smoke validator-route drift was not reported"),
+            ('"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"', "expected export-uapi layout build validator-route drift was not reported"),
+            ('"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"', "expected export-uapi layout test validator-route drift was not reported"),
             ('"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"', "expected export-shim validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"', "expected policy-unsafe self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"', "expected policy-unsafe direct validator-route drift was not reported"),
@@ -245,6 +250,9 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected checker direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-selftest-surface.py --self-test", "expected selftest-surface self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-selftest-surface.py", "expected selftest-surface direct route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test", "expected export-uapi survey self-test route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3-export-uapi-survey.py", "expected export-uapi survey direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py", "expected export-uapi c-header smoke route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test", "expected policy-unsafe self-test route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test", "expected low-level-wrapper self-test route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "expected low-level-wrapper direct route drift was not reported"),
@@ -253,6 +261,8 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-policy-dump.py", "expected policy-dump direct route drift was not reported"),
             ("python3 scripts/zigux/validate_phase3_selftest.py", "expected selftest-driver route drift was not reported"),
             ("python3 scripts/zigux/run-phase3-checks.py", "expected runner route drift was not reported"),
+            ("zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig", "expected export-uapi layout build route drift was not reported"),
+            ("zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig", "expected export-uapi layout test route drift was not reported"),
             ("zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "expected policy-dump build route drift was not reported"),
         )
         for route, failure_message in replay_route_cases:
@@ -276,7 +286,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=41")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=51")
     return 0
 
 
