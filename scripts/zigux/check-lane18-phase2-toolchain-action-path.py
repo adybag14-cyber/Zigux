@@ -64,6 +64,12 @@ SCRIPTS_MARKERS = (
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
     "`scripts/zigux/install-zig.py`",
 )
+SCRIPTS_ACTION_PATH_MARKERS = (
+    "`.github/workflows/zigux-bootstrap.yml`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+)
 
 TESTS_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
@@ -100,7 +106,7 @@ THIRD_PARTY_MARKERS = (
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 
 def resolve(root: Path, rel: str) -> Path:
@@ -159,11 +165,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "MISSING_BOOTSTRAP_NOTE_MARKERS",
         )
     )
+    scripts_readme = read_text(resolve(root, SCRIPTS_README))
     issues.extend(
         collect_missing_markers(
-            read_text(resolve(root, SCRIPTS_README)),
+            scripts_readme,
             SCRIPTS_MARKERS,
             "MISSING_SCRIPTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            scripts_readme,
+            SCRIPTS_ACTION_PATH_MARKERS,
+            "MISSING_SCRIPTS_ACTION_PATH_MARKERS",
         )
     )
     issues.extend(
@@ -206,7 +220,10 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 def build_sample_root(root: Path) -> None:
     write_text(resolve(root, WORKFLOW), "\n".join((*WORKFLOW_SETUP_MARKERS, *WORKFLOW_RUN_LINES)) + "\n")
     write_text(resolve(root, BOOTSTRAP_NOTES), "\n".join(("# notes", *BOOTSTRAP_MARKERS)) + "\n")
-    write_text(resolve(root, SCRIPTS_README), "\n".join(("# scripts", *SCRIPTS_MARKERS)) + "\n")
+    write_text(
+        resolve(root, SCRIPTS_README),
+        "\n".join(("# scripts", *SCRIPTS_MARKERS, *SCRIPTS_ACTION_PATH_MARKERS)) + "\n",
+    )
     write_text(resolve(root, TESTS_README), "\n".join(("# tests", *TESTS_MARKERS)) + "\n")
     write_text(resolve(root, REVIEW_CHECKLIST), "\n".join(("# checklist", *REVIEW_MARKERS)) + "\n")
     write_text(resolve(root, THIRD_PARTY_README), "\n".join(("# third_party", *THIRD_PARTY_MARKERS)) + "\n")
@@ -251,6 +268,18 @@ def run_self_test() -> int:
         path = resolve(root, SCRIPTS_README)
         path.write_text(path.read_text(encoding="utf-8").replace(SCRIPTS_MARKERS[0], ""), encoding="utf-8")
         assert any(code == "MISSING_SCRIPTS_README_MARKERS" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_sample_root(root)
+        path = resolve(root, SCRIPTS_README)
+        path.write_text(path.read_text(encoding="utf-8").replace(SCRIPTS_ACTION_PATH_MARKERS[0], ""), encoding="utf-8")
+        assert any(code == "MISSING_SCRIPTS_ACTION_PATH_MARKERS" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_sample_root(root)
+        path = resolve(root, SCRIPTS_README)
+        path.write_text(path.read_text(encoding="utf-8").replace(SCRIPTS_ACTION_PATH_MARKERS[-1], ""), encoding="utf-8")
+        assert any(code == "MISSING_SCRIPTS_ACTION_PATH_MARKERS" for code, _ in collect_issues(root))
         checks += 1
 
         build_sample_root(root)
