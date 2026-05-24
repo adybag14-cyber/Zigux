@@ -164,3 +164,127 @@ test "runtime trace-events sample keeps initialized-stage exit replay explicit a
     try std.testing.expectEqual(before_exit.last_register_label, after_exit.last_register_label);
     try std.testing.expectEqual(before_exit.last_unregister_label, after_exit.last_unregister_label);
 }
+
+test "runtime trace-events sample keeps rejected re-init rollback explicit at the module boundary" {
+    var initialized_module = sample.RuntimeTraceEventsSample{};
+    try initialized_module.init();
+
+    const before_initialized_reinit = initialized_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, before_initialized_reinit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_reinit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reinit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reinit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reinit.registration_depth);
+    try std.testing.expectEqualStrings("event-sample", before_initialized_reinit.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", before_initialized_reinit.function_thread_label orelse return error.ExpectedFunctionPayload);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.init());
+
+    const after_initialized_reinit = initialized_module.summary();
+    try expectSummaryStable(before_initialized_reinit, after_initialized_reinit);
+
+    var selftested_module = sample.RuntimeTraceEventsSample{};
+    try selftested_module.init();
+    _ = try selftested_module.runSelftest();
+
+    const before_selftested_reinit = selftested_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_selftested_reinit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reinit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reinit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_reinit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_reinit.registration_depth);
+    try std.testing.expectEqualStrings("Some times print", before_selftested_reinit.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("prints other times", before_selftested_reinit.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.init());
+
+    const after_selftested_reinit = selftested_module.summary();
+    try expectSummaryStable(before_selftested_reinit, after_selftested_reinit);
+
+    var exited_module = sample.RuntimeTraceEventsSample{};
+    try exited_module.init();
+    _ = try exited_module.runSelftest();
+    try exited_module.exit();
+
+    const before_exited_reinit = exited_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, before_exited_reinit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_exited_reinit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exited_reinit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exited_reinit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exited_reinit.registration_depth);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.init());
+
+    const after_exited_reinit = exited_module.summary();
+    try expectSummaryStable(before_exited_reinit, after_exited_reinit);
+}
+
+test "runtime trace-events sample keeps rejected re-selftest rollback explicit at the module boundary" {
+    var module = sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    const before_rejected_selftest = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_rejected_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_selftest.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.register_transitions);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.unregister_transitions);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_selftest = module.summary();
+    try expectSummaryStable(before_rejected_selftest, after_rejected_selftest);
+
+    try module.exit();
+
+    const before_rejected_exit_selftest = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, before_rejected_exit_selftest.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_rejected_exit_selftest.registration_depth);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const after_rejected_exit_selftest = module.summary();
+    try expectSummaryStable(before_rejected_exit_selftest, after_rejected_exit_selftest);
+}
+
+test "runtime trace-events sample keeps rejected re-exit rollback explicit at the module boundary" {
+    var initialized_module = sample.RuntimeTraceEventsSample{};
+    try initialized_module.init();
+    try initialized_module.exit();
+
+    const before_initialized_reexit = initialized_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, before_initialized_reexit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_reexit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reexit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_reexit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reexit.registration_depth);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.exit());
+
+    const after_initialized_reexit = initialized_module.summary();
+    try expectSummaryStable(before_initialized_reexit, after_initialized_reexit);
+
+    var selftested_module = sample.RuntimeTraceEventsSample{};
+    try selftested_module.init();
+    _ = try selftested_module.runSelftest();
+    try selftested_module.exit();
+
+    const before_selftested_reexit = selftested_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, before_selftested_reexit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_reexit.registration_depth);
+    try std.testing.expectEqualStrings("Some times print", before_selftested_reexit.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("prints other times", before_selftested_reexit.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.exit());
+
+    const after_selftested_reexit = selftested_module.summary();
+    try expectSummaryStable(before_selftested_reexit, after_selftested_reexit);
+}
