@@ -252,6 +252,8 @@ SELF_TEST_CASES = [
     (C_PARITY_RUNNER_PATH, 'try writeIndexCase(writer, "descending-hit", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));', 'try writeIndexCase(writer, "descending-found", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));'),
     (C_HARNESS_PATH, "static int compare_descending_u32(const void *key, const void *elt)", "static int compare_reverse_u32(const void *key, const void *elt)"),
     (BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");', 'const bsearch_perf_step = b.step("phase6-bsearch-scan", "Run Phase 6 bsearch helper perf gate");'),
+    (BUILD_PATH, "bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);", "bsearch_test_step.dependOn(&run_bsearch_tests.step);"),
+    (BUILD_PATH, "bsearch_perf_step.dependOn(&run_bsearch_perf.step);", "bsearch_perf_step.dependOn(&run_bsearch_tests.step);"),
 ]
 
 
