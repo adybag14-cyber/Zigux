@@ -364,6 +364,19 @@ test "PreparedRequest keeps blocked publication and depmod surfaces out of the s
     }
 }
 
+test "PreparedRequest keeps blocked registration-summary surfaces out of the shared request boundary" {
+    const blocked_registration_summary_fields = [_][]const u8{
+        "register_api",
+        "unregister_api",
+        "summary",
+        "registration_snapshot",
+    };
+
+    inline for (blocked_registration_summary_fields) |field| {
+        try std.testing.expect(!@hasField(PreparedRequest, field));
+    }
+}
+
 test "ApprovedPilotFamily keeps blocked publication and depmod surfaces out of the shared family contract" {
     const blocked_publication_fields = [_][]const u8{
         "modinfo",
@@ -380,6 +393,19 @@ test "ApprovedPilotFamily keeps blocked publication and depmod surfaces out of t
     };
 
     inline for (blocked_publication_fields) |field| {
+        try std.testing.expect(!@hasField(ApprovedPilotFamily, field));
+    }
+}
+
+test "ApprovedPilotFamily keeps blocked registration-summary surfaces out of the shared family contract" {
+    const blocked_registration_summary_fields = [_][]const u8{
+        "register_api",
+        "unregister_api",
+        "summary",
+        "registration_snapshot",
+    };
+
+    inline for (blocked_registration_summary_fields) |field| {
         try std.testing.expect(!@hasField(ApprovedPilotFamily, field));
     }
 }
