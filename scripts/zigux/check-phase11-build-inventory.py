@@ -36,6 +36,7 @@ EXACT_CURRENT_CHECKS = (
     "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
 )
 
 BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
@@ -149,6 +150,7 @@ REQUIRED_VALIDATE_PHASE11_MARKERS = (
     '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig")',
     '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig")',
     '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")',
+    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig")',
 )
 
 REQUIRED_UAPI_SURVEY_MARKERS = (
@@ -183,7 +185,7 @@ REQUIRED_EXPORT_BUILD_MARKERS = (
 
 REQUIRED_TARGETLESS_BUILD_MARKERS = (
     '.root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig")',
-    '.name = "phase11-hvc-targetless-unregister-gap"',
+    '.name = "phase11-hvc-targetless-unregister-gap",',
     'const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");',
 )
 
@@ -200,6 +202,7 @@ REQUIRED_MAKEFILE_ROUTE_MARKERS = (
     "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
@@ -633,6 +636,7 @@ FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
     (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_export_surface_layout_build.zig\"),
     (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_cleanup_packet_build.zig\"),
     (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig\"),
+    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_modem_control_proof_build.zig\"),
 )
 """
 
@@ -669,6 +673,7 @@ FIXTURE_MAKEFILE_TEXT = """phase11-validate:
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
 """
 
@@ -809,14 +814,14 @@ def run_self_test() -> int:
         write(
             missing_makefile_marker / MAKEFILE_PATH,
             read_text(missing_makefile_marker / MAKEFILE_PATH).replace(
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig\n",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig\n",
                 "",
                 1,
             ),
         )
         expect_failure(
             missing_makefile_marker,
-            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
         )
         case_count += 1
 
@@ -857,14 +862,14 @@ def run_self_test() -> int:
         write(
             missing_validate_marker / VALIDATE_PHASE11_PATH,
             read_text(missing_validate_marker / VALIDATE_PHASE11_PATH).replace(
-                '("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py")',
-                '("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment-missing.py")',
+                '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig")',
+                '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build_missing.zig")',
                 1,
             ),
         )
         expect_failure(
             missing_validate_marker,
-            '("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py")',
+            '("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig")',
         )
         case_count += 1
 
