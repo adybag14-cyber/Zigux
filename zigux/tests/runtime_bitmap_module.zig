@@ -288,6 +288,61 @@ test "runtime bitmap sample rejects re-selftest without disturbing lifecycle sum
     try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
 }
 
+test "runtime bitmap sample keeps rejected re-exit rollback explicit at the module boundary" {
+    var initialized_module = sample.RuntimeBitmapSample{};
+    try initialized_module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    try initialized_module.exit();
+
+    const before_initialized_reexit = initialized_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, initialized_module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_reexit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_reexit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_reexit.exit_runs);
+    try std.testing.expect(initialized_module.isSet(0));
+    try std.testing.expect(initialized_module.isSet(5));
+    try std.testing.expect(initialized_module.isSet(64));
+    try std.testing.expect(initialized_module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), initialized_module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.exit());
+
+    const after_initialized_reexit = initialized_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, initialized_module.stage());
+    try expectSummaryStable(before_initialized_reexit, after_initialized_reexit);
+    try std.testing.expect(initialized_module.isSet(0));
+    try std.testing.expect(initialized_module.isSet(5));
+    try std.testing.expect(initialized_module.isSet(64));
+    try std.testing.expect(initialized_module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), initialized_module.nthSetBit(3));
+
+    var selftested_module = sample.RuntimeBitmapSample{};
+    try selftested_module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try selftested_module.runSelftest();
+    try selftested_module.exit();
+
+    const before_selftested_reexit = selftested_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, selftested_module.stage());
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_reexit.exit_runs);
+    try std.testing.expect(selftested_module.isSet(0));
+    try std.testing.expect(selftested_module.isSet(5));
+    try std.testing.expect(selftested_module.isSet(64));
+    try std.testing.expect(selftested_module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), selftested_module.nthSetBit(3));
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.exit());
+
+    const after_selftested_reexit = selftested_module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, selftested_module.stage());
+    try expectSummaryStable(before_selftested_reexit, after_selftested_reexit);
+    try std.testing.expect(selftested_module.isSet(0));
+    try std.testing.expect(selftested_module.isSet(5));
+    try std.testing.expect(selftested_module.isSet(64));
+    try std.testing.expect(selftested_module.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), selftested_module.nthSetBit(3));
+}
+
 test "runtime bitmap sample rejects re-init without disturbing initialized summaries" {
     var module = sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
