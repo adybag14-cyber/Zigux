@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L03",
   "phase": "Phase 5",
-  "surveyed_commit": "742a58a8198753f8f2b307bb240cf47207f01913",
+  "surveyed_commit": "cdf2dd29592ee7aa8b15ed3d78ca15f1c01ddcf7",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -9,7 +9,7 @@
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the same sample packet still keeps StorageBacking.embedded_fixed_buffer explicit so reviewers can read the approved idiom as a bounded fixed-buffer ring instead of an implied allocation-backed runtime queue",
     "the contributor packet still frames the landed sample as an approved Phase 5 in-memory FIFO idiom instead of a runtime-substrate claim",
-    "the manifest-backed contributor packet still keeps runAnchorReplay(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), runReinitBoundaryReplay(), the exact queue-order replay, the non-destructive snapshotInto() cue, the lifecycle boundary, the reinit-after-exit reuse cue, the short-drain \"hel\" plus queued \"lo\" helper boundary, and the remaining-capacity evidence explicit instead of leaving those review cues implied",
+    "the manifest-backed contributor packet still keeps runAnchorReplay(), its eight-byte replay-summary preview prefix over the wrapped 32-byte queue, runPreviewBoundaryReplay(), runWrappedPreviewReplay(), the exact queue-order replay, the non-destructive snapshotInto() cue, the lifecycle boundary, the reinit-after-exit reuse cue, the short-drain \"hel\" plus queued \"lo\" helper boundary, and the remaining-capacity evidence explicit instead of leaving those review cues implied",
     "the approved in-memory FIFO idiom still keeps queue-shape evidence explicit so previewInto(), snapshotInto(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), available(), occupancySummary(), visibleSpanSummary(), writableSpanSummary(), and usesWrappedStorageWindow() stay aligned across the same cold, full, wrapped-window, and rollover boundaries that reviewers expect from a bounded ring sample",
     "the shared docs-root, sample-root, scripts-root, and tests-root contributor packet still points at this exact bytestream FIFO slice through the survey note, sample file, directly readable focused replay packet, directly readable manifest companion, directly readable survey gate, and the directly readable phase5_build.zig route instead of collapsing the review surface back to the sample file and survey note alone",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
@@ -49,7 +49,7 @@
     {
       "id": "preview-truncation-boundary",
       "kind": "queue_snapshot",
-      "expected": "runPreviewBoundaryReplay proves a truncated preview stays non-destructive while leaving the sample in the initialized lifetime state: stage_before_replay and stage_after_replay stay initialized, snapshotInto still begins with [2,3,4,5], previewInto copies [2,3,4,5,6,7,8,9], reports 10 visible bytes, leaves the queued data intact, and keeps queue_len_after_preview at 10"
+      "expected": "runAnchorReplay keeps a replay-summary preview prefix [3,4,5,6,7,8,9,0] over 32 visible bytes before the full snapshot, while runPreviewBoundaryReplay proves the separate helper-side truncated preview stays non-destructive in the initialized lifetime state: stage_before_replay and stage_after_replay stay initialized, snapshotInto still begins with [2,3,4,5], previewInto copies [2,3,4,5,6,7,8,9], reports 10 visible bytes, leaves the queued data intact, and keeps queue_len_after_preview at 10"
     },
     {
       "id": "remaining-capacity",
