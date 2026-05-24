@@ -20,6 +20,7 @@ EXPECTED_NOTE_MARKERS = (
     "PHASE4_TEST_FSMOUNT_LANE_KEY=P4-L19",
     "PHASE4_TEST_FSMOUNT_C_ANCHOR=samples/vfs/test-fsmount.c",
     "PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs",
+    "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
     "PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
     "PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey",
     "PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
@@ -50,14 +51,6 @@ EXPECTED_GATE_EVIDENCE_MARKERS = (
     "reviewability_only_no_perf_threshold",
 )
 
-FORBIDDEN_NOTE_MARKERS = (
-    "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=",
-)
-
-FORBIDDEN_MANIFEST_KEYS = (
-    "local_lab_replay",
-)
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -81,12 +74,6 @@ def require_markers(text: str, markers: tuple[str, ...], label: str, issues: lis
             issues.append(f"{label}:{marker}")
 
 
-def require_absent(text: str, markers: tuple[str, ...], label: str, issues: list[str]) -> None:
-    for marker in markers:
-        if marker in text:
-            issues.append(f"{label}:unexpected:{marker}")
-
-
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
     required = (NOTE, MANIFEST, MATRIX, GATE_EVIDENCE)
@@ -104,7 +91,6 @@ def validate_root(root: Path) -> list[str]:
     require_markers(note_text, EXPECTED_NOTE_MARKERS, "note", issues)
     require_markers(matrix_text, EXPECTED_MATRIX_MARKERS, "matrix", issues)
     require_markers(gate_evidence_text, EXPECTED_GATE_EVIDENCE_MARKERS, "gate_evidence", issues)
-    require_absent(note_text, FORBIDDEN_NOTE_MARKERS, "note", issues)
 
     try:
         payload = json.loads(manifest_text)
@@ -120,6 +106,8 @@ def validate_root(root: Path) -> list[str]:
         issues.append(f"manifest:c_anchor:{payload.get('c_anchor')!r}")
     if payload.get("current_linux_replay") != "make M=samples/vfs":
         issues.append(f"manifest:current_linux_replay:{payload.get('current_linux_replay')!r}")
+    if payload.get("local_lab_replay") != "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig":
+        issues.append("manifest:local_lab_replay")
     if payload.get("dedicated_local_survey_wrapper") != "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig":
         issues.append("manifest:dedicated_local_survey_wrapper")
     if payload.get("dedicated_linux_style_survey_wrapper") != "make -C zigux phase4-test-fsmount-survey":
@@ -140,11 +128,8 @@ def validate_root(root: Path) -> list[str]:
         issues.append("manifest:threshold_posture")
     if payload.get("reversible_delivery_evidence") != "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface":
         issues.append("manifest:reversible_delivery_evidence")
-    if payload.get("next_bounded_evidence_step") != "keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter":
+    if payload.get("next_bounded_evidence_step") != "keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit local lab replay marker, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter":
         issues.append("manifest:next_bounded_evidence_step")
-    for key in FORBIDDEN_MANIFEST_KEYS:
-        if key in payload:
-            issues.append(f"manifest:unexpected:{key}")
 
     return issues
 
@@ -165,6 +150,7 @@ def write_fixture_tree(root: Path) -> None:
                 "PHASE4_TEST_FSMOUNT_LANE_KEY=P4-L19",
                 "PHASE4_TEST_FSMOUNT_C_ANCHOR=samples/vfs/test-fsmount.c",
                 "PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs",
+                "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
                 "PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
                 "PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey",
                 "PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
@@ -186,6 +172,7 @@ def write_fixture_tree(root: Path) -> None:
                 "phase": "Phase 4",
                 "c_anchor": "samples/vfs/test-fsmount.c",
                 "current_linux_replay": "make M=samples/vfs",
+                "local_lab_replay": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
                 "dedicated_local_survey_wrapper": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
                 "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-test-fsmount-survey",
                 "bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
@@ -196,7 +183,7 @@ def write_fixture_tree(root: Path) -> None:
                 "current_measurable_status": "absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter",
                 "threshold_posture": "reviewability_only_no_perf_threshold",
                 "reversible_delivery_evidence": "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
-                "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter",
+                "next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit local lab replay marker, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter",
             },
             indent=2,
         )
@@ -218,11 +205,11 @@ def run_self_test() -> int:
         cases = 1
 
         variants = (
-            (NOTE, "PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig", "PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig", "note:PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"),
+            (NOTE, "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig", "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig", "note:PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"),
             (NOTE, "Current `master` still does not ship `samples/zigux/test_fsmount.zig`.", "Current `master` now ships `samples/zigux/test_fsmount.zig`.", "note:Current `master` still does not ship `samples/zigux/test_fsmount.zig`."),
             (MANIFEST, '"threshold_posture": "reviewability_only_no_perf_threshold"', '"threshold_posture": "approved_local_only"', "manifest:threshold_posture"),
-            (MANIFEST, '"next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter"', '"next_bounded_evidence_step": "land the starter directly"', "manifest:next_bounded_evidence_step"),
-            (MANIFEST, "}", ',\n  "local_lab_replay": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"\n}', "manifest:unexpected:local_lab_replay"),
+            (MANIFEST, '"next_bounded_evidence_step": "keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit local lab replay marker, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter"', '"next_bounded_evidence_step": "land the starter directly"', "manifest:next_bounded_evidence_step"),
+            (MANIFEST, '"local_lab_replay": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"', '"local_lab_replay": "make -C zigux phase4-test-fsmount-survey"', "manifest:local_lab_replay"),
         )
         for rel, old, new, prefix in variants:
             write_fixture_tree(root)
@@ -259,7 +246,7 @@ def main() -> int:
         return 1
 
     print("PHASE4_TEST_FSMOUNT_MEASURABILITY_GAP=pass")
-    print("PHASE4_TEST_FSMOUNT_MEASURABILITY_GAP_STATUS=explicit_local_lab_replay_marker_still_missing")
+    print("PHASE4_TEST_FSMOUNT_MEASURABILITY_GAP_STATUS=explicit_local_lab_replay_marker_landed_zig_starter_still_absent")
     print("PHASE4_TEST_FSMOUNT_MEASURABILITY_GAP_REQUIRED_FILE_COUNT=4")
     return 0
 
