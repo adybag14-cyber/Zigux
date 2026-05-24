@@ -386,6 +386,22 @@ def run_self_test() -> int:
             ),
             (
                 CLEANUP_COMPANION_PATH,
+                CLEANUP_CHECKER_PATH,
+            ),
+            (
+                CLEANUP_COMPANION_PATH,
+                SELF_PATH,
+            ),
+            (
+                CLEANUP_COMPANION_PATH,
+                WITNESS_PATH,
+            ),
+            (
+                CLEANUP_COMPANION_PATH,
+                WITNESS_BUILD_PATH,
+            ),
+            (
+                CLEANUP_COMPANION_PATH,
                 "standalone targetless-unregister witness",
             ),
             (
@@ -406,11 +422,31 @@ def run_self_test() -> int:
             ),
             (
                 VALIDATION_MATRIX_PATH,
+                CLEANUP_COMPANION_PATH,
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
+                CLEANUP_CHECKER_PATH,
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
                 "scripts/zigux/check-phase11-build-inventory.py",
             ),
             (
                 VALIDATION_MATRIX_PATH,
+                SELF_PATH,
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
                 INVENTORY_PATH,
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
+                WITNESS_PATH,
+            ),
+            (
+                VALIDATION_MATRIX_PATH,
+                WITNESS_BUILD_PATH,
             ),
             (
                 VALIDATION_MATRIX_PATH,
@@ -426,11 +462,31 @@ def run_self_test() -> int:
             ),
             (
                 SURVEY_PATH,
+                CLEANUP_COMPANION_PATH,
+            ),
+            (
+                SURVEY_PATH,
+                CLEANUP_CHECKER_PATH,
+            ),
+            (
+                SURVEY_PATH,
                 "scripts/zigux/check-phase11-build-inventory.py",
             ),
             (
                 SURVEY_PATH,
                 INVENTORY_PATH,
+            ),
+            (
+                SURVEY_PATH,
+                SELF_PATH,
+            ),
+            (
+                SURVEY_PATH,
+                WITNESS_PATH,
+            ),
+            (
+                SURVEY_PATH,
+                WITNESS_BUILD_PATH,
             ),
             (
                 SURVEY_PATH,
