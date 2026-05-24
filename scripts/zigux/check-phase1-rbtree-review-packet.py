@@ -17,6 +17,17 @@ LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md"
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 EXPECTED_SOURCE_SYMBOLS = [
     "pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {",
@@ -158,8 +169,11 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
-def load_json(root: Path, relative_path: Path) -> Any:
-    return json.loads(load_text(root, relative_path))
+def load_json_with_duplicate_tracking(root: Path, relative_path: Path) -> Any:
+    return json.loads(
+        load_text(root, relative_path),
+        object_pairs_hook=DuplicateTrackingDict,
+    )
 
 
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
@@ -182,6 +196,24 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
     return current
 
 
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for value in data:
+            paths.extend(collect_duplicate_json_key_paths(value, prefix))
+    return paths
+
+
+def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
+    return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
+
+
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
 
@@ -193,8 +225,28 @@ def collect_failures(root: Path) -> list[str]:
 
     helper_text = load_text(root, HELPER_REL)
     lane_text = load_text(root, LANE_NOTE_REL)
-    manifest = load_json(root, MANIFEST_REL)
-    fixture = load_json(root, FIXTURE_REL)
+    try:
+        manifest = load_json_with_duplicate_tracking(root, MANIFEST_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure(MANIFEST_REL.as_posix(), exc)]
+    try:
+        fixture = load_json_with_duplicate_tracking(root, FIXTURE_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure(FIXTURE_REL.as_posix(), exc)]
+
+    duplicate_manifest_paths = collect_duplicate_json_key_paths(manifest)
+    if duplicate_manifest_paths:
+        return [
+            f"{MANIFEST_REL.as_posix()}:duplicate_json_key:{path}"
+            for path in duplicate_manifest_paths
+        ]
+
+    duplicate_fixture_paths = collect_duplicate_json_key_paths(fixture)
+    if duplicate_fixture_paths:
+        return [
+            f"{FIXTURE_REL.as_posix()}:duplicate_json_key:{path}"
+            for path in duplicate_fixture_paths
+        ]
 
     for symbol in EXPECTED_SOURCE_SYMBOLS:
         failures.extend(require_exact_occurrence(helper_text, f"helper_symbol:{symbol}", symbol))
@@ -251,6 +303,8 @@ def run_self_test() -> int:
         ("missing_anchor", f"helper_anchor:{EXPECTED_HELPER_TEST_ANCHORS[5]}:expected=1:actual=0"),
         ("manifest_drift", "manifest:review_packet_summary:expected_current_packet"),
         ("fixture_drift", "fixture:cached_leftmost_return_serials:expected_current_packet"),
+        ("duplicate_manifest_key", "zigux/tests/fixtures/phase1_helper_manifest.json:duplicate_json_key:review_anchors.tools/lib/rbtree.zig.review_packet_summary"),
+        ("duplicate_fixture_key", "zigux/tests/fixtures/phase1_helpers.json:duplicate_json_key:rbtree.cached_leftmost_return_serials"),
         ("duplicate_anchor", f"helper_anchor:{EXPECTED_HELPER_TEST_ANCHORS[5]}:expected=1:actual=2"),
     ]
 
@@ -280,37 +334,57 @@ def run_self_test() -> int:
         if cases[3][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:missing_symbol")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(tmp_root)
         helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_HELPER_TEST_ANCHORS[5] + "\n", "", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
         if cases[4][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:missing_anchor")
 
-        build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
+        build_sampleRepo(tmp_root)
+        manifest = load_json_with_duplicate_tracking(tmp_root, MANIFEST_REL)
         manifest["review_anchors"]["tools/lib/rbtree.zig"]["review_packet_summary"] = "drift"
         write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         if cases[5][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:manifest_drift")
 
-        build_sampleRepo = build_sample_repo
         build_sampleRepo(tmp_root)
-        fixture = load_json(tmp_root, FIXTURE_REL)
+        fixture = load_json_with_duplicate_tracking(tmp_root, FIXTURE_REL)
         fixture["rbtree"]["cached_leftmost_return_serials"] = [0, -1, 2]
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
         if cases[6][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:fixture_drift")
 
         build_sampleRepo(tmp_root)
+        manifest_text = load_text(tmp_root, MANIFEST_REL).replace(
+            '    "review_packet_summary": "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly",\n',
+            '    "review_packet_summary": "drift",\n    "review_packet_summary": "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly",\n',
+            1,
+        )
+        write_text(tmp_root, MANIFEST_REL, manifest_text)
+        if cases[7][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:duplicate_manifest_key")
+
+        build_sampleRepo(tmp_root)
+        fixture_text = load_text(tmp_root, FIXTURE_REL).replace(
+            '    "cached_leftmost_return_serials": [\n      0,\n      -1,\n      2,\n      -1\n    ],\n',
+            '    "cached_leftmost_return_serials": [0, -1, 2],\n    "cached_leftmost_return_serials": [\n      0,\n      -1,\n      2,\n      -1\n    ],\n',
+            1,
+        )
+        write_text(tmp_root, FIXTURE_REL, fixture_text)
+        if cases[8][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:duplicate_fixture_key")
+
+        build_sampleRepo(tmp_root)
         helper_text = load_text(tmp_root, HELPER_REL)
         duplicated = EXPECTED_HELPER_TEST_ANCHORS[5]
         helper_text = helper_text.replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[7][1] not in collect_failures(tmp_root):
+        if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:duplicate_anchor")
 
     print("PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST_CASE_COUNT=8")
+    print(f"PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
 
 
