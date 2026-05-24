@@ -22,6 +22,26 @@ REQUIRED_FILES = (
     MAKEFILE_PATH,
 )
 
+REQUIRED_PRESENT_PATHS = (
+    Path("drivers/net/virtio_net_queue_resume.zig"),
+    Path("drivers/net/virtio_net_receive_refill_replay.zig"),
+    Path("drivers/net/virtio_net_transmit_recycle.zig"),
+    Path("drivers/net/virtio_net_post_reset_replay.zig"),
+    Path("drivers/net/virtio_net_throughput_parity.zig"),
+    Path("zigux/tests/phase12_virtio_net_queue_resume.zig"),
+    Path("zigux/tests/phase12_virtio_net_receive_refill_replay.zig"),
+    Path("zigux/tests/phase12_virtio_net_transmit_recycle.zig"),
+    Path("zigux/tests/phase12_virtio_net_post_reset_replay.zig"),
+    Path("zigux/tests/phase12_virtio_net_throughput_parity.zig"),
+    Path("zigux/tests/phase12_virtio_net_survey.zig"),
+)
+
+FORBIDDEN_PRESENT_PATHS = (
+    Path("drivers/net/virtio_net.zig"),
+    Path("zigux/tests/phase12_virtio_net.zig"),
+    Path("zigux/tests/phase12_virtio_net_syntax_lab.zig"),
+)
+
 NOTE_MARKERS = (
     "`PHASE12_LANE=complex-driver-shared-release-packet`",
     "anti-overlap checker: `scripts/zigux/check-phase12-complex-driver-lane-packet.py`",
@@ -60,6 +80,15 @@ BUILD_MARKERS = (
     "phase12-virtio-net-survey-tests",
 )
 
+BUILD_COUNT_MARKERS = {
+    "b.createModule(.{": 11,
+    ".addImport(": 5,
+    "b.addTest(.{": 6,
+    "b.addRunArtifact(": 6,
+    "smoke_step.dependOn(": 6,
+    "test_step.dependOn(": 6,
+}
+
 MAKEFILE_MARKERS = (
     "phase12-validate:",
     "phase12-smoke:",
@@ -89,10 +118,31 @@ def require_markers(text: str, markers: tuple[str, ...], label: str) -> None:
             raise CheckFailure(f"{label} missing marker: {marker}")
 
 
+def require_counts(text: str, counts: dict[str, int], label: str) -> None:
+    for marker, expected_count in counts.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            raise CheckFailure(
+                f"{label} wrong count for {marker!r}: expected {expected_count}, got {actual_count}"
+            )
+
+
 def require_forbidden_absent(text: str, markers: tuple[str, ...], label: str) -> None:
     for marker in markers:
         if marker in text:
             raise CheckFailure(f"{label} stale marker present: {marker}")
+
+
+def require_paths_present(root: Path, paths: tuple[Path, ...], label: str) -> None:
+    for relative_path in paths:
+        if not (root / relative_path).is_file():
+            raise CheckFailure(f"{label} missing path: {relative_path}")
+
+
+def require_paths_absent(root: Path, paths: tuple[Path, ...], label: str) -> None:
+    for relative_path in paths:
+        if (root / relative_path).exists():
+            raise CheckFailure(f"{label} unexpected path present: {relative_path}")
 
 
 def check(root: Path) -> None:
@@ -100,9 +150,15 @@ def check(root: Path) -> None:
         if not (root / relative_path).is_file():
             raise CheckFailure(f"missing required file: {relative_path}")
 
+    require_paths_present(root, REQUIRED_PRESENT_PATHS, CHECK_NAME)
+    require_paths_absent(root, FORBIDDEN_PRESENT_PATHS, CHECK_NAME)
+
     require_markers(read_text(root, NOTE_PATH), NOTE_MARKERS, str(NOTE_PATH))
     require_markers(read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS, str(WORKFLOW_PATH))
-    require_markers(read_text(root, BUILD_PATH), BUILD_MARKERS, str(BUILD_PATH))
+
+    build_text = read_text(root, BUILD_PATH)
+    require_markers(build_text, BUILD_MARKERS, str(BUILD_PATH))
+    require_counts(build_text, BUILD_COUNT_MARKERS, str(BUILD_PATH))
 
     makefile_text = read_text(root, MAKEFILE_PATH)
     require_markers(makefile_text, MAKEFILE_MARKERS, str(MAKEFILE_PATH))
@@ -113,17 +169,30 @@ def check(root: Path) -> None:
     )
 
 
+def build_fixture_text() -> str:
+    sections: list[str] = []
+    for marker, expected_count in BUILD_COUNT_MARKERS.items():
+        sections.extend(marker for _ in range(expected_count))
+    sections.extend(BUILD_MARKERS)
+    return "\n".join(sections) + "\n"
+
+
 def write_fixture(root: Path) -> None:
     files = {
         NOTE_PATH: "\n".join(NOTE_MARKERS) + "\n",
         WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
-        BUILD_PATH: "\n".join(BUILD_MARKERS) + "\n",
+        BUILD_PATH: build_fixture_text(),
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
     }
     for relative_path, text in files.items():
         path = root / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
+
+    for relative_path in REQUIRED_PRESENT_PATHS:
+        path = root / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("// fixture\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -198,6 +267,30 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected stale makefile marker failure")
+
+        write_fixture(root)
+        (root / REQUIRED_PRESENT_PATHS[0]).unlink()
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if str(REQUIRED_PRESENT_PATHS[0]) not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected required present path failure")
+
+        write_fixture(root)
+        forbidden_path = root / FORBIDDEN_PRESENT_PATHS[0]
+        forbidden_path.parent.mkdir(parents=True, exist_ok=True)
+        forbidden_path.write_text("// stale monolith\n", encoding="utf-8")
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if str(FORBIDDEN_PRESENT_PATHS[0]) not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected forbidden path failure")
 
     print(f"{CHECK_NAME}_SELF_TEST=pass")
     print(f"{CHECK_NAME}_SELF_TEST_CASES={cases}")
