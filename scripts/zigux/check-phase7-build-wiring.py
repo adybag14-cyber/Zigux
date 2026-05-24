@@ -35,6 +35,7 @@ EXPECTED_REPLAYS = [
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase7-shared-surface.py",
     "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
@@ -258,26 +259,6 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
     for snippet in snippets:
         if snippet not in text:
             raise ValidationError(f"missing expected marker in {path.as_posix()}: {snippet}")
-
-
-def require_exact_lines(path: Path, markers: list[str]) -> None:
-    text = read_text(path)
-    for marker in markers:
-        count = count_exact_lines(text, marker)
-        if count == 0:
-            raise ValidationError(f"missing expected line in {path.as_posix()}: {marker}")
-        if count != 1:
-            raise ValidationError(f"duplicate expected line in {path.as_posix()}: {marker}")
-
-
-def require_absent_lines(path: Path, markers: list[str]) -> None:
-    text = read_text(path)
-    for marker in markers:
-        if count_exact_lines(text, marker):
-            raise ValidationError(f"unexpected stale line in {path.as_posix()}: {marker}")
-
-
-def validate(root: Path) -> None:
     missing = [str(rel) for rel in REQUIRED_FILES if not (root / rel).is_file()]
     if missing:
         raise ValidationError("missing required files: " + ", ".join(missing))
