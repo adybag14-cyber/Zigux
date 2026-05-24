@@ -825,14 +825,43 @@ test "confdata bridge emits no entries for empty CONFIG symbol names" {
 }
 
 test "confdata bridge keeps only the last assignment for duplicate symbols" {
-    const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator,
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    const input =
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=7
         \\CONFIG_ALPHA="final"
         \\CONFIG_BETA=m
         \\
-    );
+    ;
+
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator, input);
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 2), summary.set_count);
@@ -844,6 +873,15 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
     try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
     try std.testing.expectEqualStrings("m", summary.entries[1].value);
+
+    var capture = try Capture.init(allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(allocator, input, &capture);
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":2,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"string\",\"value\":\"final\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"tristate\",\"value\":\"m\"}]}\n",
+        capture.list.items,
+    );
 }
 
 test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
@@ -1140,7 +1178,7 @@ fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
         \\# CONFIG_DEBUG is not set
-        \\CONFIG_BETA=\"zigux\"
+        \\CONFIG_BETA="zigux"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -1148,7 +1186,7 @@ fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
 
 fn parseConfigDuplicateUnsetAllocationFailureHarness(allocator: std.mem.Allocator) !void {
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=\"stable\"
+        \\CONFIG_ALPHA="stable"
         \\# CONFIG_ALPHA is not set
         \\# CONFIG_ALPHA is not set
         \\CONFIG_BETA=7
