@@ -336,6 +336,12 @@ jobs:
       - name: Check current Phase 1 direct-owner markers
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py
 
+      - name: Self-test current Phase 1 helper-lane sequencing checker
+        run: python3 scripts/zigux/check-phase1-helper-lane-sequencing.py --self-test
+
+      - name: Check current Phase 1 helper-lane sequencing packet
+        run: python3 scripts/zigux/check-phase1-helper-lane-sequencing.py
+
       - name: Self-test current Phase 1 direct-anchor manifest gate
         run: python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py --self-test
 
