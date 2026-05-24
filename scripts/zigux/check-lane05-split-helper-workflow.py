@@ -18,7 +18,78 @@ SELF_TEST_STEP = "- name: Self-test current Lane 05 split helper selftest checke
 SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test"
 CHECK_STEP = "- name: Check current Lane 05 split helper selftest packet"
 CHECK_CMD = "python3 scripts/zigux/check-lane05-split-helper-selftest.py"
+CLI_SELF_TEST_STEP = "- name: Self-test current Lane 05 split helper cli-contract checker"
+CLI_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-cli-contract.py --self-test"
+CLI_CHECK_STEP = "- name: Check current Lane 05 split helper cli-contract packet"
+CLI_CHECK_CMD = "python3 scripts/zigux/check-lane05-split-helper-cli-contract.py"
+ALIGN_SELF_TEST_STEP = "- name: Self-test current Lane 05 split-stage alignment checker"
+ALIGN_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py --self-test"
+ALIGN_CHECK_STEP = "- name: Check current Lane 05 split-stage alignment packet"
+ALIGN_CHECK_CMD = "python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py"
+ALIGN_SELFTEST_SELF_TEST_STEP = (
+    "- name: Self-test current Lane 05 split-stage alignment selftest checker"
+)
+ALIGN_SELFTEST_SELF_TEST_CMD = (
+    "python3 scripts/zigux/check-lane05-split-stage-alignment-selftest.py --self-test"
+)
+ALIGN_SELFTEST_CHECK_STEP = "- name: Check current Lane 05 split-stage alignment selftest packet"
+ALIGN_SELFTEST_CHECK_CMD = "python3 scripts/zigux/check-lane05-split-stage-alignment-selftest.py"
 NEXT_STEP = "- name: Self-test current Phase 2 fixdep gate checker"
+
+ORDERED_STEPS = (
+    PREVIOUS_STEP,
+    CONTRACT_SELF_TEST_STEP,
+    CONTRACT_CHECK_STEP,
+    SELF_TEST_STEP,
+    CHECK_STEP,
+    CLI_SELF_TEST_STEP,
+    CLI_CHECK_STEP,
+    ALIGN_SELF_TEST_STEP,
+    ALIGN_CHECK_STEP,
+    ALIGN_SELFTEST_SELF_TEST_STEP,
+    ALIGN_SELFTEST_CHECK_STEP,
+    NEXT_STEP,
+)
+
+REQUIRED_MARKERS = (
+    (PREVIOUS_STEP, "previous lane05 anchor step"),
+    (PREVIOUS_CMD, "previous lane05 anchor command"),
+    (CONTRACT_SELF_TEST_STEP, "split helper contract self-test step"),
+    (CONTRACT_SELF_TEST_CMD, "split helper contract self-test command"),
+    (CONTRACT_CHECK_STEP, "split helper contract check step"),
+    (CONTRACT_CHECK_CMD, "split helper contract check command"),
+    (SELF_TEST_STEP, "split helper selftest step"),
+    (SELF_TEST_CMD, "split helper selftest command"),
+    (CHECK_STEP, "split helper packet check step"),
+    (CHECK_CMD, "split helper packet check command"),
+    (CLI_SELF_TEST_STEP, "split helper cli-contract self-test step"),
+    (CLI_SELF_TEST_CMD, "split helper cli-contract self-test command"),
+    (CLI_CHECK_STEP, "split helper cli-contract check step"),
+    (CLI_CHECK_CMD, "split helper cli-contract check command"),
+    (ALIGN_SELF_TEST_STEP, "split-stage alignment self-test step"),
+    (ALIGN_SELF_TEST_CMD, "split-stage alignment self-test command"),
+    (ALIGN_CHECK_STEP, "split-stage alignment check step"),
+    (ALIGN_CHECK_CMD, "split-stage alignment check command"),
+    (ALIGN_SELFTEST_SELF_TEST_STEP, "split-stage selftest self-test step"),
+    (ALIGN_SELFTEST_SELF_TEST_CMD, "split-stage selftest self-test command"),
+    (ALIGN_SELFTEST_CHECK_STEP, "split-stage selftest check step"),
+    (ALIGN_SELFTEST_CHECK_CMD, "split-stage selftest check command"),
+    (NEXT_STEP, "next phase anchor"),
+)
+
+EXACT_LINES = (
+    (f"run: {PREVIOUS_CMD}", "previous lane05 anchor command"),
+    (f"run: {CONTRACT_SELF_TEST_CMD}", "split helper contract self-test command"),
+    (f"run: {CONTRACT_CHECK_CMD}", "split helper contract check command"),
+    (f"run: {SELF_TEST_CMD}", "split helper selftest command"),
+    (f"run: {CHECK_CMD}", "split helper packet check command"),
+    (f"run: {CLI_SELF_TEST_CMD}", "split helper cli-contract self-test command"),
+    (f"run: {CLI_CHECK_CMD}", "split helper cli-contract check command"),
+    (f"run: {ALIGN_SELF_TEST_CMD}", "split-stage alignment self-test command"),
+    (f"run: {ALIGN_CHECK_CMD}", "split-stage alignment check command"),
+    (f"run: {ALIGN_SELFTEST_SELF_TEST_CMD}", "split-stage selftest self-test command"),
+    (f"run: {ALIGN_SELFTEST_CHECK_CMD}", "split-stage selftest check command"),
+)
 
 
 def require_marker(text: str, marker: str, label: str) -> None:
@@ -50,132 +121,86 @@ def require_order(text: str, earlier: str, later: str, label: str) -> None:
 
 
 def check_workflow(text: str) -> int:
-    for marker, label in (
-        (PREVIOUS_STEP, "previous lane05 anchor step"),
-        (PREVIOUS_CMD, "previous lane05 anchor command"),
-        (CONTRACT_SELF_TEST_STEP, "split helper contract self-test step"),
-        (CONTRACT_SELF_TEST_CMD, "split helper contract self-test command"),
-        (CONTRACT_CHECK_STEP, "split helper contract check step"),
-        (CONTRACT_CHECK_CMD, "split helper contract check command"),
-        (SELF_TEST_STEP, "split helper selftest step"),
-        (SELF_TEST_CMD, "split helper selftest command"),
-        (CHECK_STEP, "split helper packet check step"),
-        (CHECK_CMD, "split helper packet check command"),
-        (NEXT_STEP, "next phase anchor"),
-    ):
+    for marker, label in REQUIRED_MARKERS:
         require_marker(text, marker, label)
 
-    for line, label in (
-        (f"run: {PREVIOUS_CMD}", "previous lane05 anchor command"),
-        (f"run: {CONTRACT_SELF_TEST_CMD}", "split helper contract self-test command"),
-        (f"run: {CONTRACT_CHECK_CMD}", "split helper contract check command"),
-        (f"run: {SELF_TEST_CMD}", "split helper selftest command"),
-        (f"run: {CHECK_CMD}", "split helper packet check command"),
-    ):
+    for line, label in EXACT_LINES:
         require_exact_line(text, line, label)
 
-    for step, label in (
-        (PREVIOUS_STEP, "previous lane05 anchor step"),
-        (CONTRACT_SELF_TEST_STEP, "split helper contract self-test step"),
-        (CONTRACT_CHECK_STEP, "split helper contract check step"),
-        (SELF_TEST_STEP, "split helper selftest step"),
-        (CHECK_STEP, "split helper packet check step"),
-    ):
-        require_exact_line(text, step, label)
+    for step in ORDERED_STEPS[:-1]:
+        require_exact_line(text, step, "lane05 workflow step")
 
-    require_order(text, PREVIOUS_STEP, CONTRACT_SELF_TEST_STEP, "lane05 step order")
-    require_order(text, CONTRACT_SELF_TEST_STEP, CONTRACT_CHECK_STEP, "lane05 step order")
-    require_order(text, CONTRACT_CHECK_STEP, SELF_TEST_STEP, "lane05 step order")
-    require_order(text, SELF_TEST_STEP, CHECK_STEP, "lane05 step order")
-    require_order(text, CHECK_STEP, NEXT_STEP, "lane05 step order")
-    return 5
+    for earlier, later in zip(ORDERED_STEPS, ORDERED_STEPS[1:]):
+        require_order(text, earlier, later, "lane05 step order")
+
+    return len(ORDERED_STEPS) - 1
+
+
+def sample_workflow_text() -> str:
+    return """name: zigux-bootstrap
+jobs:
+  bootstrap:
+    steps:
+      - name: Check current Lane 05 stage helper selftest packet
+        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
+      - name: Self-test current Lane 05 split helper contract checker
+        run: python3 scripts/zigux/check-lane05-split-helper-contract.py --self-test
+      - name: Check current Lane 05 split helper contract packet
+        run: python3 scripts/zigux/check-lane05-split-helper-contract.py
+      - name: Self-test current Lane 05 split helper selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
+      - name: Check current Lane 05 split helper selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
+      - name: Self-test current Lane 05 split helper cli-contract checker
+        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract.py --self-test
+      - name: Check current Lane 05 split helper cli-contract packet
+        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract.py
+      - name: Self-test current Lane 05 split-stage alignment checker
+        run: python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py --self-test
+      - name: Check current Lane 05 split-stage alignment packet
+        run: python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py
+      - name: Self-test current Lane 05 split-stage alignment selftest checker
+        run: python3 scripts/zigux/check-lane05-split-stage-alignment-selftest.py --self-test
+      - name: Check current Lane 05 split-stage alignment selftest packet
+        run: python3 scripts/zigux/check-lane05-split-stage-alignment-selftest.py
+      - name: Self-test current Phase 2 fixdep gate checker
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
+"""
 
 
 def write_sample_root(root: Path) -> None:
     workflow = root / WORKFLOW_PATH
     workflow.parent.mkdir(parents=True, exist_ok=True)
-    workflow.write_text(
-        """name: zigux-bootstrap
-jobs:
-  bootstrap:
-    steps:
-      - name: Check current Lane 05 stage helper selftest packet
-        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
-      - name: Self-test current Lane 05 split helper contract checker
-        run: python3 scripts/zigux/check-lane05-split-helper-contract.py --self-test
-      - name: Check current Lane 05 split helper contract packet
-        run: python3 scripts/zigux/check-lane05-split-helper-contract.py
-      - name: Self-test current Lane 05 split helper selftest checker
-        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
-      - name: Check current Lane 05 split helper selftest packet
-        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
-      - name: Self-test current Phase 2 fixdep gate checker
-        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
-""",
-        encoding="utf-8",
-    )
+    workflow.write_text(sample_workflow_text(), encoding="utf-8")
 
 
 def run_self_test() -> int:
-    good_workflow = """name: zigux-bootstrap
-jobs:
-  bootstrap:
-    steps:
-      - name: Check current Lane 05 stage helper selftest packet
-        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
-      - name: Self-test current Lane 05 split helper contract checker
-        run: python3 scripts/zigux/check-lane05-split-helper-contract.py --self-test
-      - name: Check current Lane 05 split helper contract packet
-        run: python3 scripts/zigux/check-lane05-split-helper-contract.py
-      - name: Self-test current Lane 05 split helper selftest checker
-        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
-      - name: Check current Lane 05 split helper selftest packet
-        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
-      - name: Self-test current Phase 2 fixdep gate checker
-        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
-"""
-    assert check_workflow(good_workflow) == 5
+    good_workflow = sample_workflow_text()
+    assert check_workflow(good_workflow) == len(ORDERED_STEPS) - 1
     case_count = 1
 
-    for broken_text, expected in (
+    failure_cases = (
         (
-            good_workflow.replace(
-                "      - name: Self-test current Lane 05 split helper contract checker\n"
-                "        run: python3 scripts/zigux/check-lane05-split-helper-contract.py --self-test\n",
-                "",
-                1,
-            ),
-            CONTRACT_SELF_TEST_STEP,
+            "      - name: Self-test current Lane 05 split helper cli-contract checker\n"
+            "        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract.py --self-test\n",
+            "",
+            CLI_SELF_TEST_STEP,
         ),
         (
-            good_workflow.replace(
-                "        run: python3 scripts/zigux/check-lane05-split-helper-contract.py\n",
-                "",
-                1,
-            ),
-            CONTRACT_CHECK_CMD,
+            "        run: python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py\n",
+            "",
+            ALIGN_CHECK_CMD,
         ),
         (
-            good_workflow.replace(
-                "      - name: Self-test current Lane 05 split helper selftest checker\n"
-                "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test\n",
-                "",
-                1,
-            ),
-            SELF_TEST_STEP,
+            "      - name: Self-test current Lane 05 split-stage alignment selftest checker\n"
+            "        run: python3 scripts/zigux/check-lane05-split-stage-alignment-selftest.py --self-test\n",
+            "",
+            ALIGN_SELFTEST_SELF_TEST_STEP,
         ),
-        (
-            good_workflow.replace(
-                "      - name: Check current Lane 05 split helper selftest packet\n"
-                "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py\n",
-                "",
-                1,
-            ),
-            CHECK_STEP,
-        ),
-    ):
+    )
+    for before, after, expected in failure_cases:
         try:
-            check_workflow(broken_text)
+            check_workflow(good_workflow.replace(before, after, 1))
         except SystemExit as exc:
             assert expected in str(exc), str(exc)
             case_count += 1
@@ -183,28 +208,28 @@ jobs:
             raise AssertionError(f"expected failure for {expected}")
 
     duplicate_step = good_workflow.replace(
-        "      - name: Self-test current Lane 05 split helper selftest checker\n",
-        "      - name: Self-test current Lane 05 split helper selftest checker\n"
-        "      - name: Self-test current Lane 05 split helper selftest checker\n",
+        "      - name: Self-test current Lane 05 split-stage alignment checker\n",
+        "      - name: Self-test current Lane 05 split-stage alignment checker\n"
+        "      - name: Self-test current Lane 05 split-stage alignment checker\n",
         1,
     )
     try:
         check_workflow(duplicate_step)
     except SystemExit as exc:
-        assert SELF_TEST_STEP in str(exc), str(exc)
+        assert ALIGN_SELF_TEST_STEP in str(exc), str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected duplicate split helper selftest step failure")
+        raise AssertionError("expected duplicate split-stage alignment step failure")
 
     reordered_steps = good_workflow.replace(
-        "      - name: Check current Lane 05 split helper contract packet\n"
-        "        run: python3 scripts/zigux/check-lane05-split-helper-contract.py\n"
-        "      - name: Self-test current Lane 05 split helper selftest checker\n"
-        "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test\n",
-        "      - name: Self-test current Lane 05 split helper selftest checker\n"
-        "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test\n"
-        "      - name: Check current Lane 05 split helper contract packet\n"
-        "        run: python3 scripts/zigux/check-lane05-split-helper-contract.py\n",
+        "      - name: Check current Lane 05 split helper cli-contract packet\n"
+        "        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract.py\n"
+        "      - name: Self-test current Lane 05 split-stage alignment checker\n"
+        "        run: python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py --self-test\n",
+        "      - name: Self-test current Lane 05 split-stage alignment checker\n"
+        "        run: python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py --self-test\n"
+        "      - name: Check current Lane 05 split helper cli-contract packet\n"
+        "        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract.py\n",
         1,
     )
     try:
@@ -213,7 +238,7 @@ jobs:
         assert "lane05 step order" in str(exc), str(exc)
         case_count += 1
     else:
-        raise AssertionError("expected reordered split helper steps failure")
+        raise AssertionError("expected reordered lane05 workflow steps failure")
 
     print("LANE05_SPLIT_HELPER_WORKFLOW_SELF_TEST=pass")
     print(f"LANE05_SPLIT_HELPER_WORKFLOW_SELF_TEST_CASE_COUNT={case_count}")
@@ -222,7 +247,7 @@ jobs:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that Lane 05 bootstrap runs the split-helper checker packet."
+        description="Check that Lane 05 bootstrap runs the full split-helper checker packet."
     )
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument(
