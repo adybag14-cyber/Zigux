@@ -16,12 +16,15 @@ REQUIRED_MARKERS = {
         ".provides_of_iomap_planning = true",
         ".touches_live_mmio = false",
         "pub fn planDeviceTreeIomap",
+        "pub fn planDeviceTreeIomapCleanupHandoff",
     ],
     NOTE_PATH: [
         "pure `devm_of_iomap()` planning surface",
         "translated size is preserved when a requested region is denied as busy",
         "requested region is released again when remap later fails",
         "requested non-posted mapping type stays attached to the planning surface",
+        "successful helper-first remap hands off to `devm_iounmap()` cleanup planning",
+        "cleanup handoff consumes the matching release record or still warns when the release record is missing",
         "devm_ioremap_np()",
         "devm_iounmap()",
         "devm_arch_phys_wc_add()",
@@ -35,6 +38,9 @@ REQUIRED_MARKERS = {
         "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+        "\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+        "\"cleanup_release_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+        "planDeviceTreeIomapCleanupHandoff",
         "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
         "\"id\": \"phase13-devres-missing-devm-arch-phys-wc-add-surface\"",
         "\"id\": \"phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface\"",
@@ -44,6 +50,8 @@ REQUIRED_MARKERS = {
     ],
     REPLAY_PATH: [
         "phase13 devres descriptor records helper-first iomap planning",
+        "phase13 devres iomap cleanup handoff materializes helper-first iounmap cleanup after successful remap",
+        "phase13 devres iomap cleanup handoff keeps missing release records warnable",
         "phase13 devres iomap planner manifest records the landed helper-first mmio scope",
         "phase13 devres iomap planner note keeps the helper-first mmio slice bounded",
         "phase13 devres iomap planner checker stays packet-local",
@@ -156,6 +164,25 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[MANIFEST_PATH]
+                if marker != "\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "zigux/tests/phase13_devres_iomap_planner_manifest.json:missing_marker:\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+            ],
+            "missing_cleanup_handoff_owner_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[MANIFEST_PATH]
                 if marker != "\"lane_key\": \"P13-L02\""
             )
             + "\n",
@@ -194,16 +221,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[NOTE_PATH]
-                if marker != "devm_arch_io_reserve_memtype_wc()"
+                if marker != "cleanup handoff consumes the matching release record or still warns when the release record is missing"
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "Documentation/zigux/phase13-devres-iomap-planner.md:missing_marker:devm_arch_io_reserve_memtype_wc()",
+                "Documentation/zigux/phase13-devres-iomap-planner.md:missing_marker:cleanup handoff consumes the matching release record or still warns when the release record is missing",
             ],
-            "missing_arch_memtype_note_marker_failed",
+            "missing_cleanup_handoff_note_marker_failed",
         )
         case_count += 1
 
