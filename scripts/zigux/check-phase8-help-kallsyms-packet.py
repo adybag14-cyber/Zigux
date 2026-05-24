@@ -72,8 +72,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
         "the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content",
-        "the focused replay still expects `startup_64\\r` on the chunked-reader path while the wrapper contract keeps that same raw carriage-return behavior below broader parser redesign work",
-        "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names",
+        "the helper-local source tests still keep the split CRLF contract reviewable: the chunked parser normalizes the CRLF-backed name to `startup_64`, while the reader, path, and callback wrappers preserve one trailing `\\r` before newline",
+        "the public raw fallback also returns usable `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_kallsyms_only_build.zig` bodies; the dedicated replay still keeps the chunked-reader `startup_64\\r` expectation visible as a broader symbol-packet witness, while the focused `make -C zigux phase8-kallsyms-test` build route remains tied to the helper-local source tests in `tools/lib/symbol/kallsyms.zig`",
+        "the split raw-backed CRLF contract: the dedicated replay keeps the chunked-reader `startup_64\\r` witness visible, while the helper-local wrapper tests still preserve the trailing carriage return on the reader, path, and callback wrapper path",
     ),
     TOOLING_LANE_SEQUENCE: (
         "current public default-branch raw readback now also serves `tools/lib/symbol/kallsyms.zig`, so the shared owner map should treat the helper path as readable current-tree evidence while the mixed help-plus-kallsyms build shard stays a shared validation route instead of turning help-local and symbol-local follow-through into one owner",
@@ -284,7 +285,7 @@ def run_self_test() -> int:
 
         output_case_root = root / "output_case"
         _passing_fixture(output_case_root)
-        crlf_marker = "the current raw-backed CRLF contract, where chunked reader and wrapper paths still preserve the trailing carriage return in symbol names"
+        crlf_marker = "the split raw-backed CRLF contract: the dedicated replay keeps the chunked-reader `startup_64\\r` witness visible, while the helper-local wrapper tests still preserve the trailing carriage return on the reader, path, and callback wrapper path"
         kallsyms_slice_path = output_case_root / KALLSYMS_SLICE
         kallsyms_slice_path.write_text(
             _read(kallsyms_slice_path).replace(crlf_marker, ""),
