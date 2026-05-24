@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
 KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
+PHASE2_VALIDATE = ROOT / "scripts" / "zigux" / "validate-phase2.py"
+PHASE2_CLOSURE_VALIDATE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
@@ -38,6 +40,19 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE2_KCONFIG_BRIDGE_CONF_HELPER_ANCHOR_COUNT=4",
 ]
 
+REQUIRED_PHASE2_VALIDATE_MARKERS = [
+    '"scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",',
+    '"run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test",',
+    '"run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test",',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py",',
+]
+
+REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS = [
+    '"`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",',
+    'KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")',
+]
+
 REQUIRED_TOOL_MANIFEST_CHECKERS = [
     "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
 ]
@@ -45,7 +60,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 
 def read_json(path: Path) -> object:
@@ -94,12 +109,23 @@ def load_tool_manifest_checkers(path: Path) -> list[str]:
     return list(checkers)
 
 
+def collect_marker_issues(path: Path, markers: list[str], issue_code: str) -> list[tuple[str, str]]:
+    text = read_text(path)
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        if marker not in text:
+            issues.append((issue_code, marker))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
     manifest_path = root / CONF_MANIFEST.relative_to(ROOT)
     bridge_path = root / CONF_BRIDGE.relative_to(ROOT)
     checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
+    phase2_validate_path = root / PHASE2_VALIDATE.relative_to(ROOT)
+    phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
     closure_path = root / PHASE2_CLOSURE.relative_to(ROOT)
     tool_manifest_path = root / PHASE2_TOOL_MANIFEST.relative_to(ROOT)
 
@@ -153,6 +179,21 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in REQUIRED_CLOSURE_MARKERS:
         if marker not in closure_text:
             issues.append(("MISSING_CLOSURE_MARKER", marker))
+
+    issues.extend(
+        collect_marker_issues(
+            phase2_validate_path,
+            REQUIRED_PHASE2_VALIDATE_MARKERS,
+            "MISSING_PHASE2_VALIDATE_MARKER",
+        )
+    )
+    issues.extend(
+        collect_marker_issues(
+            phase2_closure_validate_path,
+            REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS,
+            "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
+        )
+    )
 
     manifest_checkers = load_tool_manifest_checkers(tool_manifest_path)
     for checker in REQUIRED_TOOL_MANIFEST_CHECKERS:
@@ -215,6 +256,14 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(f'test "{anchor}" {{}}' for anchor in REQUIRED_HELPER_ANCHORS) + "\n",
     )
     write_text(root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT), render_bridge_checker_stub())
+    write_text(
+        root / PHASE2_VALIDATE.relative_to(ROOT),
+        "\n".join(REQUIRED_PHASE2_VALIDATE_MARKERS) + "\n",
+    )
+    write_text(
+        root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT),
+        "\n".join(REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS) + "\n",
+    )
     write_text(root / PHASE2_CLOSURE.relative_to(ROOT), "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
     write_text(
         root / PHASE2_TOOL_MANIFEST.relative_to(ROOT),
@@ -304,6 +353,24 @@ def run_self_test() -> int:
         closure_path = root / PHASE2_CLOSURE.relative_to(ROOT)
         write_text(closure_path, REQUIRED_CLOSURE_MARKERS[0] + "\n")
         assert ("MISSING_CLOSURE_MARKER", REQUIRED_CLOSURE_MARKERS[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        phase2_validate_path = root / PHASE2_VALIDATE.relative_to(ROOT)
+        write_text(phase2_validate_path, REQUIRED_PHASE2_VALIDATE_MARKERS[1] + "\n")
+        assert (
+            "MISSING_PHASE2_VALIDATE_MARKER",
+            REQUIRED_PHASE2_VALIDATE_MARKERS[0],
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
+        write_text(phase2_closure_validate_path, REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[1] + "\n")
+        assert (
+            "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
+            REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0],
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
