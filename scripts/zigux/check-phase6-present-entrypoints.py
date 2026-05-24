@@ -106,6 +106,10 @@ EXPECTED_BASE64_RERUN_ROUTES = [
     "make -C zigux phase6-base64-perf",
     "make -C zigux phase6-perf",
 ]
+EXPECTED_BASE64_CHECKER_SURFACES = [
+    "scripts/zigux/check-phase6-base64-corpus-determinism.py",
+    "scripts/zigux/check-phase6-base64-c-parity.py",
+]
 EXPECTED_BSEARCH_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
     "scripts/zigux/check-phase6-bsearch-c-parity.py",
@@ -174,7 +178,7 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 26
 
 
 class ValidationError(RuntimeError):
@@ -269,8 +273,14 @@ def validate(repo_root: Path) -> None:
     if [helper.get("key") for helper in parity_helpers if isinstance(helper, dict)] != EXPECTED_HELPER_KEYS:
         raise ValidationError("phase6 parity helper key order mismatch")
 
-    base64 = get_helper(parity_helpers, "base64")
-    base64_perf = base64.get("current_perf_evidence")
+    base64_evidence = get_helper(helpers, "base64")
+    if base64_evidence.get("checker_surfaces") != EXPECTED_BASE64_CHECKER_SURFACES:
+        raise ValidationError("phase6 base64 checker surfaces mismatch")
+
+    base64_parity = get_helper(parity_helpers, "base64")
+    if base64_parity.get("checker_surfaces") != EXPECTED_BASE64_CHECKER_SURFACES:
+        raise ValidationError("phase6 parity base64 checker surfaces mismatch")
+    base64_perf = base64_parity.get("current_perf_evidence")
     if not isinstance(base64_perf, dict):
         raise ValidationError("phase6 base64 perf evidence missing")
     if base64_perf.get("case_labels") != EXPECTED_BASE64_CASES:
@@ -302,6 +312,8 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 bsearch rerun routes mismatch")
 
     bsearch_parity = get_helper(parity_helpers, "bsearch")
+    if bsearch_parity.get("checker_surfaces") != EXPECTED_BSEARCH_CHECKER_SURFACES:
+        raise ValidationError("phase6 parity bsearch checker surfaces mismatch")
     bsearch_parity_perf = bsearch_parity.get("current_perf_evidence")
     if not isinstance(bsearch_parity_perf, dict):
         raise ValidationError("phase6 parity bsearch perf evidence missing")
@@ -384,7 +396,10 @@ def scaffold_repo(root: Path) -> None:
                 "current_repo_reality_gaps": EXPECTED_CURRENT_REPO_REALITY_GAPS,
                 "current_shared_replay_inventory": EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS,
                 "helpers": [
-                    {"key": "base64"},
+                    {
+                        "key": "base64",
+                        "checker_surfaces": EXPECTED_BASE64_CHECKER_SURFACES,
+                    },
                     {
                         "key": "bsearch",
                         "checker_surfaces": EXPECTED_BSEARCH_CHECKER_SURFACES,
@@ -435,6 +450,7 @@ def scaffold_repo(root: Path) -> None:
                 "helpers": [
                     {
                         "key": "base64",
+                        "checker_surfaces": EXPECTED_BASE64_CHECKER_SURFACES,
                         "current_perf_evidence": {
                             "case_labels": EXPECTED_BASE64_CASES,
                             "iterations": 12000,
@@ -445,6 +461,7 @@ def scaffold_repo(root: Path) -> None:
                     },
                     {
                         "key": "bsearch",
+                        "checker_surfaces": EXPECTED_BSEARCH_CHECKER_SURFACES,
                         "current_perf_evidence": {
                             "budget_model": "comparison_budget",
                             "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
@@ -509,6 +526,8 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
         cases_run += 1
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0].update({"checker_surfaces": [EXPECTED_BASE64_CHECKER_SURFACES[0]]})))
+        cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["checker_surfaces"].pop()))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"budget_formula": "len + 1"})))
@@ -537,7 +556,11 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-hexdump-route.py")))
         cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0].update({"checker_surfaces": [EXPECTED_BASE64_CHECKER_SURFACES[0]]})))
+        cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"].update({"max_decode_slowdown_pct": 350})))
+        cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].update({"checker_surfaces": [EXPECTED_BSEARCH_CHECKER_SURFACES[0]]})))
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS[:1]})))
         cases_run += 1
