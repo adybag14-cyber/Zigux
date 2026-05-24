@@ -84,4 +84,4 @@ This helper-local Phase 7 rbtree slice does not yet claim:
 
 ## Next Bounded Step
 
-Keep same-lane follow-through inside this slice-backed direct-helper packet by leaving `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` reviewable as returned parity evidence and narrowing the next follow-up to whether dedicated `phase7-rbtree-test:` or `phase7-rbtree-survey:` wrapper markers rematerialize on current `master`. Do not widen into workflow-recovery or broader shared-control lanes unless those dedicated wrapper surfaces actually return.
+Keep same-lane follow-through inside this slice-backed direct-helper packet by leaving `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` reviewable as returned parity evidence and narrowing any future same-lane repair to one direct helper, replay, survey, manifest, checker, JSON-fixture, or C-harness truthfulness update. Leave dedicated Makefile wrapper and workflow-route follow-through to the separate Phase 7 shared-control lanes.
