@@ -105,7 +105,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(path: Path) -> str:
@@ -226,6 +226,7 @@ def run_self_test() -> None:
             ("zigux/tests/phase7_cmdline.zig", 'test "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries" {', ""),
             ("zigux/tests/phase7_cmdline_survey.zig", 'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_checker_anchor", manifest.current_master_state);', ""),
             ("zigux/tests/phase7_cmdline_survey.zig", 'try expectContains(checker, "PHASE7_CMDLINE_PACKET=pass");', ""),
+            ("samples/zigux/README.md", "Current `master` still ships no standalone Phase 5 sample-root files here for:", ""),
             ("samples/zigux/README.md", "* `*cmdline*`", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Documentation/zigux/phase7-cmdline-slice.md", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET_SELF_TEST=pass", ""),
