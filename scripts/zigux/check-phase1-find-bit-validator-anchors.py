@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
+FIND_BIT_BENCH_ANCHOR_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
@@ -22,6 +23,7 @@ SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 
 REQUIRED_FILES = (
     FIND_BIT_HELPER_REL,
+    FIND_BIT_BENCH_ANCHOR_REL,
     MANIFEST_REL,
     FIXTURE_REL,
     LANE_NOTE_REL,
@@ -292,6 +294,7 @@ def sample_text(lines: dict[str, str]) -> str:
 
 def build_sample_repo(root: Path) -> None:
     write_file(root, FIND_BIT_HELPER_REL, "\n".join(REQUIRED_HELPER_ANCHORS) + "\n")
+    write_file(root, FIND_BIT_BENCH_ANCHOR_REL, "# sample bench anchor checker\n")
     write_file(root, MANIFEST_REL, sample_manifest())
     write_file(root, FIXTURE_REL, sample_fixture())
     write_file(root, LANE_NOTE_REL, sample_text(REQUIRED_LANE_NOTE_LINES))
@@ -440,6 +443,7 @@ def run_self_test() -> int:
 
     cases.append(("missing_file", (MANIFEST_REL, None, "missing_file")))
     cases.append(("missing_file", (FIND_BIT_HELPER_REL, None, "missing_file")))
+    cases.append(("missing_file", (FIND_BIT_BENCH_ANCHOR_REL, None, "missing_file")))
 
     for name, mutation in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-find-bit-validator-") as tmpdir:
