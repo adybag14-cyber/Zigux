@@ -427,3 +427,33 @@ test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers e
         ),
     );
 }
+
+test "phase3 low-level wrappers keep atomic order-gate failures explicit before MMIO publish" {
+    var state: u32 = 0x10;
+
+    try atomic.validateLoadOrder(.acquire);
+    try std.testing.expectError(error.InvalidLoadOrdering, atomic.validateLoadOrder(.release));
+    try std.testing.expectError(error.InvalidLoadOrdering, atomic.load(u32, &state, .release));
+    try std.testing.expectEqual(@as(u32, 0x10), state);
+
+    try atomic.validateStoreOrder(.release);
+    try std.testing.expectError(error.InvalidStoreOrdering, atomic.validateStoreOrder(.acquire));
+    try std.testing.expectError(error.InvalidStoreOrdering, atomic.store(u32, &state, 0x20, .acquire));
+    try std.testing.expectEqual(@as(u32, 0x10), state);
+
+    try atomic.validateRmwOrder(.acq_rel);
+    try std.testing.expectError(error.InvalidRmwOrdering, atomic.validateRmwOrder(.unordered));
+    try std.testing.expectError(error.InvalidRmwOrdering, atomic.exchange(u32, &state, 0x20, .unordered));
+    try std.testing.expectEqual(@as(u32, 0x10), state);
+
+    try atomic.store(u32, &state, 0x30, .release);
+
+    var register: u32 = 0;
+    const register_ptr: *volatile u32 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u32 = @ptrCast(&register);
+
+    barrier.release();
+    mmio.write(u32, register_ptr, try atomic.load(u32, &state, .acquire));
+    barrier.acquire();
+    try std.testing.expectEqual(@as(u32, 0x30), mmio.read(u32, const_register_ptr));
+}
