@@ -15,6 +15,7 @@ def _default_root() -> Path:
 
 
 ROOT = _default_root()
+DOCS_README = Path("Documentation/zigux/README.md")
 EXEC_CMD_SLICE = Path("Documentation/zigux/phase8-exec-cmd-slice.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 TESTS_README = Path("zigux/tests/README.md")
@@ -26,6 +27,7 @@ EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
 
 REQUIRED_FILES = (
+    DOCS_README,
     EXEC_CMD_SLICE,
     SCRIPTS_README,
     TESTS_README,
@@ -38,6 +40,16 @@ REQUIRED_FILES = (
 )
 
 FILE_MARKERS: dict[Path, tuple[str, ...]] = {
+    DOCS_README: (
+        "Phase 8 notes",
+        "Documentation/zigux/phase8-exec-cmd-slice.md",
+        "scripts/zigux/validate-phase8.py",
+        "tools/lib/subcmd/exec-cmd.zig",
+        "zigux/tests/phase8_exec_cmd.zig",
+        "zigux/tests/phase8_exec_cmd_only_build.zig",
+        "make -C zigux phase8-exec-cmd-test",
+        "make -C zigux phase8-validate",
+    ),
     EXEC_CMD_SLICE: (
         "`PHASE8_SLICE=exec-cmd-deferred-exec-packet`",
         "buildDeferredExeclCall()",
@@ -181,6 +193,7 @@ def run_self_test() -> int:
             path = root / relative_path
             original = _read(path)
             for marker in markers:
+                path.writeText = None
                 path.write_text(original.replace(marker, "", 1), encoding="utf-8")
                 result = validate_root(root)
                 expected = f"{relative_path}:{marker}"
