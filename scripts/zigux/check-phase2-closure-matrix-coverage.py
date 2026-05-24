@@ -251,6 +251,10 @@ DIRECT_MANIFEST_SURFACE_EXPECTATIONS = {
         "scripts/zigux/install-zig.py",
         "scripts/zigux/stage-pinned-zig-archive.py",
     ),
+    "cross_route_support": (
+        "scripts/zigux/check-phase2-cross.py",
+        "zigux/tests/fixtures/phase2_cross_targets.json",
+    ),
     "checkers": (
         "scripts/zigux/check-extra.py",
     ),
@@ -262,6 +266,8 @@ EXTRA_REQUIRED_FILES = (
     Path("scripts/zigux/install-zig.py"),
     Path("scripts/zigux/stage-pinned-zig-archive.py"),
     Path("scripts/zigux/check-extra.py"),
+    Path("scripts/zigux/check-phase2-cross.py"),
+    Path("zigux/tests/fixtures/phase2_cross_targets.json"),
 )
 """
     manifest = {
@@ -277,6 +283,10 @@ EXTRA_REQUIRED_FILES = (
                 "scripts/zigux/install-zig.py",
                 "scripts/zigux/stage-pinned-zig-archive.py",
             ],
+            "cross_route_support": [
+                "scripts/zigux/check-phase2-cross.py",
+                "zigux/tests/fixtures/phase2_cross_targets.json",
+            ],
         }
     }
 
@@ -286,6 +296,8 @@ EXTRA_REQUIRED_FILES = (
     write_text(root / "scripts/zigux/install-zig.py", "present\n")
     write_text(root / "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
     write_text(root / "scripts/zigux/check-extra.py", "present\n")
+    write_text(root / "scripts/zigux/check-phase2-cross.py", "present\n")
+    write_text(root / "zigux/tests/fixtures/phase2_cross_targets.json", "present\n")
 
 
 def run_self_test() -> int:
@@ -362,6 +374,16 @@ def run_self_test() -> int:
         assert (
             "MISSING_MATRIX_COVERED_ITEM",
             "bootstrap_helpers:scripts/zigux/stage-pinned-zig-archive.py",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
+        payload["present_surfaces"]["cross_route_support"].remove("zigux/tests/fixtures/phase2_cross_targets.json")
+        write_json(manifest_path, payload)
+        assert (
+            "MISSING_MATRIX_COVERED_ITEM",
+            "cross_route_support:zigux/tests/fixtures/phase2_cross_targets.json",
         ) in collect_issues(root)
         checks_run += 1
 
@@ -598,6 +620,10 @@ def run_self_test() -> int:
                 '    "bootstrap_helpers": (\n'
                 '        "scripts/zigux/install-zig.py",\n'
                 '        "scripts/zigux/stage-pinned-zig-archive.py",\n'
+                "    ),\n"
+                '    "cross_route_support": (\n'
+                '        "scripts/zigux/check-phase2-cross.py",\n'
+                '        "zigux/tests/fixtures/phase2_cross_targets.json",\n'
                 "    ),\n"
                 '    "checkers": (\n'
                 '        "scripts/zigux/check-extra.py",\n'
