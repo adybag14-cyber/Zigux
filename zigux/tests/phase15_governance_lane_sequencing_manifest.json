@@ -1,15 +1,17 @@
 {
   "lane_key": "arch-council",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-22",
+  "surveyed_commit": "current-master-readback-2026-05-24",
   "sequencing_note": "Documentation/zigux/phase15-governance-lane-sequencing.md",
   "readiness_manifest": "zigux/tests/phase15_readiness_gate_manifest.json",
   "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
   "direct_packet_paths": [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-deep-core-blocker-survey.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "zigux/tests/phase15_parity_scorecard.json",
     "zigux/tests/phase15_parity_scorecard.zig",
@@ -26,6 +28,7 @@
     "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "scripts/zigux/check-phase15-handoff-note-alignment.py"
   ],
   "still_missing_broader_paths": [
