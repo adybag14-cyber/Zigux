@@ -2,211 +2,178 @@
 from __future__ import annotations
 
 import argparse
-import tempfile
 from pathlib import Path
+import tempfile
 
-DOCS_README_PATH = Path("Documentation/zigux/README.md")
 
-REQUIRED_MARKERS = (
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
+
+DOCS_README_REL = "Documentation/zigux/README.md"
+READINESS_SURVEY_REL = "Documentation/zigux/phase15-readiness-gate-survey.md"
+
+DOCS_README_MARKERS = (
     "Phase 15 notes",
-    "`Documentation/zigux/phase15-readiness-gate-survey.md`",
-    "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
-    "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
-    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
-    "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
-    "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
-    "`scripts/zigux/check-phase15-shared-summary-gap.py`",
-    "`scripts/zigux/check-phase15-review-process-handoff.py`",
-    "`scripts/zigux/validate-phase15.py`",
-    "`zigux/tests/phase15_readiness_gate_manifest.json`",
-    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
-    "without implying any Architecture Council approval for a freeze-map status change",
-    "the shared Phase 15 docs-root handoff should also keep",
-    "the named reopen trigger",
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "Documentation/zigux/phase15-study-only-anchor-accounting.md",
+    "Documentation/zigux/phase15-shared-summary-gap.md",
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-handoff-note-alignment.py",
+    "scripts/zigux/check-phase15-readiness-gate-packet.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
+    "scripts/zigux/validate-phase15.py",
+    "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
+    "zigux/tests/phase15_build.zig",
+    "no Architecture Council approval is currently recorded for a freeze-map status change",
+    "broader repo-reality gaps",
+    "blocked route vocabulary",
+    "truthfulness maintenance",
+    "named reopen trigger",
     "deep-core blocker-posture change",
-    "treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence",
-    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet",
-    "keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim",
+)
+
+READINESS_SURVEY_MARKERS = (
+    "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "the dedicated validator now exists as a directly readable maintenance gate",
+    "broader build and workflow companions still block any claim that the larger Phase 15 replay route is fully ready",
+    "no Architecture Council approval is currently recorded for a freeze-map status change",
 )
 
 
-def collect_missing_markers(root: Path) -> list[str]:
-    source = (root / DOCS_README_PATH).read_text(encoding="utf-8")
-    missing: list[str] = []
-    for marker in REQUIRED_MARKERS:
-        if marker not in source:
-            missing.append(f"docs_readme:{marker}")
-    return missing
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def _sample_docs_readme() -> str:
-    return """Scope
-Phase 15 notes
-`Documentation/zigux/phase15-readiness-gate-survey.md`
-`Documentation/zigux/phase15-handoff-next-steps-survey.md`
-`Documentation/zigux/phase15-governance-lane-sequencing.md`
-`Documentation/zigux/phase15-study-only-anchor-accounting.md`
-`scripts/zigux/check-phase15-docs-readme-alignment.py`
-`scripts/zigux/check-phase15-scripts-readme-alignment.py`
-`scripts/zigux/check-phase15-shared-summary-gap.py`
-`scripts/zigux/check-phase15-review-process-handoff.py`
-`scripts/zigux/validate-phase15.py`
-`zigux/tests/phase15_readiness_gate_manifest.json`
-`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-without implying any Architecture Council approval for a freeze-map status change
-the shared Phase 15 docs-root handoff should also keep
-the named reopen trigger
-deep-core blocker-posture change
-treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence
-`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet
-keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim
-"""
+def validate(root: Path) -> list[str]:
+    issues: list[str] = []
+
+    for rel in (DOCS_README_REL, READINESS_SURVEY_REL):
+        if not (root / rel).exists():
+            issues.append(f"missing_file:{rel}")
+    if issues:
+        return issues
+
+    docs_readme = _read(root / DOCS_README_REL)
+    for marker in DOCS_README_MARKERS:
+        if marker not in docs_readme:
+            issues.append(f"docs_readme:missing:{marker}")
+
+    readiness_survey = _read(root / READINESS_SURVEY_REL)
+    for marker in READINESS_SURVEY_MARKERS:
+        if marker not in readiness_survey:
+            issues.append(f"readiness_survey:missing:{marker}")
+
+    return issues
+
+
+def _seed(root: Path) -> None:
+    _write(root / DOCS_README_REL, "\n".join(DOCS_README_MARKERS) + "\n")
+    _write(root / READINESS_SURVEY_REL, "\n".join(READINESS_SURVEY_MARKERS) + "\n")
+
+
+def _assert_only(actual: list[str], expected: list[str], label: str) -> None:
+    if actual != expected:
+        got = ",".join(actual) or "none"
+        want = ",".join(expected) or "none"
+        raise SystemExit(f"phase15-docs-readme-alignment-self-test:{label}:got={got}:want={want}")
 
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase15_docs_readme_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase15_docs_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
-        _write(root / DOCS_README_PATH, _sample_docs_readme())
-
-        if collect_missing_markers(root):
-            raise AssertionError("baseline docs README fixture should pass")
+        _seed(root)
+        _assert_only(validate(root), [], "baseline")
         case_count += 1
 
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "`Documentation/zigux/phase15-study-only-anchor-accounting.md`\n", "", 1
-            ),
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace("Documentation/zigux/phase15-parity-scorecard.md\n", "", 1))
+        _assert_only(
+            validate(root),
+            ["docs_readme:missing:Documentation/zigux/phase15-parity-scorecard.md"],
+            "docs_missing_scorecard",
         )
-        missing = collect_missing_markers(root)
-        if missing != ["docs_readme:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"]:
-            raise AssertionError(
-                f"unexpected missing markers for study-only accounting case: {missing}"
-            )
+        _seed(root)
         case_count += 1
 
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace("`scripts/zigux/check-phase15-docs-readme-alignment.py`\n", "", 1),
+        path = root / DOCS_README_REL
+        _write(path, _read(path).replace("scripts/zigux/check-phase15-docs-readme-alignment.py\n", "", 1))
+        _assert_only(
+            validate(root),
+            ["docs_readme:missing:scripts/zigux/check-phase15-docs-readme-alignment.py"],
+            "docs_missing_checker",
         )
-        missing = collect_missing_markers(root)
-        if missing != ["docs_readme:`scripts/zigux/check-phase15-docs-readme-alignment.py`"]:
-            raise AssertionError(f"unexpected missing markers for docs checker case: {missing}")
+        _seed(root)
         case_count += 1
 
+        path = root / READINESS_SURVEY_REL
         _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "without implying any Architecture Council approval for a freeze-map status change\n",
+            path,
+            _read(path).replace(
+                "the dedicated validator now exists as a directly readable maintenance gate\n",
                 "",
                 1,
             ),
         )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:without implying any Architecture Council approval for a freeze-map status change"
-        ]
-        if missing != expected:
-            raise AssertionError(f"unexpected missing markers for approval-posture case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace("deep-core blocker-posture change\n", "", 1),
+        _assert_only(
+            validate(root),
+            [
+                "readiness_survey:missing:the dedicated validator now exists as a directly readable maintenance gate"
+            ],
+            "readiness_missing_validator_marker",
         )
-        missing = collect_missing_markers(root)
-        if missing != ["docs_readme:deep-core blocker-posture change"]:
-            raise AssertionError(f"unexpected missing markers for blocker-posture case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence\n",
-                "",
-                1,
-            ),
-        )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:treat `scripts/zigux/validate-phase15.py` as broader repo-reality gap vocabulary here until direct current-`master` readback proves it has returned as landed evidence"
-        ]
-        if missing != expected:
-            raise AssertionError(f"unexpected missing markers for validator-gap case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet\n",
-                "",
-                1,
-            ),
-        )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` stays part of the directly readable governance packet"
-        ]
-        if missing != expected:
-            raise AssertionError(f"unexpected missing markers for lane-owner packet case: {missing}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme().replace(
-                "keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim\n",
-                "",
-                1,
-            ),
-        )
-        missing = collect_missing_markers(root)
-        expected = [
-            "docs_readme:keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim"
-        ]
-        if missing != expected:
-            raise AssertionError(
-                f"unexpected missing markers for truthfulness-maintenance case: {missing}"
-            )
+        _seed(root)
         case_count += 1
 
     print("PHASE15_DOCS_README_ALIGNMENT_SELF_TEST=pass")
-    print(f"PHASE15_DOCS_README_ALIGNMENT_SELF_TEST_CASES={case_count}")
+    print(f"PHASE15_DOCS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify that the docs-root Phase 15 summary still names the parked governance packet honestly."
+        description="Keep the Phase 15 docs-root summary aligned with the parked governance packet."
     )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=Path.cwd(),
-        help="repository root containing Documentation/zigux/README.md",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="exercise the checker against synthetic docs-root fixtures",
-    )
+    parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    missing = collect_missing_markers(args.root)
-    if missing:
-        for item in missing:
-            print(f"ERROR: {item}")
+    issues = validate(args.root)
+    if issues:
+        print("PHASE15_DOCS_README_ALIGNMENT=fail")
+        print("PHASE15_DOCS_README_ALIGNMENT_ISSUES_START")
+        for issue in issues:
+            print(issue)
+        print("PHASE15_DOCS_README_ALIGNMENT_ISSUES_END")
         return 1
 
-    print("Phase 15 docs README alignment check passed.")
+    print("PHASE15_DOCS_README_ALIGNMENT=pass")
+    print(f"PHASE15_DOCS_README_ALIGNMENT_REQUIRED_MARKER_COUNT={len(DOCS_README_MARKERS) + len(READINESS_SURVEY_MARKERS)}")
     return 0
 
 
