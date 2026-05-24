@@ -22,6 +22,8 @@ REQUIRED_TEST_MARKERS = {
     "tail_mask_shared_test": 'test "tail mask ignores shared bits beyond nbits" {',
     "clump8_untouched_test": 'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
     "clump8_no_read_test": 'test "clump8 past-end scans return without reading bitmap words" {',
+    "underscore_andnot_alias_test": 'test "low-level underscore aliases mirror the primary find helpers, including andnot" {',
+    "linux_andnot_alias_test": 'test "Linux-style aliases mirror the primary find helpers, including andnot" {',
     "last_bit_tail_test": 'test "find last bit clamps tail words to nbits" {',
 }
 
@@ -49,6 +51,10 @@ REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_clump8_past_end": "findNextClump8(&clump, &empty, 8, 8)",
     "find_clump8_linux_alias_past_end": "find_next_clump8(&clump, &empty, 8, 12)",
     "find_clump8_low_level_alias_past_end": "_find_next_clump8(&clump, &empty, 8, 20)",
+    "find_first_andnot_low_level_alias": "try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
+    "find_next_andnot_low_level_alias": "try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), _find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
+    "find_first_andnot_linux_alias": "try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
+    "find_next_andnot_linux_alias": "try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
 }
 
 
@@ -143,6 +149,14 @@ def build_sample_source(
         "    _ = findNextClump8(&clump, &empty, 8, 8);",
         "    _ = find_next_clump8(&clump, &empty, 8, 12);",
         "    _ = _find_next_clump8(&clump, &empty, 8, 20);",
+        "}",
+        'test "low-level underscore aliases mirror the primary find helpers, including andnot" {',
+        "    try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
+        "    try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), _find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
+        "}",
+        'test "Linux-style aliases mirror the primary find helpers, including andnot" {',
+        "    try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
+        "    try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
         "}",
         'test "find last bit clamps tail words to nbits" {',
         "    _ = findLastBit(&single_word, single_word_nbits);",
