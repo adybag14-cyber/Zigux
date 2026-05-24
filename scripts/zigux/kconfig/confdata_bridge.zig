@@ -1095,11 +1095,52 @@ test "confdata bridge emits explicit empty assignments distinctly in json output
     );
 }
 
+test "confdata bridge escapes parsed string bytes in json output" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    const allocator = std.testing.allocator;
+    const input = "CONFIG_TEXT=\"a\\\\b\\\"c\x01\"\n";
+
+    var capture = try Capture.init(allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(allocator, input, &capture);
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":1,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_TEXT\",\"kind\":\"string\",\"value\":\"a\\\\b\\\"c\\u0001\"}]}\n",
+        capture.list.items,
+    );
+}
+
 fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
         \\# CONFIG_DEBUG is not set
-        \\CONFIG_BETA="zigux"
+        \\CONFIG_BETA=\"zigux\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -1107,7 +1148,7 @@ fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
 
 fn parseConfigDuplicateUnsetAllocationFailureHarness(allocator: std.mem.Allocator) !void {
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA="stable"
+        \\CONFIG_ALPHA=\"stable\"
         \\# CONFIG_ALPHA is not set
         \\# CONFIG_ALPHA is not set
         \\CONFIG_BETA=7
