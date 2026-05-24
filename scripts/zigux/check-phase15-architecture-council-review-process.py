@@ -17,7 +17,7 @@ SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 TEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process.zig")
 BUILD_GATE_PATH = Path("zigux/tests/phase15_architecture_council_review_process_build.zig")
-CURRENT_READBACK_MARKER = "current-master-readback-2026-05-19"
+CURRENT_READBACK_MARKER = "current-master-readback-2026-05-23"
 
 
 def _read_text(path: Path) -> str:
@@ -93,6 +93,12 @@ def collect_failures(root: Path) -> list[str]:
         if field not in decision_record_template:
             failures.append(f"decision-record template is missing required review field: {field}")
 
+    for field in manifest["supporting_context_fields"]:
+        if field not in review_process:
+            failures.append(f"review-process note is missing supporting-context field: {field}")
+        if field not in decision_record_template:
+            failures.append(f"decision-record template is missing supporting-context field: {field}")
+
     checklist_entry_prompt = _line_containing(
         review_checklist, manifest["review_checklist_entry_prompt"]
     )
@@ -107,6 +113,7 @@ def collect_failures(root: Path) -> list[str]:
             "owners of the exact Architecture Council field inventory",
             "stay-in-C closeout record",
             "reopen-evidence details",
+            manifest["review_checklist_stay_in_c_policy_boundary_rule"],
         )
         for marker in checklist_expected_markers:
             if marker not in checklist_entry_prompt:
@@ -126,6 +133,16 @@ def collect_failures(root: Path) -> list[str]:
         if field not in decision_record_template:
             failures.append(f"decision-record template is missing reopen-evidence field: {field}")
 
+    for field in manifest["review_outcome_fields"]:
+        if field not in review_process:
+            failures.append(f"review-process note is missing review-outcome field: {field}")
+        if field not in decision_record_template:
+            failures.append(f"decision-record template is missing review-outcome field: {field}")
+
+    for marker in manifest["review_outcome_markers"]:
+        if marker not in review_process:
+            failures.append(f"review-process note is missing review-outcome marker: {marker}")
+
     for marker in manifest["indefinite_c_policy_required_markers"]:
         if marker not in indefinite_c_policy:
             failures.append(f"indefinite-C policy note is missing required marker: {marker}")
@@ -133,6 +150,13 @@ def collect_failures(root: Path) -> list[str]:
     for marker in manifest["decision_record_template_required_markers"]:
         if marker not in decision_record_template:
             failures.append(f"decision-record template is missing required marker: {marker}")
+
+    for marker in manifest["study_only_anchor_review_markers"]:
+        if marker not in review_process:
+            failures.append(f"review-process note is missing study-only boundary marker: {marker}")
+
+    if manifest["decision_record_template_study_only_rule"] not in decision_record_template:
+        failures.append("decision-record template is missing the study-only boundary rule")
 
     for marker in manifest["handoff_required_markers"]:
         if marker not in handoff_note:
@@ -193,6 +217,11 @@ def _sample_manifest() -> str:
                 "inventory stays owned by this note and "
                 "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`"
             ),
+            "review_checklist_stay_in_c_policy_boundary_rule": (
+                "`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated "
+                "stay-in-C policy companion for retained blocker posture, trigger-specific "
+                "evidence refresh, and return-to-blocked wording"
+            ),
             "required_review_fields": [
                 "exact Linux anchor path",
                 "roadmap phase",
@@ -233,6 +262,20 @@ def _sample_manifest() -> str:
                 "the blocker disposition being challenged",
                 "the narrower seam or policy change that makes the new review safe to consider",
             ],
+            "supporting_context_fields": [
+                "governance lane sequencing link or explicit scope note",
+                "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
+            ],
+            "review_outcome_fields": [
+                "closeout result",
+                "follow-up owner",
+                "next bounded step",
+            ],
+            "review_outcome_markers": [
+                "keep the anchor in `freeze_in_c`",
+                "reopen review later with narrower evidence",
+                "approve a status-bucket change in a separately linked decision record",
+            ],
             "indefinite_c_policy_required_markers": [
                 "required approver set",
                 "automatic return-to-blocked trigger",
@@ -246,42 +289,71 @@ def _sample_manifest() -> str:
                 "Prefer the dated master readback form for parked governance and stay-in-C review packets.",
                 "Only record an exact head when the linked review needs it to anchor a named published decision",
             ],
+            "study_only_anchor_review_markers": [
+                "`kernel/workqueue.c`",
+                "`kernel/trace/ring_buffer.c`",
+                "remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+                "not candidates for a freeze-in-C status review through this note",
+            ],
+            "decision_record_template_study_only_rule": (
+                "Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, "
+                "or any other study-only anchor into a freeze-in-C status review unless the freeze map "
+                "and supporting governance packet have been explicitly updated first."
+            ),
             "handoff_required_markers": [
                 "`Documentation/zigux/review-checklist.md`",
                 "`Documentation/zigux/README.md`",
                 "`Documentation/zigux/phase15-architecture-council-review-process.md`",
                 "`Documentation/zigux/phase15-indefinite-c-policy.md`",
                 "`Documentation/zigux/phase15-shared-summary-gap.md`",
-                "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+                "`zigux/tests/phase15_freeze_map_governance.zig`",
+                "`zigux/tests/phase15_parity_scorecard.json`",
+                "`zigux/tests/phase15_parity_scorecard.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
+                "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
+                "`zigux/tests/phase15_governance_lane_sequencing.zig`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+                "`zigux/tests/phase15_handoff_next_steps.zig`",
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
+                "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
+                "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
-                "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
+                "`scripts/zigux/validate-phase15.py`",
+                "one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
             ],
             "shared_gap_expected_present_paths": [
+                "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+                "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
                 "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
                 "`Documentation/zigux/phase15-readiness-gate-survey.md`",
                 "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
                 "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+                "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
+                "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
                 "`zigux/tests/phase15_freeze_map_governance.zig`",
+                "`zigux/tests/phase15_parity_scorecard.json`",
                 "`zigux/tests/phase15_parity_scorecard.zig`",
                 "`zigux/tests/phase15_indefinite_c_policy.json`",
                 "`zigux/tests/phase15_indefinite_c_policy.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+                "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
+                "`zigux/tests/phase15_governance_lane_sequencing.zig`",
+                "`zigux/tests/phase15_readiness_gate_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+                "`zigux/tests/phase15_handoff_next_steps.zig`",
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
+                "`scripts/zigux/validate-phase15.py`",
             ],
             "shared_gap_expected_missing_paths": [
-                "`scripts/zigux/validate-phase15.py`",
                 "`zigux/tests/phase15_build.zig`",
-                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
             ],
         },
         indent=2,
@@ -291,23 +363,44 @@ def _sample_manifest() -> str:
 def _sample_review_process() -> str:
     manifest = json.loads(_sample_manifest())
     required_fields = "\n".join(f"- {field}" for field in manifest["required_review_fields"])
+    supporting_context_fields = "\n".join(
+        f"- {field}" for field in manifest["supporting_context_fields"]
+    )
     stay_in_c_fields = "\n".join(f"- {field}" for field in manifest["stay_in_c_closeout_fields"])
     reopen_fields = "\n".join(f"- {field}" for field in manifest["reopen_evidence_fields"])
+    review_outcome_fields = "\n".join(
+        f"- {field}" for field in manifest["review_outcome_fields"]
+    )
+    review_outcome_markers = "\n".join(
+        f"- {marker}" for marker in manifest["review_outcome_markers"]
+    )
+    study_only_markers = "\n".join(
+        f"- {marker}" for marker in manifest["study_only_anchor_review_markers"]
+    )
     return f"""# Phase 15 Architecture Council Review Process
 
 - `PHASE15_STATUS=architecture_council_review_process_landed`
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`
-- this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused Zig replay, and the focused build-file replay are landed through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`
+- this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused Zig replay, and the focused build-file replay landed through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - broader validator-first shared-summary surfaces remain gap-tracked
-- defaults that record to dated-master-readback provenance
-- focused review-process replay
-- focused build-file replay
 - {manifest["review_checklist_boundary_rule"]}
 
 Any freeze-map anchor entering Architecture Council status review must keep all of the following explicit:
 {required_fields}
+
+Supporting context that must stay explicit in the packet:
+{supporting_context_fields}
+
+Study-only freeze-map anchors stay outside this Architecture Council status-review packet until the freeze map itself changes:
+{study_only_markers}
+
+Review outcomes stay bounded to:
+{review_outcome_markers}
+
+Every closeout record must keep all of the following explicit:
+{review_outcome_fields}
 
 If a freeze-in-C review closes without a status change, the closeout record must keep all of the following explicit:
 {stay_in_c_fields}
@@ -320,9 +413,17 @@ A later reopen request must not rely on generic intent alone. It must cite:
 def _sample_decision_record_template() -> str:
     manifest = json.loads(_sample_manifest())
     required_fields = "\n".join(f"- {field}" for field in manifest["required_review_fields"])
+    supporting_context_fields = "\n".join(
+        f"- {field}" for field in manifest["supporting_context_fields"]
+    )
     stay_in_c_fields = "\n".join(f"- {field}" for field in manifest["stay_in_c_closeout_fields"])
     reopen_fields = "\n".join(f"- {field}" for field in manifest["reopen_evidence_fields"])
-    markers = "\n".join(f"- {marker}" for marker in manifest["decision_record_template_required_markers"])
+    review_outcome_fields = "\n".join(
+        f"- {field}" for field in manifest["review_outcome_fields"]
+    )
+    markers = "\n".join(
+        f"- {marker}" for marker in manifest["decision_record_template_required_markers"]
+    )
     return f"""# Phase 15 Architecture Council Decision Record Template
 
 {required_fields}
@@ -333,8 +434,15 @@ def _sample_decision_record_template() -> str:
 ## Reopen Evidence
 {reopen_fields}
 
+## Supporting Context
+{supporting_context_fields}
+
+## Review Outcome
+{review_outcome_fields}
+
 ## Usage Rules
 {markers}
+- {manifest["decision_record_template_study_only_rule"]}
 """
 
 
@@ -355,7 +463,7 @@ def _sample_review_checklist() -> str:
     manifest = json.loads(_sample_manifest())
     return f"""# Zigux Review Checklist
 
-- if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `{manifest["review_process_note"]}` and `{manifest["decision_record_template"]}` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details?
+- if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `{manifest["review_process_note"]}` and `{manifest["decision_record_template"]}` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details, and {manifest["review_checklist_stay_in_c_policy_boundary_rule"]}?
 """
 
 
@@ -367,8 +475,9 @@ def _sample_handoff_note() -> str:
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`
 - the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` is directly materialized on current `master`
-- no dedicated handoff-specific Zig replay is directly materialized on current `master`
-- treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` as the handoff-specific source of truth until that replay lands
+- the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` is directly materialized on current `master`
+- the dedicated decision-record template `Documentation/zigux/phase15-architecture-council-decision-record-template.md` stays part of the current handed-off governance packet
+- treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth until the dedicated shared-build companion lands
 
 ## Current handed-off packet on current master
 {markers}
@@ -413,9 +522,21 @@ def _seed_repo(root: Path) -> None:
     )
 
     manifest = json.loads(_sample_manifest())
+    seeded_paths = {
+        REVIEW_PROCESS_PATH,
+        DECISION_RECORD_TEMPLATE_PATH,
+        INDEFINITE_C_POLICY_PATH,
+        REVIEW_CHECKLIST_PATH,
+        HANDOFF_NOTE_PATH,
+        SHARED_GAP_NOTE_PATH,
+        MANIFEST_PATH,
+        TEST_PATH,
+        BUILD_GATE_PATH,
+    }
+
     for marker in manifest["shared_gap_expected_present_paths"]:
         repo_path = _marker_to_repo_path(marker)
-        if repo_path is not None and repo_path not in {TEST_PATH, BUILD_GATE_PATH, MANIFEST_PATH}:
+        if repo_path is not None and repo_path not in seeded_paths:
             _write(root / repo_path, "present\n")
 
 
@@ -443,7 +564,7 @@ def run_self_test() -> int:
             "shared-summary gap note claims materialized path is missing from repo: "
             "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
             "focused review-process build-file replay is missing from repo: "
-            "`zigux/tests/phase15_architecture_council_review_process_build.zig`"
+            "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-build-gate failure: {failures}")
@@ -454,7 +575,7 @@ def run_self_test() -> int:
         failures = collect_failures(missing_present_path_root)
         expected = [
             "shared-summary gap note claims materialized path is missing from repo: "
-            "`zigux/tests/phase15_handoff_next_steps_manifest.json`"
+            "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-present-path failure: {failures}")
