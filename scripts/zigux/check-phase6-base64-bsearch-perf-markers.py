@@ -33,6 +33,8 @@ REQUIRED_CATALOG_SNIPPETS = [
 ]
 
 REQUIRED_SURVEY_SNIPPETS = [
+    "- aggregate route note: `make -C zigux phase6-perf` is now a committed shared wrapper over the directly readable helper-local perf packet, while the broader `make -C zigux phase6` route still stops at `phase6-validate` plus the bundled helper tests and does not rerun the dedicated perf gates",
+    "- workflow note: current `.github/workflows/zigux-bootstrap.yml` reruns `make -C zigux phase6-perf`, so the shared bootstrap route now follows the aggregate perf wrapper rather than relying on helper-specific ad hoc coverage",
     "`zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
     "`len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 250`; `zigux/tests/fixtures/phase6_bsearch_vectors.zig` fixes `query_count = 16`; and `zigux/tests/phase6_bsearch_perf.zig` enforces the direct budget formula `std.math.log2_int_ceil(usize, case.len) + 1` across witness, average, and worst-case comparator counts while still printing the live `ns_per_lookup` evidence for each case",
 ]
@@ -88,7 +90,7 @@ EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 
-SELF_TEST_CASE_COUNT = 41
+SELF_TEST_CASE_COUNT = 43
 
 
 class ValidationError(RuntimeError):
@@ -99,7 +101,7 @@ def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
-        raise ValidationError(f"missing required file: {path.as_posix()}" ) from exc
+        raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
 def require_snippets(path: Path, snippets: list[str]) -> None:
@@ -469,13 +471,37 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / SURVEY_PATH,
+                "`make -C zigux phase6-perf` is now a committed shared wrapper",
+                "`make -C zigux phase6-thresholds` is now a committed shared wrapper",
+            ),
+            "phase6-perf-gate-survey.md",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
+                "reruns `make -C zigux phase6-perf`",
+                "reruns `make -C zigux phase6-thresholds`",
+            ),
+            "phase6-perf-gate-survey.md",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / SURVEY_PATH,
                 "`iterations = 12000`",
                 "`iterations = 16000`",
             ),
             "phase6-perf-gate-survey.md",
         )
         cases_run += 1
-        scaffold_repo(root)
+        scaffoldRepo(root)
 
         expect_failure(
             root,
