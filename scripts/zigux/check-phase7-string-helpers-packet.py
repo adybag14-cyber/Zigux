@@ -521,7 +521,7 @@ def run_self_test() -> None:
 
         manifest_devm_follow_on_marker = DEVM_FOLLOW_ON_MARKER
         remove_once(manifest_path, manifest_devm_follow_on_marker)
-        expect_missing_marker("missing_manifest_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_devm_follow_ON_MARKER}")
+        expect_missing_marker("missing_manifest_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_devm_follow_on_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
