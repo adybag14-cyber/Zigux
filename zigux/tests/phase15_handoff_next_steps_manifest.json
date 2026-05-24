@@ -1,13 +1,14 @@
 {
   "lane_key": "P15-L12",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-23",
+  "surveyed_commit": "current-master-readback-2026-05-24",
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
   "checker": "scripts/zigux/check-phase15-handoff-note-alignment.py",
   "present_paths": [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-deep-core-blocker-survey.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
@@ -49,6 +50,7 @@
     "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
     "The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.",
     "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the dedicated shared-build companion and blocked route bodies remain gap-tracked.",
+    "The dedicated deep-core blocker survey `Documentation/zigux/phase15-deep-core-blocker-survey.md` is also directly materialized on current `master` and keeps the roadmap-versus-current-master blocker crosswalk reviewable beside this handoff packet.",
     "The dedicated validator `scripts/zigux/validate-phase15.py` is directly materialized on current `master` as a maintenance gate, but it does not by itself land the broader shared Phase 15 build replay or route bodies.",
     "an Architecture Council approval workflow implementation",
     "a direct port-readiness decision for any Phase 15 anchor"
