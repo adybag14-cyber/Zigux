@@ -39,6 +39,18 @@ HELPER_BLOCKED_MARKERS = [
     "sg_init_table(",
 ]
 
+SCATTERLIST_HELPER_BLOCKED_MARKERS = [
+    "dma_map_sg(",
+    "dma_unmap_sg(",
+    "dma_map_sgtable()",
+    "sg_alloc_table(",
+    "sg_free_table(",
+    "sg_dma_address(",
+    "sg_dma_len(",
+    "sg_table",
+    "struct scatterlist",
+]
+
 SURVEY_MARKERS = [
     "helper-first scatterlist helper and replay",
     "helper-source readback shows `lib/devres.zig` still omits",
@@ -83,6 +95,12 @@ DMA_REPLAY_MARKERS = [
     'try requireContains(survey, "`dmam_free_coherent()`");',
     'try requireContains(survey, "`dma_map_sgtable()`");',
     'try requireContains(survey, "`sg_table`");',
+    'try requireAbsent(helper, "dma_map_sg(");',
+    'try requireAbsent(helper, "dma_unmap_sg(");',
+    'try requireAbsent(helper, "sg_alloc_table(");',
+    'try requireAbsent(helper, "sg_free_table(");',
+    'try requireAbsent(helper, "sg_dma_address(");',
+    'try requireAbsent(helper, "sg_dma_len(");',
 ]
 
 SCATTERLIST_NOTE_MARKERS = [
@@ -166,10 +184,17 @@ def validate(root: Path) -> list[str]:
         SCATTERLIST_MANIFEST_MARKERS,
         errors,
     )
+    scatterlist_helper = read_text(root / SCATTERLIST_HELPER_PATH)
     require_markers(
-        read_text(root / SCATTERLIST_HELPER_PATH),
+        scatterlist_helper,
         "scatterlist_helper",
         SCATTERLIST_HELPER_MARKERS,
+        errors,
+    )
+    require_absent(
+        scatterlist_helper,
+        "scatterlist_helper",
+        SCATTERLIST_HELPER_BLOCKED_MARKERS,
         errors,
     )
     require_markers(
@@ -240,6 +265,18 @@ def run_self_test() -> int:
                 "helper:unexpected_marker:dma_map_sgtable()",
             ],
             "helper_unexpected_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SCATTERLIST_HELPER_PATH,
+            read_text(root / SCATTERLIST_HELPER_PATH) + 'pub fn bad() void { _ = "dma_map_sg("; }\n',
+        )
+        assert_only(
+            validate(root),
+            ["scatterlist_helper:unexpected_marker:dma_map_sg("],
+            "scatterlist_helper_unexpected_marker_failed",
         )
         case_count += 1
 
