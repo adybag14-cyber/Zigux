@@ -298,6 +298,7 @@ REQUIRED_MARKERS = {
     ONLINE_CPU_ROUTING_VERIFY_PATH: (
         'test "phase8 online-cpu route helpers keep typed cpu-index wrappers stable" {',
         "resolveNextOnlineCpuRouteCpuIndex(",
+        'test "phase8 online-cpu route helpers keep errno-shaped cpu-index wrappers stable" {',
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
         'test "phase8 online-cpu route helpers keep typed buffer-fd wrappers stable" {',
         "resolveNextOnlineCpuRouteBufferFdAtIndex(",
