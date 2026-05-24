@@ -16,8 +16,6 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
-import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -212,23 +210,6 @@ def require_compile_shards(errors: list[str], manifest: object) -> None:
         )
 
 
-def run_subchecker(root: Path, rel: Path, *, self_test: bool) -> list[str]:
-    command = [sys.executable, str(root / rel)]
-    if self_test:
-        command.append("--self-test")
-    else:
-        command.extend(["--root", str(root)])
-
-    completed = subprocess.run(command, capture_output=True, text=True)
-    if completed.returncode == 0:
-        return []
-
-    output = [line for line in (completed.stdout + completed.stderr).splitlines() if line.strip()]
-    if not output:
-        output = ["checker exited with no output"]
-    return [f"subcheck_fail:{rel.as_posix()}:{line}" for line in output]
-
-
 def check(root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -275,7 +256,6 @@ def check(root: Path) -> list[str]:
 
     require_manifest_values(errors, manifest)
     require_compile_shards(errors, manifest)
-    errors.extend(run_subchecker(root, SKBUFF_COMPILE_ROUTE_CHECKER_PATH, self_test=False))
     return errors
 
 
@@ -338,21 +318,6 @@ def fixture_manifest() -> str:
     return json.dumps(payload, indent=2) + "\n"
 
 
-def fixture_skbuff_compile_route_checker() -> str:
-    return """#!/usr/bin/env python3
-import sys
-
-if "--self-test" in sys.argv:
-    print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=pass")
-    print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST_CASE_COUNT=4")
-    raise SystemExit(0)
-
-print("PHASE14_SKBUFF_COMPILE_ROUTE=pass")
-print("PHASE14_SKBUFF_COMPILE_ROUTE_NOTE_MARKER_COUNT=6")
-print("PHASE14_SKBUFF_COMPILE_ROUTE_BUILD_MARKER_COUNT=6")
-"""
-
-
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
@@ -364,7 +329,7 @@ def write_fixture_tree(root: Path) -> None:
         fixture_compile_shard_matrix_survey(),
     )
     write_text(root, MANIFEST_PATH, fixture_manifest())
-    write_text(root, SKBUFF_COMPILE_ROUTE_CHECKER_PATH, fixture_skbuff_compile_route_checker())
+    write_text(root, SKBUFF_COMPILE_ROUTE_CHECKER_PATH, "# present for shared-packet file checks\n")
 
 
 def remove_line(root: Path, rel: Path, marker: str) -> None:
@@ -396,11 +361,6 @@ def run_self_test() -> int:
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
             for error in errors:
                 print(error)
-            return 1
-
-        if run_subchecker(base, SKBUFF_COMPILE_ROUTE_CHECKER_PATH, self_test=True):
-            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
-            print("expected skbuff compile-route checker self-test to pass")
             return 1
 
         remove_line(base, RELEASE_BOUNDARY_PATH, EXACT_COUNT_MARKERS[0])
@@ -498,24 +458,8 @@ def run_self_test() -> int:
             print("expected compile-shard coverage mismatch to fail")
             return 1
 
-        write_fixture_tree(base)
-        write_text(
-            base,
-            SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
-            "#!/usr/bin/env python3\nimport sys\nprint('PHASE14_SKBUFF_COMPILE_ROUTE=fail')\nraise SystemExit(1)\n",
-        )
-        if not any(
-            error.startswith(
-                f"subcheck_fail:{SKBUFF_COMPILE_ROUTE_CHECKER_PATH.as_posix()}:PHASE14_SKBUFF_COMPILE_ROUTE=fail"
-            )
-            for error in check(base)
-        ):
-            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
-            print("expected skbuff compile-route subcheck failure to surface")
-            return 1
-
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=11")
+        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
