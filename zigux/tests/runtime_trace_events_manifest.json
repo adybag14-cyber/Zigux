@@ -31,9 +31,9 @@
   },
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
-    "landed_pilot_state": "narrow trace-events sample packet plus family-local survey and module witnesses beside a returned bounded phase9_build bundle",
+    "landed_pilot_state": "narrow trace-events sample packet plus family-local survey witness beside a returned bounded phase9_build bundle",
     "missing_capability": "broader shared runtime-loader and broader shared runtime_* replay family remain absent on current master",
-    "next_gate": "keep the survey note, direct module witness, manifest, survey gate, and module-slice aligned with the surviving sample family and the returned bounded phase9_build bundle while shared loader work stays parked"
+    "next_gate": "keep the survey note, manifest, survey gate, and module-slice aligned with the surviving sample family and the returned bounded phase9_build bundle while shared loader work stays parked"
   },
   "ownership_map": [
     {
