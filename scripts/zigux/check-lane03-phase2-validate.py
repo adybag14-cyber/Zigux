@@ -18,39 +18,66 @@ REQUIRED_PATHS = (
     MAKEFILE,
     POLICY,
     "scripts/zigux/check-zig-toolchain.py",
+    "scripts/zigux/check-phase2-kbuild-routes.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
+    "scripts/zigux/validate-phase2-closure.py",
 )
 
 EXPECTED_POLICY_ROUTES = (
     "phase2-toolchain",
     "phase2-tools",
-    "phase2-validate",
+    "phase2-kconfig",
     "phase2-cross",
+    "phase2-genksyms",
+    "phase2-fixdep",
+    "phase2-validate",
 )
 
 VALIDATOR_REQUIRED_MARKERS = (
     'MAKEFILE = "zigux/Makefile"',
     'WORKFLOW = ".github/workflows/zigux-bootstrap.yml"',
+    '"scripts/zigux/check-phase2-kbuild-routes.py"',
+    '"scripts/zigux/check-phase2-cross.py"',
+    '"scripts/zigux/check-phase2-cross-selftest-alignment.py"',
     '"scripts/zigux/check-phase2-required-make-routes.py"',
     '"scripts/zigux/check-phase2-docs-shared-reminder.py"',
     '"scripts/zigux/check-phase2-tool-manifest.py"',
     '"scripts/zigux/check-phase2-artifact-tools-manifest.py"',
     '"scripts/zigux/check-phase2-toolchain-pinning.py"',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py"',
+    '"scripts/zigux/check-genksyms-bridge.py"',
+    '"scripts/zigux/check-phase2-genksyms-selftest-alignment.py"',
+    '"scripts/zigux/check-phase2-fixdep-gate.py"',
+    '"scripts/zigux/check-fixdep-diff.py"',
     '"run: make -C zigux phase2-toolchain"',
     '"run: make -C zigux phase2-tools"',
+    '"run: make -C zigux phase2-kconfig"',
     '"run: make -C zigux phase2-cross"',
+    '"run: make -C zigux phase2-genksyms"',
+    '"run: make -C zigux phase2-fixdep"',
     '"run: make -C zigux phase2-validate"',
-    '".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"',
+    '".PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"',
     '"phase2-toolchain:"',
     '"phase2-tools:"',
+    '"phase2-kconfig:"',
     '"phase2-cross:"',
+    '"phase2-genksyms:"',
+    '"phase2-fixdep:"',
     '"phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep"',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py"',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py"',
+    '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py"',
     '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py"',
     '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py"',
     '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py"',
@@ -63,7 +90,10 @@ WORKFLOW_REQUIRED_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "run: make -C zigux phase2-toolchain",
     "run: make -C zigux phase2-tools",
+    "run: make -C zigux phase2-kconfig",
     "run: make -C zigux phase2-cross",
+    "run: make -C zigux phase2-genksyms",
+    "run: make -C zigux phase2-fixdep",
     "run: make -C zigux phase2-validate",
 )
 
@@ -78,9 +108,15 @@ MAKEFILE_REQUIRED_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
+    "phase2-kconfig:",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
+    "phase2-genksyms:",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
+    "phase2-fixdep:",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-fixdep-gate.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-fixdep-diff.py",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
@@ -204,22 +240,22 @@ def build_sample_root(root: Path) -> None:
         'POLICY = "scripts/zigux/zig-toolchain-policy.json"',
         "REQUIRED_PATHS = (",
     ]
-    validator_lines.extend(f'    {marker},' for marker in VALIDATOR_REQUIRED_MARKERS[2:8])
+    validator_lines.extend(f"    {marker}," for marker in VALIDATOR_REQUIRED_MARKERS[2:15])
     validator_lines.extend(
         (
             ")",
             "REQUIRED_WORKFLOW_LINES = (",
         )
     )
-    validator_lines.extend(f'    {marker},' for marker in VALIDATOR_REQUIRED_MARKERS[8:12])
+    validator_lines.extend(f"    {marker}," for marker in VALIDATOR_REQUIRED_MARKERS[15:22])
     validator_lines.extend(
         (
             ")",
-            'REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"',
+            'REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"',
             "REQUIRED_MAKEFILE_LINES = (",
         )
     )
-    validator_lines.extend(f'    {marker},' for marker in VALIDATOR_REQUIRED_MARKERS[13:])
+    validator_lines.extend(f"    {marker}," for marker in VALIDATOR_REQUIRED_MARKERS[23:])
     validator_lines.append(")")
     write_text(root, VALIDATOR, "\n".join(validator_lines) + "\n")
 
@@ -233,7 +269,7 @@ def build_sample_root(root: Path) -> None:
         MAKEFILE,
         "\n".join(
             (
-                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2",
+                ".PHONY: phase1-route-summary phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2",
                 *MAKEFILE_REQUIRED_LINES,
             )
         )
@@ -274,9 +310,18 @@ def run_self_test() -> int:
 
         build_sample_root(root)
         policy = json.loads(read_text(root, POLICY))
-        policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-validate", "phase2-cross"]
+        policy["upgrade_policy"]["required_make_routes"] = [
+            "phase2-toolchain",
+            "phase2-tools",
+            "phase2-kconfig",
+            "phase2-cross",
+            "phase2-validate",
+        ]
         write_text(root, POLICY, json.dumps(policy, indent=2) + "\n")
-        assert ("POLICY_ROUTE_MISMATCH", "phase2-toolchain,phase2-validate,phase2-cross") in collect_issues(root)
+        assert (
+            "POLICY_ROUTE_MISMATCH",
+            "phase2-toolchain,phase2-tools,phase2-kconfig,phase2-cross,phase2-validate",
+        ) in collect_issues(root)
         checks += 1
 
         build_sample_root(root)
@@ -285,11 +330,11 @@ def run_self_test() -> int:
             VALIDATOR,
             replace_once(
                 read_text(root, VALIDATOR),
-                '"run: make -C zigux phase2-tools"',
-                '"run: make -C zigux phase2-tools-missing"',
+                '"run: make -C zigux phase2-genksyms"',
+                '"run: make -C zigux phase2-genksyms-missing"',
             ),
         )
-        assert ('MISSING_VALIDATOR_MARKER', '"run: make -C zigux phase2-tools"') in collect_issues(root)
+        assert ('MISSING_VALIDATOR_MARKER', '"run: make -C zigux phase2-genksyms"') in collect_issues(root)
         checks += 1
 
         build_sample_root(root)
@@ -298,11 +343,11 @@ def run_self_test() -> int:
             WORKFLOW,
             replace_once(
                 read_text(root, WORKFLOW),
-                "run: make -C zigux phase2-validate",
-                "run: make -C zigux phase2-validate-missing",
+                "run: make -C zigux phase2-fixdep",
+                "run: make -C zigux phase2-fixdep-missing",
             ),
         )
-        assert ("MISSING_WORKFLOW_LINE", "run: make -C zigux phase2-validate") in collect_issues(root)
+        assert ("MISSING_WORKFLOW_LINE", "run: make -C zigux phase2-fixdep") in collect_issues(root)
         checks += 1
 
         build_sample_root(root)
@@ -311,11 +356,11 @@ def run_self_test() -> int:
             MAKEFILE,
             replace_once(
                 read_text(root, MAKEFILE),
-                "phase2-tools:",
-                "phase2-tools-disabled:",
+                "phase2-genksyms:",
+                "phase2-genksyms-disabled:",
             ),
         )
-        assert ("MISSING_MAKEFILE_LINE", "phase2-tools:") in collect_issues(root)
+        assert ("MISSING_MAKEFILE_LINE", "phase2-genksyms:") in collect_issues(root)
         checks += 1
 
         build_sample_root(root)
@@ -324,11 +369,11 @@ def run_self_test() -> int:
             MAKEFILE,
             replace_once(
                 read_text(root, MAKEFILE),
-                "phase2-tools",
-                "phase2-tools-disabled",
+                "phase2-fixdep",
+                "phase2-fixdep-disabled",
             ),
         )
-        assert ("MISSING_MAKEFILE_PHONY_TARGET", "phase2-tools") in collect_issues(root)
+        assert ("MISSING_MAKEFILE_PHONY_TARGET", "phase2-fixdep") in collect_issues(root)
         checks += 1
 
     print("LANE03_PHASE2_VALIDATE_SELF_TEST=pass")
