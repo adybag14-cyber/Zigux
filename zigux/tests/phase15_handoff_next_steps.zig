@@ -49,18 +49,19 @@ test "phase 15 handoff manifest records the focused replay and validator as land
 
     try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-23", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-24", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-handoff-note-alignment.py", manifest.checker);
-    try std.testing.expectEqual(@as(usize, 33), manifest.present_paths.len);
+    try std.testing.expectEqual(@as(usize, 34), manifest.present_paths.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.still_missing_paths.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.required_markers.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.required_markers.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.checker_group_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff_rule_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_alignment_markers.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_step_markers.len);
     try std.testing.expectEqual(@as(usize, 1), manifest.missing_route_markers.len);
 
+    try expectSliceContains(manifest.present_paths, "Documentation/zigux/phase15-deep-core-blocker-survey.md");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_freeze_map_governance.zig");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_parity_scorecard.json");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_parity_scorecard.zig");
