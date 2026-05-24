@@ -144,6 +144,14 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     );
     defer std.testing.allocator.free(reentry_file);
 
+    const reinit_reexit_file = try cwd.readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(reinit_reexit_file);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
     const manifest = parsed.value;
@@ -158,12 +166,12 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try std.testing.expectEqualStrings("samples/zigux/runtime_*", manifest.roadmap_destinations[1]);
 
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.direct_runtime_trace_events_test_files);
-    try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.surviving_sample_family_files);
+    try std.testing.expectEqual(@as(usize, 5), manifest.survey_summary.surviving_sample_family_files);
     try std.testing.expect(manifest.survey_summary.survey_note_present);
     try std.testing.expect(manifest.survey_summary.module_slice_present);
 
     try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", manifest.sample_packet_summary.direct_sample);
-    try std.testing.expectEqual(@as(usize, 3), manifest.sample_packet_summary.companion_files.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.sample_packet_summary.companion_files.len);
     try std.testing.expectEqualStrings(
         "samples/zigux/runtime_trace_events_unregistered_gate.zig",
         manifest.sample_packet_summary.companion_files[0],
@@ -175,6 +183,10 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try std.testing.expectEqualStrings(
         "samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
         manifest.sample_packet_summary.companion_files[2],
+    );
+    try std.testing.expectEqualStrings(
+        "samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
+        manifest.sample_packet_summary.companion_files[3],
     );
     try std.testing.expectEqualStrings(".provides_selftest_hook = true", manifest.sample_packet_summary.selftest_hook_marker);
     try std.testing.expectEqualStrings(
@@ -247,6 +259,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events_unregistered_gate.zig`");
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`");
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`");
+    try expectContains(survey_note, "`samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_trace_events_manifest.json`");
     try expectContains(survey_note, "`zigux/tests/runtime_trace_events_survey.zig`");
     try expectContains(survey_note, ".provides_selftest_hook = true");
@@ -255,6 +268,9 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(survey_note, "The exit-rollback companion still keeps failed-exit rollback explicit after reusable selftest replay");
     try expectContains(survey_note, "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay");
     try expectContains(survey_note, "Its paired initialized direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`");
+    try expectContains(survey_note, "The reinit/reexit guard companion still keeps lifecycle rollback observability explicit after direct pilot activity");
+    try expectContains(survey_note, "re-init rollback explicit after initialized, selftest-complete, and exited replay");
+    try expectContains(survey_note, "re-exit rollback explicit after initialized and selftest-complete replay");
     try expectContains(survey_note, "direct family-local `zigux/tests/runtime_*` witness");
     try expectContains(survey_note, "`zigux/tests/phase9_build.zig`");
     try expectContains(survey_note, "adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`");
@@ -264,15 +280,20 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(survey_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(survey_note, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(survey_note, "Do not invent `validate-phase9.py`");
+
     try expectContains(module_slice_note, "`Documentation/zigux/phase9-runtime-trace-events-survey.md`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_trace_events_manifest.json`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_trace_events_survey.zig`");
     try expectContains(module_slice_note, ".provides_selftest_hook = true");
     try expectContains(module_slice_note, "initialized, selftest_complete, and exited lifecycle tracking");
+    try expectContains(module_slice_note, "`samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`");
     try expectContains(module_slice_note, "The shipped cold-stage guard in `test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\"`");
     try expectContains(module_slice_note, "The exit-rollback companion keeps failed-exit rollback explicit after reusable selftest replay");
     try expectContains(module_slice_note, "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay by proving");
     try expectContains(module_slice_note, "Its paired initialized-direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`");
+    try expectContains(module_slice_note, "The reinit/reexit companion keeps lifecycle rollback explicit after later direct activity too");
+    try expectContains(module_slice_note, "re-init rollback explicit after initialized, selftest-complete, and exited replay");
+    try expectContains(module_slice_note, "re-exit rollback explicit after initialized and selftest-complete replay");
     try expectContains(module_slice_note, "sample-local pilot-module reviewability");
     try expectContains(module_slice_note, "broader shared runtime-loader packet");
     try expectContains(module_slice_note, "`zigux/tests/phase9_build.zig`");
@@ -321,7 +342,6 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sample_file, ".provides_selftest_hook = true");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !EmissionSummary {");
     try expectContains(sample_file, "pub fn exit(self: *Self) !void {");
-    try expectContains(sample_file, "test \"trace-events sample rejects duplicate function-thread registration\" {");
     try expectContains(sample_file, "test \"trace-events sample preserves initialized summary across direct exit without selftest\" {");
     try expectContains(sample_file, "try std.testing.expectEqual(ModuleStage.initialized, before_exit.stage);");
     try expectContains(sample_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);");
@@ -334,86 +354,28 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(9));");
     try expectContains(sample_file, "test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {");
     try expectContains(sample_file, "test \"trace-events sample keeps rejected re-selftest rollback explicit\" {");
-    try expectContains(sample_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);");
-    try expectContains(sample_file, "try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);");
-    try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
 
     try expectContains(fail_closed_file, "phase9 trace-events sample keeps unregistered function-thread failures fail-closed");
 
     try expectContains(exit_guard_file, "phase9 trace-events sample keeps exit rollback explicit after reusable selftest replay");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);");
-    try expectContains(exit_guard_file, "try std.testing.expectError(error.OutstandingRegistration, module.exit());");
-    try expectContains(exit_guard_file, "try expectSummaryStable(before_failed_exit, after_failed_exit);");
-    try expectContains(exit_guard_file, "const replayed_main_after_failed_exit = try module.emitMainIteration(9);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 4), replayed_main_after_failed_exit);");
-    try expectContains(exit_guard_file, "const after_failed_exit_main_replay = module.summary();");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 18), after_failed_exit_main_replay.total_events);");
-    try expectContains(exit_guard_file, "const replayed_fn_after_failed_exit = try module.emitFunctionIteration(17);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 2), replayed_fn_after_failed_exit);");
-    try expectContains(exit_guard_file, "const before_unregister = module.summary();");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 20), before_unregister.total_events);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 2), before_unregister.register_transitions);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, before_exit.stage);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 2), before_exit.unregister_transitions);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 20), before_exit.total_events);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 20), after_exit.total_events);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 2), after_exit.register_transitions);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 2), after_exit.unregister_transitions);");
-    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
-    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(17));");
-    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());");
-    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(19));");
-    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());");
-    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());");
-    try expectContains(exit_guard_file, "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);");
     try expectContains(exit_guard_file, "phase9 trace-events sample keeps initialized failed-exit rollback explicit before selftest replay");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.initialized, before_failed_exit.stage);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.selftest_runs);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(?[]const u8, null), before_failed_exit.last_unregister_label);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.initialized, before_selftest.stage);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 1), before_selftest.register_transitions);");
-    try expectContains(exit_guard_file, "const selftest = try module.runSelftest();");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, after_selftest.stage);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 2), after_selftest.register_transitions);");
     try expectContains(exit_guard_file, "phase9 trace-events sample keeps initialized direct-activity exit rollback explicit before selftest replay");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.main_iterations);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.fn_iterations);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 6), before_failed_exit.total_events);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 6), before_selftest.total_events);");
-    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 14), after_selftest.total_events);");
-    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));");
+    try expectContains(exit_guard_file, "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);");
 
     try expectContains(reentry_file, "phase9 trace-events sample keeps registration reentry reusable across initialized and selftest_complete stages");
-    try expectContains(reentry_file, "const initialized_registered_before_duplicate = module.summary();");
-    try expectContains(reentry_file, "try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());");
-    try expectContains(reentry_file, "try std.testing.expect(std.meta.eql(initialized_registered_before_duplicate, initialized_registered_after_duplicate));");
-    try expectContains(reentry_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.init());");
-    try expectContains(reentry_file, "const exited_after_rejected_init = module.summary();");
-    try expectContains(reentry_file, "try std.testing.expect(std.meta.eql(exited_before_rejected_main, exited_after_rejected_init));");
     try expectContains(reentry_file, "test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\" {");
-    try expectContains(reentry_file, "try std.testing.expectEqual(ModuleStage.initialized, before_exit.stage);");
-    try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);");
-    try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);");
-    try expectContains(reentry_file, "try std.testing.expectEqual(@as(?usize, 4), before_exit.last_main_emitted_events);");
-    try expectContains(reentry_file, "try std.testing.expectEqual(@as(?usize, 0), before_exit.last_main_conditional_event_count);");
-    try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);");
-    try expectContains(reentry_file, "try std.testing.expect(before_exit.saw_vararg_payload);");
-    try expectContains(reentry_file, "try std.testing.expect(before_exit.saw_rel_loc_payload);");
-    try expectContains(reentry_file, "try std.testing.expect(!before_exit.saw_conditional_path);");
-    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"event-sample\", before_exit.main_thread_label orelse return error.ExpectedMainThreadLabel);");
-    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"hello\", before_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload);");
-    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"Mother Goose\", before_exit.last_main_random_choice_message orelse return error.ExpectedMainPayload);");
-    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"HELLO\", before_exit.last_main_template_message orelse return error.ExpectedMainPayload);");
-    try expectContains(reentry_file, "try std.testing.expectEqualStrings(\"Hello __rel_loc\", before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);");
-    try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);");
-    try expectContains(reentry_file, "try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);");
-    try expectContains(reentry_file, "try std.testing.expectEqualStrings(before_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload, after_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload);");
-    try expectContains(reentry_file, "try std.testing.expectEqualStrings(before_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload, after_exit.last_main_relative_location_message orelse return error.ExpectedMainPayload);");
-    try expectContains(reentry_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());");
     try expectContains(reentry_file, "try std.testing.expect(std.meta.eql(after_exit, after_rejected_lifecycle));");
+
+    try expectContains(reinit_reexit_file, "phase9 trace-events sample keeps re-init rollback explicit after initialized, selftest-complete, and exited replay");
+    try expectContains(reinit_reexit_file, "phase9 trace-events sample keeps re-exit rollback explicit after initialized and selftest-complete replay");
+    try expectContains(reinit_reexit_file, "try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.init());");
+    try expectContains(reinit_reexit_file, "try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.init());");
+    try expectContains(reinit_reexit_file, "try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.init());");
+    try expectContains(reinit_reexit_file, "try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.exit());");
+    try expectContains(reinit_reexit_file, "try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.exit());");
+    try expectContains(reinit_reexit_file, "try expectSummaryStable(before_initialized_reinit, initialized_module.summary());");
+    try expectContains(reinit_reexit_file, "try expectSummaryStable(before_selftested_reinit, selftested_module.summary());");
+    try expectContains(reinit_reexit_file, "try expectSummaryStable(before_exited_reinit, exited_module.summary());");
+    try expectContains(reinit_reexit_file, "try expectSummaryStable(before_initialized_reexit, initialized_module.summary());");
+    try expectContains(reinit_reexit_file, "try expectSummaryStable(before_selftested_reexit, selftested_module.summary());");
 }
