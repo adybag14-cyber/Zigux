@@ -453,6 +453,26 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def remove_ring_survey_build_source(tmp_root: Path) -> None:
+            path = tmp_root / "zigux/tests/phase10_build.zig"
+            text = path.read_text(encoding="utf-8")
+            marker = '.root_source_file = b.path("phase10_virtio_ring_survey.zig"),'
+            path.write_text(
+                text.replace(
+                    marker,
+                    '.root_source_file = b.path("phase10_virtio_ring_survey_missing.zig"),',
+                    1,
+                ),
+                encoding="utf-8",
+            )
+
+        expect_problem(
+            root,
+            remove_ring_survey_build_source,
+            'zigux/tests/phase10_build.zig:.root_source_file = b.path("phase10_virtio_ring_survey.zig"),',
+        )
+        write_fixture(root)
+
         def remove_publish_readiness_build_step_name(tmp_root: Path) -> None:
             path = tmp_root / "zigux/tests/phase10_build.zig"
             text = path.read_text(encoding="utf-8")
@@ -516,7 +536,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 def main() -> int:
