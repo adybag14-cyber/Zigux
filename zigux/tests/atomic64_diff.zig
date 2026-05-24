@@ -1,4 +1,5 @@
 const std = @import("std");
+const sample = @import("runtime_atomic64_sample");
 const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
@@ -939,6 +940,28 @@ test "atomic64 diff wrapper records the threshold replay lifecycle markers" {
         runtime_atomic64_diff_source,
         "try std.testing.expectEqual(@as(usize, 1), repeated.final_exit_runs);",
     );
+}
+
+test "atomic64 diff wrapper executes the bounded threshold replay through the shipped runtime gate" {
+    try std.testing.expectError(error.EmptyThresholdReplayBatch, runtime_atomic64_diff.runThresholdReplay(0));
+
+    const single = try runtime_atomic64_diff.runThresholdReplay(1);
+    const repeated = try runtime_atomic64_diff.runThresholdReplay(4);
+
+    try std.testing.expectEqual(@as(usize, 1), single.iterations);
+    try std.testing.expectEqual(@as(usize, 4), repeated.iterations);
+    try std.testing.expectEqual(sample.ModuleStage.exited, single.final_stage);
+    try std.testing.expectEqual(sample.ModuleStage.exited, repeated.final_stage);
+    try std.testing.expectEqual(@as(usize, 1), single.final_selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), repeated.final_selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), single.final_exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), repeated.final_exit_runs);
+    try std.testing.expectEqual(@as(i64, 130322557735600377), single.final_counter);
+    try std.testing.expectEqual(@as(i64, 130322557735600376), repeated.final_counter);
+    try std.testing.expectEqual(@as(u64, 3626254113632800175), single.checksum);
+    try std.testing.expectEqual(@as(u64, 9210681150676220922), repeated.checksum);
+    try std.testing.expectEqualDeep(repeated, try runtime_atomic64_diff.runThresholdReplay(4));
+    try std.testing.expect(repeated.checksum != single.checksum);
 }
 
 test "atomic64 diff wrapper keeps the local perf-baseline manifest aligned with threshold replay evidence" {
