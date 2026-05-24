@@ -23,6 +23,8 @@ EXPECTED_COUNTS = {
     "dedicated_survey_replays": 0,
     "shared_adjunct_replays": 3,
     "shared_adjunct_build_replays": 3,
+    "focused_direct_build_checks": 2,
+    "focused_direct_build_replays": 2,
     "exact_current_checks": 11,
 }
 
@@ -38,6 +40,16 @@ EXPECTED_EXACT_CURRENT_CHECKS = (
     "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+)
+
+EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS = (
+    "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test",
+    "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py",
+)
+
+EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS = (
+    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
 )
 
 EXPECTED_PROOF_FANOUT_MARKERS = (
@@ -61,6 +73,8 @@ REQUIRED_CONTRACT_MARKERS = (
     "0 dedicated survey replays",
     "3 shared adjunct proof replays",
     "3 adjunct build replays",
+    "2 focused direct build checker routes",
+    "2 focused direct build replays",
     "11 HVC current-head exact command markers",
     "`make -C zigux phase11-validate` wrapper now cover twelve focused proof builds through",
 )
@@ -119,8 +133,24 @@ def run_check(root: Path) -> None:
     if exact_current_checks != list(EXPECTED_EXACT_CURRENT_CHECKS):
         raise CheckError("exact_current_checks does not match the current-head HVC packet")
 
+    focused_direct_build_checks = expect_string_list(
+        "focused_direct_build_checks",
+        inventory.get("focused_direct_build_checks"),
+    )
+    if focused_direct_build_checks != list(EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS):
+        raise CheckError("focused_direct_build_checks does not match the current-head Phase 11 packet")
+
+    focused_direct_build_replays = expect_string_list(
+        "focused_direct_build_replays",
+        inventory.get("focused_direct_build_replays"),
+    )
+    if focused_direct_build_replays != list(EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS):
+        raise CheckError("focused_direct_build_replays does not match the current-head Phase 11 packet")
+
     require_markers(str(CONTRACT_PATH), contract, REQUIRED_CONTRACT_MARKERS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_EXACT_CURRENT_CHECKS)
+    require_markers(str(CONTRACT_PATH), contract, EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS)
+    require_markers(str(CONTRACT_PATH), contract, EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_PROOF_FANOUT_MARKERS)
 
 
@@ -139,6 +169,8 @@ def build_fixture(root: Path) -> None:
                 "dedicated_survey_replays": [],
                 "shared_adjunct_replays": ["a", "b", "c"],
                 "shared_adjunct_build_replays": ["a", "b", "c"],
+                "focused_direct_build_checks": list(EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS),
+                "focused_direct_build_replays": list(EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS),
                 "exact_current_checks": list(EXPECTED_EXACT_CURRENT_CHECKS),
             },
             indent=2,
@@ -154,9 +186,13 @@ def build_fixture(root: Path) -> None:
                 "0 dedicated survey replays",
                 "3 shared adjunct proof replays",
                 "3 adjunct build replays",
+                "2 focused direct build checker routes",
+                "2 focused direct build replays",
                 "11 HVC current-head exact command markers",
                 "`make -C zigux phase11-validate` wrapper now cover twelve focused proof builds through",
                 *EXPECTED_EXACT_CURRENT_CHECKS,
+                *EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS,
+                *EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS,
                 *EXPECTED_PROOF_FANOUT_MARKERS,
             ]
         )
@@ -211,6 +247,38 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        missing_focused_check = tmpdir / "missing_focused_check"
+        shutil.copytree(fixture, missing_focused_check, dirs_exist_ok=True)
+        write(
+            missing_focused_check / CONTRACT_PATH,
+            read_text(missing_focused_check / CONTRACT_PATH).replace(
+                "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_focused_check,
+            "python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test",
+        )
+        case_count += 1
+
+        missing_focused_replay = tmpdir / "missing_focused_replay"
+        shutil.copytree(fixture, missing_focused_replay, dirs_exist_ok=True)
+        write(
+            missing_focused_replay / CONTRACT_PATH,
+            read_text(missing_focused_replay / CONTRACT_PATH).replace(
+                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_focused_replay,
+            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+        )
+        case_count += 1
+
         missing_proof_fanout_marker = tmpdir / "missing_proof_fanout_marker"
         shutil.copytree(fixture, missing_proof_fanout_marker, dirs_exist_ok=True)
         write(
@@ -233,6 +301,8 @@ def run_self_test() -> int:
             ("dedicated_survey_replays", ["unexpected-survey"]),
             ("shared_adjunct_replays", ["a", "b"]),
             ("shared_adjunct_build_replays", ["a", "b"]),
+            ("focused_direct_build_checks", ["python3 scripts/zigux/check-phase11-focused-direct-build-replays.py"]),
+            ("focused_direct_build_replays", ["zigux/tests/phase11_hvc_modem_control_proof_build.zig"]),
         ):
             wrong_count = tmpdir / f"wrong_{label}"
             shutil.copytree(fixture, wrong_count, dirs_exist_ok=True)
@@ -256,6 +326,14 @@ def run_self_test() -> int:
         inventory["exact_current_checks"] = list(reversed(inventory["exact_current_checks"]))
         write(wrong_inventory_order / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_inventory_order, "exact_current_checks does not match")
+        case_count += 1
+
+        wrong_focused_checks = tmpdir / "wrong_focused_checks"
+        shutil.copytree(fixture, wrong_focused_checks, dirs_exist_ok=True)
+        inventory = read_json(wrong_focused_checks / INVENTORY_PATH)
+        inventory["focused_direct_build_checks"] = list(reversed(inventory["focused_direct_build_checks"]))
+        write(wrong_focused_checks / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_focused_checks, "focused_direct_build_checks does not match")
         case_count += 1
 
         print("PHASE11_SHARED_REPLAY_CONTRACT_COUNTS_SELF_TEST=pass")
