@@ -92,3 +92,32 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers stay aligned when values are zero-extended" {
+    const value8: u32 = 0x00b5;
+    try std.testing.expectEqual(swHweight8(value8), swHweight16(value8));
+    try std.testing.expectEqual(swHweight8(value8), swHweight32(value8));
+    try std.testing.expectEqual(@as(u64, swHweight8(value8)), swHweight64(value8));
+    try std.testing.expectEqual(swHweight8(value8), __sw_hweight8(value8));
+    try std.testing.expectEqual(swHweight8(value8), __sw_hweight16(value8));
+    try std.testing.expectEqual(swHweight8(value8), __sw_hweight32(value8));
+    try std.testing.expectEqual(@as(u64, swHweight8(value8)), __sw_hweight64(value8));
+    try std.testing.expectEqual(@as(usize, swHweight8(value8)), hweightLong(value8));
+    try std.testing.expectEqual(@as(usize, swHweight8(value8)), hweight_long(value8));
+
+    const value16: u32 = 0xa55a;
+    try std.testing.expectEqual(swHweight16(value16), swHweight32(value16));
+    try std.testing.expectEqual(@as(u64, swHweight16(value16)), swHweight64(value16));
+    try std.testing.expectEqual(swHweight16(value16), __sw_hweight16(value16));
+    try std.testing.expectEqual(swHweight16(value16), __sw_hweight32(value16));
+    try std.testing.expectEqual(@as(u64, swHweight16(value16)), __sw_hweight64(value16));
+    try std.testing.expectEqual(@as(usize, swHweight16(value16)), hweightLong(value16));
+    try std.testing.expectEqual(@as(usize, swHweight16(value16)), hweight_long(value16));
+
+    const value32: u32 = 0x8f00_f055;
+    try std.testing.expectEqual(@as(u64, swHweight32(value32)), swHweight64(value32));
+    try std.testing.expectEqual(swHweight32(value32), __sw_hweight32(value32));
+    try std.testing.expectEqual(@as(u64, swHweight32(value32)), __sw_hweight64(value32));
+    try std.testing.expectEqual(@as(usize, swHweight32(value32)), hweightLong(value32));
+    try std.testing.expectEqual(@as(usize, swHweight32(value32)), hweight_long(value32));
+}
