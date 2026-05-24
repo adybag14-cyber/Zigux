@@ -9,9 +9,9 @@ Phase 11 simple-driver packet on `master`.
 - lane: `P11-L01`
 - reviewed against live `master`
 - scope: verify the current driver-local matrix packet against the roadmap,
-  keep the authenticated-contents versus raw-`master` fallback boundary honest,
-  and record the current roadmap-visible matrix roster without widening into
-  driver-local implementation or platform-backed execution
+  keep the authenticated-contents reread boundary honest, and record the
+  current roadmap-visible matrix roster without widening into driver-local
+  implementation or platform-backed execution
 
 ## Roadmap Anchor
 
@@ -40,10 +40,9 @@ Phase 11 simple-driver packet on `master`.
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
-Authenticated GitHub contents rereads in this run rematerialize the gpio
-watchdog and HVC console driver-local Phase 11 matrix notes named by the
-roadmap, while raw `master` fallback rereads also rematerialize the bcm2835 and
-DesignWare driver-local matrix notes on current `master`.
+Authenticated GitHub contents rereads in this run rematerialize the bcm2835,
+gpio watchdog, HVC console, and DesignWare driver-local Phase 11 matrix notes
+named by the roadmap on current `master`.
 
 The currently reread driver-local Phase 11 matrix notes on current `master` are
 `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`,
@@ -124,7 +123,7 @@ closure.
 
 ## Matrix Survey
 
-- `bcm2835_wdt`: raw `master` fallback rereads now rematerialize
+- `bcm2835_wdt`: authenticated GitHub contents rereads now rematerialize
   `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, so keep that
   returned roadmap-required bcm2835 driver-local matrix explicit. The returned
   bcm2835 matrix also keeps its bounded timeout, probe-summary ownership,
@@ -157,7 +156,7 @@ closure.
   `zigux/tests/phase11_hvc_modem_control_proof_build.zig` explicit as a
   focused modem-control teardown-or-failure-mode proof outside the narrower
   three-entry build inventory.
-- `dw_wdt`: raw `master` fallback rereads now rematerialize
+- `dw_wdt`: authenticated GitHub contents rereads now rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so keep that
   returned roadmap-required DesignWare driver-local matrix explicit. The
   returned DesignWare matrix also keeps its reset-controlled versus
@@ -182,8 +181,8 @@ closure.
   required teardown or failure-mode cues each returned matrix already carries,
   rather than reducing bcm2835 or DesignWare to presence-only roster entries.
 - Keep bcm2835-only and DesignWare-only reminder follow-through in their owner
-  lanes even though both roadmap-required matrices now reread through raw
-  `master` fallback.
+  lanes even though both roadmap-required matrices now reread through
+  authenticated GitHub contents.
 - Keep the roadmap-facing ABI proof gap explicit until current `master`
   rematerializes a broader shared replay or survey route that carries
   cross-driver public-struct ABI proof beyond the surviving HVC-centered
