@@ -28,6 +28,22 @@ It is the current-master gap-note companion for the shipped NVMe foothold, not a
 - manifest anchor: `zigux/tests/phase12_nvme_pci_manifest.json`
 - `zigux/tests/phase12_build.zig` still does not wire the bounded NVMe direct replay into the shared `phase12-smoke` or `phase12` routes
 
+## Current-Master Raw Path Map
+
+Base raw URL prefix:
+`https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/`
+
+- starter shard raw path: `drivers/nvme/host/pci.zig`
+- verifier shard raw path: `drivers/nvme/host/pci_verify.zig`
+- direct replay raw path: `zigux/tests/phase12_nvme_pci.zig`
+- dedicated direct-build raw path: `zigux/tests/phase12_nvme_pci_build.zig`
+- slice note raw path: `Documentation/zigux/phase12-nvme-pci-slice.md`
+- survey note raw path: `Documentation/zigux/phase12-nvme-pci-survey.md`
+- survey gate raw path: `zigux/tests/phase12_nvme_pci_survey.zig`
+- manifest anchor raw path: `zigux/tests/phase12_nvme_pci_manifest.json`
+- reopen-governance raw path: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
+- keep this current-master raw-path map as a browser-side routing aid only; it does not turn the NVMe gap-note companion into a commit-pinned fallback artifact
+
 ## Current-Master Evidence Snapshot
 
 - exact coverage evidence refreshed on `2026-05-22` against live current `master`
