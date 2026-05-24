@@ -28,14 +28,21 @@ PHASE1_BLOCK_LINES = (
     "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
     "run: python3 scripts/zigux/validate-phase1-closure.py",
-    "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
 )
+
+PHASE3_SELFTEST_LINE = "run: python3 scripts/zigux/validate_phase3_selftest.py"
+PHASE3_DUMP_LINE = "run: zig build phase3-dump --build-file zigux/tests/build.zig"
+PHASE1_SMOKE_LINE = "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig"
+PHASE4_START_LINE = "run: python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test"
 
 EXACT_ONCE_LINES = (
     "- name: Setup pinned Zig toolchain",
     "run: python3 scripts/zigux/validate-phase2.py",
     *PHASE1_BLOCK_LINES,
-    "run: python3 scripts/zigux/validate_phase3_selftest.py",
+    PHASE3_SELFTEST_LINE,
+    PHASE3_DUMP_LINE,
+    PHASE1_SMOKE_LINE,
+    PHASE4_START_LINE,
 )
 
 FORBIDDEN_LINES = (
@@ -100,9 +107,12 @@ def collect_failures(root: Path) -> list[str]:
 
     setup_idx = find_line_index(stripped_lines, "- name: Setup pinned Zig toolchain")
     phase2_validate_step_idx = find_line_index(stripped_lines, "run: python3 scripts/zigux/validate-phase2.py")
-    phase3_selftest_step_idx = find_line_index(stripped_lines, "run: python3 scripts/zigux/validate_phase3_selftest.py")
+    phase3_selftest_step_idx = find_line_index(stripped_lines, PHASE3_SELFTEST_LINE)
     phase2_validate_idx = find_line_index(run_lines, "run: python3 scripts/zigux/validate-phase2.py")
-    phase3_selftest_idx = find_line_index(run_lines, "run: python3 scripts/zigux/validate_phase3_selftest.py")
+    phase3_selftest_idx = find_line_index(run_lines, PHASE3_SELFTEST_LINE)
+    phase3_dump_idx = find_line_index(run_lines, PHASE3_DUMP_LINE)
+    phase1_smoke_idx = find_line_index(run_lines, PHASE1_SMOKE_LINE)
+    phase4_start_idx = find_line_index(run_lines, PHASE4_START_LINE)
 
     if not (setup_idx < phase2_validate_step_idx < phase3_selftest_step_idx):
         failures.append("workflow_boundaries:phase2_or_phase3_drifted")
@@ -116,6 +126,9 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("phase1_block_boundary:must_precede_phase3_selftest")
     if phase1_positions != list(range(phase1_positions[0], phase1_positions[0] + len(PHASE1_BLOCK_LINES))):
         failures.append("phase1_block_contiguity:drifted")
+
+    if not (phase3_selftest_idx < phase3_dump_idx < phase1_smoke_idx < phase4_start_idx):
+        failures.append("phase1_smoke_boundary:must_follow_phase3_dump_and_precede_phase4")
 
     names = step_names(text)
     if OPTIONAL_PREFLIGHT_BLOCK[0] in names or OPTIONAL_PREFLIGHT_BLOCK[1] in names:
@@ -199,10 +212,14 @@ def sample_workflow(include_preflight: bool = False) -> str:
             "        run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
             "      - name: Check current Phase 1 closure packet",
             "        run: python3 scripts/zigux/validate-phase1-closure.py",
-            "      - name: Run current Phase 1 shared tests-root smoke",
-            "        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
             "      - name: Self-test current Phase 3 interop packet",
             "        run: python3 scripts/zigux/validate_phase3_selftest.py",
+            "      - name: Run current Phase 3 ABI dump replay",
+            "        run: zig build phase3-dump --build-file zigux/tests/build.zig",
+            "      - name: Run current Phase 1 shared tests-root smoke",
+            "        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
+            "      - name: Self-test current Phase 4 repo-reality warning checker",
+            "        run: python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -275,9 +292,9 @@ def run_self_test() -> int:
         ("baseline_with_preflight", True, None),
         ("missing_workflow", False, lambda root: (root / WORKFLOW_REL).unlink()),
         ("missing_phase2_validate", False, lambda root: remove_line(root, "run: python3 scripts/zigux/validate-phase2.py")),
-        ("missing_phase3_selftest", False, lambda root: remove_line(root, "run: python3 scripts/zigux/validate_phase3_selftest.py")),
-        ("missing_phase1_smoke", False, lambda root: remove_line(root, "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig")),
-        ("duplicate_phase1_smoke", False, lambda root: duplicate_line(root, "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig")),
+        ("missing_phase3_selftest", False, lambda root: remove_line(root, PHASE3_SELFTEST_LINE)),
+        ("missing_phase1_smoke", False, lambda root: remove_line(root, PHASE1_SMOKE_LINE)),
+        ("duplicate_phase1_smoke", False, lambda root: duplicate_line(root, PHASE1_SMOKE_LINE)),
         ("missing_live_string_review", False, lambda root: remove_line(root, "run: python3 scripts/zigux/check-phase1-string-review-packet.py")),
         ("live_bench_enabled", False, lambda root: append_forbidden(root, "run: python3 scripts/zigux/check-phase1-bench.py")),
         ("old_phase1_validate_route", False, lambda root: append_forbidden(root, "run: make -C zigux phase1-validate")),
@@ -297,7 +314,17 @@ def run_self_test() -> int:
             lambda root: replace_line(
                 root,
                 "run: python3 scripts/zigux/validate-phase2.py",
-                "run: python3 scripts/zigux/validate_phase3_selftest.py",
+                PHASE3_SELFTEST_LINE,
+            ),
+        ),
+        (
+            "phase1_smoke_before_phase3_dump",
+            False,
+            lambda root: insert_step_after(
+                root,
+                "run: python3 scripts/zigux/validate-phase1-closure.py",
+                "Moved smoke too early",
+                PHASE1_SMOKE_LINE,
             ),
         ),
         (
@@ -349,6 +376,7 @@ def main() -> int:
 
     print("PHASE1_WORKFLOW_STRUCTURE=pass")
     print("PHASE1_WORKFLOW_STRUCTURE_BLOCK=current_phase2_validate_to_phase3_selftest")
+    print("PHASE1_WORKFLOW_STRUCTURE_SMOKE_PLACEMENT=post_phase3_dump_pre_phase4")
     print(f"PHASE1_WORKFLOW_STRUCTURE_REQUIRED_LINE_COUNT={len(EXACT_ONCE_LINES)}")
     print(f"PHASE1_WORKFLOW_STRUCTURE_PHASE1_STEP_COUNT={len(PHASE1_BLOCK_LINES)}")
     return 0
