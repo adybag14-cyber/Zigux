@@ -1,8 +1,8 @@
 {
-  "lane_key": "P12-L13",
+  "lane_key": "P12-L09",
   "phase": "Phase 12",
   "surveyed_commit": "unresolved_on_master",
-  "verified_on": "2026-05-21",
+  "verified_on": "2026-05-24",
   "anchor": "drivers/scsi/virtio_scsi.c",
   "fixture_kind": "rollback_evidence_presence_manifest",
   "source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json",
