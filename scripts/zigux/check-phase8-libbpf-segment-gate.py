@@ -345,6 +345,18 @@ def run_self_test() -> int:
 
         survey_path.write_text(
             original_survey.replace(
+                "focused libbpf-segment shard",
+                "focused libbpf review shard",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{SURVEY_PATH}:{SURVEY_MARKERS[1]}" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:reminder_survey_marker")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
                 "ready-buffer FD wrappers",
                 "ready-buffer handle wrappers",
                 1,
@@ -599,7 +611,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=24")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=25")
     return 0
 
 def main() -> int:
