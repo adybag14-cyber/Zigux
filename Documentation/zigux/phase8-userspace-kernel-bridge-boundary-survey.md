@@ -24,6 +24,8 @@ Exact authenticated contents readback now serves this survey note, `Documentatio
 
 That packet stays smaller than live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior.
 
+Within that bounded packet, the already-landed planning helpers still keep `resolveReusePinnedMapAttempt()` and `planTokenPreparation()` explicit as side-effect-free bridge intent summaries: they describe pinned-map reuse and token-readiness decisions without claiming direct procfs reads, bpffs opens, token materialization, or descriptor ownership behavior.
+
 ## Helper-local online-CPU routing evidence
 Current `master` also keeps bounded helper-local online-CPU routing evidence explicit through `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` and the focused review witnesses that read it.
 
