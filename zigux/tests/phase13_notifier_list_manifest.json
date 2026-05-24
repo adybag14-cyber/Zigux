@@ -42,7 +42,7 @@
       "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, HVC declarations, and repo-reality-gap wording."
     },
     "zigux/tests/phase13_notifier_list_reviewability.zig": {
-      "sha": "85994411d9dc667a65e914a4e66f24a6b74313f4",
+      "sha": "c228b2caddb062bd04187ccbd983e7fbba63ceec",
       "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, HVC-header, and returned zigux/Makefile versus missing shared-route distinction visible without widening into the shared Phase 13 build shard."
     },
     "scripts/zigux/validate-phase13-release.py": {
