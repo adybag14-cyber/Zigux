@@ -235,6 +235,14 @@ pub fn build(b: *std.Build) void {
     const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");
     checksum_perf_step.dependOn(&run_checksum_perf.step);
 
+    const checksum_review_step = b.step(
+        "phase6-checksum-review",
+        "Run Phase 6 checksum helper review preflight",
+    );
+    checksum_review_step.dependOn(&run_checksum_tests.step);
+    checksum_review_step.dependOn(&run_checksum_perf_matrix_tests.step);
+    checksum_review_step.dependOn(&run_checksum_perf.step);
+
     const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");
     hexdump_perf_step.dependOn(&run_hexdump_perf.step);
 
