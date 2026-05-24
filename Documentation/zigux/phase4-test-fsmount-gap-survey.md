@@ -5,6 +5,7 @@
 - `PHASE4_TEST_FSMOUNT_PHASE=Phase 4`
 - `PHASE4_TEST_FSMOUNT_C_ANCHOR=samples/vfs/test-fsmount.c`
 - `PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs`
+- `PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey`
 - `PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow`
@@ -20,6 +21,7 @@ This parked Phase 4 gap packet keeps the still-absent `samples/zigux/test_fsmoun
 
 The packet is intentionally narrow:
 - keep the roadmap-backed C anchor and replay path explicit
+- keep the explicit local lab replay marker explicit
 - keep both dedicated local survey wrappers explicit
 - keep the shared lab-and-CI matrix anchor explicit
 - keep the direct validation entrypoint explicit
@@ -37,11 +39,11 @@ The bounded evidence packet instead remains:
 - `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`
 - `make -C zigux phase4-test-fsmount-survey`
 
-That packet keeps the roadmap-backed C anchor, the current Linux replay path, both dedicated local survey wrappers, the explicit bootstrap-CI posture, the direct validation entrypoint, the explicit reviewability-only no-perf-threshold posture, the owner, and the rollback owner measurable while the shared Phase 4 rollback-readiness lane remains below starter implementation.
+That packet keeps the roadmap-backed C anchor, the current Linux replay path, the explicit local lab replay marker, both dedicated local survey wrappers, the explicit bootstrap-CI posture, the direct validation entrypoint, the explicit reviewability-only no-perf-threshold posture, the owner, and the rollback owner measurable while the shared Phase 4 rollback-readiness lane remains below starter implementation.
 
 The same packet also keeps its reversible-delivery evidence string pinned in the paired manifest so the absent-starter boundary does not fall back to note prose alone.
-The shared validator and remaining-gap checker now fail closed on this manifest-backed `test_fsmount` survey packet, so the remaining measurable gap in this packet is the absent Zig starter rather than reminder-surface promotion.
+The shared validator and remaining-gap checker now fail closed on this manifest-backed `test_fsmount` survey packet, so the remaining measurable gap in this packet is the absent Zig starter rather than local-lab replay or reminder-surface drift.
 
 ## Next Bounded Evidence Step
-keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter
+keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit local lab replay marker, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter
 Until then, this note should stay truthful about the absent Zig starter boundary.
