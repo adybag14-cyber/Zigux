@@ -4,16 +4,19 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Fresh mixed readback on 2026-05-22 confirmed these current sample-root files on `master`:
+Fresh mixed readback on 2026-05-23 confirmed these current sample-root files on `master`:
 
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kobject_example.zig`
 * `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
+* `samples/zigux/kretprobe_example_instance_budget_contract.zig`
+* `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_atomic64.zig`
 * `samples/zigux/runtime_bitmap.zig`
+* `samples/zigux/runtime_bitmap_cold_stage_guard.zig`
 * `samples/zigux/runtime_bitmap_loader.zig`
 * `samples/zigux/runtime_bitmap_top_bit_contract.zig`
 * `samples/zigux/runtime_trace_events.zig`
@@ -30,9 +33,9 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 
 Current `master` keeps the bytestream sample-root port directly readable in `samples/zigux/` through `samples/zigux/bytestream_fifo.zig`.
 Current `master` keeps the kobject sample-root port directly readable in `samples/zigux/` through `samples/zigux/kobject_example.zig`, while `samples/zigux/kobject_example_attr_group_contract.zig` stays a bounded companion inside the same approved anchor rather than a fifth sample family.
-Current `master` keeps the kretprobe sample-root port directly readable in `samples/zigux/` through `samples/zigux/kretprobe_example.zig`.
-For the trace-events anchor, current `master` keeps the direct non-runtime evidence narrowed to the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` plus the shared reminder packet carried by `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
-Keep `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` framed as repo-reality-gap, historical-support, or public-tree-backed companion references until a fresh authenticated reread proves they returned directly.
+Current `master` keeps the kretprobe sample-root port directly readable in `samples/zigux/` through `samples/zigux/kretprobe_example.zig`, while `samples/zigux/kretprobe_example_instance_budget_contract.zig` stays a bounded companion inside the same approved anchor rather than a fifth sample family.
+For the trace-events anchor, current `master` keeps the direct non-runtime evidence split between the broader companion `samples/zigux/trace_events_sample.zig`, the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig`, and the shared reminder packet carried by `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
+Keep `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` framed as the direct broader trace-events companion packet for that same approved anchor rather than as proof that string helpers became a fifth Phase 5 sample family.
 Keep the shared `zigux/tests/phase5_build.zig` route framed as companion evidence rather than direct authenticated proof.
 
 ## Phase 5 reminder
@@ -61,6 +64,7 @@ The directly readable runtime-facing sample-root evidence on current `master` be
 
 * `samples/zigux/runtime_atomic64.zig`
 * `samples/zigux/runtime_bitmap.zig`
+* `samples/zigux/runtime_bitmap_cold_stage_guard.zig`
 * `samples/zigux/runtime_bitmap_loader.zig`
 * `samples/zigux/runtime_bitmap_top_bit_contract.zig`
 * `samples/zigux/runtime_trace_events.zig`
