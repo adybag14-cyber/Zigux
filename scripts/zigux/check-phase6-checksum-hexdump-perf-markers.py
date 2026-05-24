@@ -109,7 +109,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 49
+SELF_TEST_CASE_COUNT = 51
 
 
 class ValidationError(RuntimeError):
@@ -262,6 +262,7 @@ def validate_parity_manifest(path: Path) -> None:
     validate_case_matrix("checksum", checksum_perf.get("cases"), EXPECTED_CHECKSUM_CASES)
     if checksum_perf.get("payload_case_labels") != list(EXPECTED_CHECKSUM_CASES):
         raise ValidationError("checksum payload_case_labels drifted")
+    validate_case_matrix("checksum ipv4 fast path", checksum_perf.get("ipv4_fast_path_cases"), EXPECTED_CHECKSUM_IPV4_FAST_PATH_CASES)
     if checksum_perf.get("ipv4_fast_path_case_labels") != EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS:
         raise ValidationError("checksum ipv4_fast_path_case_labels drifted")
 
@@ -318,7 +319,7 @@ def scaffold_repo(root: Path) -> None:
         "surveyed_head": EXPECTED_SURVEYED_HEAD,
         "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
         "helpers": [
-            {"key": "checksum", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS, "linux_style_rerun_routes": ["make -C zigux phase6-checksum-perf-matrix-test", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-perf"]}},
+            {"key": "checksum", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_cases": [{"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100}, {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100}], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS, "linux_style_rerun_routes": ["make -C zigux phase6-checksum-perf-matrix-test", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-perf"]}},
             {"key": "hexdump", "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES, "perf_matrix_preflight": EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT, "current_perf_evidence": {"cases": [{"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175}, {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600}], "linux_style_rerun_routes": ["make -C zigux phase6-hexdump-review", "make -C zigux phase6-hexdump-perf-matrix-test", "make -C zigux phase6-hexdump-perf", "make -C zigux phase6-perf"]}}
         ],
     }, indent=2) + "\n")
@@ -370,7 +371,9 @@ def run_self_test() -> None:
             (PARITY_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-22"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-parity surveyed_head drifted"),
             (PARITY_MANIFEST_PATH, '"label": "1501B"', '"label": "1500B"', "checksum perf case drift"),
             (PARITY_MANIFEST_PATH, '"iterations": 12000', '"iterations": 16000', "checksum 1501B iterations drifted"),
-            (PARITY_MANIFEST_PATH, '"IPV4_60B"', '"IPV4_64B"', "checksum ipv4_fast_path_case_labels drifted"),
+            (PARITY_MANIFEST_PATH, '"label": "IPV4_24B"', '"label": "IPV4_28B"', "checksum ipv4 fast path perf case drift"),
+            (PARITY_MANIFEST_PATH, '"iterations": 500000', '"iterations": 450000', "checksum ipv4 fast path IPV4_24B iterations drifted"),
+            (PARITY_MANIFEST_PATH, '"IPV4_60B"', '"IPV4_64B"', "checksum ipv4 fast path perf case drift"),
             (PARITY_MANIFEST_PATH, '"perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf_matrix.zig"', '"perf_matrix_preflight": "zigux/tests/phase6_hexdump_perf.zig"', "hexdump perf_matrix_preflight drifted"),
             (PARITY_MANIFEST_PATH, '"label": "32B-ascii-g2"', '"label": "32B-ascii-g4"', "hexdump perf case drift"),
             (PARITY_MANIFEST_PATH, '"reps": 10000', '"reps": 8000', "hexdump 32B-ascii-g2 reps drifted"),
