@@ -220,7 +220,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 53
+SELF_TEST_CASE_COUNT = 57
 
 
 def read_text(path: Path) -> str:
@@ -434,6 +434,30 @@ def run_self_test() -> None:
         helper_parse_alias_marker = "pub fn parse_int_array("
         remove_once(helper_path, helper_parse_alias_marker)
         expect_missing_marker("missing_helper_parse_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_parse_alias_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_string_upper_marker = "pub fn stringUpper("
+        remove_once(helper_path, helper_string_upper_marker)
+        expect_missing_marker("missing_helper_string_upper_marker", tmp_root, f"lib/string_helpers.zig: {helper_string_upper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_string_upper_alias_marker = "pub fn string_upper("
+        remove_once(helper_path, helper_string_upper_alias_marker)
+        expect_missing_marker("missing_helper_string_upper_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_string_upper_alias_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_string_lower_marker = "pub fn stringLower("
+        remove_once(helper_path, helper_string_lower_marker)
+        expect_missing_marker("missing_helper_string_lower_marker", tmp_root, f"lib/string_helpers.zig: {helper_string_lower_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_string_lower_alias_marker = "pub fn string_lower("
+        remove_once(helper_path, helper_string_lower_alias_marker)
+        expect_missing_marker("missing_helper_string_lower_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_string_lower_alias_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
