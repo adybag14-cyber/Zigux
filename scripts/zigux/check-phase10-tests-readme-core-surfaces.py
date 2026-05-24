@@ -25,7 +25,7 @@ COMPANION_REQUIRED_MARKERS = (
     "`Documentation/zigux/phase10-virtio-ring-survey.md`",
     "`drivers/virtio/virtio_ring_publish_readiness.zig`",
     "`zigux/tests/phase10_virtio_ring_survey.zig`",
-    "the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it",
+    "Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` explicit as the directly re-readable broader ring companion.",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
     "`drivers/virtio/virtio_input_verify.zig`",
@@ -48,7 +48,6 @@ COMPANION_REQUIRED_MARKERS = (
     "`drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning",
     "`drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning",
     "current direct lane readback now rematerializes `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig`",
-    "Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` framed as the broader public current-`master` companion where exact direct-path readback still misses it.",
 )
 
 COMPANION_FORBIDDEN_MARKERS = (
@@ -56,6 +55,7 @@ COMPANION_FORBIDDEN_MARKERS = (
     "current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core.zig`",
     "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
     "current direct lane readback still does not materialize `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` through the direct readback available in this lane",
+    "the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it",
 )
 
 TESTS_ROOT_REQUIRED_MARKERS = (
@@ -156,16 +156,16 @@ Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedic
 
 Keep the MMIO helper names `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig` explicit beside `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `scripts/zigux/check-phase10-mmio-packet.py`, and the shared `zigux/tests/phase10_build.zig` gate on the same narrower basis; treat any dedicated MMIO lifecycle replay step as a last-known packet member until a fresh reread rematerializes it.
 
-Keep the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.
+Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` explicit as the directly re-readable broader ring companion.
 
 Tests-root reviewer prompt:
-- keep the blocked risky-transport posture explicit while keeping the now-returned driver-id pair explicit beside the returned core-side companions and `zigux/tests/phase10_virtio_ring.zig` framed as the broader public current-`master` ring companion where exact direct-path readback still misses it.
+- keep the blocked risky-transport posture explicit while keeping the now-returned driver-id pair explicit beside the returned core-side companions and `zigux/tests/phase10_virtio_ring.zig` explicit as the directly re-readable broader ring companion.
 
 Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh, so the returned ring survey, the helper-local MMIO survey, and their blocked risky-transport wording do not collapse back into one generic freeze-boundary bucket.
 
 Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning.
 
-Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` framed as the broader public current-`master` companion where exact direct-path readback still misses it.
+Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` explicit as the directly re-readable broader ring companion.
 
 ## Phase 11 tests-root packet
 """
@@ -225,6 +225,18 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         assert "forbidden" in str(exc)
     else:
         raise AssertionError("expected stale missing-validator marker failure")
+
+    stale_ring_companion = good_companion.replace(
+        "Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` explicit as the directly re-readable broader ring companion.",
+        "Keep the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.",
+        1,
+    )
+    try:
+        check_companion_text(stale_ring_companion)
+    except SystemExit as exc:
+        assert "forbidden" in str(exc)
+    else:
+        raise AssertionError("expected stale ring companion wording failure")
 
     bad_tests_root = good_tests_root.replace(
         "`make -C zigux phase10-test`",
@@ -383,9 +395,8 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing ring publish-readiness marker failure")
 
     bad_ring_companion = good_companion.replace(
-        "Keep the public current-`master` `zigux/tests/phase10_virtio_ring.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.",
-        "Keep the public current-`master` `zigux/tests/phase10_virtio_ring_missing.zig` replay kept explicit as the returned broader ring companion while exact direct-path readback in this runtime still misses it.",
-        1,
+        "Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` explicit as the directly re-readable broader ring companion.",
+        "Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring_missing.zig` explicit as the directly re-readable broader ring companion.",
     )
     try:
         check_companion_text(bad_ring_companion)
@@ -491,7 +502,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing ring publish-readiness scripts-root marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
