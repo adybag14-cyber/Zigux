@@ -98,7 +98,7 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("6791c1229b883d9f0acf9ec70e4159db1c9d1bf6", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("2026-05-22", manifest.verified_on);
@@ -159,7 +159,7 @@ test "phase12 virtio net survey note reflects the shared survey-gate route" {
     defer std.testing.allocator.free(survey_note);
 
     try expectContains(survey_note, "PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only");
-    try expectContains(survey_note, "lane owner: `P12-L01`");
+    try expectContains(survey_note, "lane owner: `P12-L04`");
     try expectContains(survey_note, "drivers/net/virtio_net_receive_refill_replay.zig");
     try expectContains(survey_note, "drivers/net/virtio_net_throughput_parity.zig");
     try expectContains(survey_note, "throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes");
