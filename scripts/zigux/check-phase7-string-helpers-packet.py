@@ -220,7 +220,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 52
+SELF_TEST_CASE_COUNT = 53
 
 
 def read_text(path: Path) -> str:
@@ -379,6 +379,16 @@ def run_self_test() -> None:
             "missing_checker_printf_boundary_marker",
             tmp_root,
             f"scripts/zigux/check-phase7-string-helpers-packet.py: {checker_printf_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_vsprintf_marker = '"* `*vsprintf*`"'
+        remove_once(checker_path, checker_vsprintf_marker)
+        expect_missing_marker(
+            "missing_checker_vsprintf_boundary_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-string-helpers-packet.py: {checker_vsprintf_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
