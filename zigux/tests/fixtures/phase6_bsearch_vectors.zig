@@ -54,7 +54,7 @@ pub fn seedDeterministicQueries(len: usize, values: []const u32, queries: []u32,
     std.debug.assert(len != 0);
     std.debug.assert(values.len == len);
     std.debug.assert(queries.len == expected_hits.len);
-    std.debug.assert(queries.len >= 8);
+    std.debug.assert(queries.len >= query_count);
 
     @memset(queries, 0);
     @memset(expected_hits, false);
@@ -165,4 +165,23 @@ test "phase 6 bsearch perf seeds stay deterministic" {
     try std.testing.expectEqual(values[values.len / 3] + 1, queries[13]);
     try std.testing.expectEqual(values[(values.len * 3) / 4] + 1, queries[14]);
     try std.testing.expectEqual(values[values.len - 1 - (values.len / 5)] + 1, queries[15]);
+}
+
+test "phase 6 bsearch perf seed helper clears larger buffers after the documented query footprint" {
+    var values: [representative_ascending_values.len]u32 = undefined;
+    for (&values, 0..) |*slot, index| {
+        slot.* = @as(u32, @intCast(index * 2));
+    }
+
+    var queries = [_]u32{0xA5A5A5A5} ** (query_count + 2);
+    var expected_hits = [_]bool{true} ** (query_count + 2);
+
+    seedDeterministicQueries(values.len, values[0..], queries[0..], expected_hits[0..]);
+
+    try std.testing.expectEqual(values[0], queries[0]);
+    try std.testing.expectEqual(values[values.len - 1 - (values.len / 5)] + 1, queries[15]);
+    try std.testing.expectEqual(@as(u32, 0), queries[query_count]);
+    try std.testing.expectEqual(@as(u32, 0), queries[query_count + 1]);
+    try std.testing.expect(!expected_hits[query_count]);
+    try std.testing.expect(!expected_hits[query_count + 1]);
 }
