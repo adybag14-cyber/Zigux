@@ -1,11 +1,10 @@
 {
   "lane_key": "P7-L08",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-22T11:36:33Z",
+  "verified_on_utc": "2026-05-24T09:02:00Z",
   "anchor": "lib/cmdline.c",
   "current_master_state": "helper_slice_test_survey_manifest_anchor",
   "review_surfaces": [
-    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-cmdline-slice.md",
     "lib/cmdline.zig",
     "zigux/tests/phase7_cmdline.zig",
