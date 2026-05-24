@@ -124,7 +124,7 @@ pub const RuntimeKretprobeSample = struct {
         self.unregistration_runs += 1;
     }
 
-    pub fn runSelftest(self: *Self) !void {
+    pub fn runSelftest(self: *Self) !SelftestSummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
         try self.registerProbe();
