@@ -93,6 +93,28 @@ test "phase 7 cmdline companion replays validator-only getOption cursor movement
     try std.testing.expectEqualStrings("rest", negative_rest);
 }
 
+test "phase 7 cmdline companion replays nextArg empty-input and leading-whitespace ownership borrowing" {
+    const empty_input: []const u8 = "";
+    const empty = cmdline.nextArg(empty_input);
+    try std.testing.expectEqual(@as(usize, 0), empty.param.len);
+    try std.testing.expectEqual(@as(usize, 0), empty.rest.len);
+    try std.testing.expectEqual(@as(usize, 0), empty.remaining.len);
+    try std.testing.expect(empty.value == null);
+    try std.testing.expectEqual(@intFromPtr(empty_input.ptr), @intFromPtr(empty.param.ptr));
+    try std.testing.expectEqual(@intFromPtr(empty_input.ptr), @intFromPtr(empty.rest.ptr));
+    try std.testing.expectEqual(@intFromPtr(empty.rest.ptr), @intFromPtr(empty.remaining.ptr));
+
+    const leading_input: []const u8 = "  panic=-1";
+    const leading = cmdline.nextArg(leading_input);
+    try std.testing.expectEqual(@as(usize, 0), leading.param.len);
+    try std.testing.expect(leading.value == null);
+    try std.testing.expectEqualStrings("panic=-1", leading.rest);
+    try std.testing.expectEqualStrings("panic=-1", leading.remaining);
+    try std.testing.expectEqual(@intFromPtr(leading_input.ptr), @intFromPtr(leading.param.ptr));
+    try std.testing.expectEqual(@intFromPtr(leading_input.ptr) + 2, @intFromPtr(leading.rest.ptr));
+    try std.testing.expectEqual(@intFromPtr(leading.rest.ptr), @intFromPtr(leading.remaining.ptr));
+}
+
 test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {
     const parsed = cmdline.nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1");
     try std.testing.expectEqualStrings("console", parsed.param);
