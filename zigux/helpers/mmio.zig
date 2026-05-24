@@ -13,6 +13,15 @@ pub const MmioRange = extern struct {
     stride: u32,
 };
 
+pub const RangeError = PolicyError || error{
+    EmptyRange,
+    ZeroStride,
+    OffsetNotStrideAligned,
+    AccessExceedsStride,
+    AccessOutOfRange,
+    MisalignedAccess,
+};
+
 fn scopeFromInteropPolicy(policy: abi.InteropPolicy) PolicyError!abi.UnsafeScope {
     return unsafe_policy.scopeFromInteropPolicy(policy) orelse error.InvalidInteropPolicy;
 }
@@ -92,6 +101,62 @@ pub fn writeMasked(comptime T: type, ptr: *volatile T, clear_mask: T, set_mask: 
     return after;
 }
 
+fn validateRangeShape(length: u32, stride: u32) RangeError!void {
+    if (length == 0) return error.EmptyRange;
+    if (stride == 0) return error.ZeroStride;
+}
+
+pub fn validateRange(range: MmioRange) RangeError!void {
+    try validateRangeShape(range.length, range.stride);
+}
+
+fn rangeAddress(comptime T: type, range: MmioRange, byte_offset: usize) RangeError!usize {
+    try validateRange(range);
+
+    const stride = @as(usize, range.stride);
+    if ((byte_offset % stride) != 0) return error.OffsetNotStrideAligned;
+
+    const access_width = @sizeOf(T);
+    if (access_width > stride) return error.AccessExceedsStride;
+
+    const access_end = std.math.add(usize, byte_offset, access_width) catch return error.AccessOutOfRange;
+    if (access_end > @as(usize, range.length)) return error.AccessOutOfRange;
+
+    const access_addr = std.math.add(usize, range.base_addr, byte_offset) catch return error.AccessOutOfRange;
+    if ((access_addr % @alignOf(T)) != 0) return error.MisalignedAccess;
+    return access_addr;
+}
+
+pub fn pointerInRange(comptime T: type, range: MmioRange, byte_offset: usize) RangeError!*volatile T {
+    return @ptrFromInt(try rangeAddress(T, range, byte_offset));
+}
+
+pub fn constPointerInRange(comptime T: type, range: MmioRange, byte_offset: usize) RangeError!*const volatile T {
+    return @ptrFromInt(try rangeAddress(T, range, byte_offset));
+}
+
+pub fn readRange(comptime T: type, range: MmioRange, byte_offset: usize) RangeError!T {
+    return read(T, try constPointerInRange(T, range, byte_offset));
+}
+
+pub fn writeRange(comptime T: type, range: MmioRange, byte_offset: usize, value: T) RangeError!void {
+    write(T, try pointerInRange(T, range, byte_offset), value);
+}
+
+pub fn exchangeRange(comptime T: type, range: MmioRange, byte_offset: usize, value: T) RangeError!T {
+    return exchange(T, try pointerInRange(T, range, byte_offset), value);
+}
+
+pub fn writeMaskedRange(
+    comptime T: type,
+    range: MmioRange,
+    byte_offset: usize,
+    clear_mask: T,
+    set_mask: T,
+) RangeError!T {
+    return writeMasked(T, try pointerInRange(T, range, byte_offset), clear_mask, set_mask);
+}
+
 pub fn readScoped(comptime T: type, scope: abi.UnsafeScope, ptr: *const volatile T) PolicyError!T {
     try requireVolatileMmioScope(scope);
     return read(T, ptr);
@@ -118,34 +183,40 @@ pub fn writeMaskedScoped(
     return writeMasked(T, ptr, clear_mask, set_mask);
 }
 
-pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) PolicyError!MmioRange {
+pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) RangeError!MmioRange {
     try requireVolatileMmioScope(scope);
-    return .{
+    const range = MmioRange{
         .base_addr = base_addr,
         .length = length,
         .stride = stride,
     };
+    try validateRange(range);
+    return range;
 }
 
-pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) PolicyError!MmioRange {
+pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) RangeError!MmioRange {
     try requireInteropPolicy(policy);
-    return .{
+    const range = MmioRange{
         .base_addr = base_addr,
         .length = length,
         .stride = stride,
     };
+    try validateRange(range);
+    return range;
 }
 
-pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) PolicyError!MmioRange {
+pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) RangeError!MmioRange {
     try requireInteropPolicyBytes(unsafe_scope, reserved);
-    return .{
+    const range = MmioRange{
         .base_addr = base_addr,
         .length = length,
         .stride = stride,
     };
+    try validateRange(range);
+    return range;
 }
 
-pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) PolicyError!MmioRange {
+pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) RangeError!MmioRange {
     return rangeInteropPolicyBytes(base_addr, length, stride, unsafe_scope, 0);
 }
 
@@ -438,6 +509,42 @@ test "phase3 mmio helper keeps helper-local ranges and width aliases explicit" {
     try std.testing.expectEqual(@as(u32, 0xC001_D00D), try read32InteropPolicyByte(base_addr, 4, mmio_scope));
 
     try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base_addr, 8, 0, no_unsafe_scope, 0));
+}
+
+test "phase3 mmio helper keeps range-based register windows reviewable" {
+    var words = [_]u32{ 0, 0, 0, 0 };
+    const range = try rangeScoped(@intFromPtr(&words[0]), 16, 4, .volatile_mmio);
+
+    try writeRange(u32, range, 0, 0x1122_3344);
+    try writeRange(u32, range, 4, 0x5566_7788);
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), try readRange(u32, range, 0));
+    try std.testing.expectEqual(@as(u32, 0x5566_7788), try readRange(u32, range, 4));
+    try std.testing.expectEqual(@as(u32, 0x5566_7788), try exchangeRange(u32, range, 4, 0x99AA_BBCC));
+    try std.testing.expectEqual(@as(u32, 0x99AA_BBCC), try readRange(u32, range, 4));
+    try std.testing.expectEqual(@as(u32, 0x99AA_BB0D), try writeMaskedRange(u32, range, 4, 0x0000_00F0, 0x0000_000D));
+    try std.testing.expectEqual(@as(u32, 0x99AA_BB0D), words[1]);
+    try std.testing.expectEqual(@as(u32, 0x99AA_BB0D), (try pointerInRange(u32, range, 4)).*);
+    try std.testing.expectEqual(@as(u32, 0x99AA_BB0D), (try constPointerInRange(u32, range, 4)).*);
+}
+
+test "phase3 mmio helper rejects malformed range windows before access" {
+    var words = [_]u32{ 0, 0, 0, 0 };
+    const base_addr = @intFromPtr(&words[0]);
+
+    try std.testing.expectError(error.EmptyRange, rangeScoped(base_addr, 0, 4, .volatile_mmio));
+    try std.testing.expectError(error.ZeroStride, rangeScoped(base_addr, 16, 0, .volatile_mmio));
+
+    const range = try rangeScoped(base_addr, 16, 4, .volatile_mmio);
+    try std.testing.expectError(error.OffsetNotStrideAligned, pointerInRange(u32, range, 2));
+    try std.testing.expectError(error.AccessOutOfRange, pointerInRange(u32, range, 16));
+    try std.testing.expectError(error.AccessExceedsStride, pointerInRange(u64, range, 0));
+
+    const misaligned = MmioRange{
+        .base_addr = base_addr + 1,
+        .length = 12,
+        .stride = 4,
+    };
+    try std.testing.expectError(error.MisalignedAccess, pointerInRange(u32, misaligned, 0));
 }
 
 test "phase3 mmio helper keeps 64-bit const reads and masked updates reviewable" {
