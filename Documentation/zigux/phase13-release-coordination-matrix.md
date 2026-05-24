@@ -35,7 +35,7 @@ The active shared packet stays contributor-facing and review-first. Helper-local
 ## Owner Split
 
 - PMO / Release Management: keep this matrix, the workflow guide, the sequencing note, the release-notes survey, the roadmap-traceability note, the shared-summary-gap note, the notifier-gap note, the shared-summary guard, the tests-root alignment companion, and the release-discipline validator aligned
-- helper-local owners: keep `libfs`, `devres`, and `landlock` packet wording grounded in their shipped surveys, slices, starter files, focused reviewability manifests, and the narrower current `devres` packet's dedicated DMA-boundary checker pair, pure `dmam_alloc_coherent()` planner note plus manifest-backed replay, helper-first `devm_of_iomap()` planner note plus manifest-backed replay, helper-first `devm_iounmap()` planner note plus manifest-backed replay, and helper-first scatterlist build shard, while keeping the shipped Landlock syscalls governance-plus-slice-plus-starter packet explicit through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig` and leaving `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` recorded as repo-reality gaps
+- helper-local owners: keep `libfs`, `devres`, and `landlock` packet wording grounded in their shipped surveys, slices, starter files, focused reviewability manifests, and the narrower current `devres` packet's dedicated DMA-boundary checker pair, pure `dmam_alloc_coherent()` planner note plus manifest-backed replay, helper-first `devm_of_iomap()` planner note plus manifest-backed replay, helper-first `devm_iounmap()` planner note plus manifest-backed replay, and helper-first scatterlist build shard, while keeping the shipped Landlock syscalls governance-plus-slice-plus-survey-plus-starter packet explicit through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `scripts/zigux/check-phase13-landlock-syscalls-packet.py`, and `security/landlock/syscalls.zig` and leaving `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` recorded as repo-reality gaps
 - adjacent notifier support: keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` truthful as support evidence without promoting them into a fifth helper lane
 
 ## Release Handle
@@ -67,10 +67,9 @@ Keep the still-missing Phase 13 route family recorded as repo-reality gaps rathe
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
-- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 
-Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support beside the shared-summary guard and tests-root alignment companion instead of carrying it in the repo-reality-gap bucket.
+Current `master` now materializes `scripts/zigux/validate-phase13-release.py` and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, so keep those validators explicit as shipped release-discipline and helper-local support beside the shared-summary guard and tests-root alignment companion instead of carrying them in the repo-reality-gap bucket.
 
 ## Review Use
 
@@ -85,12 +84,12 @@ When shared Phase 13 wording changes:
 
 ## Next Coordinated Step
 
-The recent docs-root, tests-root, and scripts-root Phase 13 `libfs` reminder repairs are now landed: current `master` keeps `scripts/zigux/README.md` aligned with the shipped `Documentation/zigux/phase13-libfs-slice.md` packet while `Documentation/zigux/phase13-libfs-survey.md` and `zigux/tests/phase13_libfs_addressability.zig` remain repo-reality gaps.
+The recent docs-root, tests-root, and scripts-root Phase 13 `libfs` reminder repairs are now landed: current `master` keeps `scripts/zigux/README.md` aligned with the shipped `Documentation/zigux/phase13-libfs-slice.md` and `Documentation/zigux/phase13-libfs-survey.md` packet while `zigux/tests/phase13_libfs_addressability.zig` remains a repo-reality gap.
 
 - reread `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` against `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` for the next smallest same-packet truthfulness drift instead of parking another scripts-root `libfs` follow-through that current `master` no longer needs
 - keep the shipped `devres` planner-expanded reminder packet explicit where those broader surfaces summarize existing work: `Documentation/zigux/phase13-devres-iomap-planner.md`, `Documentation/zigux/phase13-devres-iounmap-planner.md`, `scripts/zigux/check-phase13-devres-iomap-planner.py`, `scripts/zigux/check-phase13-devres-iounmap-planner.py`, `zigux/tests/phase13_devres_iomap_planner.zig`, `zigux/tests/phase13_devres_iomap_planner_manifest.json`, `zigux/tests/phase13_devres_iounmap_planner.zig`, and `zigux/tests/phase13_devres_iounmap_planner_manifest.json`, alongside the already-shipped DMA-boundary, `dmam_alloc_coherent()`, and scatterlist evidence
 - keep the shipped tests-root alignment companion, the shared-summary guard, and the release-discipline validator explicit when broader contributor-facing reminder surfaces refresh
-- keep the missing Phase 13 route family and the adjacent notifier follow-through parked as separate same-lane or helper-local work, while keeping the shipped Landlock syscalls governance-plus-slice-plus-starter packet explicit and the still-missing syscall survey-and-replay companions parked as separate repo-reality gaps
+- keep the missing Phase 13 route family and the adjacent notifier follow-through parked as separate same-lane or helper-local work, while keeping the shipped Landlock syscalls governance-plus-slice-plus-survey-plus-starter packet explicit and the still-missing syscall replay companions parked as separate repo-reality gaps
 
 ## Boundaries
 
