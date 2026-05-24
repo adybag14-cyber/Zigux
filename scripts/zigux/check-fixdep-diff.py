@@ -177,7 +177,7 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "shared:config.h",
     }
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -277,6 +277,14 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:unexpected_name:{name}")
 
         validated_case = dict(raw_case)
+        target = validated_case.get("target")
+        if not isinstance(target, str) or not target:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_target")
+
+        cmdline = validated_case.get("cmdline")
+        if not isinstance(cmdline, str) or not cmdline:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_cmdline")
+
         for field_name, expected_value in expected_case.items():
             actual_value = validated_case.get(field_name, 0 if field_name == "expected_exit_code" else None)
             if actual_value != expected_value:
@@ -449,6 +457,24 @@ def run_self_test() -> int:
         "missing_depfile",
         lambda: validate_cases(missing_depfile_cases),
         f"{CASES_PATH}:sample:depfile='missing_depfile.d',expected='sample.d'",
+    )
+    checks_run += 1
+
+    missing_target_cases = copy_valid_cases(valid_cases)
+    find_case(missing_target_cases, "sample").pop("target", None)
+    expect_failure(
+        "missing_non_empty_target",
+        lambda: validate_cases(missing_target_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_target",
+    )
+    checks_run += 1
+
+    empty_cmdline_cases = copy_valid_cases(valid_cases)
+    find_case(empty_cmdline_cases, "sample")["cmdline"] = ""
+    expect_failure(
+        "missing_non_empty_cmdline",
+        lambda: validate_cases(empty_cmdline_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_cmdline",
     )
     checks_run += 1
 
