@@ -435,6 +435,27 @@ def run_self_test() -> int:
             print("expected missing support-checker output marker to fail the runner")
             return 1
 
+        validator_support_path = root / CHECK_COMMANDS[13][0]
+        populate_repo()
+        _write_synthetic_script(
+            validator_support_path,
+            (CHECK_COMMANDS[13][2][0],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing validator-support shared-reminder marker to fail the runner")
+            return 1
+
+        populate_repo()
+        _write_synthetic_script(
+            validator_support_path,
+            (CHECK_COMMANDS[13][2][1],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing validator-support note marker to fail the runner")
+            return 1
+
         policy_dump_path = root / CHECK_COMMANDS[5][0]
         populate_repo()
         _write_synthetic_script(
@@ -558,7 +579,7 @@ def run_self_test() -> int:
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 18}"
+            f"{len(SELF_TEST_MISSING_CASES) + 20}"
         )
         return 0
 
