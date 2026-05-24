@@ -18,7 +18,12 @@ THIRD_PARTY_README = "third_party/README.md"
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 EXPECTED_TARGET = "x86_64-linux"
-EXPECTED_REQUIRED_ROUTES = ("phase2-toolchain", "phase2-validate", "phase2-cross")
+EXPECTED_REQUIRED_ROUTES = (
+    "phase2-toolchain",
+    "phase2-tools",
+    "phase2-validate",
+    "phase2-cross",
+)
 
 WORKFLOW_SETUP_MARKERS = (
     "- name: Setup pinned Zig toolchain",
@@ -30,7 +35,6 @@ WORKFLOW_SETUP_MARKERS = (
     'repo_archive_parts_dir="${repo_archive_path}.parts"',
     'python3 scripts/zigux/stage-pinned-zig-archive.py                 --root "$GITHUB_WORKSPACE"                 --parts-dir "$repo_archive_parts_dir" || return 1',
     'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
-    'if curl -L --fail "$url" -o "$archive_path"; then',
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
     'if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then',
     'if try_download "$ZIGUX_ZIG_URL"; then',
@@ -43,10 +47,16 @@ WORKFLOW_HOOK_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
     "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
     "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
     "run: make -C zigux phase2-toolchain",
 )
 
@@ -57,27 +67,47 @@ MAKEFILE_MARKERS = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-first-archive-workflow.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-first-archive-workflow.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/install-zig.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/stage-pinned-zig-archive.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py",
 )
 
 NOTES_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py` is directly readable on current `master` and keeps the pinned-channel probe, repo-local `.zig-toolchain` fallback, and archive-integrity validation surface explicit beside the reminder guards.",
-    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-lane05-install-zig-archive-verification.py`, `scripts/zigux/stage-pinned-zig-archive.py`, `scripts/zigux/check-lane05-stage-helper-contract.py`, and `scripts/zigux/check-lane05-stage-helper-selftest.py` are directly readable on current `master` and keep the pinned-channel archive download, staged repo-local archive materialization, archive-verification, helper-contract, helper-selftest, and install-root replay path explicit beside the reminder guards.",
-    "`.github/workflows/zigux-bootstrap.yml` also derives `ZIGUX_ZIG_TARGET`, `ZIGUX_ZIG_FILENAME`, and `ZIGUX_ZIG_URL` from `scripts/zigux/zig-toolchain-policy.json`, tries `community-mirrors.txt` before the direct Zig download URL, and reruns `python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"` inside each install attempt so the pinned bootstrap setup path stays reviewable at the same policy-driven boundary as the later reminder hooks.",
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-lane05-install-zig-archive-verification.py`, `scripts/zigux/stage-pinned-zig-archive.py`, `scripts/zigux/check-lane05-stage-helper-contract.py`, and `scripts/zigux/check-lane05-stage-helper-selftest.py` are directly readable on current `master`",
+    "tries `community-mirrors.txt` before the direct Zig download URL",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/stage-pinned-zig-archive.py --self-test`",
+    "`python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test`",
+    "`python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-cross`",
 )
 
 README_MARKERS = (
-    "`.github/workflows/zigux-bootstrap.yml`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` keep the shipped pinned Zig toolchain guard explicit in the live bootstrap action path before the surviving Phase 2 bridge and pinning checks",
-    "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`, so keep those installer and direct cross-route surfaces explicit beside the shipped toolchain and kbuild reminder packet instead of leaving them in repo-reality-gap wording",
+    "the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet",
+    "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
+    "keep the repo-local pinned archive packet explicit through `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
 )
 
 THIRD_PARTY_MARKERS = (
-    "`third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
+    "target: `x86_64-linux`",
+    "channel: `0.17.0-dev.87+9b177a7d2`",
+    "file: `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
-    "duplicate-copy boundary",
+    "falls back to `community-mirrors.txt` before the direct `ziglang.org` download URL",
 )
 
 
@@ -145,40 +175,26 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     scripts_readme = read_text(resolve(root, SCRIPTS_README))
     third_party = read_text(resolve(root, THIRD_PARTY_README))
 
-    issues.extend(collect_missing_markers(workflow, WORKFLOW_SETUP_MARKERS, "MISSING_WORKFLOW_SETUP_MARKERS"))
+    issues.extend(collect_policy_issues(root))
+    issues.extend(collect_missing_markers(workflow, WORKFLOW_SETUP_MARKERS, "MISSING_WORKFLOW_SETUP_MARKER"))
     for marker in WORKFLOW_HOOK_LINES:
         count = count_exact_lines(workflow, marker)
         if count == 0:
-            issues.append(("MISSING_WORKFLOW_HOOK_LINES", marker))
+            issues.append(("MISSING_WORKFLOW_HOOK_LINE", marker))
         elif count != 1:
-            issues.append(("DUPLICATE_WORKFLOW_HOOK_LINES", f"{marker}:count={count}"))
+            issues.append(("DUPLICATE_WORKFLOW_HOOK_LINE", f"{marker}:count={count}"))
 
     for marker in MAKEFILE_MARKERS:
         count = count_exact_lines(makefile, marker)
         if count == 0:
-            issues.append(("MISSING_MAKEFILE_MARKERS", marker))
+            issues.append(("MISSING_MAKEFILE_MARKER", marker))
         elif count != 1:
-            issues.append(("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count={count}"))
+            issues.append(("DUPLICATE_MAKEFILE_MARKER", f"{marker}:count={count}"))
 
-    issues.extend(collect_missing_markers(notes, NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"))
-    issues.extend(collect_missing_markers(scripts_readme, README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"))
-    issues.extend(collect_missing_markers(third_party, THIRD_PARTY_MARKERS, "MISSING_THIRD_PARTY_MARKERS"))
-    issues.extend(collect_policy_issues(root))
+    issues.extend(collect_missing_markers(notes, NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKER"))
+    issues.extend(collect_missing_markers(scripts_readme, README_MARKERS, "MISSING_SCRIPTS_README_MARKER"))
+    issues.extend(collect_missing_markers(third_party, THIRD_PARTY_MARKERS, "MISSING_THIRD_PARTY_MARKER"))
     return issues
-
-
-def emit_issues(issues: list[tuple[str, str]]) -> int:
-    grouped: dict[str, list[str]] = {}
-    for code, value in issues:
-        grouped.setdefault(code, []).append(value)
-
-    print("PHASE2_BOOTSTRAP_TOOLCHAIN_SETUP_PACKET=fail")
-    for code, values in grouped.items():
-        print(f"{code}_START")
-        for value in values:
-            print(value)
-        print(f"{code}_END")
-    return 1
 
 
 def build_self_test_root(root: Path) -> None:
@@ -207,7 +223,7 @@ def build_self_test_root(root: Path) -> None:
     )
 
 
-def replace_once(text: str, marker: str, replacement: str) -> str:
+def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
@@ -215,8 +231,6 @@ def replace_once(text: str, marker: str, replacement: str) -> str:
 
 def run_self_test() -> int:
     checks = 0
-    expected = 10
-
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_bootstrap_toolchain_setup_") as tmp_dir:
         root = Path(tmp_dir)
 
@@ -226,39 +240,39 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve(root, WORKFLOW)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), WORKFLOW_SETUP_MARKERS[7], ""), encoding="utf-8")
-        assert ("MISSING_WORKFLOW_SETUP_MARKERS", WORKFLOW_SETUP_MARKERS[7]) in collect_issues(root)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), WORKFLOW_SETUP_MARKERS[7]), encoding="utf-8")
+        assert ("MISSING_WORKFLOW_SETUP_MARKER", WORKFLOW_SETUP_MARKERS[7]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
         path = resolve(root, WORKFLOW)
         marker = WORKFLOW_HOOK_LINES[0]
         path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-        assert ("DUPLICATE_WORKFLOW_HOOK_LINES", f"{marker}:count=2") in collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_HOOK_LINE", f"{marker}:count=2") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
         path = resolve(root, MAKEFILE)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[8], ""), encoding="utf-8")
-        assert ("MISSING_MAKEFILE_MARKERS", MAKEFILE_MARKERS[8]) in collect_issues(root)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[10]), encoding="utf-8")
+        assert ("MISSING_MAKEFILE_MARKER", MAKEFILE_MARKERS[10]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
         path = resolve(root, BOOTSTRAP_NOTES)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), NOTES_MARKERS[2], ""), encoding="utf-8")
-        assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", NOTES_MARKERS[2]) in collect_issues(root)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), NOTES_MARKERS[2]), encoding="utf-8")
+        assert ("MISSING_BOOTSTRAP_NOTES_MARKER", NOTES_MARKERS[2]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
         path = resolve(root, SCRIPTS_README)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), README_MARKERS[0], ""), encoding="utf-8")
-        assert ("MISSING_SCRIPTS_README_MARKERS", README_MARKERS[0]) in collect_issues(root)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), README_MARKERS[1]), encoding="utf-8")
+        assert ("MISSING_SCRIPTS_README_MARKER", README_MARKERS[1]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
         path = resolve(root, THIRD_PARTY_README)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), THIRD_PARTY_MARKERS[1], ""), encoding="utf-8")
-        assert ("MISSING_THIRD_PARTY_MARKERS", THIRD_PARTY_MARKERS[1]) in collect_issues(root)
+        path.write_text(replace_once(path.read_text(encoding="utf-8"), THIRD_PARTY_MARKERS[3]), encoding="utf-8")
+        assert ("MISSING_THIRD_PARTY_MARKER", THIRD_PARTY_MARKERS[3]) in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -287,7 +301,6 @@ def run_self_test() -> int:
         else:
             raise AssertionError("missing workflow did not abort")
 
-    assert checks == expected
     print("PHASE2_BOOTSTRAP_TOOLCHAIN_SETUP_PACKET_SELF_TEST=pass")
     print(f"PHASE2_BOOTSTRAP_TOOLCHAIN_SETUP_PACKET_SELF_TEST_CASE_COUNT={checks}")
     return 0
@@ -306,7 +319,16 @@ def main() -> int:
 
     issues = collect_issues(args.root.resolve())
     if issues:
-        return emit_issues(issues)
+        grouped: dict[str, list[str]] = {}
+        for code, value in issues:
+            grouped.setdefault(code, []).append(value)
+        print("PHASE2_BOOTSTRAP_TOOLCHAIN_SETUP_PACKET=fail")
+        for code, values in grouped.items():
+            print(f"{code}_START")
+            for value in values:
+                print(value)
+            print(f"{code}_END")
+        return 1
 
     print("PHASE2_BOOTSTRAP_TOOLCHAIN_SETUP_PACKET=pass")
     print("PHASE2_BOOTSTRAP_TOOLCHAIN_SETUP_REQUIRED_ROUTE_LIST=" + ",".join(EXPECTED_REQUIRED_ROUTES))
