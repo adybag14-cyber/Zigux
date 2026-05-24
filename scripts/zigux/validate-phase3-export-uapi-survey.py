@@ -35,6 +35,7 @@ SHARED_CHECK_RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
@@ -53,6 +54,7 @@ REQUIRED_MARKERS = {
         "PHASE3_LAYOUT_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout-test",
         "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
         "PHASE3_C_HEADER_SMOKE_CHECK=scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+        "PHASE3_C_HEADER_SMOKE_SELF_TEST=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test",
         "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
         "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
@@ -198,12 +200,15 @@ REQUIRED_MARKERS = {
     ),
 }
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -246,6 +251,11 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+            "expected missing export/uapi validator self-test marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_EXPORT_SHIM_BUILD_PATH=zigux/tests/phase3_export_shim_build.zig",
             "expected missing focused export-shim build path marker was not reported",
         ),
@@ -273,6 +283,11 @@ def run_self_test() -> int:
             SURVEY_PATH,
             "PHASE3_LAYOUT_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout-test",
             "expected missing dedicated layout-build make-route marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_C_HEADER_SMOKE_SELF_TEST=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test",
+            "expected missing export/uapi c-header smoke self-test marker was not reported",
         ),
         (
             SURVEY_PATH,
