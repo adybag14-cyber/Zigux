@@ -77,6 +77,7 @@ REQUIRED_SNIPPETS = {
         'test "hex2bin and bin2hex snake-case aliases stay aligned" {',
         'test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {',
         'test "hexDumpLineLength mirrors formatter normalization" {',
+        'test "hexDumpToBuffer reports normalized required length for empty and zero-sized buffers" {',
     ],
     HELPER_TEST_PATH: [
         'test "phase 6 hexdump helper packet replays the serialized parity matrix" {',
@@ -205,6 +206,11 @@ SELF_TEST_CASES = [
         LIB_PATH,
         'test "hexDumpLineLength mirrors formatter normalization" {',
         'test "hexDumpLength mirrors formatter normalization" {',
+    ),
+    (
+        LIB_PATH,
+        'test "hexDumpToBuffer reports normalized required length for empty and zero-sized buffers" {',
+        'test "hexDumpToBuffer reports normalized required length for empty buffers" {',
     ),
     (
         HELPER_TEST_PATH,
