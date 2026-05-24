@@ -10,7 +10,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase 8 file-path-handle boundary guard keeps the deferred bridge aligned across the manifest, slice, survey, and shared replay" {
+test "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge" {
     const manifest_json = @embedFile("../../tools/lib/bpf/zigux_segments/manifest.json");
     const bridge_test_source = @embedFile("phase8_file_path_handle_bridge.zig");
     const bridge_slice = @embedFile("../../Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
