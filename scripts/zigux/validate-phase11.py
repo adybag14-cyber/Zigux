@@ -42,6 +42,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/check-phase11-validate-manifest-roster.py",
     "scripts/zigux/check-phase11-validate-check-roster.py",
+    "scripts/zigux/check-phase11-validate-route-alignment.py",
     "scripts/zigux/check-phase11-focused-direct-build-replays.py",
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
@@ -74,6 +75,8 @@ REQUIRED_PATHS = (
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig",
+    "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
@@ -117,6 +120,14 @@ CHECKS = (
     CheckSpec(
         "phase11-validate-check-roster",
         ("python", "scripts/zigux/check-phase11-validate-check-roster.py"),
+    ),
+    CheckSpec(
+        "phase11-validate-route-alignment-self-test",
+        ("python", "scripts/zigux/check-phase11-validate-route-alignment.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-validate-route-alignment",
+        ("python", "scripts/zigux/check-phase11-validate-route-alignment.py"),
     ),
     CheckSpec(
         "phase11-build-inventory-self-test",
@@ -225,6 +236,10 @@ CHECKS = (
     CheckSpec(
         "phase11-gpio-wdt-nowayout-policy-review-build",
         ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"),
+    ),
+    CheckSpec(
+        "phase11-gpio-wdt-remove-handoff-review-build",
+        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig"),
     ),
     CheckSpec(
         "phase11-hvc-hv-ops-layout-build",
@@ -440,6 +455,7 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase11-build-inventory.py",
             "scripts/zigux/check-phase11-validate-manifest-roster.py",
             "scripts/zigux/check-phase11-validate-check-roster.py",
+            "scripts/zigux/check-phase11-validate-route-alignment.py",
             "scripts/zigux/check-phase11-focused-direct-build-replays.py",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
             "scripts/zigux/check-phase11-header-boundary-packet.py",
@@ -462,6 +478,8 @@ def run_self_test() -> int:
             "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
             "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
             "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+            "zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig",
+            "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
         ):
             reset_fixture()
             (root / rel).unlink()
@@ -503,6 +521,8 @@ def run_self_test() -> int:
             ("scripts/zigux/check-phase11-validate-manifest-roster.py", "phase11-validate-manifest-roster"),
             ("scripts/zigux/check-phase11-validate-check-roster.py", "phase11-validate-check-roster-self-test"),
             ("scripts/zigux/check-phase11-validate-check-roster.py", "phase11-validate-check-roster"),
+            ("scripts/zigux/check-phase11-validate-route-alignment.py", "phase11-validate-route-alignment-self-test"),
+            ("scripts/zigux/check-phase11-validate-route-alignment.py", "phase11-validate-route-alignment"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
             ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays-self-test"),
@@ -540,6 +560,7 @@ def run_self_test() -> int:
             ("zigux/tests/phase11_gpio_wdt_preflight_review_build.zig", "phase11-gpio-wdt-preflight-review-build"),
             ("zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig", "phase11-gpio-wdt-register-device-glue-review-build"),
             ("zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig", "phase11-gpio-wdt-nowayout-policy-review-build"),
+            ("zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig", "phase11-gpio-wdt-remove-handoff-review-build"),
             ("zigux/tests/phase11_hvc_hv_ops_layout_build.zig", "phase11-hvc-hv-ops-layout-build"),
             ("zigux/tests/phase11_hvc_export_surface_layout_build.zig", "phase11-hvc-export-surface-layout-build"),
             ("zigux/tests/phase11_hvc_cleanup_packet_build.zig", "phase11-hvc-cleanup-packet-build"),
