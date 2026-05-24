@@ -49,6 +49,8 @@ SELF_TEST_CASE_NAMES = (
     "stale_phase4_tests_readme_checker_reference",
 )
 
+EXPECTED_SELF_TEST_CASES = 15
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -125,6 +127,14 @@ def baseline_text() -> str:
 
 def run_self_test() -> int:
     baseline = baseline_text()
+    if len(SELF_TEST_CASE_NAMES) != EXPECTED_SELF_TEST_CASES:
+        print("PHASE4_TESTS_README_PACKET_SELF_TEST=fail")
+        print(
+            "expected_self_test_case_name_count="
+            f"{EXPECTED_SELF_TEST_CASES}"
+        )
+        print(f"actual_self_test_case_name_count={len(SELF_TEST_CASE_NAMES)}")
+        return 1
     cases = (
         ("baseline_round_trip", baseline, []),
         (
@@ -198,6 +208,11 @@ def run_self_test() -> int:
             [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[11]}"],
         ),
     )
+    if len(cases) != EXPECTED_SELF_TEST_CASES:
+        print("PHASE4_TESTS_README_PACKET_SELF_TEST=fail")
+        print(f"expected_self_test_case_count={EXPECTED_SELF_TEST_CASES}")
+        print(f"actual_self_test_case_count={len(cases)}")
+        return 1
 
     with tempfile.TemporaryDirectory(prefix="phase4-tests-readme-packet-") as tmp:
         tmpdir = pathlib.Path(tmp)
