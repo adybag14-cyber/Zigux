@@ -6,7 +6,7 @@ Phase 11 simple-driver packet on `master`.
 ## Status
 
 - `PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`
-- lane: `P11-L05`
+- lane: `P11-Y06`
 - reviewed against live `master`
 - scope: verify the current driver-local matrix packet against the roadmap,
   keep the authenticated-contents reread boundary honest, and record the
