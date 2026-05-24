@@ -59,6 +59,9 @@ EXPECTED_SECTION_KEYS = {
         "inclusive_boundary_next",
         "inclusive_boundary_zero",
         "inclusive_boundary_and",
+        "tail_inclusive_boundary_next",
+        "tail_inclusive_boundary_zero",
+        "tail_inclusive_boundary_and",
         "past_nbits_next",
         "past_nbits_zero",
         "past_nbits_and",
@@ -204,6 +207,9 @@ EXPECTED_SECTION_KEYS = {
 }
 
 EXPECTED_SENTINELS = {
+    "find_bit.tail_inclusive_boundary_next": 68,
+    "find_bit.tail_inclusive_boundary_zero": 68,
+    "find_bit.tail_inclusive_boundary_and": 68,
     "find_bit.tail_clamped_first": 67,
     "find_bit.tail_clamped_next": 69,
     "bitmap.partial_xor_nbits": 4,
@@ -329,6 +335,9 @@ def expected_fixture() -> dict[str, object]:
             "inclusive_boundary_next": 63,
             "inclusive_boundary_zero": 63,
             "inclusive_boundary_and": 63,
+            "tail_inclusive_boundary_next": 68,
+            "tail_inclusive_boundary_zero": 68,
+            "tail_inclusive_boundary_and": 68,
             "past_nbits_next": 7,
             "past_nbits_zero": 7,
             "past_nbits_and": 7,
@@ -488,7 +497,7 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def build_self_test_root(root: Path) -> None:
+def build_sample_root(root: Path) -> None:
     write_json(root / FIXTURE_REL, expected_fixture())
     write_json(root / MANIFEST_REL, expected_manifest())
 
@@ -497,13 +506,13 @@ def run_self_test() -> None:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_shared_fixture_gate_") as tmp_dir:
         root = Path(tmp_dir)
-        build_self_test_root(root)
+        build_sample_root(root)
         assert collect_issues(root) == []
 
         (root / FIXTURE_REL).unlink()
         assert collect_issues(root) == [f"missing_file:{FIXTURE_REL}"]
         case_count += 1
-        build_self_test_root(root)
+        build_sample_root(root)
 
         fixture = read_json(root, FIXTURE_REL)
         assert isinstance(fixture, dict)
@@ -511,7 +520,15 @@ def run_self_test() -> None:
         write_json(root / FIXTURE_REL, fixture)
         assert "fixture:section_keys=bitmap" in collect_issues(root)
         case_count += 1
-        build_self_test_root(root)
+        build_sample_root(root)
+
+        fixture = read_json(root, FIXTURE_REL)
+        assert isinstance(fixture, dict)
+        fixture["find_bit"]["tail_inclusive_boundary_zero"] = 69
+        write_json(root / FIXTURE_REL, fixture)
+        assert "fixture:sentinel=find_bit.tail_inclusive_boundary_zero" in collect_issues(root)
+        case_count += 1
+        build_sample_root(root)
 
         fixture = read_json(root, FIXTURE_REL)
         assert isinstance(fixture, dict)
@@ -519,7 +536,7 @@ def run_self_test() -> None:
         write_json(root / FIXTURE_REL, fixture)
         assert "fixture:sentinel=string.strtobool_invalid" in collect_issues(root)
         case_count += 1
-        build_self_test_root(root)
+        build_sample_root(root)
 
         fixture = read_json(root, FIXTURE_REL)
         assert isinstance(fixture, dict)
@@ -529,7 +546,7 @@ def run_self_test() -> None:
         assert "fixture:section_keys=rbtree" in issues
         assert "fixture:sentinel=rbtree.cached_leftmost_return_serials" in issues
         case_count += 1
-        build_self_test_root(root)
+        build_sample_root(root)
 
         manifest = read_json(root, MANIFEST_REL)
         assert isinstance(manifest, dict)
@@ -537,7 +554,7 @@ def run_self_test() -> None:
         write_json(root / MANIFEST_REL, manifest)
         assert f"manifest:helper_count={len(EXPECTED_HELPERS)}" in collect_issues(root)
         case_count += 1
-        build_self_test_root(root)
+        build_sample_root(root)
 
         manifest = read_json(root, MANIFEST_REL)
         assert isinstance(manifest, dict)
@@ -547,7 +564,7 @@ def run_self_test() -> None:
         assert "manifest:helpers=expected_phase1_helper_list" in issues
         assert "manifest:helper_sections=expected_phase1_helper_section_projection" in issues
         case_count += 1
-        build_self_test_root(root)
+        build_sample_root(root)
 
         fixture = read_json(root, FIXTURE_REL)
         assert isinstance(fixture, dict)
@@ -569,10 +586,18 @@ def main() -> int:
     )
     parser.add_argument("--self-test", action="store_true", help="Run checker self-tests.")
     parser.add_argument("--root", help="Validate an alternate Zigux tree root.")
+    parser.add_argument(
+        "--write-sample-root",
+        help="Write a current-master-shaped sample root to the given directory.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         run_self_test()
+        return 0
+
+    if args.write_sample_root:
+        build_sample_root(Path(args.write_sample_root).resolve())
         return 0
 
     root = repo_root(args.root)
