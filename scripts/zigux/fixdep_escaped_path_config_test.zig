@@ -16,13 +16,13 @@ const Capture = struct {
         self.list.deinit(self.allocator);
     }
 
-    fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+    pub fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
         const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
         defer self.allocator.free(rendered);
         try self.list.appendSlice(self.allocator, rendered);
     }
 
-    fn flush(_: *@This()) !void {}
+    pub fn flush(_: *@This()) !void {}
 };
 
 test "runFixdep reads escaped-space dependency paths and emits config deps" {
