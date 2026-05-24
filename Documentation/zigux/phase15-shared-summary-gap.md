@@ -19,6 +19,8 @@ The current same-lane truthfulness task is no longer to treat the previously par
 
 The tests-root governance reminder is now landed in `zigux/tests/README.md`, so the honest maintenance step is to keep that section aligned with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and the rest of this governance family rather than carrying the tests-root surface as still-missing drift.
 
+The docs-root Phase 15 reminder is now landed in `Documentation/zigux/README.md`, so the honest maintenance step is to keep that section aligned with `scripts/zigux/check-phase15-docs-readme-alignment.py`, this shared-gap note, and the directly materialized governance packet rather than carrying docs-root as a still-missing follow-up.
+
 This refresh closes the shared-gap undercount that had fallen behind the current 2026-05-23 governance packet. Reviewers can now compare the broad reminder surfaces against the live machine-readable parity scorecard companion, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest plus focused handoff-specific replay, the stay-in-C companions, the focused review-process build-file replay, the focused tests-root alignment guard, the focused handoff-note checker, the dedicated validator maintenance gate, and the Architecture Council review-process owner note plus decision-record template instead of reconciling that shared-summary packet against neighboring readiness, handoff, and tests-root rereads by hand.
 
 ## Materialized Phase 15 governance assets
@@ -97,6 +99,7 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate explicit while `zigux/tests/phase15_build.zig` remains the only broader dedicated-build companion still absent on current `master`
 - the landed `zigux/tests/README.md` Phase 15 governance section still needs rereads with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the rest of the directly materialized governance packet whenever that broad tests-root summary drifts
+- the landed `Documentation/zigux/README.md` Phase 15 reminder still needs rereads with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the rest of the directly materialized governance packet whenever that broad docs-root summary drifts
 - broader dedicated-build wording around `zigux/tests/phase15_build.zig` and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes
 
 These are the surfaces that should be reread together before claiming any new Phase 15 shared-summary drift.
@@ -109,6 +112,7 @@ Treat the current Phase 15 shared-summary state as a wording-and-alignment check
 - if a materialized Phase 15 governance asset, the dedicated readiness manifest, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated handoff manifest, the dedicated validator maintenance gate, or a materialized focused review-process companion disappears, tighten this note and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately
 - do not treat the still-missing broader dedicated-build companion or parked make-route vocabulary as shipped evidence until direct current-tree reads recover them
 - do keep the landed tests-root Phase 15 reminder aligned with `scripts/zigux/check-phase15-tests-readme-alignment.py` and the rest of the directly materialized governance packet instead of letting that summary drift back into undercounted or implied-approval wording
+- do keep the landed docs-root Phase 15 reminder aligned with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the rest of the directly materialized governance packet instead of letting that summary drift back into missing-follow-up or implied-approval wording
 - do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves
 - if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 - keep tests-root follow-through separate from review-process and parity-scorecard packet maintenance unless the same direct evidence forces them back together
