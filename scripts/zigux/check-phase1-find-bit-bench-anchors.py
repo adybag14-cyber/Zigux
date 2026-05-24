@@ -47,6 +47,12 @@ REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_next_andnot_past_end": "findNextAndNotBit(&empty, &empty, 7, 11)",
     "find_next_or_single_word_clamp": "findNextOrBit(&or_lhs, &or_rhs, nbits, 13)",
     "find_next_and_tail_mask": "findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4)",
+    "find_next_andnot_single_word_window": "try std.testing.expectEqual(@as(usize, 8), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 3));",
+    "find_next_andnot_single_word_stop": "try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 9));",
+    "find_next_andnot_word_boundary_follow": "try std.testing.expectEqual(boundary + 5, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));",
+    "find_next_andnot_single_word_tail_stop": "try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));",
+    "find_next_andnot_tail_skip": "try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 2));",
+    "find_next_andnot_tail_skip_stop": "try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 5));",
     "find_first_clump8_zero_sized": "findFirstClump8(&clump, &populated, 0)",
     "find_next_clump8_untouched": "findNextClump8(&clump, &populated, 8, 12)",
     "find_clump8_past_end": "findNextClump8(&clump, &empty, 8, 8)",
@@ -73,7 +79,6 @@ def collect_marker_count_failures(
     return failures
 
 
-
 def validate_find_bit_source(text: str) -> tuple[str, object]:
     test_failures = collect_marker_count_failures(text, REQUIRED_TEST_MARKERS)
     if test_failures:
@@ -94,14 +99,12 @@ def validate_find_bit_source(text: str) -> tuple[str, object]:
     return ("pass", None)
 
 
-
 def load_find_bit_source(path: Path) -> tuple[str, object]:
     try:
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return ("missing_file", path)
     return validate_find_bit_source(text)
-
 
 
 def build_sample_source(
@@ -121,15 +124,20 @@ def build_sample_source(
         "}",
         'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start" {',
         "    _ = findNextBit(&set_map, nbits, boundary);",
+        "    _ = findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary);",
         "}",
         'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start" {',
         "    _ = findNextBit(&set_map, nbits, boundary);",
+        "    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));",
         "}",
         'test "single-word next scans clamp partial windows before returning nbits" {',
         "    _ = findNextOrBit(&or_lhs, &or_rhs, nbits, 13);",
+        "    try std.testing.expectEqual(@as(usize, 8), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 3));",
+        "    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 9));",
         "}",
         'test "word-boundary next scans start fresh on the next word" {',
         "    _ = findNextOrBit(&or_lhs, &or_rhs, nbits, boundary);",
+        "    try std.testing.expectEqual(boundary + 5, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));",
         "}",
         'test "zero-sized scans ignore populated backing words" {',
         "    _ = findLastBit(&populated, 0);",
@@ -143,6 +151,10 @@ def build_sample_source(
         "}",
         'test "tail mask ignores shared bits beyond nbits" {',
         "    _ = findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4);",
+        "}",
+        'test "tail-word next set scans skip earlier in-range matches before clamping" {',
+        "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 2));",
+        "    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 5));",
         "}",
         'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
         "    _ = findFirstClump8(&clump, &populated, 0);",
@@ -198,7 +210,6 @@ def build_sample_source(
     return "\n".join(lines) + "\n"
 
 
-
 def run_self_test() -> None:
     case_count = 0
 
@@ -252,10 +263,9 @@ def run_self_test() -> None:
     print(f"PHASE1_FIND_BIT_BENCH_ANCHORS_SELF_TEST_CASE_COUNT={case_count}")
 
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors."
+        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot skip paths."
     )
     parser.add_argument("--self-test", action="store_true", help="Run self-test cases only.")
     args = parser.parse_args()
