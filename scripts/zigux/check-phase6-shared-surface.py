@@ -67,6 +67,43 @@ EXPECTED_EVIDENCE_CURRENT_GAPS = [
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
     "zigux/tests/phase6_base64_c_casegen.zig",
 ]
+EXPECTED_ROADMAP_ANCHORS = [
+    "lib/base64.c",
+    "lib/bsearch.c",
+    "lib/checksum.c",
+    "lib/hexdump.c",
+]
+EXPECTED_SHARED_REPLAY_INVENTORY = [
+    "zig build phase6-base64-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-base64-test",
+    "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-base64-perf",
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+    "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-bsearch-test",
+    "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-bsearch-perf",
+    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
+    "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-test",
+    "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf-matrix-test",
+    "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf",
+    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
+    "python3 scripts/zigux/check-phase6-hexdump-route.py",
+    "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-review",
+    "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
+    "zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-test",
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
+]
 REQUIRED_DOCS_README_SNIPPETS = [
     "Phase 6 notes - `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/phase6-helper-parity-catalog.md` - `Documentation/zigux/phase6-perf-gate-survey.md` - `Documentation/zigux/review-checklist.md` - `scripts/zigux/README.md` - `zigux/tests/README.md` - `zigux/tests/phase6_build.zig` - `zigux/tests/phase6_helper_evidence_manifest.json` - `zigux/tests/phase6_helper_parity_manifest.json` - `scripts/zigux/check-phase6-shared-surface.py` - `scripts/zigux/check-phase6-present-entrypoints.py` - `zigux/Makefile` keep the bounded Phase 6 docs-root packet explicit through the shared helper-evidence and helper-parity catalogs, the current scripts-root and tests-root reminders, the shared build foothold, the shared machine-readable manifests, the present-entrypoint guard, and the returned Makefile wrapper surface instead of leaving the active leaf-helper tranche implicit from neighboring reminder surfaces alone.",
     "authenticated current-master rereads now directly recover both `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep both note surfaces inside the current docs-root evidence packet beside the shared manifests instead of framing the broader perf-note surface as public-tree-backed companion evidence.",
@@ -143,7 +180,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 44
+SELF_TEST_CASE_COUNT = 47
 
 
 class ValidationError(RuntimeError):
@@ -239,10 +276,16 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-evidence public companion mismatch")
     if evidence.get("current_repo_reality_gaps") != EXPECTED_EVIDENCE_CURRENT_GAPS:
         raise ValidationError("phase6 helper-evidence repo-reality gaps mismatch")
+    if evidence.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
+        raise ValidationError("phase6 helper-evidence roadmap anchors drift")
+    if evidence.get("current_shared_replay_inventory") != EXPECTED_SHARED_REPLAY_INVENTORY:
+        raise ValidationError("phase6 helper-evidence shared replay inventory drift")
     if parity.get("shared_direct_evidence") != EXPECTED_PARITY_DIRECT_EVIDENCE:
         raise ValidationError("phase6 helper-parity direct evidence mismatch")
     if parity.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
         raise ValidationError("phase6 helper-parity public companion mismatch")
+    if parity.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
+        raise ValidationError("phase6 helper-parity roadmap anchors drift")
     if parity.get("shared_follow_through_gaps") != EXPECTED_PARITY_FOLLOW_THROUGH_GAPS:
         raise ValidationError("phase6 helper-parity follow-through gaps drift")
     require_helper_fields(
@@ -299,7 +342,9 @@ def scaffold_repo(root: Path) -> None:
                 "lane_scope": EXPECTED_EVIDENCE_LANE_SCOPE,
                 "current_direct_readback_companions": EXPECTED_EVIDENCE_DIRECT_COMPANIONS,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
+                "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
                 "current_repo_reality_gaps": EXPECTED_EVIDENCE_CURRENT_GAPS,
+                "current_shared_replay_inventory": EXPECTED_SHARED_REPLAY_INVENTORY,
                 "helpers": evidence_helpers,
             },
             indent=2,
@@ -318,6 +363,7 @@ def scaffold_repo(root: Path) -> None:
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
                 "perf_evidence_readback_note": " ".join(REQUIRED_PARITY_PERF_NOTE_SNIPPETS),
+                "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
                 "shared_follow_through_gaps": EXPECTED_PARITY_FOLLOW_THROUGH_GAPS,
                 "helpers": parity_helpers,
             },
@@ -397,7 +443,11 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": ["lib/base64.c", "lib/bsearch.c", "lib/hexdump.c"]})))
+        cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_shared_replay_inventory"].remove("make -C zigux phase6-checksum-perf")))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0].pop("focused_direct_c_parity_replay")))
         cases_run += 1
@@ -424,6 +474,8 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"lane_scope": "shared helper-parity rows only"})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": ["lib/base64.c", "lib/checksum.c", "lib.hexdump.c"]})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"shared_follow_through_gaps": ["Documentation/zigux/phase6-helper-parity-catalog.md"]})))
         cases_run += 1
