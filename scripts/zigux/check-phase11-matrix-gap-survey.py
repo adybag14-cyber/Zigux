@@ -11,7 +11,7 @@ SURVEY_PATH = "Documentation/zigux/phase11-validation-matrix-gap-survey.md"
 REQUIRED_MARKERS = [
     "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
     "lane: `P11-L01`",
-    "Authenticated GitHub contents rereads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, while raw `master` fallback rereads also rematerialize the bcm2835 and DesignWare driver-local matrix notes on current `master`",
+    "Authenticated GitHub contents rereads in this run rematerialize the bcm2835, gpio watchdog, HVC console, and DesignWare driver-local Phase 11 matrix notes named by the roadmap on current `master`.",
     "The currently reread driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
     "The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
@@ -19,10 +19,11 @@ REQUIRED_MARKERS = [
     "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
     "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
-    "`bcm2835_wdt`: raw `master` fallback rereads now rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    "`dw_wdt`: raw `master` fallback rereads now rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "`bcm2835_wdt`: authenticated GitHub contents rereads now rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "`dw_wdt`: authenticated GitHub contents rereads now rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
 ]
 FORBIDDEN_MARKERS = [
+    "Authenticated GitHub contents rereads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, while raw `master` fallback rereads also rematerialize the bcm2835 and DesignWare driver-local Phase 11 matrix notes on current `master`",
     "`PHASE11_MATRIX_GAP_STATUS=driver_local_matrix_roster_incomplete_on_current_master`",
     "Current direct contents reads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, but they do not rematerialize the bcm2835 or DesignWare driver-local matrix notes on current `master`",
     "Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
@@ -95,7 +96,7 @@ def run_self_test() -> None:
             path.write_text(path.read_text(encoding="utf-8") + "\n" + marker + "\n", encoding="utf-8")
             expect_failure(case_root, marker)
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=9")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=10")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
