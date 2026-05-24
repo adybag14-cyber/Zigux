@@ -45,7 +45,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 9
+EXPECTED_SELF_TEST_CASE_COUNT = 10
 
 
 def read_json(path: Path) -> object:
@@ -292,6 +292,12 @@ def run_self_test() -> int:
         checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
         write_text(checker_path, render_bridge_checker_stub(helper_anchors=REQUIRED_HELPER_ANCHORS[:-1]))
         assert ("CONF_BRIDGE_CHECKER_MISSING_HELPER_ANCHOR", REQUIRED_HELPER_ANCHORS[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        closure_path = root / PHASE2_CLOSURE.relative_to(ROOT)
+        write_text(closure_path, REQUIRED_CLOSURE_MARKERS[1] + "\n")
+        assert ("MISSING_CLOSURE_MARKER", REQUIRED_CLOSURE_MARKERS[0]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
