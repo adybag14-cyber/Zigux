@@ -12,6 +12,7 @@ GENKSYMS_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-genksyms-dual-
 GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
 GENKSYMS_VERSION_SIDE_EFFECT_AMBIGUOUS_TEST = "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
 GENKSYMS_MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
+CHECK_PHASE2_ARCHIVE_CONTRACT_PACKET = "scripts/zigux/check-phase2-archive-contract-packet.py"
 GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
@@ -97,6 +98,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    CHECK_PHASE2_ARCHIVE_CONTRACT_PACKET,
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
@@ -249,6 +251,7 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-archive-contract-packet.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
