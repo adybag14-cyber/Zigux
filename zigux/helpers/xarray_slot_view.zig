@@ -177,6 +177,23 @@ test "value constructor still rejects entries that would overlap err_ptr space" 
     );
 }
 
+test "highest accepted inline xa_value stays in the value lane" {
+    const raw = try xa_value.makeValue(xa_value.safe_inline_limit);
+    const slot = fromRaw(raw);
+
+    try std.testing.expectEqual(err_ptr.err_floor - 2, raw);
+    try std.testing.expect(xa_value.isValue(raw));
+    try std.testing.expect(!err_ptr.isErrValue(raw));
+    try std.testing.expect(!slot.isNull());
+    try std.testing.expect(slot.isValue());
+    try std.testing.expect(!slot.isErr());
+    try std.testing.expect(!slot.isPointer());
+    try std.testing.expectEqual(@as(?usize, xa_value.safe_inline_limit), slot.value());
+    try std.testing.expectEqual(@as(?isize, null), slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(raw));
+}
+
 test "second rejected inline xa_value still classifies as an err entry" {
     const rejected_value = xa_value.safe_inline_limit + 2;
     const raw = (rejected_value << 1) | xa_value.value_tag_mask;
