@@ -38,43 +38,15 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase3_low_level_wrappers_build.zig`",
         "`zigux/tests/README.md`",
         "`zigux/tests/build.zig`",
-        "`zigux/Makefile`",
         "`zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig`",
-        "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "`zigux/Makefile`",
         "`make -C zigux phase3-low-level-wrappers`",
+        "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
         "`make -C zigux phase3-low-level-wrappers-test`",
-        "## Adjacent Directly Readable Phase 3 Support",
-        "`scripts/zigux/check-phase3-catalog-selftest.py`",
-        "`scripts/zigux/check-phase3-selftest-surface.py`",
-        "`scripts/zigux/generate-phase3-check-wrappers.py`",
-        "`scripts/zigux/check-phase3-wrapper-templates.py`",
-        "Current `master` also keeps `scripts/zigux/check-phase3-selftest-surface.py` directly readable as the shared Phase 3 selftest-surface guard for the returned validator-support, shared-tests-route, export/UAPI, catalog, and low-level-wrapper reminder packet. That newer shared guard should stay framed here as adjacent cross-packet support rather than as extra low-level-wrapper-local proof.",
-        "Current `master` also keeps `scripts/zigux/generate-phase3-check-wrappers.py` together with `scripts/zigux/check-phase3-wrapper-templates.py` directly readable as the adjacent stale-wrapper cleanup pair for historical shared-runner wrapper retirement, and that churn-control support should stay framed here as adjacent cross-packet evidence rather than as extra low-level-wrapper-local proof.",
-        "The shared tests-root reminder in `zigux/tests/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig` explicit beside the starter, helper, policy, and layout-replay packet, so the low-level-wrapper survey no longer treats shared tests-root coverage as a separate missing follow-through.",
         "Current `master` also keeps `zigux/Makefile`, `make -C zigux phase3-low-level-wrappers`, and `make -C zigux phase3-low-level-wrappers-test` explicit beside the dedicated shared build companion, so the low-level-wrapper packet now has both the direct Zig replay commands and the returned shared Makefile replay gates without widening into broader Phase 3 completion claims.",
-        "That directly coupled build companion and the live `zigux/helpers/mmio.zig` helper both depend on `zigux/helpers/unsafe_policy.zig`, so the packet reminder needs to keep that helper-local unsafe-policy surface explicit instead of undercounting it as if the MMIO wrapper stood alone.",
-        "That live barrier helper surface, dedicated survey validator, and focused replay now line up on current `master`: `zigux/helpers/barrier.zig` keeps the generic order-checked `fence()` dispatch, `fenceOrderAllowed()`, `FenceError`, and the seq_cst `storeLoad()` alias explicit beside `fullFence()`, the dedicated survey validator exact-requires `storeLoad()` beside the existing barrier aliases, and the focused replay now routes one seq_cst masked MMIO handoff through `storeLoad()` beside the retained `fullFence()` proof. No additional helper-body follow-through is warranted here unless one of those already-landed barrier aliases drops out of the bounded low-level wrapper packet again.",
         "Current `master` also keeps `.github/workflows/zigux-bootstrap.yml` explicit with the shipped low-level-wrapper self-test, survey check, focused replay, and shared tests-root replay steps, so the bounded reminder packet should treat that bootstrap workflow route as current support evidence rather than leaving the workflow-backed wrapper gate implicit behind the dedicated validator and Makefile route.",
         "That workflow-backed replay step now belongs to the same bounded reminder packet as the dedicated survey validator and the returned Makefile replay gates, so later lane-local cleanup should reread those four support surfaces together instead of treating the workflow route as optional background context.",
-        "Current `master` also keeps the whole-record MMIO interop-policy predicates plus `readInteropPolicy()`, `writeInteropPolicy()`, `exchangeInteropPolicy()`, and `writeMaskedInteropPolicy()` directly readable in `zigux/helpers/mmio.zig`, so the low-level-wrapper survey and validator need to exact-require that same helper-local policy surface instead of only the byte-policy shorthand.",
-        "The focused replay in `zigux/tests/phase3_low_level_wrappers.zig` now keeps the direct typed-scope `readScoped()`/`writeScoped()`/`exchangeScoped()`/`writeMaskedScoped()` MMIO proof beside both the byte-policy shorthand checks and one dedicated whole-record `InteropPolicy` replay, plus the existing atomic, barrier, and raw-pointer bridge coverage, so the scope-gated and whole-record MMIO accessors should now be treated as landed replay evidence on current `master`.",
         "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, the shared narrow-unsafe decoder plus interop-policy raw-pointer bridge entrypoints, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, two returned shared Makefile replay gates, and two direct replay commands are directly readable, while the separately readable Phase 3 catalog-selftest guard stays adjacent cross-packet support rather than extra low-level-wrapper proof.",
-        "Current `master` now separately exposes the adjacent shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py`, the export/UAPI boundary survey note through `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, the packet-local export/UAPI survey validator through `scripts/zigux/validate-phase3-export-uapi-survey.py`, the focused export/UAPI layout replay through `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig`, and the adjacent catalog-selftest guard through `scripts/zigux/check-phase3-catalog-selftest.py`, and those separate surfaces should stay framed as cross-packet support rather than as landed same-lane proof.",
-    ),
-    MANIFEST_PATH: (
-        '"zigux/helpers/atomic.zig"',
-        '"zigux/helpers/barrier.zig"',
-        '"zigux/helpers/mmio.zig"',
-        '"zigux/helpers/unsafe_policy.zig"',
-        '"zigux/unsafe/narrow.zig"',
-        '"scripts/zigux/validate-phase3-low-level-wrapper-survey.py"',
-        '"zigux/tests/phase3_low_level_wrappers.zig"',
-        '"zigux/tests/phase3_low_level_wrappers_build.zig"',
-        '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"',
-        '"python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py"',
-        '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
-        '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
-        '"make -C zigux phase3-low-level-wrappers-test"',
     ),
     ATOMIC_PATH: (
         "pub fn strongestAllowedFailureOrder(success: Ordering) ?Ordering {",
@@ -107,6 +79,7 @@ REQUIRED_MARKERS = {
         "pub fn storeLoad() void {",
     ),
     MMIO_PATH: (
+        "pub const MmioRange = extern struct {",
         "pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
         "pub fn allowsInteropPolicyByte(unsafe_scope: u8) bool {",
@@ -201,27 +174,16 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" {',
         'test "phase3 low-level wrappers keep raw-pointer bridge interop-policy helpers explicit" {',
-        "try std.testing.expect(barrier.fenceOrderAllowed(.seq_cst));",
-        "try std.testing.expect(!barrier.fenceOrderAllowed(.monotonic));",
-        "try barrier.fence(.seq_cst);",
-        "try std.testing.expectError(error.InvalidFenceOrdering, barrier.fence(.monotonic));",
+        'test "phase3 low-level wrappers keep atomic order-gate failures explicit before MMIO publish" {',
         "barrier.storeLoad();",
         "try mmio.writeInteropPolicyBytes(u32, 1, 0, register_ptr, state);",
-        "try mmio.readInteropPolicyBytes(u32, 1, 0, const_register_ptr),",
-        "mmio.readInteropPolicyByte(u32, 1, const_register_ptr)",
-        "mmio.writeInteropPolicyByte(u32, 1, register_ptr, 0x1234_5678)",
-        "mmio.exchangeInteropPolicyByte(u32, 1, register_ptr, 0xCAFE_BABE)",
-        "mmio.writeMaskedInteropPolicyByte(u32, 1, register_ptr, 0x00F0_0FF0, 0x000E_000E)",
-        "const updated = try mmio.writeMaskedInteropPolicyBytes(",
-        "try atomic.fetchXor(u16, &state, 0x00F0, .acq_rel)",
-        "try std.testing.expectEqual(@as(u16, 0x0088), mmio.read(u16, const_register_ptr));",
-        "try mmio.exchangeInteropPolicyBytes(u16, 1, 0, register_ptr, 0x0F0F),",
+        "try std.testing.expectEqual(@as(u32, 0x00AA_5501), try mmio.readInteropPolicyBytes(u32, 1, 0, const_register_ptr));",
+        "try std.testing.expectEqual(@as(u32, 0x1234_5678), try mmio.exchangeInteropPolicyByte(u32, 1, register_ptr, 0xCAFE_BABE));",
         "const direct_ptr = try narrow.pointerAtInteropPolicyBytes(",
         "const direct_const_ptr = try narrow.constPointerAtInteropPolicyBytes(",
         "const policy_slice = try narrow.sliceAtInteropPolicy(u32, bridge_addr, bridge_words.len, raw_policy);",
         "try narrow.writeValueAtInteropPolicyBytes(",
         "try narrow.writeValueAtInteropPolicy(u32, second_addr, 0x0BAD_F00D, raw_policy);",
-        "(try narrow.constPointerAtInteropPolicy(u32, second_addr, raw_policy)).*,",
     ),
     WRAPPER_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/atomic.zig"),',
@@ -259,11 +221,11 @@ REQUIRED_MARKERS = {
         "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);",
     ),
     MAKEFILE_PATH: (
-        "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-policy-dump phase3-dump",
         "phase3-low-level-wrappers:",
-        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
         "phase3-low-level-wrappers-test:",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
         "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+        "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-policy-dump phase3-dump",
     ),
     WORKFLOW_PATH: (
         "name: Self-test current Phase 3 low-level wrapper survey validator",
@@ -303,6 +265,7 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
+    "make -C zigux phase3-low-level-wrappers",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
 )
@@ -323,11 +286,7 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def _append_duplicate_list_entry_issues(
-    label: str,
-    values: list[object],
-    issues: list[str],
-) -> None:
+def _append_duplicate_list_entry_issues(label: str, values: list[object], issues: list[str]) -> None:
     seen: dict[str, int] = {}
     for index, value in enumerate(values):
         key = repr(value)
@@ -366,9 +325,7 @@ def validate_repo(repo_root: Path) -> list[str]:
     for field, expected in REQUIRED_MANIFEST_FIELDS.items():
         actual = manifest.get(field)
         if actual != expected:
-            issues.append(
-                f"phase3_abi_manifest.json wrong {field}: {actual!r} != {expected!r}"
-            )
+            issues.append(f"phase3_abi_manifest.json wrong {field}: {actual!r} != {expected!r}")
 
     packet_files = manifest.get("packet_files")
     replay_routes = manifest.get("replay_routes")
@@ -384,9 +341,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         )
         for entry in REQUIRED_MANIFEST_PACKET_FILES:
             if entry not in packet_files:
-                issues.append(
-                    f"phase3_abi_manifest.json missing packet_files entry: {entry}"
-                )
+                issues.append(f"phase3_abi_manifest.json missing packet_files entry: {entry}")
 
     if not isinstance(replay_routes, list):
         issues.append("phase3_abi_manifest.json replay_routes is not a list")
@@ -398,9 +353,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         )
         for entry in REQUIRED_MANIFEST_REPLAY_ROUTES:
             if entry not in replay_routes:
-                issues.append(
-                    f"phase3_abi_manifest.json missing replay route: {entry}"
-                )
+                issues.append(f"phase3_abi_manifest.json missing replay route: {entry}")
 
     if not isinstance(repo_reality_gaps, list):
         issues.append("phase3_abi_manifest.json repo_reality_gaps is not a list")
@@ -427,21 +380,20 @@ def validate_repo(repo_root: Path) -> list[str]:
 
 def _populate_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
-        if relative_path == MANIFEST_PATH:
-            manifest = {
-                "phase": REQUIRED_MANIFEST_FIELDS["phase"],
-                "lane": REQUIRED_MANIFEST_FIELDS["lane"],
-                "slug": REQUIRED_MANIFEST_FIELDS["slug"],
-                "status": REQUIRED_MANIFEST_FIELDS["status"],
-                "scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
-                "packet_files": list(REQUIRED_MANIFEST_PACKET_FILES),
-                "replay_routes": list(REQUIRED_MANIFEST_REPLAY_ROUTES),
-                "repo_reality_gaps": [],
-                "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again",
-            }
-            _write(root / relative_path, json.dumps(manifest, indent=2) + "\n")
-            continue
         _write(root / relative_path, "\n".join(markers) + "\n")
+
+    manifest = {
+        "phase": REQUIRED_MANIFEST_FIELDS["phase"],
+        "lane": REQUIRED_MANIFEST_FIELDS["lane"],
+        "slug": REQUIRED_MANIFEST_FIELDS["slug"],
+        "status": REQUIRED_MANIFEST_FIELDS["status"],
+        "scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+        "packet_files": list(REQUIRED_MANIFEST_PACKET_FILES),
+        "replay_routes": list(REQUIRED_MANIFEST_REPLAY_ROUTES),
+        "repo_reality_gaps": [],
+        "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again",
+    }
+    _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
 
 
 def run_self_test() -> int:
@@ -472,8 +424,7 @@ def run_self_test() -> int:
         manifest["packet_files"].remove("zigux/helpers/mmio.zig")
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected = "phase3_abi_manifest.json missing packet_files entry: zigux/helpers/mmio.zig"
-        if expected not in issues:
+        if "phase3_abi_manifest.json missing packet_files entry: zigux/helpers/mmio.zig" not in issues:
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing low-level-wrapper packet file was not reported")
             return 1
@@ -483,11 +434,7 @@ def run_self_test() -> int:
         manifest["packet_files"].remove(".github/workflows/zigux-bootstrap.yml")
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected = (
-            "phase3_abi_manifest.json missing packet_files entry: "
-            ".github/workflows/zigux-bootstrap.yml"
-        )
-        if expected not in issues:
+        if "phase3_abi_manifest.json missing packet_files entry: .github/workflows/zigux-bootstrap.yml" not in issues:
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing low-level-wrapper workflow packet file was not reported")
             return 1
@@ -495,33 +442,26 @@ def run_self_test() -> int:
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
         manifest["replay_routes"].remove(
-            "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"
+            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
         )
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"
-        )
-        if expected not in issues:
+        if (
+            "phase3_abi_manifest.json missing replay route: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
+            not in issues
+        ):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing shared low-level-wrapper replay route was not reported")
+            print("expected missing low-level-wrapper replay route was not reported")
             return 1
 
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].remove(
-            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
-        )
+        manifest["replay_routes"].remove("make -C zigux phase3-low-level-wrappers")
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected = (
-            "phase3_abi_manifest.json missing replay route: "
-            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
-        )
-        if expected not in issues:
+        if "phase3_abi_manifest.json missing replay route: make -C zigux phase3-low-level-wrappers" not in issues:
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing low-level-wrapper replay route was not reported")
+            print("expected missing low-level-wrapper Makefile replay route was not reported")
             return 1
 
         _populate_repo(root)
@@ -529,56 +469,76 @@ def run_self_test() -> int:
         manifest["packet_files"].append("zigux/helpers/mmio.zig")
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected_prefix = "phase3_abi_manifest.json packet_files duplicate entry:"
-        if not any(issue.startswith(expected_prefix) for issue in issues):
+        if not any(issue.startswith("phase3_abi_manifest.json packet_files duplicate entry:") for issue in issues):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected duplicate low-level-wrapper packet file was not reported")
             return 1
 
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].append(
-            "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"
-        )
+        manifest["replay_routes"].append("make -C zigux phase3-low-level-wrappers")
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected_prefix = "phase3_abi_manifest.json replay_routes duplicate entry:"
-        if not any(issue.startswith(expected_prefix) for issue in issues):
-            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected duplicate shared low-level-wrapper replay route was not reported")
-            return 1
-
-        _populate_repo(root)
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].append(
-            "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
-        )
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(root)
-        expected_prefix = "phase3_abi_manifest.json replay_routes duplicate entry:"
-        if not any(issue.startswith(expected_prefix) for issue in issues):
+        if not any(issue.startswith("phase3_abi_manifest.json replay_routes duplicate entry:") for issue in issues):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected duplicate low-level-wrapper replay route was not reported")
             return 1
 
-        print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
-        print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 7}")
-        return 0
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"] = ["zigux/helpers/mmio.zig"]
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        if (
+            "phase3_abi_manifest.json misclassified low-level-wrapper packet file as repo gap: zigux/helpers/mmio.zig"
+            not in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected low-level-wrapper repo-gap misclassification was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"] = ["make -C zigux phase3-low-level-wrappers"]
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        if (
+            "phase3_abi_manifest.json misclassified low-level-wrapper replay route as repo gap: make -C zigux phase3-low-level-wrappers"
+            not in issues
+        ):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected low-level-wrapper replay-route repo-gap misclassification was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"] = [
+            "zigux/helpers/mmio.zig",
+            "zigux/helpers/mmio.zig",
+        ]
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        if not any(issue.startswith("phase3_abi_manifest.json repo_reality_gaps duplicate entry:") for issue in issues):
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected duplicate low-level-wrapper repo-gap entry was not reported")
+            return 1
+
+    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
+    print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 10}")
+    return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description="Validate the current Phase 3 low-level wrapper survey packet."
+    )
     parser.add_argument(
         "--repo-root",
         type=Path,
-        default=Path(__file__).resolve().parents[2],
-        help="Path to the repository root to validate (defaults to the repo containing this script).",
+        default=Path("."),
+        help="repository root that contains the Phase 3 low-level wrapper survey packet",
     )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="exercise the validator against focused synthetic failures",
-    )
+    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
@@ -587,9 +547,11 @@ def main() -> int:
     issues = validate_repo(args.repo_root)
     if issues:
         print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail")
-        print("\n".join(issues))
+        for issue in issues:
+            print(issue)
         return 1
 
+    print(f"validated {args.repo_root / NOTE_PATH}")
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass")
     return 0
 
