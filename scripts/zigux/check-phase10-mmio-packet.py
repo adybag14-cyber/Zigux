@@ -184,6 +184,7 @@ HELPER_TEST_MARKERS = [
     'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
     'test "phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit" {',
     'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {',
+    'test "phase10 virtio mmio keeps config-write planning bounded to staged review state" {',
     'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {',
     'test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {',
     "try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());",
@@ -400,6 +401,7 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {', 'test "phase10 virtio mmio keeps interrupt-ack drift" {', 'helper_tests:test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", "_ = try device.writeRegister(.queue_num, 8);\n    summary = try device.selectedQueueReadinessSummary();\n    try std.testing.expect(summary.queue_size_programmed);\n    try std.testing.expect(!summary.queue_size_matches_advertised);\n    try std.testing.expect(!summary.queue_ready_for_handoff);", "_ = try device.writeRegister(.queue_num, 8);\n    summary = try device.selectedQueueReadinessSummary();\n    try std.testing.expect(summary.queue_size_programmed);\n    try std.testing.expect(summary.queue_size_matches_advertised);\n    try std.testing.expect(summary.queue_ready_for_handoff);", "helper_tests:_ = try device.writeRegister(.queue_num, 8);\n    summary = try device.selectedQueueReadinessSummary();\n    try std.testing.expect(summary.queue_size_programmed);\n    try std.testing.expect(!summary.queue_size_matches_advertised);\n    try std.testing.expect(!summary.queue_ready_for_handoff);")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {', 'test "phase10 virtio mmio keeps config-generation drift" {', 'helper_tests:test "phase10 virtio mmio keeps stale config-write plans unavailable after generation drift" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps config-write planning bounded to staged review state" {', 'test "phase10 virtio mmio keeps config-write planning drift" {', 'helper_tests:test "phase10 virtio mmio keeps config-write planning bounded to staged review state" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {', 'test "phase10 virtio mmio keeps config-write plan drift" {', 'helper_tests:test "phase10 virtio mmio keeps config-write plan freshness bounded to staged review state" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", "try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());", "try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);", "helper_tests:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", "const no_op = try device.configWriteDispositionSummary();", "const no_op_missing = try device.configWriteDispositionSummary();", "helper_tests:const no_op = try device.configWriteDispositionSummary();")
@@ -431,7 +433,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=88")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=89")
     return 0
 
 
