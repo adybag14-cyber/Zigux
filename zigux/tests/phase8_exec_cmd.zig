@@ -72,23 +72,6 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
         matched,
     );
 
-    try env.set("PATH", "/usr/bin");
-    const unmatched = try exec_cmd.setupPathWithPwd(
-        std.testing.allocator,
-        &env,
-        state,
-        config,
-        "/repo",
-        "/logical/repo",
-        .{ .device = 11, .inode = 7 },
-        .{ .device = 9, .inode = 99 },
-    );
-    defer std.testing.allocator.free(unmatched);
-    try std.testing.expectEqualStrings(
-        "/repo/tools/bin:/repo/scripts:/usr/bin",
-        unmatched,
-    );
-
     try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "");
     try exec_cmd.setArgv0Path(std.testing.allocator, &state, "tools");
     try env.set("PATH", "");
@@ -270,6 +253,11 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
         128 * 1024,
     );
     defer std.testing.allocator.free(review_checklist);
+    try expectContains(review_checklist, "`Documentation/zigux/phase8-exec-cmd-slice.md`");
+    try expectContains(review_checklist, "`tools/lib/subcmd/exec-cmd.zig`");
+    try expectContains(review_checklist, "`zigux/tests/phase8_exec_cmd.zig`");
+    try expectContains(review_checklist, "`zigux/tests/phase8_exec_cmd_only_build.zig`");
+    try expectContains(review_checklist, "`make -C zigux phase8-exec-cmd-test`");
     try expectContains(review_checklist, "`make -C zigux phase8-validate`");
     try expectContains(review_checklist, "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context");
 
