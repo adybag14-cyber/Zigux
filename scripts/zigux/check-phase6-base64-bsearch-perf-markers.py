@@ -88,12 +88,11 @@ EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 
-SELF_TEST_CASE_COUNT = 34
+SELF_TEST_CASE_COUNT = 36
 
 
 class ValidationError(RuntimeError):
     """Raised when the Phase 6 base64/bsearch perf packet drifts."""
-
 
 
 def read_text(path: Path) -> str:
@@ -103,7 +102,6 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
-
 def require_snippets(path: Path, snippets: list[str]) -> None:
     content = read_text(path)
     for snippet in snippets:
@@ -111,7 +109,6 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
             raise ValidationError(
                 f"missing expected Phase 6 base64/bsearch perf marker in {path.as_posix()}: {snippet}"
             )
-
 
 
 def load_manifest(path: Path) -> dict[str, object]:
@@ -124,7 +121,6 @@ def load_manifest(path: Path) -> dict[str, object]:
     return parsed
 
 
-
 def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
     helpers = manifest.get("helpers")
     if not isinstance(helpers, list):
@@ -133,7 +129,6 @@ def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
         if isinstance(helper, dict) and helper.get("key") == key:
             return helper
     raise ValidationError(f"missing helper row in manifest: {key}")
-
 
 
 def require_checker_surfaces(
@@ -149,11 +144,9 @@ def require_checker_surfaces(
             raise ValidationError(f"{key} checker surface drifted: {surface}")
 
 
-
 def require_string_list(value: object, label: str, expected: list[str]) -> None:
     if value != expected:
         raise ValidationError(f"{label} drifted")
-
 
 
 def require_route(value: object, label: str, route: str) -> None:
@@ -161,7 +154,6 @@ def require_route(value: object, label: str, route: str) -> None:
         raise ValidationError(f"{label} rerun routes missing")
     if route not in value:
         raise ValidationError(f"{label} rerun route missing {route}")
-
 
 
 def validate_evidence_manifest(path: Path) -> None:
@@ -197,6 +189,11 @@ def validate_evidence_manifest(path: Path) -> None:
     require_route(
         base64_perf.get("linux_style_rerun_routes"),
         "base64 evidence",
+        "make -C zigux phase6-base64-perf",
+    )
+    require_route(
+        base64_perf.get("linux_style_rerun_routes"),
+        "base64 evidence",
         EXPECTED_SHARED_PERF_WRAPPER,
     )
 
@@ -213,6 +210,11 @@ def validate_evidence_manifest(path: Path) -> None:
     require_route(
         bsearch_perf.get("linux_style_rerun_routes"),
         "bsearch evidence",
+        "make -C zigux phase6-bsearch-perf",
+    )
+    require_route(
+        bsearch_perf.get("linux_style_rerun_routes"),
+        "bsearch evidence",
         EXPECTED_SHARED_PERF_WRAPPER,
     )
 
@@ -224,7 +226,6 @@ def validate_evidence_manifest(path: Path) -> None:
             raise ValidationError(
                 f"missing shared replay inventory marker in {path.as_posix()}: {replay}"
             )
-
 
 
 def validate_parity_manifest(path: Path) -> None:
@@ -278,7 +279,6 @@ def validate_parity_manifest(path: Path) -> None:
     require_route(bsearch_routes, "bsearch", EXPECTED_SHARED_PERF_WRAPPER)
 
 
-
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
@@ -289,11 +289,9 @@ def validate(repo_root: Path) -> None:
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
 
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 
 def scaffold_repo(root: Path) -> None:
@@ -387,11 +385,9 @@ def scaffold_repo(root: Path) -> None:
     )
 
 
-
 def mutate_text(path: Path, old: str, new: str) -> None:
     content = read_text(path)
     write(path, content.replace(old, new, 1))
-
 
 
 def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
@@ -405,7 +401,6 @@ def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
             ) from exc
     else:
         raise AssertionError("expected validation failure")
-
 
 
 def run_self_test() -> None:
@@ -648,6 +643,30 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                '"make -C zigux phase6-base64-perf"',
+                '"make -C zigux phase6-base64-benchmark"',
+            ),
+            "base64 evidence rerun route missing make -C zigux phase6-base64-perf",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"make -C zigux phase6-bsearch-perf"',
+                '"make -C zigux phase6-bsearch-benchmark"',
+            ),
+            "bsearch evidence rerun route missing make -C zigux phase6-bsearch-perf",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 '"make -C zigux phase6-base64-perf",\n          "make -C zigux phase6-perf"',
                 '"make -C zigux phase6-base64-perf",\n          "make -C zigux phase6-base64-bundle"',
             ),
@@ -830,13 +849,11 @@ def run_self_test() -> None:
     print(f"PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
 
 
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
-
 
 
 def main() -> int:
