@@ -20,6 +20,9 @@ PREFLIGHT_STEP_BLOCK = (
 )
 
 EXACT_ONCE_LINES = (
+    "- name: Checkout",
+    "uses: actions/checkout@v6.0.2",
+    "fetch-depth: 1",
     "- name: Setup Python",
     "uses: actions/setup-python@v6.2.0",
     "python-version: '3.x'",
@@ -43,6 +46,9 @@ EXACT_ONCE_LINES = (
 )
 
 ORDERED_LINES = (
+    "- name: Checkout",
+    "uses: actions/checkout@v6.0.2",
+    "fetch-depth: 1",
     "- name: Setup Python",
     "uses: actions/setup-python@v6.2.0",
     "python-version: '3.x'",
@@ -138,6 +144,8 @@ def build_sample_root(root: Path) -> None:
                 "    steps:",
                 "      - name: Checkout",
                 "        uses: actions/checkout@v6.0.2",
+                "        with:",
+                "          fetch-depth: 1",
                 "      - name: Setup Python",
                 "        uses: actions/setup-python@v6.2.0",
                 "        with:",
@@ -244,6 +252,16 @@ def run_self_test() -> int:
     cases: list[tuple[str, object | None]] = [
         ("baseline", None),
         ("missing_workflow", lambda root: (root / WORKFLOW_REL).unlink()),
+        ("missing_checkout_uses", lambda root: remove_line(root, "uses: actions/checkout@v6.0.2")),
+        (
+            "renamed_checkout_action",
+            lambda root: replace_line(
+                root,
+                "uses: actions/checkout@v6.0.2",
+                "uses: actions/checkout@v5.0.0",
+            ),
+        ),
+        ("missing_checkout_fetch_depth", lambda root: remove_line(root, "fetch-depth: 1")),
         ("missing_setup_python_uses", lambda root: remove_line(root, "uses: actions/setup-python@v6.2.0")),
         (
             "renamed_setup_python_action",
