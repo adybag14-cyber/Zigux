@@ -32,6 +32,7 @@ REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 FIND_BIT_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-review-packet.py")
+RBTREE_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-review-packet.py")
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
@@ -57,6 +58,7 @@ REQUIRED_FILES = (
     SCRIPTS_README_REL,
     STRING_REVIEW_CHECKER_REL,
     FIND_BIT_REVIEW_CHECKER_REL,
+    RBTREE_REVIEW_CHECKER_REL,
     DIRECT_OWNER_CHECKER_REL,
     ROUTE_SUMMARY_CHECKER_REL,
     BENCH_CHECKER_REL,
@@ -257,6 +259,7 @@ EXPECTED_STRING_REVIEW_ANCHORS = {
 DELEGATED_CHECKERS = (
     (STRING_REVIEW_CHECKER_REL, "phase1-string-review-packet"),
     (FIND_BIT_REVIEW_CHECKER_REL, "phase1-find-bit-review-packet"),
+    (RBTREE_REVIEW_CHECKER_REL, "phase1-rbtree-review-packet"),
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
     (ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),
     (BENCH_CHECKER_REL, "phase1-bench"),
@@ -497,11 +500,13 @@ def run_self_test() -> int:
         ("missing_string_checker", lambda root: (root / STRING_REVIEW_CHECKER_REL).unlink()),
         ("failing_string_checker", lambda root: make_checker_stub(root / STRING_REVIEW_CHECKER_REL, ok=False)),
         ("missing_find_bit_review_checker", lambda root: (root / FIND_BIT_REVIEW_CHECKER_REL).unlink()),
+        ("missing_rbtree_review_checker", lambda root: (root / RBTREE_REVIEW_CHECKER_REL).unlink()),
         ("missing_find_bit_bench_anchor_checker", lambda root: (root / FIND_BIT_BENCH_ANCHOR_CHECKER_REL).unlink()),
         ("failing_find_bit_bench_anchor_checker", lambda root: make_checker_stub(root / FIND_BIT_BENCH_ANCHOR_CHECKER_REL, ok=False)),
         ("missing_bitmap_direct_anchor_checker", lambda root: (root / BITMAP_DIRECT_ANCHOR_CHECKER_REL).unlink()),
         ("failing_bitmap_direct_anchor_checker", lambda root: make_checker_stub(root / BITMAP_DIRECT_ANCHOR_CHECKER_REL, ok=False)),
         ("failing_find_bit_review_checker", lambda root: make_checker_stub(root / FIND_BIT_REVIEW_CHECKER_REL, ok=False)),
+        ("failing_rbtree_review_checker", lambda root: make_checker_stub(root / RBTREE_REVIEW_CHECKER_REL, ok=False)),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
         ("missing_makefile_marker", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL).replace("phase12-test:\n", "", 1))),
         ("forbidden_phase1_makefile_route", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL) + "phase1-validate:\n")),
