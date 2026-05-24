@@ -15,6 +15,7 @@ IOMAP_NOTE_PATH = Path("Documentation/zigux/phase13-devres-iomap-planner.md")
 IOMAP_MANIFEST_PATH = Path("zigux/tests/phase13_devres_iomap_planner_manifest.json")
 IOMAP_REPLAY_PATH = Path("zigux/tests/phase13_devres_iomap_planner.zig")
 HELPER_PATH = Path("lib/devres.zig")
+DMA_BOUNDARY_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-dma-boundary.py")
 IOUNMAP_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-iounmap-planner.py")
 IOMAP_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-iomap-planner.py")
 
@@ -28,6 +29,7 @@ REQUIRED_FILES = [
     IOMAP_MANIFEST_PATH,
     IOMAP_REPLAY_PATH,
     HELPER_PATH,
+    DMA_BOUNDARY_CHECKER_PATH,
     IOUNMAP_CHECKER_PATH,
     IOMAP_CHECKER_PATH,
 ]
@@ -44,6 +46,7 @@ SLICE_MARKERS = [
     "# Phase 13 devres Slice",
     "`Documentation/zigux/phase13-devres-iounmap-planner.md`",
     "`zigux/tests/phase13_devres_iounmap_planner.zig`",
+    "`scripts/zigux/check-phase13-devres-dma-boundary.py`",
     "`scripts/zigux/check-phase13-devres-iounmap-planner.py`",
     "`Documentation/zigux/phase13-devres-iomap-planner.md`",
     "`zigux/tests/phase13_devres_iomap_planner.zig`",
@@ -61,6 +64,7 @@ SURVEY_MARKERS = [
     "helper-first iomap planning through `planDeviceTreeIomap(...)`",
     "helper-side iomap cleanup handoff in `lib/devres.zig`",
     "`.provides_of_iomap_cleanup_handoff_planning = true` and `planDeviceTreeIomapCleanupHandoff(...)`",
+    "`scripts/zigux/check-phase13-devres-dma-boundary.py`",
     "`zigux/tests/phase13_devres.zig`",
     "`zigux/tests/phase13_devres_reviewability.zig`",
     "`zigux/tests/phase13_devres_manifest.json`",
@@ -165,6 +169,18 @@ HELPER_FORBIDDEN_MARKERS = [
     "devm_arch_io_reserve_memtype_wc(",
 ]
 
+DMA_BOUNDARY_CHECKER_MARKERS = [
+    "HELPER_PATH = Path(\"lib/devres.zig\")",
+    "SURVEY_PATH = Path(\"Documentation/zigux/phase13-devres-survey.md\")",
+    "DMA_REPLAY_PATH = Path(\"zigux/tests/phase13_devres_dma_coherent.zig\")",
+    "SCATTERLIST_NOTE_PATH = Path(\"Documentation/zigux/phase13-devres-scatterlist-planner.md\")",
+    "SCATTERLIST_MANIFEST_PATH = Path(\"zigux/tests/phase13_devres_scatterlist_planner_manifest.json\")",
+    "SCATTERLIST_HELPER_PATH = Path(\"lib/devres_scatterlist.zig\")",
+    "SCATTERLIST_REPLAY_PATH = Path(\"zigux/tests/phase13_devres_scatterlist.zig\")",
+    "PHASE13_DEVRES_DMA_BOUNDARY_SELF_TEST=pass",
+    "PHASE13_DEVRES_DMA_BOUNDARY=pass",
+]
+
 IOUNMAP_CHECKER_MARKERS = [
     "HELPER_PATH = Path(\"lib/devres.zig\")",
     "NOTE_PATH = Path(\"Documentation/zigux/phase13-devres-iounmap-planner.md\")",
@@ -222,6 +238,7 @@ def validate(root: Path) -> list[str]:
         (IOMAP_MANIFEST_PATH, IOMAP_MANIFEST_MARKERS, "iomap_manifest"),
         (IOMAP_REPLAY_PATH, IOMAP_REPLAY_MARKERS, "iomap_replay"),
         (HELPER_PATH, HELPER_REQUIRED_MARKERS, "helper"),
+        (DMA_BOUNDARY_CHECKER_PATH, DMA_BOUNDARY_CHECKER_MARKERS, "dma_boundary_checker"),
         (IOUNMAP_CHECKER_PATH, IOUNMAP_CHECKER_MARKERS, "iounmap_checker"),
         (IOMAP_CHECKER_PATH, IOMAP_CHECKER_MARKERS, "iomap_checker"),
     ]
@@ -243,6 +260,7 @@ def seed_fixture_tree(root: Path) -> None:
         IOMAP_MANIFEST_PATH: "\n".join(IOMAP_MANIFEST_MARKERS) + "\n",
         IOMAP_REPLAY_PATH: "\n".join(IOMAP_REPLAY_MARKERS) + "\n",
         HELPER_PATH: "\n".join(HELPER_REQUIRED_MARKERS) + "\n",
+        DMA_BOUNDARY_CHECKER_PATH: "\n".join(DMA_BOUNDARY_CHECKER_MARKERS) + "\n",
         IOUNMAP_CHECKER_PATH: "\n".join(IOUNMAP_CHECKER_MARKERS) + "\n",
         IOMAP_CHECKER_PATH: "\n".join(IOMAP_CHECKER_MARKERS) + "\n",
     }
@@ -272,6 +290,34 @@ def run_self_test() -> int:
             validate(root),
             [f"unexpected_file:{DIRECT_PACKET_GAP_PATHS[0].as_posix()}"],
             "unexpected_direct_packet_file_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        (root / DMA_BOUNDARY_CHECKER_PATH).unlink()
+        assert_only(
+            validate(root),
+            [f"missing_file:{DMA_BOUNDARY_CHECKER_PATH.as_posix()}"],
+            "missing_dma_boundary_checker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SLICE_PATH,
+            "\n".join(
+                marker
+                for marker in SLICE_MARKERS
+                if marker != "`scripts/zigux/check-phase13-devres-dma-boundary.py`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "slice:missing_marker:`scripts/zigux/check-phase13-devres-dma-boundary.py`",
+            ],
+            "missing_slice_dma_boundary_checker_marker_failed",
         )
         case_count += 1
 
