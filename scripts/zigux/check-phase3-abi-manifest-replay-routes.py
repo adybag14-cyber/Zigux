@@ -11,6 +11,12 @@ from pathlib import Path
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase3.py")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
+CURRENT_NEXT_SAFE_STEP = (
+    "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet "
+    "aligned with the dedicated replay routes and only reopen this manifest if the "
+    "checker, focused builds, or reminder surfaces drift again"
+)
+
 REQUIRED_VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"',
     '"scripts/zigux/check-phase3-abi-support-packet.py"',
@@ -66,7 +72,6 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"make -C zigux phase3-test"',
     '"make -C zigux phase3"',
     '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
-    '"make -C zigux phase3-low-level-wrappers-test"',
     '"make -C zigux phase3-export-uapi-layout"',
     '"make -C zigux phase3-export-uapi-layout-test"',
 )
@@ -75,6 +80,13 @@ REQUIRED_MANIFEST_FIELDS = {
     "phase": "Phase 3",
     "lane": "abi-runtime",
     "slug": "phase3-abi-packet",
+    "status": "shared_abi_and_header_family_binding_surface_present",
+    "scope": (
+        "shared ABI bindings, directly coupled helper decoding, header-family "
+        "follow-through, notifier layouts, export-status layout, and "
+        "header-compatibility replay"
+    ),
+    "next_safe_step": CURRENT_NEXT_SAFE_STEP,
 }
 
 REQUIRED_PACKET_FILES = (
@@ -227,6 +239,14 @@ def validate_repo(repo_root: Path) -> list[str]:
         if route not in replay_routes:
             issues.append(f"phase3_abi_manifest.json missing replay route: {route}")
 
+    repo_reality_gaps = manifest.get("repo_reality_gaps")
+    if not isinstance(repo_reality_gaps, list):
+        issues.append("phase3_abi_manifest.json repo_reality_gaps is not a list")
+    elif repo_reality_gaps:
+        issues.append(
+            "phase3_abi_manifest.json repo_reality_gaps drifted from the current shared packet expectation"
+        )
+
     return issues
 
 
@@ -242,8 +262,12 @@ def _sample_manifest() -> str:
         "phase": "Phase 3",
         "lane": "abi-runtime",
         "slug": "phase3-abi-packet",
+        "status": "shared_abi_and_header_family_binding_surface_present",
+        "scope": REQUIRED_MANIFEST_FIELDS["scope"],
         "packet_files": list(REQUIRED_PACKET_FILES),
         "replay_routes": list(REQUIRED_REPLAY_ROUTES),
+        "repo_reality_gaps": [],
+        "next_safe_step": CURRENT_NEXT_SAFE_STEP,
     }
     return json.dumps(manifest, indent=2) + "\n"
 
@@ -450,6 +474,50 @@ def run_self_test() -> int:
 
         _populate_repo(repo_root)
         manifest = json.loads(_read(manifest_path))
+        manifest["status"] = "stale-status"
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        _expect_issue(
+            issues,
+            "phase3_abi_manifest.json wrong status: 'stale-status' != 'shared_abi_and_header_family_binding_surface_present'",
+            "expected status drift was not reported",
+        )
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["scope"] = "stale-scope"
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        _expect_issue(
+            issues,
+            "phase3_abi_manifest.json wrong scope: 'stale-scope' != 'shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay'",
+            "expected scope drift was not reported",
+        )
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"] = ["stale-gap"]
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        _expect_issue(
+            issues,
+            "phase3_abi_manifest.json repo_reality_gaps drifted from the current shared packet expectation",
+            "expected repo_reality_gaps drift was not reported",
+        )
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["next_safe_step"] = "stale-next-step"
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        _expect_issue(
+            issues,
+            "phase3_abi_manifest.json wrong next_safe_step: 'stale-next-step' != 'keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again'",
+            "expected next_safe_step drift was not reported",
+        )
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
         manifest["slug"] = "stale-slug"
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(repo_root)
@@ -460,7 +528,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=145")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=149")
     return 0
 
 
