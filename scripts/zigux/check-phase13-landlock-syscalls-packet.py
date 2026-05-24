@@ -13,28 +13,33 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 REQUIRED_MARKERS = {
     "security/landlock/syscalls.zig": [
         "provides_abi_errata_query_planning",
+        "provides_ruleset_fd_lookup_planning",
         "LANDLOCK_CREATE_RULESET_ERRATA",
         "provides_ruleset_fd_install_planning",
         "provides_ruleset_fd_stub_planning",
         "provides_ruleset_release_planning",
         "ruleset_fops_present",
+        "planGetRulesetFromFd",
         "planInstallRulesetFd",
         "planRulesetFdStub",
         "planFopRulesetRelease",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-slice.md": [
+        "ruleset-fd lookup planning",
         "ERRATA query planning",
         "`scripts/zigux/check-phase13-landlock-syscalls-packet.py`",
         "helper-local packet companions",
         "repo-reality gaps",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
+        "ruleset-fd lookup planning",
         "ERRATA query planning",
         "`scripts/zigux/check-phase13-landlock-syscalls-packet.py`",
         "active helper-local packet companions through:",
         "shared-build companions still absent",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-survey.md": [
+        "ruleset-fd lookup",
         "ERRATA query",
         "master-readback-2026-05-23",
         "Current `master` now materializes this helper-local packet through:",
