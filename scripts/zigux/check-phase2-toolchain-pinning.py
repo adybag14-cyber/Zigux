@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+EXPECTED_SELF_TEST_CASE_COUNT = 39
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -199,6 +199,15 @@ def write_text(path: Path, content: str) -> None:
 
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
 
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
@@ -379,10 +388,26 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks += 1
 
-        path = resolve(root, WORKFLOW)
-        path.write_text(path.read_text(encoding="utf-8").replace(WORKFLOW_LINES[0], ""), encoding="utf-8")
-        assert any(code == "MISSING_WORKFLOW_HOOKS" for code, _ in collect_issues(root))
-        checks += 1
+        for marker in WORKFLOW_SETUP:
+            build_self_test_root(root)
+            path = resolve(root, WORKFLOW)
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_WORKFLOW_SETUP_MARKERS", marker) in collect_issues(root)
+            checks += 1
+
+        for marker in WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve(root, WORKFLOW)
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_WORKFLOW_HOOKS", marker) in collect_issues(root)
+            checks += 1
+
+        for marker in WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve(root, WORKFLOW)
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, marker + "\n" + marker), encoding="utf-8")
+            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in collect_issues(root)
+            checks += 1
 
         build_self_test_root(root)
         manifest = json.loads(read_text(resolve(root, TOOL_MANIFEST)))
