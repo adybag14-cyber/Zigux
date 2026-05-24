@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 27
 
 
 def read_text(path: Path) -> str:
@@ -293,6 +293,12 @@ def run_self_test() -> None:
         fixture_marker = '"packet": "phase7-rbtree-parity-fixture"'
         fixture_path.write_text(read_text(fixture_path).replace(fixture_marker + "\n", "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree.json: {fixture_marker}"])
+
+        write_fixture_root(root)
+        harness_path = root / "zigux/tests/fixtures/phase7_rbtree_c_harness.c"
+        harness_marker = ".reverse_alias_detached = {"
+        harness_path.write_text(read_text(harness_path).replace(harness_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree_c_harness.c: {harness_marker}"])
 
         write_fixture_root(root)
         makefile_path = root / "zigux/Makefile"
