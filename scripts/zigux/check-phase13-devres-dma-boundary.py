@@ -228,9 +228,11 @@ def seed_fixture_tree(root: Path) -> None:
         root / HELPER_PATH,
         "\n".join(
             [
-                "pub fn planManagedIoremapResource() void {}",
-                "pub fn planDeviceTreeIomap() void {}",
-                "pub fn planArchIoReserveMemtypeWc() void {}",
+                ".provides_dmam_alloc_coherent_planning = true",
+                ".touches_live_dma = false",
+                ".touches_live_scatterlist = false",
+                "pub fn planManagedDmamAllocCoherent() void {}",
+                "pub fn planManagedDmamFreeCoherent() void {}",
             ]
         )
         + "\n",
