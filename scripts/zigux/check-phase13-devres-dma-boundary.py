@@ -11,19 +11,23 @@ from pathlib import Path
 HELPER_PATH = Path("lib/devres.zig")
 SURVEY_PATH = Path("Documentation/zigux/phase13-devres-survey.md")
 DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dma_coherent.zig")
+DMA_REPLAY_BUILD_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig")
 SCATTERLIST_NOTE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-planner.md")
 SCATTERLIST_MANIFEST_PATH = Path("zigux/tests/phase13_devres_scatterlist_planner_manifest.json")
 SCATTERLIST_HELPER_PATH = Path("lib/devres_scatterlist.zig")
 SCATTERLIST_REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist.zig")
+SCATTERLIST_BUILD_PATH = Path("zigux/tests/phase13_devres_scatterlist_build.zig")
 
 REQUIRED_FILES = [
     HELPER_PATH,
     SURVEY_PATH,
     DMA_REPLAY_PATH,
+    DMA_REPLAY_BUILD_PATH,
     SCATTERLIST_NOTE_PATH,
     SCATTERLIST_MANIFEST_PATH,
     SCATTERLIST_HELPER_PATH,
     SCATTERLIST_REPLAY_PATH,
+    SCATTERLIST_BUILD_PATH,
 ]
 
 HELPER_BLOCKED_MARKERS = [
@@ -72,6 +76,8 @@ SURVEY_MARKERS = [
     "`dma_unmap_sg()`",
     "`sg_table`",
     "`lib/devres_scatterlist.zig` ships a pure scatterlist lifetime planning surface",
+    "`zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig` keeps the zero-sized coherent allocation replay directly runnable through its dedicated build shard",
+    "`zigux/tests/phase13_devres_scatterlist_build.zig` keeps the helper-first scatterlist replay directly runnable through a dedicated build shard",
 ]
 
 DMA_REPLAY_MARKERS = [
@@ -79,6 +85,7 @@ DMA_REPLAY_MARKERS = [
     'test "phase13 devres dma coherent replay proves lib/devres stays planning-only at the boundary" {',
     'test "phase13 devres dma coherent replay anchors the survey-side scatterlist boundary" {',
     'test "phase13 devres dma coherent replay keeps scatterlist helper evidence helper-first" {',
+    'test "phase13 devres dma coherent replay keeps build-shard boundary checks explicit" {',
     'try requireAbsent(helper, "dmam_alloc_coherent(");',
     'try requireAbsent(helper, "dmam_free_coherent(");',
     'try requireAbsent(helper, "dma_map_");',
@@ -95,6 +102,10 @@ DMA_REPLAY_MARKERS = [
     'try requireContains(survey, "`dmam_free_coherent()`");',
     'try requireContains(survey, "`dma_map_sgtable()`");',
     'try requireContains(survey, "`sg_table`");',
+    'try requireContains(survey, "`zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig`");',
+    'try requireContains(survey, "`zigux/tests/phase13_devres_scatterlist_build.zig`");',
+    'try requireContains(checker, "DMA_REPLAY_BUILD_PATH = Path(\"zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig\")");',
+    'try requireContains(checker, "SCATTERLIST_BUILD_PATH = Path(\"zigux/tests/phase13_devres_scatterlist_build.zig\")");',
     'try requireAbsent(helper, "dma_map_sg(");',
     'try requireAbsent(helper, "dma_unmap_sg(");',
     'try requireAbsent(helper, "sg_alloc_table(");',
@@ -226,10 +237,12 @@ def seed_fixture_tree(root: Path) -> None:
     )
     write_text(root / SURVEY_PATH, "\n".join(SURVEY_MARKERS) + "\n")
     write_text(root / DMA_REPLAY_PATH, "\n".join(DMA_REPLAY_MARKERS) + "\n")
+    write_text(root / DMA_REPLAY_BUILD_PATH, "// build shard\n")
     write_text(root / SCATTERLIST_NOTE_PATH, "\n".join(SCATTERLIST_NOTE_MARKERS) + "\n")
     write_text(root / SCATTERLIST_MANIFEST_PATH, "\n".join(SCATTERLIST_MANIFEST_MARKERS) + "\n")
     write_text(root / SCATTERLIST_HELPER_PATH, "\n".join(SCATTERLIST_HELPER_MARKERS) + "\n")
     write_text(root / SCATTERLIST_REPLAY_PATH, "\n".join(SCATTERLIST_REPLAY_MARKERS) + "\n")
+    write_text(root / SCATTERLIST_BUILD_PATH, "// build shard\n")
 
 
 def assert_only(actual: list[str], expected: list[str], label: str) -> None:
@@ -329,6 +342,24 @@ def run_self_test() -> int:
             validate(root),
             ["scatterlist_note:missing_marker:dma_unmap_sg()"],
             "scatterlist_note_missing_dma_unmap_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        (root / DMA_REPLAY_BUILD_PATH).unlink()
+        assert_only(
+            validate(root),
+            [f"missing:{DMA_REPLAY_BUILD_PATH.as_posix()}"],
+            "missing_dma_build_shard_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        (root / SCATTERLIST_BUILD_PATH).unlink()
+        assert_only(
+            validate(root),
+            [f"missing:{SCATTERLIST_BUILD_PATH.as_posix()}"],
+            "missing_scatterlist_build_shard_failed",
         )
         case_count += 1
 
