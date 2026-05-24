@@ -107,8 +107,11 @@ REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
+    "keep the modem-control proof pair directly readable through its focused build route",
     "current-head HVC continuity packet rather than a whole-Phase-11 replay roster",
 )
 
@@ -598,8 +601,11 @@ FIXTURE_HVC_VALIDATION_MATRIX_TEXT = """# Phase 11 HVC Console Validation Matrix
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+- keep the modem-control proof pair directly readable through its focused build route
 - current-head HVC continuity packet rather than a whole-Phase-11 replay roster
 """
 
@@ -677,7 +683,6 @@ FIXTURE_MAKEFILE_TEXT = """phase11-validate:
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
 """
 
-
 def build_fixture(root: Path) -> None:
     write(root / BUILD_FILE_PATH, FIXTURE_BUILD_TEXT)
     write(root / HV_OPS_BUILD_PATH, FIXTURE_HV_OPS_BUILD_TEXT)
@@ -693,7 +698,6 @@ def build_fixture(root: Path) -> None:
     write(root / WORKFLOW_PATH, FIXTURE_WORKFLOW_TEXT)
     write(root / MAKEFILE_PATH, FIXTURE_MAKEFILE_TEXT)
 
-
 def expect_failure(root: Path, fragment: str) -> None:
     try:
         run_check(root)
@@ -702,7 +706,6 @@ def expect_failure(root: Path, fragment: str) -> None:
             raise AssertionError(f"expected {fragment!r}, got {exc!r}") from exc
         return
     raise AssertionError(f"expected failure containing {fragment!r}")
-
 
 def run_self_test() -> int:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_build_inventory_current_head_"))
@@ -919,6 +922,38 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        missing_modem_control_matrix_marker = tmpdir / "missing_modem_control_matrix_marker"
+        shutil.copytree(fixture, missing_modem_control_matrix_marker, dirs_exist_ok=True)
+        write(
+            missing_modem_control_matrix_marker / HVC_VALIDATION_MATRIX_PATH,
+            read_text(missing_modem_control_matrix_marker / HVC_VALIDATION_MATRIX_PATH).replace(
+                "- `zigux/tests/phase11_hvc_modem_control_proof_build.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_modem_control_matrix_marker,
+            "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
+        )
+        case_count += 1
+
+        missing_modem_control_route_marker = tmpdir / "missing_modem_control_route_marker"
+        shutil.copytree(fixture, missing_modem_control_route_marker, dirs_exist_ok=True)
+        write(
+            missing_modem_control_route_marker / HVC_VALIDATION_MATRIX_PATH,
+            read_text(missing_modem_control_route_marker / HVC_VALIDATION_MATRIX_PATH).replace(
+                "- keep the modem-control proof pair directly readable through its focused build route\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_modem_control_route_marker,
+            "keep the modem-control proof pair directly readable through its focused build route",
+        )
+        case_count += 1
+
         missing_uapi_survey_marker = tmpdir / "missing_uapi_survey_marker"
         shutil.copytree(fixture, missing_uapi_survey_marker, dirs_exist_ok=True)
         write(
@@ -956,7 +991,6 @@ def run_self_test() -> int:
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
-
 
 def main() -> int:
     parser = argparse.ArgumentParser()
