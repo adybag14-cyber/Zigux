@@ -8,6 +8,7 @@ from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 NOTE_PATH = "Documentation/zigux/phase14-rcu-tree-survey.md"
+MANIFEST_PATH = "zigux/tests/phase14_rcu_tree_manifest.json"
 
 ROLLBACK_THRESHOLD_MARKER = (
     "- manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` "
@@ -40,6 +41,14 @@ RETURN_TO_BLOCKED_MARKERS = [
     "- any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the `Architecture Council` reopen record",
     "- missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
     "- freeze-map, survey note, or dedicated-check drift that drops the blocked bridge disposition, the companion-readback warning, or the rollback owner",
+]
+MANIFEST_REQUIRED_MARKERS = [
+    '"lane_key": "P14-L16"',
+    '"anchor": "kernel/rcu/tree.c"',
+    '"rollback_owner": "Repo Tooling Pod"',
+    '"phase14-rcu-tree-rollback-threshold-guardrail"',
+    '"Architecture Council reopen record linked from the reviewable packet"',
+    '"freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"',
 ]
 
 
@@ -84,16 +93,26 @@ FORBIDDEN_MARKERS = [
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     note = root / NOTE_PATH
+    manifest = root / MANIFEST_PATH
     if not note.exists():
-        return [f"missing_file:{NOTE_PATH}"]
+        failures.append(f"missing_file:{NOTE_PATH}")
+    if not manifest.exists():
+        failures.append(f"missing_file:{MANIFEST_PATH}")
+    if failures:
+        return failures
 
-    text = note.read_text(encoding="utf-8")
+    note_text = note.read_text(encoding="utf-8")
     for marker in REQUIRED_MARKERS:
-        if marker not in text:
+        if marker not in note_text:
             failures.append(f"missing_marker:{marker}")
     for marker in FORBIDDEN_MARKERS:
-        if marker in text:
+        if marker in note_text:
             failures.append(f"forbidden_marker:{marker}")
+
+    manifest_text = manifest.read_text(encoding="utf-8")
+    for marker in MANIFEST_REQUIRED_MARKERS:
+        if marker not in manifest_text:
+            failures.append(f"missing_manifest_marker:{marker}")
     return failures
 
 
@@ -137,71 +156,130 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
 """ + "\n".join(f"  {marker}" for marker in RETURN_TO_BLOCKED_MARKERS) + """
 """
 
+FIXTURE_MANIFEST = """{
+  "lane_key": "P14-L16",
+  "anchor": "kernel/rcu/tree.c",
+  "rollback_threshold": {
+    "rollback_owner": "Repo Tooling Pod",
+    "required_evidence": [
+      "Architecture Council reopen record linked from the reviewable packet"
+    ],
+    "rollback_triggers": [
+      "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"
+    ]
+  },
+  "gaps": [
+    {
+      "id": "phase14-rcu-tree-rollback-threshold-guardrail"
+    }
+  ]
+}
+"""
+
 
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase14-rcu-guardrail-"))
     try:
         write_text(base / NOTE_PATH, FIXTURE_NOTE)
+        write_text(base / MANIFEST_PATH, FIXTURE_MANIFEST)
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture should pass but failed: {failures!r}")
 
         cases = [
-            ("remove-lane-key", "`PHASE14_LANE_KEY=P14-L16`", "missing_marker:`PHASE14_LANE_KEY=P14-L16`"),
+            ("remove-note-lane-key", NOTE_PATH, "`PHASE14_LANE_KEY=P14-L16`", "missing_marker:`PHASE14_LANE_KEY=P14-L16`"),
             (
                 "remove-direct-bridge-surface",
+                NOTE_PATH,
                 DIRECT_BRIDGE_SURFACE_MARKER,
                 f"missing_marker:{DIRECT_BRIDGE_SURFACE_MARKER}",
             ),
             (
                 "remove-companion-heading",
+                NOTE_PATH,
                 COMPANION_CONFIRMATION_HEADING,
                 f"missing_marker:{COMPANION_CONFIRMATION_HEADING}",
             ),
             (
                 "remove-companion-partial-marker",
+                NOTE_PATH,
                 COMPANION_PARTIAL_MARKER,
                 f"missing_marker:{COMPANION_PARTIAL_MARKER}",
             ),
             (
                 "remove-owner-map-tieback-heading",
+                NOTE_PATH,
                 OWNER_MAP_TIEBACK_HEADING,
                 f"missing_marker:{OWNER_MAP_TIEBACK_HEADING}",
             ),
             (
                 "remove-checker",
+                NOTE_PATH,
                 "- dedicated rollback guard surface:\n  - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`\n",
                 "missing_marker:dedicated rollback guard surface:",
             ),
             (
                 "remove-threshold-guardrail",
+                NOTE_PATH,
                 ROLLBACK_THRESHOLD_MARKER,
                 f"missing_marker:{ROLLBACK_THRESHOLD_MARKER}",
             ),
             (
                 "remove-required-evidence-heading",
+                NOTE_PATH,
                 REQUIRED_EVIDENCE_HEADING,
                 f"missing_marker:{REQUIRED_EVIDENCE_HEADING}",
             ),
             (
                 "remove-return-to-blocked-trigger",
+                NOTE_PATH,
                 RETURN_TO_BLOCKED_MARKERS[0],
                 f"missing_marker:{RETURN_TO_BLOCKED_MARKERS[0]}",
             ),
+            (
+                "remove-manifest-lane-key",
+                MANIFEST_PATH,
+                '"lane_key": "P14-L16"',
+                'missing_manifest_marker:"lane_key": "P14-L16"',
+            ),
+            (
+                "remove-manifest-guardrail-id",
+                MANIFEST_PATH,
+                '"phase14-rcu-tree-rollback-threshold-guardrail"',
+                'missing_manifest_marker:"phase14-rcu-tree-rollback-threshold-guardrail"',
+            ),
         ]
-        for _, marker, expected in cases:
-            write_text(base / NOTE_PATH, FIXTURE_NOTE.replace(marker, "", 1))
+        for _, rel_path, marker, expected in cases:
+            write_text(base / NOTE_PATH, FIXTURE_NOTE)
+            write_text(base / MANIFEST_PATH, FIXTURE_MANIFEST)
+            target = base / rel_path
+            write_text(target, target.read_text(encoding="utf-8").replace(marker, "", 1))
             failures = validate(base)
             if expected not in failures:
                 raise SystemExit(f"expected {expected!r}, got {failures!r}")
 
         write_text(base / NOTE_PATH, FIXTURE_NOTE + "\n- current review packet:\n")
+        write_text(base / MANIFEST_PATH, FIXTURE_MANIFEST)
         failures = validate(base)
         if "forbidden_marker:current review packet:" not in failures:
             raise SystemExit(f"expected forbidden marker failure, got {failures!r}")
 
+        note_and_manifest_missing = Path(tempfile.mkdtemp(prefix="phase14-rcu-guardrail-missing-"))
+        try:
+            missing_failures = validate(note_and_manifest_missing)
+            expected_missing = {
+                f"missing_file:{NOTE_PATH}",
+                f"missing_file:{MANIFEST_PATH}",
+            }
+            if set(missing_failures) != expected_missing:
+                raise SystemExit(
+                    f"expected missing-file failures {expected_missing!r}, got {missing_failures!r}"
+                )
+        finally:
+            shutil.rmtree(note_and_manifest_missing, ignore_errors=True)
+
         print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")
-        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=10")
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=13")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -211,7 +289,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the dedicated Phase 14 RCU rollback note stays aligned with the "
-            "current freeze-in-C guardrail markers and keeps companion readback wording honest."
+            "current freeze-in-C guardrail markers and keeps its manifest-backed reopen "
+            "evidence contract honest."
         )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
@@ -232,6 +311,7 @@ def main() -> int:
 
     print("PHASE14_RCU_ROLLBACK_GUARDRAIL=pass")
     print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MARKER_COUNT={len(REQUIRED_MARKERS)}")
+    print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MANIFEST_MARKER_COUNT={len(MANIFEST_REQUIRED_MARKERS)}")
     print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_FORBIDDEN_COUNT={len(FORBIDDEN_MARKERS)}")
     return 0
 
