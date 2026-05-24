@@ -42,39 +42,78 @@ EXPECTED_GAP_PACKET = (
     "zigux/tests/fixtures/phase1_helpers_c_harness.c"
 )
 
+EXPECTED_CLOSURE_ROUTE_SPLIT = (
+    "It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, "
+    "`make -C zigux phase1-bench`, or `make -C zigux phase1`, so treat the returned file as "
+    "current repo evidence while those older Phase 1 wrapper names remain historical packet "
+    "members rather than active closure proof."
+)
+
+EXPECTED_DOCS_BROADER_GAP_LIST = (
+    "`scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, "
+    "`zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, "
+    "`zigux/tests/fixtures/phase1_bench_expectations.json`, "
+    "`zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zig build test --build-file "
+    "zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, "
+    "`make -C zigux phase1-validate`, `make -C zigux phase1-test`, "
+    "`make -C zigux phase1-bench`, and `make -C zigux phase1`"
+)
+
+EXPECTED_SCRIPTS_MAKEFILE_EVIDENCE = (
+    "`zigux/Makefile` is current repo evidence again from the scripts root too, because its live "
+    "body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded "
+    "returned `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, "
+    "Phase 10, Phase 12, and Phase 14 route families, so keep that returned route summary aligned "
+    "here while the older Phase 1 wrapper names stay historical reminder vocabulary"
+)
+
+EXPECTED_TESTS_MAKEFILE_EVIDENCE = (
+    "current `master` does materialize `zigux/Makefile` again, and its live body now exposes the "
+    "shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and "
+    "`phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 "
+    "route families, so treat the returned file as current repo evidence while the older Phase 1 "
+    "wrapper names remain historical packet members rather than active tests-root proof"
+)
+
 REQUIRED_MARKERS = {
     PHASE1_CLOSURE_REL: (
         "## Broader Closure Companions",
         "The older validator-first and replay-side closure companions remain broader closure-stack references rather than active current reminder-packet proof.",
         f"`PHASE1_CURRENT_GAP_PACKET={EXPECTED_GAP_PACKET}`",
+        EXPECTED_CLOSURE_ROUTE_SPLIT,
     ),
     DOCS_README_REL: (
-        "`scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+        EXPECTED_DOCS_BROADER_GAP_LIST,
         "treat those installer-backed, older validator-first, bench-route, and replay routes as historical packet members",
     ),
     SCRIPTS_README_REL: (
         "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
         "treat those installer-backed, older validator-first, parity, and replay routes as historical packet members",
+        EXPECTED_SCRIPTS_MAKEFILE_EVIDENCE,
     ),
     TESTS_README_REL: (
         "broader Phase 1 closure companions stay outside the narrow direct-readback packet",
         "`scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
         "keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
+        EXPECTED_TESTS_MAKEFILE_EVIDENCE,
     ),
 }
 
 FORBIDDEN_MARKERS = {
     PHASE1_CLOSURE_REL: (
         "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/install-zig.py",
+        "those older Phase 1 wrapper names remain active closure proof",
     ),
     DOCS_README_REL: (
         "treat those installer-backed, older validator-first, bench-route, and replay routes as direct current-master evidence",
     ),
     SCRIPTS_README_REL: (
         "treat those installer-backed, older validator-first, parity, and replay routes as direct current-`master` reminder evidence",
+        "older Phase 1 wrapper names stay live current-`master` reminder evidence",
     ),
     TESTS_README_REL: (
         "keep those paths framed as active tests-root proof inside this direct-readback reminder packet",
+        "older Phase 1 wrapper names remain active tests-root proof",
     ),
 }
 
@@ -85,6 +124,11 @@ def repo_root(override: str | None) -> Path:
 
 def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
 
 
 def require_exact_occurrence(text: str, label: str, needle: str) -> list[str]:
@@ -131,6 +175,8 @@ def sample_phase1_closure() -> str:
             "",
             f"- `PHASE1_CURRENT_GAP_PACKET={EXPECTED_GAP_PACKET}`",
             "",
+            EXPECTED_CLOSURE_ROUTE_SPLIT,
+            "",
         )
     )
 
@@ -140,7 +186,7 @@ def sample_docs_readme() -> str:
         (
             "# Zigux Documentation",
             "",
-            "* repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, bench-route, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence.",
+            "* repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, older validator-first, bench-route, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence.",
             "",
         )
     )
@@ -153,6 +199,8 @@ def sample_scripts_readme() -> str:
             "",
             "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
             "",
+            f"- {EXPECTED_SCRIPTS_MAKEFILE_EVIDENCE}",
+            "",
         )
     )
 
@@ -162,7 +210,8 @@ def sample_tests_readme() -> str:
         (
             "# zigux/tests",
             "",
-            "  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
+            f"  * {EXPECTED_TESTS_MAKEFILE_EVIDENCE}",
+            f"  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
             "",
         )
     )
@@ -186,16 +235,65 @@ def write_sample_root(root: Path) -> None:
 
 
 def run_self_test() -> None:
-    with tempfile.TemporaryDirectory(prefix="phase1-broader-companion-gap-") as tmpdir:
-        sample_root = Path(tmpdir) / "sample"
-        write_sample_root(sample_root)
+    cases = (
+        ("baseline", None),
+        (
+            "missing_closure_route_split",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_ROUTE_SPLIT + "\n", "", 1),
+            ),
+        ),
+        (
+            "missing_docs_route_gap",
+            lambda root: write_text(
+                root / DOCS_README_REL,
+                load_text(root, DOCS_README_REL).replace(EXPECTED_DOCS_BROADER_GAP_LIST, "drifted route gap"),
+            ),
+        ),
+        (
+            "missing_scripts_makefile_evidence",
+            lambda root: write_text(
+                root / SCRIPTS_README_REL,
+                load_text(root, SCRIPTS_README_REL).replace(EXPECTED_SCRIPTS_MAKEFILE_EVIDENCE, "drifted makefile evidence"),
+            ),
+        ),
+        (
+            "missing_tests_makefile_evidence",
+            lambda root: write_text(
+                root / TESTS_README_REL,
+                load_text(root, TESTS_README_REL).replace(EXPECTED_TESTS_MAKEFILE_EVIDENCE, "drifted tests makefile evidence"),
+            ),
+        ),
+        (
+            "forbidden_scripts_current_master_evidence",
+            lambda root: write_text(
+                root / SCRIPTS_README_REL,
+                load_text(root, SCRIPTS_README_REL)
+                + "older Phase 1 wrapper names stay live current-`master` reminder evidence\n",
+            ),
+        ),
+        (
+            "unexpected_materialized_gap",
+            lambda root: write_text(root / GAP_FILES[0], "unexpected current tree body\n"),
+        ),
+    )
 
-        failures = collect_failures(sample_root)
-        if failures:
-            raise SystemExit("\n".join(("self-test failures:", *failures)))
+    for name, mutate in cases:
+        with tempfile.TemporaryDirectory(prefix="phase1-broader-companion-gap-") as tmpdir:
+            sample_root = Path(tmpdir) / "sample"
+            write_sample_root(sample_root)
+            if mutate is not None:
+                mutate(sample_root)
+            failures = collect_failures(sample_root)
+            if name == "baseline":
+                if failures:
+                    raise SystemExit("\n".join((f"self-test baseline failed:", *failures)))
+            elif not failures:
+                raise SystemExit(f"self-test case unexpectedly passed: {name}")
 
     print("PHASE1_BROADER_COMPANION_GAP_PACKET_SELF_TEST=pass")
-    print("PHASE1_BROADER_COMPANION_GAP_PACKET_SELF_TEST_CASE_COUNT=1")
+    print(f"PHASE1_BROADER_COMPANION_GAP_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
 
 
 def main() -> int:
