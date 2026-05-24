@@ -130,7 +130,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 70
+SELF_TEST_CASE_COUNT = 71
 
 
 def read_text(path: Path) -> str:
@@ -573,6 +573,16 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
         samples_path = tmp_root / "samples" / "zigux" / "README.md"
+        samples_marker = "Current `master` still ships no standalone Phase 5 sample-root files here for:"
+        remove_once(samples_path, samples_marker)
+        expect_missing_marker(
+            "missing_samples_readme_header_boundary",
+            tmp_root,
+            f"samples/zigux/README.md: {samples_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         samples_marker = "* `*cmdline*`"
         remove_once(samples_path, samples_marker)
         expect_missing_marker(
