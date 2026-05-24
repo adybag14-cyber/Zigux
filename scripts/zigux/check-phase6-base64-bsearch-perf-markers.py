@@ -65,6 +65,7 @@ REQUIRED_SHARED_REPLAYS = [
 REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
 REQUIRED_BASE64_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-base64-corpus-determinism.py",
+    "scripts/zigux/check-phase6-base64-c-parity.py",
 ]
 REQUIRED_BSEARCH_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
@@ -87,7 +88,7 @@ EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 
-SELF_TEST_CASE_COUNT = 31
+SELF_TEST_CASE_COUNT = 34
 
 
 class ValidationError(RuntimeError):
@@ -245,6 +246,7 @@ def validate_parity_manifest(path: Path) -> None:
     if not isinstance(bsearch_perf, dict):
         raise ValidationError("bsearch current_perf_evidence missing")
 
+    require_checker_surfaces(base64, "base64", REQUIRED_BASE64_CHECKER_SURFACES)
     if base64_perf.get("case_labels") != EXPECTED_BASE64_LABELS:
         raise ValidationError("base64 perf labels drifted")
     if base64_perf.get("iterations") != 12000:
@@ -276,6 +278,7 @@ def validate_parity_manifest(path: Path) -> None:
     require_route(bsearch_routes, "bsearch", EXPECTED_SHARED_PERF_WRAPPER)
 
 
+
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
@@ -286,9 +289,11 @@ def validate(repo_root: Path) -> None:
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
 
 
+
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 
 def scaffold_repo(root: Path) -> None:
@@ -347,6 +352,7 @@ def scaffold_repo(root: Path) -> None:
                 "helpers": [
                     {
                         "key": "base64",
+                        "checker_surfaces": REQUIRED_BASE64_CHECKER_SURFACES,
                         "current_perf_evidence": {
                             "case_labels": EXPECTED_BASE64_LABELS,
                             "iterations": 12000,
@@ -381,9 +387,11 @@ def scaffold_repo(root: Path) -> None:
     )
 
 
+
 def mutate_text(path: Path, old: str, new: str) -> None:
     content = read_text(path)
     write(path, content.replace(old, new, 1))
+
 
 
 def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
@@ -397,6 +405,7 @@ def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
             ) from exc
     else:
         raise AssertionError("expected validation failure")
+
 
 
 def run_self_test() -> None:
@@ -568,7 +577,19 @@ def run_self_test() -> None:
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
                 "scripts/zigux/check-phase6-base64-corpus-determinism.py",
+                "scripts/zigux/check-phase6-shared-surface.py",
+            ),
+            "base64 checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 "scripts/zigux/check-phase6-base64-c-parity.py",
+                "scripts/zigux/check-phase6-present-entrypoints.py",
             ),
             "base64 checker surface drifted",
         )
@@ -687,6 +708,30 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
+                "scripts/zigux/check-phase6-base64-corpus-determinism.py",
+                "scripts/zigux/check-phase6-shared-surface.py",
+            ),
+            "base64 checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                "scripts/zigux/check-phase6-base64-c-parity.py",
+                "scripts/zigux/check-phase6-present-entrypoints.py",
+            ),
+            "base64 checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
                 '"max_decode_slowdown_pct": 325',
                 '"max_decode_slowdown_pct": 400',
             ),
@@ -785,11 +830,13 @@ def run_self_test() -> None:
     print(f"PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
 
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
+
 
 
 def main() -> int:
