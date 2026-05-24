@@ -163,8 +163,10 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
+
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
+
 
 def validate_manifest_fields(root: Path) -> list[str]:
     manifest = json.loads(read_text(root, MANIFEST_PATH))
@@ -200,6 +202,7 @@ def validate_manifest_fields(root: Path) -> list[str]:
             )
     return problems
 
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in REQUIRED_MARKERS if not (root / path).exists()]
     if missing_files:
@@ -218,6 +221,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 problems.append(f"{rel_path}:forbidden:{marker}")
     problems.extend(validate_manifest_fields(root))
     return [], problems
+
 
 def fixture_manifest() -> dict[str, object]:
     gaps = []
@@ -252,7 +256,7 @@ def fixture_manifest() -> dict[str, object]:
         },
         "gaps": gaps,
     }
-}
+
 
 def write_fixture(root: Path) -> None:
     for rel_path, markers in REQUIRED_MARKERS.items():
@@ -261,6 +265,7 @@ def write_fixture(root: Path) -> None:
         target.write_text("\n".join(markers) + "\n", encoding="utf-8")
     manifest_path = root / MANIFEST_PATH
     manifest_path.write_text(json.dumps(fixture_manifest(), indent=2) + "\n")
+
 
 def expect_problem(root: Path, mutate, expected: str) -> None:
     mutate(root)
@@ -271,6 +276,7 @@ def expect_problem(root: Path, mutate, expected: str) -> None:
     if expected not in problems:
         actual = ",".join(problems) if problems else "none"
         raise SystemExit(f"phase10-ring-self-test:expected={expected}:actual={actual}")
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_ring_packet_") as tmp_dir:
@@ -526,6 +532,19 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def remove_lane_sequencing_mmio_boundary_marker(tmp_root: Path) -> None:
+            path = tmp_root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
+            text = path.read_text(encoding="utf-8")
+            marker = "queue-local wrapper reviewability does not drift into MMIO-owned blocked transport claims"
+            path.write_text(text.replace(marker, "__removed__", 1), encoding="utf-8")
+
+        expect_problem(
+            root,
+            remove_lane_sequencing_mmio_boundary_marker,
+            "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:queue-local wrapper reviewability does not drift into MMIO-owned blocked transport claims",
+        )
+        write_fixture(root)
+
         (root / "zigux/tests/phase10_virtio_ring_survey.zig").unlink()
         missing_files, problems = validate(root)
         if problems:
@@ -536,8 +555,9 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=19")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current directly re-readable Phase 10 virtio ring packet.")
