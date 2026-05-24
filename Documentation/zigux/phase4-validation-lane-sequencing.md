@@ -43,6 +43,11 @@ Current `master` still exposes this sequencing note and the narrower shared-vers
   - `scripts/zigux/validate-phase4.py`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
+- directly readable roadmap-backed differential-gate pair and manifest-backed atomic64 handoff packet:
+  - `zigux/tests/atomic64_diff.zig`
+  - `zigux/tests/runtime_atomic64_diff.zig`
+  - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
+  - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
 - public-raw returned broader build and bitmap replay companions that still need same-route authenticated blob capture:
   - `zigux/tests/phase4_build.zig`
   - `zigux/tests/bitmap_diff.zig`
@@ -55,7 +60,7 @@ Current `master` still exposes this sequencing note and the narrower shared-vers
   - `zigux/tests/phase4_test_fsmount_manifest.json`
   - `zigux/tests/phase4_test_fsmount_survey.zig`
 
-That means current Phase 4 work is no longer about inventing a missing validation family. The live sequencing risk is overlap between the current direct-readback handoff, the recovered broader note-and-checker companions, the directly readable shared validator companion, and the public-raw returned but still same-route-uncaptured build and bitmap replay routes: shared exact-readback, reversible-delivery, or review-checklist wording can accidentally reopen local perf-policy work, parked starter-gap packet work, or the build and bitmap replay companions as if those surfaces were either still missing-current-master gaps or already one uniformly exact-pinned current-head packet again.
+That means current Phase 4 work is no longer about inventing a missing validation family. The live sequencing risk is overlap between the current direct-readback handoff, the recovered broader note-and-checker companions, the directly readable atomic64 differential packet, the directly readable shared validator companion, and the public-raw returned but still same-route-uncaptured build and bitmap replay routes: shared exact-readback, reversible-delivery, or review-checklist wording can accidentally reopen local perf-policy work, parked starter-gap packet work, or the build and bitmap replay companions as if those surfaces were either still missing-current-master gaps or already one uniformly exact-pinned current-head packet again.
 
 ## Owner map
 
@@ -70,7 +75,7 @@ This shared lane owns only:
 - wording that keeps the shipped host-side artifact-diff helper contract, deterministic catalog replay, and validator-first replay routes explicit together without treating the directly readable validator companion or the public-raw returned but still exact-blob-debt-laden build and bitmap replay companions as either missing-current-master gaps or exact direct-readback proof
 - wording that keeps the current rollback owners, reviewer prompts, reversible-delivery handoff, and validator-first replay routes explicit together
 - wording that keeps the current broader shared-CI perf-promotion coordination-owner split explicit across both landed rollback gates while the dedicated Validation and Perf Team decision-owner cue stays inside the adjacent local-only perf packet
-- wording that keeps the directly readable local-only perf packet, the recovered broader note-and-checker companions, the directly readable validator companion, the public-raw returned build and bitmap replay companions, and the parked starter-gap packets visible as adjacent evidence without claiming they are the same shared gate
+- wording that keeps the directly readable local-only perf packet, the recovered broader note-and-checker companions, the directly readable atomic64 differential packet, the directly readable validator companion, the public-raw returned build and bitmap replay companions, and the parked starter-gap packets visible as adjacent evidence without claiming they are the same shared gate
 
 This shared lane does not own the approved local perf commands and acceptable limits themselves, and it does not own starter-gap packet-local reminder wording beyond naming that those packets remain parked and adjacent.
 
