@@ -17,6 +17,7 @@ SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 
 def infer_repo_root() -> Path:
@@ -107,6 +108,19 @@ TESTS_README_REQUIRED_MARKERS = [
     "without implying any Architecture Council approval for a freeze-map status change",
 ]
 
+WORKFLOW_REQUIRED_MARKERS = [
+    "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test",
+    "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
+    "python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test",
+    "python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py",
+    "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
+    "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py",
+    "zig build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig",
+    "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig",
+    "zig test samples/zigux/runtime_trace_events.zig",
+    "zig test zigux/tests/runtime_trace_events_survey.zig",
+]
+
 CURRENT_PHASE9_MAKE_ROUTES = [
     "phase9-runtime-atomic64-test",
     "phase9-runtime-bitmap-test",
@@ -153,7 +167,7 @@ def remove_makefile_route_definition(content: str, route: str) -> str:
             skipping = True
             continue
         if skipping:
-            if line.startswith("\t"):
+            if line.startswith("	"):
                 continue
             skipping = False
         kept.append(line)
@@ -172,6 +186,7 @@ def validate(root: Path) -> list[str]:
         SAMPLES_README_PATH,
         TESTS_README_PATH,
         MAKEFILE_PATH,
+        WORKFLOW_PATH,
     ]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
@@ -217,6 +232,11 @@ def validate(root: Path) -> list[str]:
     for marker in TESTS_README_REQUIRED_MARKERS:
         if marker not in tests_readme:
             failures.append(f"missing_marker:{TESTS_README_PATH}:{marker}")
+
+    workflow = read_text(root, WORKFLOW_PATH)
+    for marker in WORKFLOW_REQUIRED_MARKERS:
+        if marker not in workflow:
+            failures.append(f"missing_marker:{WORKFLOW_PATH}:{marker}")
 
     makefile = read_text(root, MAKEFILE_PATH)
     makefile_routes = find_makefile_phase9_routes(makefile)
@@ -317,6 +337,22 @@ Tests-root reviewer prompt:
 """
 
 
+def build_workflow_fixture_text() -> str:
+    return """name: zigux-bootstrap
+
+- python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test
+- python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
+- python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test
+- python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py
+- python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test
+- python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
+- zig build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig
+- zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig
+- zig test samples/zigux/runtime_trace_events.zig
+- zig test zigux/tests/runtime_trace_events_survey.zig
+"""
+
+
 def build_makefile_fixture_text() -> str:
     return """PYTHON ?= python3
 ZIG ?= zig
@@ -361,6 +397,7 @@ def seed_fixture_tree(base: Path) -> None:
     write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text())
     write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
     write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
+    write_text(base / WORKFLOW_PATH, build_workflow_fixture_text())
     write_text(base / MAKEFILE_PATH, build_makefile_fixture_text())
 
 
@@ -442,6 +479,14 @@ def run_self_test() -> int:
             write_text(base / TESTS_README_PATH, current.replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{TESTS_README_PATH}:{marker}")
 
+        for marker in WORKFLOW_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            current = build_workflow_fixture_text()
+            if current.count(marker) != 1:
+                continue
+            write_text(base / WORKFLOW_PATH, current.replace(marker, "", 1))
+            expect_failure(base, f"missing_marker:{WORKFLOW_PATH}:{marker}")
+
         for route in CURRENT_PHASE9_MAKE_ROUTES:
             seed_fixture_tree(base)
             current = read_text(base, MAKEFILE_PATH)
@@ -463,6 +508,7 @@ def run_self_test() -> int:
             SCRIPTS_README_PATH,
             SAMPLES_README_PATH,
             TESTS_README_PATH,
+            WORKFLOW_PATH,
             MAKEFILE_PATH,
         ]:
             seed_fixture_tree(base)
@@ -480,6 +526,7 @@ def run_self_test() -> int:
     print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_WORKFLOW_MARKER_COUNT={len(WORKFLOW_REQUIRED_MARKERS)}")
     print(f"PHASE9_REQUIRED_MAKE_ROUTE_COUNT={len(CURRENT_PHASE9_MAKE_ROUTES)}")
     print(f"PHASE9_FORBIDDEN_MAKE_ROUTE_COUNT={len(FORBIDDEN_PHASE9_MAKE_ROUTES)}")
     return 0
@@ -514,6 +561,7 @@ def main() -> int:
     print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_WORKFLOW_MARKER_COUNT={len(WORKFLOW_REQUIRED_MARKERS)}")
     print(f"PHASE9_REQUIRED_MAKE_ROUTE_COUNT={len(CURRENT_PHASE9_MAKE_ROUTES)}")
     print(f"PHASE9_FORBIDDEN_MAKE_ROUTE_COUNT={len(FORBIDDEN_PHASE9_MAKE_ROUTES)}")
     print("PHASE9_FREEZE_MAP_STUDY_BOUNDARIES=pass")
