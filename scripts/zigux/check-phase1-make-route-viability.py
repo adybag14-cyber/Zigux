@@ -37,11 +37,15 @@ MARKERS = {
         "phase2-cross:",
         "phase2-genksyms:",
         "phase3-validate:",
+        "phase3:",
         "phase4-validate:",
         "phase6-validate:",
         "phase8-validate:",
         "phase10-validate:",
         "phase12-validate:",
+        "phase12-smoke:",
+        "phase12-test:",
+        "phase12: phase12-validate phase12-smoke phase12-test",
         "phase14-validate:",
     ),
     CLOSURE_REL: (
@@ -58,6 +62,10 @@ MARKERS = {
         "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
         "      - name: Check current Phase 1 route summary packet",
         "        run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
+        "      - name: Run current Phase 3 export/UAPI layout replay",
+        "        run: zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+        "      - name: Run current Phase 3 shared tests-root packet",
+        "        run: zig build phase3-test --build-file zigux/tests/build.zig",
         "      - name: Validate Phase 4 rollback routes",
         "        run: make -C zigux phase4-validate",
         "      - name: Validate current Phase 6 helper packet",
@@ -68,6 +76,12 @@ MARKERS = {
         "        run: make -C zigux phase10-validate",
         "      - name: Validate current Phase 12 support bundle",
         "        run: python3 scripts/zigux/validate-phase12.py",
+        "      - name: Run current Phase 12 smoke packet",
+        "        run: make -C zigux phase12-smoke",
+        "      - name: Run current Phase 12 shared test packet",
+        "        run: make -C zigux phase12-test",
+        "      - name: Run current Phase 12 aggregate route",
+        "        run: make -C zigux phase12",
         "      - name: Run current Phase 14 validate route",
         "        run: make -C zigux phase14-validate",
         "      - name: Run current Phase 1 shared tests-root smoke",
@@ -188,42 +202,29 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        broken_root = root / "missing_makefile_marker"
+        broken_root = root / "missing_phase3_makefile_marker"
         write_sample_root(broken_root)
         write_text(
             broken_root,
             MAKEFILE_REL,
-            rewrite_once(load_text(broken_root, MAKEFILE_REL), MARKERS[MAKEFILE_REL][0] + "\n"),
+            rewrite_once(load_text(broken_root, MAKEFILE_REL), MARKERS[MAKEFILE_REL][7] + "\n"),
         )
         failures = collect_failures(broken_root)
-        if not any(item.startswith(f"{MAKEFILE_REL.as_posix()}:{MARKERS[MAKEFILE_REL][0]}") for item in failures):
-            print("self-test:missing_makefile_marker_not_detected")
+        if not any(item.startswith(f"{MAKEFILE_REL.as_posix()}:{MARKERS[MAKEFILE_REL][7]}") for item in failures):
+            print("self-test:missing_phase3_makefile_marker_not_detected")
             return 1
         case_count += 1
 
-        broken_root = root / "missing_phase12_makefile_marker"
+        broken_root = root / "missing_phase12_aggregate_makefile_marker"
         write_sample_root(broken_root)
         write_text(
             broken_root,
             MAKEFILE_REL,
-            rewrite_once(load_text(broken_root, MAKEFILE_REL), MARKERS[MAKEFILE_REL][11] + "\n"),
+            rewrite_once(load_text(broken_root, MAKEFILE_REL), MARKERS[MAKEFILE_REL][15] + "\n"),
         )
         failures = collect_failures(broken_root)
-        if not any(item.startswith(f"{MAKEFILE_REL.as_posix()}:{MARKERS[MAKEFILE_REL][11]}") for item in failures):
-            print("self-test:missing_phase12_makefile_marker_not_detected")
-            return 1
-        case_count += 1
-
-        broken_root = root / "missing_closure_marker"
-        write_sample_root(broken_root)
-        write_text(
-            broken_root,
-            CLOSURE_REL,
-            rewrite_once(load_text(broken_root, CLOSURE_REL), MARKERS[CLOSURE_REL][2] + "\n"),
-        )
-        failures = collect_failures(broken_root)
-        if not any(item.startswith(f"{CLOSURE_REL.as_posix()}:{MARKERS[CLOSURE_REL][2]}") for item in failures):
-            print("self-test:missing_closure_marker_not_detected")
+        if not any(item.startswith(f"{MAKEFILE_REL.as_posix()}:{MARKERS[MAKEFILE_REL][15]}") for item in failures):
+            print("self-test:missing_phase12_aggregate_makefile_marker_not_detected")
             return 1
         case_count += 1
 
@@ -255,16 +256,42 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        broken_root = root / "missing_phase12_workflow_marker"
+        broken_root = root / "missing_phase3_workflow_marker"
         write_sample_root(broken_root)
         write_text(
             broken_root,
             WORKFLOW_REL,
-            rewrite_once(load_text(broken_root, WORKFLOW_REL), MARKERS[WORKFLOW_REL][11] + "\n"),
+            rewrite_once(load_text(broken_root, WORKFLOW_REL), MARKERS[WORKFLOW_REL][5] + "\n"),
         )
         failures = collect_failures(broken_root)
-        if not any(item.startswith(f"{WORKFLOW_REL.as_posix()}:{MARKERS[WORKFLOW_REL][11]}") for item in failures):
-            print("self-test:missing_phase12_workflow_marker_not_detected")
+        if not any(item.startswith(f"{WORKFLOW_REL.as_posix()}:{MARKERS[WORKFLOW_REL][5]}") for item in failures):
+            print("self-test:missing_phase3_workflow_marker_not_detected")
+            return 1
+        case_count += 1
+
+        broken_root = root / "missing_phase12_smoke_workflow_marker"
+        write_sample_root(broken_root)
+        write_text(
+            broken_root,
+            WORKFLOW_REL,
+            rewrite_once(load_text(broken_root, WORKFLOW_REL), MARKERS[WORKFLOW_REL][15] + "\n"),
+        )
+        failures = collect_failures(broken_root)
+        if not any(item.startswith(f"{WORKFLOW_REL.as_posix()}:{MARKERS[WORKFLOW_REL][15]}") for item in failures):
+            print("self-test:missing_phase12_smoke_workflow_marker_not_detected")
+            return 1
+        case_count += 1
+
+        broken_root = root / "missing_phase12_aggregate_workflow_marker"
+        write_sample_root(broken_root)
+        write_text(
+            broken_root,
+            WORKFLOW_REL,
+            rewrite_once(load_text(broken_root, WORKFLOW_REL), MARKERS[WORKFLOW_REL][19] + "\n"),
+        )
+        failures = collect_failures(broken_root)
+        if not any(item.startswith(f"{WORKFLOW_REL.as_posix()}:{MARKERS[WORKFLOW_REL][19]}") for item in failures):
+            print("self-test:missing_phase12_aggregate_workflow_marker_not_detected")
             return 1
         case_count += 1
 
