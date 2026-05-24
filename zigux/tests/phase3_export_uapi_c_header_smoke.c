@@ -40,6 +40,11 @@ static int check_boundary_header_relays(void)
             0x41u);
     zigux_boundary_header canonicalized =
         zigux_boundary_header_canonicalize(compatible);
+    zigux_boundary_header stale = {
+        .size = (uint32_t)sizeof(zigux_boundary_header),
+        .abi_version = canonical.abi_version + 1u,
+        .flags = canonical.flags,
+    };
     zigux_boundary_header uapi_canonical =
         zigux_uapi_boundary_header_current(0x52u);
     zigux_boundary_header uapi_compatible =
@@ -53,14 +58,25 @@ static int check_boundary_header_relays(void)
         .abi_version = uapi_canonical.abi_version,
         .flags = uapi_canonical.flags,
     };
+    zigux_boundary_header uapi_stale = {
+        .size = (uint32_t)sizeof(zigux_boundary_header),
+        .abi_version = uapi_canonical.abi_version + 1u,
+        .flags = uapi_canonical.flags,
+    };
     struct zigux_export_status canonical_status =
         zigux_validate_boundary_header(canonical);
     struct zigux_export_status compatible_status =
         zigux_validate_boundary_header(compatible);
+    struct zigux_export_status stale_status =
+        zigux_validate_boundary_header(stale);
     struct zigux_export_status uapi_canonical_status =
         zigux_uapi_validate_boundary_header(uapi_canonical);
     struct zigux_export_status uapi_compatible_status =
         zigux_uapi_validate_boundary_header(uapi_compatible);
+    struct zigux_export_status uapi_undersized_status =
+        zigux_uapi_validate_boundary_header(uapi_undersized);
+    struct zigux_export_status uapi_stale_status =
+        zigux_uapi_validate_boundary_header(uapi_stale);
     struct zigux_export_status undersized_status =
         zigux_validate_boundary_header((zigux_boundary_header){
             .size = (uint32_t)sizeof(zigux_boundary_header) - 1u,
@@ -94,6 +110,17 @@ static int check_boundary_header_relays(void)
     if (!zigux_boundary_header_extends_boundary(compatible))
         return __LINE__;
     if (zigux_boundary_header_requested_extra_bytes(compatible) != 8u)
+        return __LINE__;
+
+    if (zigux_boundary_header_is_current_abi_version(stale.abi_version))
+        return __LINE__;
+    if (zigux_boundary_header_is_canonical(stale))
+        return __LINE__;
+    if (zigux_boundary_header_is_compatible(stale))
+        return __LINE__;
+    if (zigux_export_status_ok(stale_status))
+        return __LINE__;
+    if (stale_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
         return __LINE__;
 
     if (!zigux_boundary_header_is_canonical(canonicalized))
@@ -140,6 +167,21 @@ static int check_boundary_header_relays(void)
         return __LINE__;
     if (zigux_uapi_boundary_header_is_compatible_size(uapi_undersized.size))
         return __LINE__;
+    if (zigux_export_status_ok(uapi_undersized_status))
+        return __LINE__;
+    if (uapi_undersized_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+
+    if (zigux_uapi_boundary_header_has_current_abi_version(uapi_stale.abi_version))
+        return __LINE__;
+    if (zigux_uapi_boundary_header_is_canonical(uapi_stale))
+        return __LINE__;
+    if (zigux_uapi_boundary_header_is_compatible(uapi_stale))
+        return __LINE__;
+    if (zigux_export_status_ok(uapi_stale_status))
+        return __LINE__;
+    if (uapi_stale_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
 
     if (!zigux_uapi_boundary_header_is_canonical(uapi_canonicalized))
         return __LINE__;
@@ -166,11 +208,19 @@ static int check_dev_t_relays(void)
     struct zigux_dev_t_fields valid = zigux_dev_t_fields_make(11u, 29u);
     struct zigux_dev_t_fields start = zigux_dev_t_fields_make(11u, 28u);
     struct zigux_dev_t_fields end = zigux_dev_t_fields_make(11u, 29u);
+    struct zigux_dev_t_fields invalid_major =
+        zigux_dev_t_fields_make(ZIGUX_DEV_MAJOR_MAX + 1u, 0u);
+    struct zigux_dev_t_fields invalid_minor =
+        zigux_dev_t_fields_make(0u, ZIGUX_DEV_MINOR_MASK + 1u);
     uint32_t encoded = zigux_mkdev(valid.major, valid.minor);
     struct zigux_dev_t_fields decoded =
         zigux_dev_t_fields_from_device_number(encoded);
     struct zigux_export_status valid_status =
         zigux_uapi_validate_dev_t_fields(valid);
+    struct zigux_export_status invalid_field_status =
+        zigux_uapi_validate_dev_t_fields(invalid_major);
+    struct zigux_export_status invalid_minor_status =
+        zigux_uapi_validate_dev_t_fields(invalid_minor);
     struct zigux_export_status invalid_components =
         zigux_uapi_validate_dev_t_components(ZIGUX_DEV_MAJOR_MAX + 1u, 0u);
     struct zigux_export_status range_status =
@@ -179,6 +229,10 @@ static int check_dev_t_relays(void)
         zigux_uapi_validate_dev_t_range(end, start);
 
     if (!zigux_uapi_dev_t_fields_is_valid(valid))
+        return __LINE__;
+    if (zigux_uapi_dev_t_fields_is_valid(invalid_major))
+        return __LINE__;
+    if (zigux_uapi_dev_t_fields_is_valid(invalid_minor))
         return __LINE__;
     if (zigux_major(encoded) != valid.major)
         return __LINE__;
@@ -189,6 +243,14 @@ static int check_dev_t_relays(void)
     if (!zigux_uapi_dev_t_fields_range_is_valid(start, end))
         return __LINE__;
     if (!zigux_export_status_ok(valid_status))
+        return __LINE__;
+    if (zigux_export_status_ok(invalid_field_status))
+        return __LINE__;
+    if (invalid_field_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
+        return __LINE__;
+    if (zigux_export_status_ok(invalid_minor_status))
+        return __LINE__;
+    if (invalid_minor_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)
         return __LINE__;
     if (zigux_export_status_ok(invalid_components))
         return __LINE__;
