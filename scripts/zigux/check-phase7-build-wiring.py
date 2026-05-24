@@ -177,7 +177,7 @@ VALIDATOR_REQUIRED_SNIPPETS = [
     'BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")',
     "run_checker(root, BUILD_WIRING_CHECKER_PATH)",
 ]
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 11
 
 
 class ValidationError(RuntimeError):
@@ -318,6 +318,11 @@ def run_self_test() -> None:
             (CATALOG_PATH, "- `Documentation/zigux/review-checklist.md`", "- `Documentation/zigux/review-guide.md`"),
             (MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
             (BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
+            (BUILD_PATH, "phase7-string-helpers-test", "phase7-string-helper-test"),
+            (BUILD_PATH, "phase7-string-helpers-survey", "phase7-string-helper-survey"),
+            (BUILD_PATH, "phase7-string-helpers-sample-boundary", "phase7-string-helpers-sample-review"),
+            (BUILD_PATH, "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)", "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_survey_tests.step)"),
+            (BUILD_PATH, "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)", "cmdline_survey_step.dependOn(&run_cmdline_tests.step)"),
             (MANIFEST_PATH, '"Documentation/zigux/review-checklist.md"', '"Documentation/zigux/review-guide.md"'),
             (VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS[0], 'BUILD_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")'),
             (VALIDATOR_PATH, VALIDATOR_REQUIRED_SNIPPETS[1], "run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)"),
