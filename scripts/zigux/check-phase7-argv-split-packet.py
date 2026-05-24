@@ -113,7 +113,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 60
+SELF_TEST_CASE_COUNT = 61
 
 
 def read_text(path: Path) -> str:
@@ -559,6 +559,13 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         samples_path = tmp_root / "samples" / "zigux" / "README.md"
+        samples_text = read_text(samples_path)
+        samples_marker = "Current `master` still ships no standalone Phase 5 sample-root files here for:"
+        samples_path.write_text(samples_text.replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_samples_header_boundary", tmp_root, f"samples/zigux/README.md: {samples_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         samples_text = read_text(samples_path)
         samples_marker = "* `*argv*`"
         samples_path.write_text(samples_text.replace(samples_marker + "\n", "", 1), encoding="utf-8")
