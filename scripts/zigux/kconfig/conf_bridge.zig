@@ -586,6 +586,21 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"mode\":\"allyesconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+
+    var alldefconfig_path_capture = try TestCapture.init(std.testing.allocator, 224);
+    defer alldefconfig_path_capture.deinit();
+
+    try runConfBridge(&alldefconfig_path_capture, .{
+        .mode = .alldefconfig,
+        .kconfig = "Kconfig",
+        .config = "build/.config",
+        .arch = "arm64",
+        .allconfig = "mini-all.config",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, alldefconfig_path_capture.list.items, "\"mode\":\"alldefconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, alldefconfig_path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"mini-all.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, alldefconfig_path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
 }
 
 test "conf bridge emits randconfig tunables when present" {
