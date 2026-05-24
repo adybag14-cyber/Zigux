@@ -60,6 +60,8 @@ COMPILE_SHARD_MATRIX_MARKERS = [
     "- checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
     "- skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`",
     "- shared survey shard: `phase14-end-to-end-smoke-tests` (`focused_and_full_bundle`)",
+    "- the direct ring-buffer survey companion is readable again, and the dedicated survey gate now fail-closes on the shared-manifest compile row even while the lane remains study-only and maintenance-scoped",
+    "- the manifest-backed compile row is present, but it still has no dedicated compile-route checker and the focused Zig replay remains partial through this lane's exact contents path, so the anchor stays freeze-in-C initially",
 ]
 
 SURVEY_EXACT_LINE_SNIPPETS = [
@@ -423,6 +425,19 @@ def run_self_test() -> int:
             return 1
 
         write_fixture_tree(base)
+        remove_line(
+            base,
+            COMPILE_SHARD_MATRIX_SURVEY_PATH,
+            COMPILE_SHARD_MATRIX_MARKERS[7],
+        )
+        if not any(
+            COMPILE_SHARD_MATRIX_MARKERS[7] in error for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected ring-buffer row-guard marker drift to fail")
+            return 1
+
+        write_fixture_tree(base)
         manifest = json.loads(fixture_manifest())
         manifest["survey_summary"]["phase14_validate_runs_skbuff_stay_in_c_guardrail"] = False
         write_manifest_payload(base, manifest)
@@ -459,7 +474,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=9")
+        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
