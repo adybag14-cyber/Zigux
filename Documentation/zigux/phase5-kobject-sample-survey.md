@@ -60,6 +60,7 @@ Keep these cues explicit:
 Keep the direct sample-owned validation cues explicit too:
 
 - `zig test samples/zigux/kobject_example.zig` stays the sample-owned self-check for the ownership-and-lifetime packet
+- `zigux/tests/phase5_build.zig` now also keeps the named `phase5-kobject-example-sample-selfcheck` step explicit for that same sample-owned self-check route
 - `zig test --dep kobject_example_sample -Mroot=zigux/tests/phase5_kobject_example.zig -Mkobject_example_sample=samples/zigux/kobject_example.zig` stays the focused replay route for the same packet
 - `zig test zigux/tests/phase5_kobject_example_survey.zig` stays the survey-packet guard for the sample-owned replay, the public-tree-backed manifest-and-survey split, and the shared build-route companion in this runtime
 
@@ -75,6 +76,7 @@ Keep the direct attr-group validation cues explicit too:
 When a same-lane change touches this anchor or one of its shared reminder surfaces, keep these questions explicit:
 
 - does the note still treat `zigux/tests/phase5_build.zig` as the current directly readable shared build-route companion rather than parking it in the public-tree-backed bucket?
+- does the note still keep the named `phase5-kobject-example-sample-selfcheck` step explicit alongside the direct `zig test samples/zigux/kobject_example.zig` sample-owned self-check route?
 - does the note still treat `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` as current public-tree-backed companions instead of direct readback proof in this runtime?
 - does the note still treat `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` as current direct evidence for the bounded attr-group companion packet?
 - does the surrounding shared packet in `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the same mixed direct-versus-public-tree-backed split?
