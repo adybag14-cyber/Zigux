@@ -32,6 +32,69 @@ EXPECTED_REVIEW_HELPERS = [
     "tools/lib/string.zig",
 ]
 
+EXPECTED_REQUIRED_FIELDS = {
+    "tools/lib/argv_split.zig": [
+        "phase1_helper_replay_anchor",
+        "shared_replay_summary",
+        "next_safe_step_note",
+    ],
+    "tools/lib/bitmap.zig": [
+        "helper_test_anchors",
+        "phase1_helper_replay_anchor",
+        "review_packet_summary",
+        "parity_fixture_keys",
+        "shared_logical_fixture_keys",
+        "shared_range_fixture_keys",
+        "partial_xor_review_fields",
+        "next_safe_step_note",
+    ],
+    "tools/lib/find_bit.zig": [
+        "helper_test_anchors",
+        "review_packet_summary",
+        "tail_clamp_fixture_keys",
+        "tail_inclusive_boundary_fixture_keys",
+        "andnot_scan_entrypoints",
+        "next_safe_step_note",
+    ],
+    "tools/lib/list_sort.zig": [
+        "helper_test_anchors",
+        "phase1_helper_replay_anchor",
+        "parity_fixture_keys",
+        "shared_replay_summary",
+        "review_packet_summary",
+        "next_safe_step_note",
+    ],
+    "tools/lib/rbtree.zig": [
+        "helper_test_anchors",
+        "phase1_helper_replay_anchor",
+        "parity_fixture_keys",
+        "cached_leftmost_fixture_keys",
+        "shared_replay_summary",
+        "traversal_replay_keys",
+        "duplicate_search_replay_keys",
+        "cached_root_direct_review_summary",
+        "review_packet_summary",
+        "next_safe_step_note",
+    ],
+    "tools/lib/string.zig": [
+        "helper_test_anchors",
+        "phase1_helper_replay_anchor",
+        "parity_fixture_keys",
+        "shared_replace_char_cstr_review_summary",
+        "memparse_review_anchors",
+        "copy_fill_review_anchors",
+        "prefix_suffix_review_anchors",
+        "lookup_review_anchors",
+        "sysfs_review_anchors",
+        "strscpy_review_anchors",
+        "strcmp_review_anchors",
+        "substring_search_review_anchors",
+        "search_length_review_anchors",
+        "counted_search_review_anchors",
+        "next_safe_step_note",
+    ],
+}
+
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -139,6 +202,17 @@ def collect_review_anchor_issues(
             )
             continue
 
+        missing_required_fields = [
+            field_name
+            for field_name in EXPECTED_REQUIRED_FIELDS[helper_path]
+            if field_name not in helper_anchor
+        ]
+        if missing_required_fields:
+            issues.append(
+                "review_anchor:"
+                f"{helper_path}:missing_required_fields={missing_required_fields!r}"
+            )
+
         fixture_key = HELPER_TO_FIXTURE[helper_path]
         helper_fixture = fixture.get(fixture_key)
         if not isinstance(helper_fixture, dict):
@@ -200,37 +274,63 @@ def build_self_test_root(root: Path) -> None:
                     },
                     "tools/lib/bitmap.zig": {
                         "helper_test_anchors": ['test "bitmap helper packet"'],
+                        "phase1_helper_replay_anchor": 'test "phase1 bitmap replay"',
                         "parity_fixture_keys": ["weight", "scnprintf"],
+                        "shared_logical_fixture_keys": ["weight", "scnprintf"],
+                        "shared_range_fixture_keys": ["weight", "scnprintf"],
                         "partial_xor_review_fields": [
                             "partial_xor_nbits",
                             "partial_xor_masked_values",
                         ],
                         "review_packet_summary": "bitmap summary",
+                        "next_safe_step_note": "bitmap note",
                     },
                     "tools/lib/find_bit.zig": {
+                        "helper_test_anchors": ['test "find bit helper packet"'],
                         "tail_clamp_fixture_keys": ["tail_clamped_first"],
                         "tail_inclusive_boundary_fixture_keys": [
                             "tail_inclusive_boundary_next"
                         ],
                         "andnot_scan_entrypoints": ["findFirstAndNotBit"],
-                        "tail_word_inclusive_boundary_contract": "find bit contract",
+                        "review_packet_summary": "find bit summary",
+                        "next_safe_step_note": "find bit note",
                     },
                     "tools/lib/list_sort.zig": {
                         "helper_test_anchors": ['test "list sort helper packet"'],
+                        "phase1_helper_replay_anchor": 'test "phase1 list sort replay"',
                         "parity_fixture_keys": ["tri_sorted_keys"],
+                        "shared_replay_summary": "list sort replay summary",
                         "review_packet_summary": "list sort summary",
+                        "next_safe_step_note": "list sort note",
                     },
                     "tools/lib/rbtree.zig": {
                         "helper_test_anchors": ['test "rbtree helper packet"'],
+                        "phase1_helper_replay_anchor": 'test "phase1 rbtree replay"',
                         "parity_fixture_keys": ["insert_order"],
+                        "cached_leftmost_fixture_keys": ["insert_order"],
+                        "shared_replay_summary": "rbtree replay summary",
+                        "traversal_replay_keys": ["insert_order"],
                         "duplicate_search_replay_keys": ["find_found_key"],
-                        "cached_root_direct_review_summary": "rbtree summary",
+                        "cached_root_direct_review_summary": "rbtree direct summary",
+                        "review_packet_summary": "rbtree summary",
+                        "next_safe_step_note": "rbtree note",
                     },
                     "tools/lib/string.zig": {
                         "helper_test_anchors": ['test "string helper packet"'],
+                        "phase1_helper_replay_anchor": 'test "phase1 string replay"',
                         "parity_fixture_keys": ["strtobool_y"],
+                        "shared_replace_char_cstr_review_summary": "replace char summary",
                         "memparse_review_anchors": ['test "memparse packet"'],
-                        "prefix_suffix_review_summary": "string summary",
+                        "copy_fill_review_anchors": ['test "copy fill packet"'],
+                        "prefix_suffix_review_anchors": ['test "prefix suffix packet"'],
+                        "lookup_review_anchors": ['test "lookup packet"'],
+                        "sysfs_review_anchors": ['test "sysfs packet"'],
+                        "strscpy_review_anchors": ['test "strscpy packet"'],
+                        "strcmp_review_anchors": ['test "strcmp packet"'],
+                        "substring_search_review_anchors": ['test "substring packet"'],
+                        "search_length_review_anchors": ['test "search length packet"'],
+                        "counted_search_review_anchors": ['test "counted packet"'],
+                        "next_safe_step_note": "string note",
                     },
                 },
             },
@@ -297,6 +397,16 @@ def run_self_test() -> int:
             ["manifest:review_anchor_helpers"],
         ),
         (
+            "required_field_missing",
+            lambda root: mutate_manifest(
+                root,
+                lambda manifest: manifest["review_anchors"]["tools/lib/rbtree.zig"].pop(
+                    "review_packet_summary"
+                ),
+            ),
+            ["review_anchor:tools/lib/rbtree.zig:missing_required_fields=["],
+        ),
+        (
             "anchor_prefix_drift",
             lambda root: mutate_manifest(
                 root,
@@ -304,17 +414,19 @@ def run_self_test() -> int:
                     "helper_test_anchors", ["bitmap drift"]
                 ),
             ),
-            ["review_anchor:tools/lib/bitmap.zig:helper_test_anchors[0]:expected_prefix='test \"'"],
+            ['review_anchor:tools/lib/bitmap.zig:helper_test_anchors[0]:expected_prefix=\'test "\''],
         ),
         (
             "summary_type_drift",
             lambda root: mutate_manifest(
                 root,
                 lambda manifest: manifest["review_anchors"]["tools/lib/string.zig"].__setitem__(
-                    "prefix_suffix_review_summary", []
+                    "shared_replace_char_cstr_review_summary", []
                 ),
             ),
-            ["review_anchor:tools/lib/string.zig:prefix_suffix_review_summary:expected=non_empty_string"],
+            [
+                "review_anchor:tools/lib/string.zig:shared_replace_char_cstr_review_summary:expected=non_empty_string"
+            ],
         ),
         (
             "fixture_reference_drift",
@@ -372,7 +484,7 @@ def main() -> int:
     print("PHASE1_REVIEW_ANCHOR_SHAPES=pass")
     print(f"PHASE1_REVIEW_ANCHOR_SHAPES_HELPER_COUNT={len(EXPECTED_REVIEW_HELPERS)}")
     print(
-        "PHASE1_REVIEW_ANCHOR_SHAPES_FIELD_FAMILY_COUNT=5"
+        "PHASE1_REVIEW_ANCHOR_SHAPES_FIELD_FAMILY_COUNT=6"
     )
     print("PHASE1_REVIEW_ANCHOR_SHAPES_REQUIRED_FILE_COUNT=2")
     return 0
