@@ -12,7 +12,7 @@ This note records the current kernel-facing ownership boundary for `zigux/kernel
 
 - `BoundaryHeader`, `ExportStatus`, `Facility`, `Version`, and `DevTFields` keep the kernel-facing relay result shapes, enum tags, and field layout ownership explicit inside `zigux/kernel/export_shim.zig` instead of leaving those public packet types implied by wider ABI notes.
 - `abi_version` and `header_size` keep the shared boundary-header contract pinned to exported kernel-facing constants that the focused layout replay can compare directly without rebuilding that ownership elsewhere.
-- `canonicalHeader(flags)` owns the bounded constructor path for the shared `BoundaryHeader` shape.
+- `canonicalHeader(flags)` and `compatibleHeader(size, flags)` own the canonical and future-compatible constructor paths for the shared `BoundaryHeader` shape.
 - `isCurrentAbiVersion`, `isCanonicalSize`, `isCompatibleSize`, `headerIsCanonical`, `headerIsCompatible`, `extendsBoundary`, `requestedExtraBytes`, `canonicalizeHeader`, and `validateBoundaryHeader` keep the starter header-compatibility contract reviewable inside the kernel-facing shim.
 - `currentVersion()`, `hasCurrentAbiMajor()`, `hasCurrentAbiMinor()`, `hasCurrentHeaderFamilyRevision()`, `versionMatchesCurrent()`, and `validateVersion()` keep the starter version relay and compatibility gate explicit through the shared `zigux/bindings/version.zig` surface, with `validateVersion()` now delegating to the UAPI-backed status-tagged validator instead of rebuilding that status locally.
 - `makeDevTFields`, `encodeDeviceNumber`, `decodeDeviceNumber`, `validateDeviceFields`, `validateDeviceNumber`, and `validateDeviceRange` keep bounded `dev_t` field forwarding, device-number bridging, and validation tied to the kernel-facing shim rather than spread across unrelated helper packets.
@@ -37,7 +37,7 @@ This note records the current kernel-facing ownership boundary for `zigux/kernel
 
 The honest same-lane gap on current `master` is no longer the absence of a dedicated kernel-facing note. That ownership note already ships here beside `zigux/kernel/export_shim.zig`, and the directly coupled focused `phase3_export_shim_build` replay handoff plus the `phase3_export_uapi_layout` replay pair already keep the shim reviewable on bounded test routes.
 
-The remaining packet-local risk is note drift. If `zigux/kernel/export_shim.zig` adds, removes, or renames public relay types, exported constants, constructor, predicate, version, status, or bounded `dev_t` relays, this note should be refreshed in the same bounded change so review stays anchored to the shim itself instead of silently falling back to wider ABI, export-uapi, or shared reminder packets.
+The remaining packet-local risk is note drift. If `zigux/kernel/export_shim.zig` adds, removes, or renames public relay types, exported constants, canonical or future-compatible boundary-header constructors, predicates, version, status, or bounded `dev_t` relays, this note should be refreshed in the same bounded change so review stays anchored to the shim itself instead of silently falling back to wider ABI, export-uapi, or shared reminder packets.
 
 ## Scope
 
