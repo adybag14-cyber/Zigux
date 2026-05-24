@@ -336,7 +336,7 @@ def run_self_test() -> int:
         "exactly one of source or parts_dir must be provided",
     )
     expect_failure(
-        lambda root: (root / STAGE_HELPER_PATH).writeText(
+        lambda root: (root / STAGE_HELPER_PATH).write_text(
             (root / STAGE_HELPER_PATH).read_text(encoding="utf-8").replace(
                 'print(f"STAGE_PINNED_ZIG_ARCHIVE_PARTS_DIR={parts_dir}")\n'
                 '    print(f"STAGE_PINNED_ZIG_ARCHIVE_INPUT_MODE={input_mode}")',
