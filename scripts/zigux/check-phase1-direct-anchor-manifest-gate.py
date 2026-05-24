@@ -76,9 +76,10 @@ EXPECTED_REVIEW_FIELDS = {
     "tools/lib/bitmap.zig": {
         "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
         "or_window_anchor": 'test "bitmap or keeps caller-selected bit window"',
+        "or_multiword_tail_anchor": 'test "bitmap or across a multiword tail still lets callers clamp the last word"',
+        "weighted_tail_count_anchor": 'test "bitmap weighted or and xor clamp counts to the declared tail window"',
         "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
         "scnprintf_cross_word_anchor": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
-        "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
         "partial_xor_review_fields": ["partial_xor_nbits", "partial_xor_masked_values"],
         "review_packet_summary": (
             "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, "
@@ -415,6 +416,30 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:review_anchor_value=tools/lib/bitmap.zig:or_window_anchor",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("or_multiword_tail_anchor"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:or_multiword_tail_anchor",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("weighted_tail_count_anchor"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:weighted_tail_count_anchor",
         )
         case_count += 1
 
