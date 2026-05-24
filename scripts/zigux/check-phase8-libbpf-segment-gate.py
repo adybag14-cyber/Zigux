@@ -21,6 +21,8 @@ BRIDGE_BUILD_PATH = "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
 BRIDGE_BOUNDARY_GUARD_PATH = "zigux/tests/phase8_file_path_handle_boundary_guard.zig"
 BRIDGE_MANIFEST_SYNC_PATH = "zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig"
 BRIDGE_HELPER_PATH = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
+EXPECTED_LANE_KEY = "P8-L13"
+EXPECTED_PHASE = "Phase 8"
 
 LANDED_SLUGS = [
     "logging-version-and-errno",
@@ -165,6 +167,13 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     except json.JSONDecodeError as exc:
         return [], missing_markers, [f"manifest:invalid_json:{exc.msg}"]
 
+    if manifest.get("lane_key") != EXPECTED_LANE_KEY:
+        state_errors.append(f"manifest:unexpected_lane_key:{manifest.get('lane_key')}")
+    if manifest.get("phase") != EXPECTED_PHASE:
+        state_errors.append(f"manifest:unexpected_phase:{manifest.get('phase')}")
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or not surveyed_commit:
+        state_errors.append("manifest:missing_or_invalid_surveyed_commit")
     if manifest.get("anchor") != "tools/lib/bpf/libbpf.c":
         state_errors.append("manifest:unexpected_anchor")
 
@@ -188,14 +197,14 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
 def fixture_manifest() -> str:
     segments = []
     for idx, slug in enumerate(LANDED_SLUGS, start=1):
-        segments.append({"id": f"P8-L15-S{idx:02d}", "slug": slug, "status": "starter_landed"})
+        segments.append({"id": f"P8-L13-S{idx:02d}", "slug": slug, "status": "starter_landed"})
     for idx, slug in enumerate(DEFERRED_SLUGS, start=len(LANDED_SLUGS) + 1):
         status = "blocked_on_object_model" if slug == "skeleton-population" else "deferred_high_risk"
-        segments.append({"id": f"P8-L15-S{idx:02d}", "slug": slug, "status": status})
+        segments.append({"id": f"P8-L13-S{idx:02d}", "slug": slug, "status": status})
     return json.dumps(
         {
-            "lane_key": "P8-L15",
-            "phase": "Phase 8",
+            "lane_key": EXPECTED_LANE_KEY,
+            "phase": EXPECTED_PHASE,
             "surveyed_commit": "089188c96b86c0da16088e916094a7c977d0cfc6",
             "anchor": "tools/lib/bpf/libbpf.c",
             "segments": segments,
@@ -269,6 +278,30 @@ def run_self_test() -> int:
         missing_files, missing_markers, state_errors = validate(root)
         if missing_files or missing_markers or state_errors:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:baseline_failed")
+
+        manifest_path = root / MANIFEST_PATH
+        original_manifest = manifest_path.read_text(encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["lane_key"] = "P8-L15"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        if "manifest:unexpected_lane_key:P8-L15" not in validate(root)[2]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:lane_key_state")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["phase"] = "Phase 12"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        if "manifest:unexpected_phase:Phase 12" not in validate(root)[2]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:phase_state")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["surveyed_commit"] = ""
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        if "manifest:missing_or_invalid_surveyed_commit" not in validate(root)[2]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:surveyed_commit_state")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
 
         survey_path = root / SURVEY_PATH
         original_survey = survey_path.read_text(encoding="utf-8")
@@ -463,7 +496,6 @@ def run_self_test() -> int:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_helper_marker")
         bridge_helper_path.write_text(original_bridge_helper, encoding="utf-8")
 
-        manifest_path = root / MANIFEST_PATH
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["segments"][4]["status"] = "ready_next"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -472,7 +504,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=17")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 def main() -> int:
