@@ -25,15 +25,20 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-phase2-kbuild-routes.py",
+    "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/check-phase2-required-make-routes.py",
+    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
 )
 
 EXPECTED_POLICY_ROUTES = (
     "phase2-toolchain",
+    "phase2-tools",
     "phase2-validate",
     "phase2-cross",
 )
 
-EXPECTED_MAKEFILE_LINES = (
+EXPECTED_PHASE2_TOOLCHAIN_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
@@ -53,6 +58,13 @@ EXPECTED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
+)
+
+EXPECTED_PHASE2_TOOLS_LINES = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
 )
 
 EXPECTED_WORKFLOW_CLUSTER = (
@@ -138,6 +150,27 @@ def contains_contiguous_run_cluster(text: str, cluster: tuple[str, ...]) -> bool
     return False
 
 
+def check_target_commands(
+    issues: list[tuple[str, str]],
+    target_name: str,
+    commands: list[str] | None,
+    expected_lines: tuple[str, ...],
+) -> None:
+    if commands is None:
+        issues.append(("MISSING_MAKE_TARGET", target_name))
+        return
+    if commands != list(expected_lines):
+        issues.append((f"{target_name.upper().replace('-', '_')}_COMMAND_MISMATCH", f"count={len(commands)}"))
+    for marker in expected_lines:
+        count = commands.count(marker)
+        if count == 0:
+            issues.append((f"MISSING_{target_name.upper().replace('-', '_')}_LINE", marker))
+        elif count != 1:
+            issues.append(
+                (f"DUPLICATE_{target_name.upper().replace('-', '_')}_LINE", f"{marker}:count={count}")
+            )
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
@@ -164,18 +197,18 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             )
         )
 
-    commands = parse_make_target_block(makefile_text, "phase2-toolchain")
-    if commands is None:
-        issues.append(("MISSING_MAKE_TARGET", "phase2-toolchain"))
-    else:
-        if commands != list(EXPECTED_MAKEFILE_LINES):
-            issues.append(("MAKE_TARGET_COMMAND_MISMATCH", f"count={len(commands)}"))
-        for marker in EXPECTED_MAKEFILE_LINES:
-            count = commands.count(marker)
-            if count == 0:
-                issues.append(("MISSING_MAKE_TARGET_LINE", marker))
-            elif count != 1:
-                issues.append(("DUPLICATE_MAKE_TARGET_LINE", f"{marker}:count={count}"))
+    check_target_commands(
+        issues,
+        "phase2-toolchain",
+        parse_make_target_block(makefile_text, "phase2-toolchain"),
+        EXPECTED_PHASE2_TOOLCHAIN_LINES,
+    )
+    check_target_commands(
+        issues,
+        "phase2-tools",
+        parse_make_target_block(makefile_text, "phase2-tools"),
+        EXPECTED_PHASE2_TOOLS_LINES,
+    )
 
     for marker in EXPECTED_WORKFLOW_CLUSTER:
         count = count_exact_lines(workflow_text, marker)
@@ -185,7 +218,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
 
     if not contains_contiguous_run_cluster(workflow_text, EXPECTED_WORKFLOW_CLUSTER):
-        issues.append(("WORKFLOW_CLUSTER_MISMATCH", "phase2-toolchain route cluster is not contiguous"))
+        issues.append(("WORKFLOW_CLUSTER_MISMATCH", "phase2 toolchain/tools workflow cluster is not contiguous"))
 
     return issues
 
@@ -219,10 +252,10 @@ def build_sample_root(root: Path) -> None:
                 "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
                 "",
                 "phase2-toolchain:",
-                *[f"\t{line}" for line in EXPECTED_MAKEFILE_LINES],
+                *[f"\t{line}" for line in EXPECTED_PHASE2_TOOLCHAIN_LINES],
                 "",
                 "phase2-tools:",
-                "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
+                *[f"\t{line}" for line in EXPECTED_PHASE2_TOOLS_LINES],
             )
         )
         + "\n",
@@ -292,9 +325,9 @@ def run_self_test() -> int:
 
         build_sample_root(root)
         policy = json.loads(read_text(root, POLICY))
-        policy["upgrade_policy"]["required_make_routes"] = ["phase2-validate", "phase2-cross"]
+        policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-validate", "phase2-cross"]
         write_text(root, POLICY, json.dumps(policy, indent=2) + "\n")
-        assert ("POLICY_ROUTE_MISMATCH", "phase2-validate,phase2-cross") in collect_issues(root)
+        assert ("POLICY_ROUTE_MISMATCH", "phase2-toolchain,phase2-validate,phase2-cross") in collect_issues(root)
         checks += 1
 
         build_sample_root(root)
@@ -303,20 +336,35 @@ def run_self_test() -> int:
             MAKEFILE,
             replace_exact_line(
                 read_text(root, MAKEFILE),
-                EXPECTED_MAKEFILE_LINES[3],
+                EXPECTED_PHASE2_TOOLCHAIN_LINES[3],
                 "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-first-archive-workflow.py --not-self-test",
             ),
         )
         issues = collect_issues(root)
-        assert ("MAKE_TARGET_COMMAND_MISMATCH", f"count={len(EXPECTED_MAKEFILE_LINES)}") in issues
-        assert ("MISSING_MAKE_TARGET_LINE", EXPECTED_MAKEFILE_LINES[3]) in issues
+        assert ("PHASE2_TOOLCHAIN_COMMAND_MISMATCH", f"count={len(EXPECTED_PHASE2_TOOLCHAIN_LINES)}") in issues
+        assert ("MISSING_PHASE2_TOOLCHAIN_LINE", EXPECTED_PHASE2_TOOLCHAIN_LINES[3]) in issues
         checks += 1
 
         build_sample_root(root)
-        write_text(root, MAKEFILE, duplicate_exact_line(read_text(root, MAKEFILE), EXPECTED_MAKEFILE_LINES[-1]))
+        write_text(
+            root,
+            MAKEFILE,
+            replace_exact_line(
+                read_text(root, MAKEFILE),
+                EXPECTED_PHASE2_TOOLS_LINES[2],
+                "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py --wrong",
+            ),
+        )
+        issues = collect_issues(root)
+        assert ("PHASE2_TOOLS_COMMAND_MISMATCH", f"count={len(EXPECTED_PHASE2_TOOLS_LINES)}") in issues
+        assert ("MISSING_PHASE2_TOOLS_LINE", EXPECTED_PHASE2_TOOLS_LINES[2]) in issues
+        checks += 1
+
+        build_sample_root(root)
+        write_text(root, MAKEFILE, duplicate_exact_line(read_text(root, MAKEFILE), EXPECTED_PHASE2_TOOLS_LINES[-1]))
         assert (
-            "DUPLICATE_MAKE_TARGET_LINE",
-            f"{EXPECTED_MAKEFILE_LINES[-1]}:count=2",
+            "DUPLICATE_PHASE2_TOOLS_LINE",
+            f"{EXPECTED_PHASE2_TOOLS_LINES[-1]}:count=2",
         ) in collect_issues(root)
         checks += 1
 
@@ -326,20 +374,20 @@ def run_self_test() -> int:
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
-                EXPECTED_WORKFLOW_CLUSTER[4],
-                "        run: make -C zigux phase2-toolchain-missing",
+                EXPECTED_WORKFLOW_CLUSTER[5],
+                "        run: make -C zigux phase2-tools-missing",
             ),
         )
         issues = collect_issues(root)
-        assert ("MISSING_WORKFLOW_LINE", EXPECTED_WORKFLOW_CLUSTER[4]) in issues
-        assert ("WORKFLOW_CLUSTER_MISMATCH", "phase2-toolchain route cluster is not contiguous") in issues
+        assert ("MISSING_WORKFLOW_LINE", EXPECTED_WORKFLOW_CLUSTER[5]) in issues
+        assert ("WORKFLOW_CLUSTER_MISMATCH", "phase2 toolchain/tools workflow cluster is not contiguous") in issues
         checks += 1
 
         build_sample_root(root)
-        write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), EXPECTED_WORKFLOW_CLUSTER[4]))
+        write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), EXPECTED_WORKFLOW_CLUSTER[5]))
         assert (
             "DUPLICATE_WORKFLOW_LINE",
-            f"{EXPECTED_WORKFLOW_CLUSTER[4]}:count=2",
+            f"{EXPECTED_WORKFLOW_CLUSTER[5]}:count=2",
         ) in collect_issues(root)
         checks += 1
 
@@ -355,16 +403,16 @@ def run_self_test() -> int:
                 1,
             ),
         )
-        assert ("WORKFLOW_CLUSTER_MISMATCH", "phase2-toolchain route cluster is not contiguous") in collect_issues(root)
+        assert ("WORKFLOW_CLUSTER_MISMATCH", "phase2 toolchain/tools workflow cluster is not contiguous") in collect_issues(root)
         checks += 1
 
         build_sample_root(root)
         write_text(
             root,
             MAKEFILE,
-            read_text(root, MAKEFILE).replace("phase2-toolchain:\n", "phase2-toolchain-disabled:\n", 1),
+            read_text(root, MAKEFILE).replace("phase2-tools:\n", "phase2-tools-disabled:\n", 1),
         )
-        assert ("MISSING_MAKE_TARGET", "phase2-toolchain") in collect_issues(root)
+        assert ("MISSING_MAKE_TARGET", "phase2-tools") in collect_issues(root)
         checks += 1
 
     print("LANE03_PHASE2_TOOLCHAIN_ROUTE_SELF_TEST=pass")
@@ -374,7 +422,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check the current Zigux Phase 2 toolchain make-route packet."
+        description="Check the current Zigux Phase 2 toolchain/tool routes packet."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run built-in contract checks")
@@ -400,7 +448,8 @@ def main() -> int:
 
     print("LANE03_PHASE2_TOOLCHAIN_ROUTE=pass")
     print(f"LANE03_PHASE2_TOOLCHAIN_ROUTE_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
-    print(f"LANE03_PHASE2_TOOLCHAIN_ROUTE_TARGET_LINE_COUNT={len(EXPECTED_MAKEFILE_LINES)}")
+    print(f"LANE03_PHASE2_TOOLCHAIN_ROUTE_TOOLCHAIN_TARGET_LINE_COUNT={len(EXPECTED_PHASE2_TOOLCHAIN_LINES)}")
+    print(f"LANE03_PHASE2_TOOLCHAIN_ROUTE_TOOLS_TARGET_LINE_COUNT={len(EXPECTED_PHASE2_TOOLS_LINES)}")
     print(f"LANE03_PHASE2_TOOLCHAIN_ROUTE_WORKFLOW_LINE_COUNT={len(EXPECTED_WORKFLOW_CLUSTER)}")
     return 0
 
