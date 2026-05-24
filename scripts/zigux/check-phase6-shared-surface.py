@@ -19,6 +19,12 @@ VALIDATOR_PATH = Path("scripts/zigux/validate-phase6.py")
 EXPECTED_EVIDENCE_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
+EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-24"
+EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
+EXPECTED_PARITY_PURPOSE = (
+    "Record the current directly readable Phase 6 helper-parity packet without overstating "
+    "missing shared reminder, checker, or perf-note surfaces as returned evidence."
+)
 EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
@@ -77,6 +83,8 @@ REQUIRED_EVIDENCE_CATALOG_SNIPPETS = [
     "Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and `scripts/zigux/check-phase6-hexdump-route.py`.",
 ]
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
+    "- surveyed head: `current-master-readback-2026-05-24`",
+    "- lane scope: directly readable helper parity rows and shared companion notes only",
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
     "- remaining direct-readback gaps after the authenticated 2026-05-22 recovery: `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`",
     "- current posture: direct helper readback is restored for the helper, focused replay, perf replay, fixture surface, dedicated corpus checker, direct C parity runner, direct C parity harness, direct C parity checker, and slice note. A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`, while `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` still remain outside shipped evidence",
@@ -139,7 +147,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 40
+SELF_TEST_CASE_COUNT = 44
 
 
 class ValidationError(RuntimeError):
@@ -221,6 +229,12 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-parity packet drift")
     if evidence.get("phase") != EXPECTED_PHASE or parity.get("phase") != EXPECTED_PHASE:
         raise ValidationError("phase6 phase drift")
+    if parity.get("surveyed_head") != EXPECTED_PARITY_SURVEYED_HEAD:
+        raise ValidationError("phase6 helper-parity surveyed-head drift")
+    if parity.get("lane_scope") != EXPECTED_PARITY_LANE_SCOPE:
+        raise ValidationError("phase6 helper-parity lane-scope drift")
+    if parity.get("purpose") != EXPECTED_PARITY_PURPOSE:
+        raise ValidationError("phase6 helper-parity purpose drift")
     if evidence.get("current_direct_readback_companions") != EXPECTED_EVIDENCE_DIRECT_COMPANIONS:
         raise ValidationError("phase6 helper-evidence direct companion mismatch")
     if evidence.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
@@ -298,6 +312,9 @@ def scaffold_repo(root: Path) -> None:
             {
                 "packet": EXPECTED_PARITY_PACKET,
                 "phase": EXPECTED_PHASE,
+                "surveyed_head": EXPECTED_PARITY_SURVEYED_HEAD,
+                "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
+                "purpose": EXPECTED_PARITY_PURPOSE,
                 "shared_direct_evidence": EXPECTED_PARITY_DIRECT_EVIDENCE,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
@@ -353,15 +370,17 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_EVIDENCE_CATALOG_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
-        expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[1] + "\n", "", 1)))
+        expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
-        expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[2] + "\n", "", 1)))
+        expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[3] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[4] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[5] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[6] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": "phase6-helper-parity"})))
         cases_run += 1
@@ -384,6 +403,12 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].pop("direct_c_parity_harness")))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["checker_surfaces"].remove("scripts/zigux/check-phase6-checksum-c-parity.py")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "current-master-readback-2026-05-23"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"lane_scope": "shared helper-parity rows only"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"purpose": "Record the Phase 6 helper-parity packet."})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
         cases_run += 1
