@@ -26,6 +26,8 @@ The current helper self-test families remain:
 - `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID`
 - `ARTIFACT_DIFF_SELF_TEST_MISSING`
 
+The current helper self-test packet now also keeps the bytes-path and CLI parser coverage explicit through `bytes_pass`, `bytes_drift`, `legacy_sha256_alias`, `missing_mode_value_rejected`, `missing_positional_arguments_rejected`, `invalid_mode_rejected`, and `extra_positional_rejected`.
+
 `scripts/zigux/check-artifact-diff-contract.py` reruns the bounded helper self-test, CLI help output, missing-required-args, missing-mode-value, missing-actual-operand, invalid-mode, and extra-positional parser coverage plus the text, JSON, bytes, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.
 
 `scripts/zigux/check-phase4-artifact-diff-determinism.py` rechecks the helper and contract summary catalogs together so case-count, case-order, and repeat-case drift fail closed before the shared Phase 4 validator and Zig gates run.
