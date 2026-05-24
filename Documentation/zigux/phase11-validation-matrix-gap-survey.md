@@ -92,6 +92,13 @@ teardown-or-failure-mode proof outside the narrower three-entry build
 inventory, so keep that direct replay route explicit beside the modem-control
 note pair instead of silently collapsing it into the shared inventory-backed
 roster.
+The shared `phase11-validate` route also now carries
+`zigux/tests/phase11_dw_wdt_restart_build.zig` and
+`zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as focused
+watchdog teardown-or-failure-mode proofs outside the narrower three-entry HVC
+build inventory, so keep those shared watchdog replay routes explicit beside the
+returned driver-local matrices instead of reducing the shared gate to HVC-only
+proof coverage.
 That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap
 on current `master`: the repo does not yet rematerialize a broader shared
 replay or survey route that would carry cross-driver public-struct ABI proof
