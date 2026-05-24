@@ -86,7 +86,7 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
 ]
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
-EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-24"
 
 SELF_TEST_CASE_COUNT = 36
 
@@ -547,7 +547,7 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
-                '"surveyed_head": "current-master-readback-2026-05-22"',
+                '"surveyed_head": "current-master-readback-2026-05-24"',
                 '"surveyed_head": "current-master-readback-2026-05-21"',
             ),
             "helper-evidence surveyed_head drifted",
@@ -715,7 +715,7 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
-                '"surveyed_head": "current-master-readback-2026-05-22"',
+                '"surveyed_head": "current-master-readback-2026-05-24"',
                 '"surveyed_head": "current-master-readback-2026-05-21"',
             ),
             "helper-parity surveyed_head drifted",
