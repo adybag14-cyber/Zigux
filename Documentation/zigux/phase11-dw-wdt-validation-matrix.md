@@ -9,24 +9,43 @@ This matrix keeps the current bounded validation packet for the Zigux
 - current surveyed packet pin: `75f8336c4305beed127d7abfae37d3999b7cc57c`
 - active watchdog continuity for this matrix and its coupled survey packet is
   `P11-L10`
-- scope: keep the current `dw_wdt` starter honest about what is already
-  reviewable, name the next kernel-facing checkpoint, and avoid overclaiming
-  platform registration side effects, clock or reset wiring, IRQ delivery, or
-  live MMIO behavior before those surfaces exist in Zigux
+- scope: keep the current DesignWare owner packet honest, name the next
+  kernel-facing checkpoint, and avoid overclaiming live platform registration,
+  clock or reset execution, IRQ delivery, or hardware-backed MMIO behavior
+  before those surfaces are directly readable on current `master`
 
 ## Current Evidence
 
-- `drivers/watchdog/dw_wdt.zig` keeps the starter logic, registration-facing
-  handoff, and platform-registration scaffold summary reviewable.
-- `drivers/watchdog/dw_wdt_verify.zig` keeps teardown and failure-mode parity
-  reviewable.
-- `drivers/watchdog/dw_wdt_pm.zig` keeps the bounded PM-helper handoff
-  reviewable.
+- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
+  `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
+  `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, and
+  `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md` keep the
+  smaller authenticated current-head packet and its readback boundary explicit.
 - `zigux/tests/phase11_dw_wdt_manifest.json` and
   `zigux/tests/phase11_dw_wdt_survey.zig` keep the lane-local packet fail
   closed on current-head truth.
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` keeps timer-clock
+  choice, optional APB clock presence, reset-release posture, imported-running
+  handoff, optional pretimeout IRQ acquisition, and the missing-timer-clock
+  block reviewable before live platform execution lands.
+- `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, and
+  `drivers/watchdog/dw_wdt_pm_scaffold.zig` keep restart and bounded PM-helper
+  handoff coverage reviewable inside the same smaller packet.
 - `Documentation/zigux/phase11-dw-wdt-survey.md` keeps the same packet summary
   readable for reviewers.
+
+## Current Readback Boundary
+
+- Authenticated current-head rereads in this environment do not rematerialize
+  `Documentation/zigux/phase11-dw-wdt-slice.md`,
+  `Documentation/zigux/phase11-dw-wdt-teardown-note.md`,
+  `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, or
+  `zigux/tests/phase11_dw_wdt.zig`.
+- Treat that broader direct-driver, verify-helper, and replay stack as larger
+  same-lane vocabulary or fallback-visible evidence until a future authenticated
+  reread proves it returned through the same bridge.
+- Keep the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed
+  as historical context until a future reread proves it returned.
 
 ## Shared Gap And Next Step
 
@@ -40,7 +59,9 @@ This matrix keeps the current bounded validation packet for the Zigux
 ## Non-Goals
 
 - no claim that live platform registration side effects are already executing
-- no claim that clock or reset acquisition, IRQ delivery, or hardware-backed
+- no claim that clock or reset execution, IRQ delivery, or hardware-backed
   MMIO validation has already landed
+- no promotion of the broader direct-driver, verify-helper, or replay stack to
+  authenticated current-head evidence without a fresh reread
 - no migration of this driver-local packet into a broader shared Phase 11
   reminder surface
