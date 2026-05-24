@@ -337,6 +337,42 @@ pub const overflow_cases = [_]OverflowCase{
     },
 };
 
+test "phase 6 hexdump serialized parity packet stays bounded to the documented matrix" {
+    const expected = [_][]const u8{
+        "plain rowsize-16 group-1",
+        "ascii rowsize-16 group-1",
+        "plain rowsize-16 group-2",
+        "plain rowsize-16 group-4",
+        "ascii rowsize-16 group-4",
+        "ascii rowsize-32 group-2",
+        "normalized rowsize and groupsize fallback",
+        "normalized uneven group fallback",
+        "plain rowsize-16 group-8",
+        "ascii rowsize-16 group-8",
+    };
+    try std.testing.expectEqual(expected.len, parity_cases.len);
+    for (expected, parity_cases) |name, case| {
+        try std.testing.expectEqualStrings(name, case.name);
+    }
+}
+
+test "phase 6 hexdump overflow packet stays bounded to the documented matrix" {
+    const expected = [_]struct {
+        name: []const u8,
+        buflen: usize,
+    }{
+        .{ .name = "zero-sized caller buffer reports required ascii length", .buflen = 0 },
+        .{ .name = "short ascii buffer truncates but stays NUL terminated", .buflen = 8 },
+        .{ .name = "grouped plain buffer truncates deterministically", .buflen = 20 },
+        .{ .name = "normalized ascii buffer truncates after fallback formatting", .buflen = 12 },
+    };
+    try std.testing.expectEqual(expected.len, overflow_cases.len);
+    for (expected, overflow_cases) |want, case| {
+        try std.testing.expectEqualStrings(want.name, case.name);
+        try std.testing.expectEqual(want.buflen, case.buflen);
+    }
+}
+
 pub const length_cases = [_]LengthCase{
     .{ .name = "empty plain line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .expected_length = 0 },
     .{ .name = "empty ascii line reports zero length", .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .expected_length = 0 },
