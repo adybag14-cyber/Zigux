@@ -40,6 +40,7 @@ REQUIRED_SHIPPED_MARKERS = (
     "`scripts/zigux/check-phase13-devres-iounmap-planner.py`",
     "`scripts/zigux/check-phase13-devres-iomap-planner.py`",
     "`scripts/zigux/check-phase13-devres-mmio-packet.py`",
+    "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`",
     "`lib/devres.zig`",
     "`zigux/tests/phase13_devres_dma_coherent.zig`",
     "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`",
@@ -232,7 +233,7 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 30
+    expected_case_count = 31
     with tempfile.TemporaryDirectory(prefix="zigux_p13_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -298,6 +299,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path.write_text(path.read_text(encoding="utf-8").replace("`zigux/tests/phase13_devres_scatterlist_planner_manifest.json`", ""), encoding="utf-8")
         assert ("MISSING_MARKER", "`zigux/tests/phase13_devres_scatterlist_planner_manifest.json`") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path.write_text(path.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase13-devres-scatterlist-planner.py`", ""), encoding="utf-8")
+        assert ("MISSING_MARKER", "`scripts/zigux/check-phase13-devres-scatterlist-planner.py`") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
