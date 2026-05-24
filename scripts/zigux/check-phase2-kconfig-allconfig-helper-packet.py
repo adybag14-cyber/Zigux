@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
 KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
+PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
+PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
 EXPECTED_IMPLICIT_OMISSION_MODES = [
     "allmodconfig",
@@ -31,10 +33,19 @@ REQUIRED_HELPER_ANCHORS = [
     "conf bridge omits randconfig allconfig sentinel without explicit override",
 ]
 
+REQUIRED_CLOSURE_MARKERS = [
+    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+    "PHASE2_KCONFIG_BRIDGE_CONF_HELPER_ANCHOR_COUNT=4",
+]
+
+REQUIRED_TOOL_MANIFEST_CHECKERS = [
+    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+]
+
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 7
+EXPECTED_SELF_TEST_CASE_COUNT = 9
 
 
 def read_json(path: Path) -> object:
@@ -70,12 +81,27 @@ def load_bridge_checker_contract(path: Path) -> tuple[list[str], list[str], list
     return implicit_modes, explicit_modes, helper_anchors
 
 
+def load_tool_manifest_checkers(path: Path) -> list[str]:
+    payload = read_json(path)
+    if not isinstance(payload, dict):
+        raise SystemExit(f"invalid tool manifest payload in {path}")
+    present_surfaces = payload.get("present_surfaces")
+    if not isinstance(present_surfaces, dict):
+        raise SystemExit(f"invalid tool manifest present_surfaces in {path}")
+    checkers = present_surfaces.get("checkers")
+    if not isinstance(checkers, list) or not all(isinstance(entry, str) for entry in checkers):
+        raise SystemExit(f"invalid tool manifest checker list in {path}")
+    return list(checkers)
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
     manifest_path = root / CONF_MANIFEST.relative_to(ROOT)
     bridge_path = root / CONF_BRIDGE.relative_to(ROOT)
     checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
+    closure_path = root / PHASE2_CLOSURE.relative_to(ROOT)
+    tool_manifest_path = root / PHASE2_TOOL_MANIFEST.relative_to(ROOT)
 
     manifest = read_json(manifest_path)
     if not isinstance(manifest, dict):
@@ -122,6 +148,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for anchor in REQUIRED_HELPER_ANCHORS:
         if anchor not in checker_helper_anchors:
             issues.append(("CONF_BRIDGE_CHECKER_MISSING_HELPER_ANCHOR", anchor))
+
+    closure_text = read_text(closure_path)
+    for marker in REQUIRED_CLOSURE_MARKERS:
+        if marker not in closure_text:
+            issues.append(("MISSING_CLOSURE_MARKER", marker))
+
+    manifest_checkers = load_tool_manifest_checkers(tool_manifest_path)
+    for checker in REQUIRED_TOOL_MANIFEST_CHECKERS:
+        if checker not in manifest_checkers:
+            issues.append(("MISSING_TOOL_MANIFEST_CHECKER", checker))
 
     return issues
 
@@ -179,6 +215,19 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(f'test "{anchor}" {{}}' for anchor in REQUIRED_HELPER_ANCHORS) + "\n",
     )
     write_text(root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT), render_bridge_checker_stub())
+    write_text(root / PHASE2_CLOSURE.relative_to(ROOT), "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
+    write_text(
+        root / PHASE2_TOOL_MANIFEST.relative_to(ROOT),
+        json.dumps(
+            {
+                "present_surfaces": {
+                    "checkers": REQUIRED_TOOL_MANIFEST_CHECKERS,
+                }
+            },
+            indent=2,
+        )
+        + "\n",
+    )
 
 
 def run_self_test() -> int:
@@ -243,6 +292,21 @@ def run_self_test() -> int:
         checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
         write_text(checker_path, render_bridge_checker_stub(helper_anchors=REQUIRED_HELPER_ANCHORS[:-1]))
         assert ("CONF_BRIDGE_CHECKER_MISSING_HELPER_ANCHOR", REQUIRED_HELPER_ANCHORS[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        closure_path = root / PHASE2_CLOSURE.relative_to(ROOT)
+        write_text(closure_path, REQUIRED_CLOSURE_MARKERS[0] + "\n")
+        assert ("MISSING_CLOSURE_MARKER", REQUIRED_CLOSURE_MARKERS[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        tool_manifest_path = root / PHASE2_TOOL_MANIFEST.relative_to(ROOT)
+        write_text(
+            tool_manifest_path,
+            json.dumps({"present_surfaces": {"checkers": []}}, indent=2) + "\n",
+        )
+        assert ("MISSING_TOOL_MANIFEST_CHECKER", REQUIRED_TOOL_MANIFEST_CHECKERS[0]) in collect_issues(root)
         checks_run += 1
 
     if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
