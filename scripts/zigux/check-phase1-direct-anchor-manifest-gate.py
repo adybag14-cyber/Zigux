@@ -75,9 +75,23 @@ EXPECTED_ANTI_OVERLAP_RULE = (
 EXPECTED_REVIEW_FIELDS = {
     "tools/lib/bitmap.zig": {
         "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+        "or_window_anchor": 'test "bitmap or keeps caller-selected bit window"',
+        "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
         "scnprintf_cross_word_anchor": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
         "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
         "partial_xor_review_fields": ["partial_xor_nbits", "partial_xor_masked_values"],
+        "review_packet_summary": (
+            "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, "
+            "scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current "
+            "master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw "
+            "copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend "
+            "handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit "
+            "coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, "
+            "out-of-range tail-bit full or empty or weight masking, caller-window xor and or clamping, "
+            "multiword-tail xor and or clamp witnesses, weighted tail-count clamping, terminator-only "
+            "and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style "
+            "alias mirror coverage, and allocator optional-reset coverage."
+        ),
         "next_safe_step_note": (
             "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new direct-anchor "
             "drift inside the current helper-local packet or committed shared replay drift in the bitmap "
@@ -371,6 +385,45 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:review_anchor_value=tools/lib/bitmap.zig:copy_raw_alias_anchor",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("or_window_anchor"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:or_window_anchor",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("empty_buffer_anchor"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:empty_buffer_anchor",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/bitmap.zig"].__setitem__(
+                        "review_packet_summary",
+                        "drifted bitmap review summary",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/bitmap.zig:review_packet_summary",
         )
         case_count += 1
 
