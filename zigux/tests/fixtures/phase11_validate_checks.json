@@ -43,6 +43,21 @@
       ]
     },
     {
+      "name": "phase11-validate-route-alignment-self-test",
+      "command": [
+        "python",
+        "scripts/zigux/check-phase11-validate-route-alignment.py",
+        "--self-test"
+      ]
+    },
+    {
+      "name": "phase11-validate-route-alignment",
+      "command": [
+        "python",
+        "scripts/zigux/check-phase11-validate-route-alignment.py"
+      ]
+    },
+    {
       "name": "phase11-build-inventory-self-test",
       "command": [
         "python",
@@ -260,6 +275,16 @@
         "test",
         "--build-file",
         "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"
+      ]
+    },
+    {
+      "name": "phase11-gpio-wdt-remove-handoff-review-build",
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig"
       ]
     },
     {
