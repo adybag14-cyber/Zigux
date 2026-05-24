@@ -6,11 +6,12 @@ Fail-closed checker for the current Phase 14 rollback-threshold packet.
 This checker stays inside the rollback-automation lane. It validates that the
 shared smoke reminder surfaces still agree on the current study-only rollback
 contract, on the returned route checker and tests-root reminder checker, on the
-returned rollback-threshold checker, dedicated RCU rollback guard, ring-buffer
-survey companion, dedicated RCU survey companion, and shared smoke manifest,
-and on the current repo-reality split where the Makefile is readable, ships
-`phase14-validate`, and still does not ship the broader `phase14-smoke`,
-`phase14-test`, or `phase14` wrapper targets.
+returned rollback-threshold checker, dedicated skbuff stay-in-C guard,
+dedicated RCU rollback guard, ring-buffer survey companion, dedicated RCU
+survey companion, and shared smoke manifest, and on the current repo-reality
+split where the Makefile is readable, ships `phase14-validate`, and still does
+not ship the broader `phase14-smoke`, `phase14-test`, or `phase14` wrapper
+targets.
 """
 
 from __future__ import annotations
@@ -35,13 +36,13 @@ ROLLBACK_THRESHOLD_MARKER = (
     "recovered documentation packet, the directly readable shared-smoke route "
     "checker, the directly readable tests-root reminder checker, the directly "
     "readable validator path, the directly readable rollback-threshold "
-    "sequencing checker, the directly readable dedicated RCU rollback guard, "
-    "the readable current Makefile body, the directly readable "
-    "release-boundary exact-count guard, the directly readable workqueue "
-    "boundary shard, the directly readable ring-buffer survey companion, the "
-    "directly readable dedicated RCU survey companion, the directly readable "
-    "shared smoke manifest, and the still-missing broader wrapper-backed "
-    "rerun routes"
+    "sequencing checker, the directly readable dedicated skbuff stay-in-C "
+    "guard, the directly readable dedicated RCU rollback guard, the readable "
+    "current Makefile body, the directly readable release-boundary exact-count "
+    "guard, the directly readable workqueue boundary shard, the directly "
+    "readable ring-buffer survey companion, the directly readable dedicated "
+    "RCU survey companion, the directly readable shared smoke manifest, and "
+    "the still-missing broader wrapper-backed rerun routes"
 )
 ROLLBACK_FALLBACK_MARKER = (
     "  * fallback path: keep this shared smoke lane aligned with the current "
@@ -58,6 +59,7 @@ ROLLBACK_TRIGGER_MARKERS = [
     "    * tests-root-checker-versus-reminder-surface drift",
     "    * validator-versus-reminder-surface drift",
     "    * rollback-threshold-sequencing drift",
+    "    * dedicated-skbuff-stay-in-c-guard drift",
     "    * dedicated-rcu-rollback-guard drift",
     "    * workqueue-boundary-shard drift",
     "    * ring-buffer-survey drift",
@@ -385,6 +387,21 @@ def run_self_test() -> int:
             root,
             SMOKE_NOTE_PATH,
             fixture_smoke_note().replace(
+                "    * dedicated-skbuff-stay-in-c-guard drift\n",
+                "",
+                1,
+            ),
+        )
+        if not any("dedicated-skbuff-stay-in-c-guard drift" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected dedicated skbuff stay-in-C trigger drift to fail")
+            return 1
+
+        write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
+        write(
+            root,
+            SMOKE_NOTE_PATH,
+            fixture_smoke_note().replace(
                 "    * dedicated-rcu-rollback-guard drift\n",
                 "",
                 1,
@@ -500,7 +517,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=13")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
