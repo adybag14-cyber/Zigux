@@ -46,8 +46,8 @@ Base raw URL prefix:
 
 ## Current-Master Evidence Snapshot
 
-- exact coverage evidence refreshed on `2026-05-22` against live current `master`
-- current `master` still carries `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
+- exact coverage evidence refreshed on `2026-05-24` against live current `master`
+- current `master` still carries `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_build.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
 - current `master` also directly reads the packet-local checker and shared support bundle through `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-nvme-pci-packet.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase12_build.zig`
 - current `zigux/Makefile` now exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again
 - current authoritative packet truth therefore stays split: this NVMe note is the bounded current-master gap-note companion for the driver-local foothold, while the shared release packet and degraded-read support bundle stay owned by the Phase 12 release companions listed above
