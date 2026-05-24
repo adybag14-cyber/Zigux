@@ -35,7 +35,7 @@ REQUIRED_MARKERS = {
         '"phase13 landlock ruleset manifest records the current bounded security helper packet"',
     ),
     "zigux/tests/phase13_landlock_ruleset_manifest.json": (
-        '"lane_key": "P13-L12"',
+        '"lane_key": "P13-L10"',
         '"current_phase13_landlock_ruleset_slice_present": false',
         '"current_phase13_landlock_ruleset_ownership_present": false',
         '"id": "phase13-landlock-ruleset-packet-checker"',
