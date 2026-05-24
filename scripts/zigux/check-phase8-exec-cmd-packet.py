@@ -16,6 +16,7 @@ def _default_root() -> Path:
 
 ROOT = _default_root()
 EXEC_CMD_SLICE = Path("Documentation/zigux/phase8-exec-cmd-slice.md")
+REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 TESTS_README = Path("zigux/tests/README.md")
 VALIDATOR = Path("scripts/zigux/validate-phase8.py")
@@ -27,6 +28,7 @@ EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
 
 REQUIRED_FILES = (
     EXEC_CMD_SLICE,
+    REVIEW_CHECKLIST,
     SCRIPTS_README,
     TESTS_README,
     VALIDATOR,
@@ -47,6 +49,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "queue ownership",
         "kernel/workqueue.c",
         "Phase 14",
+    ),
+    REVIEW_CHECKLIST: (
+        "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
+        "`make -C zigux phase8-validate`",
+        "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context",
     ),
     SCRIPTS_README: (
         "Phase 8 flow - the current userspace-adjacent tooling reminder should keep the direct exec-cmd command packet explicit",
