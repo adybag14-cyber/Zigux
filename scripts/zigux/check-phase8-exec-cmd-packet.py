@@ -193,7 +193,6 @@ def run_self_test() -> int:
             path = root / relative_path
             original = _read(path)
             for marker in markers:
-                path.writeText = None
                 path.write_text(original.replace(marker, "", 1), encoding="utf-8")
                 result = validate_root(root)
                 expected = f"{relative_path}:{marker}"
