@@ -132,6 +132,19 @@ Keep `samples/zigux/runtime_*.zig` plus standalone `*string*`, `*kasprintf*`, `*
 Tests-root reviewer prompt:
 - Does the bounded Phase 5 reminder keep the direct bytestream and non-runtime kretprobe tests-root packet, the bounded trace-events formatting companion, the mixed kobject split, the shipped guide-surface guard, and the no-extra-sample boundary aligned without widening into runtime samples, module registration, or a fifth sample claim?
 
+## Phase 7 leaf-library packet
+
+Keep the current bounded Phase 7 tests-root reminder packet explicit through `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase7-shared-surface.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_leaf_library_evidence_manifest.json`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, `lib/rbtree.zig`, and `zigux/tests/README.md`.
+
+Keep the directly readable helper packet explicit too: `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, and `lib/rbtree.zig` are the current roadmap-backed Phase 7 anchors on `master`, while the shared tests-root note should stay bounded to reminder and replay coverage rather than restating helper-local semantics.
+
+Keep the shared build-wiring packet explicit too: `zigux/tests/phase7_build.zig` wires the four helpers through the dedicated `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey` routes, while the shared `test` step aggregates those helper, survey, and sample-boundary replays.
+
+Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, and `zigux/Makefile` still keeps only the narrow `phase7-validate` foothold explicit rather than a broader wrapper family.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 7 reminder keep the returned helper-anchor set, the dedicated checker stack, the shared manifest-backed inventory, the shared build graph, and the narrow `phase7-validate` foothold aligned without widening into new helper semantics, recovered wrapper families, or deeper runtime validation claims?
+
 ## Phase 8 tooling packet
 
 Keep the current direct-readback Phase 8 anchors explicit through:
