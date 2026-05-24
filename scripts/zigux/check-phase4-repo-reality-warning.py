@@ -193,7 +193,7 @@ def _baseline_note() -> str:
             "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
             NOTE_REQ[6],
             "The recovered broader note pair therefore no longer overstates those validator-side and bitmap-side companions as absent current-head evidence.",
-            "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff: current-head proof for the docs-root reminder, the scripts-root reminder, the review checklist, the tests-root reminder, the repo-reality warning checker, the reversible-delivery pin checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the atomic64 manifest-backed survey pair, and the dedicated local-only perf checker plus companion packet; archival anchor pin only for this note's self-reference; current-head direct-readback proof that `scripts/zigux/validate-phase4.py` is present again on `master`; public-raw current-tree proof that `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for that broader build-and-bitmap trio until exact authenticated blob capture stabilizes.",
+            "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff: current-head proof for the docs-root reminder, the scripts-root reminder, the review checklist, the tests-root reminder, the repo-reality warning checker, the tests-readme packet checker, the reversible-delivery pin checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the atomic64 manifest-backed survey pair, and the dedicated local-only perf checker plus companion packet; archival anchor pin only for this note's self-reference; current-head direct-readback proof that `scripts/zigux/validate-phase4.py` is present again on `master`; public-raw current-tree proof that `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for that broader build-and-bitmap trio until exact authenticated blob capture stabilizes.",
             NOTE_REQ[8],
             "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair and its manifest-backed handoff explicit as direct current-head evidence even while the broader Phase 4 companion set remains split between recovered note companions and exact-blob refresh debt.",
             NOTE_REQ[9],
@@ -288,6 +288,7 @@ def run_self_test() -> int:
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[0], "scripts drift")
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[2], "scripts split drift")
         cases += _expect_failure(root, TESTS_README_PACKET, None, None)
+        cases += _expect_failure(root, PINS, None, None)
         cases += _expect_failure(root, PERF_BASELINE_CHECKER, None, None)
         cases += _expect_failure(root, PERF_MANIFEST, None, None)
         cases += _expect_failure(root, PERF_SURVEY, None, None)
@@ -297,7 +298,6 @@ def run_self_test() -> int:
         cases += _expect_failure(root, WORKFLOW, None, None)
         cases += _expect_failure(root, ATOMIC64_DIFF, None, None)
         cases += _expect_failure(root, VALIDATOR, None, None)
-        cases += _expect_failure(root, BUILD, None, None)
         cases += _expect_failure(
             root,
             SELF,
