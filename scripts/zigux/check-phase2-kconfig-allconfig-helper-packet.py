@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import tempfile
 from pathlib import Path
@@ -9,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
+KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 
 EXPECTED_IMPLICIT_OMISSION_MODES = [
     "allmodconfig",
@@ -29,7 +31,10 @@ REQUIRED_HELPER_ANCHORS = [
     "conf bridge omits randconfig allconfig sentinel without explicit override",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 4
+BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
+BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
+BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
+EXPECTED_SELF_TEST_CASE_COUNT = 7
 
 
 def read_json(path: Path) -> object:
@@ -40,11 +45,37 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def extract_literal(module_text: str, const_name: str) -> object:
+    module = ast.parse(module_text)
+    for node in module.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == const_name:
+                return ast.literal_eval(node.value)
+    raise SystemExit(f"failed to parse {const_name} from {KCONFIG_BRIDGE_CHECKER}")
+
+
+def load_bridge_checker_contract(path: Path) -> tuple[list[str], list[str], list[str]]:
+    module_text = read_text(path)
+    implicit_modes = extract_literal(module_text, BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST)
+    explicit_modes = extract_literal(module_text, BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST)
+    helper_anchors = extract_literal(module_text, BRIDGE_CHECKER_HELPER_ANCHORS_CONST)
+    if not isinstance(implicit_modes, list) or not all(isinstance(mode, str) for mode in implicit_modes):
+        raise SystemExit("failed to parse implicit omission packet from check-kconfig-bridge.py")
+    if not isinstance(explicit_modes, list) or not all(isinstance(mode, str) for mode in explicit_modes):
+        raise SystemExit("failed to parse explicit override packet from check-kconfig-bridge.py")
+    if not isinstance(helper_anchors, list) or not all(isinstance(anchor, str) for anchor in helper_anchors):
+        raise SystemExit("failed to parse helper anchors from check-kconfig-bridge.py")
+    return implicit_modes, explicit_modes, helper_anchors
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
     manifest_path = root / CONF_MANIFEST.relative_to(ROOT)
     bridge_path = root / CONF_BRIDGE.relative_to(ROOT)
+    checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
 
     manifest = read_json(manifest_path)
     if not isinstance(manifest, dict):
@@ -73,6 +104,25 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if anchor not in bridge_text:
             issues.append(("MISSING_CONF_BRIDGE_HELPER_ANCHOR", anchor))
 
+    checker_implicit_modes, checker_explicit_modes, checker_helper_anchors = load_bridge_checker_contract(checker_path)
+    if checker_implicit_modes != EXPECTED_IMPLICIT_OMISSION_MODES:
+        issues.append(
+            (
+                "CONF_BRIDGE_CHECKER_IMPLICIT_OMISSION_PACKET_MISMATCH",
+                f"actual={checker_implicit_modes!r}:expected={EXPECTED_IMPLICIT_OMISSION_MODES!r}",
+            )
+        )
+    if checker_explicit_modes != EXPECTED_EXPLICIT_OVERRIDE_MODES:
+        issues.append(
+            (
+                "CONF_BRIDGE_CHECKER_EXPLICIT_OVERRIDE_PACKET_MISMATCH",
+                f"actual={checker_explicit_modes!r}:expected={EXPECTED_EXPLICIT_OVERRIDE_MODES!r}",
+            )
+        )
+    for anchor in REQUIRED_HELPER_ANCHORS:
+        if anchor not in checker_helper_anchors:
+            issues.append(("CONF_BRIDGE_CHECKER_MISSING_HELPER_ANCHOR", anchor))
+
     return issues
 
 
@@ -94,6 +144,24 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def render_bridge_checker_stub(
+    implicit_modes: list[str] | None = None,
+    explicit_modes: list[str] | None = None,
+    helper_anchors: list[str] | None = None,
+) -> str:
+    if implicit_modes is None:
+        implicit_modes = EXPECTED_IMPLICIT_OMISSION_MODES
+    if explicit_modes is None:
+        explicit_modes = EXPECTED_EXPLICIT_OVERRIDE_MODES
+    if helper_anchors is None:
+        helper_anchors = REQUIRED_HELPER_ANCHORS
+    return (
+        f"{BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST} = {implicit_modes!r}\n"
+        f"{BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST} = {explicit_modes!r}\n"
+        f"{BRIDGE_CHECKER_HELPER_ANCHORS_CONST} = {helper_anchors!r}\n"
+    )
+
+
 def build_self_test_root(root: Path) -> None:
     write_text(
         root / CONF_MANIFEST.relative_to(ROOT),
@@ -110,6 +178,7 @@ def build_self_test_root(root: Path) -> None:
         root / CONF_BRIDGE.relative_to(ROOT),
         "\n".join(f'test "{anchor}" {{}}' for anchor in REQUIRED_HELPER_ANCHORS) + "\n",
     )
+    write_text(root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT), render_bridge_checker_stub())
 
 
 def run_self_test() -> int:
@@ -150,6 +219,30 @@ def run_self_test() -> int:
         bridge_text = read_text(bridge_path).replace(REQUIRED_HELPER_ANCHORS[-1], "drifted anchor", 1)
         write_text(bridge_path, bridge_text)
         assert ("MISSING_CONF_BRIDGE_HELPER_ANCHOR", REQUIRED_HELPER_ANCHORS[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
+        write_text(checker_path, render_bridge_checker_stub(implicit_modes=["drifted-implicit"]))
+        assert any(
+            code == "CONF_BRIDGE_CHECKER_IMPLICIT_OMISSION_PACKET_MISMATCH"
+            for code, _ in collect_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
+        write_text(checker_path, render_bridge_checker_stub(explicit_modes=["drifted-explicit"]))
+        assert any(
+            code == "CONF_BRIDGE_CHECKER_EXPLICIT_OVERRIDE_PACKET_MISMATCH"
+            for code, _ in collect_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
+        write_text(checker_path, render_bridge_checker_stub(helper_anchors=REQUIRED_HELPER_ANCHORS[:-1]))
+        assert ("CONF_BRIDGE_CHECKER_MISSING_HELPER_ANCHOR", REQUIRED_HELPER_ANCHORS[-1]) in collect_issues(root)
         checks_run += 1
 
     if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
