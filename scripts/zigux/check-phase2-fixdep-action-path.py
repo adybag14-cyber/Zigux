@@ -91,6 +91,12 @@ REQUIRED_TESTS_README_MARKERS = (
     "`make -C zigux phase2-fixdep`",
 )
 
+REQUIRED_PHASE2_PHONY_TARGETS = (
+    "phase2-fixdep",
+    "phase2-validate",
+    "phase2",
+)
+
 EXPECTED_CASE_NAMES = (
     "sample",
     "sample_multi_target",
@@ -164,6 +170,14 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
+
+
+def parse_phase2_phony_targets(text: str) -> list[str] | None:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(".PHONY:"):
+            return stripped.split(":", 1)[1].strip().split()
+    return None
 
 
 def collect_marker_issues(
@@ -248,6 +262,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         makefile_indices
     ):
         issues.append(("MAKEFILE_ORDER_MISMATCH", "phase2-fixdep-route-order"))
+
+    phony_targets = parse_phase2_phony_targets(makefile_text)
+    if phony_targets is None:
+        issues.append(("MISSING_PHASE2_PHONY", ".PHONY"))
+    else:
+        for target in REQUIRED_PHASE2_PHONY_TARGETS:
+            if target not in phony_targets:
+                issues.append(("MISSING_PHASE2_PHONY_TARGET", target))
 
     collect_marker_issues(
         issues, docs_readme_text, "MISSING_DOCS_README_MARKER", REQUIRED_DOCS_README_MARKERS
@@ -429,6 +451,18 @@ def run_self_test() -> None:
             raise SystemExit(f"expected duplicate makefile issue, got {issues}")
         cases_run += 1
         write_text(makefile_path, original)
+
+        for target in REQUIRED_PHASE2_PHONY_TARGETS:
+            lines = original.splitlines()
+            phony_tokens = lines[0].split(":", 1)[1].strip().split()
+            phony_tokens.remove(target)
+            lines[0] = ".PHONY: " + " ".join(phony_tokens)
+            write_text(makefile_path, "\n".join(lines) + "\n")
+            issues = collect_issues(root)
+            if ("MISSING_PHASE2_PHONY_TARGET", target) not in issues:
+                raise SystemExit(f"expected missing phony target issue, got {issues}")
+            cases_run += 1
+            write_text(makefile_path, original)
 
         docs_path = resolve(root, DOCS_README)
         original = read_text(docs_path)
