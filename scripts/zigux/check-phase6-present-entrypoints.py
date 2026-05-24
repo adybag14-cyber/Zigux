@@ -21,6 +21,7 @@ EXPECTED_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
 EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
+EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
@@ -167,7 +168,7 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 20
 
 
 class ValidationError(RuntimeError):
@@ -232,6 +233,8 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 phase drift")
     if manifest.get("lane_scope") != EXPECTED_LANE_SCOPE:
         raise ValidationError("phase6 helper-evidence lane-scope drift")
+    if parity.get("lane_scope") != EXPECTED_PARITY_LANE_SCOPE:
+        raise ValidationError("phase6 helper-parity lane-scope drift")
     if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
         raise ValidationError("phase6 helper-evidence surveyed-head drift")
     if parity.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
@@ -414,6 +417,7 @@ def scaffold_repo(root: Path) -> None:
                 "packet": EXPECTED_PARITY_PACKET,
                 "phase": EXPECTED_PHASE,
                 "surveyed_head": EXPECTED_SURVEYED_HEAD,
+                "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
                 "shared_direct_evidence": EXPECTED_SHARED_DIRECT_EVIDENCE,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "helpers": [
@@ -504,6 +508,8 @@ def run_self_test() -> None:
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_shared_replay_inventory"].remove("make -C zigux phase6-hexdump-review")))
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": EXPECTED_PACKET})))
+        cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"lane_scope": "shared helper-parity rows only"})))
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
         cases_run += 1
