@@ -456,3 +456,163 @@ test "readHeader reports the exact truncated byte count" {
     try std.testing.expectEqual(@as(usize, 8), header.len);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
 }
+
+test "split-read exact 32-bit ELF header exits with stdout at EOF" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 4, 6, 6 },
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "split-read exact 64-bit ELF header exits with stdout at EOF" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 5, 5, 6 },
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "split-read exact 32-bit ELF header ignores later read failure and exits with stdout" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 7, 9, 8 },
+        .fail_on_call = 3,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqual(@as(usize, 2), reader.call_count);
+    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "split-read exact 64-bit ELF header ignores later read failure and exits with stdout" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 8, 8, 8 },
+        .fail_on_call = 3,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqual(@as(usize, 2), reader.call_count);
+    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "split-read exact invalid-class header exits silently at EOF" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', 3, 1, 1, 0,
+            0,    0,   0,   0,   0, 0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 6, 4, 6 },
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "split-read exact invalid-class header ignores later read failure and exits silently" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', 3, 1, 1, 0,
+            0,    0,   0,   0,   0, 0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 6, 10, 8 },
+        .fail_on_call = 3,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 2), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "split-read exact non-ELF header exits with stderr at EOF" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 5, 4, 7 },
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+}
+
+test "split-read empty input exits with stderr after immediate EOF" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{},
+        .chunk_sizes = &[_]usize{},
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
