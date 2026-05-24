@@ -45,6 +45,41 @@ EXPECTED_COMPANIONS = [
     "lib/argv_split.zig",
     "lib/rbtree.zig",
 ]
+EXPECTED_DIRECT_HELPER_EVIDENCE = [
+    {
+        "key": "string_helpers",
+        "zig_helper": "lib/string_helpers.zig",
+        "expected_markers": [
+            "pub const STRING_UNITS_10",
+            "pub const KasprintfStrarrayResult",
+            "pub fn kstrdupQuotable",
+            "pub fn kstrdupQuotableCmdline",
+        ],
+    },
+    {
+        "key": "string_helpers_parse_int_array",
+        "zig_helper": "lib/string_helpers.zig",
+        "expected_markers": [
+            "pub const ParseIntArrayError",
+            "pub fn parseIntArray",
+        ],
+    },
+    {
+        "key": "cmdline",
+        "zig_helper": "lib/cmdline.zig",
+        "expected_markers": ["pub fn parseOptionStr", "pub fn getOption"],
+    },
+    {
+        "key": "argv_split",
+        "zig_helper": "lib/argv_split.zig",
+        "expected_markers": ["pub const ArgvSplitResult", "pub fn argvSplit"],
+    },
+    {
+        "key": "rbtree",
+        "zig_helper": "lib/rbtree.zig",
+        "expected_markers": ["pub const Node = struct", "pub const RootCached = struct", "pub fn add(", "pub fn rb_find_add_cached("],
+    },
+]
 EXPECTED_ROADMAP_ANCHORS = [
     "lib/string_helpers.c",
     "lib/cmdline.c",
@@ -134,7 +169,7 @@ REQUIRED_FILES = [
     Path("lib/argv_split.zig"),
     Path("lib/rbtree.zig"),
 ]
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 5
 
 
 class ValidationError(RuntimeError):
@@ -179,6 +214,8 @@ def validate(root: Path) -> None:
         raise ValidationError("phase7 scope drift")
     if manifest.get("current_direct_readback_companions") != EXPECTED_COMPANIONS:
         raise ValidationError("phase7 companion drift")
+    if manifest.get("current_direct_helper_evidence") != EXPECTED_DIRECT_HELPER_EVIDENCE:
+        raise ValidationError("phase7 direct helper evidence drift")
     if manifest.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
         raise ValidationError("phase7 roadmap anchor drift")
     if manifest.get("current_replay_inventory") != EXPECTED_REPLAYS:
@@ -232,6 +269,7 @@ def scaffold_repo(root: Path) -> None:
                 "phase": EXPECTED_PHASE,
                 "lane_scope": EXPECTED_SCOPE,
                 "current_direct_readback_companions": EXPECTED_COMPANIONS,
+                "current_direct_helper_evidence": EXPECTED_DIRECT_HELPER_EVIDENCE,
                 "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
                 "current_build_wiring_evidence": EXPECTED_BUILD_WIRING_EVIDENCE,
                 "current_replay_inventory": EXPECTED_REPLAYS,
@@ -265,6 +303,7 @@ def run_self_test() -> None:
         validate(root)
         cases = [
             (MANIFEST_PATH, '"Documentation/zigux/review-checklist.md"'),
+            (MANIFEST_PATH, '"pub fn argvSplit"'),
             (BUILD_PATH, "../../lib/rbtree.zig"),
             (MAKEFILE_PATH, "phase7-validate:"),
             (Path("lib/rbtree.zig"), "pub fn rb_find_add_cached("),
