@@ -11,6 +11,7 @@ MAKEFILE = "zigux/Makefile"
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
 VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
+AMBIGUOUS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
 HELP_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/help_expected.json"
 CASES_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/cases.json"
 MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
@@ -107,6 +108,16 @@ REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES = (
     'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
 )
 
+REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES = (
+    'test "genksyms bridge preserves version side effect before ambiguous long option" {',
+    'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {',
+)
+
+STANDALONE_PROOF_PACKET = (
+    VERSION_SIDE_EFFECT_TEST,
+    AMBIGUOUS_VERSION_SIDE_EFFECT_TEST,
+)
+
 HELP_USAGE = (
     "Usage:\n"
     "genksyms [-dDpwqhV] [-r file] [-T file] > /path/to/.tmp_obj.ver\n"
@@ -148,7 +159,7 @@ LONG_OPTION_SPECS = (
     ("preserve", "preserve", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -292,7 +303,7 @@ def build_expected_manifest() -> dict[str, object]:
         "cases": [case["name"] for case in CASE_FIXTURES],
         "bridge_expected_packet": [case["expected_file"] for case in CASE_FIXTURES],
         "help_packet": ["help_expected.json"],
-        "standalone_proof_packet": [VERSION_SIDE_EFFECT_TEST],
+        "standalone_proof_packet": list(STANDALONE_PROOF_PACKET),
         "process_output_packet": list(EXPECTED_PROCESS_OUTPUT_PACKET),
         "helper_local_anchors": list(EXPECTED_HELPER_LOCAL_ANCHORS),
     }
@@ -353,7 +364,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     required_paths = [
         GENKSYMS_ZIG,
-        VERSION_SIDE_EFFECT_TEST,
+        *STANDALONE_PROOF_PACKET,
         HELP_FIXTURE,
         CASES_FIXTURE,
         MANIFEST_FIXTURE,
@@ -372,6 +383,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     workflow_text = read_text(root, WORKFLOW)
     genksyms_text = read_text(root, GENKSYMS_ZIG)
     version_side_effect_text = read_text(root, VERSION_SIDE_EFFECT_TEST)
+    ambiguous_version_side_effect_text = read_text(root, AMBIGUOUS_VERSION_SIDE_EFFECT_TEST)
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -393,6 +405,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_VERSION_SIDE_EFFECT_TEST_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES:
+        count = count_exact_lines(ambiguous_version_side_effect_text, marker)
+        if count == 0:
+            issues.append(("MISSING_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count={count}"))
 
     if '@embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json")' not in genksyms_text:
         issues.append(("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE))
@@ -498,6 +517,14 @@ def build_self_test_root(root: Path) -> None:
         'test "genksyms bridge preserves version side effect before invalid long option" {\n'
         '}\n'
         'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {\n'
+        '}\n',
+    )
+    write_text(
+        root,
+        AMBIGUOUS_VERSION_SIDE_EFFECT_TEST,
+        'test "genksyms bridge preserves version side effect before ambiguous long option" {\n'
+        '}\n'
+        'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {\n'
         '}\n',
     )
     write_text(root, HELP_FIXTURE, json.dumps({"stdout": "", "stderr": HELP_USAGE, "exit_code": 0}, indent=2) + "\n")
@@ -609,6 +636,14 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        write_text(root, AMBIGUOUS_VERSION_SIDE_EFFECT_TEST, 'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {\n}\n')
+        assert (
+            "MISSING_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE",
+            REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES[0],
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         write_text(root, GENKSYMS_ZIG, 'const help_expected_json = @embedFile("missing.json");\n')
         assert ("MISSING_HELP_FIXTURE_EMBED", HELP_FIXTURE) in collect_issues(root)
         checks += 1
@@ -641,7 +676,7 @@ def main() -> int:
     print("GENKSYMS_BRIDGE=pass")
     print(f"GENKSYMS_BRIDGE_CASE_COUNT={len(CASE_FIXTURES)}")
     print(f"GENKSYMS_BRIDGE_EXPECTED_CASE_COUNT={len(CASE_FIXTURES)}")
-    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={8 + len(CASE_FIXTURES) + len(EXPECTED_PROCESS_OUTPUT_PACKET)}")
+    print(f"GENKSYMS_BRIDGE_REQUIRED_PATH_COUNT={9 + len(CASE_FIXTURES) + len(EXPECTED_PROCESS_OUTPUT_PACKET)}")
     return 0
 
 
