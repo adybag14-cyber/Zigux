@@ -50,6 +50,8 @@ HELPER_POSTURE = (
     "- current posture: direct helper readback is restored across the helper, focused "
     "replay, perf replay, C ABI review routes, fixture surface, checker, and slice note"
 )
+MANIFEST_POSTURE = '"current_review_posture": "direct-helper-readback-restored"'
+NO_MISSING_COMPANIONS = '"still_missing_direct_companions": []'
 LIB_INDEX_RANGE_TEST = 'test "index range views keep typed and byte aliases aligned for hits and insertion sites" {'
 LIB_FIRST_CONST = (
     'const first_const = duplicate_range.firstConst(i32, duplicates[0..]) '
@@ -98,6 +100,8 @@ REQUIRED_SNIPPETS = {
     HELPER_EVIDENCE_MANIFEST_PATH: [
         '"key": "bsearch"',
         '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
+        MANIFEST_POSTURE,
+        NO_MISSING_COMPANIONS,
         '"checker_surfaces": [',
         '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
         '"case_labels": [',
@@ -112,6 +116,8 @@ REQUIRED_SNIPPETS = {
     HELPER_PARITY_MANIFEST_PATH: [
         '"key": "bsearch"',
         '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
+        MANIFEST_POSTURE,
+        NO_MISSING_COMPANIONS,
         '"budget_model": "comparison_budget"',
         f'"bound_budget_formula": {BUDGET_FORMULA}',
         '"runtime_selected_c_abi_replays": [',
@@ -234,8 +240,12 @@ SELF_TEST_CASES = [
     (CATALOG_PATH, C_PARITY_COMPANIONS, "- direct C parity companions: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`"),
     (PARITY_CATALOG_PATH, HELPER_POSTURE, "- current posture: direct helper readback is restored across the helper, focused replay, perf replay, C ABI review routes, fixture surface, and slice note"),
     (PARITY_CATALOG_PATH, "PHASE6_BSEARCH_C_PARITY_CASES=17", "PHASE6_BSEARCH_C_PARITY_CASES=15"),
+    (HELPER_EVIDENCE_MANIFEST_PATH, MANIFEST_POSTURE, '"current_review_posture": "direct-helper-readback-stale"'),
+    (HELPER_EVIDENCE_MANIFEST_PATH, NO_MISSING_COMPANIONS, '"still_missing_direct_companions": ["zigux/tests/phase6_bsearch_casegen.zig"]'),
     (HELPER_EVIDENCE_MANIFEST_PATH, '"query_count": 16', '"query_count": 8'),
     (HELPER_EVIDENCE_MANIFEST_PATH, f'"budget_formula": {BUDGET_FORMULA}', '"budget_formula": "std.math.log2_int_ceil(len) + 1"'),
+    (HELPER_PARITY_MANIFEST_PATH, MANIFEST_POSTURE, '"current_review_posture": "direct-helper-readback-stale"'),
+    (HELPER_PARITY_MANIFEST_PATH, NO_MISSING_COMPANIONS, '"still_missing_direct_companions": ["zigux/tests/phase6_bsearch_casegen.zig"]'),
     (HELPER_PARITY_MANIFEST_PATH, f'"bound_budget_formula": {BUDGET_FORMULA}', '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"'),
     (LOWER_BOUND_TEST_PATH, "const mutable_lower = bsearch.bsearchLowerBoundMutable(", "const mutable_alias = bsearch.bsearchLowerBoundMutable("),
     (LOWER_BOUND_TEST_PATH, "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[6]), @intFromPtr(typed_missing_lower));", "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[5]), @intFromPtr(typed_missing_lower));"),
