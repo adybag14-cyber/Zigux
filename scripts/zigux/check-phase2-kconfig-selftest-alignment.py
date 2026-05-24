@@ -17,6 +17,7 @@ KCONFIG_BRIDGE_CHECKER = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 KCONFIG_BRIDGE_CASES = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json"
 CONF_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json"
 CONFDATA_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json"
+KCONFIG_FIXTURE_ROOT = KCONFIG_BRIDGE_CASES.parent
 KCONFIG_BRIDGE_SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
@@ -404,7 +405,7 @@ VALID_CASES_PAYLOAD = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 34
+EXPECTED_SELF_TEST_CASE_COUNT = 37
 
 
 def read_text(path: Path) -> str:
@@ -532,6 +533,25 @@ def collect_manifest_field_issues(
     return issues
 
 
+def collect_missing_case_paths(
+    root: Path,
+    fixture_root: Path,
+    cases: list[dict[str, object]],
+    field_names: tuple[str, ...],
+    code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for case in cases:
+        case_name = str(case.get("name", "<unknown>"))
+        for field_name in field_names:
+            rel_path = case.get(field_name)
+            if not isinstance(rel_path, str):
+                continue
+            if not resolve_path(root, fixture_root / rel_path).exists():
+                issues.append((code, f"{case_name}:{field_name}:{rel_path}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
@@ -647,6 +667,15 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                             f"actual={randconfig_env_case_names!r}:expected={list(EXPECTED_RANDCONFIG_ENV_CASE_NAMES)!r}",
                         )
                     )
+                issues.extend(
+                    collect_missing_case_paths(
+                        root,
+                        KCONFIG_FIXTURE_ROOT,
+                        conf_cases,
+                        ("expected",),
+                        "MISSING_CONF_CASE_PATHS",
+                    )
+                )
 
             raw_confdata_cases = cases_payload.get("confdata_cases")
             if not isinstance(raw_confdata_cases, list):
@@ -681,6 +710,15 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                             f"actual={confdata_expected_packet!r}:expected={list(EXPECTED_CONFDATA_EXPECTED_PACKET)!r}",
                         )
                     )
+                issues.extend(
+                    collect_missing_case_paths(
+                        root,
+                        KCONFIG_FIXTURE_ROOT,
+                        confdata_cases,
+                        ("input", "expected"),
+                        "MISSING_CONFDATA_CASE_PATHS",
+                    )
+                )
 
     if conf_cases:
         try:
@@ -796,6 +834,14 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
+    fixture_paths = {str(case["expected"]) for case in VALID_CASES_PAYLOAD["conf_cases"]}
+    for case in VALID_CASES_PAYLOAD["confdata_cases"]:
+        fixture_paths.add(str(case["input"]))
+        fixture_paths.add(str(case["expected"]))
+    for rel_path in sorted(fixture_paths):
+        resolved = resolve_path(root, KCONFIG_FIXTURE_ROOT / rel_path)
+        content = "{}\n" if resolved.suffix == ".json" else "# fixture\n"
+        write_text(resolved, content)
     for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
         resolved = resolve_path(root, bridge_path)
         if resolved.exists():
@@ -946,6 +992,15 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_FIXTURE_ROOT / "oldaskconfig_expected.json")
+        path.unlink()
+        assert (
+            "MISSING_CONF_CASE_PATHS",
+            "oldaskconfig:expected:oldaskconfig_expected.json",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         path = resolve_path(root, KCONFIG_BRIDGE_CASES)
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["confdata_cases"].insert(0, "junk")
@@ -975,6 +1030,24 @@ def run_self_test() -> int:
         payload["confdata_cases"][0]["expected"] = "drifted_expected.json"
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert any(code == "CONFDATA_EXPECTED_PACKET_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_FIXTURE_ROOT / "sample.config")
+        path.unlink()
+        assert (
+            "MISSING_CONFDATA_CASE_PATHS",
+            "sample:input:sample.config",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_FIXTURE_ROOT / "sample_expected.json")
+        path.unlink()
+        assert (
+            "MISSING_CONFDATA_CASE_PATHS",
+            "sample:expected:sample_expected.json",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
