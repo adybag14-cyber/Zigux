@@ -156,3 +156,49 @@ test "phase10 virtio ring reset reuse refuses broken queues until the broken fen
     try std.testing.expectEqual(@as(u16, 0), reset.unpublished_chain_count);
     try std.testing.expectEqual(@as(u16, 0), reset.pending_used_chain_count);
 }
+
+test "phase10 virtio ring reset reuse clears packed notification wrap state after rollover" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(4, 8, .packed_ring, true, false);
+
+    inline for (0..8) |_| {
+        try ring.publishDescriptorChain(4);
+    }
+    _ = try ring.prepareKick(4);
+    try ring.recordUsedChains(4, 8);
+    _ = try ring.pollUsedBuffers(4);
+    try ring.publishDescriptorChain(4);
+
+    var notification_data = try ring.notificationDataSummary(4);
+    try std.testing.expectEqual(@as(u16, 9), notification_data.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), notification_data.next_avail_idx);
+    try std.testing.expect(notification_data.next_avail_wrap_counter);
+    try std.testing.expectEqual(
+        @as(u16, virtio_ring.packed_notification_wrap_bit | 1),
+        notification_data.encoded_next,
+    );
+    try std.testing.expectEqual(@as(u32, 0x8001_0004), notification_data.notification_data);
+
+    var readiness = try ring.queueResetReadinessSummary(4);
+    try std.testing.expectEqualStrings("unpublished_chains", @tagName(readiness.blocker.?));
+    _ = try ring.prepareKick(4);
+    readiness = try ring.queueResetReadinessSummary(4);
+    try std.testing.expectEqualStrings("outstanding_chains", @tagName(readiness.blocker.?));
+
+    try ring.recordUsedChains(4, 1);
+    readiness = try ring.queueResetReadinessSummary(4);
+    try std.testing.expectEqualStrings("unpolled_used_chains", @tagName(readiness.blocker.?));
+    _ = try ring.pollUsedBuffers(4);
+
+    const reset = try ring.resetQueue(4);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, reset.layout);
+    try std.testing.expectEqual(@as(u16, 0), reset.avail_idx_shadow);
+    try std.testing.expectEqual(@as(usize, 0), reset.notification_count);
+
+    notification_data = try ring.notificationDataSummary(4);
+    try std.testing.expectEqual(@as(u16, 0), notification_data.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), notification_data.next_avail_idx);
+    try std.testing.expect(!notification_data.next_avail_wrap_counter);
+    try std.testing.expectEqual(@as(u16, 0), notification_data.encoded_next);
+    try std.testing.expectEqual(@as(u32, 4), notification_data.notification_data);
+}
