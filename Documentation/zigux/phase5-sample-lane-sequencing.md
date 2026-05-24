@@ -40,10 +40,12 @@ Fresh repo-first inspection in this run confirmed that current `master` still ke
 - `scripts/zigux/check-phase5-review-guide-surface.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+- `zigux/tests/phase5_build.zig`
 
 The same reread also confirmed that current `master` still keeps the restored direct bytestream packet, the restored direct kretprobe packet, the bounded trace-events formatting companion visible from the sample root, and the roadmap-backed `kobject` anchor in a mixed current-readback packet: authenticated contents readback in this runtime directly returned `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig`, while fresh public current-`master` GitHub file readback still keeps `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` explicit beside that direct packet.
 
 Keep this shared note truthful about that current packet instead of repeating older missing-sample wording for bytestream, older broader direct-sample wording for trace-events, or collapsing the still-visible kobject packet into repo absence.
+Keep the directly readable `zigux/tests/phase5_build.zig` route explicit too: it is current shared rerun evidence for the restored bytestream and kretprobe reminder packet, but it still should not be described as sample-local proof.
 Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` is the shipped checker for the guide's direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, so same-lane follow-through should not describe the shared Phase 5 packet as guide-only reminder prose anymore.
 
 ## Current sample-root reality
@@ -89,6 +91,7 @@ For the tracing and probe lane, keep follow-through aligned with these bounded r
 - `samples/zigux/README.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+- `zigux/tests/phase5_build.zig`
 
 Those files should describe:
 
