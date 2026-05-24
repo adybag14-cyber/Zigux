@@ -43,3 +43,106 @@ test "strErrorR returns deterministic Linux-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", strErrorR(2, &buffer));
     try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", strErrorR(4096, &buffer));
 }
+
+test "strErrorR truncates known messages and keeps a terminator" {
+    var buffer: [6]u8 = undefined;
+    const rendered = strErrorR(0, &buffer);
+    try std.testing.expectEqualStrings("Succe", rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[5]);
+}
+
+test "strErrorR truncates generated internal errors and keeps a terminator" {
+    var buffer: [12]u8 = undefined;
+    const rendered = strErrorR(4096, &buffer);
+
+    var expected_storage: [64]u8 = undefined;
+    const full = try std.fmt.bufPrint(
+        &expected_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, buffer.len },
+    );
+
+    try std.testing.expectEqualStrings(full[0 .. buffer.len - 1], rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
+}
+
+test "strErrorR handles empty and single-byte buffers without exposing bytes" {
+    var empty: [0]u8 = undefined;
+    try std.testing.expectEqualStrings("", strErrorR(2, &empty));
+
+    var tiny = [_]u8{0xaa};
+    const rendered = strErrorR(4096, &tiny);
+    try std.testing.expectEqualStrings("", rendered);
+    try std.testing.expectEqual(@as(u8, 0), tiny[0]);
+}
+
+test "strErrorR returns full messages when buffers fit exactly" {
+    var success_buffer: [8]u8 = undefined;
+    const success_rendered = strErrorR(0, &success_buffer);
+    try std.testing.expectEqualStrings("Success", success_rendered);
+    try std.testing.expectEqual(@as(u8, 0), success_buffer[success_rendered.len]);
+
+    var internal_storage: [64]u8 = undefined;
+    const expected_internal = try std.fmt.bufPrint(
+        &internal_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, 48 },
+    );
+
+    var exact_buffer: [48]u8 = undefined;
+    const exact_rendered = strErrorR(4096, &exact_buffer);
+    try std.testing.expectEqualStrings(expected_internal, exact_rendered);
+    try std.testing.expectEqual(@as(u8, 0), exact_buffer[exact_rendered.len]);
+}
+
+test "strErrorR returns slices backed by the caller buffer" {
+    var known_buffer: [8]u8 = undefined;
+    const known_rendered = strErrorR(0, &known_buffer);
+    try std.testing.expectEqual(@intFromPtr(&known_buffer[0]), @intFromPtr(known_rendered.ptr));
+
+    var generated_buffer: [48]u8 = undefined;
+    const generated_rendered = strErrorR(4096, &generated_buffer);
+    try std.testing.expectEqual(@intFromPtr(&generated_buffer[0]), @intFromPtr(generated_rendered.ptr));
+}
+
+test "strErrorR reuses caller buffers cleanly after longer messages" {
+    var buffer = [_]u8{0xaa} ** 64;
+    const long_rendered = strErrorR(4096, &buffer);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", long_rendered);
+
+    const success_rendered = strErrorR(0, &buffer);
+    try std.testing.expectEqualStrings("Success", success_rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[success_rendered.len]);
+
+    const permission_rendered = strErrorR(13, &buffer);
+    try std.testing.expectEqualStrings("Permission denied", permission_rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[permission_rendered.len]);
+}
+
+test "strErrorR respects offset caller slices and leaves neighboring bytes untouched" {
+    var storage = [_]u8{0xaa} ** 64;
+
+    const known_view = storage[3..11];
+    const known_rendered = strErrorR(0, known_view);
+    try std.testing.expectEqual(@intFromPtr(&storage[3]), @intFromPtr(known_rendered.ptr));
+    try std.testing.expectEqualStrings("Success", known_rendered);
+    try std.testing.expectEqual(@as(u8, 0xaa), storage[2]);
+    try std.testing.expectEqual(@as(u8, 0), storage[10]);
+    try std.testing.expectEqual(@as(u8, 0xaa), storage[11]);
+
+    @memset(storage[0..], 0xbb);
+
+    const generated_view = storage[7..19];
+    var expected_storage: [64]u8 = undefined;
+    const expected = try std.fmt.bufPrint(
+        &expected_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, generated_view.len },
+    );
+    const generated_rendered = strErrorR(4096, generated_view);
+    try std.testing.expectEqual(@intFromPtr(&storage[7]), @intFromPtr(generated_rendered.ptr));
+    try std.testing.expectEqualStrings(expected[0 .. generated_view.len - 1], generated_rendered);
+    try std.testing.expectEqual(@as(u8, 0xbb), storage[6]);
+    try std.testing.expectEqual(@as(u8, 0), storage[18]);
+    try std.testing.expectEqual(@as(u8, 0xbb), storage[19]);
+}
