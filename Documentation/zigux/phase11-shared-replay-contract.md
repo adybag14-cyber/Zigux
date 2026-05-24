@@ -37,6 +37,7 @@ reminder surfaces:
 - `scripts/zigux/check-phase11-shared-replay-contract-counts.py`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`
@@ -59,9 +60,9 @@ this lane still show `Documentation/zigux/README.md`,
 skipping the active Phase 11 packet entirely, so treat those three broad
 surfaces as the next same-lane reminder follow-through instead of as already
 current packet members. Until that broader reminder work lands, keep the shared
-Phase 11 packet rooted in the narrower lane-sequencing, matrix-gap, checker,
-workflow, contributor-sync, tests-root-companion, and tests-root reminder stack
-listed above.
+Phase 11 packet rooted in the narrower lane-sequencing, matrix-gap,
+header-boundary, checker, workflow, contributor-sync, tests-root-companion, and
+tests-root reminder stack listed above.
 
 ## Current Repo Reality
 
@@ -105,6 +106,12 @@ listed above.
   `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, so keep that
   twelve-proof-build packet explicit instead of reducing the current shared gate to
   the narrower HVC inventory alone.
+- the returned note-side `scripts/zigux/check-phase11-header-boundary-packet.py`
+  route now sits beside that shared validator packet as reminder-surface
+  truthfulness evidence for the narrower shared survey and validation-matrix
+  notes; keep it explicit as returned note-side continuity without counting it
+  as another HVC inventory marker or using it to claim that the removed shared
+  replay files already returned
 - `zigux/tests/phase11_build.zig` is not part of the current shared packet on
   `master`
 
@@ -119,6 +126,7 @@ deterministic and reviewable:
   `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py --self-test`,
   `python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test`,
   `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py --self-test`,
+  `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`,
   `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test`,
   `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`,
   `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py --self-test`,
@@ -128,6 +136,7 @@ deterministic and reviewable:
   `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py`,
   `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`,
   `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
+  `python3 scripts/zigux/check-phase11-header-boundary-packet.py`,
   `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
   `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
   `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
@@ -177,7 +186,8 @@ route:
   next same-lane work
 - the shared header-boundary packet stays bounded to
   `Documentation/zigux/phase11-uapi-header-parity-survey.md`,
-  `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`, and
+  `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`,
+  `scripts/zigux/check-phase11-header-boundary-packet.py`, and
   `drivers/tty/hvc/hvc_console.h`; keep that public-surface packet explicit in
   shared summaries without widening it into broader tty-core or watchdog-core
   closure
