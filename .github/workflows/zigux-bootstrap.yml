@@ -375,6 +375,12 @@ jobs:
       - name: Check current Phase 1 closure packet
         run: python3 scripts/zigux/validate-phase1-closure.py
 
+      - name: Self-test current Phase 1 workflow structure checker
+        run: python3 scripts/zigux/check-phase1-workflow-structure.py --self-test
+
+      - name: Check current Phase 1 workflow structure packet
+        run: python3 scripts/zigux/check-phase1-workflow-structure.py
+
       - name: Self-test current Phase 3 interop packet
         run: python3 scripts/zigux/validate_phase3_selftest.py
 
