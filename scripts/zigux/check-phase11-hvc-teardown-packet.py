@@ -26,26 +26,33 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
     "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
     "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
     "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
+    "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "repo-reality gaps or archival vocabulary",
     "`make -C zigux phase11-validate`",
-    "without promoting itself into the shared three-entry build inventory",
 )
 
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
+    "build-inventory checker",
+    "cleanup-current-head checker",
+    "targetless-unregister witness checker",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-    "returned HVC validation matrix and build-inventory checker stay explicit",
+    "repo-reality gaps or archival vocabulary",
     "standalone targetless-unregister witness",
-    "separate failure-mode replay",
-    "proof-backed HVC continuity packet remains reviewable",
+    "dedicated modem-control proof pair",
+    "proof-backed continuity packet remains reviewable",
 )
 
 VERIFY_MARKERS = (
     "`error.CleanupRequiresFinalCloseOrHangup`",
     "`CleanupTrigger.hangup_only` and `CleanupTrigger.final_close_and_hangup`",
+    "`error.NotifierDispatchRequiresTtyRegistration`",
     "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`",
     "`NotifierUnregisterTimingState.targeted_unregister_request`",
     "`targetless_dispatch_without_notifier`",
@@ -57,12 +64,19 @@ MATRIX_MARKERS = (
     "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
     "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
     "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
+    "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
     "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
-    "`zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
+    "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
+    "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "repo-reality gaps instead of returned fallback evidence",
     "`hvc_hangup()` disconnect",
     "`hvc_remove()` handoff",
     "`hvc_cleanup()` tty-port",
-    "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet",
+    "modem-control helper summaries reviewable on current `master`",
+    "targetless-unregister witness explicit as standalone direct-readback coverage",
 )
 
 DRIVER_MARKERS = (
@@ -72,6 +86,9 @@ DRIVER_MARKERS = (
     "pub fn summarizeCleanupPrerequisite(",
     "error{CleanupRequiresFinalCloseOrHangup}!CleanupPrerequisiteSummary",
     "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+    "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {",
+    "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {",
+    "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
     'test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {',
     'test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {',
     'test "phase11 hvc console keeps remove handoff summary reviewable" {',
@@ -80,7 +97,9 @@ DRIVER_MARKERS = (
 
 CLEANUP_CHECKER_MARKERS = (
     "PHASE11_HVC_CLEANUP_CURRENT_HEAD=pass",
-    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
+    "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
     "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
     "phase11_hvc_targetless_unregister_gap_build.zig",
 )
@@ -249,12 +268,12 @@ def run_self_test() -> int:
         validate(fixture)
 
         cases = [
+            (SURVEY_PATH, "`make -C zigux phase11-validate`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
-            (SURVEY_PATH, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`"),
             (COMPANION_PATH, "standalone targetless-unregister witness"),
             (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`"),
             (MATRIX_PATH, "`hvc_cleanup()` tty-port"),
-            (MATRIX_PATH, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet"),
+            (MATRIX_PATH, "targetless-unregister witness explicit as standalone direct-readback coverage"),
             (DRIVER_PATH, "pub fn summarizeCleanupPrerequisite("),
             (DRIVER_PATH, 'test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {'),
             (CLEANUP_CHECKER_PATH, "`zigux/tests/phase11_hvc_modem_control_proof.zig`"),
