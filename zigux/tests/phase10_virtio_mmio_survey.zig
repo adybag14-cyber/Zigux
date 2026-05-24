@@ -9,7 +9,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {
+test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, dedicated survey gate explicit beside the helper-local packet" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -27,6 +27,8 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local co
     try expectContains(survey_note, "drivers/virtio/virtio_mmio_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_manifest.json");
+    try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig");
+    try expectContains(survey_note, "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig");
     try expectContains(survey_note, "Documentation/zigux/phase10-virtio-mmio-slice.md");
     try expectContains(survey_note, "probe preflight gating");
     try expectContains(survey_note, "selected-queue readiness");
@@ -38,6 +40,10 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local co
     try expectContains(survey_note, "dedicated MMIO lab replay");
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");
+    try expectContains(
+        survey_note,
+        "zig build test --build-file zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig --summary all",
+    );
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");
     try expectContains(
         survey_note,
@@ -48,6 +54,18 @@ test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local co
     try expectContains(build_file, "\"phase10-virtio-mmio-survey-tests\"");
     try expectContains(build_file, "run_phase10_virtio_mmio_tests.step");
     try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");
+
+    const replay_build_file = try readRepoRelative(
+        allocator,
+        "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig",
+    );
+    defer allocator.free(replay_build_file);
+    try expectContains(replay_build_file, "phase10_virtio_mmio_apply_observation_replay.zig");
+    try expectContains(replay_build_file, "\"phase10-virtio-mmio-apply-observation-replay\"");
+    try expectContains(
+        replay_build_file,
+        "Run the bounded Phase 10 virtio MMIO apply-observation replay",
+    );
 }
 
 test "phase10 virtio mmio survey packet keeps the config-write companion and slice note explicit" {
@@ -141,27 +159,27 @@ test "phase10 virtio mmio survey gate keeps helper-local queue isolation and pro
 
     try expectContains(
         helper_tests,
-        "test \\\"phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes\\\" {",
+        "test \"phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes\" {",
     );
     try expectContains(
         helper_tests,
-        "test \\\"phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit\\\" {",
+        "test \"phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit\" {",
     );
     try expectContains(
         helper_tests,
-        "test \\\"phase10 virtio mmio keeps config-write planning bounded to staged review state\\\" {",
+        "test \"phase10 virtio mmio keeps config-write planning bounded to staged review state\" {",
     );
     try expectContains(
         helper_tests,
-        "test \\\"phase10 virtio mmio keeps stale config-write plans unavailable after generation drift\\\" {",
+        "test \"phase10 virtio mmio keeps stale config-write plans unavailable after generation drift\" {",
     );
     try expectContains(
         helper_tests,
-        "test \\\"phase10 virtio mmio keeps config-write disposition planning-only across restaging\\\" {",
+        "test \"phase10 virtio mmio keeps config-write disposition planning-only across restaging\" {",
     );
     try expectContains(
         helper_tests,
-        "test \\\"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\\\" {",
+        "test \"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\" {",
     );
     try expectContains(
         helper_tests,
