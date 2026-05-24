@@ -45,8 +45,8 @@ The current checksum helper surface exercised by this slice covers:
 
 - `add`, `sub`, `shift`, `blockAdd`, and `blockSub`
 - `replace`, `replaceByDiff`, `replace2`, and `replace4`
-- `from32to16`, `fold`, and `compute`
-- `tcpUdpNofold`, `tcpUdpMagic`, `tcpUdpV6Nofold`, `tcpUdpV6Magic`, and `ipFastCsum`
+- `from32to16`, `fold`, `compute`, and `ipComputeCsum`
+- `tcpUdpNofold`, `tcpUdpMagic`, `tcpUdpV6Nofold`, `tcpUdpV6Magic`, `ipFastCsumIhl`, and `ipFastCsum`
 
 The current tests and fixtures check:
 
