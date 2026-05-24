@@ -27,7 +27,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
 EXPECTED_BOOTSTRAP_CI_POSTURE = (
     "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
 )
-EXPECTED_SELF_TEST_CASES = 34
+EXPECTED_SELF_TEST_CASES = 36
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -47,6 +47,14 @@ MANIFEST_MARKERS = (
     '"acceptable_limit_max_elapsed_ns": 12288',
     '"sample_count_note": "seven monotonic samples"',
     '"status": "shared CI perf promotion pending"',
+    '"gate_surfaces": [',
+    '"surface": "zigux/tests/atomic64_diff.zig"',
+    '"surface": "zigux/tests/bitmap_diff.zig"',
+    '"threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens"',
+    '"threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks"',
+    '"id": "phase4-perf-baseline-bitmap-command"',
+    '"kind": "legacy_threshold_replay_alias"',
+    '"target_id": "phase4-perf-baseline-bitmap-command-evidence"',
 )
 
 SURVEY_MARKERS = (
@@ -65,6 +73,16 @@ SURVEY_MARKERS = (
     'try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\\\"");',
     'try requireMarker("\\\"shared_lab_and_ci_matrix_anchor\\\": \\\"Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix\\\"");',
     'try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");',
+    'test "phase4 perf baseline survey keeps the gate-surface rollback map explicit" {',
+    'try requireMarker("\\\"gate_surfaces\\\": [");',
+    'try requireMarker("\\\"surface\\\": \\\"zigux/tests/atomic64_diff.zig\\\"");',
+    'try requireMarker("\\\"surface\\\": \\\"zigux/tests/bitmap_diff.zig\\\"");',
+    'try requireMarker("\\\"threshold_posture\\\": \\\"threshold_pending_until_runtime_atomic64_scope_widens\\\"");',
+    'try requireMarker("\\\"threshold_posture\\\": \\\"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\\\"");',
+    'test "phase4 perf baseline survey keeps the bitmap legacy replay alias explicit" {',
+    'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-bitmap-command\\\"");',
+    'try requireMarker("\\\"kind\\\": \\\"legacy_threshold_replay_alias\\\"");',
+    'try requireMarker("\\\"target_id\\\": \\\"phase4-perf-baseline-bitmap-command-evidence\\\"");',
 )
 
 MATRIX_MARKERS = (
@@ -97,23 +115,28 @@ SCRIPTS_README_MARKERS = (
     "keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture",
 )
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", nargs="?", default=".", help="repository root to validate")
     parser.add_argument("--self-test", action="store_true", help="run the built-in fixture self-test")
     return parser.parse_args()
 
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
+
 def require_markers(text: str, markers: tuple[str, ...], label: str, missing: list[str]) -> None:
     for marker in markers:
         if marker not in text:
             missing.append(f"{label}:{marker}")
+
 
 def expect_json_value(payload: object, path: tuple[str | int, ...], expected: object, missing: list[str]) -> None:
     current = payload
@@ -130,6 +153,7 @@ def expect_json_value(payload: object, path: tuple[str | int, ...], expected: ob
             + f":expected={expected!r}:actual={current!r}"
         )
 
+
 def validate_manifest_json(manifest_data: dict[str, object], missing: list[str]) -> None:
     expected_values = (
         (("lane_key",), "P4-L20"),
@@ -145,6 +169,14 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("validation_entrypoint",), "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"),
         (("bootstrap_ci_posture",), EXPECTED_BOOTSTRAP_CI_POSTURE),
         (("shared_lab_and_ci_matrix_anchor",), "Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix"),
+        (("gate_surfaces", 0, "surface"), "zigux/tests/atomic64_diff.zig"),
+        (("gate_surfaces", 0, "gate_owner"), "ABI and Runtime Team"),
+        (("gate_surfaces", 0, "gate_rollback_owner"), "ABI and Runtime Team"),
+        (("gate_surfaces", 0, "threshold_posture"), "threshold_pending_until_runtime_atomic64_scope_widens"),
+        (("gate_surfaces", 1, "surface"), "zigux/tests/bitmap_diff.zig"),
+        (("gate_surfaces", 1, "gate_owner"), "Shared Subsystems Pod"),
+        (("gate_surfaces", 1, "gate_rollback_owner"), "Shared Subsystems Pod"),
+        (("gate_surfaces", 1, "threshold_posture"), "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks"),
         (("atomic64", "gate_owner"), "ABI and Runtime Team"),
         (("atomic64", "gate_rollback_owner"), "ABI and Runtime Team"),
         (("atomic64", "benchmark_command"), "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"),
@@ -191,6 +223,9 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("bitmap", "evidence", 1, "runs", 1, "iterations"), 4),
         (("bitmap", "evidence", 1, "runs", 1, "checksum"), 7942141539243507472),
         (("bitmap", "evidence", 1, "runs", 1, "final_first_zero"), 109),
+        (("bitmap", "evidence", 2, "id"), "phase4-perf-baseline-bitmap-command"),
+        (("bitmap", "evidence", 2, "kind"), "legacy_threshold_replay_alias"),
+        (("bitmap", "evidence", 2, "target_id"), "phase4-perf-baseline-bitmap-command-evidence"),
         (("promotion_decision", "id"), "phase4-perf-baseline-shared-promotion-decision"),
         (("promotion_decision", "status"), "shared CI perf promotion pending"),
         (("promotion_decision", "owner"), "Validation and Perf Team"),
@@ -198,6 +233,7 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
     )
     for path, expected in expected_values:
         expect_json_value(manifest_data, path, expected, missing)
+
 
 def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
@@ -238,106 +274,127 @@ def validate_root(root: Path) -> list[str]:
     require_markers(read_text(scripts_readme_path), SCRIPTS_README_MARKERS, "scripts_readme_marker", missing)
     return missing
 
+
 def replace_once(text: str, old: str, new: str) -> str:
     if old not in text:
         raise ValueError(f"missing replacement target: {old!r}")
     return text.replace(old, new, 1)
 
+
 def build_fixture_tree(root: Path) -> None:
     write_text(root / MANIFEST, """{
-  \"lane_key\": \"P4-L20\",
-  \"phase\": \"Phase 4\",
-  \"owner\": \"Validation and Perf Team\",
-  \"rollback_owner\": \"Validation and Perf Team\",
-  \"decision_owner\": \"Validation and Perf Team\",
-  \"coordination_owners\": [
-    \"ABI and Runtime Team\",
-    \"Shared Subsystems Pod\"
+  "lane_key": "P4-L20",
+  "phase": "Phase 4",
+  "owner": "Validation and Perf Team",
+  "rollback_owner": "Validation and Perf Team",
+  "decision_owner": "Validation and Perf Team",
+  "coordination_owners": [
+    "ABI and Runtime Team",
+    "Shared Subsystems Pod"
   ],
-  \"shared_ci_perf_promotion_status\": \"pending\",
-  \"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\",
-  \"dedicated_local_survey_wrapper\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\",
-  \"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-baseline-survey\",
-  \"validation_entrypoint\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\",
-  \"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\",
-  \"shared_lab_and_ci_matrix_anchor\": \"Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix\",
-  \"atomic64\": {
-    \"gate_owner\": \"ABI and Runtime Team\",
-    \"gate_rollback_owner\": \"ABI and Runtime Team\",
-    \"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\",
-    \"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\",
-    \"acceptable_limit_status\": \"approved_local_only\",
-    \"acceptable_limit_metric\": \"median_elapsed_ns\",
-    \"acceptable_limit_iterations\": 4,
-    \"acceptable_limit_sample_count\": 7,
-    \"acceptable_limit_max_elapsed_ns\": 8192,
-    \"evidence\": [
+  "shared_ci_perf_promotion_status": "pending",
+  "local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.",
+  "dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+  "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey",
+  "validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+  "bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
+  "shared_lab_and_ci_matrix_anchor": "Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
+  "gate_surfaces": [
+    {
+      "surface": "zigux/tests/atomic64_diff.zig",
+      "gate_owner": "ABI and Runtime Team",
+      "gate_rollback_owner": "ABI and Runtime Team",
+      "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens"
+    },
+    {
+      "surface": "zigux/tests/bitmap_diff.zig",
+      "gate_owner": "Shared Subsystems Pod",
+      "gate_rollback_owner": "Shared Subsystems Pod",
+      "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks"
+    }
+  ],
+  "atomic64": {
+    "gate_owner": "ABI and Runtime Team",
+    "gate_rollback_owner": "ABI and Runtime Team",
+    "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+    "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
+    "acceptable_limit_status": "approved_local_only",
+    "acceptable_limit_metric": "median_elapsed_ns",
+    "acceptable_limit_iterations": 4,
+    "acceptable_limit_sample_count": 7,
+    "acceptable_limit_max_elapsed_ns": 8192,
+    "evidence": [
       {
-        \"id\": \"phase4-perf-baseline-atomic64-acceptable-limit\",
-        \"kind\": \"acceptable_limit\",
-        \"metric\": \"median_elapsed_ns\",
-        \"status\": \"approved_local_only\",
-        \"sample_count_note\": \"seven monotonic samples\",
-        \"max_elapsed_ns\": 8192
+        "id": "phase4-perf-baseline-atomic64-acceptable-limit",
+        "kind": "acceptable_limit",
+        "metric": "median_elapsed_ns",
+        "status": "approved_local_only",
+        "sample_count_note": "seven monotonic samples",
+        "max_elapsed_ns": 8192
       },
       {
-        \"id\": \"phase4-perf-baseline-atomic64-command-evidence\",
-        \"kind\": \"threshold_replay\",
-        \"runs\": [
-          { \"iterations\": 1, \"checksum\": 3626254113632800175, \"final_counter\": 130322557735600377 },
-          { \"iterations\": 4, \"checksum\": 9210681150676220922, \"final_counter\": 130322557735600376 }
+        "id": "phase4-perf-baseline-atomic64-command-evidence",
+        "kind": "threshold_replay",
+        "runs": [
+          { "iterations": 1, "checksum": 3626254113632800175, "final_counter": 130322557735600377 },
+          { "iterations": 4, "checksum": 9210681150676220922, "final_counter": 130322557735600376 }
         ]
       }
     ]
   },
-  \"bitmap\": {
-    \"gate_owner\": \"Shared Subsystems Pod\",
-    \"gate_rollback_owner\": \"Shared Subsystems Pod\",
-    \"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\",
-    \"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\",
-    \"acceptable_limit_status\": \"approved_local_only\",
-    \"acceptable_limit_metric\": \"median_elapsed_ns\",
-    \"acceptable_limit_iterations\": 4,
-    \"acceptable_limit_sample_count\": 7,
-    \"acceptable_limit_max_elapsed_ns\": 12288,
-    \"evidence\": [
+  "bitmap": {
+    "gate_owner": "Shared Subsystems Pod",
+    "gate_rollback_owner": "Shared Subsystems Pod",
+    "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+    "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
+    "acceptable_limit_status": "approved_local_only",
+    "acceptable_limit_metric": "median_elapsed_ns",
+    "acceptable_limit_iterations": 4,
+    "acceptable_limit_sample_count": 7,
+    "acceptable_limit_max_elapsed_ns": 12288,
+    "evidence": [
       {
-        \"id\": \"phase4-perf-baseline-bitmap-acceptable-limit\",
-        \"kind\": \"acceptable_limit\",
-        \"metric\": \"median_elapsed_ns\",
-        \"status\": \"approved_local_only\",
-        \"sample_count_note\": \"seven monotonic samples\",
-        \"max_elapsed_ns\": 12288
+        "id": "phase4-perf-baseline-bitmap-acceptable-limit",
+        "kind": "acceptable_limit",
+        "metric": "median_elapsed_ns",
+        "status": "approved_local_only",
+        "sample_count_note": "seven monotonic samples",
+        "max_elapsed_ns": 12288
       },
       {
-        \"id\": \"phase4-perf-baseline-bitmap-command-evidence\",
-        \"kind\": \"threshold_replay\",
-        \"runs\": [
-          { \"iterations\": 1, \"checksum\": 5216946504564592253, \"final_first_zero\": 109 },
-          { \"iterations\": 4, \"checksum\": 7942141539243507472, \"final_first_zero\": 109 }
+        "id": "phase4-perf-baseline-bitmap-command-evidence",
+        "kind": "threshold_replay",
+        "runs": [
+          { "iterations": 1, "checksum": 5216946504564592253, "final_first_zero": 109 },
+          { "iterations": 4, "checksum": 7942141539243507472, "final_first_zero": 109 }
         ]
+      },
+      {
+        "id": "phase4-perf-baseline-bitmap-command",
+        "kind": "legacy_threshold_replay_alias",
+        "target_id": "phase4-perf-baseline-bitmap-command-evidence"
       }
     ]
   },
-  \"promotion_decision\": {
-    \"id\": \"phase4-perf-baseline-shared-promotion-decision\",
-    \"status\": \"shared CI perf promotion pending\",
-    \"owner\": \"Validation and Perf Team\",
-    \"coordination_owners\": [\"ABI and Runtime Team\", \"Shared Subsystems Pod\"]
+  "promotion_decision": {
+    "id": "phase4-perf-baseline-shared-promotion-decision",
+    "status": "shared CI perf promotion pending",
+    "owner": "Validation and Perf Team",
+    "coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]
   }
 }
 """)
-    write_text(root / SURVEY, """test \"phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit\" {
+    write_text(root / SURVEY, """test "phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit" {
     try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);
     try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);
 }
-test \"phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit\" {
+test "phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit" {
     try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");
     try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");
     try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");
     try requireMarker("\\\"coordination_owners\\\": [");
 }
-test \"phase4 perf baseline survey keeps rollback, decision, and wrapper ownership explicit\" {
+test "phase4 perf baseline survey keeps rollback, decision, and wrapper ownership explicit" {
     try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");
     try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");
     try requireMarker("\\\"dedicated_local_survey_wrapper\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");
@@ -346,6 +403,18 @@ test \"phase4 perf baseline survey keeps rollback, decision, and wrapper ownersh
     try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\\\"");
     try requireMarker("\\\"shared_lab_and_ci_matrix_anchor\\\": \\\"Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix\\\"");
     try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");
+}
+test "phase4 perf baseline survey keeps the gate-surface rollback map explicit" {
+    try requireMarker("\\\"gate_surfaces\\\": [");
+    try requireMarker("\\\"surface\\\": \\\"zigux/tests/atomic64_diff.zig\\\"");
+    try requireMarker("\\\"surface\\\": \\\"zigux/tests/bitmap_diff.zig\\\"");
+    try requireMarker("\\\"threshold_posture\\\": \\\"threshold_pending_until_runtime_atomic64_scope_widens\\\"");
+    try requireMarker("\\\"threshold_posture\\\": \\\"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\\\"");
+}
+test "phase4 perf baseline survey keeps the bitmap legacy replay alias explicit" {
+    try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-bitmap-command\\\"");
+    try requireMarker("\\\"kind\\\": \\\"legacy_threshold_replay_alias\\\"");
+    try requireMarker("\\\"target_id\\\": \\\"phase4-perf-baseline-bitmap-command-evidence\\\"");
 }
 """)
     write_text(root / MATRIX, """local-only benchmark commands and acceptable limits are approved today
@@ -371,8 +440,10 @@ The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CAS
 keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture
 """)
 
+
 def expect_failure(root: Path, expected_prefix: str) -> bool:
     return any(item.startswith(expected_prefix) for item in validate_root(root))
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase4-perf-baseline-packet-") as tmp_dir:
@@ -395,13 +466,13 @@ def run_self_test() -> int:
             (MANIFEST, '"validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"', '"validation_entrypoint": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"', "manifest_json:validation_entrypoint:"),
             (MANIFEST, '"bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"', '"bootstrap_ci_posture": "approved_for_shared_phase4_test_and_bootstrap_workflow"', "manifest_json:bootstrap_ci_posture:"),
             (MANIFEST, '"shared_lab_and_ci_matrix_anchor": "Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix"', '"shared_lab_and_ci_matrix_anchor": "Documentation/zigux/phase4-validation-matrix.md#perf-baseline"', "manifest_json:shared_lab_and_ci_matrix_anchor:"),
-            (MANIFEST, '"gate_owner": "ABI and Runtime Team"', '"gate_owner": "ABI and Replay Team"', "manifest_json:atomic64.gate_owner:"),
-            (MANIFEST, '"gate_rollback_owner": "ABI and Runtime Team"', '"gate_rollback_owner": "ABI and Replay Team"', "manifest_json:atomic64.gate_rollback_owner:"),
-            (MANIFEST, '"gate_owner": "Shared Subsystems Pod"', '"gate_owner": "Shared Subsystems Team"', "manifest_json:bitmap.gate_owner:"),
-            (MANIFEST, '"gate_rollback_owner": "Shared Subsystems Pod"', '"gate_rollback_owner": "Shared Subsystems Team"', "manifest_json:bitmap.gate_rollback_owner:"),
+            (MANIFEST, '"atomic64": {\n    "gate_owner": "ABI and Runtime Team"', '"atomic64": {\n    "gate_owner": "ABI and Replay Team"', "manifest_json:atomic64.gate_owner:"),
+            (MANIFEST, '"atomic64": {\n    "gate_owner": "ABI and Runtime Team",\n    "gate_rollback_owner": "ABI and Runtime Team"', '"atomic64": {\n    "gate_owner": "ABI and Runtime Team",\n    "gate_rollback_owner": "ABI and Replay Team"', "manifest_json:atomic64.gate_rollback_owner:"),
+            (MANIFEST, '"bitmap": {\n    "gate_owner": "Shared Subsystems Pod"', '"bitmap": {\n    "gate_owner": "Shared Subsystems Team"', "manifest_json:bitmap.gate_owner:"),
+            (MANIFEST, '"bitmap": {\n    "gate_owner": "Shared Subsystems Pod",\n    "gate_rollback_owner": "Shared Subsystems Pod"', '"bitmap": {\n    "gate_owner": "Shared Subsystems Pod",\n    "gate_rollback_owner": "Shared Subsystems Team"', "manifest_json:bitmap.gate_rollback_owner:"),
             (MANIFEST, '"sample_count_note": "seven monotonic samples"', '"sample_count_note": "six monotonic samples"', "manifest_json:atomic64.evidence.0.sample_count_note:"),
-            (MANIFEST, '"id": "phase4-perf-baseline-bitmap-command-evidence"', '"id": "phase4-perf-baseline-bitmap-run-evidence"', "manifest_json:bitmap.evidence.1.id:"),
-            (MANIFEST, '"id": "phase4-perf-baseline-shared-promotion-decision"', '"id": "phase4-perf-baseline-shared-promotion-record"', "manifest_json:promotion_decision.id:"),
+            (MANIFEST, '"surface": "zigux/tests/atomic64_diff.zig"', '"surface": "zigux/tests/atomic64_gate.zig"', "manifest_json:gate_surfaces.0.surface:"),
+            (MANIFEST, '"id": "phase4-perf-baseline-bitmap-command"', '"id": "phase4-perf-baseline-bitmap-replay-alias"', "manifest_json:bitmap.evidence.2.id:"),
             (SURVEY, 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");', 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"approved\\\"");', 'survey_marker:try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");'),
             (SURVEY, 'try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"rollback_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");'),
             (SURVEY, 'try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"decision_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");'),
@@ -409,6 +480,8 @@ def run_self_test() -> int:
             (SURVEY, 'try requireMarker("\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");', 'try requireMarker("\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-local-baseline-survey\\\"");', 'survey_marker:try requireMarker("\\\"dedicated_linux_style_survey_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");'),
             (SURVEY, 'try requireMarker("\\\"validation_entrypoint\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");', 'try requireMarker("\\\"validation_entrypoint\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");', 'survey_marker:try requireMarker("\\\"validation_entrypoint\\\": \\\"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\\\"");'),
             (SURVEY, 'try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\\\"");', 'try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"approved_for_shared_phase4_test_and_bootstrap_workflow\\\"");', 'survey_marker:try requireMarker("\\\"bootstrap_ci_posture\\\": \\\"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"surface\\\": \\\"zigux/tests/atomic64_diff.zig\\\"");', 'try requireMarker("\\\"surface\\\": \\\"zigux/tests/atomic64_gate.zig\\\"");', 'survey_marker:try requireMarker("\\\"surface\\\": \\\"zigux/tests/atomic64_diff.zig\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-bitmap-command\\\"");', 'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-bitmap-replay-alias\\\"");', 'survey_marker:try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-bitmap-command\\\"");'),
             (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are pending review today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
             (REVIEW_CHECKLIST, "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval", "keep the shared-CI perf-promotion posture explicit as approved shared CI perf coverage", "review_checklist_marker:keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval"),
             (NOTE, "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19", "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8", "note_marker:The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here"),
@@ -447,6 +520,7 @@ def run_self_test() -> int:
     print(f"PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES={EXPECTED_SELF_TEST_CASES}")
     return 0
 
+
 def main() -> int:
     args = parse_args()
     if args.self_test:
@@ -459,6 +533,7 @@ def main() -> int:
         return 1
     print("PHASE4_PERF_BASELINE_PACKET_CHECK=pass")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
