@@ -64,6 +64,7 @@ REQUIRED_EVIDENCE_REPLAYS = [
     "make -C zigux phase6-hexdump-perf-matrix-test",
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
 ]
 
 REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
@@ -106,7 +107,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 46
+SELF_TEST_CASE_COUNT = 47
 
 
 class ValidationError(RuntimeError):
@@ -357,6 +358,7 @@ def run_self_test() -> None:
             (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-hexdump-review"', '"make -C zigux phase6-hexdump-scan"', "phase6-hexdump-review"),
             (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf-matrix-test"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf-matrix-test"),
             (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf"),
+            (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-perf"', '"make -C zigux phase6-perf-gate"', "phase6-perf"),
             (EVIDENCE_MANIFEST_PATH, '"python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"', '"python3 scripts/zigux/check-phase6-checksum-c-parity.py"', "check-phase6-checksum-hexdump-perf-markers.py"),
             (EVIDENCE_MANIFEST_PATH, '"label": "1501B"', '"label": "1500B"', "checksum evidence perf case drift"),
             (EVIDENCE_MANIFEST_PATH, '"iterations": 12000', '"iterations": 16000', "checksum evidence 1501B iterations drifted"),
