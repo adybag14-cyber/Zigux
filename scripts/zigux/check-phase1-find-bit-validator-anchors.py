@@ -30,6 +30,17 @@ REQUIRED_FILES = (
     SCRIPTS_README_REL,
 )
 
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 REQUIRED_HELPER_ANCHORS = [
     'test "find first and next set bits across words, with andnot gaps explicit"',
     'test "single-word next scans honor start masks"',
@@ -140,8 +151,30 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def load_json_with_duplicate_tracking(text: str) -> object:
+    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
+
 def load_json(root: Path, relative_path: Path) -> object:
-    return json.loads(load_text(root, relative_path))
+    return load_json_with_duplicate_tracking(load_text(root, relative_path))
+
+
+def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
+    return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
+
+
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(collect_duplicate_json_key_paths(item, prefix))
+    return paths
 
 
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
@@ -195,7 +228,16 @@ def collect_failures(root: Path) -> list[str]:
     for key, line in REQUIRED_CLOSURE_LINES.items():
         failures.extend(require_exact_occurrence(closure, f"closure:{key}", line))
 
-    manifest = load_json(root, MANIFEST_REL)
+    try:
+        manifest = load_json(root, MANIFEST_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure("manifest", exc)]
+    if not isinstance(manifest, dict):
+        return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
+    duplicate_manifest_paths = collect_duplicate_json_key_paths(manifest)
+    if duplicate_manifest_paths:
+        return [f"manifest:duplicate_json_key:{path}" for path in duplicate_manifest_paths]
+
     for key, expected in EXPECTED_FIND_BIT_PACKET.items():
         failures.extend(
             require_exact_value(
@@ -205,7 +247,16 @@ def collect_failures(root: Path) -> list[str]:
             )
         )
 
-    fixture = load_json(root, FIXTURE_REL)
+    try:
+        fixture = load_json(root, FIXTURE_REL)
+    except json.JSONDecodeError as exc:
+        return [load_json_failure("fixture", exc)]
+    if not isinstance(fixture, dict):
+        return [f"fixture:expected=dict:actual={type(fixture).__name__}"]
+    duplicate_fixture_paths = collect_duplicate_json_key_paths(fixture)
+    if duplicate_fixture_paths:
+        return [f"fixture:duplicate_json_key:{path}" for path in duplicate_fixture_paths]
+
     for key, expected in EXPECTED_FIND_BIT_FIXTURE.items():
         failures.extend(
             require_exact_value(
@@ -280,6 +331,20 @@ def mutate_json(root: Path, relative_path: Path, path: tuple[str, ...]) -> None:
     (root / relative_path).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+def insert_duplicate_json_line(
+    root: Path,
+    relative_path: Path,
+    needle: str,
+    duplicate_line: str,
+) -> None:
+    json_path = root / relative_path
+    text = json_path.read_text(encoding="utf-8")
+    json_path.write_text(
+        text.replace(needle, duplicate_line + "\n" + needle, 1),
+        encoding="utf-8",
+    )
+
+
 def run_self_test() -> int:
     cases = [("success", None)]
 
@@ -348,6 +413,31 @@ def run_self_test() -> int:
     for path in fixture_paths:
         cases.append(("fixture_drift", (FIXTURE_REL, path, "fixture")))
 
+    cases.append(("manifest_invalid_json", (MANIFEST_REL, "{\n", "replace_text")))
+    cases.append(("fixture_invalid_json", (FIXTURE_REL, "{\n", "replace_text")))
+    cases.append(
+        (
+            "manifest_duplicate_json_key",
+            (
+                MANIFEST_REL,
+                '      "review_packet_summary": "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master",',
+                '      "review_packet_summary": "drifted duplicate summary",',
+                "duplicate_json_line",
+            ),
+        )
+    )
+    cases.append(
+        (
+            "fixture_duplicate_json_key",
+            (
+                FIXTURE_REL,
+                '    "tail_clamped_first": 67,',
+                '    "tail_clamped_first": 0,',
+                "duplicate_json_line",
+            ),
+        )
+    )
+
     cases.append(("missing_file", (MANIFEST_REL, None, "missing_file")))
     cases.append(("missing_file", (FIND_BIT_HELPER_REL, None, "missing_file")))
 
@@ -356,14 +446,19 @@ def run_self_test() -> int:
             root = Path(tmpdir)
             build_sample_repo(root)
             if mutation is not None:
-                relative_path, payload, kind = mutation
+                relative_path = mutation[0]
+                kind = mutation[-1]
                 target = root / relative_path
                 if kind == "remove":
-                    remove_marker(target, payload)
+                    remove_marker(target, mutation[1])
                 elif kind == "duplicate":
-                    duplicate_marker(target, payload)
+                    duplicate_marker(target, mutation[1])
                 elif kind == "manifest" or kind == "fixture":
-                    mutate_json(root, relative_path, payload)
+                    mutate_json(root, relative_path, mutation[1])
+                elif kind == "replace_text":
+                    target.write_text(mutation[1], encoding="utf-8")
+                elif kind == "duplicate_json_line":
+                    insert_duplicate_json_line(root, relative_path, mutation[1], mutation[2])
                 elif kind == "missing_file":
                     target.unlink()
 
