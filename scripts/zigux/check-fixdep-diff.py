@@ -464,7 +464,6 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / "escaped\\ space-config.h").writeText = None
         (fixture_dir / "escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
