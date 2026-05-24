@@ -124,6 +124,42 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype digit helpers stay within ascii digit bounds" {
+    try std.testing.expect(isdigit('0'));
+    try std.testing.expect(isdigit('9'));
+    try std.testing.expect(!isdigit('/'));
+    try std.testing.expect(!isdigit(':'));
+    try std.testing.expect(!isdigit('a'));
+    try std.testing.expect(isodigit('0'));
+    try std.testing.expect(isodigit('7'));
+    try std.testing.expect(!isodigit('8'));
+    try std.testing.expect(!isodigit('/'));
+}
+
+test "ctype digit helpers follow Linux's direct ascii contract for every byte" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const expected_digit = byte >= '0' and byte <= '9';
+        const expected_octal = byte >= '0' and byte <= '7';
+
+        try std.testing.expectEqual(expected_digit, isdigit(byte));
+        try std.testing.expectEqual(expected_octal, isodigit(byte));
+    }
+}
+
+test "ctype digit helpers stay aligned with Linux's hex-digit table contract" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const expected_hex = (byte >= '0' and byte <= '9') or
+            (byte >= 'A' and byte <= 'F') or
+            (byte >= 'a' and byte <= 'f');
+
+        try std.testing.expectEqual(expected_hex, isxdigit(byte));
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
