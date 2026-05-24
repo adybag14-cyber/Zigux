@@ -44,6 +44,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
+    "scripts/zigux/check-phase11-header-boundary-packet.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
@@ -137,6 +138,14 @@ CHECKS = (
     CheckSpec(
         "phase11-validation-matrix-gap-survey",
         ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
+    ),
+    CheckSpec(
+        "phase11-header-boundary-packet-self-test",
+        ("python", "scripts/zigux/check-phase11-header-boundary-packet.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-header-boundary-packet",
+        ("python", "scripts/zigux/check-phase11-header-boundary-packet.py"),
     ),
     CheckSpec(
         "phase11-hvc-cleanup-current-head-self-test",
@@ -412,6 +421,7 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase11-build-inventory.py",
             "scripts/zigux/check-phase11-focused-direct-build-replays.py",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
+            "scripts/zigux/check-phase11-header-boundary-packet.py",
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
             "zigux/Makefile",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
@@ -477,6 +487,8 @@ def run_self_test() -> int:
             ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey"),
             ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey-self-test"),
             ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey"),
+            ("scripts/zigux/check-phase11-header-boundary-packet.py", "phase11-header-boundary-packet-self-test"),
+            ("scripts/zigux/check-phase11-header-boundary-packet.py", "phase11-header-boundary-packet"),
             ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head-self-test"),
             ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head"),
             ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness-self-test"),
