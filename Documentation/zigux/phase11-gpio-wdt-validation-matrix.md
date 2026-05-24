@@ -24,6 +24,8 @@ The current gpio watchdog matrix packet on `master` is:
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -52,6 +54,8 @@ packet below:
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -59,19 +63,19 @@ packet below:
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
 The returned driver, focused preflight proof, focused register-device glue
-proof, focused nowayout policy proof, dedicated bounded replay routes, plus the
-paired module slice, teardown note, and remove-handoff note keep the bounded
-`platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
-`probeSummary()`, `descriptorRequestSummary()`,
+proof, focused nowayout policy proof, focused remove-handoff proof, dedicated
+bounded replay routes, plus the paired module slice, teardown note, and
+remove-handoff note keep the bounded `platformDriverIdentitySummary()`,
+`watchdogMetadataSummary()`, `probeSummary()`, `descriptorRequestSummary()`,
 `descriptorPreflightSummary()`, `timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`,
 `registrationIntentCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `registrationHandoffSummary()`, `registrationPlanSummary()`,
 `registerDeviceCallSummary()`, `registerDeviceFailureSummary()`,
-`nowayoutPolicySummary()`, `requestStop()`, `summarizeTeardown()`, and
-`summarizeRemoveHandoff()` checkpoint names directly reviewable as
-driver-backed teardown and failure-mode surfaces.
+`nowayoutPolicySummary()`, `requestStop()`, `summarizeTeardown()`,
+`platformCleanupCheckpointSummary()`, and `summarizeRemoveHandoff()` checkpoint
+names directly reviewable as driver-backed teardown and failure-mode surfaces.
 
 The direct preflight proof keeps `descriptorPreflightSummary()` matched to the
 existing descriptor request packet while also machine-checking the timeout
@@ -81,17 +85,22 @@ through one bounded preflight route.
 The direct nowayout proof keeps `nowayoutPolicySummary()` machine-checked
 across the bounded stopped, blocked-by-nowayout, and kept-running outcomes,
 while the existing register-device glue proof still carries the
-registration-intent ordering, stop-policy split, and dedicated remove-handoff
-summary through `registrationIntentCheckpointSummary()`, `requestStop()`,
-`summarizeTeardown()`, and `summarizeRemoveHandoff()`.
+registration-intent ordering and stop-policy split through
+`registrationIntentCheckpointSummary()`, `requestStop()`, and
+`summarizeTeardown()`.
+
+The direct remove-handoff proof now machine-checks
+`platformCleanupCheckpointSummary()` and `summarizeRemoveHandoff()` through a
+dedicated bounded replay without claiming live platform cleanup callbacks,
+platform-driver removal, watchdog-core unregister, or shutdown execution.
 
 ## Teardown And Failure-Mode Review Surface
 
 - driver anchor: `drivers/watchdog/gpio_wdt.zig` keeps the bounded descriptor,
   timeout-property, platform-drvdata ordering, watchdog-drvdata ordering,
   reboot-glue handoff, nowayout policy, registration, register-device failure,
-  and teardown checkpoint names directly readable without claiming live side
-  effects.
+  teardown, and remove-handoff checkpoint names directly readable without
+  claiming live side effects.
 - direct preflight proof anchor:
   `zigux/tests/phase11_gpio_wdt_preflight_review.zig` keeps the descriptor
   preflight alias, timeout-property ordering, and platform/watchdog drvdata
@@ -105,10 +114,17 @@ summary through `registrationIntentCheckpointSummary()`, `requestStop()`,
   `nowayoutPolicySummary()` explicit as a bounded stopped, blocked-by-nowayout,
   and kept-running packet without claiming live watchdog-core registration or
   reboot-backed teardown execution.
+- direct remove-handoff proof anchor:
+  `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig` keeps
+  `platformCleanupCheckpointSummary()` and `summarizeRemoveHandoff()` explicit
+  as a dedicated cleanup-to-remove packet without claiming live platform
+  cleanup callbacks, platform-driver removal, watchdog-core unregister, or
+  host-backed shutdown execution.
 - dedicated replay routes:
   `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
-  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`, and
-  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` keep focused
+  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`, and
+  `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig` keep focused
   `zig build` validation paths available for the returned proof packet without
   pretending the older shared `phase11_build.zig` surface has returned.
 - teardown handoff: `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -147,6 +163,5 @@ summary through `registrationIntentCheckpointSummary()`, `requestStop()`,
 
 ## Next Blocked Step
 
-The next honest gpio-only follow-up is still one equally small replay,
-manifest, checker, or validation-truthfulness repair, rather than new runtime
-behavior.
+The next honest gpio-only follow-up is still one equally small manifest,
+checker, or validation-truthfulness repair, rather than new runtime behavior.
