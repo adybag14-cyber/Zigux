@@ -32,6 +32,13 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn strscpy(dest: []u8, src: []const u8) isize {",
     "pub fn strscpyPad(dest: []u8, src: []const u8) isize {",
     "pub fn strscpy_pad(dest: []u8, src: []const u8) isize {",
+    "pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {",
+    "pub fn memcpy_and_pad(dest: []u8, src: []const u8, count: usize, pad: u8) void {",
+    "pub fn strtomem(dest: []u8, src: []const u8) void {",
+    "pub fn strtomem_pad(dest: []u8, src: []const u8, pad: u8) void {",
+    "pub fn memtostr(dest: []u8, src: []const u8) void {",
+    "pub fn memtostrPad(dest: []const u8, src: []const u8) void {",
+    "pub fn memtostr_pad(dest: []u8, src: []const u8) void {",
     "pub fn strEq(lhs: []const u8, rhs: []const u8) bool {",
     "pub fn streq(lhs: []const u8, rhs: []const u8) bool {",
     "pub fn trimSpaces(buf: []u8) []u8 {",
@@ -147,6 +154,17 @@ EXPECTED_STRING_PACKET = {
         "aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of "
         "trapping, and suffixes are still consumed after saturation"
     ),
+    "copy_fill_review_anchors": [
+        'test "memcpyAndPad copies the requested prefix and pads the destination tail"',
+        'test "strtomem copies a C-string prefix without adding a terminator or padding"',
+        'test "strtomem_pad copies through the first NUL and pads the remaining tail"',
+    ],
+    "copy_fill_review_summary": (
+        "helper-local raw-copy and pad anchors stay explicit through the direct string tests because "
+        "the shared Phase 1 replay still does not carry dedicated memcpyAndPad(), strtomem(), or "
+        "strtomem_pad() fixture keys, so prefix-copy, first-NUL stop, and caller-selected pad "
+        "behavior remain review-visible at the helper surface"
+    ),
     "prefix_suffix_review_anchors": [
         'test "strHasPrefix returns the matched prefix length with C-string semantics"',
         'test "strHasSuffix returns the matched suffix length with C-string semantics"',
@@ -203,6 +221,15 @@ EXPECTED_STRING_PACKET = {
         "helper-local lexical-compare anchors stay explicit through the direct string tests because "
         "the shared Phase 1 replay still does not carry dedicated strcmp() fixture keys, so lexical "
         "ordering and embedded-NUL length-mismatch behavior remain review-visible at the helper surface"
+    ),
+    "substring_search_review_anchors": [
+        'test "strstr mirrors full-length C-string substring searches"',
+        'test "strnstr honors count and C-string boundaries"',
+    ],
+    "substring_search_review_summary": (
+        "helper-local substring-search anchors stay explicit through the direct string tests because "
+        "the shared Phase 1 replay still does not carry dedicated strstr() or strnstr() fixture "
+        "keys, so full-length and count-clamped substring boundaries remain review-visible at the helper surface"
     ),
     "search_length_review_anchors": [
         'test "strchr mirrors full-length C-string searches"',
@@ -345,14 +372,14 @@ EXPECTED_STRING_LANE_MARKERS = [
         "`strnchrnul()` match-or-NUL boundary anchor already cataloged in "
         "`zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should "
         "keep that helper-local boundary proof inside the same counted-search packet instead of "
-        "treating it as an unowned follow-up beside `strnchr()`."
+        "treating it as an unowned follow-up beside `strnchr()`.",
     ),
     (
         "lane_counted_search_strspn",
         "- the same counted-search packet now also keeps the direct `strspn()` accepted-prefix "
         "anchor review-visible on current `master`, so future string-only rereads should treat "
         "accepted-byte-prefix scanning as part of that helper-local search family instead of "
-        "leaving it implicit beside `strpbrk()` and `strnchr()`."
+        "leaving it implicit beside `strpbrk()` and `strnchr()`.",
     ),
 ]
 
