@@ -31,71 +31,54 @@ pub const table = [_]u8{
 pub fn mask(ch: u8) u8 {
     return table[ch];
 }
-
 pub fn isalnum(ch: u8) bool {
     return (mask(ch) & (_U | _L | _D)) != 0;
 }
-
 pub fn isalpha(ch: u8) bool {
     return (mask(ch) & (_U | _L)) != 0;
 }
-
 pub fn iscntrl(ch: u8) bool {
     return (mask(ch) & _C) != 0;
 }
-
 pub fn isgraph(ch: u8) bool {
     return (mask(ch) & (_P | _U | _L | _D)) != 0;
 }
-
 pub fn islower(ch: u8) bool {
     return (mask(ch) & _L) != 0;
 }
-
 pub fn isprint(ch: u8) bool {
     return (mask(ch) & (_P | _U | _L | _D | _SP)) != 0;
 }
-
 pub fn ispunct(ch: u8) bool {
     return (mask(ch) & _P) != 0;
 }
-
 pub fn isspace(ch: u8) bool {
     return (mask(ch) & _S) != 0;
 }
-
 pub fn isupper(ch: u8) bool {
     return (mask(ch) & _U) != 0;
 }
-
 pub fn isxdigit(ch: u8) bool {
     return (mask(ch) & (_D | _X)) != 0;
 }
-
 pub fn isascii(ch: u8) bool {
     return ch <= 0x7f;
 }
-
 pub fn toascii(ch: u8) u8 {
     return ch & 0x7f;
 }
-
 pub fn isdigit(ch: u8) bool {
     return ch >= '0' and ch <= '9';
 }
-
 pub fn tolower(ch: u8) u8 {
     return if (isupper(ch)) ch + ('a' - 'A') else ch;
 }
-
 pub fn toupper(ch: u8) u8 {
     return if (islower(ch)) ch - ('a' - 'A') else ch;
 }
-
 pub fn fastTolower(ch: u8) u8 {
     return if (isupper(ch)) (ch | 0x20) else ch;
 }
-
 pub fn isodigit(ch: u8) bool {
     return ch >= '0' and ch <= '7';
 }
@@ -161,5 +144,21 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         } else {
             try std.testing.expectEqual(byte, fastTolower(byte));
         }
+    }
+}
+
+test "ctype digits octal digits and hex digits match their exact ASCII ranges" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const expect_digit = byte >= '0' and byte <= '9';
+        const expect_octal = byte >= '0' and byte <= '7';
+        const expect_hex = expect_digit or
+            (byte >= 'A' and byte <= 'F') or
+            (byte >= 'a' and byte <= 'f');
+
+        try std.testing.expectEqual(expect_digit, isdigit(byte));
+        try std.testing.expectEqual(expect_octal, isodigit(byte));
+        try std.testing.expectEqual(expect_hex, isxdigit(byte));
     }
 }
