@@ -239,8 +239,13 @@ const Processor = struct {
         };
         const expected_size = std.math.cast(usize, file_stat.size) orelse return error.StreamTooLong;
 
+        const read_limit: std.Io.Limit = if (expected_size == std.math.maxInt(usize))
+            .unlimited
+        else
+            .limited(expected_size + 1);
+
         var file_reader = file.reader(self.io, &.{});
-        const dependency_text = file_reader.interface.allocRemaining(self.arena.allocator(), .limited(expected_size)) catch |err| switch (err) {
+        const dependency_text = file_reader.interface.allocRemaining(self.arena.allocator(), read_limit) catch |err| switch (err) {
             error.ReadFailed => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
                 self.last_file_error = file_reader.err.?;
