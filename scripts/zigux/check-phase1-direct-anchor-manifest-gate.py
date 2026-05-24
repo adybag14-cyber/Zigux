@@ -519,6 +519,21 @@ def run_self_test() -> None:
             root,
             lambda: (
                 lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/rbtree.zig"].__setitem__(
+                        "shared_replay_summary",
+                        manifest["review_anchors"]["tools/lib/rbtree.zig"]["shared_replay_summary"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/rbtree.zig:shared_replay_summary",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
                     manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"].remove(
                         'test "strcmp mirrors C-string lexical ordering"'
                     ),
