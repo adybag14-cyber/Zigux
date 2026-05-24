@@ -186,8 +186,6 @@ test "phase3 low-level wrappers keep direct MMIO scope gates explicit" {
 
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScoped(u32, none_scope, const_register_ptr));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScoped(u32, raw_scope, register_ptr, 0xAABB_CCDD));
-    try std.testing.expectEqual(@as(u32, 0x0102_0304), register);
-
     try std.testing.expectEqual(@as(u32, 0x0102_0304), try mmio.readScoped(u32, mmio_scope, const_register_ptr));
 
     try mmio.writeScoped(u32, mmio_scope, register_ptr, 0xAABB_CCDD);
@@ -456,4 +454,62 @@ test "phase3 low-level wrappers keep atomic order-gate failures explicit before 
     mmio.write(u32, register_ptr, try atomic.load(u32, &state, .acquire));
     barrier.acquire();
     try std.testing.expectEqual(@as(u32, 0x30), mmio.read(u32, const_register_ptr));
+}
+
+test "phase3 low-level wrappers keep MMIO range helpers and width aliases explicit beside raw bridge gates" {
+    const InteropPolicy = @typeInfo(@TypeOf(mmio.readInteropPolicy)).@"fn".params[1].type.?;
+    const mmio_policy = InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio),
+        .reserved = 0,
+    };
+    const raw_policy = InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const mmio_scope = @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio);
+    const raw_scope = @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge);
+
+    var bytes = [_]u8{0} ** 16;
+    const base_addr = @intFromPtr(&bytes[0]);
+
+    const scoped_range = try mmio.rangeScoped(base_addr, 16, 4, .volatile_mmio);
+    try std.testing.expectEqual(base_addr, scoped_range.base_addr);
+    try std.testing.expectEqual(@as(u32, 16), scoped_range.length);
+    try std.testing.expectEqual(@as(u32, 4), scoped_range.stride);
+
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base_addr, 16, 4, raw_policy));
+    const policy_range = try mmio.rangeInteropPolicy(base_addr, 16, 4, mmio_policy);
+    try std.testing.expectEqual(scoped_range.base_addr, policy_range.base_addr);
+    try std.testing.expectEqual(scoped_range.length, policy_range.length);
+    try std.testing.expectEqual(scoped_range.stride, policy_range.stride);
+
+    const byte_range = try mmio.rangeInteropPolicyByte(base_addr, 16, 4, mmio_scope);
+    try std.testing.expectEqual(policy_range.base_addr, byte_range.base_addr);
+    try std.testing.expectEqual(policy_range.length, byte_range.length);
+    try std.testing.expectEqual(policy_range.stride, byte_range.stride);
+
+    try mmio.write8InteropPolicyBytes(base_addr, 1, 0x44, mmio_scope, 0);
+    try std.testing.expectEqual(@as(u8, 0x44), try mmio.read8InteropPolicyBytes(base_addr, 1, mmio_scope, 0));
+
+    try mmio.write32InteropPolicyByte(base_addr, 4, 0xCAFE_BABE, mmio_scope);
+    barrier.release();
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), try mmio.read32InteropPolicyByte(base_addr, 4, mmio_scope));
+
+    try mmio.write64InteropPolicyBytes(base_addr, 8, 0x0123_4567_89AB_CDEF, mmio_scope, 0);
+    barrier.acquire();
+    try std.testing.expectEqual(
+        @as(u64, 0x0123_4567_89AB_CDEF),
+        try mmio.read64InteropPolicyBytes(base_addr, 8, mmio_scope, 0),
+    );
+
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), (try narrow.constPointerAtByte(u32, base_addr + 4, raw_scope)).*);
+    try std.testing.expectEqual(
+        @as(u64, 0x0123_4567_89AB_CDEF),
+        try narrow.readValueAtInteropPolicyBytes(u64, base_addr + 8, @sizeOf(u64), raw_scope, 0),
+    );
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAtByte(u32, base_addr + 4, mmio_scope));
 }
