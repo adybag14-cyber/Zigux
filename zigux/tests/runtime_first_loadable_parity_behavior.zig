@@ -102,3 +102,50 @@ test "first-loadable runtime pilot families keep rejected repeat selftest and ex
     try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.exit());
     try expectLifecycleCounts(&atomic_module, &bitmap_module, .exited, 1, 1, 1);
 }
+
+test "first-loadable runtime pilot families keep rejected repeat init stable" {
+    var atomic_module = RuntimeAtomic64Sample{};
+    var bitmap_module = RuntimeBitmapSample{};
+
+    try atomic_module.init(-41);
+    try bitmap_module.initWithSetBits(&.{ 0, 5, 64, 70 });
+
+    const initialized_atomic_summary = atomic_module.summary();
+    const initialized_bitmap_summary = bitmap_module.summary();
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, .initialized, 1, 0, 0);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, atomic_module.init(9));
+    try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.initWithSetBits(&.{ 1, 2 }));
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, .initialized, 1, 0, 0);
+    try std.testing.expectEqual(initialized_atomic_summary.counter_snapshot, atomic_module.summary().counter_snapshot);
+    try std.testing.expectEqual(initialized_bitmap_summary.first_set, bitmap_module.summary().first_set);
+    try std.testing.expectEqual(initialized_bitmap_summary.weight, bitmap_module.summary().weight);
+
+    _ = try atomic_module.runSelftest();
+    _ = try bitmap_module.runSelftest();
+
+    const selftested_atomic_summary = atomic_module.summary();
+    const selftested_bitmap_summary = bitmap_module.summary();
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, .selftest_complete, 1, 1, 0);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, atomic_module.init(11));
+    try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.initWithSetBits(&.{ 3, 4 }));
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, .selftest_complete, 1, 1, 0);
+    try std.testing.expectEqual(selftested_atomic_summary.counter_snapshot, atomic_module.summary().counter_snapshot);
+    try std.testing.expectEqual(selftested_bitmap_summary.first_set, bitmap_module.summary().first_set);
+    try std.testing.expectEqual(selftested_bitmap_summary.weight, bitmap_module.summary().weight);
+
+    try atomic_module.exit();
+    try bitmap_module.exit();
+
+    const exited_atomic_summary = atomic_module.summary();
+    const exited_bitmap_summary = bitmap_module.summary();
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, .exited, 1, 1, 1);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, atomic_module.init(13));
+    try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.initWithSetBits(&.{ 7, 8 }));
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, .exited, 1, 1, 1);
+    try std.testing.expectEqual(exited_atomic_summary.counter_snapshot, atomic_module.summary().counter_snapshot);
+    try std.testing.expectEqual(exited_bitmap_summary.first_set, bitmap_module.summary().first_set);
+    try std.testing.expectEqual(exited_bitmap_summary.weight, bitmap_module.summary().weight);
+}
