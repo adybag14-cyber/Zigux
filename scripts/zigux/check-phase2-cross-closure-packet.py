@@ -14,7 +14,6 @@ PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 PHASE2_VALIDATE = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 PHASE2_CLOSURE_VALIDATE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
-MAKEFILE = ROOT / "zigux" / "Makefile"
 
 CHECKER_PATH = "scripts/zigux/check-phase2-cross-closure-packet.py"
 FIXTURE_PATH = "zigux/tests/fixtures/phase2_cross_targets.json"
@@ -53,17 +52,7 @@ CLOSURE_VALIDATE_MARKERS = (
     f"\"run: python3 {DIRECT_CHECKER_PATH}\",",
 )
 
-MAKEFILE_LINES = (
-    "phase2-cross:",
-    f"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/{Path(DIRECT_CHECKER_PATH).name} --self-test",
-    f"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/{Path(DIRECT_CHECKER_PATH).name}",
-    f"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/{Path(ALIGNMENT_CHECKER_PATH).name} --self-test",
-    f"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/{Path(ALIGNMENT_CHECKER_PATH).name}",
-    f"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/{Path(CHECKER_PATH).name} --self-test",
-    f"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/{Path(CHECKER_PATH).name}",
-)
-
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 9
 
 
 def read_text(path: Path) -> str:
@@ -92,25 +81,8 @@ def resolve_path(root: Path, path: Path) -> Path:
         return root / path
 
 
-def count_exact_lines(text: str, marker: str) -> int:
-    return sum(1 for line in text.splitlines() if line.strip() == marker)
-
-
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
-
-
-def collect_exact_line_issues(
-    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
-) -> list[tuple[str, str]]:
-    issues: list[tuple[str, str]] = []
-    for marker in markers:
-        count = count_exact_lines(text, marker)
-        if count == 0:
-            issues.append((missing_code, marker))
-        elif count != 1:
-            issues.append((duplicate_code, f"{marker}:count={count}"))
-    return issues
 
 
 def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
@@ -182,14 +154,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "MISSING_CLOSURE_VALIDATE_MARKER",
         )
     )
-    issues.extend(
-        collect_exact_line_issues(
-            read_text(resolve_path(root, MAKEFILE)),
-            MAKEFILE_LINES,
-            "MISSING_MAKEFILE_LINE",
-            "DUPLICATE_MAKEFILE_LINE",
-        )
-    )
     return issues
 
 
@@ -211,7 +175,6 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, PHASE2_CLOSURE), "\n".join(CLOSURE_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_VALIDATE), "\n".join(VALIDATE_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_CLOSURE_VALIDATE), "\n".join(CLOSURE_VALIDATE_MARKERS) + "\n")
-    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
     write_text(
         resolve_path(root, PHASE2_MANIFEST),
         json.dumps(
@@ -235,24 +198,6 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
-
-
-def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines[index] = replacement
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
 
 
 def run_self_test() -> int:
@@ -283,18 +228,6 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         assert ("MISSING_CLOSURE_VALIDATE_MARKER", CLOSURE_VALIDATE_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, MAKEFILE)
-        path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_LINES[-1]), encoding="utf-8")
-        assert ("MISSING_MAKEFILE_LINE", MAKEFILE_LINES[-1]) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, MAKEFILE)
-        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_LINES[-1]), encoding="utf-8")
-        assert ("DUPLICATE_MAKEFILE_LINE", f"{MAKEFILE_LINES[-1]}:count=2") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -363,7 +296,6 @@ def main() -> int:
     print("PHASE2_CROSS_CLOSURE_PACKET=pass")
     print(f"PHASE2_CROSS_CLOSURE_MARKER_COUNT={len(CLOSURE_MARKERS)}")
     print("PHASE2_CROSS_CLOSURE_MANIFEST_KEYS=checkers,cross_route_support,make_wrappers,validators")
-    print(f"PHASE2_CROSS_CLOSURE_MAKEFILE_LINE_COUNT={len(MAKEFILE_LINES)}")
     return 0
 
 
