@@ -60,7 +60,7 @@ test "phase11 bcm2835 manifest packet survey keeps the validation matrix aligned
     defer std.testing.allocator.free(matrix);
 
     try expectContains(matrix, "PHASE11_BCM2835_WDT_STATUS=driver_proof_and_matrix_packet_truthful");
-    try expectContains(matrix, "lane: `P11-L07`");
+    try expectContains(matrix, "lane: `P11-L08`");
     try expectContains(matrix, "`drivers/watchdog/bcm2835_wdt.zig`");
     try expectContains(matrix, "`drivers/watchdog/bcm2835_wdt_verify.zig`");
     try expectContains(matrix, "`zigux/tests/phase11_bcm2835_wdt.zig`");
