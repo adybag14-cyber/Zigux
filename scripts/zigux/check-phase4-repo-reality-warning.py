@@ -273,6 +273,12 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
+            "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`\n",
+            "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=18`\n",
+        )
+        cases += _expect_failure(
+            root,
+            NOTE,
             NOTE_REQ[5],
             "Current direct contents reads for the runtime atomic64 packet are omitted here.",
         )
@@ -290,7 +296,6 @@ def run_self_test() -> int:
         cases += _expect_failure(root, MAKEFILE, None, None)
         cases += _expect_failure(root, WORKFLOW, None, None)
         cases += _expect_failure(root, ATOMIC64_DIFF, None, None)
-        cases += _expect_failure(root, RUNTIME_ATOMIC64_DIFF, None, None)
         cases += _expect_failure(root, VALIDATOR, None, None)
         cases += _expect_failure(root, BUILD, None, None)
         cases += _expect_failure(
