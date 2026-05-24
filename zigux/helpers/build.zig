@@ -304,8 +304,10 @@ pub fn build(b: *std.Build) void {
         "test-policy-helpers",
         "Run the helper-local Phase 3 ABI policy helper tests.",
     );
+    policy_helpers.dependOn(&layout_assert.step);
     policy_helpers.dependOn(&panic_policy.step);
     policy_helpers.dependOn(&allocator_policy.step);
+    policy_helpers.dependOn(&narrow.step);
     policy_helpers.dependOn(&unsafe_policy.step);
 
     const unsafe_boundary_helpers = b.step(
