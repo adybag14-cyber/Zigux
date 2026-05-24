@@ -546,6 +546,40 @@ test "blank-input deinit on one caller keeps the shared sentinel views usable fo
     try std.testing.expectEqual(first.cArgv(), second.cArgv());
 }
 
+test "blank-input teardown stays isolated from a live non-blank sibling result" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var blank = try argvSplitWithArgc(fba.allocator(), " \t\n", null);
+    var owned = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+    defer owned.deinit(std.testing.allocator);
+
+    const owned_storage_ptr = owned.storage.ptr;
+    const owned_argv_ptr = owned.argv.ptr;
+    const owned_argv_null_terminated_ptr = owned.argv_null_terminated.ptr;
+    const owned_c_argv = owned.cArgv();
+
+    try std.testing.expect(blank.storage.ptr != owned.storage.ptr);
+    try std.testing.expect(blank.argv_null_terminated.ptr != owned.argv_null_terminated.ptr);
+    try std.testing.expect(blank.cArgv() != owned.cArgv());
+
+    blank.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), blank.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), blank.storage[blank.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), blank.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), blank.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), blank.cArgv()[0]);
+
+    try std.testing.expect(owned.storage.ptr == owned_storage_ptr);
+    try std.testing.expect(owned.argv.ptr == owned_argv_ptr);
+    try std.testing.expect(owned.argv_null_terminated.ptr == owned_argv_null_terminated_ptr);
+    try std.testing.expect(owned.cArgv() == owned_c_argv);
+    try std.testing.expectEqualStrings("console=ttyS0", owned.argv[0]);
+    try std.testing.expectEqualStrings("root=/dev/vda", owned.argv[1]);
+    try std.testing.expectEqualStrings("console=ttyS0", std.mem.span(owned.cArgv()[0].?));
+    try std.testing.expectEqualStrings("root=/dev/vda", std.mem.span(owned.cArgv()[1].?));
+}
+
 test "argvFree keeps blank-input sentinel teardown safe and repeatable" {
     var buffer = [_]u8{};
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
