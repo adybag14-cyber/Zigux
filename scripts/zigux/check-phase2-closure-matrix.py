@@ -8,7 +8,9 @@ import importlib.util
 import json
 import shutil
 import tempfile
+import uuid
 from pathlib import Path
+from types import SimpleNamespace
 
 
 HERE = Path(__file__).resolve()
@@ -18,7 +20,8 @@ VALIDATOR_REL = Path("scripts/zigux/validate-phase2-closure.py")
 
 def load_validator(root: Path):
     path = root / VALIDATOR_REL
-    spec = importlib.util.spec_from_file_location("zigux_validate_phase2_closure", path)
+    module_name = f"zigux_validate_phase2_closure_{uuid.uuid4().hex}"
+    spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None or spec.loader is None:
         raise SystemExit(f"unable to load closure validator: {path}")
     module = importlib.util.module_from_spec(spec)
@@ -94,8 +97,40 @@ def collect_manifest_surface_expectations(manifest_path: Path) -> list[tuple[str
     return expectations
 
 
+def collect_duplicates(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for value in values:
+        if value in seen and value not in duplicates:
+            duplicates.append(value)
+        seen.add(value)
+    return duplicates
+
+
+def collect_validator_contract_issues(module) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    contract_packets = (
+        ("REQUIRED_FILES", [rel.as_posix() for rel in module.REQUIRED_FILES]),
+        ("REQUIRED_CLOSURE_MARKERS", list(module.REQUIRED_CLOSURE_MARKERS)),
+        ("REQUIRED_WORKFLOW_LINES", list(module.REQUIRED_WORKFLOW_LINES)),
+        ("REQUIRED_MAKEFILE_LINES", list(module.REQUIRED_MAKEFILE_LINES)),
+    )
+    for label, values in contract_packets:
+        for duplicate in collect_duplicates(values):
+            issues.append(("DUPLICATE_VALIDATOR_DECLARATION", f"{label}:{duplicate}"))
+    return issues
+
+
+def assert_clean_validator_contract(module) -> None:
+    issues = collect_validator_contract_issues(module)
+    if issues:
+        raise AssertionError(f"duplicate validator declarations detected: {issues!r}")
+
+
 def run_matrix(module, seed_root) -> int:
     checks_run = 0
+    assert_clean_validator_contract(module)
+    checks_run += 1
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_matrix_") as tmp_dir:
         root = Path(tmp_dir)
         seed_root(root)
@@ -426,6 +461,62 @@ def collect_issues(root: Path):
         module = load_validator(root)
         module.build_self_test_root(root)
         checks_run += run_matrix(module, lambda temp_root: seed_materialized_root(module, temp_root, root))
+
+        duplicate_module = SimpleNamespace(
+            REQUIRED_FILES=(Path("one"), Path("two")),
+            REQUIRED_CLOSURE_MARKERS=("`marker-a`", "`marker-b`"),
+            REQUIRED_WORKFLOW_LINES=("run: alpha", "run: alpha"),
+            REQUIRED_MAKEFILE_LINES=("phase2-a:", "phase2-b:"),
+        )
+        try:
+            assert_clean_validator_contract(duplicate_module)
+        except AssertionError as exc:
+            assert "REQUIRED_WORKFLOW_LINES:run: alpha" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate workflow validator contract did not abort")
+
+        duplicate_module = SimpleNamespace(
+            REQUIRED_FILES=(Path("one"), Path("two")),
+            REQUIRED_CLOSURE_MARKERS=("`marker-a`", "`marker-b`"),
+            REQUIRED_WORKFLOW_LINES=("run: alpha", "run: beta"),
+            REQUIRED_MAKEFILE_LINES=("phase2-a:", "phase2-a:"),
+        )
+        try:
+            assert_clean_validator_contract(duplicate_module)
+        except AssertionError as exc:
+            assert "REQUIRED_MAKEFILE_LINES:phase2-a:" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate makefile validator contract did not abort")
+
+        duplicate_module = SimpleNamespace(
+            REQUIRED_FILES=(Path("one"), Path("two")),
+            REQUIRED_CLOSURE_MARKERS=("`marker-a`", "`marker-a`"),
+            REQUIRED_WORKFLOW_LINES=("run: alpha", "run: beta"),
+            REQUIRED_MAKEFILE_LINES=("phase2-a:", "phase2-b:"),
+        )
+        try:
+            assert_clean_validator_contract(duplicate_module)
+        except AssertionError as exc:
+            assert "REQUIRED_CLOSURE_MARKERS:`marker-a`" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate closure validator contract did not abort")
+
+        duplicate_module = SimpleNamespace(
+            REQUIRED_FILES=(Path("one"), Path("two"), Path("two")),
+            REQUIRED_CLOSURE_MARKERS=("`marker-a`", "`marker-b`"),
+            REQUIRED_WORKFLOW_LINES=("run: alpha", "run: beta"),
+            REQUIRED_MAKEFILE_LINES=("phase2-a:", "phase2-b:"),
+        )
+        try:
+            assert_clean_validator_contract(duplicate_module)
+        except AssertionError as exc:
+            assert "REQUIRED_FILES:two" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("duplicate required-file validator contract did not abort")
 
         missing_validator_root = root / "missing-validator-root"
         missing_validator_root.mkdir()
