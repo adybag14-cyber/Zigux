@@ -246,14 +246,20 @@ REQUIRED_MARKERS = {
         "formatLibbpfError",
     ),
     ONLINE_CPU_ROUTING_PATH: (
+        "pub fn advanceOnlineCpuCursor(",
+        "pub fn summarizeNextOnlineCpuRoute(",
+        "pub fn summarizeOnlineCpuRouting(",
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
         'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
     ),
     ONLINE_CPU_ROUTING_VERIFY_PATH: (
         'test "phase8 online-cpu route helpers keep typed cpu-index wrappers stable" {',
+        'test "phase8 online-cpu route helpers keep typed buffer-fd wrappers stable" {',
         "resolveNextOnlineCpuRouteCpuIndex(",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
+        "resolveNextOnlineCpuRouteBufferFd(",
+        "resolveNextOnlineCpuRouteBufferFdReturnAtIndex(",
     ),
     PERF_BUFFER_POLL_PATH: (
         "pub const BufferFdLookupDisposition = enum {",
