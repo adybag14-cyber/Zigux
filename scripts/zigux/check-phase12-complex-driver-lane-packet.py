@@ -261,7 +261,6 @@ def run_self_test() -> int:
             raise AssertionError("expected build marker failure")
 
         write_fixture(root)
-        (root / MAKEFILE_PATH).writeText = None
         (root / MAKEFILE_PATH).write_text("phase12-smoke:\n", encoding="utf-8")
         try:
             check(root)
