@@ -37,6 +37,7 @@ MAKE_TESTS_README_CMD = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py\n"
 )
 MAKE_TEST_TARGET = "phase10-test:\n"
+MAKE_AGGREGATE_TARGET = "phase10: phase10-validate phase10-test\n"
 NOTE_SCRIPT_MARKER = "`scripts/zigux/check-phase10-bootstrap-route.py`"
 NOTE_ROUTE_PHRASE = (
     "fails closed if the bootstrap workflow drops `make -C zigux "
@@ -47,6 +48,7 @@ NOTE_COUNTS_PHRASE = (
     "fails closed if its summary counts drift from the listed docs, manifests, "
     "drivers, or tests surfaces"
 )
+NOTE_AGGREGATE_MARKER = "`make -C zigux phase10`"
 
 
 def require_marker(text: str, marker: str, label: str) -> None:
@@ -122,6 +124,8 @@ def check_makefile(text: str) -> None:
     require_order(section, MAKE_TESTS_README_CMD, MAKE_COUNTS_CMD, "phase10 make route order")
     require_order(section, MAKE_COUNTS_CMD, MAKE_VALIDATE_CMD, "phase10 make route order")
     require_order(section, MAKE_VALIDATE_CMD, MAKE_CLOSURE_CMD, "phase10 make route order")
+    require_marker(text, MAKE_AGGREGATE_TARGET, "phase10 aggregate target")
+    require_exact_count(text, MAKE_AGGREGATE_TARGET, 1, "phase10 aggregate target")
 
 
 def check_note(text: str) -> None:
@@ -129,6 +133,7 @@ def check_note(text: str) -> None:
     require_marker(text, NOTE_ROUTE_PHRASE, "closure note route phrase")
     require_marker(text, NOTE_COUNTS_MARKER, "closure note count-guard marker")
     require_marker(text, NOTE_COUNTS_PHRASE, "closure note count-guard phrase")
+    require_marker(text, NOTE_AGGREGATE_MARKER, "closure note aggregate route marker")
     require_exact_count(text, NOTE_SCRIPT_MARKER, 1, "closure note script marker")
     require_exact_count(text, NOTE_COUNTS_MARKER, 1, "closure note count-guard marker")
     require_exact_count(text, VALIDATE_CMD, 1, "closure note validate command")
@@ -163,10 +168,13 @@ jobs:
 
 phase10-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
+
+phase10: phase10-validate phase10-test
 """
     good_note = """# Phase 10 Closure Evidence
 The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.
 The shared closure-manifest count guard now stays explicit through `scripts/zigux/check-phase10-closure-manifest-counts.py` so the closure packet fails closed if its summary counts drift from the listed docs, manifests, drivers, or tests surfaces.
+The manifest-backed shared closure route still keeps `make -C zigux phase10` explicit as the aggregate replay entrypoint.
 """
     check_workflow(good_workflow)
     check_makefile(good_makefile)
@@ -294,6 +302,18 @@ The shared closure-manifest count guard now stays explicit through `scripts/zigu
     else:
         raise AssertionError("expected reordered phase10 make route failure")
 
+    bad_makefile_missing_aggregate = good_makefile.replace(
+        MAKE_AGGREGATE_TARGET,
+        "",
+        1,
+    )
+    try:
+        check_makefile(bad_makefile_missing_aggregate)
+    except SystemExit as exc:
+        assert "phase10 aggregate target" in str(exc)
+    else:
+        raise AssertionError("expected missing phase10 aggregate target failure")
+
     bad_note_missing_script = good_note.replace(
         NOTE_SCRIPT_MARKER,
         "`scripts/zigux/check-phase10-other.py`",
@@ -338,8 +358,20 @@ The shared closure-manifest count guard now stays explicit through `scripts/zigu
     else:
         raise AssertionError("expected missing note count-guard phrase failure")
 
+    bad_note_missing_aggregate = good_note.replace(
+        NOTE_AGGREGATE_MARKER,
+        "`make -C zigux phase10-missing`",
+        1,
+    )
+    try:
+        check_note(bad_note_missing_aggregate)
+    except SystemExit as exc:
+        assert NOTE_AGGREGATE_MARKER in str(exc)
+    else:
+        raise AssertionError("expected missing note aggregate marker failure")
+
     print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass")
-    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
