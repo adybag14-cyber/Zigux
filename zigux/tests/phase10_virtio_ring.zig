@@ -176,3 +176,75 @@ test "phase10 virtio ring broader replay keeps broken queue debt explicit until 
     try std.testing.expect(reset_readiness.reset_ready);
     try std.testing.expect(reset_readiness.blocker == null);
 }
+
+test "phase10 virtio ring callback summaries keep rollover math explicit across used-index wraparound" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(0, virtio_ring.max_descriptor_count, .split, true, false);
+
+    var rounds: usize = 0;
+    while (rounds < 63) : (rounds += 1) {
+        var descriptors: u16 = 0;
+        while (descriptors < virtio_ring.max_descriptor_count) : (descriptors += 1) {
+            try ring.publishDescriptorChain(0);
+        }
+        _ = try ring.prepareKick(0);
+        try ring.recordUsedChains(0, virtio_ring.max_descriptor_count);
+        _ = try ring.pollUsedBuffers(0);
+    }
+
+    var descriptors: u16 = 0;
+    while (descriptors < virtio_ring.max_descriptor_count - 1) : (descriptors += 1) {
+        try ring.publishDescriptorChain(0);
+    }
+    _ = try ring.prepareKick(0);
+    try ring.recordUsedChains(0, virtio_ring.max_descriptor_count - 1);
+    _ = try ring.pollUsedBuffers(0);
+
+    try ring.publishDescriptorChain(0);
+    _ = try ring.prepareKick(0);
+    try ring.recordUsedChains(0, 1);
+    try ring.disableCallback(0);
+
+    var callback = try ring.enableCallback(0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", callback.anchor);
+    try std.testing.expectEqual(@as(u16, 0), callback.queue_index);
+    try std.testing.expect(callback.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), callback.last_used_idx);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), callback.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), callback.pending_used_chain_count);
+    try std.testing.expect(callback.should_poll);
+
+    var delayed = try ring.enableCallbackDelayed(0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", delayed.anchor);
+    try std.testing.expectEqual(@as(u16, 0), delayed.queue_index);
+    try std.testing.expect(delayed.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), delayed.last_used_idx);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), delayed.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), delayed.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), delayed.delay_budget_count);
+    try std.testing.expectEqual(@as(u16, 0), delayed.delayed_event_target_idx);
+    try std.testing.expectEqual(@as(u16, 1), delayed.pending_used_chain_count);
+    try std.testing.expect(delayed.should_poll);
+    try std.testing.expect(!delayed.settled);
+
+    const poll = try ring.pollUsedBuffers(0);
+    try std.testing.expectEqual(@as(u16, 0), poll.last_used_idx);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), poll.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll.newly_used_chain_count);
+    try std.testing.expect(poll.has_newly_used_chains);
+
+    callback = try ring.enableCallback(0);
+    try std.testing.expect(callback.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), callback.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), callback.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), callback.pending_used_chain_count);
+    try std.testing.expect(!callback.should_poll);
+
+    delayed = try ring.enableCallbackDelayed(0);
+    try std.testing.expect(delayed.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), delayed.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), delayed.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), delayed.pending_used_chain_count);
+    try std.testing.expect(!delayed.should_poll);
+    try std.testing.expect(delayed.settled);
+}
