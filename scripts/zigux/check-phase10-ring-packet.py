@@ -17,6 +17,13 @@ EXPECTED_MANIFEST_FIELDS = {
     "lane_key": "P10-L10",
     "phase": "Phase 10",
     "anchor": "drivers/virtio/virtio_ring.c",
+    "roadmap_destinations": [
+        "drivers/virtio/*.zig",
+        "zigux/kernel/",
+        "zigux/helpers/",
+    ],
+    "freeze_map": "Documentation/zigux/freeze-map.md",
+    "freeze_boundary_status": "aligned",
     "freeze_status_change_claimed": False,
     "risky_transport_posture": "blocked_on_risky_transport",
     "allowed_evidence_kinds": [
@@ -33,6 +40,16 @@ EXPECTED_MANIFEST_FIELDS = {
     ],
     "architecture_council_reopen_required": True,
     "architecture_council_reopen_attached": False,
+    "study_only_anchors": [
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+    ],
+    "freeze_in_c_anchors": [
+        "kernel/sched/core.c",
+        "mm/page_alloc.c",
+        "kernel/rcu/tree.c",
+        "net/core/skbuff.c",
+    ],
 }
 EXPECTED_GAP_METADATA = {
     "phase10-build-gate": ("validation", "starter_landed", "zigux/tests/phase10_build.zig"),
@@ -237,12 +254,7 @@ def fixture_manifest() -> dict[str, object]:
     return {
         **EXPECTED_MANIFEST_FIELDS,
         "surveyed_commit": "fixture",
-        "roadmap_destinations": ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"],
-        "freeze_map": "Documentation/zigux/freeze-map.md",
-        "freeze_boundary_status": "aligned",
         "freeze_boundary_owner_lane": EXPECTED_FREEZE_BOUNDARY_OWNER,
-        "study_only_anchors": ["kernel/workqueue.c", "kernel/trace/ring_buffer.c"],
-        "freeze_in_c_anchors": ["kernel/sched/core.c", "mm/page_alloc.c", "kernel/rcu/tree.c", "net/core/skbuff.c"],
         "survey_summary": {
             "virtio_ring_c_lines": 3940,
             "preexisting_phase10_test_files": 7,
@@ -256,6 +268,7 @@ def fixture_manifest() -> dict[str, object]:
         },
         "gaps": gaps,
     }
+}
 
 
 def write_fixture(root: Path) -> None:
@@ -339,6 +352,75 @@ def run_self_test() -> int:
             root,
             drift_manifest,
             f"{MANIFEST_PATH}:freeze_boundary_owner_lane:P10-L12",
+        )
+        write_fixture(root)
+
+        def drift_freeze_map(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["freeze_map"] = "Documentation/zigux/freeze-map-missing.md"
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_freeze_map,
+            f"{MANIFEST_PATH}:freeze_map:Documentation/zigux/freeze-map-missing.md",
+        )
+        write_fixture(root)
+
+        def drift_freeze_boundary_status(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["freeze_boundary_status"] = "drifted"
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_freeze_boundary_status,
+            f"{MANIFEST_PATH}:freeze_boundary_status:drifted",
+        )
+        write_fixture(root)
+
+        def drift_roadmap_destinations(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["roadmap_destinations"] = ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/runtime/"]
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_roadmap_destinations,
+            f"{MANIFEST_PATH}:roadmap_destinations:['drivers/virtio/*.zig', 'zigux/kernel/', 'zigux/runtime/']",
+        )
+        write_fixture(root)
+
+        def drift_study_only_anchors(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["study_only_anchors"] = ["kernel/workqueue.c", "kernel/trace/other_buffer.c"]
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_study_only_anchors,
+            f"{MANIFEST_PATH}:study_only_anchors:['kernel/workqueue.c', 'kernel/trace/other_buffer.c']",
+        )
+        write_fixture(root)
+
+        def drift_freeze_in_c_anchors(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["freeze_in_c_anchors"] = [
+                "kernel/sched/core.c",
+                "mm/page_alloc.c",
+                "kernel/rcu/tree.c",
+            ]
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_freeze_in_c_anchors,
+            f"{MANIFEST_PATH}:freeze_in_c_anchors:['kernel/sched/core.c', 'mm/page_alloc.c', 'kernel/rcu/tree.c']",
         )
         write_fixture(root)
 
@@ -555,7 +637,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=19")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
