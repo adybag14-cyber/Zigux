@@ -30,6 +30,15 @@ HELPER_MARKERS = (
     "SPLIT_PINNED_ZIG_ARCHIVE_PART_COUNT=",
     "SPLIT_PINNED_ZIG_ARCHIVE_CHUNK_BYTES=",
     "SPLIT_PINNED_ZIG_ARCHIVE_MANIFEST=",
+    "RECONSTRUCT_PINNED_ZIG_ARCHIVE=pass",
+    "RECONSTRUCT_PINNED_ZIG_ARCHIVE_PARTS_DIR=",
+    "RECONSTRUCT_PINNED_ZIG_ARCHIVE_DESTINATION=",
+    "RECONSTRUCT_PINNED_ZIG_ARCHIVE_FILENAME=",
+    "RECONSTRUCT_PINNED_ZIG_ARCHIVE_SHA256=",
+    "RECONSTRUCT_PINNED_ZIG_ARCHIVE_SIZE=",
+    "RECONSTRUCT_PINNED_ZIG_ARCHIVE_PART_COUNT=",
+    "choose either split mode (--source/--output-dir) or reconstruct mode (--parts-dir/--destination)",
+    "use either split mode (--source/--output-dir), reconstruct mode (--parts-dir/--destination), or --self-test",
 )
 
 EXACT_ONCE_MARKERS = (
@@ -38,6 +47,7 @@ EXACT_ONCE_MARKERS = (
     '"parts_glob": "part-*.b64",',
     "SPLIT_PINNED_ZIG_ARCHIVE_SELF_TEST=pass",
     "SPLIT_PINNED_ZIG_ARCHIVE=pass",
+    "RECONSTRUCT_PINNED_ZIG_ARCHIVE=pass",
 )
 
 ORDERED_MARKERS = (
@@ -51,6 +61,11 @@ ORDERED_MARKERS = (
         '(output_dir / f"part-{index:03d}.b64").write_text(',
         '(parts_dir / "manifest.json").read_text(encoding="utf-8")',
     ),
+    ("RECONSTRUCT_PINNED_ZIG_ARCHIVE_PARTS_DIR=", "RECONSTRUCT_PINNED_ZIG_ARCHIVE_DESTINATION="),
+    ("RECONSTRUCT_PINNED_ZIG_ARCHIVE_DESTINATION=", "RECONSTRUCT_PINNED_ZIG_ARCHIVE_FILENAME="),
+    ("RECONSTRUCT_PINNED_ZIG_ARCHIVE_FILENAME=", "RECONSTRUCT_PINNED_ZIG_ARCHIVE_SHA256="),
+    ("RECONSTRUCT_PINNED_ZIG_ARCHIVE_SHA256=", "RECONSTRUCT_PINNED_ZIG_ARCHIVE_SIZE="),
+    ("RECONSTRUCT_PINNED_ZIG_ARCHIVE_SIZE=", "RECONSTRUCT_PINNED_ZIG_ARCHIVE_PART_COUNT="),
 )
 
 
@@ -61,10 +76,12 @@ def read_text(path: Path) -> str:
         raise ValueError(f"missing required file: {path}") from exc
 
 
+
 def require_non_empty_string(value: object, field_name: str, path: Path) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"invalid {field_name} in {path}")
     return value.strip()
+
 
 
 def require_string_list(value: object, field_name: str, path: Path) -> list[str]:
@@ -80,6 +97,7 @@ def require_string_list(value: object, field_name: str, path: Path) -> list[str]
         items.append(normalized)
         seen.add(normalized)
     return items
+
 
 
 def load_contract(root: Path) -> dict[str, object]:
@@ -134,9 +152,11 @@ def load_contract(root: Path) -> dict[str, object]:
     }
 
 
+
 def require_marker(text: str, marker: str, label: str) -> None:
     if marker not in text:
         raise ValueError(f"lane05 split-helper contract missing {label}: {marker}")
+
 
 
 def require_exact_count(text: str, marker: str, expected: int, label: str) -> None:
@@ -147,6 +167,7 @@ def require_exact_count(text: str, marker: str, expected: int, label: str) -> No
         )
 
 
+
 def require_order(text: str, earlier: str, later: str, label: str) -> None:
     earlier_index = text.find(earlier)
     later_index = text.find(later)
@@ -154,6 +175,7 @@ def require_order(text: str, earlier: str, later: str, label: str) -> None:
         raise ValueError(f"lane05 split-helper contract missing ordered markers for {label}")
     if earlier_index >= later_index:
         raise ValueError(f"lane05 split-helper contract expected {label} `{earlier}` before `{later}`")
+
 
 
 def check_helper(root: Path, contract: dict[str, object]) -> int:
@@ -171,6 +193,7 @@ def check_helper(root: Path, contract: dict[str, object]) -> int:
         require_order(helper_text, earlier, later, "manifest or replay order")
 
     return len(HELPER_MARKERS) + 2
+
 
 
 def write_fixture(root: Path) -> None:
@@ -228,11 +251,21 @@ def write_fixture(root: Path) -> None:
                 '    print("SPLIT_PINNED_ZIG_ARCHIVE_PART_COUNT=1")',
                 '    print("SPLIT_PINNED_ZIG_ARCHIVE_CHUNK_BYTES=786432")',
                 '    print("SPLIT_PINNED_ZIG_ARCHIVE_MANIFEST=manifest.json")',
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE=pass")',
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_PARTS_DIR=parts")',
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_DESTINATION=rebuilt.tar.xz")',
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_FILENAME=zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")',
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_SHA256=313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77")',
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_SIZE=58159088")',
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_PART_COUNT=74")',
+                '    raise SystemExit("choose either split mode (--source/--output-dir) or reconstruct mode (--parts-dir/--destination)")',
+                '    raise SystemExit("use either split mode (--source/--output-dir), reconstruct mode (--parts-dir/--destination), or --self-test")',
             )
         )
         + "\n",
         encoding="utf-8",
     )
+
 
 
 def run_self_test() -> int:
@@ -318,10 +351,46 @@ def run_self_test() -> int:
         ),
         "archive_sha256[x86_64-linux]",
     )
+    expect_failure(
+        lambda root: (root / SPLIT_HELPER).write_text(
+            (root / SPLIT_HELPER).read_text(encoding="utf-8").replace(
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_DESTINATION=rebuilt.tar.xz")\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        ),
+        "RECONSTRUCT_PINNED_ZIG_ARCHIVE_DESTINATION=",
+    )
+    expect_failure(
+        lambda root: (root / SPLIT_HELPER).write_text(
+            (root / SPLIT_HELPER).read_text(encoding="utf-8").replace(
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_FILENAME=zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")\n'
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_SHA256=313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77")\n',
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_SHA256=313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77")\n'
+                '    print("RECONSTRUCT_PINNED_ZIG_ARCHIVE_FILENAME=zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")\n',
+                1,
+            ),
+            encoding="utf-8",
+        ),
+        "manifest or replay order",
+    )
+    expect_failure(
+        lambda root: (root / SPLIT_HELPER).write_text(
+            (root / SPLIT_HELPER).read_text(encoding="utf-8").replace(
+                '    raise SystemExit("choose either split mode (--source/--output-dir) or reconstruct mode (--parts-dir/--destination)")\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        ),
+        "choose either split mode",
+    )
 
     print("LANE05_SPLIT_HELPER_CONTRACT_SELF_TEST=pass")
     print(f"LANE05_SPLIT_HELPER_CONTRACT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
+
 
 
 def main() -> int:
