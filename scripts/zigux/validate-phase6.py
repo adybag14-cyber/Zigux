@@ -132,6 +132,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-perf",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
+    "python3 scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-test",
     "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
@@ -140,9 +141,9 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "make -C zigux phase6-checksum-perf",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
     "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
-    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-review",
     "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
@@ -187,9 +188,11 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current shared replay inventory",
     "- `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
     "- `make -C zigux phase6-bsearch-perf`",
+    "- `python3 scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`",
     "- `make -C zigux phase6-checksum-perf-matrix-test`",
     "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
+    "- `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`",
     "A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py` again, so the still-missing generator-side gap is now narrower: only `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig` remain outside the directly readable helper-local packet.",
 ]
 
@@ -229,7 +232,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 24
 
 
 class ValidationError(RuntimeError):
@@ -571,6 +574,26 @@ def run_self_test() -> None:
         )
         expect_mutation(
             lambda: write(
+                root / HELPER_EVIDENCE_CATALOG,
+                read_text(root / HELPER_EVIDENCE_CATALOG).replace(
+                    "- `python3 scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`\n",
+                    "",
+                    1,
+                ),
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_CATALOG,
+                read_text(root / HELPER_EVIDENCE_CATALOG).replace(
+                    "- `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`\n",
+                    "",
+                    1,
+                ),
+            )
+        )
+        expect_mutation(
+            lambda: write(
                 root / HELPER_EVIDENCE_MANIFEST,
                 json.dumps(
                     {
@@ -581,6 +604,25 @@ def run_self_test() -> None:
                                 "current_direct_readback_companions"
                             ]
                             if item != "scripts/zigux/check-phase6-perf-threshold-markers.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "current_shared_replay_inventory": [
+                            item
+                            for item in read_json(root / HELPER_EVIDENCE_MANIFEST)[
+                                "current_shared_replay_inventory"
+                            ]
+                            if item != "python3 scripts/zigux/check-phase6-base64-bsearch-perf-markers.py"
                         ],
                     },
                     indent=2,
