@@ -26,6 +26,7 @@ const Manifest = struct {
     c_anchor: []const u8,
     roadmap_destinations: []const []const u8,
     current_linux_replay: []const u8,
+    local_lab_replay: []const u8,
     dedicated_local_survey_wrapper: []const u8,
     dedicated_linux_style_survey_wrapper: []const u8,
     shared_build_replay: []const u8,
@@ -76,6 +77,7 @@ test "phase4 test_fsmount survey manifest records the parked survey packet and r
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("samples/vfs/test-fsmount.c", manifest.c_anchor);
     try std.testing.expectEqualStrings("make M=samples/vfs", manifest.current_linux_replay);
+    try std.testing.expectEqualStrings("zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig", manifest.local_lab_replay);
     try std.testing.expectEqualStrings("zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig", manifest.dedicated_local_survey_wrapper);
     try std.testing.expectEqualStrings("make -C zigux phase4-test-fsmount-survey", manifest.dedicated_linux_style_survey_wrapper);
     try std.testing.expectEqualStrings("phase4-test-fsmount-survey-tests", manifest.shared_build_replay);
@@ -87,7 +89,7 @@ test "phase4 test_fsmount survey manifest records the parked survey packet and r
     try std.testing.expectEqualStrings("absent_on_current_master_but_reviewable_through_the_dedicated_gap_packet_without_claiming_a_shipped_zig_starter", manifest.current_measurable_status);
     try std.testing.expectEqualStrings("reviewability_only_no_perf_threshold", manifest.threshold_posture);
     try std.testing.expectEqualStrings("PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface", manifest.reversible_delivery_evidence);
-    try std.testing.expectEqualStrings("keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter", manifest.next_bounded_evidence_step);
+    try std.testing.expectEqualStrings("keep the dedicated parked survey packet adjacent to the shared gate-evidence note, the shared Phase 4 exact-readback packet, the validation matrix, the explicit bootstrap-CI posture, the explicit local lab replay marker, the explicit reviewability-only no-perf-threshold posture, the dedicated local `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey wrapper, and the matching Linux-style `make -C zigux phase4-test-fsmount-survey` wrapper until a later bounded lane intentionally promotes the validator surface or lands the Zig starter", manifest.next_bounded_evidence_step);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("samples/zigux/test_fsmount.zig", manifest.roadmap_destinations[0]);
     try std.testing.expectEqual(@as(usize, 5), manifest.gaps.len);
@@ -168,8 +170,10 @@ test "phase4 test_fsmount survey manifest records the parked survey packet and r
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
 
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.shared_lab_and_ci_matrix_anchor) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.local_lab_replay) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.reversible_delivery_evidence) != null);
     try std.testing.expect(std.mem.indexOf(u8, note, manifest.next_bounded_evidence_step) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "Current `master` still does not ship `samples/zigux/test_fsmount.zig`.") != null);
 
