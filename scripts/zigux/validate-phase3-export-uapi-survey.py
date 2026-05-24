@@ -129,6 +129,7 @@ REQUIRED_MARKERS = {
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
+        '"make -C zigux phase3-export-shim-test"',
         '"make -C zigux phase3-export-uapi-layout"',
         '"make -C zigux phase3-export-uapi-layout-test"',
     ),
@@ -182,6 +183,7 @@ REQUIRED_MARKERS = {
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
+        '"make -C zigux phase3-export-shim-test"',
         '"make -C zigux phase3-export-uapi-layout"',
         '"make -C zigux phase3-export-uapi-layout-test"',
     ),
@@ -190,6 +192,7 @@ REQUIRED_MARKERS = {
         '\'"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"\'',
         '\'"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"\'',
         '\'"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"\'',
+        '\'"make -C zigux phase3-export-shim-test"\'',
         '\'"make -C zigux phase3-export-uapi-layout"\'',
         '\'"make -C zigux phase3-export-uapi-layout-test"\'',
     ),
@@ -356,6 +359,11 @@ def run_self_test() -> int:
         ),
         (
             MANIFEST_PATH,
+            '"make -C zigux phase3-export-shim-test"',
+            "expected missing export-shim manifest make route marker was not reported",
+        ),
+        (
+            MANIFEST_PATH,
             '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
             "expected missing export/uapi c-header smoke manifest replay route marker was not reported",
         ),
@@ -368,6 +376,16 @@ def run_self_test() -> int:
             MANIFEST_PATH,
             '"make -C zigux phase3-export-uapi-layout-test"',
             "expected missing export/uapi dedicated manifest make route marker was not reported",
+        ),
+        (
+            CATALOG_HELPER_PATH,
+            '"make -C zigux phase3-export-shim-test"',
+            "expected missing export-shim catalog make route marker was not reported",
+        ),
+        (
+            CATALOG_SELFTEST_CHECK_PATH,
+            '\'"make -C zigux phase3-export-shim-test"\'',
+            "expected missing export-shim catalog-selftest make route marker was not reported",
         ),
         (
             C_HEADER_SMOKE_PATH,
