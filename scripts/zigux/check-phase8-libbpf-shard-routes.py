@@ -119,6 +119,7 @@ REQUIRED_MARKERS = {
         "The broader bridge helper and focused build-route companions, including `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, remain public-tree-backed reminder vocabulary until the same authenticated contents path serves them directly again.",
         "`zigux/tests/phase8_verify_routing_gap.zig` plus `zigux/tests/phase8_verify_routing_gap_only_build.zig`",
         "make -C zigux phase8-perf-buffer-poll-test",
+        "`tools/lib/bpf/zigux_segments/manifest.json` has since advanced both `fdinfo-map-info-helpers` and `map-reuse-compatibility` as landed helper-first slices with the newer shared bridge rationale, so the smallest same-family reminder drift is now whether sibling reminder surfaces continue to reflect those same landed `why_now` strings whenever they restate the focused bridge packet.",
     ),
     BRIDGE_BOUNDARY_SURVEY_PATH: (
         "Current mixed-source bridge packet",
