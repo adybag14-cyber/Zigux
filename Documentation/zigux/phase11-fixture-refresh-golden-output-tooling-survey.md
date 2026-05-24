@@ -37,7 +37,7 @@ tooling gap for the current shared Phase 11 simple-driver packet on `master`.
   narrower HVC current-head continuity packet, not a cross-driver replay roster.
 - That shared build inventory currently carries 3 build test names, 0 shared
   `test_step.dependOn(...)` edges, 0 dedicated survey replays, 3 shared adjunct
-  build replays, and 10 exact current checks.
+  build replays, and 11 exact current checks.
 - Current `master` does not materialize `make -C zigux phase11`,
   `make -C zigux phase11-contract`, or `zigux/tests/phase11_build.zig`.
 
