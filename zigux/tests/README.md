@@ -48,6 +48,7 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `scripts/zigux/check-zig-toolchain.py`
 - `scripts/zigux/check-phase2-kbuild-routes.py`
 - `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+- `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`
 - `scripts/zigux/check-kconfig-bridge.py`
 - `scripts/zigux/check-phase2-tests-readme-alignment.py`
 - `scripts/zigux/check-phase2-cross-selftest-alignment.py`
@@ -75,6 +76,7 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
 - `zigux/tests/fixtures/kconfig_bridge/cases.json`
 - `zigux/tests/fixtures/genksyms_bridge/cases.json`
+- `zigux/tests/fixtures/genksyms_bridge/manifest.json`
 - `zigux/tests/fixtures/genksyms_bridge/help_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`
@@ -84,6 +86,16 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json`
 - `zigux/tests/fixtures/fixdep/cases.json`
 
 Keep the current shared Phase 2 kconfig route: `make -C zigux phase2-kconfig`
@@ -100,7 +112,7 @@ keep the local-first archive workflow replay surface explicit through `python3 s
 
 current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof
 
-the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, genksyms bridge, fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster
+the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, helper-local kconfig allconfig guard, kconfig bridge checker, genksyms bridge, fixdep governance and parity set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster
 
 keep `scripts/zigux/zig-toolchain-policy.json`, the pinned `x86_64-linux` bootstrap archive note, the live `python3 scripts/zigux/check-zig-toolchain.py --policy-only` plus `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` replays, and the repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet
 
@@ -110,10 +122,10 @@ current `master` also directly materializes `scripts/zigux/check-genksyms-bridge
 
 current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder
 
-keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, kconfig bridge, genksyms bridge, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
+keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, helper-local kconfig allconfig, kconfig bridge, genksyms bridge, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?
+- Does the bounded Phase 2 reminder keep the current direct-readback toolchain self-check, repo-local archive workflow, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, validator, closure-validator, helper-local kconfig allconfig guard, kconfig bridge, genksyms bridge, fixdep packet, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?
 
 ## Phase 5 sample packet
 
