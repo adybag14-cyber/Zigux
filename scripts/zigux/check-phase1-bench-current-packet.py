@@ -41,7 +41,7 @@ MARKERS = {
         "* keep `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` visible as focused companion checks for the closed Phase 1 installer-review surface without widening the counted tests-root packet line that `scripts/zigux/validate-phase1.py` currently enforces",
     ),
     WORKFLOW_REL: (
-        "run: python3 scripts/zigux/check-phase1-bench.py",
+        "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
         "run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe",
     ),
     BENCH_CHECKER_REL: (
@@ -105,7 +105,7 @@ EXPECTED_BLOCKS = {
 
 FORBIDDEN_FRAGMENTS = {
     WORKFLOW_REL: (
-        "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+        "run: python3 scripts/zigux/check-phase1-bench.py\n",
     ),
     BENCH_CHECKER_REL: (
         "PHASE1_BENCH_CHECK_REASON=",
@@ -312,23 +312,23 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
-    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-workflow-forbidden-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-workflow-direct-run-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
         path = root / WORKFLOW_REL
         text = path.read_text(encoding="utf-8")
         path.write_text(
-            text + "run: python3 scripts/zigux/check-phase1-bench.py --self-test\n",
+            text + "run: python3 scripts/zigux/check-phase1-bench.py\n",
             encoding="utf-8",
         )
         issues = collect_issues(root)
         expected_issue = (
             f"{WORKFLOW_REL}:forbidden:"
-            "run: python3 scripts/zigux/check-phase1-bench.py --self-test:actual=1"
+            "run: python3 scripts/zigux/check-phase1-bench.py\n:actual=1"
         )
         if issues != [expected_issue]:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=workflow_stale_selftest_route_fail_closed")
+            print("case=workflow_direct_run_fail_closed")
             print(f"actual={issues!r}")
             return 1
 
