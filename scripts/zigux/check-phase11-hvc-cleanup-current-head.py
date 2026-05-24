@@ -327,6 +327,7 @@ def run_self_test() -> int:
             (SURVEY_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
             (SURVEY_PATH, "`zigux/tests/phase11_hvc_modem_control_proof.zig`"),
             (SURVEY_PATH, "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`"),
+            (SURVEY_PATH, "`make -C zigux phase11-validate`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_console_manifest.json`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_modem_control_proof.zig`"),
