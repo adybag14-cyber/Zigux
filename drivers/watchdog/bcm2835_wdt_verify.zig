@@ -131,3 +131,56 @@ test "bcm2835 verify helper keeps stop and poweroff snapshots reviewable" {
     try std.testing.expect(!unclaimed_poweroff.full_reset_armed);
     try std.testing.expect(!unclaimed_poweroff.running_after_poweroff);
 }
+
+test "bcm2835 verify helper keeps teardown release and foreign-owner preservation distinct" {
+    var owned = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    owned.start();
+    const owned_teardown = owned.summarizeTeardown(.{
+        .nowayout = false,
+        .system_power_controller = true,
+        .poweroff_owner = .bcm2835,
+        .restart_handler_registered = true,
+    });
+    try std.testing.expect(owned_teardown.running_before_teardown);
+    try std.testing.expect(!owned_teardown.running_after_teardown);
+    try std.testing.expect(owned_teardown.poweroff_handler_released);
+    try std.testing.expect(!owned_teardown.foreign_poweroff_handler_preserved);
+    try std.testing.expect(owned_teardown.restart_handler_unregistered);
+    try std.testing.expect(owned_teardown.reset_register_written);
+    try std.testing.expect(owned_teardown.blocked_on_live_remove_callback);
+
+    var foreign = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    foreign.start();
+    const foreign_teardown = foreign.summarizeTeardown(.{
+        .nowayout = true,
+        .system_power_controller = true,
+        .poweroff_owner = .foreign,
+        .restart_handler_registered = false,
+    });
+    try std.testing.expect(foreign_teardown.running_before_teardown);
+    try std.testing.expect(foreign_teardown.running_after_teardown);
+    try std.testing.expect(!foreign_teardown.poweroff_handler_released);
+    try std.testing.expect(foreign_teardown.foreign_poweroff_handler_preserved);
+    try std.testing.expect(!foreign_teardown.restart_handler_unregistered);
+    try std.testing.expect(!foreign_teardown.reset_register_written);
+    try std.testing.expect(foreign_teardown.blocked_on_live_remove_callback);
+}
+
+test "bcm2835 verify helper keeps non-controller teardown from claiming poweroff release" {
+    var detached = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    detached.start();
+    const teardown = detached.summarizeTeardown(.{
+        .nowayout = false,
+        .system_power_controller = false,
+        .poweroff_owner = .bcm2835,
+        .restart_handler_registered = true,
+    });
+
+    try std.testing.expect(teardown.running_before_teardown);
+    try std.testing.expect(!teardown.running_after_teardown);
+    try std.testing.expect(!teardown.poweroff_handler_released);
+    try std.testing.expect(!teardown.foreign_poweroff_handler_preserved);
+    try std.testing.expect(teardown.restart_handler_unregistered);
+    try std.testing.expect(teardown.reset_register_written);
+    try std.testing.expect(teardown.blocked_on_live_remove_callback);
+}
