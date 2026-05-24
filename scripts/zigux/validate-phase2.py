@@ -213,6 +213,13 @@ DISALLOWED_WORKFLOW_LINES: tuple[str, ...] = ()
 
 REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = set(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
+PHASE2_VALIDATE_TARGET_PREFIX = "phase2-validate:"
+PHASE2_VALIDATE_ROUTE_LINES = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-archive-contract-packet.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
+)
 
 REQUIRED_MAKEFILE_LINES = (
     "phase2-toolchain:",
@@ -248,11 +255,8 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
+    *PHASE2_VALIDATE_ROUTE_LINES,
     "phase2: phase2-validate",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-archive-contract-packet.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
 
@@ -292,6 +296,38 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def move_recipe_line(text: str, source_target_prefix: str, dest_target_prefix: str, marker: str) -> str:
+    lines = text.splitlines()
+    source_index = None
+    dest_index = None
+    marker_index = None
+
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith(source_target_prefix) and not line[:1].isspace():
+            source_index = index
+        if stripped.startswith(dest_target_prefix) and not line[:1].isspace():
+            dest_index = index
+        if stripped == marker:
+            marker_index = index
+
+    if source_index is None or dest_index is None or marker_index is None:
+        raise AssertionError(f"failed to relocate {marker}")
+
+    marker_line = lines.pop(marker_index)
+    if marker_index < dest_index:
+        dest_index -= 1
+
+    insert_index = dest_index + 1
+    while insert_index < len(lines) and (
+        lines[insert_index].startswith("\t") or not lines[insert_index].strip()
+    ):
+        insert_index += 1
+
+    lines.insert(insert_index, marker_line)
+    return "\n".join(lines) + "\n"
+
+
 def phony_targets_present(text: str) -> set[str]:
     targets: set[str] = set()
     for line in text.splitlines():
@@ -300,6 +336,38 @@ def phony_targets_present(text: str) -> set[str]:
             _, suffix = stripped.split(":", 1)
             targets.update(token for token in suffix.strip().split() if token)
     return targets
+
+
+def recipe_lines_for_target(text: str, target_prefix: str) -> tuple[str, ...]:
+    in_target = False
+    recipes: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not line[:1].isspace() and stripped.startswith(target_prefix):
+            in_target = True
+            continue
+        if in_target and not line[:1].isspace() and stripped:
+            break
+        if in_target and line.startswith("\t"):
+            recipes.append(stripped)
+    return tuple(recipes)
+
+
+def render_self_test_makefile() -> str:
+    lines = [
+        "PYTHON ?= python3",
+        "ZIG ?= zig",
+        "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+        "ZIGUX_ROOT := ..",
+        "",
+        REQUIRED_PHASE2_PHONY_LINE,
+    ]
+    for marker in REQUIRED_MAKEFILE_LINES:
+        if marker.startswith("phase2"):
+            lines.append(marker)
+        else:
+            lines.append(f"\t{marker}")
+    return "\n".join(lines) + "\n"
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -329,6 +397,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
 
+    phase2_validate_recipes = recipe_lines_for_target(makefile_text, PHASE2_VALIDATE_TARGET_PREFIX)
+    for marker in PHASE2_VALIDATE_ROUTE_LINES:
+        if phase2_validate_recipes.count(marker) != 1:
+            issues.append(("PHASE2_VALIDATE_ROUTE_MISMATCH", marker))
+
     for rel in REQUIRED_PATHS:
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
@@ -352,22 +425,7 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 def build_self_test_root(root: Path) -> None:
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
-    write_text(
-        root,
-        MAKEFILE,
-        "\n".join(
-            (
-                "PYTHON ?= python3",
-                "ZIG ?= zig",
-                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
-                "ZIGUX_ROOT := ..",
-                "",
-                REQUIRED_PHASE2_PHONY_LINE,
-                *REQUIRED_MAKEFILE_LINES,
-            )
-        )
-        + "\n",
-    )
+    write_text(root, MAKEFILE, render_self_test_makefile())
     for rel in REQUIRED_PATHS:
         if rel != MAKEFILE:
             write_text(root, rel, "present\n")
@@ -387,6 +445,7 @@ def run_self_test() -> int:
         + 1
         + len(REQUIRED_MAKEFILE_LINES)
         + len(REQUIRED_MAKEFILE_LINES)
+        + len(PHASE2_VALIDATE_ROUTE_LINES)
         + (len(REQUIRED_PATHS) - 1)
         + 2
     )
@@ -431,6 +490,18 @@ def run_self_test() -> int:
             build_self_test_root(root)
             write_text(root, MAKEFILE, duplicate_exact_line(read_text(root, MAKEFILE), marker))
             expect_issue(root, ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2"))
+            checks += 1
+
+        for marker in PHASE2_VALIDATE_ROUTE_LINES:
+            build_self_test_root(root)
+            moved = move_recipe_line(
+                read_text(root, MAKEFILE),
+                PHASE2_VALIDATE_TARGET_PREFIX,
+                "phase2-tools:",
+                marker,
+            )
+            write_text(root, MAKEFILE, moved)
+            expect_issue(root, ("PHASE2_VALIDATE_ROUTE_MISMATCH", marker))
             checks += 1
 
         for rel in REQUIRED_PATHS[:-1]:
