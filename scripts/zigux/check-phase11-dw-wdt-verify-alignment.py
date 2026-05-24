@@ -11,6 +11,7 @@ from pathlib import Path
 
 FILES = {
     "note": "Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md",
+    "matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
     "platform_plan": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "manifest": "zigux/tests/phase11_dw_wdt_manifest.json",
     "pm": "drivers/watchdog/dw_wdt_pm.zig",
@@ -39,15 +40,25 @@ NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
     "- lane family: `P11-L12`",
     "- active current-head continuity note owner: `P11-Y03`",
-    "- current authenticated contents no longer keep the older returned validation-matrix story directly readable through the same bridge that serves the rest of this packet",
-    "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
+    "- current authenticated contents now keep the returned validation matrix directly readable through the same bridge that serves the rest of this narrower packet",
+    "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` now records deeper platform-registration scaffold continuity `P11-L10` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- the active routing split now keeps owner-note truthfulness on `P11-Y03`, survey-only follow-through on `P11-L09`, and deeper platform-registration scaffold follow-through on `P11-L10`; do not reserve `P11-L05` unless the packet collapses back to the older survey-era shape",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge",
     "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
+    "- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` now keeps the returned DesignWare matrix readable on current `master` while still parking hardware-backed MMIO validation as the next bounded same-lane step",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`, but this note does not itself own that later implementation step",
     "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
-    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` should keep this narrower current-head packet fail-closed instead of asserting direct readability for the broader returned validation-matrix or verify-helper stack",
+    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` should keep this narrower current-head packet fail-closed around the returned validation matrix, the manifest-routed teardown-parity ownership, the platform-plan boundary, and the bounded PM helper instead of asserting direct readability for the broader verify-helper stack",
+]
+
+MATRIX_MARKERS = [
+    "- `PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed`",
+    "- current surveyed packet pin: `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- active watchdog continuity for this matrix and its coupled survey packet is",
+    "- `drivers/watchdog/dw_wdt_pm.zig` keeps the bounded PM-helper handoff",
+    "- The next bounded same-lane follow-up remains the manifest-marked ready-next",
+    "hardware-backed MMIO validation around suspend, resume, and",
 ]
 
 PLATFORM_PLAN_MARKERS = [
@@ -187,11 +198,13 @@ def expect_manifest_state(manifest: dict[str, object]) -> None:
 
 def run_check(root: Path) -> None:
     note = read_text(root, FILES["note"])
+    matrix = read_text(root, FILES["matrix"])
     platform_plan = read_text(root, FILES["platform_plan"])
     manifest = read_manifest(root)
     pm = read_text(root, FILES["pm"])
 
     expect_markers("note", note, NOTE_MARKERS)
+    expect_markers("matrix", matrix, MATRIX_MARKERS)
     expect_markers("platform_plan", platform_plan, PLATFORM_PLAN_MARKERS)
     expect_markers("pm", pm, PM_MARKERS)
     expect_manifest_state(manifest)
@@ -204,6 +217,7 @@ def write(path: Path, text: str) -> None:
 
 def build_fixture(root: Path) -> None:
     write(root / FILES["note"], "\n".join(NOTE_MARKERS) + "\n")
+    write(root / FILES["matrix"], "\n".join(MATRIX_MARKERS) + "\n")
     write(root / FILES["platform_plan"], "\n".join(PLATFORM_PLAN_MARKERS) + "\n")
     write(root / FILES["pm"], "\n".join(PM_MARKERS) + "\n")
     write(
@@ -273,6 +287,19 @@ def run_self_test() -> None:
         expect_failure(missing_marker, "missing marker in note")
         case_count += 1
 
+        missing_matrix_marker = root / "missing-matrix-marker"
+        shutil.copytree(fixture, missing_matrix_marker)
+        matrix_path = missing_matrix_marker / FILES["matrix"]
+        matrix_path.write_text(
+            matrix_path.read_text(encoding="utf-8").replace(MATRIX_MARKERS[5], "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_matrix_marker,
+            f"missing marker in matrix: {MATRIX_MARKERS[5]}",
+        )
+        case_count += 1
+
         missing_platform_plan_marker = root / "missing-platform-plan-marker"
         shutil.copytree(fixture, missing_platform_plan_marker)
         platform_plan_path = missing_platform_plan_marker / FILES["platform_plan"]
@@ -324,92 +351,41 @@ def run_self_test() -> None:
         )
         case_count += 1
 
-        missing_note_teardown_route = root / "missing-note-teardown-route"
-        shutil.copytree(fixture, missing_note_teardown_route)
-        note_path = missing_note_teardown_route / FILES["note"]
-        note_path.write_text(
-            note_path.read_text(encoding="utf-8").replace(
-                "- `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            missing_note_teardown_route,
-            "missing marker in note: - `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge",
-        )
-        case_count += 1
-
-        missing_note_pm_scope = root / "missing-note-pm-scope"
-        shutil.copytree(fixture, missing_note_pm_scope)
-        note_path = missing_note_pm_scope / FILES["note"]
-        note_path.write_text(
-            note_path.read_text(encoding="utf-8").replace(
-                "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            missing_note_pm_scope,
-            "missing marker in note: - `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
-        )
-        case_count += 1
-
-        missing_note_ready_next = root / "missing-note-ready-next"
-        shutil.copytree(fixture, missing_note_ready_next)
-        note_path = missing_note_ready_next / FILES["note"]
-        note_path.write_text(
-            note_path.read_text(encoding="utf-8").replace(
-                "- `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`, but this note does not itself own that later implementation step\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            missing_note_ready_next,
-            "missing marker in note: - `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`, but this note does not itself own that later implementation step",
-        )
-        case_count += 1
-
-        missing_manifest_pm_why_now = root / "missing-manifest-pm-why-now"
-        shutil.copytree(fixture, missing_manifest_pm_why_now)
-        manifest_path = missing_manifest_pm_why_now / FILES["manifest"]
+        missing_why_now = root / "missing-why-now"
+        shutil.copytree(fixture, missing_why_now)
+        manifest_path = missing_why_now / FILES["manifest"]
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         for entry in manifest["gaps"]:
-            if entry.get("id") == PM_GAP_ID:
-                entry["why_now"] = "stale pm summary"
+            if entry["id"] == PM_GAP_ID:
+                entry["why_now"] = "stale"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_failure(missing_manifest_pm_why_now, "manifest pm why_now mismatch")
+        expect_failure(missing_why_now, "manifest pm why_now mismatch")
         case_count += 1
 
-        print("PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELFTEST=pass")
-        print(f"PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELFTEST_CASE_COUNT={case_count}")
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--root", default=".")
-    parser.add_argument("--self-test", action="store_true")
-    return parser.parse_args()
+        print("PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELF_TEST=pass")
+        print(f"PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
-    args = parse_args()
-    if args.self_test:
-        run_self_test()
-        return 0
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
 
     try:
-        run_check(Path(args.root).resolve())
+        if args.self_test:
+            run_self_test()
+        else:
+            run_check(args.root.resolve())
     except CheckError as exc:
-        print(f"PHASE11_DW_WDT_VERIFY_ALIGNMENT=fail:{exc}")
+        print(f"PHASE11_DW_WDT_VERIFY_ALIGNMENT=fail: {exc}")
+        return 1
+    except AssertionError as exc:
+        print(str(exc))
         return 1
 
-    print("PHASE11_DW_WDT_VERIFY_ALIGNMENT=pass")
+    if not args.self_test:
+        print("PHASE11_DW_WDT_VERIFY_ALIGNMENT=pass")
     return 0
 
 
