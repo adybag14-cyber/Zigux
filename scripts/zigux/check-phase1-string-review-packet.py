@@ -258,7 +258,7 @@ EXPECTED_STRING_PACKET = {
         "fixed dirty index and the clean case, but not the moving earliest-mismatch ownership as later "
         "dirty bytes become the next live divergence"
     ),
-    "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
+    "phase1_helper_replay_anchor": 'test "strreplace mirrors replaceChar C-string semantics"',
     "shared_replace_char_cstr_review_summary": (
         "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, "
         "removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL "
