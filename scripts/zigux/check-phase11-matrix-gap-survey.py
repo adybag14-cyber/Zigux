@@ -10,7 +10,7 @@ from pathlib import Path
 SURVEY_PATH = "Documentation/zigux/phase11-validation-matrix-gap-survey.md"
 REQUIRED_MARKERS = [
     "`PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`",
-    "lane: `P11-L01`",
+    "lane: `P11-Y06`",
     "Authenticated GitHub contents rereads in this run rematerialize the bcm2835, gpio watchdog, HVC console, and DesignWare driver-local Phase 11 matrix notes named by the roadmap on current `master`.",
     "The currently reread driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
