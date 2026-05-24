@@ -22,6 +22,8 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase13-validate`",
         "focused checker",
         "repo-reality gaps",
+        "firstPprevMatchesHead()",
+        "zigux_hlist_first_pprev_matches_head()",
     ),
     "Documentation/zigux/phase13-notifier-summary-gap.md": (
         "`scripts/zigux/check-phase13-notifier-packet.py`",
@@ -54,6 +56,8 @@ REQUIRED_MARKERS = {
         "\"id\": \"phase13-notifier-priority-signal-gap\"",
         "\"id\": \"phase13-notifier-chain-helper-gap\"",
         "\"id\": \"phase13-build-route-gap\"",
+        "firstPprevMatchesHead()",
+        "zigux_hlist_first_pprev_matches_head()",
     ),
     "zigux/tests/phase13_notifier_list_reviewability.zig": (
         'const manifest_text = @embedFile("phase13_notifier_list_manifest.json");',
@@ -61,11 +65,14 @@ REQUIRED_MARKERS = {
         'readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-notifier-packet.py")',
         '"phase13-notifier-focused-packet-checker"',
         '"PHASE13_NOTIFIER_PACKET=pass"',
+        '"pub fn firstPprevMatchesHead"',
+        '"zigux_hlist_first_pprev_matches_head"',
     ),
     "zigux/bindings/notifier_abi.zig": (
         "pub const NotifierBlock = extern struct",
         "pub fn chainHasNonincreasingPriority",
         "pub fn listHasConsistentBacklinks",
+        "pub fn firstPprevMatchesHead",
         "pub fn hlistHasConsistentPrevLinks",
     ),
     "zigux/helpers/list_view.zig": (
@@ -75,6 +82,7 @@ REQUIRED_MARKERS = {
     ),
     "zigux/helpers/hlist_view.zig": (
         "pub const HListView = struct",
+        "pub fn firstPprevMatchesHead(self: HListView) bool",
         "pub fn hasConsistentPrevLinks(self: HListView) bool",
         "pub fn firstBrokenPrevLink(self: HListView) ?PrevLinkBreak",
     ),
@@ -84,6 +92,7 @@ REQUIRED_MARKERS = {
         "struct zigux_hlist_head {",
         "zigux_notifier_first_chain_priority_increase",
         "zigux_list_has_consistent_backlinks",
+        "zigux_hlist_first_pprev_matches_head",
         "zigux_hlist_has_consistent_prev_links",
     ),
     "drivers/tty/hvc/hvc_console.h": (
@@ -252,6 +261,23 @@ def run_self_test() -> int:
         manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
         manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8").replace(
+                'firstPprevMatchesHead()\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:firstPprevMatchesHead()'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(
                 '\"id\": \"phase13-notifier-release-validator-companion\"\n',
                 "",
                 1,
@@ -312,6 +338,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:zigux/helpers/list_view.zig:pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        binding_path = tempdir / "zigux/bindings/notifier_abi.zig"
+        binding_path.write_text(
+            binding_path.read_text(encoding="utf-8").replace(
+                "pub fn firstPprevMatchesHead\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:zigux/bindings/notifier_abi.zig:pub fn firstPprevMatchesHead"
             in issues
         )
         populate_repo(tempdir)
@@ -380,6 +423,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:scripts/zigux/validate-phase13-release.py:Documentation/zigux/phase13-notifier-summary-gap.md"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        abi_path = tempdir / "include/zigux/abi.h"
+        abi_path.write_text(
+            abi_path.read_text(encoding="utf-8").replace(
+                "zigux_hlist_first_pprev_matches_head\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:include/zigux/abi.h:zigux_hlist_first_pprev_matches_head"
             in issues
         )
         populate_repo(tempdir)
