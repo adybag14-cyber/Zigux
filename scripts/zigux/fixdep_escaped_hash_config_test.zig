@@ -18,7 +18,7 @@ const Capture = struct {
 
     pub fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
         const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
-        defer std.testing.allocator.free(rendered);
+        defer self.allocator.free(rendered);
         try self.list.appendSlice(self.allocator, rendered);
     }
 
