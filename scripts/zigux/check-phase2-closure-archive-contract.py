@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
+
+PHASE2_CLOSURE = Path("Documentation/zigux/phase2-closure.md")
+ARCHIVE_CONTRACT_CHECKER = Path("scripts/zigux/check-phase2-archive-contract-packet.py")
+VALIDATE_PHASE2_CLOSURE = Path("scripts/zigux/validate-phase2-closure.py")
+
+PAYLOAD = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+
+REQUIRED_CLOSURE_MARKERS = (
+    "`scripts/zigux/check-phase2-archive-contract-packet.py`",
+    "`python3 scripts/zigux/check-phase2-archive-contract-packet.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-archive-contract-packet.py`",
+    "The closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
+)
+
+REQUIRED_VALIDATE_CLOSURE_MARKERS = (
+    'ARCHIVE_CONTRACT_PACKET_REL = Path("scripts/zigux/check-phase2-archive-contract-packet.py")',
+    "ARCHIVE_CONTRACT_PACKET_REL,",
+    '"`scripts/zigux/check-phase2-archive-contract-packet.py`",',
+    '"`python3 scripts/zigux/check-phase2-archive-contract-packet.py --self-test`",',
+    '"`python3 scripts/zigux/check-phase2-archive-contract-packet.py`",',
+)
+
+
+def read_text(root: Path, rel: Path) -> str:
+    path = root / rel
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
+
+
+def write_text(root: Path, rel: Path, content: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def collect_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+
+    closure_text = read_text(root, PHASE2_CLOSURE)
+    for marker in REQUIRED_CLOSURE_MARKERS:
+        if marker not in closure_text:
+            issues.append(("MISSING_CLOSURE_MARKER", marker))
+
+    validate_closure_text = read_text(root, VALIDATE_PHASE2_CLOSURE)
+    for marker in REQUIRED_VALIDATE_CLOSURE_MARKERS:
+        if marker not in validate_closure_text:
+            issues.append(("MISSING_VALIDATE_CLOSURE_MARKER", marker))
+
+    archive_checker_text = read_text(root, ARCHIVE_CONTRACT_CHECKER)
+    if PAYLOAD not in archive_checker_text:
+        issues.append(("MISSING_ARCHIVE_CONTRACT_PAYLOAD", PAYLOAD))
+
+    return issues
+
+
+def build_self_test_root(root: Path) -> None:
+    write_text(
+        root,
+        PHASE2_CLOSURE,
+        "\n".join(
+            (
+                "# Phase 2 Closure",
+                "",
+                "- `scripts/zigux/check-phase2-archive-contract-packet.py`",
+                "",
+                "The closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
+                "",
+                "- `python3 scripts/zigux/check-phase2-archive-contract-packet.py --self-test`",
+                "- `python3 scripts/zigux/check-phase2-archive-contract-packet.py`",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        VALIDATE_PHASE2_CLOSURE,
+        "\n".join(
+            (
+                'ARCHIVE_CONTRACT_PACKET_REL = Path("scripts/zigux/check-phase2-archive-contract-packet.py")',
+                "REQUIRED_FILES = (",
+                "    ARCHIVE_CONTRACT_PACKET_REL,",
+                ")",
+                "REQUIRED_CLOSURE_MARKERS = (",
+                '    "`scripts/zigux/check-phase2-archive-contract-packet.py`",',
+                '    "`python3 scripts/zigux/check-phase2-archive-contract-packet.py --self-test`",',
+                '    "`python3 scripts/zigux/check-phase2-archive-contract-packet.py`",',
+                ")",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        ARCHIVE_CONTRACT_CHECKER,
+        f'PAYLOAD = "{PAYLOAD}"\n',
+    )
+
+
+def run_self_test() -> int:
+    checks_run = 0
+    with tempfile.TemporaryDirectory(prefix="phase2_closure_archive_contract_") as tmp_dir:
+        root = Path(tmp_dir)
+        build_self_test_root(root)
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, PHASE2_CLOSURE, "# broken\n")
+        assert any(code == "MISSING_CLOSURE_MARKER" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, VALIDATE_PHASE2_CLOSURE, "# broken\n")
+        assert any(code == "MISSING_VALIDATE_CLOSURE_MARKER" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, ARCHIVE_CONTRACT_CHECKER, 'PAYLOAD = "missing"\n')
+        assert ("MISSING_ARCHIVE_CONTRACT_PAYLOAD", PAYLOAD) in collect_issues(root)
+        checks_run += 1
+
+    print("PHASE2_CLOSURE_ARCHIVE_CONTRACT_SELF_TEST=pass")
+    print(f"PHASE2_CLOSURE_ARCHIVE_CONTRACT_SELF_TEST_CASE_COUNT={checks_run}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Keep the Lane 22 closure note explicit about the archive-contract packet."
+    )
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = collect_issues(args.root.resolve())
+    if issues:
+        print("PHASE2_CLOSURE_ARCHIVE_CONTRACT=fail")
+        for code, value in issues:
+            print(f"{code}:{value}")
+        return 1
+
+    print("PHASE2_CLOSURE_ARCHIVE_CONTRACT=pass")
+    print(f"PHASE2_CLOSURE_ARCHIVE_CONTRACT_GAP={PAYLOAD}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
