@@ -26,6 +26,13 @@ PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 PHASE6_HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PHASE6_HELPER_PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 
+PERF_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
+BASE64_PERF_CASE_COUNT = 6
+BSEARCH_PERF_CASE_COUNT = 3
+CHECKSUM_PAYLOAD_CASE_COUNT = 2
+CHECKSUM_FAST_PATH_CASE_COUNT = 4
+HEXDUMP_PERF_CASE_COUNT = 4
+
 REQUIRED_SNIPPETS = {
     BASE64_VECTORS_PATH: [
         '.{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
@@ -217,6 +224,7 @@ REQUIRED_SNIPPETS = {
     PHASE6_PERF_SURVEY_PATH: [
         "- aggregate route note: `make -C zigux phase6-perf` is now a committed shared wrapper over the directly readable helper-local perf packet, while the broader `make -C zigux phase6` route still stops at `phase6-validate` plus the bundled helper tests and does not rerun the dedicated perf gates",
         "- workflow note: current `.github/workflows/zigux-bootstrap.yml` reruns `make -C zigux phase6-perf`, so the shared bootstrap route now follows the aggregate perf wrapper rather than relying on helper-specific ad hoc coverage",
+        "- diagnostics note: `scripts/zigux/check-phase6-perf-threshold-markers.py` now emits machine-readable success summaries for tracked file count, helper coverage keys, and per-helper perf-case counts so scheduled or remote Phase 6 validation runs can surface bounded perf-route coverage without a local checkout",
         "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
         "- bsearch exact evidence: the committed perf fixture matrix keeps `len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 250`; `zigux/tests/fixtures/phase6_bsearch_vectors.zig` fixes `query_count = 16`; and `zigux/tests/phase6_bsearch_perf.zig` enforces the direct budget formula `std.math.log2_int_ceil(usize, case.len) + 1` across witness, average, and worst-case comparator counts while still printing the live `ns_per_lookup` evidence for each case",
         "- checksum exact thresholds: `zigux/tests/fixtures/phase6_checksum_vectors.zig` keeps two payload slowdown cases, `64B` at `iterations = 200_000` with `max_slowdown_pct = 150` and `1501B` at `iterations = 12_000` with `max_slowdown_pct = 150`, while the same fixture packet also keeps the `checksum.ipFastCsum` IPv4 fast-path matrix at `IPV4_20B` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_20B_UPDATED` with `iterations = 600_000` and `max_slowdown_pct = 100`, `IPV4_24B` with `iterations = 500_000` and `max_slowdown_pct = 100`, and `IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`; `zigux/tests/phase6_checksum_perf.zig` replays those exact payload and fast-path thresholds against the helper-local baseline checks",
@@ -387,6 +395,11 @@ SELF_TEST_CASES = [
     ),
     (
         PHASE6_PERF_SURVEY_PATH,
+        "- diagnostics note: `scripts/zigux/check-phase6-perf-threshold-markers.py` now emits machine-readable success summaries for tracked file count, helper coverage keys, and per-helper perf-case counts so scheduled or remote Phase 6 validation runs can surface bounded perf-route coverage without a local checkout",
+        "- diagnostics note: `scripts/zigux/check-phase6-perf-threshold-markers.py` now emits machine-readable success summaries for tracked file count, helper coverage keys, and helper-local perf drift without a local checkout",
+    ),
+    (
+        PHASE6_PERF_SURVEY_PATH,
         "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
         "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` now pins six perf cases, `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each at `iterations = 16000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, and `zigux/tests/phase6_base64_perf.zig` keeps the same six-case helper-owned replay aligned with that fixture packet",
     ),
@@ -420,7 +433,6 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
-
 def validate_snippet_counts(path: Path, content: str) -> None:
     required_counts = REQUIRED_SNIPPET_COUNTS.get(path)
     if required_counts is None:
@@ -434,6 +446,14 @@ def validate_snippet_counts(path: Path, content: str) -> None:
             )
 
 
+def required_snippet_occurrence_count() -> int:
+    total = sum(len(snippets) for snippets in REQUIRED_SNIPPETS.values())
+    for path, required_counts in REQUIRED_SNIPPET_COUNTS.items():
+        base_snippets = REQUIRED_SNIPPETS[path]
+        for snippet, expected_count in required_counts.items():
+            total += max(0, expected_count - base_snippets.count(snippet))
+    return total
+
 
 def validate(repo_root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
@@ -446,11 +466,9 @@ def validate(repo_root: Path) -> None:
         validate_snippet_counts(rel_path, content)
 
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 
 def scaffold_repo(root: Path) -> None:
@@ -462,7 +480,6 @@ def scaffold_repo(root: Path) -> None:
             if existing_count < expected_count:
                 content_lines.extend([snippet] * (expected_count - existing_count))
         write(root / rel_path, "\n".join(content_lines) + "\n")
-
 
 
 def expect_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
@@ -484,7 +501,6 @@ def expect_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
         write(path, original)
 
 
-
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -494,7 +510,6 @@ def run_self_test() -> None:
             expect_failure(root, rel_path, old, new)
     print("PHASE6_PERF_THRESHOLD_MARKERS_SELF_TEST=pass")
     print(f"PHASE6_PERF_THRESHOLD_MARKERS_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
-
 
 
 def parse_args() -> argparse.Namespace:
@@ -513,7 +528,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-
 def main() -> int:
     args = parse_args()
     if args.self_test:
@@ -522,6 +536,14 @@ def main() -> int:
 
     validate(args.repo_root)
     print("PHASE6_PERF_THRESHOLD_MARKERS=pass")
+    print(f"PHASE6_PERF_THRESHOLD_TRACKED_FILE_COUNT={len(REQUIRED_SNIPPETS)}")
+    print(f"PHASE6_PERF_THRESHOLD_REQUIRED_SNIPPET_COUNT={required_snippet_occurrence_count()}")
+    print(f"PHASE6_PERF_THRESHOLD_HELPER_KEYS={','.join(PERF_HELPER_KEYS)}")
+    print(f"PHASE6_PERF_THRESHOLD_BASE64_CASE_COUNT={BASE64_PERF_CASE_COUNT}")
+    print(f"PHASE6_PERF_THRESHOLD_BSEARCH_CASE_COUNT={BSEARCH_PERF_CASE_COUNT}")
+    print(f"PHASE6_PERF_THRESHOLD_CHECKSUM_PAYLOAD_CASE_COUNT={CHECKSUM_PAYLOAD_CASE_COUNT}")
+    print(f"PHASE6_PERF_THRESHOLD_CHECKSUM_FAST_PATH_CASE_COUNT={CHECKSUM_FAST_PATH_CASE_COUNT}")
+    print(f"PHASE6_PERF_THRESHOLD_HEXDUMP_CASE_COUNT={HEXDUMP_PERF_CASE_COUNT}")
     return 0
 
 
