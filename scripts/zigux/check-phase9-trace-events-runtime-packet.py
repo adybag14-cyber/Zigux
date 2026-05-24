@@ -144,10 +144,13 @@ FILE_MARKERS: dict[str, list[str]] = {
         '.name = "phase9-runtime-loader-command-env-boundary-guard-tests"',
         '.name = "phase9-runtime-loader-shared-tests"',
         '.name = "phase9-runtime-trace-events-loader-substrate-drift-tests"',
+        '.name = "phase9-runtime-trace-events-reinit-reexit-guard-tests"',
         '.name = "phase9-first-loadable-runtime-module-parity-survey-tests"',
         "runtime_loader_allocator_init_flow.zig",
         "runtime_trace_events_loader_substrate_drift.zig",
         "../../samples/zigux/runtime_trace_events.zig",
+        "../../samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
+        "phase9_runtime_trace_events.dependOn(\n        &run_runtime_trace_events_reinit_reexit_guard_tests.step,\n    );",
     ],
     LOADER_SUBSTRATE_DRIFT_PATH: [
         'const runtime_loader = @import("runtime_loader");',
@@ -227,6 +230,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig",
         "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
         "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
+        "zig test samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
         "zig test zigux/tests/runtime_trace_events_survey.zig",
     ],
 }
