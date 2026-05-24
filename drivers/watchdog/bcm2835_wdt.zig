@@ -56,6 +56,34 @@ pub const PlatformHandoffSummary = struct {
     blocked_on_live_platform_registration: bool,
 };
 
+pub const PoweroffOwner = enum {
+    none,
+    bcm2835,
+    foreign,
+};
+
+pub const TeardownRequest = struct {
+    nowayout: bool,
+    system_power_controller: bool,
+    poweroff_owner: PoweroffOwner,
+    restart_handler_registered: bool,
+};
+
+pub const TeardownSummary = struct {
+    anchor: []const u8,
+    nowayout: bool,
+    running_before_teardown: bool,
+    running_after_teardown: bool,
+    full_reset_armed_before_teardown: bool,
+    full_reset_armed_after_teardown: bool,
+    poweroff_owner: PoweroffOwner,
+    poweroff_handler_released: bool,
+    foreign_poweroff_handler_preserved: bool,
+    restart_handler_unregistered: bool,
+    reset_register_written: bool,
+    blocked_on_live_remove_callback: bool,
+};
+
 pub fn summarizePlatformHandoff(input: PlatformHandoffInput) !PlatformHandoffSummary {
     validateTimeout(input.heartbeat_sec) catch |err| return err;
 
@@ -139,6 +167,30 @@ pub const Bcm2835WdtLab = struct {
         };
     }
 
+    pub fn summarizeTeardown(self: *Self, request: TeardownRequest) TeardownSummary {
+        const running_before_teardown = self.isRunning();
+        const full_reset_armed_before_teardown = running_before_teardown;
+
+        if (!request.nowayout and running_before_teardown) {
+            self.registers.rstc = pm_password | pm_rstc_reset;
+        }
+
+        return .{
+            .anchor = anchor_path,
+            .nowayout = request.nowayout,
+            .running_before_teardown = running_before_teardown,
+            .running_after_teardown = self.isRunning(),
+            .full_reset_armed_before_teardown = full_reset_armed_before_teardown,
+            .full_reset_armed_after_teardown = self.isRunning(),
+            .poweroff_owner = request.poweroff_owner,
+            .poweroff_handler_released = request.system_power_controller and request.poweroff_owner == .bcm2835,
+            .foreign_poweroff_handler_preserved = request.poweroff_owner == .foreign,
+            .restart_handler_unregistered = request.restart_handler_registered,
+            .reset_register_written = !request.nowayout and running_before_teardown,
+            .blocked_on_live_remove_callback = true,
+        };
+    }
+
     fn isRunning(self: *const Self) bool {
         return (self.registers.rstc & pm_rstc_wrcfg_full_reset) != 0;
     }
@@ -155,4 +207,74 @@ fn hasHaltPartition(registers: RegisterImage) bool {
 fn validateTimeout(timeout_sec: u32) !void {
     if (timeout_sec < min_timeout_sec) return error.TimeoutTooSmall;
     if (timeout_sec > max_timeout_sec) return error.TimeoutTooLarge;
+}
+
+test "bcm2835 teardown summary releases bcm-owned poweroff handler after stop" {
+    var lab = try Bcm2835WdtLab.init(8);
+    lab.start();
+
+    const teardown = lab.summarizeTeardown(.{
+        .nowayout = false,
+        .system_power_controller = true,
+        .poweroff_owner = .bcm2835,
+        .restart_handler_registered = true,
+    });
+
+    try @import("std").testing.expectEqualStrings(anchor_path, teardown.anchor);
+    try @import("std").testing.expect(!teardown.nowayout);
+    try @import("std").testing.expect(teardown.running_before_teardown);
+    try @import("std").testing.expect(!teardown.running_after_teardown);
+    try @import("std").testing.expect(teardown.full_reset_armed_before_teardown);
+    try @import("std").testing.expect(!teardown.full_reset_armed_after_teardown);
+    try @import("std").testing.expectEqual(PoweroffOwner.bcm2835, teardown.poweroff_owner);
+    try @import("std").testing.expect(teardown.poweroff_handler_released);
+    try @import("std").testing.expect(!teardown.foreign_poweroff_handler_preserved);
+    try @import("std").testing.expect(teardown.restart_handler_unregistered);
+    try @import("std").testing.expect(teardown.reset_register_written);
+    try @import("std").testing.expect(teardown.blocked_on_live_remove_callback);
+}
+
+test "bcm2835 teardown summary preserves foreign ownership during nowayout remove" {
+    var lab = try Bcm2835WdtLab.init(8);
+    lab.start();
+
+    const teardown = lab.summarizeTeardown(.{
+        .nowayout = true,
+        .system_power_controller = true,
+        .poweroff_owner = .foreign,
+        .restart_handler_registered = false,
+    });
+
+    try @import("std").testing.expect(teardown.nowayout);
+    try @import("std").testing.expect(teardown.running_before_teardown);
+    try @import("std").testing.expect(teardown.running_after_teardown);
+    try @import("std").testing.expect(teardown.full_reset_armed_before_teardown);
+    try @import("std").testing.expect(teardown.full_reset_armed_after_teardown);
+    try @import("std").testing.expectEqual(PoweroffOwner.foreign, teardown.poweroff_owner);
+    try @import("std").testing.expect(!teardown.poweroff_handler_released);
+    try @import("std").testing.expect(teardown.foreign_poweroff_handler_preserved);
+    try @import("std").testing.expect(!teardown.restart_handler_unregistered);
+    try @import("std").testing.expect(!teardown.reset_register_written);
+    try @import("std").testing.expect(teardown.blocked_on_live_remove_callback);
+}
+
+test "bcm2835 teardown summary keeps non-controller teardown from claiming release" {
+    var lab = try Bcm2835WdtLab.init(8);
+    lab.start();
+
+    const teardown = lab.summarizeTeardown(.{
+        .nowayout = false,
+        .system_power_controller = false,
+        .poweroff_owner = .bcm2835,
+        .restart_handler_registered = true,
+    });
+
+    try @import("std").testing.expect(!teardown.nowayout);
+    try @import("std").testing.expect(teardown.running_before_teardown);
+    try @import("std").testing.expect(!teardown.running_after_teardown);
+    try @import("std").testing.expectEqual(PoweroffOwner.bcm2835, teardown.poweroff_owner);
+    try @import("std").testing.expect(!teardown.poweroff_handler_released);
+    try @import("std").testing.expect(!teardown.foreign_poweroff_handler_preserved);
+    try @import("std").testing.expect(teardown.restart_handler_unregistered);
+    try @import("std").testing.expect(teardown.reset_register_written);
 }
