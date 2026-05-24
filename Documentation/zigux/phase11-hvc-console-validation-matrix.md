@@ -55,8 +55,9 @@ continuity packet.
   handoff, notifier-add open handoff, khvcd polling-contract, khvcd
   worker-entry, khvcd sleep-and-reschedule handoff, `__hvc_poll` drain-order,
   `hvc_hangup()` disconnect, `hvc_remove()` handoff, `hvc_cleanup()` tty-port
-  release, targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and
-  modem-control helper summaries reviewable on current `master`.
+  release plus cleanup-prerequisite trigger split, targetless notifier,
+  `hvc_kick()` wakeup-cue, notifier-irq, and modem-control helper summaries
+  reviewable on current `master`.
 - `Documentation/zigux/phase11-hvc-console-survey.md` and
   `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
   keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`,
