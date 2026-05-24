@@ -77,7 +77,7 @@ RELEASE_COORDINATION_MATRIX_MARKERS = [
     "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
 ]
 DOCS_ROOT_MARKERS = [
-    "* keep the degraded-read fallback split explicit here too: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the one commit-pinned direct replay catalog, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` is the driver-local current-master gap-note companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than extra commit-pinned fallback artifacts.",
+    "* keep the degraded-read fallback split explicit here too: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is the one commit-pinned direct replay catalog, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` is the driver-local current-master gap-note companion, and `Documentation/zigux/phase12-virtio-net-survey.md` plus `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than extra commit-pinned fallback artifacts.\n",
 ]
 REVIEW_CHECKLIST_MARKERS = [
     "`scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree that current `zigux/Makefile` ships `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while the directly readable scripts-side support packet stays explicit as shared reminder evidence rather than as broader driver-delivery proof",
@@ -91,6 +91,11 @@ RELEASE_SEQUENCING_MARKERS = [
 RELEASE_CLOSURE_CHECKLIST_MARKERS = [
     "- shared fallback companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
     "- The fallback split stays truthful: one commit-pinned `virtio_scsi` replay catalog, one current-master `nvme_pci` gap-inventory companion, and two shared-tree anchors.",
+    "If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
+    "shipped wrapper evidence on current `master`: `make -C zigux phase12-validate`",
+    "attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
+    "attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-test ZIG=<attached-zig-path>`",
+    "attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12 ZIG=<attached-zig-path>`",
 ]
 SCRIPTS_README_MARKERS = [
     "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
