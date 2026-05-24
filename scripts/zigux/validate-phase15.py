@@ -58,6 +58,13 @@ EXPECTED_DIRECT_PACKET_PATHS = [
 EXPECTED_MISSING_BROADER_PATHS = [
     "zigux/tests/phase15_build.zig",
 ]
+EXPECTED_PHASE15_VALIDATE_CHECKERS = [
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
+]
 EXPECTED_REPO_EVIDENCE = {
     "phase15_readiness_packet_checker_present": True,
     "phase15_validator_script_present": True,
@@ -149,6 +156,8 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("direct_packet_paths")
     if manifest.get("still_missing_broader_paths") != EXPECTED_MISSING_BROADER_PATHS:
         failures.append("still_missing_broader_paths")
+    if manifest.get("phase15_validate_checkers") != EXPECTED_PHASE15_VALIDATE_CHECKERS:
+        failures.append("phase15_validate_checkers")
 
     repo_evidence = manifest.get("repo_evidence", {})
     for key, expected in EXPECTED_REPO_EVIDENCE.items():
@@ -213,13 +222,7 @@ def _sample_manifest() -> str:
         "direct_packet_paths": EXPECTED_DIRECT_PACKET_PATHS,
         "still_missing_broader_paths": EXPECTED_MISSING_BROADER_PATHS,
         "repo_evidence": EXPECTED_REPO_EVIDENCE,
-        "phase15_validate_checkers": [
-            "scripts/zigux/check-phase15-docs-readme-alignment.py",
-            "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-            "scripts/zigux/check-phase15-tests-readme-alignment.py",
-            "scripts/zigux/check-phase15-review-process-handoff.py",
-            "scripts/zigux/check-phase15-shared-summary-gap.py",
-        ],
+        "phase15_validate_checkers": EXPECTED_PHASE15_VALIDATE_CHECKERS,
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -279,8 +282,33 @@ def run_self_test() -> int:
         if failures != [f"missing_required_path:{SCRIPTS_CHECKER_PATH}"]:
             raise AssertionError(f"unexpected scripts-checker failure: {failures}")
 
+        validate_checkers_root = base / "validate_checkers"
+        write_fixture_root(validate_checkers_root)
+        _write(
+            validate_checkers_root / MANIFEST_PATH,
+            _sample_manifest().replace(
+                '  "phase15_validate_checkers": [\n'
+                '    "scripts/zigux/check-phase15-docs-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-scripts-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-tests-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-review-process-handoff.py",\n'
+                '    "scripts/zigux/check-phase15-shared-summary-gap.py"\n'
+                "  ]\n",
+                '  "phase15_validate_checkers": [\n'
+                '    "scripts/zigux/check-phase15-scripts-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-tests-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-review-process-handoff.py",\n'
+                '    "scripts/zigux/check-phase15-shared-summary-gap.py"\n'
+                "  ]\n",
+                1,
+            ),
+        )
+        failures = collect_failures(validate_checkers_root)
+        if failures != ["phase15_validate_checkers"]:
+            raise AssertionError(f"unexpected validate-checkers failure: {failures}")
+
     print("PHASE15_VALIDATION_SELF_TEST=pass")
-    print("PHASE15_VALIDATION_SELF_TEST_CASES=5")
+    print("PHASE15_VALIDATION_SELF_TEST_CASES=6")
     return 0
 
 
