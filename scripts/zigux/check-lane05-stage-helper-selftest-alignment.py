@@ -315,7 +315,7 @@ def run_self_test() -> int:
         "missing self-test marker",
     )
     expect_failure(
-        lambda root: (root / STAGE_HELPER).writeText if False else (root / STAGE_HELPER).write_text(
+        lambda root: (root / STAGE_HELPER).write_text(
             (root / STAGE_HELPER).read_text(encoding="utf-8").replace(
                 'expected_substring="missing expected shard"',
                 "",
