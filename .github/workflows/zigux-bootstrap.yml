@@ -181,6 +181,9 @@ jobs:
       - name: Self-test current staged pinned Zig archive helper
         run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
 
+      - name: Self-test current split pinned Zig archive helper
+        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test
+
       - name: Self-test current Lane 05 stage helper contract checker
         run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test
 
@@ -437,7 +440,6 @@ jobs:
 
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
-
       - name: Self-test current Phase 4 artifact-diff contract checker
         run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
 
