@@ -176,6 +176,37 @@ test "phase12 nvme pci survey note keeps the roadmap gap and shared-route split 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
 }
 
+test "phase12 nvme pci reopen governance note keeps shared direct replay and packet-local survey split explicit" {
+    const reopen_note = try readFileAlloc("Documentation/zigux/phase12-nvme-pci-reopen-governance.md", 16 * 1024);
+    defer std.testing.allocator.free(reopen_note);
+
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        reopen_note,
+        "shares one bounded direct replay through the shared `phase12-smoke` and `phase12` routes",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        reopen_note,
+        "`zigux/tests/phase12_build.zig` now wires the NVMe direct replay into the smoke-first shared route",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        reopen_note,
+        "must not promote the bounded NVMe starter beyond the already-landed shared direct replay claim",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        reopen_note,
+        "still outside the shared `phase12-smoke` and `phase12` replay route",
+    ) == null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        reopen_note,
+        "shared build wiring still leaves that review packet outside the smoke-first shared route",
+    ) == null);
+}
+
 test "phase12 nvme pci slice note keeps the bounded recovery-preflight packet explicit" {
     const slice_note = try readFileAlloc("Documentation/zigux/phase12-nvme-pci-slice.md", 8 * 1024);
     defer std.testing.allocator.free(slice_note);
