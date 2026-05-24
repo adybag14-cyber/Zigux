@@ -53,32 +53,30 @@ fn validatePerfMatrix() !void {
 }
 
 fn resolveCodec(case: fixtures.PerfCase) !Codec {
-    if (std.mem.eql(u8, case.variant_name, "std")) {
-        return .{
+    const perf_variant = fixtures.parsePerfVariantName(case.variant_name) orelse
+        return error.Base64PerfMatrixMismatch;
+
+    return switch (perf_variant) {
+        .std => .{
             .helper_variant = .std,
             .encoder = if (case.padding) &std.base64.standard.Encoder else &std.base64.standard_no_pad.Encoder,
             .decoder = if (case.padding) &std.base64.standard.Decoder else &std.base64.standard_no_pad.Decoder,
-        };
-    }
-    if (std.mem.eql(u8, case.variant_name, "urlsafe")) {
-        return .{
+        },
+        .urlsafe => .{
             .helper_variant = .urlsafe,
             .encoder = if (case.padding) &std.base64.url_safe.Encoder else &std.base64.url_safe_no_pad.Encoder,
             .decoder = if (case.padding) &std.base64.url_safe.Decoder else &std.base64.url_safe_no_pad.Decoder,
-        };
-    }
-    if (std.mem.eql(u8, case.variant_name, "imap")) {
-        return .{
+        },
+        .imap => .{
             .helper_variant = .imap,
             .encoder = if (case.padding) &std.base64.standard.Encoder else &std.base64.standard_no_pad.Encoder,
             .decoder = if (case.padding) &std.base64.standard.Decoder else &std.base64.standard_no_pad.Decoder,
-        };
-    }
-    return error.Base64PerfMatrixMismatch;
+        },
+    };
 }
 
 fn isImapCase(case: fixtures.PerfCase) bool {
-    return std.mem.eql(u8, case.variant_name, "imap");
+    return fixtures.isImapPerfVariantName(case.variant_name);
 }
 
 fn mapStdEncodedToImap(dst: []u8, src: []const u8) []const u8 {
