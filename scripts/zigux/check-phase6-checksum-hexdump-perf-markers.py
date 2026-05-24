@@ -76,6 +76,22 @@ REQUIRED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-packet.py",
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
+REQUIRED_CHECKSUM_EVIDENCE_LINUX_STYLE_RERUN_ROUTES = [
+    "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf-matrix-test",
+    "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf",
+    "make -C zigux phase6-perf",
+]
+REQUIRED_HEXDUMP_EVIDENCE_LINUX_STYLE_RERUN_ROUTES = [
+    "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-review",
+    "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+    "make -C zigux phase6-hexdump-perf",
+    "make -C zigux phase6-perf",
+]
 REQUIRED_CHECKSUM_LINUX_STYLE_RERUN_ROUTES = [
     "make -C zigux phase6-checksum-perf-matrix-test",
     "make -C zigux phase6-checksum-perf",
@@ -109,7 +125,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 51
+SELF_TEST_CASE_COUNT = 55
 
 
 class ValidationError(RuntimeError):
@@ -226,6 +242,19 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError("checksum evidence ipv4_fast_path_case_labels drifted")
     validate_case_matrix("hexdump evidence", hexdump_perf.get("cases"), EXPECTED_HEXDUMP_CASES)
 
+    checksum_routes = checksum_perf.get("linux_style_rerun_routes")
+    hexdump_routes = hexdump_perf.get("linux_style_rerun_routes")
+    if not isinstance(checksum_routes, list):
+        raise ValidationError("checksum evidence rerun routes missing")
+    if not isinstance(hexdump_routes, list):
+        raise ValidationError("hexdump evidence rerun routes missing")
+    for route in REQUIRED_CHECKSUM_EVIDENCE_LINUX_STYLE_RERUN_ROUTES:
+        if route not in checksum_routes:
+            raise ValidationError(f"checksum evidence rerun route missing {route}")
+    for route in REQUIRED_HEXDUMP_EVIDENCE_LINUX_STYLE_RERUN_ROUTES:
+        if route not in hexdump_routes:
+            raise ValidationError(f"hexdump evidence rerun route missing {route}")
+
     inventory = manifest.get("current_shared_replay_inventory")
     if not isinstance(inventory, list):
         raise ValidationError("current_shared_replay_inventory is missing")
@@ -308,8 +337,8 @@ def scaffold_repo(root: Path) -> None:
         "lane_scope": EXPECTED_EVIDENCE_LANE_SCOPE,
         "current_direct_readback_companions": [REQUIRED_DIRECT_READBACK_COMPANION],
         "helpers": [
-            {"key": "checksum", "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_cases": [{"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100}, {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100}], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS}},
-            {"key": "hexdump", "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig", "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES, "current_perf_evidence": {"cases": [{"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175}, {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600}]}}
+            {"key": "checksum", "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_cases": [{"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100}, {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100}], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS, "linux_style_rerun_routes": REQUIRED_CHECKSUM_EVIDENCE_LINUX_STYLE_RERUN_ROUTES}},
+            {"key": "hexdump", "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig", "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES, "current_perf_evidence": {"cases": [{"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175}, {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600}], "linux_style_rerun_routes": REQUIRED_HEXDUMP_EVIDENCE_LINUX_STYLE_RERUN_ROUTES}}
         ],
         "current_shared_replay_inventory": REQUIRED_EVIDENCE_REPLAYS,
     }, indent=2) + "\n")
@@ -354,6 +383,10 @@ def run_self_test() -> None:
             (EVIDENCE_MANIFEST_PATH, '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig"', '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum.zig"', "checksum dedicated_slowdown_replay drifted"),
             (EVIDENCE_MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-corpus-evidence.py"', '"scripts/zigux/check-phase6-present-entrypoints.py"', "checksum checker surface drifted"),
             (EVIDENCE_MANIFEST_PATH, '"scripts/zigux/check-phase6-hexdump-packet.py"', '"scripts/zigux/check-phase6-hexdump-route.py"', "hexdump checker surface drifted"),
+            (EVIDENCE_MANIFEST_PATH, '"zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig"', '"zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig"', "checksum evidence rerun route missing zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig"),
+            (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-checksum-perf"', '"make -C zigux phase6-checksum-test"', "checksum evidence rerun route missing make -C zigux phase6-checksum-perf"),
+            (EVIDENCE_MANIFEST_PATH, '"zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig"', '"zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig"', "hexdump evidence rerun route missing zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig"),
+            (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf"', '"make -C zigux phase6-hexdump-test"', "hexdump evidence rerun route missing make -C zigux phase6-hexdump-perf"),
             (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-hexdump-review"', '"make -C zigux phase6-hexdump-scan"', "phase6-hexdump-review"),
             (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf-matrix-test"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf-matrix-test"),
             (EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf"),
