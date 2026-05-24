@@ -83,15 +83,31 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_SHAPE", CHECKERS_SURFACE))
         return issues
 
-    if validator_text.count(CLOSURE_MATRIX_CHECKER_LINE) < 2:
+    validator_marker_count = validator_text.count(CLOSURE_MATRIX_CHECKER_LINE)
+    if validator_marker_count < 2:
         issues.append(("MISSING_VALIDATOR_MARKER", CLOSURE_MATRIX_CHECKER_LINE))
+    elif validator_marker_count != 2:
+        issues.append(
+            (
+                "DUPLICATE_VALIDATOR_MARKER",
+                f"{CLOSURE_MATRIX_CHECKER_LINE}:count={validator_marker_count}",
+            )
+        )
 
     for marker in VALIDATOR_MARKERS:
         if marker not in validator_text:
             issues.append(("MISSING_VALIDATOR_MARKER", marker))
 
-    if CLOSURE_MATRIX_CHECKER not in checkers:
+    checker_count = sum(1 for item in checkers if item == CLOSURE_MATRIX_CHECKER)
+    if checker_count == 0:
         issues.append(("MISSING_MANIFEST_SURFACE", f"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}"))
+    elif checker_count != 1:
+        issues.append(
+            (
+                "DUPLICATE_MANIFEST_SURFACE",
+                f"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}:count={checker_count}",
+            )
+        )
 
     return issues
 
@@ -115,8 +131,8 @@ def build_self_test_root(root: Path) -> None:
 from __future__ import annotations
 
 EXPECTED_MANIFEST_CHECKERS = (
-    \"scripts/zigux/check-zig-toolchain.py\",
-    \"{CLOSURE_MATRIX_CHECKER}\",
+    "scripts/zigux/check-zig-toolchain.py",
+    "{CLOSURE_MATRIX_CHECKER}",
 )
 
 def collect_issues(root):
@@ -124,15 +140,15 @@ def collect_issues(root):
 
 def run_self_test():
     payload = {{
-        \"present_surfaces\": {{
-            \"{CHECKERS_SURFACE}\": [
-                \"scripts/zigux/check-zig-toolchain.py\",
-                \"{CLOSURE_MATRIX_CHECKER}\",
+        "present_surfaces": {{
+            "{CHECKERS_SURFACE}": [
+                "scripts/zigux/check-zig-toolchain.py",
+                "{CLOSURE_MATRIX_CHECKER}",
             ]
         }}
     }}
-    payload[\"present_surfaces\"][\"{CHECKERS_SURFACE}\"].remove(\"{CLOSURE_MATRIX_CHECKER}\")
-    assert (\"MISSING_MANIFEST_SURFACE\", \"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}\") in collect_issues(root)
+    payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")
+    assert ("MISSING_MANIFEST_SURFACE", "{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}") in collect_issues(root)
     return payload
 """
     manifest = {
@@ -172,6 +188,22 @@ def run_self_test() -> int:
         validator_path = resolve(root, VALIDATOR_REL)
         validator_path.write_text(
             read_text(validator_path).replace(
+                CLOSURE_MATRIX_CHECKER_LINE,
+                CLOSURE_MATRIX_CHECKER_LINE + "\n" + CLOSURE_MATRIX_CHECKER_LINE,
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_VALIDATOR_MARKER",
+            f"{CLOSURE_MATRIX_CHECKER_LINE}:count=3",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        validator_path = resolve(root, VALIDATOR_REL)
+        validator_path.write_text(
+            read_text(validator_path).replace(
                 f'payload["present_surfaces"]["{CHECKERS_SURFACE}"].remove("{CLOSURE_MATRIX_CHECKER}")',
                 "# drifted",
                 1,
@@ -193,6 +225,18 @@ def run_self_test() -> int:
         assert (
             "MISSING_MANIFEST_SURFACE",
             f"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest_path = resolve(root, MANIFEST_REL)
+        payload = read_json(manifest_path)
+        assert isinstance(payload, dict)
+        payload["present_surfaces"][CHECKERS_SURFACE].append(CLOSURE_MATRIX_CHECKER)
+        write_text(manifest_path, json.dumps(payload, indent=2) + "\n")
+        assert (
+            "DUPLICATE_MANIFEST_SURFACE",
+            f"{CHECKERS_SURFACE}:{CLOSURE_MATRIX_CHECKER}:count=2",
         ) in collect_issues(root)
         checks_run += 1
 
