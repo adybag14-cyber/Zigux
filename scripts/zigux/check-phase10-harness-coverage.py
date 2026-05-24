@@ -189,6 +189,7 @@ REQUIRED_MARKERS = {
         "\"phase10-virtio-ring-notification-data-readiness-tests\"",
         "run_phase10_virtio_ring_notification_data_readiness_tests.step",
         "\"phase10-virtio-ring-verify-tests\"",
+        "run_phase10_virtio_ring_verify_tests.step",
         "\"phase10-virtio-ring-publish-readiness-tests\"",
         "run_phase10_virtio_ring_publish_readiness_tests.step",
         "\"phase10-virtio-ring-prepare-kick-idempotent-tests\"",
@@ -436,6 +437,12 @@ SELF_TEST_MUTATIONS = [
         "run_phase10_virtio_ring_notification_data_readiness_tests.step",
         "run_phase10_virtio_ring_notification_data_readiness_tests_missing.step",
         "zigux/tests/phase10_build.zig:run_phase10_virtio_ring_notification_data_readiness_tests.step",
+    ),
+    (
+        "zigux/tests/phase10_build.zig",
+        "run_phase10_virtio_ring_verify_tests.step",
+        "run_phase10_virtio_ring_verify_tests_missing.step",
+        "zigux/tests/phase10_build.zig:run_phase10_virtio_ring_verify_tests.step",
     ),
     (
         "zigux/tests/phase10_build.zig",
