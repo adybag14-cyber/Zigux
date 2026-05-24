@@ -34,7 +34,7 @@ BITMAP_HELPER_REPLAY = Path("zigux/tests/phase4_bitmap_live_helper_replay.zig")
 ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
 ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 30
 EXPECTED_PIN_SELF_TEST_CASES = 19
 
 PERF_BASELINE_CHECKER_LINE = (
@@ -294,10 +294,18 @@ def run_self_test() -> int:
         cases += _expect_failure(root, PERF_SURVEY, None, None)
         cases += _expect_failure(root, GATE_EVIDENCE, None, None)
         cases += _expect_failure(root, MATRIX, None, None)
+        cases += _expect_failure(root, SEQUENCING_NOTE, None, None)
+        cases += _expect_failure(root, WORKFLOW_ROUTE_CHECKER, None, None)
         cases += _expect_failure(root, MAKEFILE, None, None)
         cases += _expect_failure(root, WORKFLOW, None, None)
         cases += _expect_failure(root, ATOMIC64_DIFF, None, None)
+        cases += _expect_failure(root, RUNTIME_ATOMIC64_DIFF, None, None)
         cases += _expect_failure(root, VALIDATOR, None, None)
+        cases += _expect_failure(root, BUILD, None, None)
+        cases += _expect_failure(root, BITMAP_DIFF, None, None)
+        cases += _expect_failure(root, BITMAP_HELPER_REPLAY, None, None)
+        cases += _expect_failure(root, ATOMIC64_MANIFEST, None, None)
+        cases += _expect_failure(root, ATOMIC64_SURVEY, None, None)
         cases += _expect_failure(
             root,
             SELF,
