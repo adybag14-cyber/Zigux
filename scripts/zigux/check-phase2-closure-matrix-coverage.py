@@ -219,7 +219,7 @@ def write_json(path: Path, payload: object) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    validator_source = """\\
+    validator_source = """\
 from pathlib import Path
 
 EXPECTED_MANIFEST_REVIEW_SURFACES = ("review.md",)
@@ -235,7 +235,7 @@ REQUIRED_FILES = (
     Path("zigux/tests/fixtures/phase2_tool_manifest.json"),
 )
 """
-    matrix_source = """\\
+    matrix_source = """\
 from pathlib import Path
 
 VALIDATOR_MANIFEST_SURFACE_EXPECTATION_ATTRS = (
@@ -257,6 +257,7 @@ DIRECT_MANIFEST_SURFACE_EXPECTATIONS = {
     ),
     "checkers": (
         "scripts/zigux/check-extra.py",
+        "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     ),
     "policy": (
         "policy-a.json",
@@ -266,6 +267,7 @@ EXTRA_REQUIRED_FILES = (
     Path("scripts/zigux/install-zig.py"),
     Path("scripts/zigux/stage-pinned-zig-archive.py"),
     Path("scripts/zigux/check-extra.py"),
+    Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py"),
     Path("scripts/zigux/check-phase2-cross.py"),
     Path("zigux/tests/fixtures/phase2_cross_targets.json"),
 )
@@ -275,7 +277,11 @@ EXTRA_REQUIRED_FILES = (
             "review_surfaces": ["review.md"],
             "closure_notes": ["closure-note.md"],
             "validators": ["scripts/zigux/validate-phase2.py"],
-            "checkers": ["check-base.py", "scripts/zigux/check-extra.py"],
+            "checkers": [
+                "check-base.py",
+                "scripts/zigux/check-extra.py",
+                "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+            ],
             "bridge_helpers": ["bridge-a.zig"],
             "fixture_roster": ["fixture-a.json"],
             "policy": ["policy-a.json"],
@@ -296,6 +302,7 @@ EXTRA_REQUIRED_FILES = (
     write_text(root / "scripts/zigux/install-zig.py", "present\n")
     write_text(root / "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
     write_text(root / "scripts/zigux/check-extra.py", "present\n")
+    write_text(root / "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py", "present\n")
     write_text(root / "scripts/zigux/check-phase2-cross.py", "present\n")
     write_text(root / "zigux/tests/fixtures/phase2_cross_targets.json", "present\n")
 
@@ -365,6 +372,16 @@ def run_self_test() -> int:
         payload["present_surfaces"]["checkers"].remove("scripts/zigux/check-extra.py")
         write_json(manifest_path, payload)
         assert ("MISSING_MATRIX_COVERED_ITEM", "checkers:scripts/zigux/check-extra.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = load_json(manifest_path)
+        payload["present_surfaces"]["checkers"].remove("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")
+        write_json(manifest_path, payload)
+        assert (
+            "MISSING_MATRIX_COVERED_ITEM",
+            "checkers:scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -627,6 +644,7 @@ def run_self_test() -> int:
                 "    ),\n"
                 '    "checkers": (\n'
                 '        "scripts/zigux/check-extra.py",\n'
+                '        "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",\n'
                 "    ),\n"
                 '    "policy": (\n'
                 '        "policy-a.json",\n'
