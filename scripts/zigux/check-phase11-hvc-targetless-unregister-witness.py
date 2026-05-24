@@ -505,6 +505,10 @@ def run_self_test() -> int:
                 "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
             ),
             (
+                VERIFY_BOUNDARY_PATH,
+                "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit",
+            ),
+            (
                 DRIVER_PATH,
                 "targetless_no_unregister_edge: bool,",
             ),
