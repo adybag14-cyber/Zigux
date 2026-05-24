@@ -126,6 +126,7 @@ EXPECTED_BUILD_WIRING_EVIDENCE = [
 REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback companions",
     "- `Documentation/zigux/README.md`",
+    "- `Documentation/zigux/review-checklist.md`",
     "- `scripts/zigux/check-phase7-build-wiring.py`",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-argv-split-packet.py`",
