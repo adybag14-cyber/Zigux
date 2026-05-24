@@ -53,6 +53,10 @@ shared-build files as current-head evidence.
 - `summarizeTeardown()` keeps the stop-request, register-device-failure, and
   reboot-glue checkpoint cues reviewable as the teardown input to the bounded
   remove-handoff packet.
+- `platformCleanupCheckpointSummary()` keeps the bounded platform cleanup,
+  driver-remove, and watchdog-unregister ordering explicit before any live
+  platform cleanup callback, platform-driver removal, watchdog-core unregister,
+  or host-backed shutdown claim.
 - `summarizeRemoveHandoff()` keeps the dedicated remove-handoff summary itself
   explicit before any live platform cleanup callback, platform-driver removal,
   watchdog-core unregister, or host-backed shutdown claim.
