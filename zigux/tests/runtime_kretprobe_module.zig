@@ -185,3 +185,74 @@ test "runtime kretprobe sample keeps rejected re-exit rollback explicit at the m
     try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.exit());
     try expectSnapshotStable(before_selftested_reexit, selftested_module.lifecycleSnapshot());
 }
+
+test "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary" {
+    var initialized_module = sample.RuntimeKretprobeSample{};
+    try initialized_module.init();
+    try initialized_module.registerProbe();
+
+    const before_initialized_duplicate_registration = initialized_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, before_initialized_duplicate_registration.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_duplicate_registration.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_duplicate_registration.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_duplicate_registration.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_duplicate_registration.registration_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_duplicate_registration.unregistration_runs);
+    try std.testing.expect(before_initialized_duplicate_registration.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_duplicate_registration.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_duplicate_registration.completed_instances);
+    try std.testing.expectEqual(@as(?i32, null), before_initialized_duplicate_registration.last_retval);
+
+    try std.testing.expectError(error.ProbeAlreadyRegistered, initialized_module.registerProbe());
+    try expectSnapshotStable(
+        before_initialized_duplicate_registration,
+        initialized_module.lifecycleSnapshot(),
+    );
+
+    const before_initialized_failed_exit = initialized_module.lifecycleSnapshot();
+    try std.testing.expectError(error.OutstandingRegistration, initialized_module.exit());
+    try expectSnapshotStable(before_initialized_failed_exit, initialized_module.lifecycleSnapshot());
+
+    try initialized_module.unregisterProbe();
+    try initialized_module.exit();
+    const initialized_after_exit = initialized_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, initialized_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_after_exit.exit_runs);
+
+    var selftested_module = sample.RuntimeKretprobeSample{};
+    try selftested_module.init();
+    _ = try selftested_module.runSelftest();
+    try selftested_module.registerProbe();
+
+    const before_selftested_duplicate_registration = selftested_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_selftested_duplicate_registration.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_duplicate_registration.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_duplicate_registration.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_duplicate_registration.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_selftested_duplicate_registration.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_duplicate_registration.unregistration_runs);
+    try std.testing.expect(before_selftested_duplicate_registration.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_duplicate_registration.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_duplicate_registration.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), before_selftested_duplicate_registration.last_retval);
+
+    try std.testing.expectError(error.ProbeAlreadyRegistered, selftested_module.registerProbe());
+    try expectSnapshotStable(
+        before_selftested_duplicate_registration,
+        selftested_module.lifecycleSnapshot(),
+    );
+
+    const before_selftested_failed_exit = selftested_module.lifecycleSnapshot();
+    try std.testing.expectError(error.OutstandingRegistration, selftested_module.exit());
+    try expectSnapshotStable(before_selftested_failed_exit, selftested_module.lifecycleSnapshot());
+
+    try selftested_module.recordEntry();
+    try selftested_module.recordReturn(42);
+    try selftested_module.unregisterProbe();
+    try selftested_module.exit();
+    const selftested_after_exit = selftested_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, selftested_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_after_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), selftested_after_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 42), selftested_after_exit.last_retval);
+}
