@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -119,8 +119,20 @@ SCRIPTS_ACTION_PATH_MARKERS = (
     "`.github/workflows/zigux-bootstrap.yml`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
 )
+REVIEW_ACTION_PATH_MARKERS = (
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
+)
+TESTS_ACTION_PATH_MARKERS = (
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+)
 
-REVIEW_MARKERS = SCRIPTS_MARKERS + ("`make -C zigux phase2-fixdep`",)
+REVIEW_MARKERS = (
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`make -C zigux phase2-fixdep`",
+)
 PHASE2_CLOSURE_MARKERS = (
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
@@ -301,6 +313,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     workflow = read_text(resolve(root, WORKFLOW))
     notes = read_text(resolve(root, BOOTSTRAP_NOTES))
     scripts_readme = read_text(resolve(root, SCRIPTS_README))
+    review_checklist = read_text(resolve(root, REVIEW_CHECKLIST))
+    tests_readme = read_text(resolve(root, TESTS_README))
     issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_MARKERS, "MISSING_SCRIPTS_MARKERS"))
     issues.extend(
         collect_missing_markers(
@@ -309,8 +323,22 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "MISSING_SCRIPTS_ACTION_PATH_MARKERS",
         )
     )
-    issues.extend(collect_missing_markers(read_text(resolve(root, REVIEW_CHECKLIST)), REVIEW_MARKERS, "MISSING_REVIEW_MARKERS"))
-    issues.extend(collect_missing_markers(read_text(resolve(root, TESTS_README)), SCRIPTS_MARKERS, "MISSING_TESTS_MARKERS"))
+    issues.extend(collect_missing_markers(review_checklist, REVIEW_MARKERS, "MISSING_REVIEW_MARKERS"))
+    issues.extend(
+        collect_missing_markers(
+            review_checklist,
+            REVIEW_ACTION_PATH_MARKERS,
+            "MISSING_REVIEW_ACTION_PATH_MARKERS",
+        )
+    )
+    issues.extend(collect_missing_markers(tests_readme, SCRIPTS_MARKERS, "MISSING_TESTS_MARKERS"))
+    issues.extend(
+        collect_missing_markers(
+            tests_readme,
+            TESTS_ACTION_PATH_MARKERS,
+            "MISSING_TESTS_ACTION_PATH_MARKERS",
+        )
+    )
     issues.extend(collect_missing_markers(read_text(resolve(root, PHASE2_CLOSURE)), PHASE2_CLOSURE_MARKERS, "MISSING_PHASE2_CLOSURE_MARKERS"))
     issues.extend(collect_missing_markers(workflow, WORKFLOW_SETUP, "MISSING_WORKFLOW_SETUP_MARKERS"))
     for marker in WORKFLOW_LINES:
@@ -349,8 +377,14 @@ def build_self_test_root(root: Path) -> None:
         resolve(root, SCRIPTS_README),
         "\n".join(["# scripts", *SCRIPTS_MARKERS, *SCRIPTS_ACTION_PATH_MARKERS]) + "\n",
     )
-    write_text(resolve(root, REVIEW_CHECKLIST), "\n".join(["# review", *REVIEW_MARKERS]) + "\n")
-    write_text(resolve(root, TESTS_README), "\n".join(["# tests", *SCRIPTS_MARKERS]) + "\n")
+    write_text(
+        resolve(root, REVIEW_CHECKLIST),
+        "\n".join(["# review", *REVIEW_MARKERS, *REVIEW_ACTION_PATH_MARKERS]) + "\n",
+    )
+    write_text(
+        resolve(root, TESTS_README),
+        "\n".join(["# tests", *SCRIPTS_MARKERS, *TESTS_ACTION_PATH_MARKERS]) + "\n",
+    )
     write_text(resolve(root, PHASE2_CLOSURE), "\n".join(["# closure", *PHASE2_CLOSURE_MARKERS]) + "\n")
     write_text(
         resolve(root, BOOTSTRAP_NOTES),
@@ -452,6 +486,18 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        review = resolve(root, REVIEW_CHECKLIST)
+        review.write_text(review.read_text(encoding="utf-8").replace(REVIEW_ACTION_PATH_MARKERS[0], ""), encoding="utf-8")
+        assert any(code == "MISSING_REVIEW_ACTION_PATH_MARKERS" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        review = resolve(root, REVIEW_CHECKLIST)
+        review.write_text(review.read_text(encoding="utf-8").replace(REVIEW_ACTION_PATH_MARKERS[2], ""), encoding="utf-8")
+        assert any(code == "MISSING_REVIEW_ACTION_PATH_MARKERS" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
         closure = resolve(root, PHASE2_CLOSURE)
         closure.write_text(closure.read_text(encoding="utf-8").replace(PHASE2_CLOSURE_MARKERS[-1], ""), encoding="utf-8")
         assert any(code == "MISSING_PHASE2_CLOSURE_MARKERS" for code, _ in collect_issues(root))
@@ -467,6 +513,12 @@ def run_self_test() -> int:
         tests = resolve(root, TESTS_README)
         tests.write_text(tests.read_text(encoding="utf-8").replace(SCRIPTS_MARKERS[2], ""), encoding="utf-8")
         assert ("MISSING_TESTS_MARKERS", SCRIPTS_MARKERS[2]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        tests = resolve(root, TESTS_README)
+        tests.write_text(tests.read_text(encoding="utf-8").replace(TESTS_ACTION_PATH_MARKERS[0], ""), encoding="utf-8")
+        assert any(code == "MISSING_TESTS_ACTION_PATH_MARKERS" for code, _ in collect_issues(root))
         checks += 1
 
         build_self_test_root(root)
