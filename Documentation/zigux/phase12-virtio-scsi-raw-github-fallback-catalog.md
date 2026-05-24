@@ -10,7 +10,7 @@ This note is the commit-pinned public-read fallback companion for the older `vir
 - packet role: read-only fallback artifact for public inspection when normal repository reads are degraded
 - survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`
 - fallback overview companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
-- verifier and replay companions on current `master`: `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
+- verifier and replay companions on current `master`: `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 
 ## Commit-Pinned Paths
 Base raw URL prefix:
@@ -31,13 +31,13 @@ Base raw URL prefix:
 - Linux-style route owner: `zigux/Makefile`
 
 ## Current-Master Evidence Snapshot
-- exact coverage evidence refreshed on `2026-05-23` against live current `master`
+- exact coverage evidence refreshed on `2026-05-24` against live current `master`
 - authenticated contents view now returns this refreshed archival catalog body on current `master`
-- public raw `master` fallback still serves the older `2026-05-21` archival body for this same path as of `2026-05-23`
-- current `master` still carries this fallback catalog, the survey note, the slice note, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
+- public raw `master` fallback still serves the older `2026-05-21` archival body for this same path as of `2026-05-24`
+- current `master` still carries this fallback catalog, the survey note, the slice note, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 - current `master` no longer serves `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, or `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`
 - `zigux/tests/phase12_build.zig` now wires the `virtio_net` queue-resume, transmit-recycle, receive-refill replay, post-reset replay, throughput-parity, and survey-gate tests through both shared `smoke` and shared `test`
-- `.github/workflows/zigux-bootstrap.yml` now replays the current shared Phase 12 support bundle and adjacent shared reruns in the exact order `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`
+- `.github/workflows/zigux-bootstrap.yml` now replays the current shared Phase 12 support bundle and adjacent shared reruns in the exact order `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test`, `python3 scripts/zigux/check-phase12-cross-compile-smoke.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`
 - current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane
 
 ## Roadmap Gap Snapshot
@@ -53,7 +53,7 @@ Base raw URL prefix:
 - treat the authenticated contents readback and the public raw `master` fallback as split evidence again until the raw path catches up to the refreshed current-master body
 - rerun `python3 scripts/zigux/check-phase12-virtio-scsi-packet.py` before widening any PMO wording around this artifact
 - exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`
-- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only and release-readiness checkers plus `scripts/zigux/validate-phase12.py`
+- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf heavy-consumer, and `virtio_net` packet checkers plus `scripts/zigux/validate-phase12.py`
 
 ## Boundaries
 - this note must not imply that current `master` still ships the historical `virtio_scsi` driver-local replay family
