@@ -22,6 +22,7 @@ TOOLCHAIN_CHECKER = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
 
 DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "`third_party/README.md`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
