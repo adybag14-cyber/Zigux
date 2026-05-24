@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checker for the bounded Phase 11 HVC teardown packet."""
+"""Fail-closed checker for the current-head Phase 11 HVC teardown packet."""
 
 from __future__ import annotations
 
@@ -7,69 +7,104 @@ import argparse
 import json
 import shutil
 import tempfile
-from dataclasses import dataclass
 from pathlib import Path
 
 
-@dataclass(frozen=True)
-class FileExpectation:
-    relative_path: str
-    required_fragments: tuple[str, ...]
+SELF_PATH = Path(__file__).resolve()
+DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
+SURVEY_PATH = Path("Documentation/zigux/phase11-hvc-console-survey.md")
+COMPANION_PATH = Path("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md")
+VERIFY_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundary.md")
+MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
+DRIVER_PATH = Path("drivers/tty/hvc/hvc_console.zig")
+CLEANUP_CHECKER_PATH = Path("scripts/zigux/check-phase11-hvc-cleanup-current-head.py")
+TARGETLESS_CHECKER_PATH = Path("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py")
+INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
-REQUIRED_PACKET_FILES = (
-    "drivers/tty/hvc/hvc_console.zig",
-    "drivers/tty/hvc/hvc_console_verify.zig",
-    "drivers/tty/hvc/hvc_console_sysrq.zig",
-    "zigux/tests/phase11_hvc_console.zig",
-    "zigux/tests/phase11_hvc_cleanup.zig",
-    "zigux/tests/phase11_hvc_console_survey.zig",
-    "zigux/tests/phase11_hvc_console_manifest.json",
-    "Documentation/zigux/phase11-hvc-console-survey.md",
-    "Documentation/zigux/phase11-hvc-console-slice.md",
-    "Documentation/zigux/phase11-hvc-console-teardown-note.md",
-    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+SURVEY_MARKERS = (
+    "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
+    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "repo-reality gaps or archival vocabulary",
+    "`make -C zigux phase11-validate`",
+    "without promoting itself into the shared three-entry build inventory",
 )
 
-FILE_EXPECTATIONS = (
-    FileExpectation(
-        "Documentation/zigux/phase11-hvc-console-survey.md",
-        (
-            "hvc_cleanup() tty-port release handoff summary",
-            "hvc_hangup() disconnect summary",
-            "hvc_remove() handoff summary",
-            "zigux/tests/phase11_hvc_cleanup.zig",
-            "drivers/tty/hvc/hvc_console_verify.zig",
-        ),
-    ),
-    FileExpectation(
-        "Documentation/zigux/phase11-hvc-console-slice.md",
-        (
-            "hvc_cleanup() tty-port release handoff summary",
-            "cleanup-time tty-port ownership",
-            "targetless notifier no-unregister edge",
-        ),
-    ),
-    FileExpectation(
-        "Documentation/zigux/phase11-hvc-console-teardown-note.md",
-        (
-            "hvc_cleanup() tty-port release handoff",
-            "cleanup-time tty-port ownership",
-            "hvc_hangup() disconnect",
-            "hvc_remove() slot-release and handoff ordering",
-            "direct verify, replay, and cleanup companion surfaces",
-        ),
-    ),
-    FileExpectation(
-        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-        (
-            "hvc_cleanup() tty-port release handoff",
-            "cleanup-time tty-port ownership",
-            "hvc_hangup() disconnect summary",
-            "hvc_remove() handoff summary",
-            "direct replay and cleanup surfaces explicit",
-        ),
-    ),
+COMPANION_MARKERS = (
+    "`PHASE11_STATUS=current_head_companion_landed`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "returned HVC validation matrix and build-inventory checker stay explicit",
+    "standalone targetless-unregister witness",
+    "separate failure-mode replay",
+    "proof-backed HVC continuity packet remains reviewable",
+)
+
+VERIFY_MARKERS = (
+    "`error.CleanupRequiresFinalCloseOrHangup`",
+    "`CleanupTrigger.hangup_only` and `CleanupTrigger.final_close_and_hangup`",
+    "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`",
+    "`NotifierUnregisterTimingState.targeted_unregister_request`",
+    "`targetless_dispatch_without_notifier`",
+)
+
+MATRIX_MARKERS = (
+    "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
+    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
+    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+    "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
+    "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
+    "`zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
+    "`hvc_hangup()` disconnect",
+    "`hvc_remove()` handoff",
+    "`hvc_cleanup()` tty-port",
+    "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet",
+)
+
+DRIVER_MARKERS = (
+    "pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {",
+    "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {",
+    "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {",
+    "pub fn summarizeCleanupPrerequisite(",
+    "error{CleanupRequiresFinalCloseOrHangup}!CleanupPrerequisiteSummary",
+    "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+    'test "phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable" {',
+    'test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {',
+    'test "phase11 hvc console keeps remove handoff summary reviewable" {',
+    'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
+)
+
+CLEANUP_CHECKER_MARKERS = (
+    "PHASE11_HVC_CLEANUP_CURRENT_HEAD=pass",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+    "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
+    "phase11_hvc_targetless_unregister_gap_build.zig",
+)
+
+TARGETLESS_CHECKER_MARKERS = (
+    "PHASE11_HVC_TARGETLESS_UNREGISTER_WITNESS=pass",
+    "standalone targetless-unregister witness",
+    "phase11-hvc-targetless-unregister-gap",
+)
+
+FORBIDDEN_MAKEFILE_MARKERS = (
+    "phase11-hvc-survey:",
+)
+
+REQUIRED_PACKET_FILES = (
+    SURVEY_PATH,
+    COMPANION_PATH,
+    VERIFY_PATH,
+    MATRIX_PATH,
+    DRIVER_PATH,
+    CLEANUP_CHECKER_PATH,
+    TARGETLESS_CHECKER_PATH,
+    INVENTORY_PATH,
+    MAKEFILE_PATH,
 )
 
 
@@ -77,308 +112,215 @@ class ValidationError(RuntimeError):
     pass
 
 
-def read_text(root: Path, relative_path: str) -> str:
-    path = root / relative_path
+def read_text(path: Path) -> str:
+    if not path.is_file():
+        raise ValidationError(f"missing required file: {path}")
+    return path.read_text(encoding="utf-8")
+
+
+def require_markers(root: Path, rel: Path, markers: tuple[str, ...], label: str) -> None:
+    text = read_text(root / rel)
+    for marker in markers:
+        if marker not in text:
+            raise ValidationError(f"missing {label} marker: {marker}")
+
+
+def require_inventory(root: Path) -> None:
     try:
-        return path.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise ValidationError(f"missing required file: {relative_path}") from exc
-
-
-def require_fragments(root: Path) -> None:
-    for expectation in FILE_EXPECTATIONS:
-        text = read_text(root, expectation.relative_path)
-        for fragment in expectation.required_fragments:
-            if fragment not in text:
-                raise ValidationError(
-                    f"{expectation.relative_path} is missing required fragment: {fragment!r}"
-                )
-
-
-def require_manifest(root: Path) -> None:
-    manifest_text = read_text(root, "zigux/tests/phase11_hvc_console_manifest.json")
-    try:
-        manifest = json.loads(manifest_text)
+        payload = json.loads(read_text(root / INVENTORY_PATH))
     except json.JSONDecodeError as exc:
-        raise ValidationError(
-            "zigux/tests/phase11_hvc_console_manifest.json is not valid JSON"
-        ) from exc
+        raise ValidationError(f"{INVENTORY_PATH} is not valid JSON") from exc
 
-    anchor = manifest.get("anchor")
-    if anchor != "drivers/tty/hvc/hvc_console.c":
-        raise ValidationError(
-            "phase11_hvc_console_manifest.json must stay anchored to drivers/tty/hvc/hvc_console.c"
-        )
+    exact_current_checks = payload.get("exact_current_checks")
+    if not isinstance(exact_current_checks, list):
+        raise ValidationError("phase11_build_inventory.json must keep exact_current_checks as a JSON array")
 
-    destinations = set(manifest.get("roadmap_destinations", ()))
-    missing_destinations = {
-        "drivers/tty/hvc/hvc_console.zig",
-        "drivers/tty/hvc/hvc_console_sysrq.zig",
-        "zigux/tests/phase11_hvc_console_survey.zig",
-    } - destinations
-    if missing_destinations:
-        missing_list = ", ".join(sorted(missing_destinations))
-        raise ValidationError(
-            f"phase11_hvc_console_manifest.json is missing roadmap destinations: {missing_list}"
-        )
-
-    survey_summary = manifest.get("survey_summary", {})
-    required_true_flags = (
-        "hvc_console_zig_present",
-        "hvc_console_sysrq_present",
-        "hvc_console_test_present",
-        "hvc_console_survey_gate_present",
-        "hvc_console_survey_note_present",
+    required_checks = (
+        "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
+        "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+        "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test",
+        "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+        "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+        "zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+        "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
     )
-    for flag in required_true_flags:
-        if survey_summary.get(flag) is not True:
-            raise ValidationError(
-                f"phase11_hvc_console_manifest.json must keep survey_summary[{flag!r}] true"
-            )
+    for command in required_checks:
+        if command not in exact_current_checks:
+            raise ValidationError(f"phase11_build_inventory.json must keep {command!r} in exact_current_checks")
 
-    gaps = manifest.get("gaps")
-    if not isinstance(gaps, list):
-        raise ValidationError("phase11_hvc_console_manifest.json must keep gaps as a JSON array")
+    workflow_steps = payload.get("workflow_phase11_steps")
+    required_step = {"name": "Validate current Phase 11 support bundle", "run": "make -C zigux phase11-validate"}
+    if not isinstance(workflow_steps, list) or required_step not in workflow_steps:
+        raise ValidationError("phase11_build_inventory.json must keep the phase11-validate workflow step explicit")
 
-    gap_ids = {entry.get("id") for entry in gaps if isinstance(entry, dict)}
-    required_gap_ids = {
-        "phase11-hvc-console-close-teardown",
-        "phase11-hvc-console-notifier-add-handoff",
-        "phase11-hvc-console-hangup-disconnect",
-        "phase11-hvc-console-remove-handoff",
-        "phase11-hvc-console-validation-matrix",
-    }
-    missing_gap_ids = sorted(required_gap_ids - gap_ids)
-    if missing_gap_ids:
-        raise ValidationError(
-            "phase11_hvc_console_manifest.json is missing teardown-facing gaps: "
-            + ", ".join(missing_gap_ids)
-        )
-
-    cleanup_gap = None
-    for entry in gaps:
-        if not isinstance(entry, dict):
-            continue
-        why_now = entry.get("why_now")
-        if isinstance(why_now, str) and "hvc_cleanup tty-port release handoff" in why_now:
-            cleanup_gap = entry
-            break
-    if cleanup_gap is None:
-        raise ValidationError(
-            "phase11_hvc_console_manifest.json must keep one teardown-facing gap that names the "
-            "hvc_cleanup tty-port release handoff"
-        )
-
-    cleanup_status = cleanup_gap.get("status")
-    if cleanup_status != "starter_landed":
-        raise ValidationError(
-            "the manifest gap naming the hvc_cleanup tty-port release handoff must remain starter_landed"
-        )
-
-
-def require_packet_files(root: Path) -> None:
-    missing = [path for path in REQUIRED_PACKET_FILES if not (root / path).is_file()]
-    if missing:
-        raise ValidationError(
-            "missing required Phase 11 HVC teardown packet files: " + ", ".join(missing)
-        )
+    focused_direct = payload.get("focused_direct_build_replays")
+    if not isinstance(focused_direct, list):
+        raise ValidationError("phase11_build_inventory.json must keep focused_direct_build_replays as a JSON array")
+    for rel in (
+        "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+        "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    ):
+        if rel not in focused_direct:
+            raise ValidationError(f"phase11_build_inventory.json must keep {rel!r} in focused_direct_build_replays")
 
 
 def validate(root: Path) -> None:
-    require_packet_files(root)
-    require_fragments(root)
-    require_manifest(root)
+    missing = [str(rel) for rel in REQUIRED_PACKET_FILES if not (root / rel).is_file()]
+    if missing:
+        raise ValidationError("missing required Phase 11 HVC teardown packet files: " + ", ".join(missing))
+
+    require_markers(root, SURVEY_PATH, SURVEY_MARKERS, "survey")
+    require_markers(root, COMPANION_PATH, COMPANION_MARKERS, "companion")
+    require_markers(root, VERIFY_PATH, VERIFY_MARKERS, "verify")
+    require_markers(root, MATRIX_PATH, MATRIX_MARKERS, "matrix")
+    require_markers(root, DRIVER_PATH, DRIVER_MARKERS, "driver")
+    require_markers(root, CLEANUP_CHECKER_PATH, CLEANUP_CHECKER_MARKERS, "cleanup checker")
+    require_markers(root, TARGETLESS_CHECKER_PATH, TARGETLESS_CHECKER_MARKERS, "targetless checker")
+    require_inventory(root)
+
+    makefile_text = read_text(root / MAKEFILE_PATH)
+    for marker in FORBIDDEN_MAKEFILE_MARKERS:
+        if marker in makefile_text:
+            raise ValidationError(f"forbidden Makefile marker present: {marker}")
 
 
-def write_text(root: Path, relative_path: str, text: str) -> None:
-    path = root / relative_path
+def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 
 
-def make_fixture(root: Path) -> None:
-    for relative_path in REQUIRED_PACKET_FILES:
-        write_text(root, relative_path, "placeholder\n")
-
-    write_text(
-        root,
-        "Documentation/zigux/phase11-hvc-console-survey.md",
-        "\n".join(
-            (
-                "# survey",
-                "hvc_cleanup() tty-port release handoff summary",
-                "hvc_hangup() disconnect summary",
-                "hvc_remove() handoff summary",
-                "zigux/tests/phase11_hvc_cleanup.zig",
-                "drivers/tty/hvc/hvc_console_verify.zig",
-            )
-        )
-        + "\n",
-    )
-    write_text(
-        root,
-        "Documentation/zigux/phase11-hvc-console-slice.md",
-        "\n".join(
-            (
-                "# slice",
-                "hvc_cleanup() tty-port release handoff summary",
-                "cleanup-time tty-port ownership",
-                "targetless notifier no-unregister edge",
-            )
-        )
-        + "\n",
-    )
-    write_text(
-        root,
-        "Documentation/zigux/phase11-hvc-console-teardown-note.md",
-        "\n".join(
-            (
-                "# teardown",
-                "hvc_cleanup() tty-port release handoff",
-                "cleanup-time tty-port ownership",
-                "hvc_hangup() disconnect",
-                "hvc_remove() slot-release and handoff ordering",
-                "direct verify, replay, and cleanup companion surfaces",
-            )
-        )
-        + "\n",
-    )
-    write_text(
-        root,
-        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-        "\n".join(
-            (
-                "# matrix",
-                "hvc_cleanup() tty-port release handoff",
-                "cleanup-time tty-port ownership",
-                "hvc_hangup() disconnect summary",
-                "hvc_remove() handoff summary",
-                "direct replay and cleanup surfaces explicit",
-            )
+def build_fixture(root: Path) -> None:
+    write(root / SURVEY_PATH, "\n".join(("survey", *SURVEY_MARKERS)) + "\n")
+    write(root / COMPANION_PATH, "\n".join(("companion", *COMPANION_MARKERS)) + "\n")
+    write(root / VERIFY_PATH, "\n".join(("verify", *VERIFY_MARKERS)) + "\n")
+    write(root / MATRIX_PATH, "\n".join(("matrix", *MATRIX_MARKERS)) + "\n")
+    write(root / DRIVER_PATH, "\n".join(("driver", *DRIVER_MARKERS)) + "\n")
+    write(root / CLEANUP_CHECKER_PATH, "\n".join(("cleanup", *CLEANUP_CHECKER_MARKERS)) + "\n")
+    write(root / TARGETLESS_CHECKER_PATH, "\n".join(("targetless", *TARGETLESS_CHECKER_MARKERS)) + "\n")
+    write(root / MAKEFILE_PATH, "phase11-validate:\n\t@true\n")
+    write(
+        root / INVENTORY_PATH,
+        json.dumps(
+            {
+                "exact_current_checks": [
+                    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
+                    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+                    "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test",
+                    "python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+                    "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+                    "zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+                    "zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                ],
+                "workflow_phase11_steps": [
+                    {
+                        "name": "Validate current Phase 11 support bundle",
+                        "run": "make -C zigux phase11-validate",
+                    }
+                ],
+                "focused_direct_build_replays": [
+                    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+                    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                ],
+            },
+            indent=2,
+            sort_keys=True,
         )
         + "\n",
     )
 
-    manifest = {
-        "anchor": "drivers/tty/hvc/hvc_console.c",
-        "roadmap_destinations": [
-            "drivers/tty/hvc/hvc_console.zig",
-            "drivers/tty/hvc/hvc_console_sysrq.zig",
-            "zigux/tests/phase11_hvc_console_survey.zig",
-        ],
-        "survey_summary": {
-            "hvc_console_zig_present": True,
-            "hvc_console_sysrq_present": True,
-            "hvc_console_test_present": True,
-            "hvc_console_survey_gate_present": True,
-            "hvc_console_survey_note_present": True,
-        },
-        "gaps": [
-            {
-                "id": "phase11-hvc-console-close-teardown",
-                "status": "starter_landed",
-                "why_now": "Record close teardown ordering.",
-            },
-            {
-                "id": "phase11-hvc-console-notifier-add-handoff",
-                "status": "starter_landed",
-                "why_now": "Record notifier add handoff.",
-            },
-            {
-                "id": "phase11-hvc-console-hangup-disconnect",
-                "status": "starter_landed",
-                "why_now": "Record hangup disconnect ordering.",
-            },
-            {
-                "id": "phase11-hvc-console-remove-handoff",
-                "status": "starter_landed",
-                "why_now": "Record remove handoff ordering.",
-            },
-            {
-                "id": "phase11-hvc-console-validation-matrix",
-                "status": "starter_landed",
-                "why_now": "Record validation matrix coverage.",
-            },
-            {
-                "id": "phase11-hvc-console-cleanup-handoff",
-                "status": "starter_landed",
-                "why_now": (
-                    "Keep the hvc_cleanup tty-port release handoff, cleanup-time tty-port "
-                    "ownership, and direct cleanup companion surface explicit."
-                ),
-            },
-        ],
-    }
-    write_text(
-        root,
-        "zigux/tests/phase11_hvc_console_manifest.json",
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
-    )
+
+def expect_failure(root: Path, rel: Path, needle: str) -> None:
+    text = read_text(root / rel)
+    write(root / rel, text.replace(needle, "", 1))
+    try:
+        validate(root)
+    except ValidationError as exc:
+        if needle not in str(exc) and "phase11_build_inventory.json" not in str(exc):
+            raise AssertionError(f"expected {needle!r}, got {exc!r}") from exc
+        return
+    raise AssertionError(f"expected failure containing {needle!r}")
 
 
 def run_self_test() -> int:
-    temp_dir = Path(tempfile.mkdtemp(prefix="phase11-hvc-teardown-packet-"))
-    total_cases = 0
+    tmpdir = Path(tempfile.mkdtemp(prefix="phase11_hvc_teardown_"))
     try:
-        make_fixture(temp_dir)
-        validate(temp_dir)
-        total_cases += 1
+        fixture = tmpdir / "fixture"
+        build_fixture(fixture)
+        validate(fixture)
 
-        broken_manifest = temp_dir / "zigux/tests/phase11_hvc_console_manifest.json"
-        data = json.loads(broken_manifest.read_text(encoding="utf-8"))
-        data["gaps"] = [
-            entry
-            for entry in data["gaps"]
-            if entry["id"] != "phase11-hvc-console-cleanup-handoff"
+        cases = [
+            (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
+            (SURVEY_PATH, "`scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`"),
+            (COMPANION_PATH, "standalone targetless-unregister witness"),
+            (VERIFY_PATH, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`"),
+            (MATRIX_PATH, "`hvc_cleanup()` tty-port"),
+            (MATRIX_PATH, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet"),
+            (DRIVER_PATH, "pub fn summarizeCleanupPrerequisite("),
+            (DRIVER_PATH, 'test "phase11 hvc console keeps stale hangup short-circuit ownership reviewable" {'),
+            (CLEANUP_CHECKER_PATH, "`zigux/tests/phase11_hvc_modem_control_proof.zig`"),
+            (TARGETLESS_CHECKER_PATH, "phase11-hvc-targetless-unregister-gap"),
         ]
-        broken_manifest.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        try:
-            validate(temp_dir)
-        except ValidationError:
-            total_cases += 1
-        else:
-            raise AssertionError("expected cleanup handoff validation to fail")
 
-        make_fixture(temp_dir)
-        teardown_note = temp_dir / "Documentation/zigux/phase11-hvc-console-teardown-note.md"
-        teardown_note.write_text("# teardown\ncleanup-time tty-port ownership\n", encoding="utf-8")
+        for index, (rel, needle) in enumerate(cases, start=1):
+            broken = tmpdir / f"broken_{index:02d}"
+            shutil.copytree(fixture, broken, dirs_exist_ok=True)
+            expect_failure(broken, rel, needle)
+
+        bad_inventory = tmpdir / "bad_inventory"
+        shutil.copytree(fixture, bad_inventory, dirs_exist_ok=True)
+        write(
+            bad_inventory / INVENTORY_PATH,
+            json.dumps(
+                {
+                    "exact_current_checks": [],
+                    "workflow_phase11_steps": [],
+                    "focused_direct_build_replays": [],
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+        )
         try:
-            validate(temp_dir)
+            validate(bad_inventory)
         except ValidationError:
-            total_cases += 1
+            pass
         else:
-            raise AssertionError("expected teardown note fragment validation to fail")
+            raise AssertionError("expected inventory validation failure")
+
+        forbidden_makefile = tmpdir / "forbidden_makefile"
+        shutil.copytree(fixture, forbidden_makefile, dirs_exist_ok=True)
+        write(forbidden_makefile / MAKEFILE_PATH, "phase11-validate:\n\t@true\nphase11-hvc-survey:\n\t@true\n")
+        try:
+            validate(forbidden_makefile)
+        except ValidationError as exc:
+            if "phase11-hvc-survey:" not in str(exc):
+                raise AssertionError(f"expected forbidden route failure, got {exc!r}") from exc
+        else:
+            raise AssertionError("expected forbidden route failure")
+
+        print("PHASE11_HVC_TEARDOWN_PACKET_SELF_TEST=pass")
+        print(f"PHASE11_HVC_TEARDOWN_PACKET_SELF_TEST_CASE_COUNT={len(cases) + 2}")
+        return 0
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
-
-    print(f"PHASE11_HVC_TEARDOWN_PACKET_SELF_TEST=pass cases={total_cases}")
-    return 0
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Check the bounded Phase 11 HVC teardown packet for review-surface drift."
-    )
-    parser.add_argument(
-        "--repo-root",
-        default=".",
-        help="Path to the Zigux repository root. Defaults to the current working directory.",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run built-in fixture cases instead of validating a repository checkout.",
-    )
-    return parser.parse_args()
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 def main() -> int:
-    args = parse_args()
+    parser = argparse.ArgumentParser(
+        description="Check the current-head Phase 11 HVC teardown packet for drift."
+    )
+    parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
+    parser.add_argument("--repo-root", type=Path, dest="root_override")
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+
     if args.self_test:
         return run_self_test()
 
+    root = args.root_override if args.root_override is not None else args.root
     try:
-        validate(Path(args.repo_root).resolve())
+        validate(root.resolve())
     except ValidationError as exc:
         print(f"PHASE11_HVC_TEARDOWN_PACKET=fail: {exc}")
         return 1
