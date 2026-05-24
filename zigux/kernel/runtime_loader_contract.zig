@@ -59,6 +59,13 @@ pub fn keepsLoadPlanExplicit(actual: LoadPlan, expected: LoadPlan) bool {
         actual.init_flow.exit_runs == expected.init_flow.exit_runs;
 }
 
+fn enumHasTag(comptime Enum: type, comptime tag_name: []const u8) bool {
+    inline for (@typeInfo(Enum).@"enum".fields) |field| {
+        if (std.mem.eql(u8, field.name, tag_name)) return true;
+    }
+    return false;
+}
+
 test "InitFlow.readyForRuntimeLoad keeps the staged handoff rules explicit" {
     const initialized_ready = InitFlow{
         .handoff_stage = .initialized,
@@ -204,6 +211,25 @@ test "keepsLoadPlanExplicit compares every shared handoff field" {
     drifted = stable;
     drifted.init_flow.exit_runs = 1;
     try std.testing.expect(!keepsLoadPlanExplicit(drifted, stable));
+}
+
+test "RequestState keeps the shared loader contract bounded to pre-runtime handoff states" {
+    const fields = @typeInfo(RequestState).@"enum".fields;
+    try std.testing.expectEqual(@as(usize, 3), fields.len);
+    try std.testing.expectEqualStrings("prepared", fields[0].name);
+    try std.testing.expectEqualStrings("waiting_on_runtime_substrate", fields[1].name);
+    try std.testing.expectEqualStrings("released_without_substrate", fields[2].name);
+
+    inline for ([_][]const u8{
+        "event_loop_waiting",
+        "loaded",
+        "polling",
+        "registered",
+        "running",
+        "scheduled",
+    }) |blocked_tag| {
+        try std.testing.expect(!enumHasTag(RequestState, blocked_tag));
+    }
 }
 
 test "LoadPlan keeps Phase 8 command and environment control fields out of the shared request contract" {
