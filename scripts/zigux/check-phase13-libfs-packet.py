@@ -17,8 +17,8 @@ REVIEWABILITY_PATH = "zigux/tests/phase13_libfs_reviewability.zig"
 FIXTURE_LANE = "P13-Y01"
 FIXTURE_COMMIT = "master-readback-2026-05-15"
 EXPECTED_GAP_COUNT = 13
-EXPECTED_STARTER_COUNT = 10
-EXPECTED_BLOCKED_COUNT = 3
+EXPECTED_STARTER_COUNT = 11
+EXPECTED_BLOCKED_COUNT = 2
 
 EXPECTED_GAPS = {
     "phase13-libfs-helper-starter": "starter_landed",
@@ -31,7 +31,7 @@ EXPECTED_GAPS = {
     "phase13-libfs-addressability-helper": "starter_landed",
     "phase13-libfs-reviewability-gate": "starter_landed",
     "phase13-libfs-survey-note": "starter_landed",
-    "phase13-build-gate": "blocked_on_shared_build_surface",
+    "phase13-build-gate": "starter_landed",
     "phase13-libfs-live-dcache-mutation": "blocked_on_dcache_state",
     "phase13-libfs-live-inode-state": "blocked_on_inode_state",
 }
@@ -48,7 +48,7 @@ SURVEY_STATIC_MARKERS = [
     "simple_transaction_set()",
     "generic_check_addressable()",
     "offset-based rename and rename-exchange planners",
-    "still does not materialize the older shared `zigux/tests/phase13_build.zig` surface",
+    "shared `zigux/tests/phase13_build.zig` route",
 ]
 
 HELPER_MARKERS = [
@@ -250,9 +250,26 @@ def run_self_test() -> int:
             [
                 "manifest:gaps_count_mismatch:12",
                 "manifest:gap_status_mismatch:phase13-libfs-live-inode-state:None",
-                "manifest:blocked_count_mismatch:2",
+                "manifest:blocked_count_mismatch:1",
             ],
             "manifest_gap_count_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        for gap in manifest["gaps"]:
+            if gap["id"] == "phase13-build-gate":
+                gap["status"] = "blocked_on_shared_build_surface"
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            [
+                "manifest:gap_status_mismatch:phase13-build-gate:blocked_on_shared_build_surface",
+                "manifest:starter_count_mismatch:10",
+                "manifest:blocked_count_mismatch:3",
+            ],
+            "manifest_build_gate_status_failed",
         )
         case_count += 1
 
