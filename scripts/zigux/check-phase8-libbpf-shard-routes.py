@@ -348,6 +348,7 @@ REQUIRED_MARKERS = {
         'test "phase8 libbpf type-name helper entrypoints stay explicit" {',
         "libbpfBpfMapTypeStr(27)",
         "formatLibbpfBpfProgType(prog_buffer[0..], 33)",
+        'test "phase8 libbpf type-name formatters still fail closed on short buffers" {',
     ),
 }
 
