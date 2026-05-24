@@ -6,7 +6,7 @@ current Zigux Phase 11 packet.
 ## Status
 
 - `PHASE11_BCM2835_WDT_STATUS=driver_proof_and_matrix_packet_truthful`
-- lane: `P11-L07`
+- lane: `P11-L08`
 - reviewed against live `master`
 - scope: keep the current bcm2835 watchdog compile, PM-base gating, poweroff
   ownership, verify-helper packet, and reminder packet honest without widening
