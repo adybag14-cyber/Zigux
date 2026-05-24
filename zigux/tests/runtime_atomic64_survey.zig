@@ -95,6 +95,16 @@ fn expectLacks(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
+fn expectSurveyedCommitMarker(note_source: []const u8, surveyed_commit: []const u8) !void {
+    const marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "`PHASE9_SURVEYED_COMMIT={s}`",
+        .{surveyed_commit},
+    );
+    defer std.testing.allocator.free(marker);
+    try expectContains(note_source, marker);
+}
+
 test "phase 9 runtime atomic64 survey manifest records the visible shared-loader reminder packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -119,6 +129,9 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    try std.testing.expect(manifest.surveyed_commit.len > 0);
+    try expectSurveyedCommitMarker(survey_note_source, manifest.surveyed_commit);
+    try expectSurveyedCommitMarker(module_slice_note_source, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("P9-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
