@@ -90,7 +90,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
     uint32_t skipped;
 };
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary
-    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary;
+    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_summary;
 
 struct zigux_notifier_block {
     uintptr_t notifier_call;
@@ -247,6 +247,21 @@ static inline int zigux_list_has_consistent_backlinks(
     const struct zigux_list_head *head)
 {
     return head != NULL && zigux_list_first_broken_backlink(head, NULL) == 0;
+}
+
+static inline int zigux_hlist_first_pprev_matches_head(
+    const struct zigux_hlist_head *head)
+{
+    const struct zigux_hlist_node *first;
+
+    if (!head)
+        return 0;
+
+    first = (const struct zigux_hlist_node *)(uintptr_t)head->first;
+    if (!first)
+        return 1;
+
+    return first->pprev == (uintptr_t)&head->first;
 }
 
 static inline int zigux_hlist_first_broken_prev_link(
