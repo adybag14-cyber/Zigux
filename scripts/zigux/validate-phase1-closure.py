@@ -37,6 +37,7 @@ ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-count
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")
 BITMAP_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-bitmap-direct-anchors.py")
+RBTREE_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-direct-anchors.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
@@ -62,6 +63,7 @@ REQUIRED_FILES = (
     BENCH_CHECKER_REL,
     FIND_BIT_BENCH_ANCHOR_CHECKER_REL,
     BITMAP_DIRECT_ANCHOR_CHECKER_REL,
+    RBTREE_DIRECT_ANCHOR_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
@@ -262,6 +264,7 @@ DELEGATED_CHECKERS = (
     (BENCH_CHECKER_REL, "phase1-bench"),
     (FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),
     (BITMAP_DIRECT_ANCHOR_CHECKER_REL, "phase1-bitmap-direct-anchors"),
+    (RBTREE_DIRECT_ANCHOR_CHECKER_REL, "phase1-rbtree-direct-anchors"),
     (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
 )
 
@@ -501,6 +504,8 @@ def run_self_test() -> int:
         ("failing_find_bit_bench_anchor_checker", lambda root: make_checker_stub(root / FIND_BIT_BENCH_ANCHOR_CHECKER_REL, ok=False)),
         ("missing_bitmap_direct_anchor_checker", lambda root: (root / BITMAP_DIRECT_ANCHOR_CHECKER_REL).unlink()),
         ("failing_bitmap_direct_anchor_checker", lambda root: make_checker_stub(root / BITMAP_DIRECT_ANCHOR_CHECKER_REL, ok=False)),
+        ("missing_rbtree_direct_anchor_checker", lambda root: (root / RBTREE_DIRECT_ANCHOR_CHECKER_REL).unlink()),
+        ("failing_rbtree_direct_anchor_checker", lambda root: make_checker_stub(root / RBTREE_DIRECT_ANCHOR_CHECKER_REL, ok=False)),
         ("failing_find_bit_review_checker", lambda root: make_checker_stub(root / FIND_BIT_REVIEW_CHECKER_REL, ok=False)),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
         ("missing_makefile_marker", lambda root: write_text(root / ZIGUX_MAKEFILE_REL, load_text(root, ZIGUX_MAKEFILE_REL).replace("phase12-test:\n", "", 1))),
