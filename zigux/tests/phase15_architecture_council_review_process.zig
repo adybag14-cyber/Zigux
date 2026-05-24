@@ -162,6 +162,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`");
     try expectContains(review_process, manifest.indefinite_c_policy_note);
     try expectContains(review_process, "`scripts/zigux/check-phase15-review-process-handoff.py`");
+    try expectContains(review_process, "`scripts/zigux/check-phase15-tests-readme-alignment.py`");
     try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(review_process, "the focused Zig replay, and the focused build-file replay are landed");
