@@ -177,7 +177,7 @@ def _sample_note() -> str:
 - `PHASE15_LANE_KEY=P15-L02`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-23`
 
 This note says the governance packet is materially landed and reviewable, the dedicated validator now exists as a directly readable maintenance gate, and broader build and workflow companions still block any claim that the larger Phase 15 replay route is fully ready.
 
@@ -202,7 +202,7 @@ def _sample_manifest() -> str:
         "lane_key": EXPECTED_LANE_KEY,
         "phase": EXPECTED_PHASE,
         "surveyed_commit_mode": "dated_master_readback",
-        "surveyed_commit": "current-master-readback-2026-05-22",
+        "surveyed_commit": "current-master-readback-2026-05-23",
         "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
         "direct_packet_paths": [
             "scripts/zigux/check-phase15-readiness-gate-packet.py",
