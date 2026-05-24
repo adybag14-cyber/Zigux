@@ -520,7 +520,7 @@ def build_stub_script(
 ) -> None:
     live_exit_literal = self_test_exit_code if live_exit_code is None else live_exit_code
     self_test_stdout_literal = repr(list(self_test_stdout_lines))
-    live_stdout_literal = repr(list(self.live_stdout_lines))
+    live_stdout_literal = repr(list(live_stdout_lines))
     write_text(
         path,
         "\n".join(
