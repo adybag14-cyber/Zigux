@@ -84,7 +84,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view;
 
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_summary {
     uint32_t attempted;
     uint32_t applied;
     uint32_t skipped;
@@ -123,6 +123,18 @@ typedef struct zigux_hlist_prev_link_break {
     uintptr_t expected_pprev;
     uintptr_t actual_pprev;
 } zigux_hlist_prev_link_break;
+
+static inline int zigux_notifier_result_is_known(uint32_t result)
+{
+    return result == (uint32_t)ZIGUX_NOTIFIER_DONE ||
+        result == (uint32_t)ZIGUX_NOTIFIER_OK ||
+        result == (uint32_t)ZIGUX_NOTIFIER_STOP;
+}
+
+static inline int zigux_notifier_result_stops_chain(uint32_t result)
+{
+    return result == (uint32_t)ZIGUX_NOTIFIER_STOP;
+}
 
 static inline int zigux_notifier_chain_has_nonincreasing_priority(
     const struct zigux_notifier_block *head)
