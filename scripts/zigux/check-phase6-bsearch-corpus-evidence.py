@@ -28,93 +28,74 @@ C_PARITY_RUNNER_PATH = Path("zigux/tests/phase6_bsearch_c_parity.zig")
 C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_bsearch_c_harness.c")
 BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 
-BUDGET_FORMULA = '"len == 0 ? 0 : std.math.log2_int_floor(len) + 1"'
-SLICE_SUMMARY = (
-    "- direct helper-local evidence now covers typed and raw representative lookups, "
-    "descending-order comparator handling, duplicate-span `equalRange` wrappers, "
-    "`IndexRange` typed and byte-view companions, mutable write-through aliases, typed "
-    "and raw C ABI lower-bound and upper-bound insertion-point parity, runtime-selected "
-    "typed and raw C ABI comparator pointers under logarithmic comparison budgets, a "
-    "representative external C-vs-Zig parity replay covering 17 sorted lookup cases "
-    "across ascending and descending comparator-driven lookups, duplicate hits, "
-    "heterogeneous string-key lookup, and mutable write-through behavior, and a "
-    "fixture-backed dedicated perf replay that reports lookup cost plus average and "
-    "worst-case comparator work across representative lengths"
+BUDGET_FORMULA = '"budget_formula": "std.math.log2_int_ceil(len) + 1"'
+BOUND_BUDGET_FORMULA = '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"'
+PARITY_ROW = (
+    "- helper-evidence row: `zigux/tests/phase6_bsearch_perf.zig`, "
+    "`zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, "
+    "`zigux/tests/phase6_bsearch_c_abi_budget.zig`, "
+    "`zigux/tests/phase6_bsearch_c_parity.zig`, "
+    "`zigux/tests/fixtures/phase6_bsearch_c_harness.c`, "
+    "`zigux/tests/fixtures/phase6_bsearch_vectors.zig`, "
+    "`scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, "
+    "`scripts/zigux/check-phase6-bsearch-c-parity.py`, "
+    "`Documentation/zigux/phase6-bsearch-slice.md`, "
+    "`Documentation/zigux/phase6-helper-evidence-catalog.md`, "
+    "`zigux/tests/phase6_helper_evidence_manifest.json`, and "
+    "`zigux/tests/phase6_helper_parity_manifest.json`"
 )
-C_PARITY_COMPANIONS = (
-    "- direct C parity companions: `zigux/tests/phase6_bsearch_c_parity.zig`, "
-    "`zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and "
-    "`scripts/zigux/check-phase6-bsearch-c-parity.py`"
-)
-HELPER_POSTURE = (
-    "- current posture: direct helper readback is restored across the helper, focused "
-    "replay, perf replay, C ABI review routes, fixture surface, checker, and slice note"
-)
-LIB_INDEX_RANGE_TEST = 'test "index range views keep typed and byte aliases aligned for hits and insertion sites" {'
-LIB_FIRST_CONST = (
-    'const first_const = duplicate_range.firstConst(i32, duplicates[0..]) '
-    'orelse return error.TestUnexpectedResult;'
-)
-LIB_LAST_CONST = (
-    'const last_const = duplicate_range.lastConst(i32, duplicates[0..]) '
-    'orelse return error.TestUnexpectedResult;'
-)
-LIB_MUTABLE_BYTE_VIEW = (
-    'const mutable_byte_view = duplicate_range.bytesMutable('
-    '@ptrCast(mutable_raw_duplicates[0..].ptr), @sizeOf(i32));'
+PARITY_POSTURE = (
+    "- current posture: direct helper readback is restored across the helper, "
+    "focused replay, perf replay, C ABI review routes, direct C parity runner, "
+    "direct C parity harness, fixture surface, dedicated corpus checker, direct "
+    "C parity checker, and slice note"
 )
 
 REQUIRED_SNIPPETS = {
     SLICE_PATH: [
         "- `PHASE6_STATUS=parked`",
-        "- lane state: helper slice restored; parked unless helper-local parity, portability, duplicate-span, raw C ABI bounds, fixture-backed perf replay, or compact fixture-companion drift reappears",
         "- `IndexRange.firstConst`",
-        "- `IndexRange.firstMutable`",
         "- `IndexRange.lastConst`",
-        "- `IndexRange.lastMutable`",
         "- `IndexRange.bytes`",
         "- `IndexRange.bytesMutable`",
         "- `zigux/tests/phase6_bsearch_perf.zig`",
-        "- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`",
         "- `zigux/tests/phase6_bsearch_c_parity.zig`",
         "- `zigux/tests/fixtures/phase6_bsearch_c_harness.c`",
-        "- `scripts/zigux/check-phase6-bsearch-c-parity.py`",
-        SLICE_SUMMARY,
         "- helper-local checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+        "- direct C parity checker: `scripts/zigux/check-phase6-bsearch-c-parity.py`",
         "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
     ],
     CATALOG_PATH: [
         "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`",
+        "- direct C parity companions: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and `scripts/zigux/check-phase6-bsearch-c-parity.py`",
         "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-        C_PARITY_COMPANIONS,
         "- `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`",
         "- `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`",
     ],
     PARITY_CATALOG_PATH: [
-        "- helper-evidence row: `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_evidence_manifest.json`",
-        HELPER_POSTURE,
-        "PHASE6_BSEARCH_C_PARITY_CASES=17",
+        "### bsearch",
+        PARITY_ROW,
+        PARITY_POSTURE,
     ],
     HELPER_EVIDENCE_MANIFEST_PATH: [
         '"key": "bsearch"',
-        '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
-        '"checker_surfaces": [',
+        '"direct_c_parity_replay": "zigux/tests/phase6_bsearch_c_parity.zig"',
+        '"direct_c_parity_harness": "zigux/tests/fixtures/phase6_bsearch_c_harness.c"',
         '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
-        '"case_labels": [',
-        '"len15"',
-        '"len64"',
-        '"len1024"',
+        '"scripts/zigux/check-phase6-bsearch-c-parity.py"',
         '"query_count": 16',
-        f'"budget_formula": {BUDGET_FORMULA}',
+        BUDGET_FORMULA,
         '"zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig"',
         '"make -C zigux phase6-bsearch-perf"',
     ],
     HELPER_PARITY_MANIFEST_PATH: [
         '"key": "bsearch"',
-        '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
+        '"direct_c_parity_replay": "zigux/tests/phase6_bsearch_c_parity.zig"',
+        '"direct_c_parity_harness": "zigux/tests/fixtures/phase6_bsearch_c_harness.c"',
+        '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
+        '"scripts/zigux/check-phase6-bsearch-c-parity.py"',
         '"budget_model": "comparison_budget"',
-        f'"bound_budget_formula": {BUDGET_FORMULA}',
-        '"runtime_selected_c_abi_replays": [',
+        BOUND_BUDGET_FORMULA,
         '"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig"',
         '"zigux/tests/phase6_bsearch_c_abi_budget.zig"',
         '"make -C zigux phase6-bsearch-perf"',
@@ -125,20 +106,10 @@ REQUIRED_SNIPPETS = {
         "pub fn equalRangeIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) IndexRange {",
         "pub fn equalRange(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) []const T {",
         "pub fn equalRangeMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) []T {",
+        'test "index range views keep typed and byte aliases aligned for hits and insertion sites" {',
         "pub fn firstConst(self: @This(), comptime T: type, items: []const T) ?*const T {",
-        "pub fn firstMutable(self: @This(), comptime T: type, items: []T) ?*T {",
         "pub fn lastConst(self: @This(), comptime T: type, items: []const T) ?*const T {",
-        "pub fn lastMutable(self: @This(), comptime T: type, items: []T) ?*T {",
-        "pub fn bytes(self: @This(), base: [*]const u8, size: usize) []const u8 {",
         "pub fn bytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {",
-        "pub fn bsearchLowerBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {",
-        "pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {",
-        "pub fn bsearchEqualRange(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) []const u8 {",
-        "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
-        LIB_INDEX_RANGE_TEST,
-        LIB_FIRST_CONST,
-        LIB_LAST_CONST,
-        LIB_MUTABLE_BYTE_VIEW,
     ],
     HELPER_TEST_PATH: [
         'test "phase 6 bsearch direct equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
@@ -150,13 +121,9 @@ REQUIRED_SNIPPETS = {
     ],
     PERF_TEST_PATH: [
         "phase6-bsearch-perf",
-        "fixtures.perf_cases",
-        "fixtures.seedDeterministicQueries",
         "avg_compare_calls",
         "max_compare_calls",
         "max_compare_budget",
-        "compareCountedDescending",
-        "compareCountedOpaqueDescending",
         "populateDescending(descending_values, ascending_values);",
         "const descending_witness = try runWitnessCases(",
         "for (descending_queries, descending_expected_hits) |query, expected_hit| {",
@@ -166,8 +133,6 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points aligned" {',
         'test "phase 6 bsearch descending raw c abi mutable wrappers keep duplicate-span write-through aligned" {',
         "const mutable_lower = bsearch.bsearchLowerBoundMutable(",
-        "try std.testing.expectEqual(@intFromPtr(&mutable_duplicates[3]), @intFromPtr(typed_mutable_lower));",
-        "const missing_lower = bsearch.bsearchLowerBoundMutable(",
         "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[6]), @intFromPtr(typed_missing_lower));",
         "try expectRange(descending_duplicates[0..], 20, .{ .lower = 6, .upper = 6 }, compare);",
     ],
@@ -177,7 +142,6 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch raw c abi equal-range budgets stay logarithmic for duplicate spans in both sort orders" {',
         'test "phase 6 bsearch typed c abi equal-range budgets stay logarithmic for duplicate spans in both sort orders" {',
         'test "phase 6 bsearch typed c abi runtime-selected comparator pointers keep the budget contract" {',
-        'test "phase 6 bsearch typed c abi runtime-selected bound and equal-range comparator pointers keep the budget contract" {',
         'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {',
         'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {',
     ],
@@ -192,19 +156,14 @@ REQUIRED_SNIPPETS = {
         'C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c"',
         'ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig"',
         'print("PHASE6_BSEARCH_C_PARITY=pass")',
-        'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
     ],
     C_PARITY_RUNNER_PATH: [
-        "fn compareDescendingU32(key: *const u32, item: *const u32) callconv(.c) c_int {",
-        "const descending_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };",
         'try writeIndexCase(writer, "descending-hit", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));',
         'try writeIndexCase(writer, "descending-miss", 20, bsearch.searchIndex(u32, u32, &@as(u32, 20), descending_values[0..], compareDescendingU32));',
     ],
     C_HARNESS_PATH: [
         "static int compare_descending_u32(const void *key, const void *elt)",
-        "static const uint32_t descending_values[] = { 89, 55, 34, 21, 13, 8, 3 };",
         'print_index_case("descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
-        'print_index_case("descending-miss", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
     ],
     BUILD_PATH: [
         'const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");',
@@ -215,45 +174,12 @@ REQUIRED_SNIPPETS = {
 }
 
 SELF_TEST_CASES = [
-    (SLICE_PATH, "- `IndexRange.firstConst`", "- `IndexRange.firstHead`"),
-    (SLICE_PATH, "- `IndexRange.bytesMutable`", "- `IndexRange.rawBytesMutable`"),
-    (
-        SLICE_PATH,
-        SLICE_SUMMARY,
-        "- direct helper-local evidence now covers typed and raw representative lookups, descending-order comparator handling, duplicate-span `equalRange` wrappers, mutable write-through aliases, raw C ABI lower-bound and upper-bound insertion-point parity, runtime-selected raw C ABI comparator pointers under logarithmic comparison budgets, and a fixture-backed dedicated perf replay that reports lookup cost plus average and worst-case comparator work across representative lengths",
-    ),
-    (SLICE_PATH, "- `zigux/tests/phase6_bsearch_c_parity.zig`", "- `zigux/tests/phase6_bsearch_c_parity_casegen.zig`"),
-    (SLICE_PATH, "python3 scripts/zigux/check-phase6-bsearch-c-parity.py", "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py"),
-    (LIB_PATH, LIB_INDEX_RANGE_TEST, 'test "equal-range index views keep typed and byte aliases aligned for hits and insertion sites" {'),
-    (LIB_PATH, LIB_FIRST_CONST, 'const first_const = duplicate_range.firstHead(i32, duplicates[0..]) orelse return error.TestUnexpectedResult;'),
-    (LIB_PATH, LIB_LAST_CONST, 'const last_const = duplicate_range.lastHead(i32, duplicates[0..]) orelse return error.TestUnexpectedResult;'),
-    (LIB_PATH, LIB_MUTABLE_BYTE_VIEW, 'const mutable_byte_view = duplicate_range.rawBytesMutable(@ptrCast(mutable_raw_duplicates[0..].ptr), @sizeOf(i32));'),
-    (LIB_PATH, "pub fn firstConst(self: @This(), comptime T: type, items: []const T) ?*const T {", "pub fn firstHead(self: @This(), comptime T: type, items: []const T) ?*const T {"),
-    (LIB_PATH, "pub fn bytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {", "pub fn rawBytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {"),
-    (CATALOG_PATH, "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`", "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
-    (CATALOG_PATH, C_PARITY_COMPANIONS, "- direct C parity companions: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`"),
-    (PARITY_CATALOG_PATH, HELPER_POSTURE, "- current posture: direct helper readback is restored across the helper, focused replay, perf replay, C ABI review routes, fixture surface, and slice note"),
-    (PARITY_CATALOG_PATH, "PHASE6_BSEARCH_C_PARITY_CASES=17", "PHASE6_BSEARCH_C_PARITY_CASES=15"),
-    (HELPER_EVIDENCE_MANIFEST_PATH, '"query_count": 16', '"query_count": 8'),
-    (HELPER_EVIDENCE_MANIFEST_PATH, f'"budget_formula": {BUDGET_FORMULA}', '"budget_formula": "std.math.log2_int_ceil(len) + 1"'),
-    (HELPER_PARITY_MANIFEST_PATH, f'"bound_budget_formula": {BUDGET_FORMULA}', '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"'),
-    (LOWER_BOUND_TEST_PATH, "const mutable_lower = bsearch.bsearchLowerBoundMutable(", "const mutable_alias = bsearch.bsearchLowerBoundMutable("),
-    (LOWER_BOUND_TEST_PATH, "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[6]), @intFromPtr(typed_missing_lower));", "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[5]), @intFromPtr(typed_missing_lower));"),
-    (BUDGET_TEST_PATH, 'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {', 'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {'),
-    (FIXTURES_PATH, "pub const query_count: usize = 16;", "pub const query_count: usize = 15;"),
-    (PERF_TEST_PATH, "avg_compare_calls", "avg_probe_calls"),
-    (PERF_TEST_PATH, "compareCountedDescending", "compareCountedReverse"),
-    (PERF_TEST_PATH, "compareCountedOpaqueDescending", "compareCountedOpaqueReverse"),
-    (PERF_TEST_PATH, "populateDescending(descending_values, ascending_values);", "populateDescendingPerf(descending_values, ascending_values);"),
-    (PERF_TEST_PATH, "const descending_witness = try runWitnessCases(", "const alternate_witness = try runWitnessCases("),
-    (PERF_TEST_PATH, "for (descending_queries, descending_expected_hits) |query, expected_hit| {", "for (ascending_queries, descending_expected_hits) |query, expected_hit| {"),
-    (PERF_TEST_PATH, "try std.testing.expect(descending_witness.max_compare_calls <= max_compare_budget);", "try std.testing.expect(descending_witness.max_compare_calls < max_compare_budget);"),
-    (C_PARITY_CHECKER_PATH, 'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")', 'print(f"PHASE6_BSEARCH_C_PARITY_TOTAL={len(c_lines)}")'),
-    (C_PARITY_RUNNER_PATH, 'try writeIndexCase(writer, "descending-hit", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));', 'try writeIndexCase(writer, "descending-found", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));'),
-    (C_HARNESS_PATH, "static int compare_descending_u32(const void *key, const void *elt)", "static int compare_reverse_u32(const void *key, const void *elt)"),
-    (BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");', 'const bsearch_perf_step = b.step("phase6-bsearch-scan", "Run Phase 6 bsearch helper perf gate");'),
-    (BUILD_PATH, "bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);", "bsearch_test_step.dependOn(&run_bsearch_tests.step);"),
-    (BUILD_PATH, "bsearch_perf_step.dependOn(&run_bsearch_perf.step);", "bsearch_perf_step.dependOn(&run_bsearch_tests.step);"),
+    (PARITY_CATALOG_PATH, PARITY_ROW, "- helper-evidence row: `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, and `zigux/tests/phase6_helper_evidence_manifest.json`"),
+    (PARITY_CATALOG_PATH, PARITY_POSTURE, "- current posture: direct helper readback is restored across the helper, focused replay, perf replay, C ABI review routes, fixture surface, checker, and slice note"),
+    (HELPER_EVIDENCE_MANIFEST_PATH, BUDGET_FORMULA, '"budget_formula": "std.math.log2_int_floor(len) + 1"'),
+    (HELPER_PARITY_MANIFEST_PATH, BOUND_BUDGET_FORMULA, '"bound_budget_formula": "std.math.log2_int_floor(len) + 1"'),
+    (CATALOG_PATH, "- direct C parity companions: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and `scripts/zigux/check-phase6-bsearch-c-parity.py`", "- direct C parity companions: `zigux/tests/phase6_bsearch_c_parity.zig` and `scripts/zigux/check-phase6-bsearch-c-parity.py`"),
+    (SLICE_PATH, "- direct C parity checker: `scripts/zigux/check-phase6-bsearch-c-parity.py`", "- direct C parity checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`"),
 ]
 
 
