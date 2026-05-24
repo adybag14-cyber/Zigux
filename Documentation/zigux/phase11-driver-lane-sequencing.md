@@ -65,6 +65,8 @@ Keep the current lane split explicit:
   `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
   `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`,
   `zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
+  `zigux/tests/phase11_hvc_modem_control_proof.zig`,
+  `zigux/tests/phase11_hvc_modem_control_proof_build.zig`,
   `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`, and
   `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` authoritative
   for the current-head continuity packet and helper-local teardown or
@@ -133,6 +135,8 @@ surfaces that were reread in this run:
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
@@ -140,8 +144,8 @@ Current rereads in this run rematerialized the gpio watchdog and HVC
 driver-local validation matrices named by the roadmap together with the
 narrower HVC current-head continuity packet plus its cleanup companion,
 current-head checker, dedicated targetless-unregister witness checker, build
-inventory, proof-backed adjunct stack, and the standalone
-targetless-unregister witness pair.
+inventory, proof-backed adjunct stack, the dedicated modem-control proof pair,
+and the standalone targetless-unregister witness pair.
 Authenticated contents reads still clip
 `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` and
 `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, but raw `master`
@@ -193,10 +197,10 @@ owner-packet follow-through as separate continuity lanes.
 
 HVC still has the smaller current-head continuity packet rather than the deeper
 starter-depth replay or manifest stack, but that smaller packet now includes the
-dedicated targetless-unregister witness checker beside the standalone
-targetless-unregister witness pair and shared three-proof inventory. bcm2835,
-gpio, and DesignWare reminder follow-through still belong
-to their own lanes.
+dedicated modem-control proof pair, the dedicated targetless-unregister witness
+checker beside the standalone targetless-unregister witness pair, and the shared
+three-proof inventory. bcm2835, gpio, and DesignWare reminder follow-through
+still belong to their own lanes.
 
 ## Sequencing Rules
 
@@ -234,12 +238,13 @@ Use this note to keep the bounded work order honest:
    current-head continuity packet with its cleanup companion,
    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
    `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`, shared
-   build inventory anchor, proof-backed adjunct stack, and standalone
-   targetless-unregister witness pair; keep it explicit that the bcm2835 and
-   DesignWare matrix notes currently return through raw `master` fallback rather
-   than this runtime's authenticated contents bridge, and that the returned
-   shared replay contract does not by itself restore its older paired checker
-   scripts or the missing `zigux/tests/phase11_build.zig` route.
+   build inventory anchor, proof-backed adjunct stack, dedicated modem-control
+   proof pair, and standalone targetless-unregister witness pair; keep it
+   explicit that the bcm2835 and DesignWare matrix notes currently return
+   through raw `master` fallback rather than this runtime's authenticated
+   contents bridge, and that the returned shared replay contract does not by
+   itself restore its older paired checker scripts or the missing
+   `zigux/tests/phase11_build.zig` route.
 4. Keep bcm2835 and DesignWare follow-through parked in their own lanes; do not
    widen either lane into live watchdog-core execution, PM plumbing, reset
    execution, IRQ execution, live MMIO validation, or claims of hardware-backed
@@ -260,6 +265,8 @@ Use this note to keep the bounded work order honest:
    `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
    `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`,
    `zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
+   `zigux/tests/phase11_hvc_modem_control_proof.zig`,
+   `zigux/tests/phase11_hvc_modem_control_proof_build.zig`,
    `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`, and
    `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`; do not widen
    that packet into tty registration, notifier execution, khvcd execution,
@@ -284,10 +291,11 @@ Use this note to keep the bounded work order honest:
    `drivers/watchdog/dw_wdt_pm_scaffold.zig`, the narrower HVC current-head
    continuity packet plus its cleanup companion, current-head checker,
    dedicated targetless-unregister witness checker, shared build inventory,
-   proof-backed adjunct stack, standalone targetless-unregister witness pair,
-   the returned archival `Documentation/zigux/phase11-shared-replay-contract.md`,
-   the returned shared validator `scripts/zigux/validate-phase11.py`, and the
-   returned `zigux/Makefile` surface plus `make -C zigux phase11-validate`
+   proof-backed adjunct stack, dedicated modem-control proof pair, standalone
+   targetless-unregister witness pair, the returned archival
+   `Documentation/zigux/phase11-shared-replay-contract.md`, the returned shared
+   validator `scripts/zigux/validate-phase11.py`, and the returned
+   `zigux/Makefile` surface plus `make -C zigux phase11-validate`
    build gate instead of reviving broader bcm2835 or DesignWare owner-packet
    claims, the retired shared build-route family, or overstating the HVC
    archival stack.
