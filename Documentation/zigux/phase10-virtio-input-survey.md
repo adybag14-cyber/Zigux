@@ -9,7 +9,7 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
 - `PHASE10_SURVEYED_COMMIT=ee789f026f11a0c5c70ded9a868979cdf4f55393`
 - `PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
-- scope: keep the current `drivers/virtio/virtio_input.zig` helper packet, its dedicated queue-callback-preflight helper and replay, its queue-handling replays, its dedicated teardown-preflight helper and replay, its wrapper-facing teardown-reset verify parity, and the shared Phase 10 build gate reviewable as lab-only driver validation without claiming transport-backed queue execution, input registration lifecycle parity, freeze or restore behavior, or probe/remove closure
+- scope: keep the current `drivers/virtio/virtio_input.zig` helper packet, its dedicated probe-preflight, queue-callback-preflight, registration-preflight, status-drain, teardown-preflight, and teardown-observation helpers plus their replays, its wrapper-facing teardown-reset verify parity, and the shared Phase 10 build gate reviewable as lab-only driver validation without claiming transport-backed queue execution, input registration lifecycle parity, freeze or restore behavior, or probe/remove closure
 - product boundary:
   - `zigux/tests/phase10_virtio_input_manifest.json`
   - `Documentation/zigux/phase10-virtio-input-slice.md`
@@ -61,11 +61,15 @@ This survey exists to keep that queue-local, dedicated queue-callback-preflight,
 
 Fresh repo inspection supports these narrower conclusions:
 - the landed `phase10-build-gate`
+- the landed `phase10-virtio-core-lab-starter`
+- the landed `phase10-virtio-ring-lab-helper`
 - the landed `phase10-virtio-input-lab-helper`
 - the landed `phase10-virtio-input-lab-gate`
 - the landed `phase10-virtio-input-slice-note`
 - the landed `phase10-virtio-input-module-slice-note`
 - the landed `phase10-virtio-input-survey-gate`
+- the landed `phase10-virtio-input-capability-setup-helper`
+- the landed `phase10-virtio-input-multitouch-slot-helper`
 - the landed `phase10-virtio-input-probe-preflight-helper`
 - the landed `phase10-virtio-input-probe-preflight-replay`
 - the landed `phase10-virtio-input-queue-callback-preflight-helper`
