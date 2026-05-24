@@ -18,6 +18,7 @@ def infer_repo_root() -> Path:
 
 ROOT = infer_repo_root()
 NOTE_PATH = "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
+BRIDGE_BOUNDARY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 PERF_BUFFER_POLL_TEST_PATH = "zigux/tests/phase8_perf_buffer_poll.zig"
@@ -39,6 +40,14 @@ NOTE_REQUIRED_MARKERS = [
     "no standalone timer helper behavior",
     "no standalone clockevent helper behavior",
     "broader perf-buffer-online-cpu-routing parity",
+]
+
+BRIDGE_BOUNDARY_REQUIRED_MARKERS = [
+    "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`",
+    "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+    "no standalone timer helper behavior",
+    "no standalone clockevent helper behavior",
+    "no broader timeout-sensitive routing behavior",
 ]
 
 SCRIPTS_README_REQUIRED_MARKERS = [
@@ -247,6 +256,7 @@ def validate(root: Path) -> list[str]:
     failures: list[str] = []
     required_files = (
         NOTE_PATH,
+        BRIDGE_BOUNDARY_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
         PERF_BUFFER_POLL_TEST_PATH,
@@ -260,6 +270,7 @@ def validate(root: Path) -> list[str]:
 
     marker_groups = (
         (NOTE_PATH, NOTE_REQUIRED_MARKERS),
+        (BRIDGE_BOUNDARY_PATH, BRIDGE_BOUNDARY_REQUIRED_MARKERS),
         (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
         (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
@@ -276,6 +287,7 @@ def validate(root: Path) -> list[str]:
 def build_fixture_root(root: Path) -> None:
     marker_groups = (
         (NOTE_PATH, NOTE_REQUIRED_MARKERS),
+        (BRIDGE_BOUNDARY_PATH, BRIDGE_BOUNDARY_REQUIRED_MARKERS),
         (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
         (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
@@ -303,6 +315,7 @@ def run_self_test() -> int:
 
         marker_groups = (
             (NOTE_PATH, NOTE_REQUIRED_MARKERS),
+            (BRIDGE_BOUNDARY_PATH, BRIDGE_BOUNDARY_REQUIRED_MARKERS),
             (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
             (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
             (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
@@ -318,6 +331,7 @@ def run_self_test() -> int:
 
         for rel_path in (
             NOTE_PATH,
+            BRIDGE_BOUNDARY_PATH,
             SCRIPTS_README_PATH,
             TESTS_README_PATH,
             PERF_BUFFER_POLL_TEST_PATH,
@@ -333,6 +347,10 @@ def run_self_test() -> int:
     print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
     print(f"PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT={case_count}")
     print(f"PHASE8_PERF_BUFFER_POLL_GATE_NOTE_MARKER_COUNT={len(NOTE_REQUIRED_MARKERS)}")
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_BRIDGE_BOUNDARY_MARKER_COUNT="
+        f"{len(BRIDGE_BOUNDARY_REQUIRED_MARKERS)}"
+    )
     print(
         f"PHASE8_PERF_BUFFER_POLL_GATE_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}"
     )
@@ -354,8 +372,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the surviving Phase 8 perf-buffer poll packet stays aligned "
-            "across the dedicated poll note, the scripts guide, the tests guide, "
-            "the bounded poll helper test, and the helper source markers."
+            "across the dedicated poll note, the bridge-boundary reminder, the scripts guide, "
+            "the tests guide, the bounded poll helper test, and the helper source markers."
         )
     )
     parser.add_argument(
@@ -381,6 +399,10 @@ def main() -> int:
         return 1
 
     print(f"PHASE8_PERF_BUFFER_POLL_GATE_NOTE_MARKER_COUNT={len(NOTE_REQUIRED_MARKERS)}")
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_BRIDGE_BOUNDARY_MARKER_COUNT="
+        f"{len(BRIDGE_BOUNDARY_REQUIRED_MARKERS)}"
+    )
     print(
         f"PHASE8_PERF_BUFFER_POLL_GATE_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}"
     )
