@@ -28,6 +28,7 @@ WORKFLOW_LINES = (
 
 REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
+SUPPORTED_REQUIRED_MAKE_ROUTES = REQUIRED_PHASE2_PHONY_TARGETS
 CURRENT_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate", "phase2-cross")
 CURRENT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in CURRENT_REQUIRED_MAKE_ROUTES)
 CURRENT_WORKFLOW_ROUTE_LINES = tuple(f"run: make -C zigux {route}" for route in CURRENT_REQUIRED_MAKE_ROUTES)
@@ -157,10 +158,17 @@ def load_required_make_routes(policy_path: Path) -> list[str]:
     if not isinstance(routes, list) or not routes:
         raise ValueError(f"invalid required_make_routes in {policy_path}")
     normalized: list[str] = []
+    seen: set[str] = set()
     for route in routes:
         if not isinstance(route, str) or not route.strip():
             raise ValueError(f"invalid required_make_routes in {policy_path}")
-        normalized.append(route.strip())
+        name = route.strip()
+        if name in seen:
+            raise ValueError(f"duplicate required_make_routes entry in {policy_path}: {name}")
+        if name not in SUPPORTED_REQUIRED_MAKE_ROUTES:
+            raise ValueError(f"unsupported required_make_routes entry in {policy_path}: {name}")
+        seen.add(name)
+        normalized.append(name)
     return normalized
 
 
@@ -519,50 +527,31 @@ def run_self_test() -> int:
         build_self_test_root(root)
         policy_path = resolve_path(root, TOOLCHAIN_POLICY)
         policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        extra_route = "phase2-future"
-        policy_payload["upgrade_policy"]["required_make_routes"].append(extra_route)
+        supported_extra_route = "phase2-tools"
+        policy_payload["upgrade_policy"]["required_make_routes"].append(supported_extra_route)
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("MISSING_TESTS_ROUTE_MARKERS", f"`make -C zigux {extra_route}`") in issues
-        assert ("MISSING_WORKFLOW_ROUTE_LINES", f"run: make -C zigux {extra_route}") in issues
-        assert ("MISSING_BOOTSTRAP_POLICY_ROUTE_NAME", extra_route) in issues
-        assert ("MISSING_REQUIRED_ROUTE_PHONY_TARGET", extra_route) in issues
-        assert ("MISSING_REQUIRED_ROUTE_TARGET", f"{extra_route}:") in issues
+        assert ("MISSING_TESTS_ROUTE_MARKERS", f"`make -C zigux {supported_extra_route}`") in issues
+        assert ("MISSING_WORKFLOW_ROUTE_LINES", f"run: make -C zigux {supported_extra_route}") in issues
+        assert ("MISSING_BOOTSTRAP_POLICY_ROUTE_NAME", supported_extra_route) in issues
+        assert ("MISSING_REQUIRED_ROUTE_PHONY_TARGET", supported_extra_route) not in issues
+        assert ("MISSING_REQUIRED_ROUTE_TARGET", f"{supported_extra_route}:") not in issues
         checks_run += 1
 
         build_self_test_root(root)
         policy_path = resolve_path(root, TOOLCHAIN_POLICY)
         policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        extra_route = "phase2-future"
-        policy_payload["upgrade_policy"]["required_make_routes"].append(extra_route)
+        policy_payload["upgrade_policy"]["required_make_routes"].append(CURRENT_REQUIRED_MAKE_ROUTES[0])
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
-        makefile_path = resolve_path(root, MAKEFILE)
-        makefile_path.write_text(
-            makefile_path.read_text(encoding="utf-8") + f"{extra_route}:\n\t@true\n",
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_REQUIRED_ROUTE_PHONY_TARGET", extra_route) in issues
-        assert ("MISSING_REQUIRED_ROUTE_TARGET", f"{extra_route}:") not in issues
+        assert_invalid_cli(root, "duplicate required_make_routes entry")
         checks_run += 1
 
         build_self_test_root(root)
         policy_path = resolve_path(root, TOOLCHAIN_POLICY)
         policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
-        extra_route = "phase2-future"
-        policy_payload["upgrade_policy"]["required_make_routes"].append(extra_route)
+        policy_payload["upgrade_policy"]["required_make_routes"].append("phase2-future")
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
-        makefile_path = resolve_path(root, MAKEFILE)
-        makefile_text = makefile_path.read_text(encoding="utf-8")
-        makefile_text = replace_exact_line(
-            makefile_text,
-            REQUIRED_PHASE2_PHONY_LINE,
-            REQUIRED_PHASE2_PHONY_LINE + f" {extra_route}",
-        )
-        makefile_text += f"{extra_route}:\n\t@true\n{extra_route}:\n\t@true\n"
-        makefile_path.write_text(makefile_text, encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{extra_route}::count=2") in issues
+        assert_invalid_cli(root, "unsupported required_make_routes entry")
         checks_run += 1
 
         build_self_test_root(root)
