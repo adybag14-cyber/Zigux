@@ -890,6 +890,26 @@ def run_self_test() -> int:
         cases += 1
 
         broken = dict(original)
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig"] = []
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig:missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_core_reset_queue.zig"] = []
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:zigux/tests/phase10_virtio_core_reset_queue.zig:missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
         broken["focused_harness_replays"]["drivers/virtio/virtio_ring_publish_readiness.zig"] = []
         write_manifest(broken)
         expect_contains(
