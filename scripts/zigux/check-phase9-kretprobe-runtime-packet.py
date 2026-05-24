@@ -6,7 +6,9 @@ from pathlib import Path
 import shutil
 import tempfile
 
+
 SELF_PATH = Path(__file__).resolve()
+
 SAMPLE_PATH = "samples/zigux/runtime_kretprobe.zig"
 MODULE_PATH = "zigux/tests/runtime_kretprobe_module.zig"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
@@ -30,34 +32,54 @@ FILE_MARKERS: dict[str, list[str]] = {
         'test "runtime kretprobe sample keeps selftest hook and return replay explicit" {',
         'test "runtime kretprobe sample keeps reusable probe replay explicit after selftest" {',
         'test "runtime kretprobe sample rejects re-selftest without disturbing summaries" {',
+        'test "runtime kretprobe sample keeps rejected re-exit rollback explicit" {',
         'test "runtime kretprobe sample keeps failed exit rollback explicit while a probe is still registered" {',
         'test "runtime kretprobe sample keeps duplicate registration rollback explicit across initialized and selftested stages" {',
+        "error.OutstandingRegistration",
+        "error.ProbeAlreadyRegistered",
+        "error.InvalidLifecycleTransition",
     ],
     MODULE_PATH: [
+        'const sample = @import("runtime_kretprobe_sample");',
         'test "runtime kretprobe sample advertises the bounded pilot-module contract" {',
         'test "runtime kretprobe sample keeps selftest summary replay explicit at the module boundary" {',
         'test "runtime kretprobe sample keeps lifecycle snapshot replay explicit at the module boundary" {',
+        'test "runtime kretprobe sample keeps initialized-stage exit replay explicit at the module boundary" {',
         'test "runtime kretprobe sample keeps rejected re-selftest rollback explicit at the module boundary" {',
+        'test "runtime kretprobe sample keeps rejected re-exit rollback explicit at the module boundary" {',
         'test "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary" {',
-        "try std.testing.expectError(error.ProbeAlreadyRegistered, selftested_module.registerProbe());",
-        "try std.testing.expectError(error.OutstandingRegistration, selftested_module.exit());",
+        "error.OutstandingRegistration",
+        "error.ProbeAlreadyRegistered",
+        "error.InvalidLifecycleTransition",
     ],
     PHASE9_BUILD_PATH: [
+        'const runtime_kretprobe_sample_module = b.createModule(.{',
         '.root_source_file = b.path("../../samples/zigux/runtime_kretprobe.zig"),',
-        '.name = "phase9-runtime-kretprobe-sample-tests"',
+        'const runtime_kretprobe_sample_tests = b.addTest(.{',
+        '.name = "phase9-runtime-kretprobe-sample-tests",',
+        'const runtime_kretprobe_module_tests_module = b.createModule(.{',
         '.root_source_file = b.path("runtime_kretprobe_module.zig"),',
-        '.name = "phase9-runtime-kretprobe-module-tests"',
-        '.name = "phase9-runtime-kretprobe-tests"',
-        '"Run the Phase 9 runtime kretprobe sample and module lifecycle tests."',
+        'const runtime_kretprobe_module_tests = b.addTest(.{',
+        '.name = "phase9-runtime-kretprobe-module-tests",',
+        'const phase9_runtime_kretprobe_sample = b.step(',
+        '"phase9-runtime-kretprobe-sample-tests",',
+        'const phase9_runtime_kretprobe_module = b.step(',
+        '"phase9-runtime-kretprobe-module-tests",',
+        'const phase9_runtime_kretprobe = b.step(',
+        '"phase9-runtime-kretprobe-tests",',
+        'phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_sample_tests.step);',
+        'phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_module_tests.step);',
     ],
 }
 
 FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
     SAMPLE_PATH: [
+        'test "runtime kretprobe sample keeps rejected re-exit rollback explicit" {',
         'test "runtime kretprobe sample keeps failed exit rollback explicit while a probe is still registered" {',
         'test "runtime kretprobe sample keeps duplicate registration rollback explicit across initialized and selftested stages" {',
     ],
     MODULE_PATH: [
+        'test "runtime kretprobe sample keeps rejected re-exit rollback explicit at the module boundary" {',
         'test "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary" {',
     ],
     PHASE9_BUILD_PATH: [
