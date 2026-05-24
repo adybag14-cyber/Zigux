@@ -19,11 +19,12 @@ The current non-runtime packet now reads directly through:
 
   * `Documentation/zigux/phase5-kretprobe-sample-survey.md`
   * `samples/zigux/kretprobe_example.zig`
+  * `samples/zigux/kretprobe_example_instance_budget_contract.zig`
   * `zigux/tests/phase5_kretprobe_example.zig`
   * `zigux/tests/phase5_kretprobe_example_manifest.json`
   * `zigux/tests/phase5_kretprobe_example_survey.zig`
 
-The returned shared `zigux/tests/phase5_build.zig` route remains useful companion evidence too. Keep it framed as shared build-route support rather than as the primary approved-idiom proof.
+The returned shared `zigux/tests/phase5_build.zig` route remains useful companion evidence too. Keep it framed as shared build-route support rather than as the primary approved-idiom proof, while still noting that it reruns the sample-owned self-checks together with the focused replay, survey gate, and instance-budget companion checks.
 
 ## Approved idiom to preserve
 
@@ -35,6 +36,7 @@ Keep the approved Phase 5 kretprobe cue bounded to the current landed packet:
   * the sample still keeps `kernel_clone` as the default symbol name while making pre-init `retargetSymbol("do_sys_openat2")` a direct in-memory choice instead of implying module-parameter or runtime-registration parity
   * the sample still keeps `retargetMaxactive(3)` as a pre-init-only in-memory choice, while `runAnchorReplay()` keeps the shipped `default_maxactive = 20` path explicit
   * the private-data cue remains one `i64`-sized entry timestamp word through `InstanceData.entry_stamp_ns`
+  * `instanceBudgetContract()` and `samples/zigux/kretprobe_example_instance_budget_contract.zig` still keep the Linux `func` parameter name, shared `0o644` mode, default `kernel_clone`, one-word private-data shape, return-value and duration reporting, skipped-kernel-thread handling, and the `nmissed`-suggests-increasing-`maxactive` cue explicit without claiming module-parameter wiring parity
   * `runAnchorReplay()` still keeps the bounded handler packet explicit: skipped kernel-thread entry, armed tracked instance, `retval = 42`, `duration_ns = 75`, `nmissed = 1`, and replay stage closure at `.replay_complete`
   * the focused `phase 5 kretprobe sample keeps symbol retargeting and handler boundaries explicit` test still keeps empty-symbol rejection, pre-init retargeting, post-init retarget rejection, skipped-kernel-thread handling, outstanding-instance rejection, `retval = 37`, and `duration_ns = 45` reviewable
   * the focused `phase 5 kretprobe sample makes ownership and teardown boundaries explicit` test still keeps pre-init replay rejection, double-init rejection, outstanding-instance exit rejection, invalid timestamp-order rejection, recovered duration `60`, `entry_stamp_ns = -1` reset, and post-exit `recordMissedInstance()` rejection explicit
@@ -46,8 +48,10 @@ Keep the direct packet-local checks visible too:
   * `zig test samples/zigux/kretprobe_example.zig`
   * `zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig`
   * `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
+  * `zig test samples/zigux/kretprobe_example_instance_budget_contract.zig`
+  * `zig test --dep kretprobe_example_instance_budget_contract -Mroot=zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig -Mkretprobe_example_instance_budget_contract=samples/zigux/kretprobe_example_instance_budget_contract.zig`
 
-Those three routes should stay the sample-owned self-check, the focused replay proof, and the survey-packet guard for this approved idiom. The manifest-backed contract in `zigux/tests/phase5_kretprobe_example_manifest.json` should keep the same packet-local review prompts and exact checks visible beside them.
+Those routes should stay the sample-owned self-check, the focused replay proof, the survey-packet guard, and the bounded instance-budget companion checks for this approved idiom. The manifest-backed contract in `zigux/tests/phase5_kretprobe_example_manifest.json` should keep the same packet-local review prompts and exact checks visible beside them, while `zigux/tests/phase5_build.zig` keeps rerunning the sample-owned self-checks together with the focused replay, survey gate, and instance-budget companion checks as shared build-route companion evidence.
 
 ## Review boundary
 
@@ -69,4 +73,4 @@ Keep the separate runtime lane separate from this note:
 
 ## Next bounded step
 
-Leave this note parked unless a fresh reread finds one new one-file drift between this approved-idiom note and the live kretprobe packet in `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, or `zigux/tests/phase5_kretprobe_example_survey.zig`.
+Leave this note parked unless a fresh reread finds one new one-file drift between this approved-idiom note and the live kretprobe packet in `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `samples/zigux/kretprobe_example_instance_budget_contract.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, or the shared rerun route in `zigux/tests/phase5_build.zig`.
