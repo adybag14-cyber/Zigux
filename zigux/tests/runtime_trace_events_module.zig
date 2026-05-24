@@ -375,7 +375,7 @@ test "runtime trace-events sample keeps rejected re-init rollback explicit after
     try std.testing.expect(!before_exited_reinit.saw_conditional_path);
     try std.testing.expectEqualStrings("foo_bar_reg", before_exited_reinit.last_register_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("foo_bar_unreg", before_exited_reinit.last_unregister_label orelse return error.ExpectedFunctionPayload);
-    try std.testing.expectEqualStrings("Mother Goose", before_exited_reinit.last_main_randomChoice_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Mother Goose", before_exited_reinit.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Look at me", before_exited_reinit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
 
     try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.init());
