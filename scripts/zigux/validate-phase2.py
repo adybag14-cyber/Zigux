@@ -14,6 +14,7 @@ FIXDEP_DUAL_IMPLEMENTATION_SURVEY = "Documentation/zigux/phase2-fixdep-dual-impl
 GENKSYMS_VERSION_SIDE_EFFECT_TEST = "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig"
 GENKSYMS_VERSION_SIDE_EFFECT_AMBIGUOUS_TEST = "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig"
 GENKSYMS_MANIFEST_FIXTURE = "zigux/tests/fixtures/genksyms_bridge/manifest.json"
+VALIDATOR_MANIFEST_SURFACE_COVERAGE_CHECKER = "scripts/zigux/check-phase2-validator-manifest-surface-coverage.py"
 GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
@@ -102,6 +103,7 @@ REQUIRED_PATHS = (
     CLOSURE_MATRIX_CHECKER,
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    VALIDATOR_MANIFEST_SURFACE_COVERAGE_CHECKER,
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
@@ -459,7 +461,9 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, fixdep, and closure-matrix packet.")
+    parser = argparse.ArgumentParser(
+        description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, fixdep, closure-matrix, and manifest-surface packet."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
