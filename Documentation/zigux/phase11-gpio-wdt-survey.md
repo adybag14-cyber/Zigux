@@ -23,6 +23,8 @@ wording drifted ahead of current contents reads.
   - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
   - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
   - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
+  - `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`
+  - `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
   - `Documentation/zigux/phase11-gpio-wdt-survey.md`
   - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -41,9 +43,10 @@ wording drifted ahead of current contents reads.
 - `zigux/Makefile` still exposes no dedicated `make -C zigux phase11-gpio-wdt`
   route, but the returned packet now has dedicated bounded replay routes at
   `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
-  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`, and
-  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
-- remaining unported work is still direct focused replay or manifest recovery,
+  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`, and
+  `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
+- remaining unported work is still wider focused replay or manifest recovery,
   live platform-driver registration execution, live watchdog-core registration
   execution, live remove-hook execution, reboot-backed teardown execution, and
   hardware-backed validation
@@ -60,6 +63,8 @@ driver-plus-docs-plus-proof packet below:
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -67,18 +72,18 @@ driver-plus-docs-plus-proof packet below:
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
 The returned driver, focused preflight proof, focused register-device glue
-proof, focused nowayout policy proof, dedicated bounded replay routes, and
-companion notes keep the bounded `platformDriverIdentitySummary()`,
-`watchdogMetadataSummary()`, `probeSummary()`, `descriptorRequestSummary()`,
-`descriptorPreflightSummary()`, `timeoutPropertyCheckpointSummary()`,
-`platformDrvdataCheckpointSummary()`,
+proof, focused nowayout policy proof, focused remove-handoff proof, dedicated
+bounded replay routes, and companion notes keep the bounded
+`platformDriverIdentitySummary()`, `watchdogMetadataSummary()`, `probeSummary()`,
+`descriptorRequestSummary()`, `descriptorPreflightSummary()`,
+`timeoutPropertyCheckpointSummary()`, `platformDrvdataCheckpointSummary()`,
 `watchdogDrvdataCheckpointSummary()`,
-`registrationIntentCheckpointSummary()`,
-`rebootGlueCheckpointSummary()`, `nowayoutPolicySummary()`,
-`registrationHandoffSummary()`, `registrationPlanSummary()`,
-`registerDeviceCallSummary()`, `registerDeviceFailureSummary()`,
-`requestStop()`, `summarizeTeardown()`, and `summarizeRemoveHandoff()`
-checkpoint names reviewable as the current packet.
+`registrationIntentCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
+`nowayoutPolicySummary()`, `registrationHandoffSummary()`,
+`registrationPlanSummary()`, `registerDeviceCallSummary()`,
+`registerDeviceFailureSummary()`, `requestStop()`, `summarizeTeardown()`,
+`platformCleanupCheckpointSummary()`, and `summarizeRemoveHandoff()` checkpoint
+names reviewable as the current packet.
 
 That means the roadmap-facing simple-driver template, bounded teardown parity,
 and bounded failure-mode parity are already reviewable in the returned packet,
@@ -93,6 +98,11 @@ registration.
 The direct nowayout proof now exercises `nowayoutPolicySummary()` across the
 bounded stopped, blocked-by-nowayout, and kept-running dispositions without
 claiming live watchdog-core registration or teardown execution.
+
+The direct remove-handoff proof now exercises
+`platformCleanupCheckpointSummary()` and `summarizeRemoveHandoff()` as a
+dedicated bounded replay before any live cleanup callback,
+platform-driver-removal, watchdog-core-unregister, or shutdown-execution claim.
 
 ## Still-Bounded Gaps
 
@@ -116,13 +126,14 @@ and hardware-backed validation.
 Current authenticated contents reads keep a narrower gpio watchdog continuity
 packet directly reviewable on `master` through the returned driver, the focused
 preflight proof, the focused register-device glue proof, the focused nowayout
-policy proof, the dedicated bounded replay routes, and the survey note, module
-slice, teardown note, remove-handoff note, and validation matrix.
+policy proof, the focused remove-handoff proof, the dedicated bounded replay
+routes, and the survey note, module slice, teardown note, remove-handoff note,
+and validation matrix.
 
 That current packet now also keeps the bounded remove-handoff packet explicit
 beside the existing watchdog-drvdata ownership handoff, reboot-glue
-checkpoint, and direct nowayout-policy proof without overstating live
-unregister or shutdown behavior.
+checkpoint, direct nowayout-policy proof, and a dedicated cleanup-to-remove
+replay without overstating live unregister or shutdown behavior.
 
 ## Bounded Meaning
 
@@ -138,4 +149,5 @@ If a future reread rematerializes the deeper gpio replay, manifest, or checker
 anchors, refresh this survey together with the validation matrix and the
 smallest directly coupled gpio reminder surface in one bounded pass. If the
 current smaller packet needs one more driver-local follow-up first, keep it to
-focused replay recovery or another equally small truthfulness repair.
+manifest recovery, checker upkeep, or another equally small truthfulness
+repair.
