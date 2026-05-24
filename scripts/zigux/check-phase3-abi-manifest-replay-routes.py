@@ -17,6 +17,8 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/check-phase3-abi.py"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"',
+    '"python3 scripts/zigux/validate-phase3.py --self-test"',
+    '"python3 scripts/zigux/validate-phase3.py"',
     '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
     '"python3 scripts/zigux/check-phase3-selftest-surface.py"',
     '"python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test"',
@@ -79,6 +81,8 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
+    "python3 scripts/zigux/validate-phase3.py --self-test",
+    "python3 scripts/zigux/validate-phase3.py",
     "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
     "python3 scripts/zigux/check-phase3-selftest-surface.py",
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test",
@@ -226,6 +230,8 @@ def run_self_test() -> int:
             ('"python3 scripts/zigux/check-phase3-abi.py"', "expected shared ABI direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"', "expected validator self-test route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator direct route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3.py --self-test"', "expected validate-phase3 self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/validate-phase3.py"', "expected validate-phase3 direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"', "expected selftest-surface self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-selftest-surface.py"', "expected validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test"', "expected validator-support self-test validator-route drift was not reported"),
@@ -294,6 +300,8 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-abi.py", "expected shared ABI direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test", "expected checker self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected checker direct route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3.py --self-test", "expected validate-phase3 self-test route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3.py", "expected validate-phase3 direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-selftest-surface.py --self-test", "expected selftest-surface self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-selftest-surface.py", "expected selftest-surface direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test", "expected validator-support self-test route drift was not reported"),
@@ -342,7 +350,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=79")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=83")
     return 0
 
 
