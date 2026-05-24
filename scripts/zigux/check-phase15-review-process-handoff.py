@@ -93,6 +93,42 @@ def collect_failures(root: Path) -> list[str]:
         if marker not in review_process:
             failures.append(f"review-process note is missing required marker: {marker}")
 
+    review_process_required_metadata_markers = manifest.get(
+        "review_process_required_metadata_markers"
+    )
+    if not review_process_required_metadata_markers:
+        failures.append("review-process manifest is missing review_process_required_metadata_markers")
+    else:
+        for marker in review_process_required_metadata_markers:
+            if marker not in review_process:
+                failures.append(f"review-process note is missing metadata marker: {marker}")
+
+    decision_record_template_metadata_markers = manifest.get(
+        "decision_record_template_metadata_markers"
+    )
+    if not decision_record_template_metadata_markers:
+        failures.append(
+            "review-process manifest is missing decision_record_template_metadata_markers"
+        )
+    else:
+        for marker in decision_record_template_metadata_markers:
+            if marker not in decision_record_template:
+                failures.append(f"decision-record template is missing metadata marker: {marker}")
+
+    decision_record_template_section_headings = manifest.get(
+        "decision_record_template_section_headings"
+    )
+    if not decision_record_template_section_headings:
+        failures.append(
+            "review-process manifest is missing decision_record_template_section_headings"
+        )
+    else:
+        for heading in decision_record_template_section_headings:
+            if heading not in decision_record_template:
+                failures.append(
+                    f"decision-record template is missing section heading: {heading}"
+                )
+
     for field in manifest["required_review_fields"]:
         if field not in review_process:
             failures.append(f"review-process note is missing required review field: {field}")
@@ -191,7 +227,9 @@ def collect_failures(root: Path) -> list[str]:
 
         repo_path = _marker_to_repo_path(marker)
         if repo_path is not None and not (root / repo_path).exists():
-            failures.append(f"shared-summary gap note claims materialized path is missing from repo: {marker}")
+            failures.append(
+                f"shared-summary gap note claims materialized path is missing from repo: {marker}"
+            )
 
     for path in manifest["shared_gap_expected_missing_paths"]:
         if path not in gap_note:
@@ -232,6 +270,31 @@ def _sample_manifest() -> str:
             "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
             "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
             "review_checklist_stay_in_c_policy_boundary_rule": "`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
+            "review_process_required_metadata_markers": [
+                "`PHASE15_PACKET_OWNER=Architecture Council`",
+                "`PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-review-process-handoff.py && zig test zigux/tests/phase15_architecture_council_review_process.zig && zig build test --build-file zigux/tests/phase15_architecture_council_review_process_build.zig`",
+                "`PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`",
+            ],
+            "decision_record_template_metadata_markers": [
+                "`DECISION_RECORD_ID=<replace-with-stable-id>`",
+                "decision record ID:",
+                "`PHASE=Phase 15`",
+                "`LANE_KEY=P15-L08`",
+                "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
+                "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
+                "exact-head provenance exception note:",
+                "`REVIEW_STATUS=<blocked_review|stay_in_c|approved_status_bucket_change>`",
+            ],
+            "decision_record_template_section_headings": [
+                "## Record Metadata",
+                "## Anchor And Ownership",
+                "## Validation And Evidence",
+                "## Stay-In-C Closeout",
+                "## Reopen Evidence",
+                "## Supporting Context",
+                "## Review Outcome",
+                "## Usage Rules",
+            ],
             "required_review_fields": [
                 "exact Linux anchor path",
                 "roadmap phase",
@@ -322,6 +385,7 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps.zig`",
                 "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+                "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
                 "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
                 "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
@@ -336,6 +400,7 @@ def _sample_manifest() -> str:
                 "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
                 "`Documentation/zigux/phase15-readiness-gate-survey.md`",
                 "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+                "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
@@ -373,6 +438,9 @@ def _sample_review_process() -> str:
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`
+- `PHASE15_PACKET_OWNER=Architecture Council`
+- `PHASE15_PACKET_VALIDATION_GATE=python3 scripts/zigux/check-phase15-review-process-handoff.py && zig test zigux/tests/phase15_architecture_council_review_process.zig && zig build test --build-file zigux/tests/phase15_architecture_council_review_process_build.zig`
+- `PHASE15_PACKET_ROLLBACK_OWNER=Architecture Council`
 - this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused Zig replay, the focused build-file replay, and the stay-in-C policy companion explicit through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - the broader validator-first packet remains gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`, and maintenance follow-through routes through `Documentation/zigux/phase15-handoff-next-steps-survey.md`
@@ -442,6 +510,8 @@ Use this template when a freeze-map anchor enters Architecture Council status re
 
 This is a review packet template, not approval by itself.
 
+## Record Metadata
+
 - `DECISION_RECORD_ID=<replace-with-stable-id>`
 - decision record ID:
 - `PHASE=Phase 15`
@@ -451,34 +521,26 @@ This is a review packet template, not approval by itself.
 - exact-head provenance exception note:
 - `REVIEW_STATUS=<blocked_review|stay_in_c|approved_status_bucket_change>`
 
-- `DECISION_RECORD_ID=<replace-with-stable-id>`
+## Anchor And Ownership
 
 - exact Linux anchor path:
 - roadmap phase:
-- decision record ID:
 - lane owner:
 - current status bucket:
 - requested decision bucket:
 - required approver set:
 - rollback owner:
+
+## Validation And Evidence
+
 - validation gate summary:
 - evidence archive path:
 - latest blocker disposition:
 - benchmark notes:
 - replay command:
 - rollback threshold:
-- automatic return-to-blocked trigger:
-- `retired_from_active_discussion` state:
-- reopen triggers:
-- trigger-specific evidence refresh:
-- parity scorecard link or blocker record:
-- indefinite-C policy link or explicit non-applicability note:
-- explicit non-goals:
-- written rationale:
 
-- closeout result:
-- follow-up owner:
-- next bounded step:
+## Stay-In-C Closeout
 
 - the retained `freeze_in_c` decision:
 - the current blocker:
@@ -489,13 +551,29 @@ This is a review packet template, not approval by itself.
 - the trigger-specific evidence refresh:
 - the evidence archive path that will be refreshed before any later reopen request:
 
+## Reopen Evidence
+
 - the exact reopen trigger being exercised:
 - refreshed evidence by path:
 - the blocker disposition being challenged:
 - the narrower seam or policy change that makes the new review safe to consider:
 
+## Supporting Context
+
 - governance lane sequencing link or explicit scope note:
 - study-only anchor accounting link or explicit freeze-map-anchor confirmation:
+- parity scorecard link or blocker record:
+- indefinite-C policy link or explicit non-applicability note:
+- explicit non-goals:
+- written rationale:
+
+## Review Outcome
+
+- closeout result:
+- follow-up owner:
+- next bounded step:
+
+## Usage Rules
 
 - Prefer the dated master readback form for parked governance and stay-in-C review packets.
 - Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance note.
@@ -541,6 +619,7 @@ def _sample_handoff_note() -> str:
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+- `scripts/zigux/check-phase15-docs-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
@@ -560,6 +639,7 @@ def _sample_gap_note() -> str:
 - `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
+- `scripts/zigux/check-phase15-docs-readme-alignment.py`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
@@ -651,6 +731,45 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected roadmap-phase failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace(
+                "- `PHASE15_PACKET_OWNER=Architecture Council`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "review-process note is missing metadata marker: `PHASE15_PACKET_OWNER=Architecture Council`"
+        ]:
+            raise AssertionError(f"unexpected review-process metadata failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / DECISION_RECORD_TEMPLATE_PATH,
+            _sample_decision_record_template().replace(
+                "- `REVIEW_STATUS=<blocked_review|stay_in_c|approved_status_bucket_change>`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "decision-record template is missing metadata marker: `REVIEW_STATUS=<blocked_review|stay_in_c|approved_status_bucket_change>`"
+        ]:
+            raise AssertionError(f"unexpected review-status metadata failure: {failures}")
+
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
+        _write(
+            root / DECISION_RECORD_TEMPLATE_PATH,
+            _sample_decision_record_template().replace("## Review Outcome\n\n", "", 1),
+        )
+        failures = collect_failures(root)
+        if failures != ["decision-record template is missing section heading: ## Review Outcome"]:
+            raise AssertionError(f"unexpected section-heading failure: {failures}")
+
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
             root / REVIEW_PROCESS_PATH,
             _sample_review_process().replace(
