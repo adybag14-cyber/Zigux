@@ -139,7 +139,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 26
 
 
 def read_text(path: Path) -> str:
@@ -179,6 +179,11 @@ def run_self_test() -> None:
         missing_path = root / "zigux/tests/fixtures/phase7_rbtree_c_harness.c"
         missing_path.unlink()
         assert validate(root) == (["zigux/tests/fixtures/phase7_rbtree_c_harness.c"], [])
+
+        write_fixture_root(root)
+        missing_path = root / "zigux/tests/fixtures/phase7_rbtree.json"
+        missing_path.unlink()
+        assert validate(root) == (["zigux/tests/fixtures/phase7_rbtree.json"], [])
 
         write_fixture_root(root)
         marker_path = root / "Documentation/zigux/phase7-rbtree-slice.md"
