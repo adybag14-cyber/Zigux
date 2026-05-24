@@ -8,9 +8,8 @@ run.
 
 Use this note when a Phase 11 change touches the shared reminder packet under
 `Documentation/zigux/phase11-*.md`, the coupled
-`scripts/zigux/check-phase11-*.py` review surfaces, the proof-backed or
-scaffold-backed Phase 11 files under `zigux/tests/`, or the broad
-contributor-facing summaries.
+`scripts/zigux/check-phase11-*.py` review surfaces, or the proof-backed or
+scaffold-backed Phase 11 files under `zigux/tests/`.
 
 ## Lane Split
 
@@ -75,17 +74,10 @@ Keep the current lane split explicit:
   replay, manifest, dedicated survey-checker, and teardown-note anchors framed
   as archival or repo-reality-gap vocabulary until a fresh reread proves they
   returned
-- contributor-note lane `P11-L18` owns broad cross-phase reminder wording in
-  `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
-  `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
-  `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`,
-  `scripts/zigux/README.md`, `scripts/zigux/validate-phase11.py`,
-  `zigux/tests/README.md`, and `zigux/Makefile` plus the returned
-  `make -C zigux phase11-validate` route
-- shared header-boundary follow-through stays adjacent to
-  `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`; do not
-  fold that public-surface packet into the HVC archival lane or into
-  driver-local watchdog packets
+- adjacent contributor-note and header-boundary packets stay outside this
+  driver-lane split even when this shared note names them as surrounding shared
+  evidence; do not treat `P11-L18` or the header-parity packet as driver-lane
+  owner surfaces inside `P11-Y06`
 
 ## Shared Packet Boundaries
 
@@ -140,6 +132,11 @@ surfaces that were reread in this run:
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
+For this driver-lane-only note, the contributor-facing and header-boundary
+entries above remain adjacency references rather than `P11-Y06` owner surfaces.
+Use them only to keep driver-lane reminders from drifting into non-driver
+packets.
+
 Current rereads in this run rematerialized the bcm2835, gpio watchdog, HVC, and
 DesignWare driver-local validation matrices named by the roadmap together with the
 narrower HVC current-head continuity packet plus its cleanup companion,
@@ -170,6 +167,8 @@ Current rereads in this run also keep `Documentation/zigux/README.md`,
 explicit as the broader contributor-facing reminder family for the shared
 Phase 11 packet, while `make -C zigux phase11` and
 `make -C zigux phase11-contract` still remain missing on current `master`.
+Keep those broader shared reminders adjacent to this note rather than turning
+that contributor-facing packet into a driver-lane owner surface.
 
 Current rereads in this run also keep the directly readable DesignWare
 platform-registration, provenance, lane-gap, verify-alignment, checker, driver,
@@ -205,9 +204,8 @@ still belong to their own lanes.
 
 Use this note to keep the bounded work order honest:
 
-1. Prefer one Phase 11 lane at a time instead of batching bcm2835, gpio,
-   DesignWare, HVC, header-boundary, and contributor-note work into one mixed
-   change.
+1. Prefer one driver lane at a time instead of batching bcm2835, gpio,
+   DesignWare, and HVC work into one mixed change.
 2. Keep the shared-versus-dedicated split explicit: the shared sequencing lane
    owns reminder-surface truthfulness, not driver-local execution claims.
 3. Keep the current reread boundary honest: today that means the shared
@@ -274,30 +272,10 @@ Use this note to keep the bounded work order honest:
    IRQ execution, MMIO validation, notifier execution, sysrq execution, khvcd
    execution, or hardware-backed closure beyond the helper, proof, note, and
    checker surfaces that were reread in this run.
-7. When contributor-facing summaries reopen, keep them aligned with the
-   returned four-matrix shared packet, the directly readable DesignWare
-   continuity packet through
-   `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
-   `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
-   `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
-   `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
-   `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
-   `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
-   `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
-   `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
-   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
-   `drivers/watchdog/dw_wdt_pm.zig`, and
-   `drivers/watchdog/dw_wdt_pm_scaffold.zig`, the narrower HVC current-head
-   continuity packet plus its cleanup companion, current-head checker,
-   dedicated targetless-unregister witness checker, shared build inventory,
-   proof-backed adjunct stack, dedicated modem-control proof pair, standalone
-   targetless-unregister witness pair, the returned archival
-   `Documentation/zigux/phase11-shared-replay-contract.md`, the returned shared
-   validator `scripts/zigux/validate-phase11.py`, and the returned
-   `zigux/Makefile` surface plus `make -C zigux phase11-validate`
-   build gate instead of reviving broader bcm2835 or DesignWare owner-packet
-   claims, the retired shared build-route family, or overstating the HVC
-   archival stack.
+7. When adjacent shared summaries or non-driver packets reopen elsewhere,
+   mirror only the minimum driver-lane fact set they already prove; do not pull
+   contributor-note or header-boundary ownership into this driver-only
+   sequencing lane.
 8. Keep the next bounded shared follow-through inside the smallest
    reminder-surface truthfulness repair unless a later reread restores or
    removes another Phase 11 packet surface.
@@ -327,3 +305,5 @@ This note does not widen Phase 11 into:
   notifier execution, sysrq dispatch, khvcd execution, or host-backed teardown
   closure
 - a migration of driver-local reminder ownership into the shared packet
+- a migration of contributor-note or header-boundary ownership into the
+  driver-lane split
