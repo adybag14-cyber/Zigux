@@ -77,6 +77,70 @@ fn addAbiHelperTest(
     );
 }
 
+fn addBitmapHelperModule(
+    b: *std.Build,
+    root_source_file: []const u8,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Module {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path(root_source_file),
+        .target = target,
+        .optimize = optimize,
+    });
+    const bitmap_view = b.createModule(.{
+        .root_source_file = b.path("bitmap_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("bitmap_view", bitmap_view);
+    return root_module;
+}
+
+fn addErrPtrModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Module {
+    return b.createModule(.{
+        .root_source_file = b.path("err_ptr.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+}
+
+fn addXaValueModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    err_ptr: *std.Build.Module,
+) *std.Build.Module {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("xa_value.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("err_ptr", err_ptr);
+    return root_module;
+}
+
+fn addXarraySlotViewModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    err_ptr: *std.Build.Module,
+    xa_value: *std.Build.Module,
+) *std.Build.Module {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("xarray_slot_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("err_ptr", err_ptr);
+    root_module.addImport("xa_value", xa_value);
+    return root_module;
+}
+
 fn addMmioHelperModule(
     b: *std.Build,
     root_source_file: []const u8,
@@ -126,6 +190,18 @@ pub fn build(b: *std.Build) void {
         optimize,
         abi_bindings,
     );
+    const narrow_module = addAbiHelperModule(
+        b,
+        "../unsafe/narrow.zig",
+        target,
+        optimize,
+        abi_bindings,
+    );
+    const narrow = addModuleTest(
+        b,
+        "helper-narrow",
+        narrow_module,
+    );
     const unsafe_policy_module = addAbiHelperModule(
         b,
         "unsafe_policy.zig",
@@ -133,6 +209,7 @@ pub fn build(b: *std.Build) void {
         optimize,
         abi_bindings,
     );
+    unsafe_policy_module.addImport("narrow", narrow_module);
     const unsafe_policy = addModuleTest(
         b,
         "helper-unsafe-policy",
@@ -151,6 +228,65 @@ pub fn build(b: *std.Build) void {
         "barrier.zig",
         target,
         optimize,
+    );
+    const bitmap_view = addHelperTest(
+        b,
+        "helper-bitmap-view",
+        "bitmap_view.zig",
+        target,
+        optimize,
+    );
+    const list_view = addHelperTest(
+        b,
+        "helper-list-view",
+        "list_view.zig",
+        target,
+        optimize,
+    );
+    const hlist_view = addHelperTest(
+        b,
+        "helper-hlist-view",
+        "hlist_view.zig",
+        target,
+        optimize,
+    );
+    const cpumask_view = addModuleTest(
+        b,
+        "helper-cpumask-view",
+        addBitmapHelperModule(
+            b,
+            "cpumask_view.zig",
+            target,
+            optimize,
+        ),
+    );
+    const err_ptr_module = addErrPtrModule(b, target, optimize);
+    const xa_value_module = addXaValueModule(
+        b,
+        target,
+        optimize,
+        err_ptr_module,
+    );
+    const err_ptr = addModuleTest(
+        b,
+        "helper-err-ptr",
+        err_ptr_module,
+    );
+    const xa_value = addModuleTest(
+        b,
+        "helper-xa-value",
+        xa_value_module,
+    );
+    const xarray_slot_view = addModuleTest(
+        b,
+        "helper-xarray-slot-view",
+        addXarraySlotViewModule(
+            b,
+            target,
+            optimize,
+            err_ptr_module,
+            xa_value_module,
+        ),
     );
     const mmio = addModuleTest(
         b,
@@ -172,6 +308,13 @@ pub fn build(b: *std.Build) void {
     policy_helpers.dependOn(&allocator_policy.step);
     policy_helpers.dependOn(&unsafe_policy.step);
 
+    const unsafe_boundary_helpers = b.step(
+        "test-unsafe-boundary-helpers",
+        "Run the helper-local Phase 3 unsafe-boundary helper tests.",
+    );
+    unsafe_boundary_helpers.dependOn(&narrow.step);
+    unsafe_boundary_helpers.dependOn(&unsafe_policy.step);
+
     const low_level_helpers = b.step(
         "test-low-level-helpers",
         "Run the helper-local Phase 3 low-level wrapper tests.",
@@ -179,6 +322,23 @@ pub fn build(b: *std.Build) void {
     low_level_helpers.dependOn(&atomic.step);
     low_level_helpers.dependOn(&barrier.step);
     low_level_helpers.dependOn(&mmio.step);
+
+    const shared_view_helpers = b.step(
+        "test-shared-view-helpers",
+        "Run the helper-local shared bitmap, list, hlist, and cpumask view tests.",
+    );
+    shared_view_helpers.dependOn(&bitmap_view.step);
+    shared_view_helpers.dependOn(&list_view.step);
+    shared_view_helpers.dependOn(&hlist_view.step);
+    shared_view_helpers.dependOn(&cpumask_view.step);
+
+    const xarray_helpers = b.step(
+        "test-xarray-helpers",
+        "Run the helper-local err_ptr, xa_value, and xarray-slot helper tests.",
+    );
+    xarray_helpers.dependOn(&err_ptr.step);
+    xarray_helpers.dependOn(&xa_value.step);
+    xarray_helpers.dependOn(&xarray_slot_view.step);
 
     const layout_step = b.step(
         "test-layout-assert",
@@ -193,9 +353,17 @@ pub fn build(b: *std.Build) void {
     all.dependOn(&layout_assert.step);
     all.dependOn(&panic_policy.step);
     all.dependOn(&allocator_policy.step);
+    all.dependOn(&narrow.step);
     all.dependOn(&unsafe_policy.step);
     all.dependOn(&atomic.step);
     all.dependOn(&barrier.step);
+    all.dependOn(&bitmap_view.step);
+    all.dependOn(&list_view.step);
+    all.dependOn(&hlist_view.step);
+    all.dependOn(&cpumask_view.step);
+    all.dependOn(&err_ptr.step);
+    all.dependOn(&xa_value.step);
+    all.dependOn(&xarray_slot_view.step);
     all.dependOn(&mmio.step);
     b.default_step = all;
 }
