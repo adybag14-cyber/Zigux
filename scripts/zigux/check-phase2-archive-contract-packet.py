@@ -49,12 +49,17 @@ TOOL_MANIFEST_NOTE = (
     "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, the pinned archive filename plus digest and size contract, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet while the payload itself stays listed under repo-reality gaps until same-lane work rematerializes it."
 )
 
-CHECKER_MARKERS = (
+TOOL_MANIFEST_CHECKER_MARKERS = (
     "REQUIRED_REPO_REALITY_GAPS = (",
     f'    "{PAYLOAD}",',
     '        "third_party/README.md",',
     "REPO_REALITY_GAPS_MISMATCH",
+)
+
+TESTS_ALIGNMENT_CHECKER_MARKERS = (
     "REQUIRED_PHASE2_TOOL_MANIFEST_GAPS = (",
+    f'    "{PAYLOAD}",',
+    '    "third_party/README.md",',
     "PHASE2_TOOL_MANIFEST_GAPS_MISMATCH",
 )
 
@@ -82,6 +87,15 @@ def read_manifest(root: Path) -> dict[str, object]:
     if not isinstance(payload, dict):
         raise SystemExit(f"invalid manifest shape: {path}")
     return payload
+
+
+def collect_missing_checker_markers(root: Path, rel: Path, markers: tuple[str, ...]) -> list[tuple[str, str]]:
+    text = read_text(root, rel)
+    return [
+        ("MISSING_CHECKER_MARKER", f"{rel}:{marker}")
+        for marker in markers
+        if marker not in text
+    ]
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -120,11 +134,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not isinstance(notes, list) or TOOL_MANIFEST_NOTE not in notes:
             issues.append(("MISSING_MANIFEST_NOTE", TOOL_MANIFEST_NOTE))
 
-    for rel in (CHECK_PHASE2_TOOL_MANIFEST, CHECK_PHASE2_TESTS_ALIGNMENT):
-        text = read_text(root, rel)
-        for marker in CHECKER_MARKERS:
-            if marker not in text:
-                issues.append(("MISSING_CHECKER_MARKER", f"{rel}:{marker}"))
+    issues.extend(
+        collect_missing_checker_markers(
+            root, CHECK_PHASE2_TOOL_MANIFEST, TOOL_MANIFEST_CHECKER_MARKERS
+        )
+    )
+    issues.extend(
+        collect_missing_checker_markers(
+            root, CHECK_PHASE2_TESTS_ALIGNMENT, TESTS_ALIGNMENT_CHECKER_MARKERS
+        )
+    )
 
     return issues
 
@@ -146,9 +165,8 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
-    checker_body = "\n".join(CHECKER_MARKERS) + "\n"
-    write_text(root, CHECK_PHASE2_TOOL_MANIFEST, checker_body)
-    write_text(root, CHECK_PHASE2_TESTS_ALIGNMENT, checker_body)
+    write_text(root, CHECK_PHASE2_TOOL_MANIFEST, "\n".join(TOOL_MANIFEST_CHECKER_MARKERS) + "\n")
+    write_text(root, CHECK_PHASE2_TESTS_ALIGNMENT, "\n".join(TESTS_ALIGNMENT_CHECKER_MARKERS) + "\n")
 
 
 def run_self_test() -> int:
@@ -204,6 +222,11 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root, CHECK_PHASE2_TOOL_MANIFEST, "missing\n")
+        assert any(code == "MISSING_CHECKER_MARKER" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, CHECK_PHASE2_TESTS_ALIGNMENT, "missing\n")
         assert any(code == "MISSING_CHECKER_MARKER" for code, _ in collect_issues(root))
         checks_run += 1
 
