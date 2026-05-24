@@ -42,6 +42,7 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/validate_phase3_selftest.py"',
     '"python3 scripts/zigux/run-phase3-checks.py"',
     '"zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all"',
+    '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
     '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
     '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
     '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
@@ -49,6 +50,7 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"make -C zigux phase3-export-shim-test"',
     '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
     '"zig build phase3-dump --build-file zigux/tests/build.zig"',
+    '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
     '"zig build phase3-test --build-file zigux/tests/build.zig"',
     '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
     '"make -C zigux phase3-low-level-wrappers-test"',
@@ -122,6 +124,7 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "python3 scripts/zigux/run-phase3-checks.py",
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
+    "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
@@ -130,6 +133,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     "make -C zigux phase3-policy-dump",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
+    "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
     "zig build phase3-test --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-export-uapi-layout",
@@ -270,6 +274,7 @@ def run_self_test() -> int:
             ('"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"', "expected export-uapi survey direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"', "expected export-uapi c-header smoke validator-route drift was not reported"),
             ('"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"', "expected shared ABI core build validator-route drift was not reported"),
+            ('"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"', "expected policy-starter build validator-route drift was not reported"),
             ('"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"', "expected export-uapi layout build validator-route drift was not reported"),
             ('"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"', "expected export-uapi layout test validator-route drift was not reported"),
             ('"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"', "expected export-shim validator-route drift was not reported"),
@@ -289,6 +294,7 @@ def run_self_test() -> int:
             ('"zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all"', "expected dev-t starter build validator-route drift was not reported"),
             ('"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"', "expected policy-dump build validator-route drift was not reported"),
             ('"zig build phase3-dump --build-file zigux/tests/build.zig"', "expected shared ABI dump build validator-route drift was not reported"),
+            ('"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"', "expected low-level-wrapper shared build validator-route drift was not reported"),
             ('"zig build phase3-test --build-file zigux/tests/build.zig"', "expected shared ABI aggregate build validator-route drift was not reported"),
             ('"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"', "expected low-level-wrapper focused build validator-route drift was not reported"),
             ('"make -C zigux phase3-low-level-wrappers-test"', "expected low-level-wrapper focused make-route drift was not reported"),
@@ -366,13 +372,16 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/validate_phase3_selftest.py", "expected selftest-driver route drift was not reported"),
             ("python3 scripts/zigux/run-phase3-checks.py", "expected runner route drift was not reported"),
             ("zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all", "expected dev-t starter build route drift was not reported"),
+            ("zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig", "expected policy-starter build route drift was not reported"),
             ("zig build phase3-abi-core-packet --build-file zigux/tests/build.zig", "expected shared ABI core build route drift was not reported"),
             ("zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig", "expected export-uapi layout build route drift was not reported"),
             ("zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig", "expected export-uapi layout test route drift was not reported"),
+            ("zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig", "expected export-shim build route drift was not reported"),
             ("make -C zigux phase3-export-shim-test", "expected export-shim make route drift was not reported"),
             ("zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "expected policy-dump build route drift was not reported"),
             ("make -C zigux phase3-policy-dump", "expected policy-dump make route drift was not reported"),
             ("zig build phase3-dump --build-file zigux/tests/build.zig", "expected shared ABI dump build route drift was not reported"),
+            ("zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig", "expected low-level-wrapper shared build route drift was not reported"),
             ("zig build phase3-test --build-file zigux/tests/build.zig", "expected shared ABI aggregate build route drift was not reported"),
             ("zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig", "expected low-level-wrapper focused build route drift was not reported"),
             ("make -C zigux phase3-export-uapi-layout", "expected export-uapi shared make route drift was not reported"),
@@ -404,7 +413,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=110")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=115")
     return 0
 
 
