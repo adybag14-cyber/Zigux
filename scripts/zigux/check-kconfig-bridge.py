@@ -176,7 +176,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 7
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -629,6 +629,7 @@ def run_self_test() -> int:
         cases_path = fixture_root / "cases.json"
         conf_manifest_path = fixture_root / "conf_manifest.json"
         confdata_manifest_path = fixture_root / "confdata_manifest.json"
+        conf_bridge_path = root / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
         confdata_bridge_path = root / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 
         build_self_test_root(root)
@@ -648,6 +649,21 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][11]["silent"] = "true"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert ("INVALID_CONF_CASES_FIELD_TYPE", "11:silent:str") in collect_manifest_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        source = conf_bridge_path.read_text(encoding="utf-8")
+        source = source.replace('test "conf bridge emits olddefconfig argv and env" {\n', 'test "conf bridge emits reordered olddefconfig argv and env" {\n', 1)
+        write_text(conf_bridge_path, source)
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
         source = confdata_bridge_path.read_text(encoding="utf-8")
         source = source.replace('test "confdata bridge emits bounded json output" {\n', 'test "confdata bridge emits reordered json output" {\n', 1)
         write_text(confdata_bridge_path, source)
@@ -657,10 +673,81 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["helper_local_allconfig_implicit_omission_modes"] = REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES[:-1]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
         manifest["helper_local_allconfig_explicit_override_modes"] = REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES[:-1]
         write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_MANIFEST_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["helper_local_anchors"] = REQUIRED_CONF_HELPER_ANCHORS[:-1]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][11].pop("silent")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_SILENT_REQUEST_PACKET_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][8].pop("mode_arg")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_MODE_ARG_CASES_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][7].pop("allconfig")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_ALLCONFIG_OVERRIDE_PACKET_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][1].pop("nosilentupdate")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_SYNCCONFIG_ENV_PACKET_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][7].pop("seed")
+        payload["conf_cases"][7].pop("probability")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_RANDCONFIG_ENV_PACKET_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["allconfig_sentinel_packet"] = ["broken_expected.json"]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert any(issue[0] == "CONF_MANIFEST_ALLCONFIG_SENTINEL_PACKET_MISMATCH" for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        (fixture_root / "helpnewconfig_expected.json").unlink()
+        issues = collect_manifest_issues(root)
+        assert ("CONF_MANIFEST_REFERENCES_MISSING_FIXTURE", "helpnewconfig_expected.json") in issues
         checks_run += 1
 
         build_self_test_root(root)
