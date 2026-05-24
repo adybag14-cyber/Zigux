@@ -193,6 +193,9 @@ STATUS_DRAIN_HELPER_MARKERS = [
 TEARDOWN_PREFLIGHT_HELPER_MARKERS = [
     "pub const TeardownPreflightBlocker = enum {",
     "pub const TeardownPreflightSummary = struct {",
+    "const observation = device.teardownObservationSummary();",
+    ".pending_status_drain",
+    ".ready_for_teardown = blocker == null,",
     "pub fn summarize(device: *const virtio_input.VirtioInputLab) TeardownPreflightSummary {",
     "pub fn blockerTag(blocker: TeardownPreflightBlocker) []const u8 {",
     "pub fn runtimeStateArmed(summary: TeardownPreflightSummary) bool {",
@@ -273,6 +276,7 @@ TEST_MARKERS = {
     ],
     "zigux/tests/phase10_virtio_input_teardown_preflight.zig": [
         'test "phase10 virtio input teardown preflight blocks reset-local teardown until queued statuses drain" {',
+        'test "phase10 virtio input teardown preflight keeps suppressed multitouch timestamps non-blocking" {',
     ],
     "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
         'test "phase10 virtio input teardown observation keeps identity while resettable runtime state stays explicit" {',
@@ -684,9 +688,9 @@ def run_self_test() -> int:
             ),
             (
                 "drivers/virtio/virtio_input_teardown_preflight.zig",
-                "pub fn blockerTag(blocker: TeardownPreflightBlocker) []const u8 {",
-                "pub fn blockerTagDrift(blocker: TeardownPreflightBlocker) []const u8 {",
-                "teardown_preflight_helper:pub fn blockerTag(blocker: TeardownPreflightBlocker) []const u8 {",
+                ".ready_for_teardown = blocker == null,",
+                ".ready_for_teardown = false,",
+                "teardown_preflight_helper:.ready_for_teardown = blocker == null,",
             ),
             (
                 "drivers/virtio/virtio_input_verify.zig",
@@ -717,6 +721,12 @@ def run_self_test() -> int:
                 'test "phase10 virtio input teardown preflight blocks reset-local teardown until queued statuses drain" {',
                 'test "phase10 virtio input teardown preflight drifts reset-local gating" {',
                 'phase10_virtio_input_teardown_preflight.zig:test "phase10 virtio input teardown preflight blocks reset-local teardown until queued statuses drain" {',
+            ),
+            (
+                "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
+                'test "phase10 virtio input teardown preflight keeps suppressed multitouch timestamps non-blocking" {',
+                'test "phase10 virtio input teardown preflight drifts suppressed timestamps" {',
+                'phase10_virtio_input_teardown_preflight.zig:test "phase10 virtio input teardown preflight keeps suppressed multitouch timestamps non-blocking" {',
             ),
         ]
         for rel_path, old, new, expected in text_cases:
@@ -779,7 +789,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "drivers/virtio/virtio_input_verify.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
