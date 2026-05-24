@@ -80,9 +80,9 @@ REQUIRED_MARKERS = {
         "Run the Phase 12 virtio_scsi rollback-only survey tests",
     ],
     COMPLEX_DRIVER_NOTE_PATH: [
-        "current `master` now keeps the bounded `virtio_scsi` packet readable only through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`, while `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` remain absent on current `master`",
-        "keep those `virtio_scsi` survey, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth",
-        "shared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep only the rollback-evidence `virtio_scsi` survey companions explicit as current driver-local packet members",
+        "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`",
+        "keep those `virtio_scsi` survey, survey-build, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth",
+        "shared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep only the rollback-evidence `virtio_scsi` survey and survey-build companions explicit as current driver-local packet members",
     ],
     LIBBPF_SURVEY_PATH: [
         "current `master` still exposes a bounded directly readable `zigux_segments` footing",
@@ -123,16 +123,20 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
+
 def repo_root() -> Path:
     resolved = Path(__file__).resolve()
     return resolved.parents[2] if len(resolved.parents) >= 3 else resolved.parent
 
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
 
 def check(root: Path, source_text: str | None = None) -> list[str]:
     errors: list[str] = []
@@ -170,6 +174,7 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
 
     return errors
 
+
 def write_fixture_tree(root: Path) -> None:
     fixture_text = {
         VIRTIO_SCSI_SLICE_PATH: "# Phase 12 virtio_scsi Slice\n- `PHASE12_SLICE=virtio-scsi-rollback-evidence`\n",
@@ -179,7 +184,7 @@ def write_fixture_tree(root: Path) -> None:
         VIRTIO_SCSI_MANIFEST_PATH: '{\n  "lane_key": "P12-L13",\n  "preexisting_phase12_direct_test_present": false,\n  "gaps": ["phase12-virtio-scsi-runtime-request-flow"]\n}\n',
         VIRTIO_SCSI_SURVEY_GATE_PATH: 'test "phase12 virtio scsi survey manifest keeps the rollback-only packet truthful" {\n    _ = pathExists("drivers/scsi/virtio_scsi.zig");\n    _ = "Documentation/zigux/phase12-virtio-scsi-survey.md";\n}\n',
         VIRTIO_SCSI_SURVEY_BUILD_PATH: 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const root_module = b.createModule(.{\n        .root_source_file = b.path("phase12_virtio_scsi_survey.zig"),\n    });\n    const tests = b.addTest(.{\n        .name = "phase12-virtio-scsi-survey-tests",\n        .root_module = root_module,\n    });\n    const run_tests = b.addRunArtifact(tests);\n    const test_step = b.step("test", "Run the Phase 12 virtio_scsi rollback-only survey tests");\n    test_step.dependOn(&run_tests.step);\n}\n',
-        COMPLEX_DRIVER_NOTE_PATH: "current `master` now keeps the bounded `virtio_scsi` packet readable only through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`, while `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` remain absent on current `master`\nkeep those `virtio_scsi` survey, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth\nshared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep only the rollback-evidence `virtio_scsi` survey companions explicit as current driver-local packet members\n",
+        COMPLEX_DRIVER_NOTE_PATH: "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`\nkeep those `virtio_scsi` survey, survey-build, fallback, fixture, manifest, and checker surfaces framed as rollback-evidence-only driver-local packet truth\nshared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep only the rollback-evidence `virtio_scsi` survey and survey-build companions explicit as current driver-local packet members\n",
         LIBBPF_SURVEY_PATH: "current `master` still exposes a bounded directly readable `zigux_segments` footing\n`tools/lib/bpf/zigux_segments/verify.zig`\n`manifest.json` now remains directly readable as a historical lane map for that helper packet rather than proof of a current shared replay route\n`zigux/tests/phase12_libbpf_reviewability.zig` gate still pins the legacy five-path reviewability packet on current `master`\n",
         LIBBPF_VERIFY_NOTE_PATH: "`tools/lib/bpf/zigux_segments/verify.zig` is directly readable on current `master`\n- snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`\nthe direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`\n",
         LIBBPF_HEAVY_CONSUMER_PATH: "Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, so keep `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` explicit here as shipped wrapper evidence and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.\nThe shipped heavy-consumer guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the parked helper-first packet fail-closed beside the snapshot checker and shared validator entrypoint without turning the shared release packet into a focused libbpf replay route.\n",
@@ -187,6 +192,7 @@ def write_fixture_tree(root: Path) -> None:
     }
     for rel_path in REQUIRED_FILES:
         write_text(root / rel_path, fixture_text[rel_path])
+
 
 def run_self_test() -> int:
     tmp_root = Path(tempfile.mkdtemp(prefix="phase12-virtio-scsi-libbpf-boundary-"))
@@ -271,9 +277,49 @@ def run_self_test() -> int:
             raise SystemExit("expected libbpf survey marker failure")
 
         write_fixture_tree(tmp_root)
-        write_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH, read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH).replace("rollback-evidence-only", "rollback-lab", 1))
-        if not any("missing marker in" in error and COMPLEX_DRIVER_NOTE_PATH in error for error in check(tmp_root, source_text=MARKER)):
-            raise SystemExit("expected complex-driver marker failure")
+        write_text(
+            tmp_root / COMPLEX_DRIVER_NOTE_PATH,
+            read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH).replace(
+                ", `zigux/tests/phase12_virtio_scsi_survey_build.zig`",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in" in error and COMPLEX_DRIVER_NOTE_PATH in error
+            for error in check(tmp_root, source_text=MARKER)
+        ):
+            raise SystemExit("expected complex-driver survey-build path marker failure")
+
+        write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / COMPLEX_DRIVER_NOTE_PATH,
+            read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH).replace(
+                "survey-build, ",
+                "",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in" in error and COMPLEX_DRIVER_NOTE_PATH in error
+            for error in check(tmp_root, source_text=MARKER)
+        ):
+            raise SystemExit("expected complex-driver survey-build wording failure")
+
+        write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / COMPLEX_DRIVER_NOTE_PATH,
+            read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH).replace(
+                "survey and survey-build companions",
+                "survey companions",
+                1,
+            ),
+        )
+        if not any(
+            "missing marker in" in error and COMPLEX_DRIVER_NOTE_PATH in error
+            for error in check(tmp_root, source_text=MARKER)
+        ):
+            raise SystemExit("expected complex-driver PMO survey-build marker failure")
 
         write_fixture_tree(tmp_root)
         write_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH, read_text(tmp_root / COMPLEX_DRIVER_NOTE_PATH) + FORBIDDEN_MARKERS[COMPLEX_DRIVER_NOTE_PATH][0] + "\n")
@@ -326,8 +372,9 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=12")
+    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST_CASES=14")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -347,6 +394,7 @@ def main() -> int:
 
     print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY=pass")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
