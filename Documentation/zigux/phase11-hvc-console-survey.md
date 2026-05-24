@@ -13,10 +13,11 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
   reviewability should deepen before any live execution claims
 - current authenticated contents readback keeps the bounded HVC current-head
   packet reviewable through the direct starter, current survey, current-head
-  companion, verify-helper boundary note, validation matrix, build-inventory
-  checker, cleanup-current-head checker, targetless-unregister witness checker,
-  shared build inventory, the proof-backed adjunct stack, the dedicated
-  modem-control proof pair, and the standalone targetless-unregister witness pair
+  companion, verify-helper boundary note, validation matrix, the returned
+  `phase11-validate` validator surfaces, build-inventory checker,
+  cleanup-current-head checker, targetless-unregister witness checker, shared
+  build inventory, the proof-backed adjunct stack, the dedicated modem-control
+  proof pair, and the standalone targetless-unregister witness pair
 - current authenticated contents readback still does not rematerialize
   `drivers/tty/hvc/hvc_console_verify.zig`,
   `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
@@ -34,6 +35,7 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
 
 Treat the current bounded HVC packet on `master` as:
 
+- `.github/workflows/zigux-bootstrap.yml`
 - `drivers/tty/hvc/hvc_console.zig`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
@@ -42,6 +44,8 @@ Treat the current bounded HVC packet on `master` as:
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `scripts/zigux/validate-phase11.py`
+- `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
@@ -57,13 +61,15 @@ Treat the current bounded HVC packet on `master` as:
 The shared build-inventory checker plus shared build inventory still record
 three proof-backed build tests, the coupled `exact_current_checks` list, and
 the `workflow_phase11_steps` entry that routes this packet through
-`make -C zigux phase11-validate`. Keep the dedicated survey route absent until
-`zigux/Makefile` grows it explicitly. The dedicated modem-control proof pair
-likewise stays directly readable as a focused adjunct route without promoting
-itself into the shared three-entry build inventory, and the standalone
- targetless-unregister witness pair likewise stays directly readable as a
-separate failure-mode replay without promoting itself into the shared three-entry
-build inventory.
+`make -C zigux phase11-validate`. `scripts/zigux/validate-phase11.py`,
+`zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` keep that
+validator-backed route directly readable on current `master` too. Keep the
+dedicated survey route absent until `zigux/Makefile` grows it explicitly. The
+dedicated modem-control proof pair likewise stays directly readable as a focused
+adjunct route without promoting itself into the shared three-entry build
+inventory, and the standalone targetless-unregister witness pair likewise stays
+directly readable as a separate failure-mode replay without promoting itself
+into the shared three-entry build inventory.
 
 ## Still-Bounded Gaps
 
@@ -88,7 +94,8 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the current companion stack,
 the verify-boundary reminder surface, the shared inventory-backed proof routes,
-the dedicated modem-control proof pair, and the standalone targetless-unregister
+the validator-backed `make -C zigux phase11-validate` route, the dedicated
+modem-control proof pair, and the standalone targetless-unregister
 witness pair.
 
 It does not claim that the currently missing verify helper, sysrq helper,
