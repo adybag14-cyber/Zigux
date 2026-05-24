@@ -1,0 +1,99 @@
+const std = @import("std");
+const testing = std.testing;
+
+const bitmap_view = @import("bitmap_view");
+const cpumask_view = @import("cpumask_view");
+
+fn bit(index: usize) usize {
+    return @as(usize, 1) << @intCast(index);
+}
+
+fn invalidTailNoise(bit_len: usize) usize {
+    const remainder = bit_len % bitmap_view.word_bits;
+    std.debug.assert(remainder != 0);
+
+    const valid_mask = (@as(usize, 1) << @intCast(remainder)) - 1;
+    return ~valid_mask;
+}
+
+test "triple-bank partial tail empty-valid keeps the first clear tail bit explicit" {
+    const capacity = (bitmap_view.word_bits * 3) + 7;
+    const tail_base = bitmap_view.word_bits * 3;
+    const words = [_]usize{
+        std.math.maxInt(usize),
+        std.math.maxInt(usize),
+        std.math.maxInt(usize),
+        invalidTailNoise(capacity),
+    };
+
+    const bitmap = bitmap_view.BitmapView.init(words[0..], capacity);
+    const cpumask = cpumask_view.CpuMaskView.init(words[0..], capacity);
+
+    try testing.expectEqual(tail_base, bitmap.countSetBits());
+    try testing.expectEqual(bitmap.countSetBits(), cpumask.countPresentCpus());
+    try testing.expectEqual(@as(?usize, 0), bitmap.firstSetBit());
+    try testing.expectEqual(bitmap.firstSetBit(), cpumask.firstCpu());
+    try testing.expectEqual(@as(?usize, tail_base), bitmap.firstClearBit());
+    try testing.expectEqual(bitmap.firstClearBit(), cpumask.firstMissingCpu());
+    try testing.expect(cpumask.hasCpu(tail_base - 1));
+    try testing.expect(!cpumask.hasCpu(tail_base));
+    try testing.expect(!cpumask.hasCpu(capacity - 1));
+}
+
+test "triple-bank partial tail empty-valid keeps subset and overlap blind to invalid tail noise" {
+    const capacity = (bitmap_view.word_bits * 3) + 7;
+    const base_words = [_]usize{
+        std.math.maxInt(usize),
+        std.math.maxInt(usize),
+        std.math.maxInt(usize),
+        invalidTailNoise(capacity),
+    };
+    const subset_words = [_]usize{
+        bit(5) | bit(19),
+        bit(0) | bit(37),
+        bit(11) | bit(47),
+        bit(9) | bit(15),
+    };
+    const valid_overlap_words = [_]usize{
+        bit(12),
+        0,
+        0,
+        bit(10),
+    };
+    const tail_valid_only_words = [_]usize{
+        0,
+        0,
+        0,
+        bit(2) | bit(5),
+    };
+    const tail_only_noise_words = [_]usize{
+        0,
+        0,
+        0,
+        bit(7) | bit(12) | bit(18),
+    };
+
+    const base = cpumask_view.CpuMaskView.init(base_words[0..], capacity);
+    const subset = cpumask_view.CpuMaskView.init(subset_words[0..], capacity);
+    const valid_overlap = cpumask_view.CpuMaskView.init(valid_overlap_words[0..], capacity);
+    const tail_valid_only = cpumask_view.CpuMaskView.init(tail_valid_only_words[0..], capacity);
+    const tail_only_noise = cpumask_view.CpuMaskView.init(tail_only_noise_words[0..], capacity);
+    const tail_only_bitmap = bitmap_view.BitmapView.init(tail_only_noise_words[0..], capacity);
+
+    try testing.expect(subset.isSubsetOf(base));
+    try testing.expect(!base.isSubsetOf(subset));
+    try testing.expect(base.intersects(valid_overlap));
+    try testing.expect(valid_overlap.intersects(base));
+    try testing.expect(!base.intersects(tail_valid_only));
+    try testing.expect(!tail_valid_only.intersects(base));
+    try testing.expect(!tail_valid_only.isSubsetOf(base));
+    try testing.expect(!base.intersects(tail_only_noise));
+    try testing.expect(!tail_only_noise.intersects(base));
+    try testing.expect(tail_only_noise.isSubsetOf(base));
+    try testing.expectEqual(@as(usize, 0), tail_only_bitmap.countSetBits());
+    try testing.expectEqual(@as(?usize, null), tail_only_bitmap.firstSetBit());
+    try testing.expectEqual(@as(?usize, 0), tail_only_bitmap.firstClearBit());
+    try testing.expectEqual(@as(usize, 0), tail_only_noise.countPresentCpus());
+    try testing.expectEqual(@as(?usize, null), tail_only_noise.firstCpu());
+    try testing.expectEqual(@as(?usize, 0), tail_only_noise.firstMissingCpu());
+}
