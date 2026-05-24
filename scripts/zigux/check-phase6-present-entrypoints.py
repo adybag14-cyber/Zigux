@@ -21,7 +21,7 @@ EXPECTED_PACKET = "phase6-helper-evidence"
 EXPECTED_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
 EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
-EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-24"
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_CURRENT_REPO_REALITY_GAPS = [
@@ -74,7 +74,7 @@ EXPECTED_DOCS_README_SNIPPETS = [
     "* authenticated current-master rereads now directly recover both `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`",
 ]
 EXPECTED_CATALOG_SNIPPETS = [
-    "- surveyed head: `current-master-readback-2026-05-22`",
+    "- surveyed head: `current-master-readback-2026-05-24`",
     "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`",
     "A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`",
 ]
