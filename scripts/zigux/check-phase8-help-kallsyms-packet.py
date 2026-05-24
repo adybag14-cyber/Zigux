@@ -23,6 +23,7 @@ TOOLING_LANE_SEQUENCE = Path("Documentation/zigux/phase8-tooling-lane-sequencing
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 VALIDATOR = Path("scripts/zigux/validate-phase8.py")
+BUILD_SHARD_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-build-shard.py")
 MAKEFILE = Path("zigux/Makefile")
 TESTS_README = Path("zigux/tests/README.md")
 HELP_KALLSYMS_BUILD = Path("zigux/tests/phase8_help_kallsyms_only_build.zig")
@@ -40,6 +41,7 @@ REQUIRED_FILES = (
     CHECKLIST,
     SCRIPTS_README,
     VALIDATOR,
+    BUILD_SHARD_CHECKER,
     MAKEFILE,
     TESTS_README,
     HELP_KALLSYMS_BUILD,
@@ -98,7 +100,20 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     VALIDATOR: (
         'HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")',
+        'HELP_KALLSYMS_BUILD_SHARD_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-build-shard.py")',
         "HELP_KALLSYMS_PACKET_CHECKER,",
+        "HELP_KALLSYMS_BUILD_SHARD_CHECKER,",
+    ),
+    BUILD_SHARD_CHECKER: (
+        'SCRIPT_PATH = "scripts/zigux/check-phase8-help-kallsyms-build-shard.py"',
+        'BUILD_PATH = "zigux/tests/phase8_help_kallsyms_only_build.zig"',
+        '"../../tools/lib/subcmd/help.zig"',
+        '"../../tools/lib/symbol/kallsyms.zig"',
+        '"phase8-help-tests"',
+        '"phase8-kallsyms-tests"',
+        '"Run the focused Phase 8 help and kallsyms shared tests."',
+        "test_step.dependOn(&run_help_tests.step);",
+        "test_step.dependOn(&run_kallsyms_tests.step);",
     ),
     MAKEFILE: (
         "phase8-help-kallsyms-test:",
