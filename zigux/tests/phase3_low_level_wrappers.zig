@@ -186,6 +186,8 @@ test "phase3 low-level wrappers keep direct MMIO scope gates explicit" {
 
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScoped(u32, none_scope, const_register_ptr));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScoped(u32, raw_scope, register_ptr, 0xAABB_CCDD));
+    try std.testing.expectEqual(@as(u32, 0x0102_0304), register);
+
     try std.testing.expectEqual(@as(u32, 0x0102_0304), try mmio.readScoped(u32, mmio_scope, const_register_ptr));
 
     try mmio.writeScoped(u32, mmio_scope, register_ptr, 0xAABB_CCDD);
