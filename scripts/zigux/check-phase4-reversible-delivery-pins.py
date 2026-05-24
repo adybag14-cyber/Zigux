@@ -24,6 +24,9 @@ PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT
 LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 21
 EXPECTED_PIN_SELF_TEST_CASES = 19
+PERF_BASELINE_CHECKER_LINE = (
+    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`."
+)
 
 STATIC_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_NOTE_BLOB_SHA=53fec0ed6190e94af07826f720deb1fe59e2c67b`",
@@ -75,7 +78,7 @@ EXPECTED_RECOVERY_MARKERS = (
 )
 NOTE_MARKERS = (
     "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
-    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.",
+    PERF_BASELINE_CHECKER_LINE,
     "Current direct-readback dedicated local-only perf companion members:",
     "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
     "  * `zigux/tests/phase4_perf_baseline_survey.zig`",
@@ -133,6 +136,14 @@ def require(text: str, markers: tuple[str, ...], label: str) -> None:
         raise RuntimeError(f"{label} is missing required fragments: {missing}")
 
 
+def require_exact_count(text: str, marker: str, expected_count: int, label: str) -> None:
+    actual_count = text.count(marker)
+    if actual_count != expected_count:
+        raise RuntimeError(
+            f"{label} expected {expected_count} instances of {marker!r}, found {actual_count}"
+        )
+
+
 def require_current_head_blob_pins(root: Path, note: str) -> None:
     missing = [
         current_head_blob_pin_line(root, label, rel)
@@ -151,6 +162,7 @@ def check(root: Path) -> None:
         STATIC_SHA_LINES + EXPECTED_STATUS_LINES + NOTE_MARKERS + EXPECTED_PACKET_MEMBER_LINES + EXPECTED_RECOVERY_MARKERS,
         NOTE.as_posix(),
     )
+    require_exact_count(note, PERF_BASELINE_CHECKER_LINE, 1, NOTE.as_posix())
     require_current_head_blob_pins(root, note)
     require(warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
 
@@ -184,7 +196,7 @@ def _baseline_note(root: Path) -> str:
         "  * `scripts/zigux/check-phase4-tests-readme-packet.py`",
         "  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`",
         "",
-        "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.",
+        PERF_BASELINE_CHECKER_LINE,
         "",
         "Current direct-readback dedicated local-only perf companion members:",
         "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
@@ -284,8 +296,8 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
-            "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.\n\nCurrent direct-readback dedicated local-only perf companion members:\n  * `zigux/tests/phase4_perf_baseline_manifest.json`\n  * `zigux/tests/phase4_perf_baseline_survey.zig`",
-            "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-local-perf-baseline-packet.py`.\n\nCurrent direct-readback dedicated local-only perf companion members:\n  * `zigux/tests/phase4_perf_baseline_packet_manifest.json`\n  * `zigux/tests/phase4_perf_baseline_packet_survey.zig`",
+            PERF_BASELINE_CHECKER_LINE,
+            PERF_BASELINE_CHECKER_LINE + "\n" + PERF_BASELINE_CHECKER_LINE,
         )
         cases += _expect_failure(
             root,
