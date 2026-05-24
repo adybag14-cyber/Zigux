@@ -526,7 +526,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    if args.self-test:
+    if args.self_test:
         run_self_test()
         return 0
 
