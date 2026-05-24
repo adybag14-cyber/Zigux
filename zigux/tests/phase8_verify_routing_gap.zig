@@ -22,10 +22,10 @@ test "phase 8 verify routing witness records the current CPU-index verifier clos
     try expectContains(helper, "pub fn resolveNextOnlineCpuRouteCpuIndexAtIndex(");
     try expectContains(helper, "pub fn resolveNextOnlineCpuRouteCpuIndexReturn(summary: OnlineCpuRouteAttemptSummary) i32 {");
     try expectContains(helper, "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(");
-    try expectContains(helper, "test \\\"resolveNextOnlineCpuRouteCpuIndex keeps typed route-cpu wrappers aligned\\\" {");
-    try expectContains(helper, "test \\\"resolveNextOnlineCpuRouteCpuIndexReturn keeps errno-shaped route-cpu wrappers aligned\\\" {");
-    try expectContains(helper, "test \\\"resolveNextOnlineCpuRouteCpuIndexAtIndex keeps direct route-cpu wrappers aligned\\\" {");
-    try expectContains(helper, "test \\\"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\\\" {");
+    try expectContains(helper, "test \"resolveNextOnlineCpuRouteCpuIndex keeps typed route-cpu wrappers aligned\" {");
+    try expectContains(helper, "test \"resolveNextOnlineCpuRouteCpuIndexReturn keeps errno-shaped route-cpu wrappers aligned\" {");
+    try expectContains(helper, "test \"resolveNextOnlineCpuRouteCpuIndexAtIndex keeps direct route-cpu wrappers aligned\" {");
+    try expectContains(helper, "test \"resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned\" {");
 
     const verify = try readRepoFile("tools/lib/bpf/zigux_segments/verify.zig");
     defer std.testing.allocator.free(verify);
@@ -35,8 +35,8 @@ test "phase 8 verify routing witness records the current CPU-index verifier clos
     try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexAtIndex");
     try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexReturn");
     try expectContains(verify, "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex");
-    try expectContains(verify, "test \\\"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit\\\" {");
-    try expectContains(verify, "test \\\"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit\\\" {");
+    try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit\" {");
+    try expectContains(verify, "test \"materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit\" {");
 }
 
 test "phase 8 verify routing witness records the current dedicated verifier shards" {
@@ -47,13 +47,23 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
 
     try expectContains(
         online_cpu_verify,
-        "test \\\"phase8 online-cpu route helpers keep typed cpu-index wrappers stable\\\" {",
+        "test \"phase8 online-cpu route helpers keep typed cpu-index wrappers stable\" {",
     );
     try expectContains(online_cpu_verify, "resolveNextOnlineCpuRouteCpuIndex(");
     try expectContains(online_cpu_verify, "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(");
     try expectContains(
         online_cpu_verify,
-        "test \\\"phase8 online-cpu route helpers fail closed when a hand-built CPU index exceeds i32\\\" {",
+        "test \"phase8 online-cpu route helpers keep typed buffer-fd wrappers stable\" {",
+    );
+    try expectContains(online_cpu_verify, "resolveNextOnlineCpuRouteBufferFd(");
+    try expectContains(
+        online_cpu_verify,
+        "test \"phase8 online-cpu route helpers keep errno-shaped buffer-fd wrappers stable\" {",
+    );
+    try expectContains(online_cpu_verify, "resolveNextOnlineCpuRouteBufferFdReturn(");
+    try expectContains(
+        online_cpu_verify,
+        "test \"phase8 online-cpu route helpers fail closed when a hand-built CPU index exceeds i32\" {",
     );
 
     const ready_buffer_attempt_verify = try readRepoFile(
@@ -63,7 +73,7 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
 
     try expectContains(
         ready_buffer_attempt_verify,
-        "test \\\"phase8 ready-buffer attempt helper entrypoints stay explicit\\\" {",
+        "test \"phase8 ready-buffer attempt helper entrypoints stay explicit\" {",
     );
     try expectContains(ready_buffer_attempt_verify, "resolveReadyBufferAttemptIndex(");
     try expectContains(ready_buffer_attempt_verify, "resolveReadyBufferAttemptLookupReturn(");
@@ -75,7 +85,7 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
 
     try expectContains(
         ready_buffer_fd_verify,
-        "test \\\"phase8 ready-buffer fd helper entrypoints stay explicit\\\" {",
+        "test \"phase8 ready-buffer fd helper entrypoints stay explicit\" {",
     );
     try expectContains(ready_buffer_fd_verify, "resolveReadyBufferFdAtAttempt");
     try expectContains(ready_buffer_fd_verify, "resolveReadyBufferFdLookupReturnAtAttempt");
@@ -87,7 +97,7 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
 
     try expectContains(
         ready_buffer_window_verify,
-        "test \\\"phase8 ready-buffer window helper entrypoints stay explicit\\\" {",
+        "test \"phase8 ready-buffer window helper entrypoints stay explicit\" {",
     );
     try expectContains(
         ready_buffer_window_verify,
@@ -109,7 +119,7 @@ test "phase 8 verify routing witness records the current dedicated verifier shar
 
     try expectContains(
         type_names_verify,
-        "test \\\"phase8 libbpf type-name helper entrypoints stay explicit\\\" {",
+        "test \"phase8 libbpf type-name helper entrypoints stay explicit\" {",
     );
     try expectContains(type_names_verify, "libbpfBpfMapTypeStr(27)");
     try expectContains(type_names_verify, "formatLibbpfBpfProgType(prog_buffer[0..], 33)");
@@ -188,23 +198,23 @@ test "phase 8 verify routing witness records the current mixed-source bridge rem
 
     try expectContains(
         manifest,
-        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
+        "\\\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"starter_landed\\\"",
     );
     try expectContains(
         manifest,
-        "\"why_now\": \"The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.\"",
+        "\\\"why_now\\\": \\\"The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.\\\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
+        "\\\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"starter_landed\\\"",
     );
     try expectContains(
         manifest,
-        "\"why_now\": \"The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\"",
+        "\\\"why_now\\\": \\\"The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\\\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+        "\\\"slug\\\": \\\"file-path-and-handle-bridge\\\", \\\"status\\\": \\\"deferred_high_risk\\\", \\\"kind\\\": \\\"resource_boundary\\\"",
     );
 
     const bridge_test = try readRepoFile("zigux/tests/phase8_file_path_handle_bridge.zig");
@@ -218,5 +228,6 @@ test "phase 8 verify routing witness records the current mixed-source bridge rem
         bridge_test,
         "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes",
     );
+    try expectContains(bridge_test, "planning-only `resolveReusePinnedMapAttempt()` gating");
     try expectContains(bridge_test, "planning-only `planTokenPreparation()` gating");
 }
