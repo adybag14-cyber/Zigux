@@ -468,6 +468,24 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
 }
 
+test "buildSearchPath skips rooted argv0 empty directories when assembling PATH" {
+    var rooted = (try extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
+    defer rooted.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("", rooted.argv0_path.?);
+    try std.testing.expectEqualStrings("perf", rooted.command_name);
+
+    const built = try buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        rooted.argv0_path,
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(built);
+
+    try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", built);
+}
+
 test "setupPath preserves the inherited exec-path string while normalizing PATH entries" {
     const config = Config{
         .exec_name = "perf",
