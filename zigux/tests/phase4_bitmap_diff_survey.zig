@@ -91,7 +91,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
 
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P4-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P4-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
 
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.roadmap_target_path);
