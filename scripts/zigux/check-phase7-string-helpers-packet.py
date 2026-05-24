@@ -38,6 +38,7 @@ NO_EXTRA_SAMPLE_BULLETS = [
     "* `*rbtree*`",
     "* `*kasprintf*`",
     "* `*strarray*`",
+    "* `*bitmap*`",
     "* `*printf*`",
     "* `*vsprintf*`",
 ]
@@ -81,6 +82,7 @@ REQUIRED_MARKERS = {
         '"\\\"devm_kasprintf_strarray\\\""',
         '"\\\"parseIntArrayUser\\\""',
         '"\\\"parse_int_array_user\\\""',
+        '"* `*bitmap*`"',
         '"* `*printf*`"',
         '"* `*vsprintf*`"',
         FORMAT_BOUNDARY_MARKER,
@@ -221,7 +223,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 59
+SELF_TEST_CASE_COUNT = 60
 
 
 def read_text(path: Path) -> str:
@@ -370,6 +372,16 @@ def run_self_test() -> None:
             "missing_checker_selftest_pass_marker",
             tmp_root,
             "scripts/zigux/check-phase7-string-helpers-packet.py: PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_bitmap_marker = '"* `*bitmap*`"'
+        remove_once(checker_path, checker_bitmap_marker)
+        expect_missing_marker(
+            "missing_checker_bitmap_boundary_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-string-helpers-packet.py: {checker_bitmap_marker}",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
@@ -630,6 +642,12 @@ def run_self_test() -> None:
         samples_readme_marker = "* `*kasprintf*`"
         remove_once(samples_readme_path, samples_readme_marker)
         expect_missing_marker("missing_samples_readme_kasprintf_boundary", tmp_root, f"samples/zigux/README.md: {samples_readme_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        samples_readme_marker = "* `*bitmap*`"
+        remove_once(samples_readme_path, samples_readme_marker)
+        expect_missing_marker("missing_samples_readme_bitmap_boundary", tmp_root, f"samples/zigux/README.md: {samples_readme_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
