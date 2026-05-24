@@ -40,7 +40,7 @@ This run could verify that:
 - the live help helper still keeps the stable pretty-printer and heading contract reviewable through the existing `renderPrettyStringList` and `renderCommandSections` tests
 - the mixed `help+kallsyms` build shard is still shared validation overlap only, not a help-lane ownership handoff
 
-That means the remaining help-lane drift is no longer a missing helper body. The honest gap this run closes is the missing dedicated note that the shared checker, checklist, sequencing note, scripts-root reminder, and tests-root reminder already expect.
+That means the dedicated help packet is no longer missing from current `master`. The remaining constraint is readback consistency: helper-local code is readable through authenticated contents readback, while `zigux/tests/phase8_help.zig` and `zigux/tests/phase8_help_only_build.zig` still depend on the current default-branch tree reminder packet from this environment. The lane should stay parked until one same-packet reread proves a helper, focused-test, or slice-note drift.
 
 ## Current parity surface
 
