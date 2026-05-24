@@ -444,6 +444,16 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].remove("zigux/helpers/unsafe_policy.zig")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        if "phase3_abi_manifest.json missing packet_files entry: zigux/helpers/unsafe_policy.zig" not in issues:
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing low-level-wrapper unsafe-policy packet file was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
         manifest["replay_routes"].remove(
             "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
         )
@@ -465,6 +475,16 @@ def run_self_test() -> int:
         if "phase3_abi_manifest.json missing replay route: make -C zigux phase3-low-level-wrappers" not in issues:
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
             print("expected missing low-level-wrapper Makefile replay route was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].remove("make -C zigux phase3-low-level-wrappers-test")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        if "phase3_abi_manifest.json missing replay route: make -C zigux phase3-low-level-wrappers-test" not in issues:
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing low-level-wrapper Makefile test replay route was not reported")
             return 1
 
         _populate_repo(root)
@@ -523,7 +543,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         if not any(issue.startswith("phase3_abi_manifest.json repo_reality_gaps duplicate entry:") for issue in issues):
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected duplicate low-level-wrapper repo-gap entry was not reported")
+            print("expected duplicate repo-gap marker was not reported")
             return 1
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
@@ -539,7 +559,7 @@ def main() -> int:
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the Phase 3 low-level wrapper survey packet",
+        help="repository root that contains the Phase 3 low-level wrapper packet",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -550,11 +570,22 @@ def main() -> int:
     issues = validate_repo(args.repo_root)
     if issues:
         print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail")
-        for issue in issues:
-            print(issue)
+        print("\n".join(issues))
         return 1
 
-    print(f"validated {args.repo_root / NOTE_PATH}")
+    print(f"validated {NOTE_PATH.as_posix()}")
+    print(f"validated {ATOMIC_PATH.as_posix()}")
+    print(f"validated {BARRIER_PATH.as_posix()}")
+    print(f"validated {MMIO_PATH.as_posix()}")
+    print(f"validated {UNSAFE_POLICY_PATH.as_posix()}")
+    print(f"validated {NARROW_PATH.as_posix()}")
+    print(f"validated {WRAPPER_REPLAY_PATH.as_posix()}")
+    print(f"validated {WRAPPER_BUILD_PATH.as_posix()}")
+    print(f"validated {SHARED_TESTS_README_PATH.as_posix()}")
+    print(f"validated {SHARED_TESTS_BUILD_PATH.as_posix()}")
+    print(f"validated {MAKEFILE_PATH.as_posix()}")
+    print(f"validated {WORKFLOW_PATH.as_posix()}")
+    print(f"validated {MANIFEST_PATH.as_posix()}")
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass")
     return 0
 
