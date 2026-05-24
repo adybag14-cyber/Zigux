@@ -48,6 +48,11 @@ static int check_boundary_header_relays(void)
             0x52u);
     zigux_boundary_header uapi_canonicalized =
         zigux_uapi_boundary_header_canonicalize(uapi_compatible);
+    zigux_boundary_header uapi_undersized = {
+        .size = (uint32_t)sizeof(zigux_boundary_header) - 1u,
+        .abi_version = uapi_canonical.abi_version,
+        .flags = uapi_canonical.flags,
+    };
     struct zigux_export_status canonical_status =
         zigux_validate_boundary_header(canonical);
     struct zigux_export_status compatible_status =
@@ -101,6 +106,10 @@ static int check_boundary_header_relays(void)
     if (!zigux_uapi_boundary_header_has_current_abi_version(
             uapi_canonical.abi_version))
         return __LINE__;
+    if (!zigux_uapi_boundary_header_is_canonical_size(uapi_canonical.size))
+        return __LINE__;
+    if (!zigux_uapi_boundary_header_is_compatible_size(uapi_canonical.size))
+        return __LINE__;
     if (!zigux_uapi_boundary_header_is_canonical(uapi_canonical))
         return __LINE__;
     if (!zigux_uapi_boundary_header_is_compatible(uapi_canonical))
@@ -112,6 +121,10 @@ static int check_boundary_header_relays(void)
     if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_canonical) != 0u)
         return __LINE__;
 
+    if (zigux_uapi_boundary_header_is_canonical_size(uapi_compatible.size))
+        return __LINE__;
+    if (!zigux_uapi_boundary_header_is_compatible_size(uapi_compatible.size))
+        return __LINE__;
     if (zigux_uapi_boundary_header_is_canonical(uapi_compatible))
         return __LINE__;
     if (!zigux_uapi_boundary_header_is_compatible(uapi_compatible))
@@ -121,6 +134,11 @@ static int check_boundary_header_relays(void)
     if (!zigux_uapi_boundary_header_extends_boundary(uapi_compatible))
         return __LINE__;
     if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_compatible) != 12u)
+        return __LINE__;
+
+    if (zigux_uapi_boundary_header_is_canonical_size(uapi_undersized.size))
+        return __LINE__;
+    if (zigux_uapi_boundary_header_is_compatible_size(uapi_undersized.size))
         return __LINE__;
 
     if (!zigux_uapi_boundary_header_is_canonical(uapi_canonicalized))
