@@ -183,3 +183,19 @@ This ledger turns the roadmap into the first product commit train.
 
 - This bootstrap ledger currently records the bounded early commit train through the broadened Phase 2 tranche.
 - Later lane-level expansion stays traceable through the roadmap, the live repo, and current lane notes until a reviewed continuation of this ledger lands.
+
+## Release-Planning Continuation
+
+- Keep this ledger authoritative for the reviewed bootstrap commit train through item 25 only.
+- Do not backfill later release-planning state here as synthetic commit history when the live repo already exposes the active PMO packet directly.
+- For current release sequencing, tranche-closure posture, and release-coordination follow-through on `master`, continue from the docs-root PMO packet instead:
+  - `Documentation/zigux/README.md`
+  - `Documentation/zigux/phase12-release-sequencing.md`
+  - `Documentation/zigux/phase12-release-readiness-survey.md`
+  - `Documentation/zigux/phase12-release-closure-checklist.md`
+  - `Documentation/zigux/phase12-release-coordination-matrix.md`
+  - `Documentation/zigux/phase14-release-boundary-survey.md`
+- Practical rule:
+  - use this ledger when the question is which reviewed bootstrap tranche changes landed through the bounded early train
+  - use the docs-root PMO packet when the question is which release-planning surfaces currently govern later-phase release work on `master`
+- This keeps the ledger truthful about the early train while making the live release packet explicit for later scheduled PMO runs.
