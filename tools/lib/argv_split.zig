@@ -37,16 +37,17 @@ fn cStringPrefix(text: []const u8) []const u8 {
 }
 
 fn countArgc(text: []const u8) usize {
+    const current = cStringPrefix(text);
     var idx: usize = 0;
     var count: usize = 0;
 
-    while (idx < text.len) {
-        idx = skipSpaces(text, idx);
-        if (idx >= text.len) {
+    while (idx < current.len) {
+        idx = skipSpaces(current, idx);
+        if (idx >= current.len) {
             break;
         }
         count += 1;
-        idx = skipArg(text, idx);
+        idx = skipArg(current, idx);
     }
 
     return count;
@@ -56,7 +57,6 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
     const current = cStringPrefix(text);
     const argc = countArgc(current);
     var argv = try allocator.alloc([]u8, argc);
-    errdefer allocator.free(argv);
 
     var idx: usize = 0;
     var arg_idx: usize = 0;
@@ -64,8 +64,8 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
         for (argv[0..arg_idx]) |arg| {
             allocator.free(arg);
         }
+        allocator.free(argv);
     }
-
     while (idx < current.len) {
         idx = skipSpaces(current, idx);
         if (idx >= current.len) {
@@ -151,6 +151,14 @@ test "argvSplit stops at the first embedded nul byte" {
     try std.testing.expectEqualStrings("beta", result.argv[1]);
 }
 
+test "argvSplit truncates a token at an embedded nul byte" {
+    var result = try argvSplit(std.testing.allocator, "alpha\x00beta gamma");
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 1), result.argc());
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+}
+
 test "argvSplit treats a leading nul byte as blank input" {
     var result = try argvSplit(std.testing.allocator, "\x00ignored tail");
     defer result.deinit();
@@ -192,9 +200,29 @@ test "argvSplit keeps quotes backslashes and equals literal inside tokens" {
     try std.testing.expectEqualStrings("key=value", result.argv[3]);
 }
 
+test "argvSplit matches ASCII separator classification byte-for-byte before the first nul" {
+    var byte: u8 = 1;
+    while (byte < 0x80) : (byte += 1) {
+        var input = [_]u8{ 'a', 'l', 'p', 'h', 'a', byte, 'b', 'e', 't', 'a', 0, 't', 'a', 'i', 'l' };
+        var result = try argvSplit(std.testing.allocator, input[0..]);
+        defer result.deinit();
+
+        if (std.ascii.isWhitespace(byte)) {
+            try std.testing.expectEqual(@as(usize, 2), result.argc());
+            try std.testing.expectEqualStrings("alpha", result.argv[0]);
+            try std.testing.expectEqualStrings("beta", result.argv[1]);
+        } else {
+            try std.testing.expectEqual(@as(usize, 1), result.argc());
+            try std.testing.expectEqualStrings(input[0..10], result.argv[0]);
+        }
+    }
+}
+
 test "countArgc stops at the first embedded nul byte" {
-    try std.testing.expectEqual(@as(usize, 0), countArgc(cStringPrefix("\x00ignored tail")));
-    try std.testing.expectEqual(@as(usize, 2), countArgc(cStringPrefix("alpha beta\x00gamma delta")));
+    try std.testing.expectEqual(@as(usize, 0), countArgc("\x00ignored tail"));
+    try std.testing.expectEqual(@as(usize, 2), countArgc("alpha beta\x00gamma delta"));
+    try std.testing.expectEqual(@as(usize, 0), countArgc(" \t\x00gamma delta"));
+    try std.testing.expectEqual(@as(usize, 1), countArgc("alpha\x00 beta gamma"));
 }
 
 test "argvSplit reset state stays reusable after deinit and argv_free" {
