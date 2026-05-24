@@ -139,6 +139,16 @@ int main(void)
 	static const unsigned char carry_payload[] = { 0xff, 0xff, 0xff, 0xff, 0x7f };
 	static const unsigned char carry_phrase[] = "checksum fragments keep their carry";
 	static const unsigned char udp_payload[] = "zigux checksum";
+	static const struct {
+		const char *name;
+		uint16_t sum;
+		uint16_t addend;
+	} carry16_cases[] = {
+		{ "zero-plus-zero", 0x0000U, 0x0000U },
+		{ "saturated-plus-one", 0xffffU, 0x0001U },
+		{ "halfword-wrap", 0x7fffU, 0x8000U },
+		{ "near-wrap-plus-three", 0xfffeU, 0x0003U },
+	};
 	unsigned char payload[] = { 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
 	unsigned char mutable_ipv4_header[] = {
 		0x45, 0x00, 0x00, 0x3c,
@@ -163,6 +173,7 @@ int main(void)
 	uint16_t replaced2;
 	uint16_t checksum_before_addr_change;
 	uint16_t replaced4;
+	size_t idx;
 
 	print_u16_case("compute", "empty", compute_bytes(empty, 0));
 	print_u16_case("compute", "two-byte word", compute_bytes(two_byte_word, sizeof(two_byte_word)));
@@ -219,6 +230,13 @@ int main(void)
 	replaced4 = checksum_before_addr_change;
 	csum_replace4(&replaced4, 0xc0a80001U, 0xc0a80002U);
 	print_u16_case("replace4", "ipv4-saddr", replaced4);
+
+	for (idx = 0; idx < sizeof(carry16_cases) / sizeof(carry16_cases[0]); idx++) {
+		print_u16_case("add16", carry16_cases[idx].name,
+			       csum16_add(carry16_cases[idx].sum, carry16_cases[idx].addend));
+		print_u16_case("sub16", carry16_cases[idx].name,
+			       csum16_sub(carry16_cases[idx].sum, carry16_cases[idx].addend));
+	}
 
 	return 0;
 }
