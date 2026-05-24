@@ -18,6 +18,7 @@ MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_ma
 TEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process.zig")
 BUILD_GATE_PATH = Path("zigux/tests/phase15_architecture_council_review_process_build.zig")
 CURRENT_READBACK_MARKER = "current-master-readback-2026-05-23"
+GOVERNANCE_SCOPE_FIELD = "governance lane sequencing link or explicit scope note"
 
 
 def _read_text(path: Path) -> str:
@@ -162,6 +163,11 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(
                 "review checklist entry prompt is missing required stay-in-C policy boundary marker"
             )
+
+    if GOVERNANCE_SCOPE_FIELD not in manifest["stay_in_c_closeout_fields"]:
+        failures.append(
+            "review-process manifest is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note"
+        )
 
     for field in manifest["stay_in_c_closeout_fields"]:
         if field not in review_process:
@@ -733,6 +739,22 @@ def run_self_test() -> int:
         if failures != ["review-process note is missing required review field: roadmap phase"]:
             raise AssertionError(f"unexpected roadmap-phase failure: {failures}")
 
+        manifest_data = json.loads(_sample_manifest())
+        manifest_data["stay_in_c_closeout_fields"] = [
+            field
+            for field in manifest_data["stay_in_c_closeout_fields"]
+            if field != GOVERNANCE_SCOPE_FIELD
+        ]
+        _write(root / MANIFEST_PATH, json.dumps(manifest_data, indent=2) + "\n")
+        failures = collect_failures(root)
+        if failures != [
+            "review-process manifest is missing stay-in-C closeout field: governance lane sequencing link or explicit scope note"
+        ]:
+            raise AssertionError(
+                f"unexpected stay-in-c governance-manifest failure: {failures}"
+            )
+
+        _write(root / MANIFEST_PATH, _sample_manifest())
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
             root / REVIEW_PROCESS_PATH,
