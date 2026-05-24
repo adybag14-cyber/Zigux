@@ -55,15 +55,16 @@ These shared surfaces keep the Phase 11 packet reviewable as a reminder and
 checker contract while the bounded driver-local matrices, DesignWare continuity,
 and HVC proof-backed packet stay directly materialized on current `master`.
 
-Keep the broader shared reminders honest too: live current-`master` rereads in
-this lane still show `Documentation/zigux/README.md`,
-`Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md`
-skipping the active Phase 11 packet entirely, so treat those three broad
-surfaces as the next same-lane reminder follow-through instead of as already
-current packet members. Until that broader reminder work lands, keep the shared
-Phase 11 packet rooted in the narrower lane-sequencing, matrix-gap,
-header-boundary, checker, workflow, contributor-sync, tests-root-companion, and
-tests-root reminder stack listed above.
+Keep the scripts-root reminder honest too: broader contributor-facing summaries
+in `scripts/zigux/README.md` still skip the active Phase 11 packet, and live
+current-`master` rereads also show `Documentation/zigux/README.md` and
+`Documentation/zigux/review-checklist.md` skipping the active Phase 11 packet
+entirely, so treat those three broad surfaces as the next same-lane reminder
+follow-through instead of as already current packet members. Until that broader
+reminder work lands, keep the shared Phase 11 packet rooted in the narrower
+lane-sequencing, matrix-gap, header-boundary, checker, workflow,
+contributor-sync, tests-root-companion, and tests-root reminder stack listed
+above.
 
 ## Current Repo Reality
 
