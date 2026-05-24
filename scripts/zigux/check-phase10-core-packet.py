@@ -336,6 +336,25 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def remove_reset_queue_build_target(tmp_root: Path) -> None:
+            target = tmp_root / "zigux/tests/phase10_build.zig"
+            text = target.read_text(encoding="utf-8")
+            target.write_text(
+                text.replace(
+                    '.name = "phase10-virtio-core-reset-queue-tests"',
+                    '.name = "phase10-virtio-core-reset-queue-tests-missing"',
+                    1,
+                ),
+                encoding="utf-8",
+            )
+
+        expect_problem(
+            root,
+            remove_reset_queue_build_target,
+            'zigux/tests/phase10_build.zig:.name = "phase10-virtio-core-reset-queue-tests"',
+        )
+        write_fixture(root)
+
         def drift_commit(tmp_root: Path) -> None:
             target = tmp_root / MANIFEST_PATH
             data = json.loads(target.read_text(encoding="utf-8"))
@@ -389,7 +408,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
