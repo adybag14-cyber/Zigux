@@ -81,6 +81,7 @@ REQUIRED_PHASE4_VALIDATE_COMMANDS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
@@ -92,6 +93,14 @@ REQUIRED_PHASE4_VALIDATE_COMMANDS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py",
+]
+
+REQUIRED_PHASE4_VALIDATE_ORDERED_COMMANDS = [
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py",
 ]
 
 REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS = [
@@ -200,6 +209,8 @@ FORBIDDEN_BUILD_MARKERS = [
 SELFTEST_CASES = [
     "baseline_round_trip",
     "workflow_order_drift",
+    "missing_make_phase4_validate_artifact_diff_contract_selftest_command",
+    "phase4_validate_contract_selftest_order_drift",
     "missing_make_artifact_diff_contract_selftest_command",
     "missing_make_route_counts_command",
     "missing_make_reversible_delivery_selftest_command",
@@ -233,6 +244,7 @@ phase4-validate:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-artifact-diff-determinism.py
@@ -417,6 +429,23 @@ def ensure_absent_markers(label: str, text: str, markers: list[str]) -> None:
         raise SystemExit(f"{label} contains forbidden Phase 4 markers:\n{joined}")
 
 
+def ensure_command_order(label: str, target: str, body_lines: list[str], commands: list[str]) -> None:
+    positions: list[int] = []
+    for command in commands:
+        try:
+            positions.append(body_lines.index(command))
+        except ValueError as exc:
+            raise SystemExit(
+                f"{label} target {target} is missing required Phase 4 order command:\n  - {command}"
+            ) from exc
+    for idx in range(1, len(positions)):
+        if positions[idx] <= positions[idx - 1]:
+            joined = "\n".join(f"  - {command}" for command in commands)
+            raise SystemExit(
+                f"{label} target {target} has out-of-order Phase 4 commands:\n{joined}"
+            )
+
+
 def target_body(makefile_text: str, target: str) -> str:
     lines = makefile_text.splitlines()
     body_lines: list[str] = []
@@ -457,6 +486,7 @@ def required_check_count() -> int:
         len(EXPECTED_MAKE_TARGETS)
         + len(REQUIRED_MAKE_MARKERS)
         + len(REQUIRED_PHASE4_VALIDATE_COMMANDS)
+        + len(REQUIRED_PHASE4_VALIDATE_ORDERED_COMMANDS)
         + len(REQUIRED_PHASE4_ARTIFACT_DIFF_CONTRACT_COMMANDS)
         + len(REQUIRED_WORKFLOW_MARKERS)
         + len(REQUIRED_WORKFLOW_ORDER_MARKERS)
@@ -505,6 +535,12 @@ def check(
     ensure_expected_targets(makefile_text)
     ensure_markers("zigux/Makefile", makefile_text, REQUIRED_MAKE_MARKERS)
     ensure_target_commands(makefile_text, "phase4-validate", REQUIRED_PHASE4_VALIDATE_COMMANDS)
+    ensure_command_order(
+        "zigux/Makefile",
+        "phase4-validate",
+        target_body(makefile_text, "phase4-validate").splitlines(),
+        REQUIRED_PHASE4_VALIDATE_ORDERED_COMMANDS,
+    )
     ensure_target_commands(
         makefile_text,
         "phase4-artifact-diff-contract",
@@ -650,6 +686,32 @@ def run_selftest() -> None:
         )
         expect_failure("workflow order drift", run_check)
         covered_cases.append("workflow_order_drift")
+
+        write_baseline()
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing phase4-validate artifact-diff contract self-test Makefile command", run_check)
+        covered_cases.append("missing_make_phase4_validate_artifact_diff_contract_selftest_command")
+
+        write_baseline()
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py --self-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("phase4-validate artifact-diff contract self-test order drift", run_check)
+        covered_cases.append("phase4_validate_contract_selftest_order_drift")
 
         write_baseline()
         makefile.write_text(
