@@ -280,6 +280,13 @@ test "phase10 virtio mmio keeps config-write disposition planning-only across re
     try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
 
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x08, 0x07, 0x06, 0x05 });
+    const cleared = device.configWritePlanFreshnessSummary();
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, cleared.anchor);
+    try std.testing.expectEqual(virtio_mmio.ConfigWritePlanAvailability.unavailable, cleared.availability);
+    try std.testing.expect(!cleared.plan_present);
+    try std.testing.expect(!cleared.plan_matches_generation);
+    try std.testing.expectEqual(@as(u32, 0), cleared.current_generation);
+    try std.testing.expect(!cleared.available_for_disposition);
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 
     _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0506_0709);
@@ -288,4 +295,37 @@ test "phase10 virtio mmio keeps config-write disposition planning-only across re
     try std.testing.expectEqual(@as(u32, 0x0506_0709), refreshed.planned_value);
     try std.testing.expectEqual(@as(u4, 0b0001), refreshed.changed_byte_mask);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x08, 0x07, 0x06, 0x05 }, device.config_bytes[0..8]);
+}
+
+test "phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes" {
+    var device = try virtio_mmio.VirtioMmioLab.init(99, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+    const before = device.config_bytes;
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0907);
+    const changed = try device.configWriteApplyObservationSummary();
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, changed.anchor);
+    try std.testing.expectEqual(@as(u32, 4), changed.relative_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 4), changed.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 7), changed.relative_end_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 7), changed.absolute_end_offset);
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), changed.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0203_0907), changed.planned_value);
+    try std.testing.expectEqual(@as(u32, 0), changed.config_generation);
+    try std.testing.expectEqual(@as(u4, 0b1111), changed.touched_byte_mask);
+    try std.testing.expectEqual(@as(u4, 0b0011), changed.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 2), changed.changed_byte_count);
+    try std.testing.expect(changed.applies_changes);
+    try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0405);
+    const no_op = try device.configWriteApplyObservationSummary();
+    try std.testing.expectEqual(@as(u4, 0b1111), no_op.touched_byte_mask);
+    try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 0), no_op.changed_byte_count);
+    try std.testing.expect(!no_op.applies_changes);
+    try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
+
+    device.bumpConfigGeneration();
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteApplyObservationSummary());
 }
