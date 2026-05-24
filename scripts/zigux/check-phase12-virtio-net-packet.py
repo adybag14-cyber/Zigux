@@ -23,6 +23,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_virtio_net_manifest.json",
     "zigux/tests/phase12_build.zig",
     "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 ]
 
 ABSENT_FILES = [
@@ -50,7 +51,7 @@ MANIFEST_MARKERS = [
 
 SURVEY_NOTE_MARKERS = [
     "`PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only`",
-    "lane owner: `P12-L04`",
+    "lane owner: `P12-L01`",
     "scope: keep the bounded queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate review packet truthful without reopening live runtime data-path work",
     "verified head: `6791c1229b883d9f0acf9ec70e4159db1c9d1bf6`",
     "drivers/net/virtio_net_queue_resume.zig",
@@ -123,6 +124,15 @@ MAKEFILE_MARKERS = [
     "phase12-smoke:",
     "phase12-test:",
     "phase12: phase12-validate phase12-smoke phase12-test",
+]
+
+WORKFLOW_MARKERS = [
+    "- name: Self-test current Phase 12 release-readiness packet checker",
+    "run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+    "- name: Validate current Phase 12 support bundle",
+    "run: python3 scripts/zigux/validate-phase12.py",
+    "- name: Run current Phase 12 aggregate route",
+    "run: make -C zigux phase12",
 ]
 
 STALE_BUILD_MARKERS = [
@@ -207,6 +217,9 @@ def run_check(root: Path) -> None:
                 f"zigux/Makefile: stale Phase 12 wrapper marker still present {stale_marker!r}"
             )
 
+    workflow_text = read_text(root, ".github/workflows/zigux-bootstrap.yml")
+    require_markers(workflow_text, ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS)
+
 
 def make_fixture_tree(root: Path) -> None:
     file_payloads = {
@@ -224,6 +237,7 @@ def make_fixture_tree(root: Path) -> None:
         "zigux/tests/phase12_virtio_net_survey.zig": "\n".join(f"// {marker}" for marker in SURVEY_GATE_MARKERS) + "\n",
         "zigux/tests/phase12_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
+        ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
         "zigux/tests/phase12_virtio_net_manifest.json": json.dumps(
             {
                 "lane_key": "P12-L04",
@@ -286,6 +300,7 @@ def run_self_test() -> None:
         case_count += 1
 
         root = fresh_root()
+        (root / "Documentation/zigux/phase12-virtio-net-survey.md").writeText if False else None
         (root / "Documentation/zigux/phase12-virtio-net-survey.md").write_text("broken\n", encoding="utf-8")
         try:
             run_check(root)
@@ -419,6 +434,18 @@ def run_self_test() -> None:
                 raise
         else:
             raise AssertionError("expected stale makefile wrapper failure")
+        case_count += 1
+
+        root = fresh_root()
+        workflow = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow.write_text("broken\n", encoding="utf-8")
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "zigux-bootstrap.yml" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected workflow marker failure")
         case_count += 1
     finally:
         for tmp in roots:
