@@ -289,6 +289,12 @@ REQUIRED_MARKERS = {
         'test "phase8 online-cpu route helpers keep typed cpu-index wrappers stable" {',
         "resolveNextOnlineCpuRouteCpuIndex(",
         "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
+        'test "phase8 online-cpu route helpers keep typed buffer-fd wrappers stable" {',
+        "resolveNextOnlineCpuRouteBufferFdAtIndex(",
+        'test "phase8 online-cpu route helpers keep errno-shaped buffer-fd wrappers stable" {',
+        "resolveNextOnlineCpuRouteBufferFdReturnAtIndex(",
+        'test "phase8 online-cpu route helpers fail closed when a hand-built CPU index exceeds i32" {',
+        "resolveNextOnlineCpuRouteCpuIndexReturn(impossible)",
     ),
     PERF_BUFFER_POLL_PATH: (
         "pub const BufferFdLookupDisposition = enum {",
@@ -344,6 +350,7 @@ REQUIRED_MARKERS = {
         "formatLibbpfBpfProgType(prog_buffer[0..], 33)",
     ),
 }
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
