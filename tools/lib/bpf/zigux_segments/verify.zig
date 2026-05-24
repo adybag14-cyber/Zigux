@@ -168,8 +168,14 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturnAtIndex");
 
     try expectHasDecl(perf_buffer_ready_window, "ReadyBufferWindowLookupError");
+    try expectHasDecl(perf_buffer_ready_window, "ReadyBufferWindowLookupDisposition");
+    try expectHasDecl(perf_buffer_ready_window, "ReadyBufferWindowLookupSummary");
+    try expectHasDecl(perf_buffer_ready_window, "summarizeReadyBufferWindowLookupAtAttempt");
+    try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowLookup");
     try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowMappedSizeAtAttempt");
+    try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowMappedSizeReturn");
     try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowMappedSizeReturnAtAttempt");
+    try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowLookupReturn");
     try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowLookupReturnAtAttempt");
 
     try expectHasDecl(pin_path, "pathnameConcat");
@@ -356,13 +362,36 @@ test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window 
         .{ .mapped_size = 8192 },
     };
 
+    const summary = perf_buffer_ready_window.summarizeReadyBufferWindowLookupAtAttempt(
+        &buffers,
+        &buffer_windows,
+        0,
+    );
+    try std.testing.expectEqual(
+        perf_buffer_ready_window.ReadyBufferWindowLookupDisposition.found_window,
+        summary.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 1), summary.ready_index);
+    try std.testing.expectEqual(@as(?usize, 4096), summary.mapped_size);
+    try std.testing.expectEqual(
+        @as(usize, 4096),
+        try perf_buffer_ready_window.resolveReadyBufferWindowLookup(summary),
+    );
     try std.testing.expectEqual(
         @as(usize, 4096),
         try perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 0),
     );
     try std.testing.expectEqual(
+        @as(i32, 4096),
+        perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturn(summary),
+    );
+    try std.testing.expectEqual(
         @as(i32, 8192),
         perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeReturnAtAttempt(&buffers, &buffer_windows, 1),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturn(summary),
     );
     try std.testing.expectEqual(
         @as(i32, 0),
@@ -388,9 +417,22 @@ test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window 
         null,
         null,
     };
+    const missing_summary = perf_buffer_ready_window.summarizeReadyBufferWindowLookupAtAttempt(
+        &buffers,
+        &missing_window,
+        1,
+    );
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
-        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturnAtAttempt(&buffers, &missing_window, 1),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturn(missing_summary),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturnAtAttempt(
+            &buffers,
+            &missing_window,
+            1,
+        ),
     );
 
     const overflow_windows = [_]?perf_buffer_poll.BufferWindowObservation{
