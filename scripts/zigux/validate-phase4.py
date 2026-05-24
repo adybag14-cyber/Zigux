@@ -138,7 +138,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
         ),
         (
             "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES",
-            "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20",
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21",
         ),
     ),
     "phase4-repo-reality-warning": (
@@ -611,7 +611,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
         root / "scripts/zigux/check-phase4-repo-reality-warning.py",
         self_test_stdout_lines=(
             "PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass",
-            "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=20",
+            "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21",
         ),
         live_stdout_lines=("PHASE4_REPO_REALITY_WARNING=pass",),
     )
