@@ -57,6 +57,7 @@ REVIEW_MARKERS = (
 TESTS_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
@@ -101,7 +102,7 @@ MAKEFILE_MARKERS = (
 )
 
 MAKEFILE_VARIABLE_MARKERS = (
-    "ZIG_PINNED_TARGET := $(shell $(PYTHON) -c ",
+    "ZIG_PINNED_TARGET := $(shell $(PYTHON) -c",
     '["upgrade_policy"]["archive_target_scope"][0]',
     "ZIG_PINNED_EXTRACT_ROOT := $(ZIGUX_ROOT)/.zig-toolchain/zig-$(ZIG_PINNED_TARGET)-$(ZIG_PINNED_CHANNEL)",
     "ZIG_PINNED_EXECUTABLE := $(firstword $(wildcard $(ZIG_PINNED_EXTRACT_ROOT)/zig $(ZIG_PINNED_EXTRACT_ROOT)/bin/zig))",
