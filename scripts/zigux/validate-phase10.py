@@ -67,6 +67,7 @@ REQUIRED_PATHS = (
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
@@ -259,6 +260,10 @@ def run_self_test() -> int:
             "missing_input_queue_callback_preflight_path",
         )
         assert_missing_required_path(
+            "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
+            "missing_input_teardown_preflight_test_path",
+        )
+        assert_missing_required_path(
             "zigux/tests/phase10_virtio_input_survey.zig",
             "missing_input_survey_path",
         )
@@ -339,7 +344,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
