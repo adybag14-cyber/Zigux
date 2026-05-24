@@ -122,6 +122,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
     "make -C zigux phase3-export-shim-test",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "make -C zigux phase3-policy-dump",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-test --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
@@ -130,6 +131,7 @@ REQUIRED_REPLAY_ROUTES = (
     "make -C zigux phase3-dump",
     "make -C zigux phase3-test",
     "make -C zigux phase3",
+    "make -C zigux phase3-low-level-wrappers",
     "make -C zigux phase3-low-level-wrappers-test",
 )
 
@@ -362,6 +364,7 @@ def run_self_test() -> int:
             ("zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig", "expected export-shim build route drift was not reported"),
             ("make -C zigux phase3-export-shim-test", "expected export-shim make route drift was not reported"),
             ("zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "expected policy-dump build route drift was not reported"),
+            ("make -C zigux phase3-policy-dump", "expected policy-dump make route drift was not reported"),
             ("zig build phase3-dump --build-file zigux/tests/build.zig", "expected shared ABI dump build route drift was not reported"),
             ("zig build phase3-test --build-file zigux/tests/build.zig", "expected shared ABI aggregate build route drift was not reported"),
             ("zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig", "expected low-level-wrapper focused build route drift was not reported"),
@@ -370,6 +373,7 @@ def run_self_test() -> int:
             ("make -C zigux phase3-dump", "expected shared ABI dump make route drift was not reported"),
             ("make -C zigux phase3-test", "expected shared ABI aggregate make route drift was not reported"),
             ("make -C zigux phase3", "expected shared ABI top-level make route drift was not reported"),
+            ("make -C zigux phase3-low-level-wrappers", "expected low-level-wrapper aggregate make route drift was not reported"),
             ("make -C zigux phase3-low-level-wrappers-test", "expected low-level-wrapper focused make route drift was not reported"),
         )
         for route, failure_message in replay_route_cases:
@@ -393,7 +397,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=107")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=109")
     return 0
 
 
