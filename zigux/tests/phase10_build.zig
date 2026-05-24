@@ -49,6 +49,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_input_status_drain_module.addImport("virtio_input", virtio_input_module);
+    const virtio_input_teardown_preflight_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_input_teardown_preflight.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_input_teardown_preflight_module.addImport("virtio_input", virtio_input_module);
     const virtio_input_verify_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_input_verify.zig"),
         .target = target,
@@ -70,6 +76,10 @@ pub fn build(b: *std.Build) void {
     virtio_input_verify_module.addImport(
         "virtio_input_status_drain",
         virtio_input_status_drain_module,
+    );
+    virtio_input_verify_module.addImport(
+        "virtio_input_teardown_preflight",
+        virtio_input_teardown_preflight_module,
     );
     const virtio_mmio_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_mmio.zig"),
@@ -148,7 +158,18 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_status_drain_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_status_drain_module.addImport(
         "virtio_input_status_drain",
-        virtio_input_status_drain_module,
+        phase10_virtio_input_status_drain_module,
+    );
+
+    const phase10_virtio_input_teardown_preflight_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_input_teardown_preflight.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_input_teardown_preflight_module.addImport("virtio_input", virtio_input_module);
+    phase10_virtio_input_teardown_preflight_module.addImport(
+        "virtio_input_teardown_preflight",
+        virtio_input_teardown_preflight_module,
     );
 
     const virtio_input_teardown_observation_module = b.createModule(.{
@@ -329,6 +350,9 @@ pub fn build(b: *std.Build) void {
     const phase10_virtio_input_status_drain_tests = b.addTest(.{ .name = "phase10-virtio-input-status-drain-tests", .root_module = phase10_virtio_input_status_drain_module });
     const run_phase10_virtio_input_status_drain_tests = b.addRunArtifact(phase10_virtio_input_status_drain_tests);
 
+    const phase10_virtio_input_teardown_preflight_tests = b.addTest(.{ .name = "phase10-virtio-input-teardown-preflight-tests", .root_module = phase10_virtio_input_teardown_preflight_module });
+    const run_phase10_virtio_input_teardown_preflight_tests = b.addRunArtifact(phase10_virtio_input_teardown_preflight_tests);
+
     const phase10_virtio_input_teardown_observation_tests = b.addTest(.{ .name = "phase10-virtio-input-teardown-observation-tests", .root_module = phase10_virtio_input_teardown_observation_module });
     const run_phase10_virtio_input_teardown_observation_tests = b.addRunArtifact(phase10_virtio_input_teardown_observation_tests);
 
@@ -424,6 +448,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_input_queue_callback_preflight_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_registration_preflight_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_status_drain_tests.step);
+    test_step.dependOn(&run_phase10_virtio_input_teardown_preflight_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_teardown_observation_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_verify_tests.step);
