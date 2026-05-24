@@ -467,6 +467,14 @@ def run_self_test() -> int:
             print("expected missing policy-dump output marker to fail the runner")
             return 1
 
+        shared_abi_validator_path = root / CHECK_COMMANDS[6][0]
+        populate_repo()
+        _write_synthetic_script(shared_abi_validator_path, ())
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing shared ABI validator pass marker to fail the runner")
+            return 1
+
         shared_routes_path = root / CHECK_COMMANDS[9][0]
         populate_repo()
         _write_synthetic_script(
@@ -579,7 +587,7 @@ def run_self_test() -> int:
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 20}"
+            f"{len(SELF_TEST_MISSING_CASES) + 21}"
         )
         return 0
 
