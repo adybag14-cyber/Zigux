@@ -180,6 +180,10 @@ Keep the shared-helper packet explicit through the verified docs-root and contri
 - `security/landlock/syscalls.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-notifier-packet.py`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
