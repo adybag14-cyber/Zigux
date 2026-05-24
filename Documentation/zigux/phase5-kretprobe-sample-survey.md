@@ -13,6 +13,8 @@ This note tracks the bounded Phase 5 survey for the roadmap's `samples/kprobes/k
 This restored Phase 5 packet now reads directly through:
 
   * `samples/zigux/kretprobe_example.zig`
+  * `samples/zigux/kretprobe_example_instance_budget_contract.zig`
+  * `samples/zigux/kretprobe_example_probe_spec.zig`
   * `zigux/tests/phase5_kretprobe_example.zig`
   * `zigux/tests/phase5_kretprobe_example_manifest.json`
   * `zigux/tests/phase5_kretprobe_example_survey.zig`
@@ -20,8 +22,8 @@ This restored Phase 5 packet now reads directly through:
 Fresh authenticated contents reread in this lane also directly returned this shared build path:
 
   * `zigux/tests/phase5_build.zig`
-Keep the restored kretprobe packet anchored to the directly readable sample, focused test, manifest, and survey gate above, while treating the returned shared `zigux/tests/phase5_build.zig` route as current directly readable shared build-route companion evidence rather than sample-local proof.
-That shared build-route companion now reruns the sample-owned `samples/zigux/kretprobe_example.zig` self-checks alongside the focused replay, survey gate, and instance-budget companion checks, so the direct sample proof stays exercised from the shared Phase 5 rerun handle without widening this note into runtime or module-registration claims.
+Keep the restored kretprobe packet anchored to the directly readable sample, focused test, manifest, survey gate, and bounded companion files above, while treating the returned shared `zigux/tests/phase5_build.zig` route as current directly readable shared build-route companion evidence rather than sample-local proof.
+That shared build-route companion now reruns the sample-owned `samples/zigux/kretprobe_example.zig` self-checks alongside the focused replay, survey gate, and instance-budget companion checks, while `zig test samples/zigux/kretprobe_example_probe_spec.zig` stays explicit as the direct companion-only self-check route for the bounded probe-spec packet without widening this note into runtime or module-registration claims.
 
 Fresh Phase 5 readback in this run also confirmed that the shared reminder packet is aligned around that restored direct sample packet:
   * `Documentation/zigux/README.md`
