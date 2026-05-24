@@ -37,6 +37,11 @@ PHASE11_BUILD_INVENTORY_CHECK_STEP = "- name: Check current Phase 11 build inven
 THIRD_PARTY_PATH = "- 'third_party/**'"
 SCRIPTS_PATH = "- 'scripts/zigux/**'"
 TOOLS_PATH = "- 'tools/lib/*.zig'"
+REPO_ARCHIVE_PARTS_DIR = 'repo_archive_parts_dir="${repo_archive_path}.parts"'
+LOCAL_PARTS_GUARD = 'if [ ! -d "$repo_archive_parts_dir" ]; then'
+STAGE_HELPER_CMD = "python3 scripts/zigux/stage-pinned-zig-archive.py"
+STAGE_HELPER_ROOT_ARG = '--root "$GITHUB_WORKSPACE"'
+STAGE_HELPER_PARTS_ARG = '--parts-dir "$repo_archive_parts_dir"'
 
 POLICY_MARKERS = (
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
@@ -54,8 +59,13 @@ LOCAL_ARCHIVE_MARKERS = (
     'archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"',
     'extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"',
     'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
+    REPO_ARCHIVE_PARTS_DIR,
     "try_local_archive() {",
     'if [ ! -f "$repo_archive_path" ]; then',
+    LOCAL_PARTS_GUARD,
+    STAGE_HELPER_CMD,
+    STAGE_HELPER_ROOT_ARG,
+    STAGE_HELPER_PARTS_ARG,
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
     "if try_local_archive; then",
@@ -160,6 +170,11 @@ def check_workflow(text: str) -> None:
     require_exact_line_count(text, f"run: {README_CHECK_CMD}", 1, "workflow run line")
     require_exact_count(text, 'archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"', 1, "archive path marker")
     require_exact_count(text, 'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"', 1, "local archive path marker")
+    require_exact_count(text, REPO_ARCHIVE_PARTS_DIR, 1, "archive parts-dir marker")
+    require_exact_count(text, LOCAL_PARTS_GUARD, 1, "parts-dir guard")
+    require_exact_count(text, STAGE_HELPER_CMD, 1, "stage helper command")
+    require_exact_count(text, STAGE_HELPER_ROOT_ARG, 1, "stage helper root arg")
+    require_exact_count(text, STAGE_HELPER_PARTS_ARG, 1, "stage helper parts arg")
     require_exact_count(text, "try_local_archive() {", 1, "local archive helper definition")
     require_exact_count(text, "if try_local_archive; then", 1, "local archive helper invocation")
     require_exact_line_count(text, THIRD_PARTY_PATH, 1, "workflow path filter line")
@@ -223,8 +238,44 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
+        REPO_ARCHIVE_PARTS_DIR,
+        "workflow archive parts path order",
+    )
+    require_order(
+        text,
+        REPO_ARCHIVE_PARTS_DIR,
         "try_local_archive() {",
         "workflow local-first helper order",
+    )
+    require_order(
+        text,
+        'if [ ! -f "$repo_archive_path" ]; then',
+        LOCAL_PARTS_GUARD,
+        "workflow parts-dir guard order",
+    )
+    require_order(
+        text,
+        LOCAL_PARTS_GUARD,
+        STAGE_HELPER_CMD,
+        "workflow stage-helper order",
+    )
+    require_order(
+        text,
+        STAGE_HELPER_CMD,
+        STAGE_HELPER_ROOT_ARG,
+        "workflow stage-helper argument order",
+    )
+    require_order(
+        text,
+        STAGE_HELPER_ROOT_ARG,
+        STAGE_HELPER_PARTS_ARG,
+        "workflow stage-helper argument order",
+    )
+    require_order(
+        text,
+        STAGE_HELPER_PARTS_ARG,
+        'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+        "workflow staged archive before validation order",
     )
     require_order(
         text,
@@ -256,8 +307,6 @@ def check_workflow(text: str) -> None:
         'if try_download "$ZIGUX_ZIG_URL"; then',
         "workflow mirrors before direct download order",
     )
-
-
 def run_self_test() -> int:
     good_workflow = """name: zigux-bootstrap
 jobs:
@@ -283,9 +332,13 @@ jobs:
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
           extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
           repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
+          repo_archive_parts_dir="${repo_archive_path}.parts"
           try_local_archive() {
             if [ ! -f "$repo_archive_path" ]; then
-              return 1
+              if [ ! -d "$repo_archive_parts_dir" ]; then
+                return 1
+              fi
+              python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1
             fi
             if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
               tar -xJf "$repo_archive_path" -C .zig-toolchain
@@ -387,6 +440,47 @@ jobs:
         case_count += 1
     else:
         raise AssertionError("expected missing repo archive path failure")
+
+    missing_repo_archive_parts_dir = good_workflow.replace(
+        '          repo_archive_parts_dir="${repo_archive_path}.parts"\n',
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_repo_archive_parts_dir)
+    except SystemExit as exc:
+        assert "repo_archive_parts_dir" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing repo archive parts-dir failure")
+
+    missing_parts_dir_guard = good_workflow.replace(
+        '              if [ ! -d "$repo_archive_parts_dir" ]; then\n'
+        '                return 1\n'
+        '              fi\n',
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_parts_dir_guard)
+    except SystemExit as exc:
+        assert "parts-dir guard" in str(exc) or LOCAL_PARTS_GUARD in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing parts-dir guard failure")
+
+    missing_stage_helper_call = good_workflow.replace(
+        '              python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n',
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_stage_helper_call)
+    except SystemExit as exc:
+        assert "stage helper" in str(exc) or STAGE_HELPER_CMD in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing stage helper call failure")
 
     missing_local_validation = good_workflow.replace(
         'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
@@ -510,14 +604,28 @@ jobs:
     else:
         raise AssertionError("expected duplicate third-party path failure")
 
+    reordered_stage_helper = good_workflow.replace(
+        '              python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n'
+        '            fi\n'
+        '            if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then\n',
+        '            fi\n'
+        '            if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then\n'
+        '              python3 scripts/zigux/stage-pinned-zig-archive.py --root "$GITHUB_WORKSPACE" --parts-dir "$repo_archive_parts_dir" || return 1\n',
+        1,
+    )
+    try:
+        check_workflow(reordered_stage_helper)
+    except SystemExit as exc:
+        assert "workflow staged archive before validation order" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected reordered stage helper failure")
+
     reordered_fallback = good_workflow.replace(
         "          if try_local_archive; then\n"
         "            download_success=1\n"
         '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
         "            download_success=0\n"
-        "          fi\n"
-        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
-        "            download_success=1\n"
         "          fi\n",
         '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
         "            download_success=0\n"
