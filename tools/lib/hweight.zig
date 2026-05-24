@@ -92,3 +92,25 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers complement to the width bit count" {
+    const value8: u32 = 0b1010_0101;
+    try std.testing.expectEqual(@as(u32, 8), swHweight8(value8) + swHweight8((~value8) & 0xff));
+    try std.testing.expectEqual(@as(u32, 8), __sw_hweight8(value8) + __sw_hweight8((~value8) & 0xff));
+
+    const value16: u32 = 0xa55a;
+    try std.testing.expectEqual(@as(u32, 16), swHweight16(value16) + swHweight16((~value16) & 0xffff));
+    try std.testing.expectEqual(@as(u32, 16), __sw_hweight16(value16) + __sw_hweight16((~value16) & 0xffff));
+
+    const value32: u32 = 0xa55a_c33c;
+    try std.testing.expectEqual(@as(u32, 32), swHweight32(value32) + swHweight32(~value32));
+    try std.testing.expectEqual(@as(u32, 32), __sw_hweight32(value32) + __sw_hweight32(~value32));
+
+    const value64: u64 = 0xa55a_c33c_0f0f_f00f;
+    try std.testing.expectEqual(@as(u64, 64), swHweight64(value64) + swHweight64(~value64));
+    try std.testing.expectEqual(@as(u64, 64), __sw_hweight64(value64) + __sw_hweight64(~value64));
+
+    const value_long: usize = if (@sizeOf(usize) == 4) 0xa55a_c33c else 0xa55a_c33c_0f0f_f00f;
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweightLong(value_long) + hweightLong(~value_long));
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweight_long(value_long) + hweight_long(~value_long));
+}
