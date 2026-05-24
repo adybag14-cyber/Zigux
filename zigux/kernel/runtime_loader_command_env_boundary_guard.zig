@@ -62,6 +62,15 @@ test "shared runtime loader surface keeps the bounded request contract explicit"
     try expectContains(runtime_loader_source, "pub fn releaseWithoutSubstrate");
     try expectContains(runtime_loader_source, "waiting_on_runtime_substrate");
     try expectContains(runtime_loader_source, "released_without_substrate");
+    try expectContains(runtime_loader_source, "PreparedRequest keeps Phase 8 command and environment control fields out of the shared request boundary");
+    try expectContains(runtime_loader_source, "\"activation_env\"");
+    try expectContains(runtime_loader_source, "\"argv_policy\"");
+    try expectContains(runtime_loader_source, "\"command_env\"");
+    try expectContains(runtime_loader_source, "\"command_name\"");
+    try expectContains(runtime_loader_source, "\"exec_name\"");
+    try expectContains(runtime_loader_source, "\"exec_path\"");
+    try expectContains(runtime_loader_source, "\"exec_path_env\"");
+    try expectContains(runtime_loader_source, "ApprovedPilotFamily keeps Phase 8 command and environment control fields out of the shared family contract");
     try expectContains(runtime_loader_source, "PreparedRequest keeps blocked publication and depmod surfaces out of the shared request boundary");
     try expectContains(runtime_loader_source, "\"modinfo\"");
     try expectContains(runtime_loader_source, "\"module_alias\"");
@@ -86,14 +95,16 @@ test "shared runtime loader surface rejects argv and environment control bleed-t
         "\"LINES\"",
         "\"COLUMNS\"",
     };
-    const loader_forbidden_markers = [_][]const u8{
-        "argv_policy",
-        "activation_env",
-        "command_env",
-        "command_name",
-        "exec_name",
-        "exec_path",
-        "exec_path_env",
+    const loader_forbidden_field_decls = [_][]const u8{
+        "argv_policy:",
+        "activation_env:",
+        "command_env:",
+        "command_name:",
+        "exec_name:",
+        "exec_path:",
+        "exec_path_env:",
+    };
+    const loader_forbidden_owner_markers = [_][]const u8{
         "PERF_EXEC_PATH",
         "setupPathWithPwd",
         "planDeferredExeclCallWithPwd",
@@ -106,7 +117,10 @@ test "shared runtime loader surface rejects argv and environment control bleed-t
     inline for (contract_forbidden_markers) |marker| {
         try expectLacks(runtime_loader_contract_source, marker);
     }
-    inline for (loader_forbidden_markers) |marker| {
+    inline for (loader_forbidden_field_decls) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+    }
+    inline for (loader_forbidden_owner_markers) |marker| {
         try expectLacks(runtime_loader_source, marker);
     }
 }
@@ -117,17 +131,23 @@ test "shared runtime loader surface keeps Phase 8 exec-cmd path controls in thei
 
     const exec_cmd_owner_markers = [_][]const u8{
         "pub const Config",
-        "exec_name",
-        "exec_path",
-        "exec_path_env",
         "PERF_EXEC_PATH",
         "setupPathWithPwd",
         "buildDeferredExeclCall",
         "buildDeferredExecvCall",
         "\"PATH\"",
     };
+    const exec_cmd_field_decls = [_][]const u8{
+        "exec_name:",
+        "exec_path:",
+        "exec_path_env:",
+    };
 
     inline for (exec_cmd_owner_markers) |marker| {
+        try expectContains(exec_cmd_source, marker);
+        try expectLacks(runtime_loader_source, marker);
+    }
+    inline for (exec_cmd_field_decls) |marker| {
         try expectContains(exec_cmd_source, marker);
         try expectLacks(runtime_loader_source, marker);
     }
