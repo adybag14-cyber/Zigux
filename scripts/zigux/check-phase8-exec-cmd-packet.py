@@ -78,6 +78,17 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'EXEC_CMD_PACKET_CHECKER = Path("scripts/zigux/check-phase8-exec-cmd-packet.py")',
         "EXEC_CMD_PACKET_CHECKER,",
     ),
+    REVIEW_CHECKLIST: (
+        "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
+        "`Documentation/zigux/phase8-exec-cmd-slice.md`",
+        "`tools/lib/subcmd/exec-cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "`make -C zigux phase8-exec-cmd-test`",
+        "`make -C zigux phase8-validate`",
+        "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context",
+        "runtime-substrate or bridge-readiness evidence",
+    ),
     MAKEFILE: (
         "phase8-exec-cmd-test:",
         "zigux/tests/phase8_exec_cmd_only_build.zig",
