@@ -135,10 +135,18 @@ FILE_MARKERS: dict[str, list[str]] = {
         '.name = "phase9-runtime-loader-command-env-boundary-guard-tests"',
         '.name = "phase9-runtime-loader-shared-tests"',
         '.name = "phase9-runtime-trace-events-loader-substrate-drift-tests"',
+        '.name = "phase9-runtime-trace-events-tests"',
+        '.name = "phase9-runtime-trace-events-module-tests"',
+        '.name = "phase9-runtime-trace-events-unregistered-gate-tests"',
+        '.name = "phase9-runtime-trace-events-exit-rollback-guard-tests"',
+        '.name = "phase9-runtime-trace-events-registration-reentry-gate-tests"',
         '.name = "phase9-first-loadable-runtime-module-parity-survey-tests"',
         "runtime_loader_allocator_init_flow.zig",
         "runtime_trace_events_loader_substrate_drift.zig",
         "../../samples/zigux/runtime_trace_events.zig",
+        "../../samples/zigux/runtime_trace_events_unregistered_gate.zig",
+        "../../samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
+        "../../samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
     ],
     LOADER_SUBSTRATE_DRIFT_PATH: [
         'const runtime_loader = @import("runtime_loader");',
@@ -211,7 +219,7 @@ FILE_MARKERS: dict[str, list[str]] = {
 FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
     SURVEY_NOTE_PATH: [
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay: `error.OutstandingRegistration` leaves the initialized direct-activity summary unchanged after one main replay plus one function-thread replay, the later unregister stays explicit, and the module can still reach the selftest_complete summary without drift.",
-        'Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.',
+        'Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one later function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.',
     ],
     MODULE_SLICE_PATH: [
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay by proving `error.OutstandingRegistration` leaves one main replay plus one function-thread replay unchanged until unregister and the later `runSelftest()` replay succeeds without drift.",
