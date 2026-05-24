@@ -233,7 +233,7 @@ REQUIRED_MARKERS = {
     ],
     VIRTIO_SCSI_SURVEY_PATH: [
         "PHASE12_STATUS=rollback-evidence-only-live-starter-missing",
-        "PHASE12_LANE=P12-L13",
+        "PHASE12_LANE=P12-L09",
         "fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
         "still does not claim live DMA-safe request submission",
         "rollback-only split machine-checkable",
@@ -276,7 +276,7 @@ REQUIRED_MARKERS = {
         "\"status\": \"blocked_on_dma_transport_runtime\"",
     ],
     VIRTIO_SCSI_MANIFEST_PATH: [
-        "\"lane_key\": \"P12-L13\"",
+        "\"lane_key\": \"P12-L09\"",
         "\"phase\": \"Phase 12\"",
         "\"anchor\": \"drivers/scsi/virtio_scsi.c\"",
         "\"roadmap_gap_check\"",
@@ -568,7 +568,7 @@ FIXTURE_TEXT = {
     VIRTIO_SCSI_SURVEY_GATE_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_SCSI_SURVEY_GATE_PATH]) + "\n",
     VIRTIO_SCSI_SUPPORT_MANIFEST_PATH: (
         "{\n"
-        '  "lane_key": "P12-L13",\n'
+        '  "lane_key": "P12-L09",\n'
         '  "source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json"\n'
         "}\n"
     ),
