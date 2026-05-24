@@ -3,7 +3,6 @@
 ## Status
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-ring-freeze-boundary-survey`
-- schedule lane prompt: `P10-L07`
 - current packet lane on master: `P10-L10`
 - adjacent freeze-boundary owner: `P10-L11`
 - surveyed head: `0aa2db32bcb1c7065850ee3f66ec119b071fbf5c`
