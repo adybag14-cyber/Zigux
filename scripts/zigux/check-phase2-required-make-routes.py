@@ -453,7 +453,7 @@ def run_self_test() -> int:
             checks_run += 1
 
         for marker in MAKEFILE_MARKERS:
-            build_self_TEST_ROOT(root)
+            build_self_test_root(root)
             makefile_path = resolve_path(root, MAKEFILE)
             makefile_path.write_text(
                 duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), marker),
