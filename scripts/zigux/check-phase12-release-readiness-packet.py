@@ -154,6 +154,9 @@ EXACT_COUNT_MARKERS = {
     RAW_GITHUB_COVERAGE_SURVEY_PATH: {
         "- exact coverage evidence checked on `2026-05-23`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase12_build.zig` on current `master`, and browser-side raw GitHub readback remains the matching public-read fallback for the shipped Phase 12 support bundle while direct container-side raw-URL fetches in this runtime still fail through the proxy tunnel with HTTP `403`": 1,
     },
+    SCRIPTS_README_PATH: {
+        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`": 1,
+    },
 }
 
 def validate(root: Path) -> list[str]:
