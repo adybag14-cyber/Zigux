@@ -591,6 +591,30 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        missing_selftest_surface_pass_path = root / SELFTEST_COMMANDS[22][0]
+        _write_synthetic_script(
+            missing_selftest_surface_pass_path,
+            None,
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing selftest-surface pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_selftest_surface_count_path = root / SELFTEST_COMMANDS[22][0]
+        _write_synthetic_script(
+            missing_selftest_surface_count_path,
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing selftest-surface count marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
         missing_governance_pass_path = root / SELFTEST_COMMANDS[20][0]
         _write_synthetic_script(
             missing_governance_pass_path,
@@ -629,7 +653,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 24}"
+        f"{len(missing_cases) + 26}"
     )
     return 0
 
