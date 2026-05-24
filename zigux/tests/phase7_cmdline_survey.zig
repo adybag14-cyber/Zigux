@@ -68,7 +68,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try std.testing.expectEqualStrings("P7-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
-    try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);
+    try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_checker_anchor", manifest.current_master_state);
     try std.testing.expect(manifest.verified_on_utc.len != 0);
     try std.testing.expectEqual(@as(usize, 0), manifest.missing_paths.len);
 
@@ -91,11 +91,12 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectStringSliceContains(manifest.covered_helpers, "next_arg");
     try expectStringSliceContains(manifest.covered_helpers, "memparse");
 
+    try expectContains(checker, "PHASE7_CMDLINE_PACKET=pass");
     try expectContains(checker, "PHASE7_CMDLINE_PACKET_SELF_TEST=pass");
     try expectContains(checker, "\"Documentation/zigux/phase7-cmdline-slice.md\",");
     try expectContains(checker, "\"lib/cmdline.zig\",");
 
-    try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_survey_manifest_anchor`");
+    try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`");
     try expectContains(slice_note, "`PHASE7_SLICE=cmdline-runtime-leaf`");
     try expectContains(slice_note, "`PHASE7_LANE_KEY=P7-L08`");
     try expectContains(slice_note, "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.");
@@ -114,28 +115,29 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper, "pub fn nextArg");
     try expectContains(helper, "pub const next_arg = nextArg;");
     try expectContains(helper, "pub fn memparse");
-    try expectContains(helper, "test \\\"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\\\" {");
-    try expectContains(helper, "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {");
-    try expectContains(helper, "test \\\"nextArg keeps quoted leading equals tokens as bare parameters\\\" {");
-    try expectContains(helper, "test \\\"nextArg parses bare parameters and keeps the remaining text\\\" {");
-    try expectContains(helper, "test \\\"nextArg keeps quoted empty values explicit without swallowing the next token\\\" {");
-    try expectContains(helper, "test \\\"nextArg keeps unterminated quoted values inside the current token\\\" {");
-    try expectContains(helper, "test \\\"nextArg keeps rest and remaining as the same borrowed suffix view\\\" {");
-    try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix and descending-range behavior\\\" {");
-    try expectContains(helper, "test \\\"getOptions expands negative ranges and negative upper bounds\\\" {");
-    try expectContains(helper, "test \\\"memparse saturates signed overflow instead of trapping\\\" {");
+    try expectContains(helper, "test \"nextArg keeps whitespace-only input as an empty sentinel before the first NUL\" {");
+    try expectContains(helper, "test \"nextArg keeps leading equals tokens as bare parameters\" {");
+    try expectContains(helper, "test \"nextArg keeps quoted leading equals tokens as bare parameters\" {");
+    try expectContains(helper, "test \"nextArg parses bare parameters and keeps the remaining text\" {");
+    try expectContains(helper, "test \"nextArg keeps quoted empty values explicit without swallowing the next token\" {");
+    try expectContains(helper, "test \"nextArg keeps unterminated quoted values inside the current token\" {");
+    try expectContains(helper, "test \"nextArg keeps rest and remaining as the same borrowed suffix view\" {");
+    try expectContains(helper, "test \"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\" {");
+    try expectContains(helper, "test \"getOptions expands negative ranges and negative upper bounds\" {");
+    try expectContains(helper, "test \"memparse saturates signed overflow instead of trapping\" {");
 
-    try expectContains(helper_companion, "const cmdline = @import(\\\"cmdline\\\");");
+    try expectContains(helper_companion, "const cmdline = @import(\"cmdline\");");
     try expectContains(helper_companion, "phase 7 cmdline companion replays exact bare-option matching boundaries");
-    try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"quiet,debug\\\\x00,nohlt\\\", \\\"nohlt\\\"));");
-    try expectContains(helper_companion, "try std.testing.expect(cmdline.parseOptionStr(\\\"debug,,quiet\\\", \\\"\\\"));");
-    try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\\\"debug,\\\", \\\"\\\"));");
+    try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\"quiet,debug\\x00,nohlt\", \"nohlt\"));");
+    try expectContains(helper_companion, "try std.testing.expect(cmdline.parseOptionStr(\"debug,,quiet\", \"\"));");
+    try expectContains(helper_companion, "try std.testing.expect(!cmdline.parseOptionStr(\"debug,\", \"\"));");
     try expectContains(helper_companion, "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture");
-    try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex and descending-range boundaries");
-    try expectContains(helper_companion, "try std.testing.expectEqualStrings(\\\"2,9\\\", descending_rest);");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries");
+    try expectContains(helper_companion, "try std.testing.expectEqualStrings(\"2,9\", descending_rest);");
     try expectContains(helper_companion, "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture");
     try expectContains(helper_companion, "phase 7 cmdline companion replays validator-only getOption cursor movement");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays leading-plus fallback boundaries");
     try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");
 
     try expectStringSliceContains(manifest.ownership_focus, "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix");
