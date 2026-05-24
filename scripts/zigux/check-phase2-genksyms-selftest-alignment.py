@@ -237,6 +237,22 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(root / WORKFLOW.relative_to(ROOT))
     makefile_text = read_text(root / MAKEFILE.relative_to(ROOT))
+
+    early_required_paths = (
+        root / BRIDGE_CHECKER.relative_to(ROOT),
+        root / GENKSYMS_ZIG.relative_to(ROOT),
+        root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT),
+        root / AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT),
+        root / CASES_FIXTURE.relative_to(ROOT),
+        root / MANIFEST_FIXTURE.relative_to(ROOT),
+        root / HELP_FIXTURE.relative_to(ROOT),
+    )
+    for path in early_required_paths:
+        if not path.exists():
+            issues.append(("MISSING_REQUIRED_PATHS", path.relative_to(root).as_posix()))
+    if issues:
+        return issues
+
     bridge_checker_path = root / BRIDGE_CHECKER.relative_to(ROOT)
     bridge_checker_text = read_text(bridge_checker_path)
     genksyms_text = read_text(root / GENKSYMS_ZIG.relative_to(ROOT))
@@ -266,12 +282,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_BRIDGE_CHECKER_PACKET", str(exc)))
         return issues
 
-    required_paths = [
-        root / CASES_FIXTURE.relative_to(ROOT),
-        root / MANIFEST_FIXTURE.relative_to(ROOT),
-        root / HELP_FIXTURE.relative_to(ROOT),
-        root / AMBIGUOUS_VERSION_SIDE_EFFECT_TEST.relative_to(ROOT),
-    ]
+    required_paths = []
     required_paths.extend(root / f"zigux/tests/fixtures/genksyms_bridge/{case['expected_file']}" for case in case_fixtures)
     required_paths.extend(root / f"zigux/tests/fixtures/genksyms_bridge/{name}" for name in process_output_packet)
     for path in required_paths:
@@ -596,6 +607,20 @@ def run_self_test() -> int:
         assert ("INVALID_HELP_JSON", HELP_FIXTURE.name) in collect_issues(root)
         checks_run += 1
 
+        for missing_path in (
+            BRIDGE_CHECKER,
+            GENKSYMS_ZIG,
+            VERSION_SIDE_EFFECT_TEST,
+        ):
+            build_self_test_root(root)
+            missing_path_in_root = root / missing_path.relative_to(ROOT)
+            missing_path_in_root.unlink()
+            assert (
+                "MISSING_REQUIRED_PATHS",
+                missing_path.relative_to(ROOT).as_posix(),
+            ) in collect_issues(root)
+            checks_run += 1
+
         for marker in (
             'test "genksyms bridge preserves version side effect before invalid long option" {',
             'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
@@ -650,7 +675,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         (root / HELP_FIXTURE.relative_to(ROOT)).unlink()
-        assert ( "MISSING_REQUIRED_PATHS", HELP_FIXTURE.relative_to(ROOT).as_posix()) in collect_issues(root)
+        assert ("MISSING_REQUIRED_PATHS", HELP_FIXTURE.relative_to(ROOT).as_posix()) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -685,7 +710,7 @@ def run_self_test() -> int:
     return 0
 
 
-EXPECTED_SELF_TEST_CASE_COUNT = 48
+EXPECTED_SELF_TEST_CASE_COUNT = 51
 
 
 def main() -> int:
