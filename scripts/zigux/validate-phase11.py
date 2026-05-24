@@ -81,7 +81,7 @@ REQUIRED_PATHS = (
 )
 
 MANIFEST_EXPECTATIONS = {
-    "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L05",
+    "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L10",
 }
 
 
@@ -424,7 +424,14 @@ def run_self_test() -> int:
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
         payload["lane_key"] = "P11-L99"
         write_text(manifest_path, json.dumps(payload) + "\n")
-        expect_issue("manifest_lane_key_mismatch:zigux/tests/phase11_dw_wdt_manifest.json:expected=P11-L05:actual='P11-L99'")
+        expect_issue("manifest_lane_key_mismatch:zigux/tests/phase11_dw_wdt_manifest.json:expected=P11-L10:actual='P11-L99'")
+        case_count += 1
+
+        reset_fixture()
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["lane_key"] = "P11-L05"
+        write_text(manifest_path, json.dumps(payload) + "\n")
+        expect_issue("manifest_lane_key_mismatch:zigux/tests/phase11_dw_wdt_manifest.json:expected=P11-L10:actual='P11-L05'")
         case_count += 1
 
         reset_fixture()
