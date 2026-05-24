@@ -86,6 +86,12 @@ explicit through
 and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
 so keep that focused witness-check route explicit beside the standalone witness
 pair instead of treating the pair as unchecked prose evidence.
+The shared `phase11-validate` route also now carries
+`zigux/tests/phase11_hvc_modem_control_proof_build.zig` as a focused HVC
+teardown-or-failure-mode proof outside the narrower three-entry build
+inventory, so keep that direct replay route explicit beside the modem-control
+note pair instead of silently collapsing it into the shared inventory-backed
+roster.
 That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap
 on current `master`: the repo does not yet rematerialize a broader shared
 replay or survey route that would carry cross-driver public-struct ABI proof
@@ -140,6 +146,10 @@ closure.
   `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also
   stays directly readable beside that smaller proof inventory and standalone
   witness pair.
+  The shared `phase11-validate` route likewise keeps
+  `zigux/tests/phase11_hvc_modem_control_proof_build.zig` explicit as a
+  focused modem-control teardown-or-failure-mode proof outside the narrower
+  three-entry build inventory.
 - `dw_wdt`: raw `master` fallback rereads now rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so keep that
   returned roadmap-required DesignWare driver-local matrix explicit. The
