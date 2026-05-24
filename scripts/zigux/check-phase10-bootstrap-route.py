@@ -308,8 +308,20 @@ The shared closure-manifest count guard now stays explicit through `scripts/zigu
     else:
         raise AssertionError("expected missing note route phrase failure")
 
+    bad_note_missing_counts_phrase = good_note.replace(
+        "fails closed if its summary counts drift from the listed docs, manifests, drivers, or tests surfaces",
+        "records summary counts for the listed docs, manifests, drivers, and tests surfaces",
+        1,
+    )
+    try:
+        check_note(bad_note_missing_counts_phrase)
+    except SystemExit as exc:
+        assert "closure note count-guard phrase" in str(exc)
+    else:
+        raise AssertionError("expected missing note count-guard phrase failure")
+
     print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass")
-    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
