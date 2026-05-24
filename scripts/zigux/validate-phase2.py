@@ -99,6 +99,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
     CHECK_PHASE2_ARCHIVE_CONTRACT_PACKET,
+    "scripts/zigux/check-phase2-closure-archive-contract.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
@@ -218,6 +219,7 @@ PHASE2_VALIDATE_ROUTE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-archive-contract-packet.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-closure-archive-contract.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
