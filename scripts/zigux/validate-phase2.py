@@ -92,6 +92,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-tests-root-summary.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
@@ -255,6 +256,7 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
     "phase2: phase2-validate",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-root-summary.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
