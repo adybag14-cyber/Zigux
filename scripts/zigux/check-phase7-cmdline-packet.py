@@ -77,7 +77,7 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_CMDLINE_PACKET=pass");',
         'try expectContains(checker, "PHASE7_CMDLINE_PACKET_SELF_TEST=pass");',
         'try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`");',
-        'try expectContains(helper, "test \\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\" {");',
+        'try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries");',
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
@@ -105,7 +105,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -229,6 +229,7 @@ def run_self_test() -> None:
             ("samples/zigux/README.md", "Current `master` still ships no standalone Phase 5 sample-root files here for:", ""),
             ("samples/zigux/README.md", "* `*cmdline*`", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Documentation/zigux/phase7-cmdline-slice.md", ""),
+            ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET_SELF_TEST=pass", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET=pass", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET=fail", ""),
@@ -257,9 +258,8 @@ def run_self_test() -> None:
         cases_run += 1
 
         assert cases_run == SELF_TEST_CASE_COUNT, cases_run
-
-    print("PHASE7_CMDLINE_PACKET_SELF_TEST=pass")
-    print(f"PHASE7_CMDLINE_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+        print("PHASE7_CMDLINE_PACKET_SELF_TEST=pass")
+        print(f"PHASE7_CMDLINE_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
 
 
 def parse_args() -> argparse.Namespace:
