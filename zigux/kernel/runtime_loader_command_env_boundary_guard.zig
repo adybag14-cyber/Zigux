@@ -153,6 +153,29 @@ test "shared runtime loader surface keeps Phase 8 help-display controls in their
     }
 }
 
+test "shared runtime loader surface keeps kretprobe initialized-stage handoff explicit" {
+    const kretprobe_required_markers = [_][]const u8{
+        ".module_name = \"runtime_kretprobe\"",
+        ".anchor = \"samples/kprobes/kretprobe_example.c\"",
+        ".entry_symbol = \"zigux_runtime_kretprobe_init\"",
+        ".exit_symbol = \"zigux_runtime_kretprobe_exit\"",
+        ".allocator_handoff = .caller_provided",
+        ".handoff_stage = .initialized",
+    };
+    const forbidden_selftest_complete_block =
+        ".module_name = \"runtime_kretprobe\",\n" ++
+        "        .anchor = \"samples/kprobes/kretprobe_example.c\",\n" ++
+        "        .entry_symbol = \"zigux_runtime_kretprobe_init\",\n" ++
+        "        .exit_symbol = \"zigux_runtime_kretprobe_exit\",\n" ++
+        "        .allocator_handoff = .caller_provided,\n" ++
+        "        .handoff_stage = .selftest_complete";
+
+    inline for (kretprobe_required_markers) |marker| {
+        try expectContains(runtime_loader_source, marker);
+    }
+    try expectLacks(runtime_loader_source, forbidden_selftest_complete_block);
+}
+
 test "shared runtime loader surface rejects registration-summary bleed-through" {
     const contract_forbidden_field_decls = [_][]const u8{
         "register_api:",
