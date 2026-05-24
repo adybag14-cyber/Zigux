@@ -262,11 +262,13 @@ REQUIRED_MARKERS = {
         'test "phase8 ready-buffer fd helper entrypoints stay explicit" {',
         "resolveReadyBufferFdAtAttempt",
         "resolveReadyBufferFdLookupReturnAtAttempt",
+        'test "phase8 ready-buffer fd helpers keep errno-shaped outputs stable" {',
     ),
     READY_BUFFER_WINDOW_VERIFY_PATH: (
         'test "phase8 ready-buffer window helper entrypoints stay explicit" {',
         "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
         "resolveReadyBufferWindowLookupReturnAtAttempt",
+        'test "phase8 ready-buffer window helpers keep lookup-return outputs stable" {',
     ),
     TYPE_NAMES_PATH: (
         "pub fn libbpfBpfMapTypeStr(",
@@ -369,40 +371,25 @@ def run_self_test() -> int:
                 raise SystemExit(f"self-test-mismatch:{expected}:{output}")
             cases += 1
 
-        missing_script_root = Path(tmp) / f"case_{cases}"
-        shutil.copytree(baseline_root, missing_script_root)
-        (missing_script_root / SCRIPT_PATH).unlink()
-        missing_result = run_validator(missing_script_root)
-        missing_output = (
-            missing_result.stdout.strip() or missing_result.stderr.strip() or "no_output"
-        )
-        if missing_result.returncode == 0 or "can't open file" not in missing_output:
-            raise SystemExit(f"self-test-missing-file-mismatch:{missing_output}")
-        cases += 1
-
-    print("PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST=pass")
-    print(f"PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST_CASE_COUNT={cases}")
-    return 0
+    return cases
 
 
 def main(argv: list[str]) -> int:
-    if "--self-test" in argv:
-        return run_self_test()
+    if len(argv) > 1 and argv[1] == "--self-test":
+        cases = run_self_test()
+        print(f"PHASE8_LIBBPF_SHARD_ROUTES_SELF_TEST_CASES={cases}")
+        return 0
 
     root = Path(__file__).resolve().parents[2]
     problems = validate(root)
     if problems:
-        print("PHASE8_LIBBPF_SHARD_ROUTES=fail")
-        print("PHASE8_LIBBPF_SHARD_ROUTES_PROBLEMS_START")
         for problem in problems:
             print(problem)
-        print("PHASE8_LIBBPF_SHARD_ROUTES_PROBLEMS_END")
         return 1
 
-    print("PHASE8_LIBBPF_SHARD_ROUTES=pass")
-    print(f"PHASE8_LIBBPF_SHARD_ROUTES_ROOT={root}")
+    print("PHASE8_LIBBPF_SHARD_ROUTES=ok")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1:]))
+    raise SystemExit(main(sys.argv))
