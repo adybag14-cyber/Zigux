@@ -14,7 +14,9 @@ WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXACT_ONCE_LINES = (
     "- name: Setup Python",
+    "- name: Self-test current Phase 1 workflow preflight checker",
     "run: python3 scripts/zigux/check-phase1-workflow-preflight.py --self-test",
+    "- name: Preflight current Phase 1 workflow viability",
     "run: python3 scripts/zigux/check-phase1-workflow-preflight.py",
     "- name: Setup pinned Zig toolchain",
     "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
@@ -33,7 +35,9 @@ EXACT_ONCE_LINES = (
 
 ORDERED_LINES = (
     "- name: Setup Python",
+    "- name: Self-test current Phase 1 workflow preflight checker",
     "run: python3 scripts/zigux/check-phase1-workflow-preflight.py --self-test",
+    "- name: Preflight current Phase 1 workflow viability",
     "run: python3 scripts/zigux/check-phase1-workflow-preflight.py",
     "- name: Setup pinned Zig toolchain",
     "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
@@ -167,6 +171,18 @@ def remove_line(root: Path, marker: str) -> None:
     raise ValueError(marker)
 
 
+def replace_line(root: Path, old: str, new: str) -> None:
+    workflow = root / WORKFLOW_REL
+    lines = workflow.read_text(encoding="utf-8").splitlines()
+    for idx, line in enumerate(lines):
+        if line.strip() == old.strip():
+            indent = line[: len(line) - len(line.lstrip())]
+            lines[idx] = f"{indent}{new.strip()}"
+            workflow.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            return
+    raise ValueError(old)
+
+
 def duplicate_line(root: Path, marker: str) -> None:
     workflow = root / WORKFLOW_REL
     lines = workflow.read_text(encoding="utf-8").splitlines()
@@ -198,6 +214,18 @@ def run_self_test() -> int:
     cases: list[tuple[str, object | None]] = [
         ("baseline", None),
         ("missing_workflow", lambda root: (root / WORKFLOW_REL).unlink()),
+        (
+            "missing_preflight_selftest_step_name",
+            lambda root: remove_line(root, "- name: Self-test current Phase 1 workflow preflight checker"),
+        ),
+        (
+            "renamed_preflight_live_step_name",
+            lambda root: replace_line(
+                root,
+                "- name: Preflight current Phase 1 workflow viability",
+                "- name: Preflight current Phase 1 workflow check",
+            ),
+        ),
         ("missing_preflight_selftest", lambda root: remove_line(root, "run: python3 scripts/zigux/check-phase1-workflow-preflight.py --self-test")),
         ("duplicate_preflight_live", lambda root: duplicate_line(root, "run: python3 scripts/zigux/check-phase1-workflow-preflight.py")),
         ("missing_smoke", lambda root: remove_line(root, "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig")),
@@ -242,7 +270,11 @@ def main() -> int:
         return 1
 
     print("PHASE1_WORKFLOW_PREFLIGHT_READY=pass")
-    print("PHASE1_WORKFLOW_PREFLIGHT_INSERTION_POINT=Setup Python,Self-test current Phase 1 workflow preflight checker,Preflight current Phase 1 workflow viability,Setup pinned Zig toolchain")
+    print(
+        "PHASE1_WORKFLOW_PREFLIGHT_INSERTION_POINT="
+        "Setup Python,Self-test current Phase 1 workflow preflight checker,"
+        "Preflight current Phase 1 workflow viability,Setup pinned Zig toolchain"
+    )
     print(f"PHASE1_WORKFLOW_PREFLIGHT_REQUIRED_LINE_COUNT={len(EXACT_ONCE_LINES)}")
     return 0
 
