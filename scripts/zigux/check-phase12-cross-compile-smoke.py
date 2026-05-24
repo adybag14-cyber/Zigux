@@ -11,15 +11,19 @@ from pathlib import Path
 CHECK_NAME = "PHASE12_CROSS_COMPILE_SMOKE"
 
 NOTE_PATH = Path("Documentation/zigux/phase12-cross-compile-smoke.md")
+VIRTIO_NET_SURVEY_PATH = Path("Documentation/zigux/phase12-virtio-net-survey.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+VALIDATOR_PATH = Path("scripts/zigux/validate-phase12.py")
 
 REQUIRED_FILES = (
     NOTE_PATH,
+    VIRTIO_NET_SURVEY_PATH,
     WORKFLOW_PATH,
     BUILD_PATH,
     MAKEFILE_PATH,
+    VALIDATOR_PATH,
 )
 
 NOTE_MARKERS = (
@@ -29,6 +33,11 @@ NOTE_MARKERS = (
     "current `.github/workflows/zigux-bootstrap.yml` keeps the same shared packet explicit through the build-only checker, the complex-driver lane checker, the cross-compile smoke checker, the release-readiness checker, `scripts/zigux/validate-phase12.py`, the `phase12-smoke` and `phase12-test` wrappers, the aggregate `phase12` route, and the adjacent throughput-parity anchor",
     "the shipped cross-compile checker now keeps that returned wrapper wording fail-closed across this note, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/phase12_build.zig`",
     "leave the next same-lane follow-through note-local and rerun `scripts/zigux/check-phase12-cross-compile-smoke.py` before widening compile-smoke claims again",
+)
+
+SURVEY_MARKERS = (
+    "`PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only`",
+    "current `master` now keeps `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof for that sextet",
 )
 
 WORKFLOW_MARKERS = (
@@ -56,6 +65,13 @@ MAKEFILE_MARKERS = (
     "phase12-smoke:",
     "phase12-test:",
     "phase12: phase12-validate phase12-smoke phase12-test",
+)
+
+VALIDATOR_MARKERS = (
+    'VIRTIO_NET_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-net-packet.py"',
+    'VIRTIO_SCSI_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-scsi-packet.py"',
+    "for checker_path in PHASE12_PACKET_CHECKERS:",
+    "checker_failures.extend(run_checker(args.root, checker_path))",
 )
 
 FORBIDDEN_NOTE_MARKERS = (
@@ -94,9 +110,19 @@ def check(root: Path) -> None:
     note_text = read_text(root, NOTE_PATH)
     require_markers(note_text, NOTE_MARKERS, str(NOTE_PATH))
     require_absent(note_text, FORBIDDEN_NOTE_MARKERS, str(NOTE_PATH))
+    require_markers(
+        read_text(root, VIRTIO_NET_SURVEY_PATH),
+        SURVEY_MARKERS,
+        str(VIRTIO_NET_SURVEY_PATH),
+    )
     require_markers(read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS, str(WORKFLOW_PATH))
     require_markers(read_text(root, BUILD_PATH), BUILD_MARKERS, str(BUILD_PATH))
     require_markers(read_text(root, MAKEFILE_PATH), MAKEFILE_MARKERS, str(MAKEFILE_PATH))
+    require_markers(
+        read_text(root, VALIDATOR_PATH),
+        VALIDATOR_MARKERS,
+        str(VALIDATOR_PATH),
+    )
 
 
 def write_fixture(root: Path) -> None:
@@ -107,9 +133,16 @@ def write_fixture(root: Path) -> None:
             *NOTE_MARKERS,
             "",
         )),
+        VIRTIO_NET_SURVEY_PATH: "\n".join((
+            "# Phase 12 Virtio Net Survey",
+            "",
+            *SURVEY_MARKERS,
+            "",
+        )),
         WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
         BUILD_PATH: "\n".join(BUILD_MARKERS) + "\n",
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
+        VALIDATOR_PATH: "\n".join(VALIDATOR_MARKERS) + "\n",
     }
     for relative_path, text in files.items():
         path = root / relative_path
@@ -136,6 +169,18 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected note marker failure")
+
+        write_fixture(root)
+        (root / VIRTIO_NET_SURVEY_PATH).writeText if False else None
+        (root / VIRTIO_NET_SURVEY_PATH).write_text("broken\n", encoding="utf-8")
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "phase12-virtio-net-survey.md" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected survey marker failure")
 
         write_fixture(root)
         (root / WORKFLOW_PATH).write_text("broken\n", encoding="utf-8")
@@ -169,6 +214,17 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected makefile marker failure")
+
+        write_fixture(root)
+        (root / VALIDATOR_PATH).write_text("broken\n", encoding="utf-8")
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "scripts/zigux/validate-phase12.py" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected validator marker failure")
 
         write_fixture(root)
         path = root / NOTE_PATH
