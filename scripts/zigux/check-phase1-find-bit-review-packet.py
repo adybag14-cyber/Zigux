@@ -43,6 +43,9 @@ EXPECTED_SOURCE_SYMBOLS = [
     "pub fn _find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {",
     "pub fn find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
     "pub fn _find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn find_next_or_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn _find_next_or_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
     "pub fn findNextAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
     "pub fn find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
     "pub fn _find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
@@ -369,6 +372,10 @@ def run_self_test() -> int:
             "manifest_andnot_contract_drift",
             "manifest:andnot_scan_entrypoint_contract:expected_current_packet",
         ),
+        (
+            "missing_or_symbol",
+            "helper_symbol:pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {:expected=1:actual=0",
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
@@ -380,7 +387,11 @@ def run_self_test() -> int:
         if collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:baseline")
 
-        helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_SOURCE_SYMBOLS[25] + "\n", "", 1)
+        helper_text = load_text(tmp_root, HELPER_REL).replace(
+            "pub fn findLastBit(addr: []const Word, nbits: usize) usize {\n",
+            "",
+            1,
+        )
         write_text(tmp_root, HELPER_REL, helper_text)
         if cases[1][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_symbol")
@@ -416,7 +427,7 @@ def run_self_test() -> int:
         if cases[6][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:manifest_drift")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo(tmp_root)
         manifest = load_json(tmp_root, MANIFEST_REL)
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["single_word_tail_inclusive_boundary_anchor"] = "drift"
         write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
@@ -474,6 +485,16 @@ def run_self_test() -> int:
         write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         if cases[14][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:manifest_andnot_contract_drift")
+
+        build_sample_repo(tmp_root)
+        helper_text = load_text(tmp_root, HELPER_REL).replace(
+            "pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {\n",
+            "",
+            1,
+        )
+        write_text(tmp_root, HELPER_REL, helper_text)
+        if cases[15][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:missing_or_symbol")
 
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
