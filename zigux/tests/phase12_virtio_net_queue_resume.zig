@@ -48,3 +48,34 @@ test "phase12 virtio net queue resume keeps control queue restore optional when 
     try std.testing.expect(summary.resumes_receive_submission);
     try std.testing.expect(summary.resumes_transmit_submission);
 }
+
+test "phase12 virtio net queue resume keeps receive and transmit readiness distinct while the overall gate stays blocked" {
+    const refill_blocked = try queue_resume.summarizeQueueResume(.{
+        .reset_generation = 4,
+        .receive_queue_pairs = 2,
+        .refill_replay_ready = false,
+        .control_queue_restored = true,
+        .transmit_recycle_ready = true,
+        .probe_snapshot_replayed = true,
+    });
+    try std.testing.expectEqual(queue_resume.QueueResumeBlocker.refill_replay, refill_blocked.blocker);
+    try std.testing.expect(!refill_blocked.resumes_receive_submission);
+    try std.testing.expect(refill_blocked.resumes_transmit_submission);
+    try std.testing.expect(!refill_blocked.can_resume_queues);
+
+    const transmit_blocked = try queue_resume.summarizeQueueResume(.{
+        .reset_generation = 5,
+        .receive_queue_pairs = 2,
+        .refill_replay_ready = true,
+        .control_queue_restored = true,
+        .transmit_recycle_ready = false,
+        .probe_snapshot_replayed = true,
+    });
+    try std.testing.expectEqual(
+        queue_resume.QueueResumeBlocker.transmit_recycle,
+        transmit_blocked.blocker,
+    );
+    try std.testing.expect(transmit_blocked.resumes_receive_submission);
+    try std.testing.expect(!transmit_blocked.resumes_transmit_submission);
+    try std.testing.expect(!transmit_blocked.can_resume_queues);
+}
