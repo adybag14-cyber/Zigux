@@ -99,7 +99,7 @@ def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
-        raise ValidationError(f"missing required file: {path.as_posix()}") from exc
+        raise ValidationError(f"missing required file: {path.as_posix()}" ) from exc
 
 
 def require_snippets(path: Path, snippets: list[str]) -> None:
@@ -463,7 +463,7 @@ def run_self_test() -> None:
             "check-phase6-bsearch-c-parity.py",
         )
         cases_run += 1
-        scaffoldRepo(root)
+        scaffold_repo(root)
 
         expect_failure(
             root,
