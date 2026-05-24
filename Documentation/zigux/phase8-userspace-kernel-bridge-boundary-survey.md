@@ -5,7 +5,7 @@ This note records the current bounded Phase 8 userspace-adjacent bridge boundary
 ## Status
 - `PHASE8_STATUS=parked`
 - `PHASE8_SURVEY=userspace-kernel-bridge-boundary-readback`
-- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-23
+- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-24
 - roadmap anchor: `tools/lib/bpf/libbpf.c`
 - intended Zigux destination family: `tools/lib/bpf/zigux_segments/`
 - scope: helper-local bridge reviewability and deferred interrupt-routing boundary truthfulness only
@@ -15,8 +15,12 @@ Phase 8 only makes roadmap-aligned progress here if Zigux keeps the helper-first
 
 That means the note has to keep the landed helper-local bridge packet, the helper-local online-CPU routing evidence, and the still-deferred setup-side routing boundary explicit at the same time.
 
+The separate Phase 8 command-side anchors under `tools/lib/subcmd/` and `tools/lib/symbol/` keep their own parked packets. This survey stays limited to the libbpf-side syscall, descriptor, and routing boundary from `tools/lib/bpf/libbpf.c`.
+
 ## Current mixed-source bridge packet
-Current `master` still keeps the mixed-source bridge packet reviewable through `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_file_path_handle_boundary_guard.zig`, `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/validate-phase8.py`, `zigux/Makefile`, `make -C zigux phase8-file-path-handle-bridge-test`, and `make -C zigux phase8`.
+Current `master` still keeps the mixed-source bridge packet reviewable, but the readable sources stay split in this runtime.
+
+Exact authenticated contents readback now serves this survey note, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `tools/lib/bpf/zigux_segments/manifest.json` directly, while the broader bridge helper and replay companions remain mixed-source reminder evidence through `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_file_path_handle_boundary_guard.zig`, `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/validate-phase8.py`, `zigux/Makefile`, `make -C zigux phase8-file-path-handle-bridge-test`, and `make -C zigux phase8`.
 
 That packet stays smaller than live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior.
 
@@ -47,6 +51,6 @@ This survey does not yet claim:
 - any direct Zig port of the full `tools/lib/bpf/libbpf.c` bridge-heavy setup path
 
 ## Next bounded step
-Keep this bridge-boundary survey parked unless a future reread finds drift between this note, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, or `zigux/tests/phase8_verify_routing_gap.zig` around the helper-local routing markers or the deferred setup-side routing boundary.
+Keep this bridge-boundary survey parked unless a future reread finds drift between this note, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, or `zigux/tests/phase8_verify_routing_gap.zig` around the mixed-source bridge packet, the helper-local routing markers, or the deferred setup-side routing boundary.
 
-If it reopens, reread those five surfaces together first and keep the next repair note-local or checker-local rather than widening into helper semantics, validator ownership, or setup-side routing delivery.
+If it reopens, reread those six surfaces together first and keep the next repair note-local or checker-local rather than widening into helper semantics, validator ownership, or setup-side routing delivery.
