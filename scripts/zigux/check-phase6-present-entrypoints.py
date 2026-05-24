@@ -24,6 +24,12 @@ EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest
 EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
+EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
+    "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+]
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_CURRENT_REPO_REALITY_GAPS = [
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
@@ -168,7 +174,7 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 23
 
 
 class ValidationError(RuntimeError):
@@ -251,6 +257,10 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 parity shared direct evidence mismatch")
     if parity.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
         raise ValidationError("phase6 parity public-tree companions mismatch")
+    if parity.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
+        raise ValidationError("phase6 parity roadmap anchors mismatch")
+    if parity.get("shared_follow_through_gaps") != EXPECTED_PARITY_FOLLOW_THROUGH_GAPS:
+        raise ValidationError("phase6 parity follow-through gaps mismatch")
 
     helpers = manifest.get("helpers")
     parity_helpers = parity.get("helpers")
@@ -420,6 +430,8 @@ def scaffold_repo(root: Path) -> None:
                 "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
                 "shared_direct_evidence": EXPECTED_SHARED_DIRECT_EVIDENCE,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
+                "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
+                "shared_follow_through_gaps": EXPECTED_PARITY_FOLLOW_THROUGH_GAPS,
                 "helpers": [
                     {
                         "key": "base64",
@@ -510,6 +522,12 @@ def run_self_test() -> None:
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": EXPECTED_PACKET})))
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"lane_scope": "shared helper-parity rows only"})))
+        cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "current-master-readback-2026-05-21"})))
+        cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": EXPECTED_ROADMAP_ANCHORS[:-1]})))
+        cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"shared_follow_through_gaps": ["Documentation/zigux/phase6-helper-parity-catalog.md"]})))
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
         cases_run += 1
