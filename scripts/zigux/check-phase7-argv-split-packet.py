@@ -58,6 +58,7 @@ REQUIRED_MARKERS = {
         "test \"argvFree resets released non-blank results to the shared empty exported views\" {",
         "test \"non-blank argvSplit results keep caller-owned teardown isolated across siblings\" {",
         "test \"argv_split aliases preserve helper-local count, split, and free behavior\" {",
+        "test \"argvSplit reports overflow before sizing the null-terminated argv vector\" {",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         "const argv_split = @import(\"argv_split\");",
@@ -88,6 +89,7 @@ REQUIRED_MARKERS = {
         "try expectNotContains(checker, \"\\\"Documentation/zigux/phase7-helper-lane-sequencing.md\\\",\");",
         "try expectContains(helper, \"test \\\\\\\"argvSplit treats whitespace before the first NUL as blank input\\\\\\\" {\");",
         "try expectContains(helper, \"test \\\\\\\"argvSplit reuses shared blank sentinel views without argc output\\\\\\\" {\");",
+        "try expectContains(helper, \"test \\\\\\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\\\\\" {\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays repeated blank-result sentinel reuse\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse\");",
         "try expectContains(helper_companion, \"phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries\");",
@@ -111,7 +113,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 58
+SELF_TEST_CASE_COUNT = 60
 
 
 def read_text(path: Path) -> str:
@@ -334,40 +336,47 @@ def run_self_test() -> None:
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][7]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_repeated_blank_replay_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        expect_missing_marker("missing_survey_overflow_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][8]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_whitespace_before_first_nul_replay_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        expect_missing_marker("missing_survey_repeated_blank_replay_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][9]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_fixture_backed_companion_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        expect_missing_marker("missing_survey_whitespace_before_first_nul_replay_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][10]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_fixture_first_nul_vector_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        expect_missing_marker("missing_survey_fixture_backed_companion_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][11]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker("missing_survey_slice_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        expect_missing_marker("missing_survey_fixture_first_nul_vector_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
         survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][12]
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_slice_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"][13]
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_manifest_leading_nul_marker", tmp_root, f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}")
         cases_run += 1
@@ -469,6 +478,13 @@ def run_self_test() -> None:
         helper_marker = "test \"argvSplit reuses shared blank sentinel views without argc output\" {"
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_blank_without_argc_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "test \"argvSplit reports overflow before sizing the null-terminated argv vector\" {"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_overflow_guard_test", tmp_root, f"lib/argv_split.zig: {helper_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
