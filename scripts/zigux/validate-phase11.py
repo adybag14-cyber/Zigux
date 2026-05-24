@@ -40,12 +40,12 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
     "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
     "scripts/zigux/check-phase11-build-inventory.py",
+    "scripts/zigux/check-phase11-focused-direct-build-replays.py",
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-    "scripts/zigux/check-phase11-focused-direct-build-replays.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
     "scripts/zigux/validate-phase11.py",
@@ -107,6 +107,14 @@ CHECKS = (
         ("python", "scripts/zigux/check-phase11-build-inventory.py"),
     ),
     CheckSpec(
+        "phase11-focused-direct-build-replays-self-test",
+        ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-focused-direct-build-replays",
+        ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),
+    ),
+    CheckSpec(
         "phase11-shared-replay-contract-counts-self-test",
         ("python", "scripts/zigux/check-phase11-shared-replay-contract-counts.py", "--self-test"),
     ),
@@ -145,14 +153,6 @@ CHECKS = (
     CheckSpec(
         "phase11-hvc-targetless-unregister-witness",
         ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
-    ),
-    CheckSpec(
-        "phase11-focused-direct-build-replays-self-test",
-        ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-focused-direct-build-replays",
-        ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),
     ),
     CheckSpec(
         "phase11-dw-wdt-teardown-packet-self-test",
@@ -386,8 +386,7 @@ def run_self_test() -> int:
                         shutil.rmtree(child)
                     else:
                         child.unlink()
-            build_sampleRepo = build_sample_repo
-            build_sampleRepo(root)
+            build_sample_repo(root)
             build_fake_zig(fake_zig, fail_build_file=fail_build_file)
 
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
@@ -410,9 +409,10 @@ def run_self_test() -> int:
             "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
             "drivers/tty/hvc/hvc_console.h",
             "drivers/tty/hvc/hvc_console.zig",
+            "scripts/zigux/check-phase11-build-inventory.py",
+            "scripts/zigux/check-phase11-focused-direct-build-replays.py",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-            "scripts/zigux/check-phase11-focused-direct-build-replays.py",
             "zigux/Makefile",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
@@ -469,6 +469,8 @@ def run_self_test() -> int:
             ("scripts/zigux/validate-phase11.py", "phase11-validation-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
+            ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays-self-test"),
+            ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays"),
             ("scripts/zigux/check-phase11-shared-replay-contract-counts.py", "phase11-shared-replay-contract-counts-self-test"),
             ("scripts/zigux/check-phase11-shared-replay-contract-counts.py", "phase11-shared-replay-contract-counts"),
             ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey-self-test"),
@@ -479,8 +481,6 @@ def run_self_test() -> int:
             ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head"),
             ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness-self-test"),
             ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness"),
-            ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays-self-test"),
-            ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays"),
             ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet-self-test"),
             ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet"),
             ("scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "phase11-dw-wdt-verify-alignment-self-test"),
