@@ -153,6 +153,34 @@ EXPECTED_MMIO_HELPERS = [
     "phase10-mmio-config-write-apply-observation-helper",
 ]
 
+RING_CLOSURE_EXTRA_IDS = {
+    "phase10-ring-verify-replay",
+    "phase10-virtio-ring-slice-note",
+}
+
+
+def expected_ring_helper_evidence_ids(manifest: dict) -> list[str]:
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        return list(EXPECTED_RING_HELPERS)
+
+    expected: list[str] = []
+    for gap in gaps:
+        if not isinstance(gap, dict):
+            continue
+        gap_id = gap.get("id")
+        if not isinstance(gap_id, str) or gap.get("status") != "starter_landed":
+            continue
+        kind = gap.get("kind")
+        if (
+            kind == "queue_wrapper"
+            or gap_id in RING_CLOSURE_EXTRA_IDS
+            or (not isinstance(kind, str) and gap_id in EXPECTED_RING_HELPERS)
+        ):
+            expected.append(gap_id)
+    return expected
+
+
 LANDED_HELPER_FIELDS = {
     "landed_core_helper_evidence": {
         "path": "zigux/tests/phase10_virtio_core_manifest.json",
@@ -412,7 +440,11 @@ def collect_manifest_drift(root: Path) -> list[str]:
 
     for field, packet in LANDED_HELPER_FIELDS.items():
         path = packet["path"]
-        expected_helpers = packet["expected_helpers"]
+        manifest = read_json(root, path)
+        if field == "landed_ring_helper_evidence":
+            expected_helpers = expected_ring_helper_evidence_ids(manifest)
+        else:
+            expected_helpers = packet["expected_helpers"]
         helper_map = closure.get(field, {})
         listed = helper_map.get(path)
         if not isinstance(listed, list) or not listed:
@@ -424,7 +456,6 @@ def collect_manifest_drift(root: Path) -> list[str]:
         for helper_id in listed:
             if helper_id not in expected_helpers:
                 drift.append(f"{field}:{path}:{helper_id!r}:unexpected_in_closure")
-        manifest = read_json(root, path)
         landed = {
             gap.get("id")
             for gap in manifest.get("gaps", [])
@@ -593,6 +624,8 @@ def run_self_test() -> int:
         cases = 0
         closure_path = root / "zigux/tests/phase10_closure_manifest.json"
         original = read_json(root, "zigux/tests/phase10_closure_manifest.json")
+        ring_manifest_path = root / "zigux/tests/phase10_virtio_ring_manifest.json"
+        original_ring_manifest = read_json(root, "zigux/tests/phase10_virtio_ring_manifest.json")
 
         def write_closure(data: dict) -> None:
             write_text(closure_path, json.dumps(data))
@@ -737,6 +770,24 @@ def run_self_test() -> int:
             "phase10-closure-self-test",
         )
         cases += 1
+
+        write_closure(json.loads(json.dumps(original)))
+        ring_manifest = read_json(root, "zigux/tests/phase10_virtio_ring_manifest.json")
+        ring_manifest["gaps"].append(
+            {
+                "id": "phase10-future-ring-queue-wrapper-helper",
+                "status": "starter_landed",
+                "kind": "queue_wrapper",
+            }
+        )
+        write_text(ring_manifest_path, json.dumps(ring_manifest))
+        expect_contains(
+            collect_manifest_drift(root),
+            "landed_ring_helper_evidence:zigux/tests/phase10_virtio_ring_manifest.json:'phase10-future-ring-queue-wrapper-helper':missing_from_closure",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+        write_text(ring_manifest_path, json.dumps(original_ring_manifest))
 
         broken = json.loads(json.dumps(original))
         broken["landed_mmio_helper_evidence"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = [
