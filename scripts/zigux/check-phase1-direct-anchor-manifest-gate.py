@@ -193,6 +193,19 @@ EXPECTED_REVIEW_FIELDS = {
             "the shared Phase 1 replay still does not carry dedicated strcmp() fixture keys, so lexical "
             "ordering and embedded-NUL length-mismatch behavior remain review-visible at the helper surface"
         ),
+        "search_length_review_anchors": [
+            'test "strchr mirrors full-length C-string searches"',
+            'test "strrchr finds the last in-range match with C-string semantics"',
+            'test "strchr and strrchr return the terminator index when searching for NUL"',
+            'test "strlen honors C-string boundaries"',
+            'test "strnlen honors count and C-string boundaries"',
+        ],
+        "search_length_review_summary": (
+            "helper-local search-and-length boundary anchors stay explicit through the direct string tests because "
+            "the shared Phase 1 replay still does not carry dedicated search-length fixture keys, so strchr() or "
+            "strrchr() boundary scans, terminator-index searches, and strlen() or strnlen() length boundaries "
+            "remain review-visible at the helper surface"
+        ),
         "counted_search_review_anchors": [
             'test "strchr mirrors full-length C-string searches"',
             'test "strrchr finds the last in-range match with C-string semantics"',
@@ -513,6 +526,35 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:review_anchor_value=tools/lib/string.zig:helper_test_anchors",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/string.zig"]["search_length_review_anchors"].remove(
+                        'test "strchr and strrchr return the terminator index when searching for NUL"'
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/string.zig:search_length_review_anchors",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/string.zig"].__setitem__(
+                        "search_length_review_summary",
+                        manifest["review_anchors"]["tools/lib/string.zig"]["search_length_review_summary"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/string.zig:search_length_review_summary",
         )
         case_count += 1
 
