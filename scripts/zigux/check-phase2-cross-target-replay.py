@@ -36,8 +36,21 @@ EXPECTED_REQUIRED_MAKE_ROUTES = (
     "phase2-validate",
     "phase2-cross",
 )
+EXPECTED_FIXTURE_KEYS = {
+    "phase",
+    "status",
+    "route",
+    "archive_target_scope",
+    "cross_targets",
+}
+EXPECTED_CROSS_TARGET_KEYS = {
+    "target",
+    "review_status",
+    "validation_mode",
+    "route",
+}
 DEFAULT_TIMEOUT_SECONDS = 300
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -153,6 +166,10 @@ def collect_fixture_issues(root: Path) -> list[str]:
     if not isinstance(payload, dict):
         return [f"fixture:shape:{type(payload).__name__}"]
 
+    unexpected_fixture_keys = sorted(set(payload) - EXPECTED_FIXTURE_KEYS)
+    for key in unexpected_fixture_keys:
+        issues.append(f"fixture:unexpected_key:{key}")
+
     if payload.get("phase") != EXPECTED_PHASE:
         issues.append(f"fixture:phase:{payload.get('phase')!r}")
     if payload.get("status") != EXPECTED_STATUS:
@@ -179,6 +196,10 @@ def collect_fixture_issues(root: Path) -> list[str]:
         if not isinstance(entry, dict):
             issues.append(f"fixture:cross_target_entry:{index}:{type(entry).__name__}")
             continue
+
+        unexpected_entry_keys = sorted(set(entry) - EXPECTED_CROSS_TARGET_KEYS)
+        for key in unexpected_entry_keys:
+            issues.append(f"fixture:cross_target_unexpected_key:{index}:{key}")
 
         target = entry.get("target")
         review_status = entry.get("review_status")
@@ -485,6 +506,20 @@ def run_self_test() -> int:
         fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_fixture_issues(root)
         assert any(issue.startswith("fixture:target_order_mismatch:") for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["note"] = "extra"
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert "fixture:unexpected_key:note" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["notes"] = ["extra"]
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert "fixture:cross_target_unexpected_key:0:notes" in collect_fixture_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
