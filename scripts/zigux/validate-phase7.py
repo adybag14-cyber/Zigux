@@ -282,10 +282,10 @@ def scaffold_repo(root: Path) -> None:
         write(root / rel_path, "\n".join(markers) + "\n")
 
 
-def expect_failure(root: Path, rel_path: Path, marker: str) -> None:
+def expect_failure(root: Path, rel_path: Path, marker: str, replacement: str = "") -> None:
     path = root / rel_path
     original = read_text(path)
-    updated = original.replace(marker, "", 1)
+    updated = original.replace(marker, replacement, 1)
     if updated == original:
         raise AssertionError(f"marker not found: {marker}")
     write(path, updated)
@@ -302,16 +302,16 @@ def run_self_test() -> None:
         scaffold_repo(root)
         validate(root)
         cases = [
-            (MANIFEST_PATH, '"Documentation/zigux/review-checklist.md"'),
-            (MANIFEST_PATH, '"pub fn argvSplit"'),
-            (BUILD_PATH, "../../lib/rbtree.zig"),
-            (MAKEFILE_PATH, "phase7-validate:"),
-            (Path("lib/rbtree.zig"), "pub fn rb_find_add_cached("),
+            (MANIFEST_PATH, '"Documentation/zigux/review-checklist.md"', ""),
+            (MANIFEST_PATH, '"pub fn argvSplit"', '"pub fn argvSplitTokens"'),
+            (BUILD_PATH, "../../lib/rbtree.zig", ""),
+            (MAKEFILE_PATH, "phase7-validate:", ""),
+            (Path("lib/rbtree.zig"), "pub fn rb_find_add_cached(", ""),
         ]
         cases_run = 0
-        for rel_path, marker in cases:
+        for rel_path, marker, replacement in cases:
             scaffold_repo(root)
-            expect_failure(root, rel_path, marker)
+            expect_failure(root, rel_path, marker, replacement)
             cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
             raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
