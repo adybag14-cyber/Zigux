@@ -50,7 +50,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     ),
     SCRIPTS_README: (
         "Phase 8 flow - the current userspace-adjacent tooling reminder should keep the direct exec-cmd command packet explicit",
-        "`Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, and `make -C zigux phase8-exec-cmd-test` keep the direct command-boundary packet explicit from the scripts root without collapsing the separately owned help packet back into the same owner lane",
+        "`Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `tools/lib/subcmd/exec-cmd.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, and `make -C zigux phase8-exec-cmd-test` keep the direct command-boundary packet explicit from the scripts root without collapsing the separately owned help packet back into the same owner lane`",
     ),
     TESTS_README: (
         "current direct-readback Phase 8 anchors:",
@@ -85,12 +85,16 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     EXEC_CMD_TEST: (
         'test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {',
         'test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {',
+        'test "phase 8 exec-cmd shared witness keeps argv0 sentinel path shapes explicit" {',
         '"tools/lib/subcmd/exec-cmd.zig"',
         '"Run focused Phase 8 exec-cmd tests"',
         'try expectContains(slice_note, "deferred execution");',
         'try expectContains(slice_note, "queue ownership");',
         'try expectContains(slice_note, "kernel/workqueue.c");',
         'try expectContains(slice_note, "Phase 14");',
+        'const rooted_search_path = try exec_cmd.buildSearchPath(',
+        'try std.testing.expectEqualStrings("/repo/tools/bin:/tmp:/usr/bin", directory_only_search_path);',
+        'const root_only_search_path = try exec_cmd.buildSearchPath(',
         'try expectNotContains(validate_phase8, "expectMissingPath(\\"tools/lib/subcmd/exec-cmd.zig\\")");',
     ),
     EXEC_CMD_BUILD: (
