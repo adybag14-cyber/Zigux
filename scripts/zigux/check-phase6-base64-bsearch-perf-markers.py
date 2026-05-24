@@ -80,6 +80,11 @@ EXPECTED_BASE64_LABELS = [
     "IMAP_NO_PAD",
 ]
 EXPECTED_BSEARCH_LABELS = ["len15", "len64", "len1024"]
+EXPECTED_BSEARCH_CASES = {
+    "len15": {"len": 15, "reps": 4000},
+    "len64": {"len": 64, "reps": 2000},
+    "len1024": {"len": 1024, "reps": 250},
+}
 EXPECTED_BSEARCH_C_ABI_REPLAYS = [
     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
     "zigux/tests/phase6_bsearch_c_abi_budget.zig",
@@ -88,7 +93,7 @@ EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-24"
 
-SELF_TEST_CASE_COUNT = 36
+SELF_TEST_CASE_COUNT = 38
 
 
 class ValidationError(RuntimeError):
@@ -149,6 +154,29 @@ def require_string_list(value: object, label: str, expected: list[str]) -> None:
         raise ValidationError(f"{label} drifted")
 
 
+def validate_case_matrix(name: str, cases: object, expected: dict[str, dict[str, int]]) -> None:
+    if not isinstance(cases, list):
+        raise ValidationError(f"{name} perf cases missing")
+
+    by_label: dict[str, dict[str, object]] = {}
+    for case in cases:
+        if not isinstance(case, dict):
+            raise ValidationError(f"{name} perf case entry is not an object")
+        label = case.get("label")
+        if not isinstance(label, str):
+            raise ValidationError(f"{name} perf case label missing")
+        by_label[label] = case
+
+    if set(by_label) != set(expected):
+        raise ValidationError(f"{name} perf case drift: {sorted(by_label)}")
+
+    for label, fields in expected.items():
+        case = by_label[label]
+        for field, value in fields.items():
+            if case.get(field) != value:
+                raise ValidationError(f"{name} {label} {field} drifted")
+
+
 def require_route(value: object, label: str, route: str) -> None:
     if not isinstance(value, list):
         raise ValidationError(f"{label} rerun routes missing")
@@ -205,6 +233,9 @@ def validate_evidence_manifest(path: Path) -> None:
     bsearch_perf = bsearch.get("current_perf_evidence")
     if not isinstance(bsearch_perf, dict):
         raise ValidationError("bsearch current_perf_evidence missing from helper-evidence manifest")
+    validate_case_matrix("bsearch evidence", bsearch_perf.get("cases"), EXPECTED_BSEARCH_CASES)
+    if bsearch_perf.get("query_count") != 16:
+        raise ValidationError("bsearch evidence query count drifted")
     if bsearch_perf.get("budget_formula") != EXPECTED_BSEARCH_BUDGET_FORMULA:
         raise ValidationError("bsearch evidence budget formula drifted")
     require_route(
@@ -326,6 +357,12 @@ def scaffold_repo(root: Path) -> None:
                         "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
                         "focused_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                         "current_perf_evidence": {
+                            "cases": [
+                                {"label": "len15", "len": 15, "reps": 4000},
+                                {"label": "len64", "len": 64, "reps": 2000},
+                                {"label": "len1024", "len": 1024, "reps": 250},
+                            ],
+                            "query_count": 16,
                             "budget_formula": EXPECTED_BSEARCH_BUDGET_FORMULA,
                             "linux_style_rerun_routes": [
                                 "make -C zigux phase6-bsearch-perf",
@@ -631,6 +668,42 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                '"label": "len1024"',
+                '"label": "len2048"',
+            ),
+            "bsearch evidence perf case drift",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"reps": 250',
+                '"reps": 500',
+            ),
+            "bsearch evidence len1024 reps drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"query_count": 16',
+                '"query_count": 32',
+            ),
+            "bsearch evidence query count drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 EXPECTED_BSEARCH_BUDGET_FORMULA,
                 "len",
             ),
@@ -857,7 +930,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    args = parse_args()
+    args = parser.parse_args()
     if args.self_test:
         run_self_test()
         return 0
