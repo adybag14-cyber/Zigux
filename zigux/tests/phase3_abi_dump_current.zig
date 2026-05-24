@@ -67,13 +67,27 @@ pub fn main(init: std.process.Init) !void {
     const stdout = &stdout_writer.interface;
 
     const default_header = abi.defaultHeader(0);
+    const compatible_header = abi.compatibleHeader(@sizeOf(abi.BoundaryHeader) + 8, 0x24);
+    const stale_header = abi.BoundaryHeader{
+        .size = @sizeOf(abi.BoundaryHeader),
+        .abi_version = abi.ABI_VERSION + 1,
+        .flags = 0,
+    };
+    const canonicalized_header = abi.canonicalizeHeader(compatible_header);
     const policy = abi.defaultInteropPolicy();
     const header_is_canonical = abi.headerIsCanonical(default_header);
+    const ok_status = abi.okStatus(.helpers);
+    const negative_status = abi.makeStatus(-22, .kernel);
+    const flagged_positive = abi.ExportStatus{
+        .code = 7,
+        .facility = @intFromEnum(abi.Facility.drivers),
+        .flags = abi.STATUS_FLAG_ERROR,
+    };
 
     try stdout.writeAll("{\n");
     try stdout.print("  \"abi_version\": {},\n", .{abi.ABI_VERSION});
     try stdout.print(
-        "  \"boundary_header\": {{\n    \"size\": {},\n    \"align\": {},\n    \"fields\": {{\n      \"size_offset\": {},\n      \"abi_version_offset\": {},\n      \"flags_offset\": {}\n    }},\n    \"default\": {{\n      \"size\": {},\n      \"abi_version\": {},\n      \"flags\": {}\n    }},\n    \"compatibility\": {{\n      \"canonical\": {},\n      \"size_matches\": {},\n      \"version_matches\": {}\n    }}\n  }},\n",
+        "  \"boundary_header\": {{\n    \"size\": {},\n    \"align\": {},\n    \"fields\": {{\n      \"size_offset\": {},\n      \"abi_version_offset\": {},\n      \"flags_offset\": {}\n    }},\n    \"default\": {{\n      \"size\": {},\n      \"abi_version\": {},\n      \"flags\": {}\n    }},\n    \"compatibility\": {{\n      \"canonical\": {},\n      \"size_matches\": {},\n      \"version_matches\": {},\n      \"compatible_size\": {},\n      \"requested_extra_bytes\": {},\n      \"extended_boundary\": {},\n      \"canonicalized_size\": {},\n      \"stale_version_matches\": {},\n      \"stale_compatible\": {}\n    }}\n  }},\n",
         .{
             @sizeOf(abi.BoundaryHeader),
             @alignOf(abi.BoundaryHeader),
@@ -86,10 +100,16 @@ pub fn main(init: std.process.Init) !void {
             header_is_canonical,
             default_header.size == @sizeOf(abi.BoundaryHeader),
             default_header.abi_version == abi.ABI_VERSION,
+            compatible_header.size,
+            abi.requestedExtraBytes(compatible_header),
+            abi.extendsBoundary(compatible_header),
+            canonicalized_header.size,
+            abi.headerHasCurrentAbiVersion(stale_header.abi_version),
+            abi.headerIsCompatible(stale_header),
         },
     );
     try stdout.print(
-        "  \"export_status\": {{\n    \"size\": {},\n    \"align\": {},\n    \"fields\": {{\n      \"code_offset\": {},\n      \"facility_offset\": {},\n      \"flags_offset\": {}\n    }},\n    \"error_flag\": {}\n  }},\n",
+        "  \"export_status\": {{\n    \"size\": {},\n    \"align\": {},\n    \"fields\": {{\n      \"code_offset\": {},\n      \"facility_offset\": {},\n      \"flags_offset\": {}\n    }},\n    \"error_flag\": {},\n    \"ok_status\": {{\n      \"code\": {},\n      \"facility\": {},\n      \"flags\": {},\n      \"is_ok\": {}\n    }},\n    \"negative_status\": {{\n      \"code\": {},\n      \"facility\": {},\n      \"flags\": {},\n      \"is_ok\": {}\n    }},\n    \"flagged_positive_is_ok\": {}\n  }},\n",
         .{
             @sizeOf(abi.ExportStatus),
             @alignOf(abi.ExportStatus),
@@ -97,6 +117,15 @@ pub fn main(init: std.process.Init) !void {
             @offsetOf(abi.ExportStatus, "facility"),
             @offsetOf(abi.ExportStatus, "flags"),
             abi.STATUS_FLAG_ERROR,
+            ok_status.code,
+            ok_status.facility,
+            ok_status.flags,
+            abi.statusIsOk(ok_status),
+            negative_status.code,
+            negative_status.facility,
+            negative_status.flags,
+            abi.statusIsOk(negative_status),
+            abi.statusIsOk(flagged_positive),
         },
     );
     try stdout.print(
