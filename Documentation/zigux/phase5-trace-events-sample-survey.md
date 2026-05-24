@@ -59,10 +59,10 @@ The same current reminder packet also stays checker-backed in this run: `scripts
 A fresh 2026-05-20 sample-root reread in this run confirms the shared sample-root reminder is still aligned on the narrow direct packet:
 - `samples/zigux/README.md` keeps the bounded formatting companion as the direct authenticated proof and keeps the broader non-runtime trace-events companions framed as shared-reminder, historical-support, or current public-tree-backed companion surfaces until a fresh reread proves they returned directly on current `master`
 
-The scripts-root reminder is checker-backed but still slightly undercounted in this run:
-- `scripts/zigux/README.md` keeps the approved-idiom, guide-surface, bytestream, kretprobe, kobject-split, and no-extra-sample boundaries explicit, but its Phase 5 companion roster still does not name `Documentation/zigux/phase5-trace-events-sample-survey.md` alongside the rest of the shared trace-events packet
+The scripts-root reminder is aligned in this run too:
+- `scripts/zigux/README.md` keeps the approved-idiom, guide-surface, bytestream, kretprobe, kobject-split, and no-extra-sample boundaries explicit, and its Phase 5 companion roster now also names `Documentation/zigux/phase5-trace-events-sample-survey.md` alongside the rest of the shared trace-events packet
 
-Treat that scripts-root omission as narrow reminder-surface debt on current `master`, not as proof that the broader trace-events packet changed.
+Treat the scripts-root reminder as aligned packet-inventory support on current `master`, not as an active omission or proof that the broader trace-events packet changed.
 
 The tests-root shared reminder is only inventory-aligned in this run:
 - `zigux/tests/README.md` still names `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`
@@ -89,9 +89,9 @@ The more accurate same-lane state on 2026-05-22 is:
 - the shared `zigux/tests/phase5_build.zig` route now returns directly again and should stay explicit as the shared rerun handle for the broader Phase 5 sample bundle instead of companion-only evidence
 - the focused survey gate `zigux/tests/phase5_trace_events_sample_survey.zig` now exact-checks both the shared checklist-owned packet cues and the approved-idiom owner note, so the selected-string plus `iter=%d` reminder and the `runStringFormattingCycleReplay()` cue stay tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` without dropping the broader checklist-backed packet inventory
 - same-lane documentation should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support references instead of calling it repo absence or directly readable proof, while keeping the returned shared build route classified separately from that still-missing authenticated sample-local set
-- `scripts/zigux/README.md` still needs the same survey-note inventory cue that the docs root, guide, sequencing note, approved-idiom note, and sample root already carry directly
+- the scripts-root reminder is already aligned on current `master`, so future same-lane follow-through should look for a different one-file reminder, checklist, or survey-note truthfulness gap rather than replaying the cleared scripts-root omission
 
-So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again, while keeping the approved-idiom-owner wording aligned with the shipped survey gate, and while naming the remaining scripts-root undercount specifically instead of overstating shared-packet alignment.
+So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again, while keeping the approved-idiom-owner wording aligned with the shipped survey gate, and while naming the remaining shared-reminder posture precisely instead of replaying a cleared scripts-root undercount.
 
 ## Non-goals
 This survey does not claim:
