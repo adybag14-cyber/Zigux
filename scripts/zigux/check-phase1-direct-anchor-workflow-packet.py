@@ -24,6 +24,7 @@ REQUIRED_FILES = (
 )
 
 EXACT_ONCE_LINES = (
+    "- name: Setup pinned Zig toolchain",
     "- name: Self-test current Phase 1 direct-owner checker",
     "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
     "- name: Check current Phase 1 direct-owner markers",
@@ -36,6 +37,7 @@ EXACT_ONCE_LINES = (
     "run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test",
     "- name: Check current Phase 1 string review packet",
     "run: python3 scripts/zigux/check-phase1-string-review-packet.py",
+    "- name: Self-test current Phase 1 route summary checker",
 )
 
 ORDERED_LINES = EXACT_ONCE_LINES
@@ -112,6 +114,8 @@ def build_sample_root(root: Path) -> None:
                 "        uses: actions/checkout@v6.0.2",
                 "      - name: Setup Python",
                 "        uses: actions/setup-python@v6.2.0",
+                "      - name: Setup pinned Zig toolchain",
+                "        run: ./setup-zig.sh",
                 "      - name: Self-test current Phase 1 direct-owner checker",
                 "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
                 "      - name: Check current Phase 1 direct-owner markers",
@@ -173,6 +177,10 @@ def run_self_test() -> int:
         ("baseline", None),
         ("missing_workflow", lambda root: (root / WORKFLOW_REL).unlink()),
         (
+            "missing_setup_zig_boundary",
+            lambda root: remove_line(root, "- name: Setup pinned Zig toolchain"),
+        ),
+        (
             "missing_direct_anchor_live",
             lambda root: remove_line(root, "run: python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py"),
         ),
@@ -181,11 +189,23 @@ def run_self_test() -> int:
             lambda root: duplicate_line(root, "run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test"),
         ),
         (
+            "missing_route_summary_boundary",
+            lambda root: remove_line(root, "- name: Self-test current Phase 1 route summary checker"),
+        ),
+        (
             "bad_order",
             lambda root: swap_lines(
                 root,
                 "- name: Check current Phase 1 direct-anchor manifest gate",
                 "- name: Self-test current Phase 1 string review checker",
+            ),
+        ),
+        (
+            "cluster_before_setup_zig",
+            lambda root: swap_lines(
+                root,
+                "- name: Setup pinned Zig toolchain",
+                "- name: Self-test current Phase 1 direct-owner checker",
             ),
         ),
         (
