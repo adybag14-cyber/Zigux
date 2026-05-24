@@ -217,7 +217,6 @@ def run_self_test() -> int:
             raise AssertionError("expected workflow marker failure")
 
         write_fixture(root)
-        (root / BUILD_PATH).writeText = None
         (root / BUILD_PATH).write_text("broken\n", encoding="utf-8")
         try:
             check(root)
@@ -265,7 +264,7 @@ def run_self_test() -> int:
         else:
             raise AssertionError("expected validator marker failure")
 
-        writeFixture(root)
+        write_fixture(root)
         path = root / NOTE_PATH
         path.write_text(
             path.read_text(encoding="utf-8").replace(
