@@ -14,19 +14,20 @@ ROADMAP_NOTE = "Documentation/zigux/phase13-roadmap-traceability.md"
 REQUIRED_MARKERS = [
     "The roadmap keeps that tranche bounded to four Linux anchors:",
     "Keep `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the stable contributor-facing handle.",
-    "- refresh basis: current `master` direct readback on `2026-05-21`",
+    "- refresh basis: current `master` direct readback on `2026-05-24`",
     "- dedicated roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`",
     "- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
     "- shared tests-root alignment guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`",
     "- shared release-discipline validator: `python3 scripts/zigux/validate-phase13-release.py`",
     "Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, and the surrounding shared reminder packet, while the Phase 13 Makefile route family still remains missing.",
-    "- `lib/devres.c`: `devres` stays mapped through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, the shipped DMA-boundary checker pair `scripts/zigux/check-phase13-devres-dma-boundary.py` and the historically named `scripts/zigux/check-phase13-devres-mmio-packet.py`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` remain repo-reality gaps on current `master`.",
+    "- `lib/devres.c`: `devres` stays mapped through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, the shipped DMA-boundary checker pair `scripts/zigux/check-phase13-devres-dma-boundary.py` and the historically named `scripts/zigux/check-phase13-devres-mmio-packet.py`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-iomap-planner.md`, `zigux/tests/phase13_devres_iomap_planner.zig`, `zigux/tests/phase13_devres_iomap_planner_manifest.json`, `scripts/zigux/check-phase13-devres-iomap-planner.py`, `Documentation/zigux/phase13-devres-iounmap-planner.md`, `zigux/tests/phase13_devres_iounmap_planner.zig`, `zigux/tests/phase13_devres_iounmap_planner_manifest.json`, `scripts/zigux/check-phase13-devres-iounmap-planner.py`, `Documentation/zigux/phase13-devres-scatterlist-planner.md`, `scripts/zigux/check-phase13-devres-scatterlist-planner.py`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `zigux/tests/phase13_devres_scatterlist_planner_manifest.json`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` remain repo-reality gaps on current `master`.",
     "- `scripts/zigux/check-phase13-notifier-priority-signal.py`",
     "- `zigux/helpers/notifier_chain_view.zig`",
 ]
 
 FORBIDDEN_MARKERS = [
     "- refresh basis: current `master` direct readback on `2026-05-18`",
+    "- refresh basis: current `master` direct readback on `2026-05-21`",
     "treating that Phase 2-only wrapper file as a materialized shared Phase 13 build handle.",
     "`Documentation/zigux/phase13-notifier-list-survey.md` still does not materialize on current `master`",
     "Older `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps instead of the current active devres packet.",
@@ -72,10 +73,6 @@ def emit_issues(issues: list[str]) -> int:
         print(issue)
     print("PHASE13_ROADMAP_TRACEABILITY_ISSUES_END")
     return 1
-
-
-def populate_repo(root: Path) -> None:
-    write_text(root, ROADMAP_NOTE, (root / ROADMAP_NOTE).read_text(encoding="utf-8"))
 
 
 def run_self_test() -> int:
@@ -135,12 +132,12 @@ def run_self_test() -> int:
 
         note_path.write_text(
             note_path.read_text(encoding="utf-8")
-            + "- refresh basis: current `master` direct readback on `2026-05-18`\n",
+            + "- refresh basis: current `master` direct readback on `2026-05-21`\n",
             encoding="utf-8",
         )
         issues = collect_issues(tempdir)
         assert (
-            "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:- refresh basis: current `master` direct readback on `2026-05-18`"
+            "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:- refresh basis: current `master` direct readback on `2026-05-21`"
             in issues
         )
         checks_run += 1
