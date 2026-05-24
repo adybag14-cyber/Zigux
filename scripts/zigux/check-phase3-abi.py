@@ -26,6 +26,7 @@ TESTS_BUILD = Path("zigux/tests/build.zig")
 ABI_DUMP = Path("zigux/tests/phase3_abi_dump_current.zig")
 EXPORT_UAPI_LAYOUT = Path("zigux/tests/phase3_export_uapi_layout.zig")
 EXPORT_UAPI_LAYOUT_BUILD = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
+EXPORT_SHIM_BUILD = Path("zigux/tests/phase3_export_shim_build.zig")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 REQUIRED_MARKERS = {
@@ -162,7 +163,7 @@ REQUIRED_MARKERS = {
         "const default_header = abi.defaultHeader(0);",
         "const policy = abi.defaultInteropPolicy();",
         'try stdout.print("  \\\"abi_version\\\": {},\\n", .{abi.ABI_VERSION});',
-        'try stdout.print(',
+        "try stdout.print(",
         '"  \\\"notifier\\\": {{\\n',
     ),
     EXPORT_UAPI_LAYOUT: (
@@ -181,6 +182,19 @@ REQUIRED_MARKERS = {
         '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
         'root_module.addImport("header_family_binding", header_family_binding);',
         '"phase3-export-uapi-layout-test"',
+    ),
+    EXPORT_SHIM_BUILD: (
+        '.root_source_file = b.path("../bindings/abi.zig"),',
+        '.root_source_file = b.path("../uapi/dev_t.zig"),',
+        '.root_source_file = b.path("../uapi/version.zig"),',
+        '.root_source_file = b.path("../bindings/dev_t.zig"),',
+        '.root_source_file = b.path("../bindings/version.zig"),',
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+        'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
+        'export_shim_module.addImport("dev_t_binding", dev_t_binding_module);',
+        'export_shim_module.addImport("version_binding", version_binding_module);',
+        '"phase3-export-shim-test"',
+        '"Run the focused Phase 3 export shim replay"',
     ),
 }
 
@@ -451,6 +465,11 @@ def run_self_test() -> int:
                 EXPORT_SHIM,
                 "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {\n",
                 "missing zigux/kernel/export_shim.zig marker: pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
+            ),
+            (
+                EXPORT_SHIM_BUILD,
+                'export_shim_module.addImport("version_binding", version_binding_module);\n',
+                'missing zigux/tests/phase3_export_shim_build.zig marker: export_shim_module.addImport("version_binding", version_binding_module);',
             ),
             (
                 ABI_HEADER,
@@ -778,7 +797,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=30")
+    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
