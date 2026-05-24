@@ -311,7 +311,7 @@ test "runtime kretprobe sample keeps rejected re-exit rollback explicit" {
     try expectSnapshotStable(selftested_before_reexit, selftested.lifecycleSnapshot());
 }
 
-test "runtime kretprobe sample keeps failed exit rollback explicit while a probe is still registered" {
+test "runtime kretprobe sample keeps failed exit rollback explicit while a probe is still registered across initialized and selftested stages" {
     var module = RuntimeKretprobeSample{};
     try module.init();
     try module.registerProbe();
@@ -339,6 +339,41 @@ test "runtime kretprobe sample keeps failed exit rollback explicit while a probe
     try std.testing.expectEqual(before_exit.unregistration_runs, after_exit.unregistration_runs);
     try std.testing.expectEqual(before_exit.completed_instances, after_exit.completed_instances);
     try std.testing.expectEqual(before_exit.last_retval, after_exit.last_retval);
+
+    var selftested = RuntimeKretprobeSample{};
+    try selftested.init();
+    _ = try selftested.runSelftest();
+    try selftested.registerProbe();
+    try selftested.recordEntry();
+    try selftested.recordReturn(42);
+
+    const before_selftested_failed_exit = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_selftested_failed_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_failed_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_failed_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_failed_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_selftested_failed_exit.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_failed_exit.unregistration_runs);
+    try std.testing.expect(before_selftested_failed_exit.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_failed_exit.active_instances);
+    try std.testing.expectEqual(@as(usize, 2), before_selftested_failed_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 42), before_selftested_failed_exit.last_retval);
+
+    try std.testing.expectError(error.OutstandingRegistration, selftested.exit());
+    try expectSnapshotStable(before_selftested_failed_exit, selftested.lifecycleSnapshot());
+
+    try selftested.unregisterProbe();
+    const before_selftested_exit = selftested.lifecycleSnapshot();
+    try selftested.exit();
+    const after_selftested_exit = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, after_selftested_exit.stage);
+    try std.testing.expectEqual(before_selftested_exit.init_runs, after_selftested_exit.init_runs);
+    try std.testing.expectEqual(before_selftested_exit.selftest_runs, after_selftested_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_selftested_exit.exit_runs);
+    try std.testing.expectEqual(before_selftested_exit.registration_runs, after_selftested_exit.registration_runs);
+    try std.testing.expectEqual(before_selftested_exit.unregistration_runs, after_selftested_exit.unregistration_runs);
+    try std.testing.expectEqual(before_selftested_exit.completed_instances, after_selftested_exit.completed_instances);
+    try std.testing.expectEqual(before_selftested_exit.last_retval, after_selftested_exit.last_retval);
 }
 
 test "runtime kretprobe sample keeps failed unregister rollback explicit while a return instance is still active" {
