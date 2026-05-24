@@ -56,6 +56,8 @@ REQUIRED_SOURCE_MARKERS = {
     "range_first_word_assert": "try std.testing.expectEqual(@as(Word, firstWordMask(start)), map[0]);",
     "range_last_partial_assert": "try std.testing.expectEqual(lastWordMask(start + len), map[3]);",
     "fill_tail_clamp_assert": "try std.testing.expect(full(&full_map, nbits));",
+    "zero_bit_equal_identity_assert": "try std.testing.expect(equal(lhs[0..0], rhs[0..0], 0));",
+    "zero_bit_subset_identity_assert": "try std.testing.expect(subset(lhs[0..0], rhs[0..0], 0));",
     "empty_buffer_preserved_assert": "try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa, 0xaa }, &buffer);",
     "or_multiword_tail_assert": "try std.testing.expectEqualSlices(Word, &[_]Word{ 0b11_1101, 0b01_0111 }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });",
     "weighted_or_direct_count": "try std.testing.expectEqual(@as(usize, 2), direct_or_weight);",
