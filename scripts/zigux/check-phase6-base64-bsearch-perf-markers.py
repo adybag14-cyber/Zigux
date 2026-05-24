@@ -88,7 +88,7 @@ EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 
-SELF_TEST_CASE_COUNT = 36
+SELF_TEST_CASE_COUNT = 41
 
 
 class ValidationError(RuntimeError):
@@ -186,6 +186,14 @@ def validate_evidence_manifest(path: Path) -> None:
     base64_perf = base64.get("current_perf_evidence")
     if not isinstance(base64_perf, dict):
         raise ValidationError("base64 current_perf_evidence missing from helper-evidence manifest")
+    if base64_perf.get("case_labels") != EXPECTED_BASE64_LABELS:
+        raise ValidationError("base64 evidence perf labels drifted")
+    if base64_perf.get("iterations") != 12000:
+        raise ValidationError("base64 evidence perf iterations drifted")
+    if base64_perf.get("max_encode_slowdown_pct") != 150:
+        raise ValidationError("base64 evidence encode threshold drifted")
+    if base64_perf.get("max_decode_slowdown_pct") != 325:
+        raise ValidationError("base64 evidence decode threshold drifted")
     require_route(
         base64_perf.get("linux_style_rerun_routes"),
         "base64 evidence",
@@ -205,6 +213,10 @@ def validate_evidence_manifest(path: Path) -> None:
     bsearch_perf = bsearch.get("current_perf_evidence")
     if not isinstance(bsearch_perf, dict):
         raise ValidationError("bsearch current_perf_evidence missing from helper-evidence manifest")
+    if bsearch_perf.get("case_labels") != EXPECTED_BSEARCH_LABELS:
+        raise ValidationError("bsearch evidence perf labels drifted")
+    if bsearch_perf.get("query_count") != 16:
+        raise ValidationError("bsearch evidence query count drifted")
     if bsearch_perf.get("budget_formula") != EXPECTED_BSEARCH_BUDGET_FORMULA:
         raise ValidationError("bsearch evidence budget formula drifted")
     require_route(
@@ -314,6 +326,10 @@ def scaffold_repo(root: Path) -> None:
                         "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",
                         "checker_surfaces": REQUIRED_BASE64_CHECKER_SURFACES,
                         "current_perf_evidence": {
+                            "case_labels": EXPECTED_BASE64_LABELS,
+                            "iterations": 12000,
+                            "max_encode_slowdown_pct": 150,
+                            "max_decode_slowdown_pct": 325,
                             "linux_style_rerun_routes": [
                                 "make -C zigux phase6-base64-perf",
                                 "make -C zigux phase6-perf",
@@ -326,6 +342,8 @@ def scaffold_repo(root: Path) -> None:
                         "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
                         "focused_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                         "current_perf_evidence": {
+                            "case_labels": EXPECTED_BSEARCH_LABELS,
+                            "query_count": 16,
                             "budget_formula": EXPECTED_BSEARCH_BUDGET_FORMULA,
                             "linux_style_rerun_routes": [
                                 "make -C zigux phase6-bsearch-perf",
@@ -445,7 +463,7 @@ def run_self_test() -> None:
             "check-phase6-bsearch-c-parity.py",
         )
         cases_run += 1
-        scaffold_repo(root)
+        scaffoldRepo(root)
 
         expect_failure(
             root,
@@ -571,6 +589,42 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                '"case_labels": [\n          "STD_PAD",\n          "STD_NO_PAD",\n          "URLSAFE_PAD",\n          "URLSAFE_NO_PAD",\n          "IMAP_PAD",\n          "IMAP_NO_PAD"\n        ]',
+                '"case_labels": ["STD_PAD", "STD_NO_PAD", "URLSAFE_PAD", "URLSAFE_NO_PAD", "IMAP_PAD"]',
+            ),
+            "base64 evidence perf labels drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"iterations": 12000',
+                '"iterations": 16000',
+            ),
+            "base64 evidence perf iterations drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"max_decode_slowdown_pct": 325',
+                '"max_decode_slowdown_pct": 350',
+            ),
+            "base64 evidence decode threshold drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 "scripts/zigux/check-phase6-base64-corpus-determinism.py",
                 "scripts/zigux/check-phase6-shared-surface.py",
             ),
@@ -611,6 +665,30 @@ def run_self_test() -> None:
                 "scripts/zigux/check-phase6-bsearch-present-entrypoints.py",
             ),
             "bsearch checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"case_labels": [\n          "len15",\n          "len64",\n          "len1024"\n        ]',
+                '"case_labels": ["len15", "len64"]',
+            ),
+            "bsearch evidence perf labels drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                '"query_count": 16',
+                '"query_count": 32',
+            ),
+            "bsearch evidence query count drifted",
         )
         cases_run += 1
         scaffold_repo(root)
