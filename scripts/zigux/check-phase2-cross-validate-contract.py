@@ -20,6 +20,7 @@ SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
 EXPECTED_ROUTE = "make -C zigux phase2-cross"
 EXPECTED_REQUIRED_MAKE_ROUTES = (
     "phase2-toolchain",
+    "phase2-tools",
     "phase2-validate",
     "phase2-cross",
 )
