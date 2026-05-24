@@ -123,6 +123,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter keeps sibling string arrays intact when one owner frees its result" {',
         'test "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent" {',
         'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {',
+        'test "phase 7 string helpers starter keeps termination checks bounded by the caller limit" {',
         'test "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly" {',
         'test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {',
         'test "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly" {',
@@ -220,7 +221,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 58
+SELF_TEST_CASE_COUNT = 59
 
 
 def read_text(path: Path) -> str:
@@ -489,6 +490,12 @@ def run_self_test() -> None:
         tests_special_quoted_marker = 'test "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix" {'
         remove_once(tests_path, tests_special_quoted_marker)
         expect_missing_marker("missing_tests_special_quoted_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_special_quoted_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        tests_termination_marker = 'test "phase 7 string helpers starter keeps termination checks bounded by the caller limit" {'
+        remove_once(tests_path, tests_termination_marker)
+        expect_missing_marker("missing_tests_termination_boundary_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_termination_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
