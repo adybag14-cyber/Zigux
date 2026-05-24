@@ -163,3 +163,16 @@ test "ctype extended latin pairs and table-driven invariants stay aligned" {
         }
     }
 }
+
+test "ctype keeps Latin-1 punctuation boundaries and trailing lowercase edge stable" {
+    try std.testing.expect(ispunct(0xD7));
+    try std.testing.expect(ispunct(0xF7));
+    try std.testing.expectEqual(@as(u8, 0xD7), tolower(0xD7));
+    try std.testing.expectEqual(@as(u8, 0xD7), toupper(0xD7));
+    try std.testing.expectEqual(@as(u8, 0xF7), tolower(0xF7));
+    try std.testing.expectEqual(@as(u8, 0xF7), toupper(0xF7));
+
+    try std.testing.expect(islower(0xFF));
+    try std.testing.expectEqual(@as(u8, 0xFF), tolower(0xFF));
+    try std.testing.expectEqual(@as(u8, 0xDF), toupper(0xFF));
+}
