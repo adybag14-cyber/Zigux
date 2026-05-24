@@ -200,6 +200,11 @@ pub fn build(b: *std.Build) void {
     bsearch_test_step.dependOn(&run_bsearch_tests.step);
     bsearch_test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
     bsearch_test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
+    const bsearch_review_step = b.step("phase6-bsearch-review", "Run Phase 6 bsearch helper review preflight");
+    bsearch_review_step.dependOn(&run_bsearch_tests.step);
+    bsearch_review_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
+    bsearch_review_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
+    bsearch_review_step.dependOn(&run_bsearch_perf.step);
 
     const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");
     checksum_test_step.dependOn(&run_checksum_tests.step);
