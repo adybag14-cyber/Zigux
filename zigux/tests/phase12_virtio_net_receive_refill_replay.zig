@@ -35,3 +35,26 @@ test "phase12 virtio net receive refill replay stays lab-only and fail-closed" {
     try std.testing.expect(ready.descriptors_reposted);
     try std.testing.expect(ready.replay_ready);
 }
+
+test "phase12 virtio net receive refill replay supports queue-less control-path packets" {
+    const ready = try receive_refill_replay.summarizeReceiveRefillReplay(.{
+        .reset_generation = 13,
+        .receive_queue_pairs_before_reset = 2,
+        .receive_queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .descriptors_posted_after_restore = 128,
+        .control_queue_restored = false,
+        .requires_control_queue_restore = false,
+    });
+
+    try std.testing.expect(!ready.requires_control_queue_restore);
+    try std.testing.expectEqual(
+        receive_refill_replay.ReceiveRefillReplayBlocker.none,
+        ready.blocker,
+    );
+    try std.testing.expect(ready.queue_pairs_preserved);
+    try std.testing.expect(ready.refill_budget_preserved);
+    try std.testing.expect(ready.descriptors_reposted);
+    try std.testing.expect(ready.replay_ready);
+}
