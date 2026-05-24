@@ -100,7 +100,7 @@ REQUIRED_MARKERS = {
         "The deterministic libbpf fixture pair stays explicit: `zigux/tests/fixtures/phase12_libbpf_snapshot.json` and `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` remain required",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
-        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`",
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`",
         "shared replay wiring: `zigux/tests/phase12_build.zig` and `.github/workflows/zigux-bootstrap.yml`; `zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on `master`",
         "The active shared build packet is the returned six-file `virtio_net` sextet only:",
         "`zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py` while keeping that storage-facing rollback-evidence packet and its dedicated survey-build rerun outside the shared `smoke` and `test` build route.",
@@ -122,7 +122,7 @@ REQUIRED_MARKERS = {
     ],
     SCRIPTS_README_PATH: [
         "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
-        "`scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, and `scripts/zigux/validate-phase12.py` keep the shipped Phase 12 scripts-root support packet explicit on current `master`",
+        "the current scripts-root complex-driver reminder should keep the shared release packet reviewable through the build-only checker, the readiness-note checker, the dedicated anti-overlap checker, the validator entrypoint, the returned `phase12-validate` / `phase12-smoke` / `phase12-test` / `phase12` wrapper split, and the split-helper `virtio_net` evidence packet while keeping the rollback-evidence `virtio_scsi` survey family, the published-but-unwired NVMe foothold, and the parked libbpf packet distinct",
         "`make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
     ],
     VALIDATOR_PATH: [
