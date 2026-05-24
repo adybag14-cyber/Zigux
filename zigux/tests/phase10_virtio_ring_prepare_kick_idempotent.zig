@@ -48,6 +48,42 @@ test "phase10 virtio ring repeated prepareKick stays idle until new descriptors 
     try std.testing.expectEqual(@as(usize, 2), kick_summary.notification_count);
 }
 
+test "phase10 virtio ring prepareKick stays idle after broken-queue recovery until fresh descriptors publish" {
+    var ring = virtio_ring.VirtioRingLab{};
+
+    try ring.defineQueue(3, 8, .split, true, false);
+    try ring.publishDescriptorChain(3);
+
+    var kick_summary = try ring.prepareKick(3);
+    try std.testing.expect(kick_summary.needs_kick);
+    try std.testing.expectEqual(@as(u16, 3), kick_summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 1), kick_summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), kick_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), kick_summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), kick_summary.notification_count);
+
+    _ = try ring.markBroken(3);
+    try std.testing.expectError(error.QueueBroken, ring.prepareKick(3));
+
+    _ = try ring.clearBroken(3);
+    kick_summary = try ring.prepareKick(3);
+    try std.testing.expect(!kick_summary.needs_kick);
+    try std.testing.expectEqual(@as(u16, 3), kick_summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 1), kick_summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), kick_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), kick_summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), kick_summary.notification_count);
+
+    try ring.publishDescriptorChain(3);
+    kick_summary = try ring.prepareKick(3);
+    try std.testing.expect(kick_summary.needs_kick);
+    try std.testing.expectEqual(@as(u16, 3), kick_summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 2), kick_summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 2), kick_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), kick_summary.num_added);
+    try std.testing.expectEqual(@as(usize, 2), kick_summary.notification_count);
+}
+
 test "phase10 virtio ring queue summaries keep shape and notification state aligned through publish and poll" {
     var ring = virtio_ring.VirtioRingLab{};
 
