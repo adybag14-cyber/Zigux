@@ -86,6 +86,7 @@ LIBBPF_SEGMENTS_TEST_MARKERS = [
 VERIFY_MARKERS = [
     "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
     "resolveNextOnlineCpuRouteBufferFdAtIndex",
+    "resolveNextOnlineCpuRouteBufferFdReturnAtIndex",
     "resolveReadyBufferFdLookupReturnAtAttempt",
     "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
     "resolveReadyBufferWindowLookupReturnAtAttempt",
@@ -126,10 +127,8 @@ BRIDGE_HELPER_MARKERS = [
     "pub fn planTokenPreparation(",
 ]
 
-
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
-
 
 def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
@@ -186,7 +185,6 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
 
     return [], missing_markers, state_errors
 
-
 def fixture_manifest() -> str:
     segments = []
     for idx, slug in enumerate(LANDED_SLUGS, start=1):
@@ -205,7 +203,6 @@ def fixture_manifest() -> str:
         indent=2,
     ) + "\n"
 
-
 def fixture_survey() -> str:
     return "\n".join(
         [
@@ -222,12 +219,10 @@ def fixture_survey() -> str:
         ]
     )
 
-
 def write(root: Path, rel_path: str, text: str) -> None:
     path = root / rel_path
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
 
 def clone_fixture(root: Path) -> None:
     write(root, ".github/workflows/zigux-bootstrap.yml", "name: zigux-bootstrap\n- name: Validate Phase 8 tooling routes\n  run: make -C zigux phase8-validate\n")
@@ -261,12 +256,11 @@ def clone_fixture(root: Path) -> None:
     write(root, BRIDGE_BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const file_path_handle_bridge_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const file_path_handle_bridge_root_module = b.createModule(.{\n        .root_source_file = b.path("phase8_file_path_handle_bridge.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    file_path_handle_bridge_root_module.addImport("file_path_handle_bridge", file_path_handle_bridge_module);\n    const file_path_handle_bridge_tests = b.addTest(.{\n        .name = "phase8-file-path-handle-bridge-tests",\n        .root_module = file_path_handle_bridge_root_module,\n    });\n    const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);\n    const test_step = b.step("test", "Run focused Phase 8 file-path-handle bridge tests");\n    test_step.dependOn(&run_file_path_handle_bridge_tests.step);\n}\n')
     write(root, BRIDGE_BOUNDARY_GUARD_PATH, "\n".join(BRIDGE_BOUNDARY_GUARD_MARKERS) + "\n")
     write(root, BRIDGE_MANIFEST_SYNC_PATH, "\n".join(BRIDGE_MANIFEST_SYNC_MARKERS) + "\n")
-    write(root, VERIFY_PATH, 'pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdAtIndex() void {}\npub fn resolveReadyBufferFdLookupReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowMappedSizeReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowLookupReturnAtAttempt() void {}\npub fn formatLibbpfBpfLinkType() void {}\n')
+    write(root, VERIFY_PATH, 'pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdAtIndex() void {}\npub fn resolveNextOnlineCpuRouteBufferFdReturnAtIndex() void {}\npub fn resolveReadyBufferFdLookupReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowMappedSizeReturnAtAttempt() void {}\npub fn resolveReadyBufferWindowLookupReturnAtAttempt() void {}\npub fn formatLibbpfBpfLinkType() void {}\n')
     write(root, BRIDGE_HELPER_PATH, "\n".join(BRIDGE_HELPER_MARKERS) + "\n")
     write(root, MANIFEST_PATH, fixture_manifest())
     write(root, SURVEY_PATH, fixture_survey())
     write(root, "scripts/zigux/check-phase8-libbpf-segment-gate.py", Path(__file__).read_text(encoding="utf-8"))
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_libbpf_segment_gate_") as tmp_dir:
@@ -358,6 +352,18 @@ def run_self_test() -> int:
         )
         if f"{VERIFY_PATH}:formatLibbpfBpfLinkType" not in validate(root)[1]:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:verify_link_formatter_marker")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
+        verify_path.write_text(
+            original_verify.replace(
+                "resolveNextOnlineCpuRouteBufferFdReturnAtIndex",
+                "resolveNextOnlineCpuRouteBufferFdReturnMissing",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{VERIFY_PATH}:resolveNextOnlineCpuRouteBufferFdReturnAtIndex" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:verify_route_fd_return_marker")
         verify_path.write_text(original_verify, encoding="utf-8")
 
         makefile_path = root / MAKEFILE_PATH
@@ -466,9 +472,8 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=17")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate that the focused Phase 8 libbpf segment gate matches the current helper-first verify packet.")
@@ -505,7 +510,6 @@ def main() -> int:
         f"{len(SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(LIBBPF_SEGMENTS_TEST_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_BOUNDARY_GUARD_MARKERS) + len(BRIDGE_MANIFEST_SYNC_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
     )
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
