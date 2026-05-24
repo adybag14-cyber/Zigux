@@ -4,10 +4,10 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-notifier-list-and-chrdev-layout-asserts-consumed-by-both-the-shared-abi-replays-and-the-focused-policy-starter-packet`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=029687c8150c95ac4e87c8a1ce1a2397e3e32dd9`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=86501c06acab43a9322d6ebb08b8f5aa89a7eccf`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-plus-escalation-and-byte-decoders`
-- `PHASE3_PANIC_POLICY_BLOB_SHA=d05afcf0c0ef4e5558f8d8094bedf831c413407c`
+- `PHASE3_PANIC_POLICY_BLOB_SHA=7f73fdec1e748101921a1c00bf8f07fccb7a2fce`
 - `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-plus-init-flow-owned-state-and-reset-gates`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=a59ffbcf90ab65c031c3f069b1e5ed63b50dd708`
@@ -15,7 +15,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-access-boundary-surface-and-permit-audit-aliases`
 - `PHASE3_UNSAFE_POLICY_BLOB_SHA=5b9006cde1fd413e3621f3c5d10765557798a9bc`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=fa44bc0a5bd3b118614cf816ab038e34049693a7`
+- `PHASE3_MMIO_BLOB_SHA=c779a8a00c34a41ae8be67c12504eb0ca9ea4978`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
 - `PHASE3_UNSAFE_BLOB_SHA=0a2bfa31a3fc061f9ec24bc0975cde8ce41e1f62`
