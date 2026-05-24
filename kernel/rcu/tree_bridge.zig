@@ -89,9 +89,9 @@ pub const blocked_boundaries = [_]BridgeBoundary{
     },
     .{
         .id = "poll_cookie_and_sync_waithead_rollover",
-        .summary = "Keep poll-cookie sequencing, polled grace-period completion, and synchronize_rcu wait-head rollover in C.",
-        .anchor_symbols = &.{ "rcu_poll_gp_seq_start_unlocked", "rcu_poll_gp_seq_end_unlocked", "rcu_sr_normal_gp_init" },
-        .rationale = "Poll-cookie visibility still shares gp_seq_polled snapshots, root-node grace-period sequencing, and synchronize_rcu wait-head rollover inside the live Tree RCU state machine rather than a narrow bridge seam.",
+        .summary = "Keep poll-cookie sequencing, polled grace-period completion, synchronize_rcu wait-head rollover, and completion cleanup handoff in C.",
+        .anchor_symbols = &.{ "rcu_poll_gp_seq_start_unlocked", "rcu_poll_gp_seq_end_unlocked", "rcu_sr_normal_gp_init", "rcu_sr_normal_gp_cleanup_work" },
+        .rationale = "Poll-cookie visibility still shares gp_seq_polled snapshots, root-node grace-period sequencing, synchronize_rcu wait-head rollover, and the later workqueue cleanup plus completion handoff inside the live Tree RCU state machine rather than a narrow bridge seam.",
         .coupling = .concurrency_coupled,
     },
     .{
@@ -207,9 +207,12 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("rcu_poll_gp_seq_start_unlocked", poll_cookie.anchor_symbols[0]);
     try std.testing.expectEqualStrings("rcu_poll_gp_seq_end_unlocked", poll_cookie.anchor_symbols[1]);
     try std.testing.expectEqualStrings("rcu_sr_normal_gp_init", poll_cookie.anchor_symbols[2]);
+    try std.testing.expectEqualStrings("rcu_sr_normal_gp_cleanup_work", poll_cookie.anchor_symbols[3]);
     try std.testing.expect(contains(poll_cookie.summary, "poll-cookie"));
     try std.testing.expect(contains(poll_cookie.summary, "wait-head"));
+    try std.testing.expect(contains(poll_cookie.summary, "completion cleanup"));
     try std.testing.expect(contains(poll_cookie.rationale, "gp_seq_polled"));
+    try std.testing.expect(contains(poll_cookie.rationale, "workqueue cleanup"));
 
     const public_wait = findBoundaryById("public_wait_and_callback_barrier").?;
     try std.testing.expect(contains(public_wait.summary, "callback-barrier"));
