@@ -10,6 +10,8 @@ from pathlib import Path
 SCRIPT_PATH = "scripts/zigux/check-phase8-libbpf-shard-routes.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
+BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
+BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
 MAKEFILE_PATH = "zigux/Makefile"
 BRIDGE_TEST_PATH = "zigux/tests/phase8_file_path_handle_bridge.zig"
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
@@ -40,6 +42,8 @@ REQUIRED_FILES = (
     SCRIPT_PATH,
     VALIDATOR_PATH,
     SURVEY_PATH,
+    BRIDGE_BOUNDARY_SURVEY_PATH,
+    BRIDGE_SLICE_PATH,
     MAKEFILE_PATH,
     BRIDGE_TEST_PATH,
     MANIFEST_PATH,
@@ -107,9 +111,24 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.",
-        "Current authenticated helper readback in this runtime now also serves the bridge-side reminder packet directly: the helper set above stays the exact authenticated helper anchor, while the same contents path now returns `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and the focused libbpf bridge-side build companions on current `master`.",
+        "Current authenticated helper readback in this runtime now serves only the narrow bridge-side reminder packet directly: the helper set above stays the exact authenticated helper anchor, while the same contents path now returns `tools/lib/bpf/zigux_segments/manifest.json`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` on current `master`.",
+        "The broader bridge helper and focused build-route companions, including `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, remain public-tree-backed reminder vocabulary until the same authenticated contents path serves them directly again.",
         "`zigux/tests/phase8_verify_routing_gap.zig` plus `zigux/tests/phase8_verify_routing_gap_only_build.zig`",
         "make -C zigux phase8-perf-buffer-poll-test",
+    ),
+    BRIDGE_BOUNDARY_SURVEY_PATH: (
+        "Current mixed-source bridge packet",
+        "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "make -C zigux phase8-file-path-handle-bridge-test",
+    ),
+    BRIDGE_SLICE_PATH: (
+        "Current helper packet",
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "resolveReusePinnedMapAttempt()",
+        "planTokenPreparation() gating explicit",
     ),
     MAKEFILE_PATH: (
         "phase8-libbpf-segments-test:",
