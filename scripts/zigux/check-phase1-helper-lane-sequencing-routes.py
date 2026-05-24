@@ -52,7 +52,11 @@ def require_exact_line(text: str, label: str, marker: str) -> list[str]:
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
     for relative_path in REQUIRED_FILES:
-        if not (root / relative_path).exists():
+        path = root / relative_path
+        if path.is_dir():
+            failures.append(f"directory_path:{relative_path}")
+            continue
+        if not path.is_file():
             failures.append(f"missing_file:{relative_path}")
     if failures:
         return failures
@@ -101,10 +105,18 @@ def duplicate_marker(root: Path, relative_path: str, marker: str) -> None:
     raise ValueError(f"missing marker: {relative_path}: {marker}")
 
 
+def replace_with_directory(root: Path, relative_path: str) -> None:
+    path = root / relative_path
+    if path.is_file():
+        path.unlink()
+    path.mkdir(parents=True, exist_ok=True)
+
+
 def run_self_test() -> int:
     cases = [("success", None)]
     for relative_path in REQUIRED_FILES:
         cases.append((f"missing_file:{relative_path}", ("missing_file", relative_path)))
+        cases.append((f"directory_path:{relative_path}", ("directory_path", relative_path)))
     for relative_path, markers in EXACT_LINE_MARKERS.items():
         for marker in markers:
             cases.append((f"missing_marker:{relative_path}", ("remove", relative_path, marker)))
@@ -120,6 +132,8 @@ def run_self_test() -> int:
                 kind = mutation[0]
                 if kind == "missing_file":
                     (root / mutation[1]).unlink()
+                elif kind == "directory_path":
+                    replace_with_directory(root, mutation[1])
                 elif kind == "remove":
                     remove_marker(root, mutation[1], mutation[2])
                 elif kind == "duplicate":
