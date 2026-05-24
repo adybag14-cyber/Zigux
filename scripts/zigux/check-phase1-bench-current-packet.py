@@ -133,6 +133,11 @@ def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def count_exact_line_matches(text: str, marker: str) -> int:
+    stripped_marker = marker.strip()
+    return sum(1 for line in text.splitlines() if line.strip() == stripped_marker)
+
+
 def extract_section(text: str, first_line: str) -> list[str]:
     section: list[str] = []
     capturing = False
@@ -171,7 +176,7 @@ def collect_issues(root: Path) -> list[str]:
         text = read_text(root, relative_path)
         lines = text.splitlines()
         for marker in markers:
-            count = sum(1 for line in lines if line.strip() == marker) if relative_path == WORKFLOW_REL else text.count(marker)
+            count = count_exact_line_matches(text, marker)
             if count != 1:
                 issues.append(f"{relative_path}:marker_count:{marker}:expected=1:actual={count}")
 
@@ -221,7 +226,8 @@ def insert_after(root: Path, relative_path: str, first_line: str, anchor: str, i
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-pass-") as tmpdir:
         root = Path(tmpdir)
-        build_sample_repo(root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(root)
         issues = collect_issues(root)
         if issues:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
@@ -278,6 +284,21 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-lookalike-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / SCRIPTS_README_REL
+        marker = MARKERS[SCRIPTS_README_REL][0]
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace(marker, f"prefix {marker} suffix", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        expected = f"{SCRIPTS_README_REL}:marker_count:{marker}:expected=1:actual=0"
+        if issues != [expected]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=substring_lookalike_fails_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-reordered-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
@@ -307,7 +328,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
