@@ -299,3 +299,66 @@ test "runtime kretprobe sample keeps failed unregister rollback explicit while a
     try std.testing.expectEqual(before_cleanup.completed_instances, after_exit.completed_instances);
     try std.testing.expectEqual(before_cleanup.last_retval, after_exit.last_retval);
 }
+
+test "runtime kretprobe sample keeps rejected return-without-entry rollback explicit at the module boundary" {
+    var initialized_module = sample.RuntimeKretprobeSample{};
+    try initialized_module.init();
+    try initialized_module.registerProbe();
+
+    const before_initialized_rejected_return = initialized_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, before_initialized_rejected_return.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_rejected_return.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_rejected_return.registration_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.unregistration_runs);
+    try std.testing.expect(before_initialized_rejected_return.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_return.completed_instances);
+    try std.testing.expectEqual(@as(?i32, null), before_initialized_rejected_return.last_retval);
+
+    try std.testing.expectError(error.ReturnWithoutEntry, initialized_module.recordReturn(7));
+    try expectSnapshotStable(
+        before_initialized_rejected_return,
+        initialized_module.lifecycleSnapshot(),
+    );
+
+    try initialized_module.unregisterProbe();
+    try initialized_module.exit();
+    const initialized_after_exit = initialized_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, initialized_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_after_exit.exit_runs);
+
+    var selftested_module = sample.RuntimeKretprobeSample{};
+    try selftested_module.init();
+    _ = try selftested_module.runSelftest();
+    try selftested_module.registerProbe();
+
+    const before_selftested_rejected_return = selftested_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_selftested_rejected_return.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_return.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_return.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_rejected_return.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_selftested_rejected_return.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_return.unregistration_runs);
+    try std.testing.expect(before_selftested_rejected_return.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_rejected_return.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_return.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), before_selftested_rejected_return.last_retval);
+
+    try std.testing.expectError(error.ReturnWithoutEntry, selftested_module.recordReturn(11));
+    try expectSnapshotStable(
+        before_selftested_rejected_return,
+        selftested_module.lifecycleSnapshot(),
+    );
+
+    try selftested_module.recordEntry();
+    try selftested_module.recordReturn(42);
+    try selftested_module.unregisterProbe();
+    try selftested_module.exit();
+    const selftested_after_exit = selftested_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, selftested_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_after_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), selftested_after_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 42), selftested_after_exit.last_retval);
+}
