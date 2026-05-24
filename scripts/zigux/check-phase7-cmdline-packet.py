@@ -130,7 +130,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 71
+SELF_TEST_CASE_COUNT = 72
 
 
 def read_text(path: Path) -> str:
@@ -256,6 +256,16 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
+        slice_marker = "`PHASE7_STATUS=helper_local_test_survey_manifest_anchor`"
+        remove_once(slice_path, slice_marker)
+        expect_missing_marker(
+            "missing_slice_status_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-cmdline-slice.md: {slice_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         slice_marker = "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof."
         remove_once(slice_path, slice_marker)
         expect_missing_marker(
