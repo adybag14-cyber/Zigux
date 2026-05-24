@@ -126,6 +126,7 @@ VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES = (
 REQUIRED_FIXDEP_CASE_NAMES = (
     "sample",
     "sample_multi_target",
+    "sample_multi_target_stdout_full",
     "sample_escaped_space",
     "sample_escaped_colon",
     "sample_concatenated",
