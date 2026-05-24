@@ -625,6 +625,54 @@ fn addPhase3LowLevelWrappers(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3MmioStarterPacket(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const abi_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const narrow = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow.addImport("abi_bindings", abi_bindings);
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
+    unsafe_policy.addImport("narrow", narrow);
+    const mmio = b.createModule(.{
+        .root_source_file = b.path("../helpers/mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mmio.addImport("abi_bindings", abi_bindings);
+    mmio.addImport("unsafe_policy", unsafe_policy);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_mmio_starter_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("abi_bindings", abi_bindings);
+    root_module.addImport("mmio", mmio);
+    root_module.addImport("narrow", narrow);
+    root_module.addImport("unsafe_policy", unsafe_policy);
+
+    const tests = b.addTest(.{
+        .name = "phase3-mmio-starter-packet",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -721,6 +769,7 @@ pub fn build(b: *std.Build) void {
     const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);
     const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
+    const phase3_mmio_starter_packet = addPhase3MmioStarterPacket(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
     const phase10_virtio_core_survey = addSurveyTest(
         b,
@@ -818,6 +867,12 @@ pub fn build(b: *std.Build) void {
     );
     phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
 
+    const phase3_mmio_step = b.step(
+        "phase3-mmio-starter-packet",
+        "Run the shared Phase 3 MMIO starter packet from zigux/tests",
+    );
+    phase3_mmio_step.dependOn(&phase3_mmio_starter_packet.step);
+
     const phase3_test_step = b.step(
         "phase3-test",
         "Run the current shared Phase 3 starter packet bundle from zigux/tests",
@@ -831,6 +886,7 @@ pub fn build(b: *std.Build) void {
     phase3_test_step.dependOn(&phase3_abi_core_packet.step);
     phase3_test_step.dependOn(&phase3_export_uapi_layout.step);
     phase3_test_step.dependOn(&phase3_low_level_wrappers.step);
+    phase3_test_step.dependOn(&phase3_mmio_starter_packet.step);
 
     const phase3_dump_step = b.step(
         "phase3-dump",
