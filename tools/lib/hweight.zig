@@ -143,3 +143,49 @@ test "hweight helpers match byte-lane accumulation" {
     try std.testing.expectEqual(long_expected, hweightLong(long_value));
     try std.testing.expectEqual(long_expected, hweight_long(long_value));
 }
+
+test "hweight helpers keep every byte lane independent" {
+    for (0..256) |raw| {
+        const byte: u32 = @intCast(raw);
+        const expected32 = swHweight8(byte);
+        const expected64 = @as(u64, expected32);
+        const expected_long = @as(usize, expected32);
+
+        for (0..2) |lane| {
+            const shift: u5 = @intCast(lane * 8);
+            const value16 = byte << shift;
+            try std.testing.expectEqual(expected32, swHweight16(value16));
+            try std.testing.expectEqual(expected32, __sw_hweight16(value16));
+        }
+
+        for (0..4) |lane| {
+            const shift: u5 = @intCast(lane * 8);
+            const value32 = byte << shift;
+            try std.testing.expectEqual(expected32, swHweight32(value32));
+            try std.testing.expectEqual(expected32, __sw_hweight32(value32));
+        }
+
+        for (0..8) |lane| {
+            const shift: u6 = @intCast(lane * 8);
+            const value64 = @as(u64, byte) << shift;
+            try std.testing.expectEqual(expected64, swHweight64(value64));
+            try std.testing.expectEqual(expected64, __sw_hweight64(value64));
+        }
+
+        if (@sizeOf(usize) == 4) {
+            for (0..4) |lane| {
+                const shift: u5 = @intCast(lane * 8);
+                const value_long = @as(usize, byte) << shift;
+                try std.testing.expectEqual(expected_long, hweightLong(value_long));
+                try std.testing.expectEqual(expected_long, hweight_long(value_long));
+            }
+        } else {
+            for (0..8) |lane| {
+                const shift: u6 = @intCast(lane * 8);
+                const value_long = @as(usize, byte) << shift;
+                try std.testing.expectEqual(expected_long, hweightLong(value_long));
+                try std.testing.expectEqual(expected_long, hweight_long(value_long));
+            }
+        }
+    }
+}
