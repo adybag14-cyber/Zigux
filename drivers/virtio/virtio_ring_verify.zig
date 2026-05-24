@@ -89,6 +89,10 @@ pub fn queueHasBrokenCallbackFence(summary: BrokenQueueSummary) bool {
     return summary.broken and !summary.callback_enabled;
 }
 
+pub fn brokenQueueNeedsCallbackReenable(summary: BrokenQueueSummary) bool {
+    return !summary.broken and !summary.callback_enabled;
+}
+
 pub fn callbackEnableNeedsPoll(summary: CallbackEnableSummary) bool {
     return summary.should_poll;
 }
@@ -367,6 +371,7 @@ test "phase10 virtio ring verify keeps broken queue fences visible until clear" 
     try std.testing.expect(queueHasBrokenCallbackFence(broken));
     try std.testing.expectEqual(@as(u16, 1), broken.outstanding_chain_count);
     try std.testing.expectEqual(@as(u16, 1), broken.pending_used_chain_count);
+    try std.testing.expect(!brokenQueueNeedsCallbackReenable(broken));
     try std.testing.expectError(error.QueueBroken, ring.pollUsedBuffers(5));
 
     _ = try ring.clearBroken(5);
@@ -375,8 +380,18 @@ test "phase10 virtio ring verify keeps broken queue fences visible until clear" 
     try std.testing.expect(!queueHasBrokenCallbackFence(broken));
     try std.testing.expectEqual(@as(u16, 1), broken.outstanding_chain_count);
     try std.testing.expectEqual(@as(u16, 1), broken.pending_used_chain_count);
+    try std.testing.expect(brokenQueueNeedsCallbackReenable(broken));
 
-    const poll = try ring.pollUsedBuffers(5);
+    const callback = try summarizeEnableCallback(&ring, 5);
+    try std.testing.expect(callback.callback_enabled);
+    try std.testing.expect(callback.should_poll);
+
+    broken = try summarizeBrokenQueue(&ring, 5);
+    try std.testing.expect(!broken.broken);
+    try std.testing.expect(!queueHasBrokenCallbackFence(broken));
+    try std.testing.expect(!brokenQueueNeedsCallbackReenable(broken));
+
+    const poll = try summarizeUsedBufferPoll(&ring, 5);
     try std.testing.expectEqual(@as(u16, 1), poll.newly_used_chain_count);
 }
 
