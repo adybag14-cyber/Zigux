@@ -67,6 +67,18 @@ test "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and
     try std.testing.expectEqualSlices(i32, &[_]i32{ 0, 4, 0, 0 }, &descending);
 }
 
+test "phase 7 cmdline companion replays getOptions leading-plus fill and validate-only fallback" {
+    var plus_values = [_]i32{ 0, 0, 0, 0 };
+    const plus_rest = cmdline.getOptions("+7,+010", plus_values.len, &plus_values);
+    try std.testing.expectEqualStrings("", plus_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 7, 8, 0 }, &plus_values);
+
+    var validate_only = [_]i32{0};
+    const validate_rest = cmdline.getOptions("+7,+0x", 0, &validate_only);
+    try std.testing.expectEqualStrings("x", validate_rest);
+    try std.testing.expectEqual(@as(i32, 2), validate_only[0]);
+}
+
 test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {
     var negative_values = [_]i32{ 0, 0, 0, 0, 0 };
     const negative_rest = cmdline.getOptions("-2-1", negative_values.len, &negative_values);
