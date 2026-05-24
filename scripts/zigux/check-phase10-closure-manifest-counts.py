@@ -505,6 +505,20 @@ def run_self_test() -> int:
 
         broken = dict(original)
         broken["exact_checks"] = [
+            item
+            for item in broken["exact_checks"]
+            if item != "python3 scripts/zigux/check-phase10-bootstrap-route.py"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'python3 scripts/zigux/check-phase10-bootstrap-route.py':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["exact_checks"] = [
             item for item in broken["exact_checks"] if item != "python3 scripts/zigux/check-phase10-core-packet.py"
         ]
         write_manifest(broken)
@@ -597,6 +611,20 @@ def run_self_test() -> int:
         broken["exact_checks"] = [
             item
             for item in broken["exact_checks"]
+            if item != "python3 scripts/zigux/check-phase10-closure-manifest-counts.py"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'python3 scripts/zigux/check-phase10-closure-manifest-counts.py':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["exact_checks"] = [
+            item
+            for item in broken["exact_checks"]
             if item != "python3 scripts/zigux/validate-phase10.py"
         ]
         write_manifest(broken)
@@ -615,6 +643,56 @@ def run_self_test() -> int:
         expect_contains(
             validate(root)[1],
             "exact_checks:'python3 scripts/zigux/validate-phase10-closure.py':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["exact_checks"] = [
+            item for item in broken["exact_checks"] if item != "make -C zigux phase10-validate"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'make -C zigux phase10-validate':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["exact_checks"] = [
+            item
+            for item in broken["exact_checks"]
+            if item != "zig build test --build-file zigux/tests/phase10_build.zig --summary all"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'zig build test --build-file zigux/tests/phase10_build.zig --summary all':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["exact_checks"] = [
+            item for item in broken["exact_checks"] if item != "make -C zigux phase10-test"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'make -C zigux phase10-test':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+
+        broken = dict(original)
+        broken["exact_checks"] = [
+            item for item in broken["exact_checks"] if item != "make -C zigux phase10"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "exact_checks:'make -C zigux phase10':missing",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
