@@ -175,6 +175,16 @@ EXPECTED_RBTREE_TRAVERSAL_REPLAY_KEYS = [
     "erase_init_node_empty",
     "cleared_node_empty",
 ]
+EXPECTED_RBTREE_CACHED_ROOT_FOLLOWUP_ANCHORS = [
+    'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+    'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
+    'test "rbtree cached root keeps the leftmost pointer in sync"',
+    'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+    'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+    'test "rbtree eraseCached returns null for a singleton cached tree"',
+    'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+    'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+]
 EXPECTED_STRING_NEXT_SAFE_STEP_NOTE = (
     "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the "
     "string review packet and this lane note unless dedicated shared sysfs fixture keys land; "
@@ -300,6 +310,7 @@ MANIFEST_EXPECTATIONS = {
         "match_iterator_serials",
         "next_match_terminal_null",
     ],
+    ("review_anchors", "tools/lib/rbtree.zig", "cached_root_followup_anchors"): EXPECTED_RBTREE_CACHED_ROOT_FOLLOWUP_ANCHORS,
     ("review_anchors", "tools/lib/rbtree.zig", "cached_root_alias_anchor"): 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
     ("review_anchors", "tools/lib/string.zig", "next_safe_step_note"): EXPECTED_STRING_NEXT_SAFE_STEP_NOTE,
     ("review_anchors", "tools/lib/string.zig", "strnchr_review_anchor"): 'test "strnchr honors count and C-string boundaries"',
@@ -453,6 +464,7 @@ def sample_manifest() -> str:
                 "match_iterator_serials",
                 "next_match_terminal_null",
             ],
+            "cached_root_followup_anchors": EXPECTED_RBTREE_CACHED_ROOT_FOLLOWUP_ANCHORS,
             "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
             "review_packet_summary": EXPECTED_RBTREE_REVIEW_PACKET_SUMMARY,
         },
