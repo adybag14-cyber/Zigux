@@ -42,7 +42,7 @@ test "phase 8 file-path handle bridge manifest keeps the landed helper wording e
     );
     try expectContains(
         manifest,
-        "\"surveyed_commit\": \"17fd5f8e2b234738428770e192346d040aff13ce\"",
+        "\"surveyed_commit\": \"3fbd40a49963769118cb15f2aadfc175540c833d\"",
     );
     try expectContains(
         manifest,
