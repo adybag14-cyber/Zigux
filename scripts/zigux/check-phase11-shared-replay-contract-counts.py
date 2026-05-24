@@ -45,6 +45,7 @@ EXPECTED_PROOF_FANOUT_MARKERS = (
     "zigux/tests/phase11_dw_wdt_build.zig",
     "zigux/tests/phase11_dw_wdt_restart_build.zig",
     "zigux/tests/phase11_dw_wdt_pm_build.zig",
+    "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
@@ -61,7 +62,7 @@ REQUIRED_CONTRACT_MARKERS = (
     "3 shared adjunct proof replays",
     "3 adjunct build replays",
     "11 HVC current-head exact command markers",
-    "`make -C zigux phase11-validate` wrapper now cover eleven focused proof builds through",
+    "`make -C zigux phase11-validate` wrapper now cover twelve focused proof builds through",
 )
 
 
@@ -154,7 +155,7 @@ def build_fixture(root: Path) -> None:
                 "3 shared adjunct proof replays",
                 "3 adjunct build replays",
                 "11 HVC current-head exact command markers",
-                "`make -C zigux phase11-validate` wrapper now cover eleven focused proof builds through",
+                "`make -C zigux phase11-validate` wrapper now cover twelve focused proof builds through",
                 *EXPECTED_EXACT_CURRENT_CHECKS,
                 *EXPECTED_PROOF_FANOUT_MARKERS,
             ]
@@ -215,14 +216,14 @@ def run_self_test() -> int:
         write(
             missing_proof_fanout_marker / CONTRACT_PATH,
             read_text(missing_proof_fanout_marker / CONTRACT_PATH).replace(
-                "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+                "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
                 "",
                 1,
             ),
         )
         expect_failure(
             missing_proof_fanout_marker,
-            "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+            "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
         )
         case_count += 1
 
