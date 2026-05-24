@@ -87,6 +87,12 @@ test "phase9 runtime trace-events shared loader rejects prepared selftest-hook a
     initialized_request.plan.provides_selftest_hook = false;
     try std.testing.expectError(error.PreparedPlanDrift, initialized_request.requestRuntimeLoad());
     try expectPreparedState(initialized_request, stable_initialized);
+
+    initialized_request.plan = stable_initialized;
+    initialized_request.plan.init_flow.handoff_stage = .selftest_complete;
+    initialized_request.plan.init_flow.selftest_runs = 1;
+    try std.testing.expectError(error.PreparedPlanDrift, initialized_request.requestRuntimeLoad());
+    try expectPreparedState(initialized_request, stable_initialized);
 }
 
 test "phase9 runtime trace-events shared loader rejects release drift after waiting handoff" {
@@ -133,6 +139,12 @@ test "phase9 runtime trace-events shared loader rejects waiting selftest-hook an
     const pending_initialized = try initialized_request.requestRuntimeLoad();
 
     initialized_request.plan.provides_selftest_hook = false;
+    try std.testing.expectError(error.PreparedPlanDrift, initialized_request.releaseWithoutSubstrate());
+    try expectWaitingState(initialized_request, stable_initialized, pending_initialized);
+
+    initialized_request.plan = pending_initialized;
+    initialized_request.plan.init_flow.handoff_stage = .selftest_complete;
+    initialized_request.plan.init_flow.selftest_runs = 1;
     try std.testing.expectError(error.PreparedPlanDrift, initialized_request.releaseWithoutSubstrate());
     try expectWaitingState(initialized_request, stable_initialized, pending_initialized);
 }
