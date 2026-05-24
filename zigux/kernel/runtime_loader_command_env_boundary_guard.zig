@@ -206,6 +206,19 @@ test "shared runtime loader surface rejects live initcall and runtime registrati
 }
 
 test "shared runtime loader surface rejects publication and depmod bleed-through" {
+    const contract_forbidden_field_decls = [_][]const u8{
+        "modinfo:",
+        "module_alias:",
+        "module_aliases:",
+        "modules_alias_path:",
+        "module_install_root:",
+        "modules_order_path:",
+        "modules_builtin_path:",
+        "module_symvers_path:",
+        "depmod_script:",
+        "depmod_manifest:",
+        "depmod_aliases:",
+    };
     const loader_forbidden_field_decls = [_][]const u8{
         "modinfo:",
         "module_alias:",
@@ -220,6 +233,9 @@ test "shared runtime loader surface rejects publication and depmod bleed-through
         "depmod_aliases:",
     };
 
+    inline for (contract_forbidden_field_decls) |marker| {
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
     inline for (loader_forbidden_field_decls) |marker| {
         try expectLacks(runtime_loader_source, marker);
     }
