@@ -40,9 +40,9 @@ CLOSURE_MARKERS = [
 ]
 
 PHASE2_FIXDEP_NEXT_STEP_MARKERS = [
-    "`scripts/zigux/check-phase2-fixdep-gate.py` validates the live twelve-case packet, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.",
-    "`zigux/tests/fixtures/fixdep/cases.json` names that same twelve-case packet and uses `stdout_mode: \"dev_full\"` on the three bounded `/dev/full` write-failure replays.",
-    "The direct fixdep artifact packet now carries the additional plain escaped-newline dependency continuation case through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `zigux/tests/fixtures/fixdep/cases.json`, while the broader shared reminder surfaces can be retold separately if they need to mention the new case count.",
+    "`scripts/zigux/check-phase2-fixdep-gate.py` validates the live thirteen-case packet, including `sample_dependency_continuation`, `sample_comment_continuation`, `sample_multi_target_stdout_full`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full`.",
+    "`zigux/tests/fixtures/fixdep/cases.json` names that same thirteen-case packet and uses `stdout_mode: \"dev_full\"` on the four bounded `/dev/full` write-failure replays, including `sample_multi_target_stdout_full`.",
+    "The direct fixdep artifact packet now carries the additional plain escaped-newline dependency continuation case and the widened `sample_multi_target_stdout_full` `/dev/full` replay through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `zigux/tests/fixtures/fixdep/cases.json`, while the broader shared reminder surfaces can be retold separately if they need to mention the new case count.",
     "When a writable checkout with Zig is available, re-run `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig` so the dedicated gate and the direct replay stay aligned as one packet.",
 ]
 
@@ -57,7 +57,7 @@ ARTIFACT_DIFF_MARKERS = [
     "`zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt` plus `sample_comment_only_expected.stderr.txt` anchor the bounded comment-only depfile failure path while keeping the saved command line deterministic.",
     "`zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt` plus `sample_missing_dep_expected.stderr.txt` anchor the bounded missing-dependency open error and its exit-code contract while keeping stdout stable.",
     "`zigux/tests/fixtures/fixdep/sample_output_write_expected.txt` plus `sample_output_write_expected.stderr.txt` anchor the bounded stdout-write failure path for the main success packet and the replay variants that drive stdout into `/dev/full`.",
-    "`zigux/tests/fixtures/fixdep/cases.json` keeps the current twelve-case fixdep packet reviewable by naming the committed stdout artifact for every shipped case and the expected stderr or exit-code contract whenever the case is not a plain success path, including the dedicated `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full` write-failure replays.",
+    "`zigux/tests/fixtures/fixdep/cases.json` keeps the current thirteen-case fixdep packet reviewable by naming the committed stdout artifact for every shipped case and the expected stderr or exit-code contract whenever the case is not a plain success path, including the dedicated `sample_dependency_continuation`, `sample_comment_continuation`, `sample_multi_target_stdout_full`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full` replays.",
     "`scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`.",
 ]
 
@@ -537,11 +537,11 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         cases = json.loads((root / "zigux/tests/fixtures/fixdep/cases.json").read_text(encoding="utf-8"))
-        cases[8]["stdout_mode"] = "pipe_full"
+        cases[9]["stdout_mode"] = "pipe_full"
         write_text(root / "zigux/tests/fixtures/fixdep/cases.json", json.dumps(cases))
         issues = validate_root(root)
         assert (
-            "zigux/tests/fixtures/fixdep/cases.json:cases[8]:stdout_mode:expected='dev_full':got='pipe_full'"
+            "zigux/tests/fixtures/fixdep/cases.json:cases[9]:stdout_mode:expected='dev_full':got='pipe_full'"
             in issues
         )
         case_count += 1
