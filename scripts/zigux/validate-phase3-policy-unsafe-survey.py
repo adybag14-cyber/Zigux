@@ -18,6 +18,7 @@ ALLOCATOR_POLICY_PATH = Path("zigux/helpers/allocator_policy.zig")
 UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 MMIO_PATH = Path("zigux/helpers/mmio.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 BLOB_FIELDS = {
     "PHASE3_LAYOUT_ASSERT_BLOB_SHA": LAYOUT_ASSERT_PATH,
@@ -42,6 +43,8 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "PHASE3_POLICY_PACKET_TEST_GATE=zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
+    "PHASE3_POLICY_PACKET_MAKE_GATE=make -C zigux phase3-policy-starter-packet-test",
+    "PHASE3_POLICY_DUMP_MAKE_GATE=make -C zigux phase3-policy-dump",
     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again",
@@ -94,14 +97,22 @@ REQUIRED_FILE_MARKERS = {
         "pub fn writeValueAtInteropPolicyBytes(comptime T: type, address: usize, value: T, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!void {",
         "pub fn writeValueAtInteropPolicy(comptime T: type, address: usize, value: T, policy: abi.InteropPolicy) RawPointerBridgeError!void {",
     ),
+    MAKEFILE_PATH: (
+        "phase3-policy-starter-packet-test:",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
+        "phase3-policy-dump:",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    ),
 }
 
 SELF_TEST_CASES = (
     ("missing note marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[7], "marker"),
     ("missing policy packet test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[9], "marker"),
     ("missing policy dump gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[10], "marker"),
-    ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
-    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[13], "marker"),
+    ("missing starter packet make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[11], "marker"),
+    ("missing dump make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
+    ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[14], "marker"),
+    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[15], "marker"),
     (
         "layout assert blob drift",
         LAYOUT_ASSERT_PATH,
@@ -128,6 +139,7 @@ SELF_TEST_CASES = (
         "marker",
     ),
     ("narrow const-slice marker drift", NARROW_PATH, REQUIRED_FILE_MARKERS[NARROW_PATH][4], "marker"),
+    ("starter packet make route drift", MAKEFILE_PATH, REQUIRED_FILE_MARKERS[MAKEFILE_PATH][0], "marker"),
 )
 
 SAMPLE_FILE_TEXT = {
@@ -139,6 +151,7 @@ SAMPLE_FILE_TEXT = {
     UNSAFE_POLICY_PATH: "\n".join(REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH]) + "\n",
     MMIO_PATH: "\n".join(REQUIRED_FILE_MARKERS[MMIO_PATH]) + "\n",
     NARROW_PATH: "\n".join(REQUIRED_FILE_MARKERS[NARROW_PATH]) + "\n",
+    MAKEFILE_PATH: "\n".join(REQUIRED_FILE_MARKERS[MAKEFILE_PATH]) + "\n",
 }
 
 
