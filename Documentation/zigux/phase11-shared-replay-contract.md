@@ -123,7 +123,7 @@ above.
 ## Exact Current Checks
 
 These are the exact bounded checks that keep the current shared packet
- deterministic and reviewable:
+deterministic and reviewable:
 
 - shared validator self-test: `python3 scripts/zigux/validate-phase11.py --self-test`
 - shared checker self-tests:
