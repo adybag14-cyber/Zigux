@@ -813,12 +813,15 @@ test "head-word boundary scans keep the last in-range bit reachable from an incl
     const set_map = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
     const and_lhs = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
     const and_rhs = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
+    const or_lhs = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
+    const or_rhs = [_]Word{ 0, 0 };
     const andnot_lhs = [_]Word{ (@as(Word, 1) << 5) | (@as(Word, 1) << @intCast(boundary)), 0 };
     const andnot_rhs = [_]Word{ @as(Word, 1) << 5, 0 };
     const zero_map = [_]Word{ ~(@as(Word, 1) << @intCast(boundary)), ~@as(Word, 0) };
 
     try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextOrBit(&or_lhs, &or_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
 }
@@ -830,12 +833,15 @@ test "tail-word boundary scans keep the last in-range bit reachable from an incl
     const set_map = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
     const and_lhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
     const and_rhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
+    const or_lhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
+    const or_rhs = [_]Word{ 0, 0 };
     const andnot_lhs = [_]Word{ 0, (@as(Word, 1) << @intCast(tail_bits - 1)) | (@as(Word, 1) << @intCast(tail_bits + 2)) };
     const andnot_rhs = [_]Word{ 0, @as(Word, 1) << @intCast(tail_bits + 2) };
     const zero_map = [_]Word{ ~@as(Word, 0), lastWordMask(nbits) & ~(@as(Word, 1) << @intCast(tail_bits - 1)) };
 
     try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextOrBit(&or_lhs, &or_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
 }
@@ -846,16 +852,20 @@ test "single-word tail windows keep the last in-range next matches reachable fro
     const set_map = [_]Word{(@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
     const and_lhs = [_]Word{(@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
     const and_rhs = [_]Word{(@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
+    const or_lhs = [_]Word{(@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
+    const or_rhs = [_]Word{0};
     const andnot_lhs = [_]Word{(@as(Word, 1) << 2) | (@as(Word, 1) << @intCast(boundary)) | (@as(Word, 1) << 13)};
     const andnot_rhs = [_]Word{(@as(Word, 1) << 2) | (@as(Word, 1) << 13)};
     const zero_map = [_]Word{lastWordMask(nbits) & ~(@as(Word, 1) << @intCast(boundary))};
 
     try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextOrBit(&or_lhs, &or_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
     try std.testing.expectEqual(@as(usize, nbits), findNextBit(&set_map, nbits, boundary + 1));
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary + 1));
+    try std.testing.expectEqual(@as(usize, nbits), findNextOrBit(&or_lhs, &or_rhs, nbits, boundary + 1));
     try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));
     try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&zero_map, nbits, boundary + 1));
 }
