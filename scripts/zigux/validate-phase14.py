@@ -31,6 +31,7 @@ SHARED_SMOKE_GAP_PATH = "Documentation/zigux/phase14-shared-smoke-current-master
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 ATTACHED_TOOLCHAIN_GUIDANCE_PATH = "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md"
 CORE_BOUNDARY_TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
+COMPILE_SHARD_MATRIX_SURVEY_PATH = "Documentation/zigux/phase14-compile-shard-matrix-survey.md"
 WORKQUEUE_SLICE_PATH = "Documentation/zigux/phase14-workqueue-bridge-slice.md"
 WORKQUEUE_SURVEY_PATH = "Documentation/zigux/phase14-workqueue-bridge-survey.md"
 RING_BUFFER_SURVEY_PATH = "Documentation/zigux/phase14-ring-buffer-survey.md"
@@ -46,6 +47,7 @@ ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH = (
 SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH = (
     "scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py"
 )
+SKBUFF_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-skbuff-compile-route.py"
 RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-guardrail.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -69,6 +71,7 @@ REQUIRED_FILES = [
     FREEZE_MAP_PATH,
     ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
     CORE_BOUNDARY_TRACEABILITY_PATH,
+    COMPILE_SHARD_MATRIX_SURVEY_PATH,
     WORKQUEUE_SLICE_PATH,
     WORKQUEUE_SURVEY_PATH,
     RING_BUFFER_SURVEY_PATH,
@@ -80,6 +83,7 @@ REQUIRED_FILES = [
     RELEASE_BOUNDARY_CHECKER_PATH,
     ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
     SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
+    SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
@@ -150,6 +154,13 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase14-workqueue-bridge-survey.md",
         "public GitHub web readback confirms the returned bridge, focused gate, manifest, and build shard",
     ],
+    COMPILE_SHARD_MATRIX_SURVEY_PATH: [
+        "- `PHASE14_COMPILE_SHARD_TOTAL=6`",
+        "- shared gate: `make -C zigux phase14-validate`",
+        "- focused raw build-file shard: `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`",
+        "- checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
+        "- skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`",
+    ],
     WORKQUEUE_SLICE_PATH: [
         "  * `PHASE14_LANE_KEY=P14-L04`",
         "  * `PHASE14_REVIEWABILITY_TEST=zigux/tests/phase14_workqueue_reviewability.zig`",
@@ -203,6 +214,8 @@ REQUIRED_MARKERS = {
     RELEASE_BOUNDARY_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=release_boundary_exact_counts",
         "PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass",
+        "\"Documentation/zigux/phase14-compile-shard-matrix-survey.md\"",
+        "\"scripts/zigux/check-phase14-skbuff-compile-route.py\"",
     ],
     ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=rollback_threshold_sequencing",
@@ -214,6 +227,12 @@ REQUIRED_MARKERS = {
         "`PHASE14_LANE_KEY=P14-L11`",
         "`phase14-skbuff-live-ownership-blocker`",
         "Check that the dedicated Phase 14 skbuff survey stays aligned with the current review-only stay-in-C guardrail wording.",
+    ],
+    SKBUFF_COMPILE_ROUTE_CHECKER_PATH: [
+        "PHASE14_CHECK_PACKET=skbuff_compile_route",
+        "PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=pass",
+        "\"phase14-skbuff-bridge-tests\"",
+        "\"phase14-skbuff-live-ownership-blocker\"",
     ],
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
         "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
@@ -341,6 +360,7 @@ def fixture_text(rel_path: str) -> str:
         FREEZE_MAP_PATH: "# Zigux Freeze Map",
         ATTACHED_TOOLCHAIN_GUIDANCE_PATH: "# Phase 14 Attached Toolchain Guidance Gap",
         CORE_BOUNDARY_TRACEABILITY_PATH: "# Phase 14 Core Boundary Traceability",
+        COMPILE_SHARD_MATRIX_SURVEY_PATH: "# Phase 14 Compile Shard Matrix Survey",
         WORKQUEUE_SLICE_PATH: "# Phase 14 Workqueue Bridge Slice",
         WORKQUEUE_SURVEY_PATH: "# Phase 14 Workqueue Bridge Survey",
         RING_BUFFER_SURVEY_PATH: "# Phase 14 Ring Buffer Survey",
@@ -358,10 +378,23 @@ def fixture_text(rel_path: str) -> str:
             "# `PHASE14_LANE_KEY=P14-L11`\n"
             "# `phase14-skbuff-live-ownership-blocker`\n"
             "# Check that the dedicated Phase 14 skbuff survey stays aligned with the current review-only stay-in-C guardrail wording.\n"
-            "if \"--self-test\" in sys.argv:\n"
-            "    print(\"PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST=pass\")\n"
+            'if "--self-test" in sys.argv:\n'
+            '    print("PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL_SELF_TEST=pass")\n'
             "else:\n"
-            "    print(\"PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL=pass\")\n"
+            '    print("PHASE14_SKBUFF_STAY_IN_C_GUARDRAIL=pass")\n'
+        )
+    if rel_path == SKBUFF_COMPILE_ROUTE_CHECKER_PATH:
+        return (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "# PHASE14_CHECK_PACKET=skbuff_compile_route\n"
+            "# PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=pass\n"
+            '# "phase14-skbuff-bridge-tests"\n'
+            '# "phase14-skbuff-live-ownership-blocker"\n'
+            'if "--self-test" in sys.argv:\n'
+            '    print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=pass")\n'
+            "else:\n"
+            '    print("PHASE14_SKBUFF_COMPILE_ROUTE=pass")\n'
         )
     if rel_path == RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH:
         return (
@@ -371,10 +404,10 @@ def fixture_text(rel_path: str) -> str:
             "# `PHASE14_LANE_KEY=P14-L16`\n"
             "# `phase14-rcu-tree-rollback-threshold-guardrail`\n"
             "# Check that the dedicated Phase 14 RCU rollback note stays aligned\n"
-            "if \"--self-test\" in sys.argv:\n"
-            "    print(\"PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass\")\n"
+            'if "--self-test" in sys.argv:\n'
+            '    print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")\n'
             "else:\n"
-            "    print(\"PHASE14_RCU_ROLLBACK_GUARDRAIL=pass\")\n"
+            '    print("PHASE14_RCU_ROLLBACK_GUARDRAIL=pass")\n'
         )
     if rel_path in REQUIRED_MARKERS:
         title = titles.get(rel_path)
@@ -432,6 +465,8 @@ def remove_marker(path: Path, marker: str) -> None:
     updated = text.replace(f"- {marker}\n", "", 1)
     if updated == text:
         updated = text.replace(f"{marker}\n", "", 1)
+    if updated == text:
+        updated = text.replace(marker, "", 1)
     path.write_text(updated, encoding="utf-8")
 
 
@@ -444,6 +479,7 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
         for rel_path in (
             SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
+            SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
         ):
             checker_failures = run_guardrail_checker(base, rel_path, self_test=True)
@@ -459,6 +495,7 @@ def run_self_test() -> int:
             RING_BUFFER_SURVEY_PATH,
             ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
             SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
+            SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
@@ -467,6 +504,7 @@ def run_self_test() -> int:
             WORKFLOW_PATH,
             WORKQUEUE_MANIFEST_PATH,
             RING_BUFFER_MANIFEST_PATH,
+            COMPILE_SHARD_MATRIX_SURVEY_PATH,
         ]
         for rel_path in missing_file_cases:
             write_fixture_tree(base)
@@ -483,14 +521,23 @@ def run_self_test() -> int:
             (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][3]),
             (FREEZE_MAP_PATH, REQUIRED_MARKERS[FREEZE_MAP_PATH][3]),
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
+            (COMPILE_SHARD_MATRIX_SURVEY_PATH, REQUIRED_MARKERS[COMPILE_SHARD_MATRIX_SURVEY_PATH][4]),
             (RING_BUFFER_SURVEY_PATH, REQUIRED_MARKERS[RING_BUFFER_SURVEY_PATH][2]),
+            (
+                RELEASE_BOUNDARY_CHECKER_PATH,
+                REQUIRED_MARKERS[RELEASE_BOUNDARY_CHECKER_PATH][2],
+            ),
             (
                 ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
                 REQUIRED_MARKERS[ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH][0],
             ),
             (
                 SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
-                REQUIRED_MARKERS[SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH][0],
+                REQUIRED_MARKERS[SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH][3],
+            ),
+            (
+                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+                REQUIRED_MARKERS[SKBUFF_COMPILE_ROUTE_CHECKER_PATH][3],
             ),
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
@@ -523,10 +570,11 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the live "
             "`phase14-validate` route, the shared route checker, the shared smoke manifest, "
-            "the freeze-map study-only inventory, the release-boundary exact-count guard, the ring-buffer study-only packet, the dedicated "
+            "the freeze-map study-only inventory, the release-boundary exact-count guard, "
+            "the compile-shard matrix survey, the ring-buffer study-only packet, the dedicated "
             "rollback-threshold sequencing checker, the dedicated skbuff stay-in-C "
-            "guardrail, the dedicated RCU rollback guardrail, and the returned workqueue "
-            "reviewability shard."
+            "guardrail, the dedicated skbuff compile-route checker, the dedicated RCU rollback "
+            "guardrail, and the returned workqueue reviewability shard."
         )
     )
     parser.add_argument(
@@ -551,6 +599,14 @@ def main() -> int:
             run_guardrail_checker(
                 args.root,
                 SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
+                self_test=False,
+            )
+        )
+    if not failures:
+        failures.extend(
+            run_guardrail_checker(
+                args.root,
+                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
                 self_test=False,
             )
         )
