@@ -28,7 +28,15 @@ WORKFLOW_LINES = (
 
 REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
-CURRENT_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-tools", "phase2-validate", "phase2-cross")
+CURRENT_REQUIRED_MAKE_ROUTES = (
+    "phase2-toolchain",
+    "phase2-tools",
+    "phase2-kconfig",
+    "phase2-cross",
+    "phase2-genksyms",
+    "phase2-fixdep",
+    "phase2-validate",
+)
 CURRENT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in CURRENT_REQUIRED_MAKE_ROUTES)
 CURRENT_WORKFLOW_ROUTE_LINES = tuple(f"run: make -C zigux {route}" for route in CURRENT_REQUIRED_MAKE_ROUTES)
 POLICY_SUMMARY_ANCHOR = "required Linux-style make routes"
