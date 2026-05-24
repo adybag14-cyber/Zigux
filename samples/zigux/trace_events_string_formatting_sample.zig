@@ -59,6 +59,20 @@ pub const StringFormattingCycleSummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const DestinationSizingCase = struct {
+    iteration_count: i32,
+    selected_string: []const u8,
+    iteration_message_len: usize,
+    selected_iteration_message_len: usize,
+};
+
+pub const DestinationSizingSummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    cases: [random_strings.len]DestinationSizingCase,
+    checked_focus: []const SampleFocus,
+};
+
 pub const TraceEventsStringFormattingSample = struct {
     const Self = @This();
 
@@ -84,6 +98,27 @@ pub const TraceEventsStringFormattingSample = struct {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
         self.init_runs += 1;
         self.stage_state = .initialized;
+    }
+
+    pub fn requiredIterationMessageLen(
+        self: *const Self,
+        iteration_count: i32,
+    ) !usize {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        if (iteration_count < 0) return error.InvalidIterationCount;
+        return std.fmt.count("iter={d}", .{iteration_count});
+    }
+
+    pub fn requiredSelectedIterationMessageLen(
+        self: *const Self,
+        iteration_count: i32,
+    ) !usize {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        if (iteration_count < 0) return error.InvalidIterationCount;
+        return std.fmt.count(
+            "{s} iter={d}",
+            .{ selectedStringForIteration(iteration_count), iteration_count },
+        );
     }
 
     pub fn formatIterationMessageInto(
@@ -190,6 +225,33 @@ pub const TraceEventsStringFormattingSample = struct {
         };
     }
 
+    pub fn runDestinationSizingReplay(self: *Self) !DestinationSizingSummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        var cases: [random_strings.len]DestinationSizingCase = undefined;
+        for (random_strings, 0..) |expected_string, i| {
+            const iteration_count: i32 = @intCast(i);
+            cases[i] = .{
+                .iteration_count = iteration_count,
+                .selected_string = expected_string,
+                .iteration_message_len = try self.requiredIterationMessageLen(iteration_count),
+                .selected_iteration_message_len = try self.requiredSelectedIterationMessageLen(iteration_count),
+            };
+        }
+
+        return .{
+            .stage_before_replay = .initialized,
+            .stage_after_replay = self.stage(),
+            .cases = cases,
+            .checked_focus = &.{
+                .string_selection,
+                .formatted_message,
+                .bounded_destination_discipline,
+                .non_allocating_runtime_safe,
+            },
+        };
+    }
+
     pub fn exit(self: *Self) !void {
         switch (self.stage()) {
             .initialized, .replay_complete => {},
@@ -278,6 +340,79 @@ test "phase 5 trace-events formatting companion keeps the modulo-selected string
     }
 }
 
+test "phase 5 trace-events formatting companion keeps exact-fit destination sizing reviewable" {
+    var sample = TraceEventsStringFormattingSample{};
+    const expected_focus = [_]SampleFocus{
+        .string_selection,
+        .formatted_message,
+        .bounded_destination_discipline,
+        .non_allocating_runtime_safe,
+    };
+
+    try sample.init();
+    const sizing = try sample.runDestinationSizingReplay();
+    try std.testing.expectEqual(SampleStage.initialized, sizing.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, sizing.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, sizing.checked_focus);
+
+    for (random_strings, 0..) |expected_string, i| {
+        const current = sizing.cases[i];
+        var exact_iteration_storage: [40]u8 = undefined;
+        var exact_selected_storage: [40]u8 = undefined;
+        var short_iteration_storage: [40]u8 = undefined;
+        var short_selected_storage: [40]u8 = undefined;
+        const iteration_count: i32 = @intCast(i);
+
+        const expected_iteration = try std.fmt.bufPrint(&exact_iteration_storage, "iter={d}", .{i});
+        const expected_selected = try std.fmt.bufPrint(
+            &exact_selected_storage,
+            "{s} iter={d}",
+            .{ expected_string, i },
+        );
+
+        try std.testing.expectEqual(iteration_count, current.iteration_count);
+        try std.testing.expectEqualStrings(expected_string, current.selected_string);
+        try std.testing.expectEqual(expected_iteration.len, current.iteration_message_len);
+        try std.testing.expectEqual(expected_selected.len, current.selected_iteration_message_len);
+        try std.testing.expectEqual(
+            current.iteration_message_len,
+            try sample.requiredIterationMessageLen(iteration_count),
+        );
+        try std.testing.expectEqual(
+            current.selected_iteration_message_len,
+            try sample.requiredSelectedIterationMessageLen(iteration_count),
+        );
+
+        const exact_iteration = try sample.formatIterationMessageInto(
+            iteration_count,
+            exact_iteration_storage[0..current.iteration_message_len],
+        );
+        try std.testing.expectEqualSlices(u8, expected_iteration, exact_iteration);
+
+        const exact_selected = try sample.formatSelectedIterationMessageInto(
+            iteration_count,
+            exact_selected_storage[0..current.selected_iteration_message_len],
+        );
+        try std.testing.expectEqualSlices(u8, expected_selected, exact_selected);
+
+        try std.testing.expectError(
+            error.NoSpaceLeft,
+            sample.formatIterationMessageInto(
+                iteration_count,
+                short_iteration_storage[0 .. current.iteration_message_len - 1],
+            ),
+        );
+        try std.testing.expectError(
+            error.NoSpaceLeft,
+            sample.formatSelectedIterationMessageInto(
+                iteration_count,
+                short_selected_storage[0 .. current.selected_iteration_message_len - 1],
+            ),
+        );
+    }
+}
+
 test "phase 5 trace-events formatting companion keeps lifecycle boundaries explicit" {
     var sample = TraceEventsStringFormattingSample{};
     var rendered_destination: [32]u8 = undefined;
@@ -285,12 +420,17 @@ test "phase 5 trace-events formatting companion keeps lifecycle boundaries expli
 
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runStringFormattingCycleReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runDestinationSizingReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.requiredIterationMessageLen(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.requiredSelectedIterationMessageLen(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.formatIterationMessageInto(1, &rendered_destination));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.formatSelectedIterationMessageInto(1, &selected_destination));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
 
     try sample.init();
     try std.testing.expectError(error.InvalidIterationCount, sample.runAnchorReplay(-1));
+    try std.testing.expectError(error.InvalidIterationCount, sample.requiredIterationMessageLen(-1));
+    try std.testing.expectError(error.InvalidIterationCount, sample.requiredSelectedIterationMessageLen(-1));
     try std.testing.expectError(error.InvalidIterationCount, sample.formatIterationMessageInto(-1, &rendered_destination));
     try std.testing.expectError(error.InvalidIterationCount, sample.formatSelectedIterationMessageInto(-1, &selected_destination));
 
@@ -302,6 +442,9 @@ test "phase 5 trace-events formatting companion keeps lifecycle boundaries expli
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay(2));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runStringFormattingCycleReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runDestinationSizingReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.requiredIterationMessageLen(2));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.requiredSelectedIterationMessageLen(2));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.formatIterationMessageInto(2, &rendered_destination));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.formatSelectedIterationMessageInto(2, &selected_destination));
 }
