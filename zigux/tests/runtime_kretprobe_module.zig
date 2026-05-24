@@ -128,6 +128,43 @@ test "runtime kretprobe sample keeps initialized-stage exit replay explicit at t
     try std.testing.expectEqual(before_exit.last_retval, after_exit.last_retval);
 }
 
+test "runtime kretprobe sample keeps reusable probe replay explicit after selftest at the module boundary" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    try module.registerProbe();
+    try module.recordEntry();
+    try module.recordReturn(17);
+    try module.unregisterProbe();
+
+    const before_exit = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_exit.registration_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_exit.unregistration_runs);
+    try std.testing.expect(!before_exit.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.active_instances);
+    try std.testing.expectEqual(@as(usize, 2), before_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 17), before_exit.last_retval);
+
+    try module.exit();
+
+    const after_exit = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
+    try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectEqual(before_exit.registration_runs, after_exit.registration_runs);
+    try std.testing.expectEqual(before_exit.unregistration_runs, after_exit.unregistration_runs);
+    try std.testing.expectEqual(before_exit.probe_registered, after_exit.probe_registered);
+    try std.testing.expectEqual(before_exit.active_instances, after_exit.active_instances);
+    try std.testing.expectEqual(before_exit.completed_instances, after_exit.completed_instances);
+    try std.testing.expectEqual(before_exit.last_retval, after_exit.last_retval);
+}
+
 test "runtime kretprobe sample keeps rejected re-init rollback explicit at the module boundary" {
     var initialized_module = sample.RuntimeKretprobeSample{};
     try initialized_module.init();
