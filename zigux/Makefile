@@ -78,6 +78,7 @@ phase2-fixdep:
 
 phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-root-summary.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py
 
