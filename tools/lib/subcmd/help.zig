@@ -187,12 +187,12 @@ pub fn computePrettyLayout(command_count: usize, longest: usize, terminal_column
     };
 }
 
-pub fn renderPrettyStringList(
+fn renderPrettyStringListWithLongest(
     allocator: std.mem.Allocator,
     cmds: *const CommandNames,
+    longest: usize,
     terminal_columns: usize,
 ) ![]u8 {
-    const longest = cmds.longest();
     const layout = computePrettyLayout(cmds.count(), longest, terminal_columns);
 
     var output = std.ArrayList(u8).empty;
@@ -223,6 +223,14 @@ pub fn renderPrettyStringList(
     return output.toOwnedSlice(allocator);
 }
 
+pub fn renderPrettyStringList(
+    allocator: std.mem.Allocator,
+    cmds: *const CommandNames,
+    terminal_columns: usize,
+) ![]u8 {
+    return renderPrettyStringListWithLongest(allocator, cmds, cmds.longest(), terminal_columns);
+}
+
 pub fn renderCommandSections(
     allocator: std.mem.Allocator,
     title: []const u8,
@@ -233,6 +241,8 @@ pub fn renderCommandSections(
 ) ![]u8 {
     var output = std.ArrayList(u8).empty;
     errdefer output.deinit(allocator);
+
+    const longest = @max(main_cmds.longest(), other_cmds.longest());
 
     if (main_cmds.count() != 0) {
         const main_header = if (exec_path) |main_exec_path|
@@ -248,7 +258,7 @@ pub fn renderCommandSections(
         try output.appendNTimes(allocator, '-', main_header.len - 1);
         try output.append(allocator, '\n');
 
-        const rendered = try renderPrettyStringList(allocator, main_cmds, terminal_columns);
+        const rendered = try renderPrettyStringListWithLongest(allocator, main_cmds, longest, terminal_columns);
         defer allocator.free(rendered);
         try output.appendSlice(allocator, rendered);
         try output.append(allocator, '\n');
@@ -265,7 +275,7 @@ pub fn renderCommandSections(
         try output.appendNTimes(allocator, '-', 39 + title.len);
         try output.append(allocator, '\n');
 
-        const rendered = try renderPrettyStringList(allocator, other_cmds, terminal_columns);
+        const rendered = try renderPrettyStringListWithLongest(allocator, other_cmds, longest, terminal_columns);
         defer allocator.free(rendered);
         try output.appendSlice(allocator, rendered);
         try output.append(allocator, '\n');
@@ -366,6 +376,42 @@ test "renderCommandSections keeps stable headers for main and fallback command g
             "subcommands available from elsewhere on your $PATH\n" ++
             "--------------------------------------------------\n" ++
             " report\n" ++
+            "\n",
+        rendered,
+    );
+}
+
+test "renderCommandSections shares longest width across main and fallback groups" {
+    var main_cmds = CommandNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.add("annotate");
+    try main_cmds.add("bench");
+    try main_cmds.add("diff");
+
+    var other_cmds = CommandNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.add("buildid-cache");
+
+    const rendered = try renderCommandSections(
+        std.testing.allocator,
+        "subcommands",
+        "/usr/libexec/perf-core",
+        &main_cmds,
+        &other_cmds,
+        20,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "available subcommands in '/usr/libexec/perf-core'\n" ++
+            "-------------------------------------------------\n" ++
+            " annotate\n" ++
+            " bench\n" ++
+            " diff\n" ++
+            "\n" ++
+            "subcommands available from elsewhere on your $PATH\n" ++
+            "--------------------------------------------------\n" ++
+            " buildid-cache\n" ++
             "\n",
         rendered,
     );
