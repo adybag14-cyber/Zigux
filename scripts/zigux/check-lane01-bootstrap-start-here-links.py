@@ -16,6 +16,14 @@ START_HERE_LINES = (
     "- [Freeze Map](../Documentation/zigux/freeze-map.md)",
     "- [Freeze Governance Companion](../Documentation/zigux/phase15-freeze-map-governance.md)",
 )
+START_HERE_TARGETS = {
+    START_HERE_LINES[0]: Path("zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"),
+    START_HERE_LINES[1]: Path("zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md"),
+    START_HERE_LINES[2]: Path("Documentation/zigux/README.md"),
+    START_HERE_LINES[3]: Path("Documentation/zigux/review-checklist.md"),
+    START_HERE_LINES[4]: Path("Documentation/zigux/freeze-map.md"),
+    START_HERE_LINES[5]: Path("Documentation/zigux/phase15-freeze-map-governance.md"),
+}
 
 
 def extract_start_here_block(readme: str) -> list[str] | None:
@@ -61,6 +69,10 @@ def collect_failures(root: Path) -> list[str]:
     if not failures and tuple(block) != START_HERE_LINES:
         failures.append("wrong-order:start-here")
 
+    for line, target in START_HERE_TARGETS.items():
+        if line in block and not (root / target).exists():
+            failures.append(f"missing-target:{target.as_posix()}")
+
     return failures
 
 
@@ -84,11 +96,17 @@ Start here
 """
 
 
+def _write_sample_targets(root: Path) -> None:
+    for target in START_HERE_TARGETS.values():
+        _write(root / target, f"placeholder for {target.as_posix()}\n")
+
+
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_lane01_start_here_") as tmp_dir:
         root = Path(tmp_dir)
         _write(root / README_PATH, _sample_readme())
+        _write_sample_targets(root)
 
         if collect_failures(root):
             raise AssertionError("baseline Lane 01 Start here fixture should pass")
@@ -169,6 +187,16 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected duplicate-link failures: {failures}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        (root / START_HERE_TARGETS[START_HERE_LINES[5]]).unlink()
+        failures = collect_failures(root)
+        expected = [
+            "missing-target:Documentation/zigux/phase15-freeze-map-governance.md"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing target failures: {failures}")
         case_count += 1
 
     print("LANE01_BOOTSTRAP_START_HERE_LINKS_SELF_TEST=pass")
