@@ -266,7 +266,7 @@ def run_self_test() -> int:
         _build_baseline_tree(root)
         check(root)
         for label, _ in CURRENT_HEAD_BLOB_PINS:
-            _build_baseline_TREE(root)
+            _build_baseline_tree(root)
             line = find_status_line(read(root, NOTE), label)
             cases += _expect_failure(root, NOTE, line, line.replace(line[-41:-1], "0" * 40))
         cases += _expect_failure(
