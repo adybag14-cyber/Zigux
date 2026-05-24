@@ -106,12 +106,17 @@ REQUIRED_MARKERS = {
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
+        '"make -C zigux phase3-policy-dump"',
         '"make -C zigux phase3-export-uapi-layout"',
         '"make -C zigux phase3-export-uapi-layout-test"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
+        '"make -C zigux phase3-dump"',
         '"zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"',
+        '"make -C zigux phase3-low-level-wrappers"',
         '"zig build phase3-test --build-file zigux/tests/build.zig"',
+        '"make -C zigux phase3-test"',
+        '"make -C zigux phase3"',
         '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
         '"make -C zigux phase3-low-level-wrappers-test"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
@@ -361,6 +366,11 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            '"make -C zigux phase3-policy-dump"',
+            "expected missing catalog policy-dump shared make route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             '"make -C zigux phase3-export-uapi-layout"',
             "expected missing catalog export-uapi shared make route marker was not reported",
         ),
@@ -371,8 +381,28 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
+            '"make -C zigux phase3-dump"',
+            "expected missing catalog shared dump make route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
             '"zig build phase3-test --build-file zigux/tests/build.zig"',
             "expected missing catalog shared tests-root route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-low-level-wrappers"',
+            "expected missing catalog shared low-level-wrapper make route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3-test"',
+            "expected missing catalog shared phase3-test make route marker was not reported",
+        ),
+        (
+            CATALOG_PATH,
+            '"make -C zigux phase3"',
+            "expected missing catalog shared aggregate phase3 make route marker was not reported",
         ),
         (
             CATALOG_PATH,
