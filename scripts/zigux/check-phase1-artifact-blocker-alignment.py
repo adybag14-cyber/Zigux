@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import tempfile
 from pathlib import Path
@@ -20,10 +21,40 @@ REQUIRED_FILES = (
 )
 
 EXPECTED_ARTIFACT_MARKERS = (
-    'MODE_CHOICES = ("text", "json", "bytes")',
-    'LEGACY_MODE_ALIASES = {"sha256": "bytes"}',
     'print("ARTIFACT_DIFF_SELF_TEST=pass")',
+    'print(f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")',
+    'print("ARTIFACT_DIFF_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES))',
 )
+
+EXPECTED_ARTIFACT_LITERAL_ASSIGNMENTS = {
+    "MODE_CHOICES": ("text", "json", "bytes"),
+    "LEGACY_MODE_ALIASES": {"sha256": "bytes"},
+    "SELF_TEST_CASES": [
+        "text_pass",
+        "text_mismatch",
+        "json_pass",
+        "json_mismatch",
+        "json_invalid_expected",
+        "json_invalid_actual",
+        "json_invalid_both",
+        "json_missing_expected",
+        "json_missing_actual",
+        "json_missing_both",
+        "bytes_pass",
+        "bytes_drift",
+        "text_missing_expected",
+        "text_missing_actual",
+        "text_missing_both",
+        "bytes_missing_expected",
+        "bytes_missing_actual",
+        "bytes_missing_both",
+        "legacy_sha256_alias",
+        "missing_mode_value_rejected",
+        "missing_positional_arguments_rejected",
+        "invalid_mode_rejected",
+        "extra_positional_rejected",
+    ],
+}
 
 EXPECTED_HELPERS = (
     "tools/lib/argv_split.zig",
@@ -237,6 +268,34 @@ def read_json(root: Path, relative_path: str, *, failures: list[str], label: str
         return None
 
 
+def read_python_module(root: Path, relative_path: str, *, failures: list[str]) -> ast.Module | None:
+    try:
+        text = read_text(root, relative_path)
+    except UnicodeDecodeError as exc:
+        failures.append(f"artifact_invalid_utf8:{relative_path}:{exc.start + 1}:{exc.reason}")
+        return None
+    try:
+        return ast.parse(text, filename=relative_path)
+    except SyntaxError as exc:
+        failures.append(f"artifact_invalid_python:{relative_path}:{exc.lineno}:{exc.offset}:{exc.msg}")
+        return None
+
+
+def find_literal_assignment(module: ast.Module, name: str) -> object | None:
+    for node in module.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        if isinstance(target, ast.Name) and target.id == name:
+            try:
+                return ast.literal_eval(node.value)
+            except ValueError:
+                return None
+    return None
+
+
 def resolve_field_path(payload: dict[str, object], field_path: str) -> object | None:
     current: object = payload
     for segment in field_path.split("."):
@@ -290,11 +349,18 @@ def collect_failures(root: Path) -> list[str]:
     if failures:
         return failures
 
-    artifact_text = read_text(root, "scripts/zigux/artifact_diff.py")
+    artifact_path = "scripts/zigux/artifact_diff.py"
+    artifact_text = read_text(root, artifact_path)
+    artifact_module = read_python_module(root, artifact_path, failures=failures)
     for marker in EXPECTED_ARTIFACT_MARKERS:
         count = artifact_text.count(marker)
         if count != 1:
             failures.append(issue(f"artifact_marker:{marker}", 1, count))
+    if artifact_module is not None:
+        for name, expected in EXPECTED_ARTIFACT_LITERAL_ASSIGNMENTS.items():
+            actual = find_literal_assignment(artifact_module, name)
+            if actual != expected:
+                failures.append(issue(f"artifact_literal:{name}", expected, actual))
 
     manifest = read_json(
         root,
@@ -521,7 +587,34 @@ def sample_artifact_diff() -> str:
             "#!/usr/bin/env python3",
             'MODE_CHOICES = ("text", "json", "bytes")',
             'LEGACY_MODE_ALIASES = {"sha256": "bytes"}',
+            "SELF_TEST_CASES = [",
+            '    "text_pass",',
+            '    "text_mismatch",',
+            '    "json_pass",',
+            '    "json_mismatch",',
+            '    "json_invalid_expected",',
+            '    "json_invalid_actual",',
+            '    "json_invalid_both",',
+            '    "json_missing_expected",',
+            '    "json_missing_actual",',
+            '    "json_missing_both",',
+            '    "bytes_pass",',
+            '    "bytes_drift",',
+            '    "text_missing_expected",',
+            '    "text_missing_actual",',
+            '    "text_missing_both",',
+            '    "bytes_missing_expected",',
+            '    "bytes_missing_actual",',
+            '    "bytes_missing_both",',
+            '    "legacy_sha256_alias",',
+            '    "missing_mode_value_rejected",',
+            '    "missing_positional_arguments_rejected",',
+            '    "invalid_mode_rejected",',
+            '    "extra_positional_rejected",',
+            "]",
             'print("ARTIFACT_DIFF_SELF_TEST=pass")',
+            'print(f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")',
+            'print("ARTIFACT_DIFF_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES))',
             "",
         )
     )
@@ -778,6 +871,22 @@ def run_self_test() -> int:
             lambda root: write_text(root, "scripts/zigux/artifact_diff.py", "#!/usr/bin/env python3\n"),
         ),
         (
+            "artifact_self_test_cases_drift",
+            lambda root: write_text(
+                root,
+                "scripts/zigux/artifact_diff.py",
+                sample_artifact_diff().replace('"extra_positional_rejected",', '"drifted_case",', 1),
+            ),
+        ),
+        (
+            "artifact_legacy_alias_drift",
+            lambda root: write_text(
+                root,
+                "scripts/zigux/artifact_diff.py",
+                sample_artifact_diff().replace('{"sha256": "bytes"}', '{"sha1": "bytes"}', 1),
+            ),
+        ),
+        (
             "manifest_helpers_drift",
             lambda root: _mutate_json(
                 root / "zigux/tests/fixtures/phase1_helper_manifest.json",
@@ -940,6 +1049,10 @@ def main() -> int:
     print(
         "PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_REVIEW_ANCHOR_HELPER_COUNT="
         f"{len(EXPECTED_HELPER_FIXTURE_MAP)}"
+    )
+    print(
+        "PHASE1_ARTIFACT_BLOCKER_ALIGNMENT_ARTIFACT_SELF_TEST_CASE_COUNT="
+        f"{len(EXPECTED_ARTIFACT_LITERAL_ASSIGNMENTS['SELF_TEST_CASES'])}"
     )
     return 0
 
