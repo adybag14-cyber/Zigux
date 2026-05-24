@@ -8,7 +8,7 @@ This note restores the missing Lane 15 closure record in a current-master-safe f
 - `PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`
 - `PHASE1_HELPER_COUNT=13`
 - manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- current authority: the committed helper manifest, this closure note, the narrow closure validator, the shipped bench checker, the shipped shared reminder checker, the live owner-map reminders, and the shared tests-root smoke route remain the trustworthy current-master sources for the closed helper tranche, while the route-summary checker stays an adjacent workflow and Makefile guard.
+- current authority: the committed helper manifest, this closure note, the narrow closure validator, the shipped workflow-preflight checker, the shipped bench checker, the shipped shared reminder checker, the live owner-map reminders, and the shared tests-root smoke route remain the trustworthy current-master sources for the closed helper tranche, while the route-summary checker stays an adjacent workflow and Makefile guard.
 
 The bounded Phase 1 helper tranche is still the same thirteen helper ports named in the committed manifest, but the broader closure-side validator and replay stack is only partially promoted into the narrow current reminder packet on current `master`.
 
@@ -21,6 +21,7 @@ The currently reviewable Phase 1 reminder packet is:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
+- `scripts/zigux/check-phase1-workflow-preflight.py`
 - `scripts/zigux/check-phase1-string-review-packet.py`
 - `scripts/zigux/check-phase1-direct-owner-markers.py`
 - `scripts/zigux/check-phase1-bench.py`
@@ -32,7 +33,7 @@ The currently reviewable Phase 1 reminder packet is:
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`
+- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-workflow-preflight.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`
 
 ## Broader Closure Companions
 
@@ -49,7 +50,7 @@ The older validator-first and replay-side closure companions remain broader clos
 
 Current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane non-Phase-1 routes across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14. It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`, so treat the returned file as current repo evidence while those older Phase 1 wrapper names remain historical packet members rather than active closure proof.
 
-This note keeps those broader companions parked as historical closure-stack vocabulary until direct current-master rereads restore them. The already-landed shared tests-root smoke route plus the shipped bench checker and shared reminder checker remain the narrower packet that current `master` can support directly.
+This note keeps those broader companions parked as historical closure-stack vocabulary until direct current-master rereads restore them. The already-landed shared tests-root smoke route plus the shipped workflow-preflight, bench, and shared reminder checkers remain the narrower packet that current `master` can support directly.
 
 ## Closure Validation
 
@@ -59,7 +60,9 @@ The current shared tests-root closure route is narrow on purpose:
 
 That route keeps a minimal shared import-and-wire smoke check alive for the current helper packet while the dedicated closure validator keeps the restored closure note aligned with the committed helper manifest and the shipped reminder packet on current `master`.
 
-The current bootstrap workflow also keeps the adjacent Phase 1 route-summary guard wired beside that same live reminder packet: `.github/workflows/zigux-bootstrap.yml` self-tests the directly readable Phase 1 direct-owner, string-review, route-summary, bench, shared-reminder, and closure-validator checks, replays the route-summary, direct-owner, string-review, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`, and currently keeps the bench checker at self-test coverage only.
+The current bootstrap workflow now keeps the early Phase 1 workflow-preflight guard wired before the pinned Zig setup path: `.github/workflows/zigux-bootstrap.yml` self-tests `scripts/zigux/check-phase1-workflow-preflight.py`, replays that same checker immediately after `Setup Python`, and keeps the exact insertion point `Setup Python, Self-test current Phase 1 workflow preflight checker, Preflight current Phase 1 workflow viability, Setup pinned Zig toolchain` review-visible on current `master`.
+
+The current bootstrap workflow also keeps the adjacent Phase 1 route-summary guard wired beside that same live reminder packet: `.github/workflows/zigux-bootstrap.yml` self-tests the directly readable Phase 1 workflow-preflight, direct-owner, string-review, route-summary, bench, shared-reminder, and closure-validator checks, replays the workflow-preflight, route-summary, direct-owner, string-review, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`, and currently keeps the bench checker at self-test coverage only.
 
 Even with that self-test-only posture, the surviving `find_bit` bench guard is still explicit on current `master`: `scripts/zigux/check-phase1-bench.py` hard-codes `PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000` and `PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000`, and it still requires the paired exact checksum keys `PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM` and `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` whenever the broader expectations packet returns.
 
@@ -70,6 +73,8 @@ Current `master` also ships `scripts/zigux/check-phase1-find-bit-bench-anchors.p
 - `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`
 - `PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns`
 - `PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`
+- `PHASE1_WORKFLOW_PREFLIGHT_GUARD=python3 scripts/zigux/check-phase1-workflow-preflight.py`
+- `PHASE1_WORKFLOW_PREFLIGHT_INSERTION_POINT=Setup Python,Self-test current Phase 1 workflow preflight checker,Preflight current Phase 1 workflow viability,Setup pinned Zig toolchain`
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
 - `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`
 - `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
