@@ -16,6 +16,8 @@ DEFAULT_ROOT = (
 )
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 CONTRACT_PATH = Path("Documentation/zigux/phase11-shared-replay-contract.md")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 EXPECTED_COUNTS = {
     "build_test_names": 3,
@@ -79,6 +81,16 @@ REQUIRED_CONTRACT_MARKERS = (
     "`make -C zigux phase11-validate` wrapper now cover twelve focused proof builds through",
 )
 
+REQUIRED_WORKFLOW_MARKERS = (
+    "run: make -C zigux phase11-validate",
+)
+
+REQUIRED_MAKEFILE_MARKERS = (
+    "phase11-validate:",
+    "scripts/zigux/validate-phase11.py",
+    *EXPECTED_PROOF_FANOUT_MARKERS,
+)
+
 
 class CheckError(RuntimeError):
     pass
@@ -120,6 +132,8 @@ def require_markers(label: str, text: str, markers: tuple[str, ...]) -> None:
 def run_check(root: Path) -> None:
     inventory = read_json(root / INVENTORY_PATH)
     contract = read_text(root / CONTRACT_PATH)
+    workflow = read_text(root / WORKFLOW_PATH)
+    makefile = read_text(root / MAKEFILE_PATH)
 
     for label, expected in EXPECTED_COUNTS.items():
         actual = len(expect_string_list(label, inventory.get(label)))
@@ -152,6 +166,8 @@ def run_check(root: Path) -> None:
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_PROOF_FANOUT_MARKERS)
+    require_markers(str(WORKFLOW_PATH), workflow, REQUIRED_WORKFLOW_MARKERS)
+    require_markers(str(MAKEFILE_PATH), makefile, REQUIRED_MAKEFILE_MARKERS)
 
 
 def write(path: Path, text: str) -> None:
@@ -194,6 +210,31 @@ def build_fixture(root: Path) -> None:
                 *EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS,
                 *EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS,
                 *EXPECTED_PROOF_FANOUT_MARKERS,
+            ]
+        )
+        + "\n",
+    )
+    write(
+        root / WORKFLOW_PATH,
+        "\n".join(
+            [
+                "name: zigux-bootstrap",
+                "- name: Validate current Phase 11 support bundle",
+                "  run: make -C zigux phase11-validate",
+            ]
+        )
+        + "\n",
+    )
+    write(
+        root / MAKEFILE_PATH,
+        "\n".join(
+            [
+                "phase11-validate:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
+                *(
+                    f"\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file {marker}"
+                    for marker in EXPECTED_PROOF_FANOUT_MARKERS
+                ),
             ]
         )
         + "\n",
@@ -292,6 +333,48 @@ def run_self_test() -> int:
         expect_failure(
             missing_proof_fanout_marker,
             "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
+        )
+        case_count += 1
+
+        missing_workflow_route = tmpdir / "missing_workflow_route"
+        shutil.copytree(fixture, missing_workflow_route, dirs_exist_ok=True)
+        write(
+            missing_workflow_route / WORKFLOW_PATH,
+            read_text(missing_workflow_route / WORKFLOW_PATH).replace(
+                "run: make -C zigux phase11-validate",
+                "run: make -C zigux phase10-validate",
+                1,
+            ),
+        )
+        expect_failure(missing_workflow_route, "run: make -C zigux phase11-validate")
+        case_count += 1
+
+        missing_makefile_route = tmpdir / "missing_makefile_route"
+        shutil.copytree(fixture, missing_makefile_route, dirs_exist_ok=True)
+        write(
+            missing_makefile_route / MAKEFILE_PATH,
+            read_text(missing_makefile_route / MAKEFILE_PATH).replace(
+                "phase11-validate:",
+                "phase11-check:",
+                1,
+            ),
+        )
+        expect_failure(missing_makefile_route, "phase11-validate:")
+        case_count += 1
+
+        missing_makefile_proof = tmpdir / "missing_makefile_proof"
+        shutil.copytree(fixture, missing_makefile_proof, dirs_exist_ok=True)
+        write(
+            missing_makefile_proof / MAKEFILE_PATH,
+            read_text(missing_makefile_proof / MAKEFILE_PATH).replace(
+                "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_makefile_proof,
+            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
         )
         case_count += 1
 
