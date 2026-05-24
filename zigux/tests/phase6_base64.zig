@@ -341,6 +341,95 @@ test "phase 6 base64 generic decode rejects foreign full-quartet variant spellin
     );
 }
 
+test "phase 6 base64 generic decode rejects foreign short-tail variant spellings" {
+    try expectGenericVariantForeignAlphabetRejection(
+        "+w",
+        &fixtures.variant_one_byte_sample,
+        false,
+        .std,
+        &[_][]const u8{"-w"},
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "+w==",
+        &fixtures.variant_one_byte_sample,
+        true,
+        .std,
+        &[_][]const u8{"-w=="},
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "//A",
+        &fixtures.variant_two_byte_sample,
+        false,
+        .std,
+        &[_][]const u8{ "__A", ",,A" },
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "//A=",
+        &fixtures.variant_two_byte_sample,
+        true,
+        .std,
+        &[_][]const u8{ "__A=", ",,A=" },
+    );
+
+    try expectGenericVariantForeignAlphabetRejection(
+        "-w",
+        &fixtures.variant_one_byte_sample,
+        false,
+        .urlsafe,
+        &[_][]const u8{"+w"},
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "-w==",
+        &fixtures.variant_one_byte_sample,
+        true,
+        .urlsafe,
+        &[_][]const u8{"+w=="},
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "__A",
+        &fixtures.variant_two_byte_sample,
+        false,
+        .urlsafe,
+        &[_][]const u8{ "//A", ",,A" },
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "__A=",
+        &fixtures.variant_two_byte_sample,
+        true,
+        .urlsafe,
+        &[_][]const u8{ "//A=", ",,A=" },
+    );
+
+    try expectGenericVariantForeignAlphabetRejection(
+        "+w",
+        &fixtures.variant_one_byte_sample,
+        false,
+        .imap,
+        &[_][]const u8{"-w"},
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        "+w==",
+        &fixtures.variant_one_byte_sample,
+        true,
+        .imap,
+        &[_][]const u8{"-w=="},
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        ",,A",
+        &fixtures.variant_two_byte_sample,
+        false,
+        .imap,
+        &[_][]const u8{ "//A", "__A" },
+    );
+    try expectGenericVariantForeignAlphabetRejection(
+        ",,A=",
+        &fixtures.variant_two_byte_sample,
+        true,
+        .imap,
+        &[_][]const u8{ "//A=", "__A=" },
+    );
+}
+
 test "phase 6 base64 exact-fit buffers work across fixture vectors" {
     for (fixtures.standard_cases) |case| {
         try expectExactEncodeBuffer(case.input, case.expected, case.padding, .std);
