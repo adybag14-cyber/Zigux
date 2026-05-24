@@ -6,7 +6,7 @@ Phase 11 simple-driver packet on `master`.
 ## Status
 
 - `PHASE11_MATRIX_GAP_STATUS=all_simple_driver_matrices_present`
-- lane: `P11-L01`
+- lane: `P11-L05`
 - reviewed against live `master`
 - scope: verify the current driver-local matrix packet against the roadmap,
   keep the authenticated-contents reread boundary honest, and record the
@@ -33,6 +33,7 @@ Phase 11 simple-driver packet on `master`.
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
@@ -85,6 +86,13 @@ explicit through
 and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
 so keep that focused witness-check route explicit beside the standalone witness
 pair instead of treating the pair as unchecked prose evidence.
+The same narrower continuity packet now also records 2 focused direct build
+checker routes through
+`python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`
+and `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`,
+together with 2 focused direct build replays through
+`zigux/tests/phase11_hvc_modem_control_proof_build.zig` and
+`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.
 The shared `phase11-validate` route also now carries
 `zigux/tests/phase11_hvc_modem_control_proof_build.zig` as a focused HVC
 teardown-or-failure-mode proof outside the narrower three-entry build
@@ -116,6 +124,8 @@ closure.
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-focused-direct-build-replays.py`
+- `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
@@ -152,6 +162,11 @@ closure.
   `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also
   stays directly readable beside that smaller proof inventory and standalone
   witness pair.
+  The dedicated
+  `scripts/zigux/check-phase11-focused-direct-build-replays.py` route also now
+  stays directly readable beside the modem-control and targetless-unregister
+  build pair, so the focused direct replay packet is checker-backed instead of
+  prose-only.
   The shared `phase11-validate` route likewise keeps
   `zigux/tests/phase11_hvc_modem_control_proof_build.zig` explicit as a
   focused modem-control teardown-or-failure-mode proof outside the narrower
