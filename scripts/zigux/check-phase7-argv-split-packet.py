@@ -113,7 +113,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 61
+SELF_TEST_CASE_COUNT = 62
 
 
 def read_text(path: Path) -> str:
@@ -520,6 +520,13 @@ def run_self_test() -> None:
         companion_marker = "const fixture_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");"
         companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_companion_fixture_import_marker", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        companion_marker = "test \"phase 7 argv split companion replays copied-storage token ownership\" {"
+        companion_path.write_text(companion_text.replace(companion_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_companion_copied_storage_test", tmp_root, f"zigux/tests/phase7_argv_split.zig: {companion_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
