@@ -125,7 +125,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 56
+SELF_TEST_CASE_COUNT = 60
 
 
 class ValidationError(RuntimeError):
@@ -188,6 +188,8 @@ def validate_case_matrix(name: str, cases: object, expected: dict[str, dict[str,
         label = case.get("label")
         if not isinstance(label, str):
             raise ValidationError(f"{name} perf case label missing")
+        if label in by_label:
+            raise ValidationError(f"{name} duplicate perf case label: {label}")
         by_label[label] = case
 
     if set(by_label) != set(expected):
@@ -198,6 +200,23 @@ def validate_case_matrix(name: str, cases: object, expected: dict[str, dict[str,
         for field, value in fields.items():
             if case.get(field) != value:
                 raise ValidationError(f"{name} {label} {field} drifted")
+
+
+def validate_unique_routes(name: str, routes: object, required_routes: list[str]) -> None:
+    if not isinstance(routes, list):
+        raise ValidationError(f"{name} rerun routes missing")
+
+    seen: set[str] = set()
+    for route in routes:
+        if not isinstance(route, str):
+            raise ValidationError(f"{name} rerun route malformed")
+        if route in seen:
+            raise ValidationError(f"{name} duplicate rerun route: {route}")
+        seen.add(route)
+
+    for route in required_routes:
+        if route not in routes:
+            raise ValidationError(f"{name} rerun route missing {route}")
 
 
 def validate_evidence_manifest(path: Path) -> None:
@@ -246,16 +265,16 @@ def validate_evidence_manifest(path: Path) -> None:
 
     checksum_routes = checksum_perf.get("linux_style_rerun_routes")
     hexdump_routes = hexdump_perf.get("linux_style_rerun_routes")
-    if not isinstance(checksum_routes, list):
-        raise ValidationError("checksum evidence rerun routes missing")
-    if not isinstance(hexdump_routes, list):
-        raise ValidationError("hexdump evidence rerun routes missing")
-    for route in REQUIRED_CHECKSUM_EVIDENCE_LINUX_STYLE_RERUN_ROUTES:
-        if route not in checksum_routes:
-            raise ValidationError(f"checksum evidence rerun route missing {route}")
-    for route in REQUIRED_HEXDUMP_EVIDENCE_LINUX_STYLE_RERUN_ROUTES:
-        if route not in hexdump_routes:
-            raise ValidationError(f"hexdump evidence rerun route missing {route}")
+    validate_unique_routes(
+        "checksum evidence",
+        checksum_routes,
+        REQUIRED_CHECKSUM_EVIDENCE_LINUX_STYLE_RERUN_ROUTES,
+    )
+    validate_unique_routes(
+        "hexdump evidence",
+        hexdump_routes,
+        REQUIRED_HEXDUMP_EVIDENCE_LINUX_STYLE_RERUN_ROUTES,
+    )
 
     inventory = manifest.get("current_shared_replay_inventory")
     if not isinstance(inventory, list):
@@ -301,16 +320,8 @@ def validate_parity_manifest(path: Path) -> None:
 
     checksum_routes = checksum_perf.get("linux_style_rerun_routes")
     hexdump_routes = hexdump_perf.get("linux_style_rerun_routes")
-    if not isinstance(checksum_routes, list):
-        raise ValidationError("checksum rerun routes missing")
-    if not isinstance(hexdump_routes, list):
-        raise ValidationError("hexdump rerun routes missing")
-    for route in REQUIRED_CHECKSUM_LINUX_STYLE_RERUN_ROUTES:
-        if route not in checksum_routes:
-            raise ValidationError(f"checksum rerun route missing {route}")
-    for route in REQUIRED_HEXDUMP_LINUX_STYLE_RERUN_ROUTES:
-        if route not in hexdump_routes:
-            raise ValidationError(f"hexdump rerun route missing {route}")
+    validate_unique_routes("checksum", checksum_routes, REQUIRED_CHECKSUM_LINUX_STYLE_RERUN_ROUTES)
+    validate_unique_routes("hexdump", hexdump_routes, REQUIRED_HEXDUMP_LINUX_STYLE_RERUN_ROUTES)
 
 
 def validate(repo_root: Path) -> None:
@@ -400,6 +411,24 @@ def run_self_test() -> None:
             (EVIDENCE_MANIFEST_PATH, '"payload_case_labels": [\n          "64B",\n          "1501B"\n        ],', '"payload_case_labels": ["64B", "1500B"],', "checksum evidence payload_case_labels drifted"),
             (EVIDENCE_MANIFEST_PATH, '"label": "IPV4_60B"', '"label": "IPV4_64B"', "checksum evidence ipv4 fast path perf case drift"),
             (EVIDENCE_MANIFEST_PATH, '"ipv4_fast_path_case_labels": [\n          "IPV4_20B",\n          "IPV4_20B_UPDATED",\n          "IPV4_24B",\n          "IPV4_60B"\n        ]', '"ipv4_fast_path_case_labels": ["IPV4_20B", "IPV4_24B", "IPV4_64B"]', "checksum evidence ipv4_fast_path_case_labels drifted"),
+            (EVIDENCE_MANIFEST_PATH, '''          {
+            "label": "1501B",
+            "iterations": 12000,
+            "max_slowdown_pct": 150
+          }''', '''          {
+            "label": "1501B",
+            "iterations": 12000,
+            "max_slowdown_pct": 150
+          },
+          {
+            "label": "64B",
+            "iterations": 200000,
+            "max_slowdown_pct": 150
+          }''', "duplicate perf case label: 64B"),
+            (EVIDENCE_MANIFEST_PATH, '''"make -C zigux phase6-checksum-perf",
+          "make -C zigux phase6-perf"''', '''"make -C zigux phase6-checksum-perf",
+          "make -C zigux phase6-checksum-perf",
+          "make -C zigux phase6-perf"''', "duplicate rerun route: make -C zigux phase6-checksum-perf"),
             (EVIDENCE_MANIFEST_PATH, '"reps": 10000', '"reps": 8000', "hexdump evidence 32B-ascii-g2 reps drifted"),
             (PARITY_MANIFEST_PATH, '"lane_scope": "shared helper-parity rows and machine-readable manifest only"', '"lane_scope": "shared helper-parity rows only"', "helper-parity lane_scope drifted"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-checksum-corpus-evidence.py",\n        "scripts/zigux/check-phase6-checksum-c-parity.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]', "checksum checker surface drifted"),
@@ -420,6 +449,21 @@ def run_self_test() -> None:
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-hexdump-review"', '"make -C zigux phase6-hexdump-scan"', "phase6-hexdump-review"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf-matrix-test"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf-matrix-test"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf"),
+            (PARITY_MANIFEST_PATH, '''          {
+            "label": "16B-ascii-g8",
+            "reps": 20000,
+            "max_slowdown_pct": 600
+          }''', '''          {
+            "label": "16B-ascii-g8",
+            "reps": 20000,
+            "max_slowdown_pct": 600
+          },
+          {
+            "label": "32B-ascii-g2",
+            "reps": 10000,
+            "max_slowdown_pct": 550
+          }''', "duplicate perf case label: 32B-ascii-g2"),
+            (PARITY_MANIFEST_PATH, '"linux_style_rerun_routes": [\n          "make -C zigux phase6-hexdump-review",\n          "make -C zigux phase6-hexdump-perf-matrix-test",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-perf"\n        ]', '"linux_style_rerun_routes": [\n          "make -C zigux phase6-hexdump-review",\n          "make -C zigux phase6-hexdump-perf-matrix-test",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-perf"\n        ]', "duplicate rerun route: make -C zigux phase6-hexdump-perf"),
             (PARITY_MANIFEST_PATH, '"linux_style_rerun_routes": [\n          "make -C zigux phase6-hexdump-review",\n          "make -C zigux phase6-hexdump-perf-matrix-test",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-perf"\n        ]', '"linux_style_rerun_routes": [\n          "make -C zigux phase6-hexdump-review",\n          "make -C zigux phase6-hexdump-perf-matrix-test",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-hexdump-test"\n        ]', "phase6-perf"),
             (EVIDENCE_MANIFEST_PATH, '"packet": "phase6-helper-evidence"', '"packet": "phase6-helper-parity"', "unexpected packet id"),
             (SURVEY_PATH, "`IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`", "`IPV4_60B` with `iterations = 200_000` and `max_slowdown_pct = 100`", "IPV4_60B"),
