@@ -43,6 +43,8 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
     '"zig build phase3-dump --build-file zigux/tests/build.zig"',
     '"zig build phase3-test --build-file zigux/tests/build.zig"',
+    '"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"',
+    '"make -C zigux phase3-low-level-wrappers-test"',
 )
 
 REQUIRED_MANIFEST_FIELDS = {
@@ -107,11 +109,13 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
     "zig build phase3-test --build-file zigux/tests/build.zig",
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-export-uapi-layout",
     "make -C zigux phase3-export-uapi-layout-test",
     "make -C zigux phase3-dump",
     "make -C zigux phase3-test",
     "make -C zigux phase3",
+    "make -C zigux phase3-low-level-wrappers-test",
 )
 
 
@@ -256,6 +260,8 @@ def run_self_test() -> int:
             ('"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"', "expected policy-dump build validator-route drift was not reported"),
             ('"zig build phase3-dump --build-file zigux/tests/build.zig"', "expected shared ABI dump build validator-route drift was not reported"),
             ('"zig build phase3-test --build-file zigux/tests/build.zig"', "expected shared ABI aggregate build validator-route drift was not reported"),
+            ('"zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"', "expected low-level-wrapper focused build validator-route drift was not reported"),
+            ('"make -C zigux phase3-low-level-wrappers-test"', "expected low-level-wrapper focused make-route drift was not reported"),
         )
         for marker, failure_message in validator_cases:
             _populate_repo(repo_root)
@@ -323,11 +329,13 @@ def run_self_test() -> int:
             ("zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "expected policy-dump build route drift was not reported"),
             ("zig build phase3-dump --build-file zigux/tests/build.zig", "expected shared ABI dump build route drift was not reported"),
             ("zig build phase3-test --build-file zigux/tests/build.zig", "expected shared ABI aggregate build route drift was not reported"),
+            ("zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig", "expected low-level-wrapper focused build route drift was not reported"),
             ("make -C zigux phase3-export-uapi-layout", "expected export-uapi shared make route drift was not reported"),
             ("make -C zigux phase3-export-uapi-layout-test", "expected export-uapi dedicated make route drift was not reported"),
             ("make -C zigux phase3-dump", "expected shared ABI dump make route drift was not reported"),
             ("make -C zigux phase3-test", "expected shared ABI aggregate make route drift was not reported"),
             ("make -C zigux phase3", "expected shared ABI top-level make route drift was not reported"),
+            ("make -C zigux phase3-low-level-wrappers-test", "expected low-level-wrapper focused make route drift was not reported"),
         )
         for route, failure_message in replay_route_cases:
             _populate_repo(repo_root)
@@ -350,7 +358,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=83")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=87")
     return 0
 
 
