@@ -61,9 +61,12 @@ EXPECTED_SHARED_DIRECT_EVIDENCE = [
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+    "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "scripts/zigux/validate-phase6.py",
     "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "scripts/zigux/check-phase6-perf-threshold-markers.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 EXPECTED_DOCS_README_SNIPPETS = [
     "- `Documentation/zigux/phase6-helper-evidence-catalog.md` - `Documentation/zigux/phase6-helper-parity-catalog.md` - `Documentation/zigux/phase6-perf-gate-survey.md`",
@@ -164,7 +167,7 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 19
 
 
 class ValidationError(RuntimeError):
@@ -502,7 +505,13 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": EXPECTED_PACKET})))
         cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
+        cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py")))
+        cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-hexdump-packet.py")))
+        cases_run += 1
+        expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-hexdump-route.py")))
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0]["current_perf_evidence"].update({"max_decode_slowdown_pct": 350})))
         cases_run += 1
