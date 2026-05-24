@@ -300,6 +300,63 @@ test "runtime kretprobe sample keeps failed unregister rollback explicit while a
     try std.testing.expectEqual(before_cleanup.last_retval, after_exit.last_retval);
 }
 
+test "runtime kretprobe sample keeps rejected entry-without-registration rollback explicit at the module boundary" {
+    var initialized_module = sample.RuntimeKretprobeSample{};
+    try initialized_module.init();
+
+    const before_initialized_rejected_entry = initialized_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, before_initialized_rejected_entry.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_initialized_rejected_entry.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_entry.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_entry.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_entry.registration_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_entry.unregistration_runs);
+    try std.testing.expect(!before_initialized_rejected_entry.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_entry.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), before_initialized_rejected_entry.completed_instances);
+    try std.testing.expectEqual(@as(?i32, null), before_initialized_rejected_entry.last_retval);
+
+    try std.testing.expectError(error.ProbeNotRegistered, initialized_module.recordEntry());
+    try expectSnapshotStable(
+        before_initialized_rejected_entry,
+        initialized_module.lifecycleSnapshot(),
+    );
+
+    try initialized_module.exit();
+    const initialized_after_exit = initialized_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, initialized_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_after_exit.exit_runs);
+
+    var selftested_module = sample.RuntimeKretprobeSample{};
+    try selftested_module.init();
+    _ = try selftested_module.runSelftest();
+
+    const before_selftested_rejected_entry = selftested_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_selftested_rejected_entry.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_entry.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_entry.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_rejected_entry.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_entry.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_entry.unregistration_runs);
+    try std.testing.expect(!before_selftested_rejected_entry.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), before_selftested_rejected_entry.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), before_selftested_rejected_entry.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), before_selftested_rejected_entry.last_retval);
+
+    try std.testing.expectError(error.ProbeNotRegistered, selftested_module.recordEntry());
+    try expectSnapshotStable(
+        before_selftested_rejected_entry,
+        selftested_module.lifecycleSnapshot(),
+    );
+
+    try selftested_module.exit();
+    const selftested_after_exit = selftested_module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, selftested_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_after_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_after_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), selftested_after_exit.last_retval);
+}
+
 test "runtime kretprobe sample keeps rejected return-without-entry rollback explicit at the module boundary" {
     var initialized_module = sample.RuntimeKretprobeSample{};
     try initialized_module.init();
