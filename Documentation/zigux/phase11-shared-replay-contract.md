@@ -94,7 +94,7 @@ or `zigux/tests/phase11_build.zig` routes.
   keep the broader matrix-gap, targetless-unregister, DesignWare, bcm2835, and
   gpio checker chain explicit beside that narrower inventory packet.
   The same shared validator packet and `make -C zigux phase11-validate`
-  wrapper now cover ten focused proof builds through
+  wrapper now cover eleven focused proof builds through
   `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`,
   `zigux/tests/phase11_dw_wdt_build.zig`,
   `zigux/tests/phase11_dw_wdt_restart_build.zig`,
@@ -103,9 +103,10 @@ or `zigux/tests/phase11_build.zig` routes.
   `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`,
   `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
   `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
-  `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, and
+  `zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
+  `zigux/tests/phase11_hvc_modem_control_proof_build.zig`, and
   `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, so keep that
-  ten-proof-build packet explicit instead of reducing the current shared gate to
+  eleven-proof-build packet explicit instead of reducing the current shared gate to
   the narrower HVC inventory alone.
 - `zigux/tests/phase11_build.zig` is not part of the current shared packet on
   `master`
@@ -146,6 +147,7 @@ deterministic and reviewable:
   `zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
   `zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
   `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
+  `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`,
   and `zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 - workflow replay route: `make -C zigux phase11-validate`
 
@@ -197,6 +199,8 @@ route:
   `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
   `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`,
   `zigux/tests/phase11_hvc_cleanup_packet_build.zig`,
+  `zigux/tests/phase11_hvc_modem_control_proof.zig`,
+  `zigux/tests/phase11_hvc_modem_control_proof_build.zig`,
   `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`, and
   `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`; keep those
   bounded current-head replay surfaces explicit in shared summaries without
