@@ -29,6 +29,7 @@ NOTE_REQUIRED_MARKERS = [
     "`PHASE8_STATUS=parked_helper_slice`",
     "`PHASE8_SLICE=libbpf-perf-buffer-poll`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
+    "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
     "`zigux/tests/phase8_perf_buffer_poll.zig`",
     "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
     "`zigux/tests/phase8_build.zig`",
