@@ -13,6 +13,7 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 MANIFEST_PATH = "zigux/tests/phase10_closure_manifest.json"
+LEDGER_PATH = "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
 
 COUNT_FIELDS = {
     "doc_count": "docs",
@@ -129,6 +130,42 @@ REQUIRED_FOCUSED_HARNESS_REPLAYS = {
     ],
 }
 
+REQUIRED_DUAL_IMPLEMENTATION_SCOREBOARD_EVIDENCE = [
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
+]
+
+REQUIRED_SURVEY_PROVENANCE_SOURCE = "manifest_derived"
+REQUIRED_SURVEY_LANE_KEYS = {
+    "core": "P10-L01",
+    "ring": "P10-L10",
+    "input": "P10-L22",
+    "mmio": "P10-L11",
+}
+REQUIRED_SURVEY_COMMITS = {
+    "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+    "ring": "0aa2db32bcb1c7065850ee3f66ec119b071fbf5c",
+    "input": "ee789f026f11a0c5c70ded9a868979cdf4f55393",
+    "mmio": "b53ec2bd507d0b3283486e76acc273b184ad5bf8",
+}
+
+LEDGER_STATUS_FIELDS = {
+    "virtqueue_wrappers": "PHASE10_LEDGER_ROADMAP_VIRTQUEUE_WRAPPERS",
+    "mmio_wrappers": "PHASE10_LEDGER_ROADMAP_MMIO_WRAPPERS",
+    "lab_only_driver_validation": "PHASE10_LEDGER_ROADMAP_LAB_ONLY_DRIVER_VALIDATION",
+    "dual_implementations_for_risky_areas": "PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS",
+}
+
+LEDGER_EVIDENCE_FIELDS = {
+    "virtqueue_wrappers": "PHASE10_LEDGER_SCOREBOARD_VIRTQUEUE_EVIDENCE",
+    "mmio_wrappers": "PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE",
+    "lab_only_driver_validation": "PHASE10_LEDGER_SCOREBOARD_LAB_ONLY_DRIVER_VALIDATION_EVIDENCE",
+    "dual_implementations_for_risky_areas": "PHASE10_LEDGER_SCOREBOARD_DUAL_IMPLEMENTATIONS_EVIDENCE",
+}
+
 REQUIRED_CORE_BLOCKED_TRANSPORT_PATH = "zigux/tests/phase10_virtio_core_manifest.json"
 REQUIRED_CORE_BLOCKED_TRANSPORT_GAP = "phase10-core-probe-remove-lifecycle"
 REQUIRED_INPUT_READY_TRANSPORT_PATH = "zigux/tests/phase10_virtio_input_manifest.json"
@@ -144,6 +181,63 @@ def read_json(path: Path) -> dict:
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def build_expected_ledger_lines(manifest: dict) -> list[str]:
+    scoreboard = manifest.get("roadmap_parity_scoreboard")
+    provenance = manifest.get("survey_provenance")
+    if not isinstance(scoreboard, dict) or not isinstance(provenance, dict):
+        return []
+
+    lane_keys = provenance.get("lane_keys")
+    surveyed_commits = provenance.get("surveyed_commits")
+    if not isinstance(lane_keys, dict) or not isinstance(surveyed_commits, dict):
+        return []
+
+    lines = [f"PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE={MANIFEST_PATH}"]
+    source = provenance.get("source")
+    if isinstance(source, str) and source:
+        lines.append(f"PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE={source}")
+
+    for key in ("core", "ring", "input", "mmio"):
+        lane = lane_keys.get(key)
+        if isinstance(lane, str) and lane:
+            lines.append(f"PHASE10_LEDGER_SURVEY_{key.upper()}_LANE={lane}")
+        commit = surveyed_commits.get(key)
+        if isinstance(commit, str) and commit:
+            lines.append(f"PHASE10_LEDGER_SURVEY_{key.upper()}_COMMIT={commit}")
+
+    for key, ledger_key in LEDGER_STATUS_FIELDS.items():
+        row = scoreboard.get(key)
+        if not isinstance(row, dict):
+            continue
+        status = row.get("status")
+        if isinstance(status, str) and status:
+            lines.append(f"{ledger_key}={status}")
+
+    for key, ledger_key in LEDGER_EVIDENCE_FIELDS.items():
+        row = scoreboard.get(key)
+        if not isinstance(row, dict):
+            continue
+        evidence = row.get("evidence")
+        if isinstance(evidence, list) and evidence:
+            lines.append(f"{ledger_key}={','.join(evidence)}")
+
+    return lines
+
+
+def collect_ledger_drift(manifest: dict, ledger_text: str) -> list[str]:
+    drift: list[str] = []
+    expected_lines = build_expected_ledger_lines(manifest)
+    if not expected_lines:
+        drift.append("ledger:expected_lines:missing")
+        return drift
+
+    for line in expected_lines:
+        if line not in ledger_text:
+            drift.append(f"ledger:{line}")
+
+    return drift
 
 
 def collect_drift(manifest: dict) -> list[str]:
@@ -248,6 +342,58 @@ def collect_drift(manifest: dict) -> list[str]:
             drift.append(
                 "roadmap_parity_scoreboard:lab_only_driver_validation:"
                 f"{item!r}:missing"
+            )
+
+    dual_implementations = scoreboard.get("dual_implementations_for_risky_areas")
+    if not isinstance(dual_implementations, dict):
+        drift.append(
+            "roadmap_parity_scoreboard:dual_implementations_for_risky_areas:missing"
+        )
+        return drift
+
+    dual_implementation_evidence = dual_implementations.get("evidence")
+    if not isinstance(dual_implementation_evidence, list) or not dual_implementation_evidence:
+        drift.append(
+            "roadmap_parity_scoreboard:dual_implementations_for_risky_areas:evidence:missing"
+        )
+        return drift
+
+    for item in REQUIRED_DUAL_IMPLEMENTATION_SCOREBOARD_EVIDENCE:
+        if item not in dual_implementation_evidence:
+            drift.append(
+                "roadmap_parity_scoreboard:dual_implementations_for_risky_areas:"
+                f"{item!r}:missing"
+            )
+
+    provenance = manifest.get("survey_provenance")
+    if not isinstance(provenance, dict):
+        drift.append("survey_provenance:missing")
+        return drift
+
+    if provenance.get("source") != REQUIRED_SURVEY_PROVENANCE_SOURCE:
+        drift.append(
+            "survey_provenance:source:"
+            f"{provenance.get('source')!r}!={REQUIRED_SURVEY_PROVENANCE_SOURCE!r}"
+        )
+
+    lane_keys = provenance.get("lane_keys")
+    if not isinstance(lane_keys, dict):
+        drift.append("survey_provenance:lane_keys:missing")
+        return drift
+    for key, expected in REQUIRED_SURVEY_LANE_KEYS.items():
+        actual = lane_keys.get(key)
+        if actual != expected:
+            drift.append(f"survey_provenance:lane_keys:{key}:{actual!r}!={expected!r}")
+
+    surveyed_commits = provenance.get("surveyed_commits")
+    if not isinstance(surveyed_commits, dict):
+        drift.append("survey_provenance:surveyed_commits:missing")
+        return drift
+    for key, expected in REQUIRED_SURVEY_COMMITS.items():
+        actual = surveyed_commits.get(key)
+        if actual != expected:
+            drift.append(
+                f"survey_provenance:surveyed_commits:{key}:{actual!r}!={expected!r}"
             )
 
     cross_phase_boundary = manifest.get("cross_phase_scoreboard_boundary")
@@ -380,10 +526,15 @@ def collect_drift(manifest: dict) -> list[str]:
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
-    manifest_path = root / MANIFEST_PATH
-    if not manifest_path.exists():
-        return [MANIFEST_PATH], []
-    return [], collect_drift(read_json(manifest_path))
+    tracked_paths = [MANIFEST_PATH, LEDGER_PATH]
+    missing_files = [rel_path for rel_path in tracked_paths if not (root / rel_path).exists()]
+    if missing_files:
+        return missing_files, []
+
+    manifest = read_json(root / MANIFEST_PATH)
+    drift = collect_drift(manifest)
+    drift.extend(collect_ledger_drift(manifest, (root / LEDGER_PATH).read_text(encoding="utf-8")))
+    return [], drift
 
 
 def fixture_manifest() -> dict:
@@ -412,6 +563,15 @@ def fixture_manifest() -> dict:
                 + REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE
                 + REQUIRED_CORE_LAB_VALIDATION_EVIDENCE,
             },
+            "dual_implementations_for_risky_areas": {
+                "status": "blocked_on_risky_transport",
+                "evidence": REQUIRED_DUAL_IMPLEMENTATION_SCOREBOARD_EVIDENCE,
+            },
+        },
+        "survey_provenance": {
+            "source": REQUIRED_SURVEY_PROVENANCE_SOURCE,
+            "lane_keys": REQUIRED_SURVEY_LANE_KEYS,
+            "surveyed_commits": REQUIRED_SURVEY_COMMITS,
         },
         "cross_phase_scoreboard_boundary": {
             "reference_samples": {
@@ -437,8 +597,15 @@ def fixture_manifest() -> dict:
     }
 
 
+def build_fixture_ledger(manifest: dict) -> str:
+    lines = build_expected_ledger_lines(manifest)
+    return "\n".join(f"- `{line}`" for line in lines) + "\n"
+
+
 def write_fixture(root: Path) -> None:
-    write_text(root / MANIFEST_PATH, json.dumps(fixture_manifest(), indent=2) + "\n")
+    manifest = fixture_manifest()
+    write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+    write_text(root / LEDGER_PATH, build_fixture_ledger(manifest))
 
 
 def expect_contains(items: list[str], expected: str, label: str) -> None:
@@ -461,10 +628,15 @@ def run_self_test() -> int:
             )
 
         manifest_path = root / MANIFEST_PATH
+        ledger_path = root / LEDGER_PATH
         original = read_json(manifest_path)
+        original_ledger = ledger_path.read_text(encoding="utf-8")
 
         def write_manifest(data: dict) -> None:
             write_text(manifest_path, json.dumps(data, indent=2) + "\n")
+
+        def write_ledger(text: str) -> None:
+            write_text(ledger_path, text)
 
         cases = 0
 
@@ -473,6 +645,7 @@ def run_self_test() -> int:
         write_manifest(broken)
         expect_contains(validate(root)[1], "doc_count:6!=len(docs):7", "phase10-manifest-counts-self-test")
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["manifest_count"] = 5
@@ -483,6 +656,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["driver_count"] = 3
@@ -493,6 +667,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["test_count"] = 20
@@ -503,18 +678,21 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         del broken["doc_count"]
         write_manifest(broken)
         expect_contains(validate(root)[1], "doc_count:missing", "phase10-manifest-counts-self-test")
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["tests"] = []
         write_manifest(broken)
         expect_contains(validate(root)[1], "tests:missing", "phase10-manifest-counts-self-test")
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -529,6 +707,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -541,6 +720,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -555,6 +735,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -567,6 +748,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -579,6 +761,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -591,6 +774,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -605,6 +789,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -619,6 +804,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -633,6 +819,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -647,6 +834,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -659,6 +847,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -671,6 +860,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -685,6 +875,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -697,6 +888,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["exact_checks"] = [
@@ -709,6 +901,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         reordered = list(REQUIRED_EXACT_CHECKS)
@@ -721,12 +914,14 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         del broken["exact_checks"]
         write_manifest(broken)
         expect_contains(validate(root)[1], "exact_checks:missing", "phase10-manifest-counts-self-test")
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["virtqueue_wrappers"]["evidence"] = [
@@ -741,6 +936,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["mmio_wrappers"]["evidence"] = [
@@ -755,6 +951,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -769,6 +966,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -783,6 +981,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -797,6 +996,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -811,6 +1011,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -825,6 +1026,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -839,6 +1041,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -853,6 +1056,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
@@ -867,6 +1071,55 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
+
+        broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["dual_implementations_for_risky_areas"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["dual_implementations_for_risky_areas"]["evidence"]
+            if item != "zigux/tests/phase10_virtio_mmio_manifest.json"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:dual_implementations_for_risky_areas:'zigux/tests/phase10_virtio_mmio_manifest.json':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = dict(original)
+        broken["survey_provenance"]["source"] = "static"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "survey_provenance:source:'static'!='manifest_derived'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = dict(original)
+        broken["survey_provenance"]["lane_keys"]["mmio"] = "P10-L12"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "survey_provenance:lane_keys:mmio:'P10-L12'!='P10-L11'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = dict(original)
+        broken["survey_provenance"]["surveyed_commits"]["mmio"] = "deadbeef"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "survey_provenance:surveyed_commits:mmio:'deadbeef'!='b53ec2bd507d0b3283486e76acc273b184ad5bf8'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["cross_phase_scoreboard_boundary"]["reference_samples"]["evidence"] = [
@@ -881,6 +1134,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["cross_phase_scoreboard_boundary"]["runtime_starters"]["status"] = "starter_landed"
@@ -891,6 +1145,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["cross_phase_scoreboard_boundary"]["runtime_starters"]["evidence"] = [
@@ -905,6 +1160,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["landed_core_helper_evidence"]["zigux/tests/phase10_virtio_core_manifest.json"] = [
@@ -919,6 +1175,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["focused_harness_replays"]["zigux/tests/phase10_virtio_driver_id.zig"] = []
@@ -929,6 +1186,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["focused_harness_replays"]["zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig"] = []
@@ -939,6 +1197,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["focused_harness_replays"]["zigux/tests/phase10_virtio_core_reset_queue.zig"] = []
@@ -949,6 +1208,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["focused_harness_replays"]["drivers/virtio/virtio_ring_publish_readiness.zig"] = []
@@ -959,6 +1219,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["focused_harness_replays"]["zigux/tests/phase10_virtio_mmio.zig"] = [
@@ -971,6 +1232,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         del broken["focused_harness_replays"]["zigux/tests/phase10_virtio_mmio_survey.zig"]
@@ -981,6 +1243,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["ready_transport_followups"][REQUIRED_INPUT_READY_TRANSPORT_PATH] = "phase10-input-helper-drift"
@@ -991,6 +1254,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["ready_transport_followups"][REQUIRED_MMIO_READY_TRANSPORT_PATH] = "phase10-mmio-helper-drift"
@@ -1001,6 +1265,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["blocked_transport_gaps"][REQUIRED_CORE_BLOCKED_TRANSPORT_PATH] = "phase10-core-helper-drift"
@@ -1011,6 +1276,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["blocked_transport_gaps"][REQUIRED_INPUT_READY_TRANSPORT_PATH] = "phase10-input-helper-drift"
@@ -1021,6 +1287,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         broken["blocked_transport_gaps"][REQUIRED_MMIO_READY_TRANSPORT_PATH] = "phase10-mmio-helper-drift"
@@ -1031,6 +1298,7 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
 
         broken = dict(original)
         del broken["roadmap_parity_scoreboard"]
@@ -1041,6 +1309,73 @@ def run_self_test() -> int:
             "phase10-manifest-counts-self-test",
         )
         cases += 1
+        write_fixture(root)
+
+        write_ledger(original_ledger.replace(
+            "PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json",
+            "PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_old_manifest.json",
+            1,
+        ))
+        expect_contains(
+            validate(root)[1],
+            "ledger:PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        write_ledger(original_ledger.replace(
+            "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8",
+            "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=deadbeef",
+            1,
+        ))
+        expect_contains(
+            validate(root)[1],
+            "ledger:PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        write_ledger(original_ledger.replace(
+            "PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE=drivers/virtio/virtio_mmio.zig,zigux/tests/phase10_virtio_mmio.zig,drivers/virtio/virtio_mmio_verify.zig,zigux/tests/phase10_virtio_mmio_manifest.json,Documentation/zigux/phase10-virtio-mmio-survey.md",
+            "PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE=drivers/virtio/virtio_mmio.zig,zigux/tests/phase10_virtio_mmio.zig,zigux/tests/phase10_virtio_mmio_manifest.json,Documentation/zigux/phase10-virtio-mmio-survey.md",
+            1,
+        ))
+        expect_contains(
+            validate(root)[1],
+            "ledger:PHASE10_LEDGER_SCOREBOARD_MMIO_EVIDENCE=drivers/virtio/virtio_mmio.zig,zigux/tests/phase10_virtio_mmio.zig,drivers/virtio/virtio_mmio_verify.zig,zigux/tests/phase10_virtio_mmio_manifest.json,Documentation/zigux/phase10-virtio-mmio-survey.md",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        write_ledger(original_ledger.replace(
+            "PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
+            "PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=starter_landed",
+            1,
+        ))
+        expect_contains(
+            validate(root)[1],
+            "ledger:PHASE10_LEDGER_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        ledger_path.unlink()
+        missing_files, drift = validate(root)
+        if drift:
+            actual = ",".join(drift)
+            raise SystemExit(f"phase10-manifest-counts-self-test:unexpected_drift={actual}")
+        if missing_files != [LEDGER_PATH]:
+            actual = ",".join(missing_files) if missing_files else "none"
+            raise SystemExit(
+                "phase10-manifest-counts-self-test:"
+                f"expected_missing={LEDGER_PATH}:actual={actual}"
+            )
+        cases += 1
+        write_fixture(root)
 
         manifest_path.unlink()
         missing_files, drift = validate(root)
@@ -1110,6 +1445,8 @@ def main() -> int:
         f"{sum(len(labels) for labels in REQUIRED_LANDED_CORE_HELPER_EVIDENCE.values())}"
     )
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_FOCUSED_HARNESS_REPLAY_COUNT={len(REQUIRED_FOCUSED_HARNESS_REPLAYS)}")
+    print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_DUAL_IMPLEMENTATION_EVIDENCE_COUNT={len(REQUIRED_DUAL_IMPLEMENTATION_SCOREBOARD_EVIDENCE)}")
+    print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_LEDGER_LINE_COUNT={len(build_expected_ledger_lines(read_json(args.repo_root / MANIFEST_PATH)))}")
     return 0
 
 
