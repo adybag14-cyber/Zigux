@@ -158,7 +158,7 @@ test "phase 8 verify routing witness records the current direct-readback libbpf 
     );
     try expectContains(
         survey,
-        "The remaining repo-reality gap in this note is no longer a helper-local code omission. It is reminder-surface discipline: older bridge, manifest, and focused build names may still appear in shared Phase 8 vocabulary, but this survey should not describe those paths as mere authenticated-read flakiness or fold them back into the direct helper packet while they remain outside the same exact current-tree readback mode.",
+        "The remaining repo-reality gap in this note is no longer a helper-local code omission. It is reminder-surface discipline: older bridge, manifest, and focused build names may still appear in shared Phase 8 vocabulary, but this survey should now treat only the manifest plus the two bridge reminder docs as direct-readback companion evidence, while the bridge helper and focused bridge-only build shard stay public-tree-backed companion vocabulary until authenticated contents readback rematerializes them.",
     );
     try expectContains(
         survey,
