@@ -72,25 +72,17 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def build_fixture(root: Path, *, include_all_manifests: bool) -> None:
+def build_fixture(root: Path, *, include_drift: bool) -> None:
     manifest_lines = [
-        '    "zigux/tests/phase11_gpio_wdt_manifest.json": "P11-L04",',
-        '    "zigux/tests/phase11_bcm2835_wdt_manifest.json": "P11-L08",',
-        '    "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L05",',
-        '    "zigux/tests/phase11_hvc_console_manifest.json": "P11-L16",',
-        '    "zigux/tests/phase11_uapi_header_parity_manifest.json": "P11-L18",',
+        '    "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L10",',
     ]
     required_paths = [
         '    "zigux/tests/phase11_dw_wdt_manifest.json",',
     ]
-    if include_all_manifests:
-        required_paths = [
-            '    "zigux/tests/phase11_gpio_wdt_manifest.json",',
-            '    "zigux/tests/phase11_bcm2835_wdt_manifest.json",',
-            '    "zigux/tests/phase11_dw_wdt_manifest.json",',
-            '    "zigux/tests/phase11_hvc_console_manifest.json",',
-            '    "zigux/tests/phase11_uapi_header_parity_manifest.json",',
-        ]
+    if include_drift:
+        manifest_lines.append(
+            '    "zigux/tests/phase11_hvc_console_manifest.json": "P11-L16",'
+        )
 
     text = "\n".join(
         [
@@ -121,14 +113,17 @@ def run_self_test() -> int:
     tempdir = Path(tempfile.mkdtemp(prefix="phase11_validate_manifest_roster_"))
     try:
         passing = tempdir / "passing"
-        build_fixture(passing, include_all_manifests=True)
+        build_fixture(passing, include_drift=False)
         required_path_count, manifest_count = run_check(passing)
-        if manifest_count != 5:
+        if manifest_count != 1:
             raise AssertionError(f"unexpected manifest count: {manifest_count}")
 
         missing = tempdir / "missing"
-        build_fixture(missing, include_all_manifests=False)
-        expect_failure(missing, "manifest expectations missing from REQUIRED_PATHS")
+        build_fixture(missing, include_drift=True)
+        expect_failure(
+            missing,
+            "manifest expectations missing from REQUIRED_PATHS",
+        )
 
         syntax_error = tempdir / "syntax_error"
         write(syntax_error / TARGET_PATH, "REQUIRED_PATHS = (\n")
