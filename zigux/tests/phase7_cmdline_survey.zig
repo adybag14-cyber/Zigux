@@ -72,7 +72,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try std.testing.expect(manifest.verified_on_utc.len != 0);
     try std.testing.expectEqual(@as(usize, 0), manifest.missing_paths.len);
 
-    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
+    try std.testing.expect(!stringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md"));
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-cmdline-slice.md");
     try expectStringSliceContains(manifest.review_surfaces, "lib/cmdline.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline.zig");
@@ -100,6 +100,8 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(slice_note, "`PHASE7_LANE_KEY=P7-L08`");
     try expectContains(slice_note, "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.");
     try expectContains(slice_note, "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.");
+    try expectNotContains(slice_note, "Documentation/zigux/phase7-helper-lane-sequencing.md");
+    try expectNotContains(slice_note, "current helper-local sequencing note");
 
     try expectContains(sequencing_note, "  - `Documentation/zigux/phase7-cmdline-slice.md`");
     try expectContains(sequencing_note, "  - `samples/zigux/README.md`");
