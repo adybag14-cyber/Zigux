@@ -263,6 +263,19 @@ def write_stub_checker(root: Path) -> None:
     )
 
 
+def write_failing_checker(root: Path) -> None:
+    path = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "import sys\n"
+        "print('PHASE1_RBTREE_DIRECT_ANCHORS=fail')\n"
+        "print('cached_root_alias_anchor:expected=1:actual=0', file=sys.stderr)\n"
+        "raise SystemExit(1)\n",
+        encoding="utf-8",
+    )
+
+
 def sample_manifest() -> dict:
     return {
         "phase": "Phase 1",
@@ -569,6 +582,16 @@ def run_self_test() -> None:
         )
         issues = collect_issues(load_manifest(root))
         assert "manifest:duplicate_json_key:review_anchors.tools/lib/string.zig" in issues, issues
+        write_sample_root(root)
+        case_count += 1
+
+        write_failing_checker(root)
+        checker_failures = run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker")
+        assert checker_failures == [
+            "rbtree_direct_anchor_checker:exit=1",
+            "rbtree_direct_anchor_checker:stdout:PHASE1_RBTREE_DIRECT_ANCHORS=fail",
+            "rbtree_direct_anchor_checker:stderr:cached_root_alias_anchor:expected=1:actual=0",
+        ], checker_failures
         write_sample_root(root)
         case_count += 1
 
