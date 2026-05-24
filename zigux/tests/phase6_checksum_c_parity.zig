@@ -1,5 +1,6 @@
 const std = @import("std");
 const checksum = @import("checksum");
+const fixtures = @import("fixtures/phase6_checksum_vectors.zig");
 
 const ComputeCase = struct {
     name: []const u8,
@@ -114,6 +115,11 @@ pub fn main(init: std.process.Init) !void {
     const old_saddr: u32 = 0xc0a80001;
     const new_saddr: u32 = 0xc0a80002;
     try writer.print("replace4\tipv4-saddr\t0x{x:0>4}\n", .{checksum.replace4(checksum_before_addr_change, old_saddr, new_saddr)});
+
+    for (fixtures.carry16_cases) |case| {
+        try writer.print("add16\t{s}\t0x{x:0>4}\n", .{ case.label, checksum.add16(case.sum, case.addend) });
+        try writer.print("sub16\t{s}\t0x{x:0>4}\n", .{ case.label, checksum.sub16(case.sum, case.addend) });
+    }
 
     try stdout.flush();
 }
