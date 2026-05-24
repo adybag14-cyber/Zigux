@@ -18,6 +18,7 @@ Current `master` keeps this narrow direct trace-events runtime packet:
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
 - `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
+- `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
 - `zigux/tests/runtime_trace_events_manifest.json`
 - `zigux/tests/runtime_trace_events_survey.zig`
@@ -34,6 +35,7 @@ The same companion also keeps initialized-stage failed-exit rollback explicit be
 The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay by proving `error.OutstandingRegistration` leaves one main replay plus one function-thread replay unchanged until unregister and the later `runSelftest()` replay succeeds without drift.
 The registration-reentry companion keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
 Its paired initialized-direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
+The reinit/reexit companion keeps lifecycle rollback explicit after later direct activity too: `test "phase9 trace-events sample keeps re-init rollback explicit after initialized, selftest-complete, and exited replay"` proves rejected `init()` calls preserve initialized, selftest_complete, and exited summaries, while `test "phase9 trace-events sample keeps re-exit rollback explicit after initialized and selftest-complete replay"` proves rejected second `exit()` calls leave exited summaries unchanged after both initialized-only and selftest-complete activity.
 
 ## Exact module-slice boundary
 
@@ -45,6 +47,7 @@ Current `master` proves a sample-local cold-stage guard plus init and function-t
 - the direct cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` keeps `runSelftest()` and `exit()` rejected before `init()` materializes the module state
 - the direct initialized-stage exit proof keeps zero selftest runs explicit and shows that later lifecycle calls stay rejected without changing the exited summary
 - the direct rejected re-selftest rollback proof keeps `runSelftest()` fail-closed after both the selftest_complete and exited summaries so later selftest retries cannot mutate either lifecycle checkpoint
+- the reinit/reexit companion keeps later invalid `init()` and `exit()` retries explicit after direct initialized, selftest_complete, and exited activity without widening into loader-backed lifecycle ownership
 - the registration-reentry companion's initialized direct-activity exit proof keeps one main replay plus one function-thread replay explicit before clean exit and shows that the same initialized summary survives through exit without any selftest run
 - duplicate registration still fails with `error.FunctionThreadAlreadyRegistered`
 - unregistered function-thread emission still fails with `error.FunctionThreadNotRegistered`
@@ -75,7 +78,7 @@ So this slice must keep saying plainly that the broader shared runtime-loader pa
 ## Ownership
 
 1. Keep the trace-events family tied to `samples/trace_events/trace-events-sample.c` and the Phase 9 runtime-pilot roadmap only.
-2. Keep the surviving four-file sample family explicit as current sample-local pilot-module proof.
+2. Keep the surviving five-file sample family explicit as current sample-local pilot-module proof.
 3. Keep `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` paired with this slice as family-local review witnesses.
 4. Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `.github/workflows/zigux-bootstrap.yml`, and the adjacent shared loader shard in `zigux/tests/phase9_build.zig` as neighboring reminder, workflow, or build surfaces rather than re-owned here.
 5. Keep `zigux/tests/phase9_build.zig` framed as a shared Phase 9 loader-handoff shard plus bounded trace-events, bitmap, and atomic64 rerun bundle rather than trace-events packet proof or a returned family-local runtime-loader build route.
