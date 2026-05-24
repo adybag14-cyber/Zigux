@@ -40,6 +40,7 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
     "PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig",
     "PHASE3_POLICY_UNSAFE_SURVEY_GATE=python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json",
     "PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "PHASE3_POLICY_PACKET_TEST_GATE=zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "PHASE3_POLICY_DUMP_GATE=python3 scripts/zigux/check-phase3-policy-dump.py",
@@ -107,12 +108,18 @@ REQUIRED_FILE_MARKERS = {
 
 SELF_TEST_CASES = (
     ("missing note marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[7], "marker"),
-    ("missing policy packet test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[9], "marker"),
-    ("missing policy dump gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[10], "marker"),
-    ("missing starter packet make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[11], "marker"),
-    ("missing dump make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
-    ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[14], "marker"),
-    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[15], "marker"),
+    (
+        "missing policy starter packet manifest marker",
+        NOTE_PATH,
+        REQUIRED_NOTE_MARKERS[8],
+        "marker",
+    ),
+    ("missing policy packet test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[10], "marker"),
+    ("missing policy dump gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[11], "marker"),
+    ("missing starter packet make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
+    ("missing dump make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[13], "marker"),
+    ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[15], "marker"),
+    ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[16], "marker"),
     (
         "layout assert blob drift",
         LAYOUT_ASSERT_PATH,
