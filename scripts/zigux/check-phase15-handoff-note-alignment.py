@@ -35,13 +35,14 @@ REQUIRED_STUDY_ONLY_PATHS = (
 SAMPLE_MANIFEST = {
     "lane_key": "P15-L12",
     "phase": "Phase 15",
-    "surveyed_commit": "current-master-readback-2026-05-23",
+    "surveyed_commit": "current-master-readback-2026-05-24",
     "handoff_note": HANDOFF_NOTE_PATH.as_posix(),
     "checker": CHECKER_PATH.as_posix(),
     "present_paths": [
         "Documentation/zigux/freeze-map.md",
         "Documentation/zigux/review-checklist.md",
         "Documentation/zigux/phase15-freeze-map-governance.md",
+        "Documentation/zigux/phase15-deep-core-blocker-survey.md",
         "Documentation/zigux/phase15-architecture-council-review-process.md",
         "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
         "Documentation/zigux/phase15-indefinite-c-policy.md",
@@ -83,6 +84,7 @@ SAMPLE_MANIFEST = {
         "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
         "The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.",
         "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the dedicated shared-build companion and blocked route bodies remain gap-tracked.",
+        "The dedicated deep-core blocker survey `Documentation/zigux/phase15-deep-core-blocker-survey.md` is also directly materialized on current `master` and keeps the roadmap-versus-current-master blocker crosswalk reviewable beside this handoff packet.",
         "The dedicated validator `scripts/zigux/validate-phase15.py` is directly materialized on current `master` as a maintenance gate, but it does not by itself land the broader shared Phase 15 build replay or route bodies.",
         "an Architecture Council approval workflow implementation",
         "a direct port-readiness decision for any Phase 15 anchor",
@@ -143,6 +145,7 @@ def _sample_handoff_note() -> str:
         f"- {manifest['required_markers'][3]}",
         f"- {manifest['required_markers'][4]}",
         f"- {manifest['required_markers'][5]}",
+        f"- {manifest['required_markers'][6]}",
         "- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`",
         "- `scripts/zigux/validate-phase15.py`, which keeps the dedicated validator directly materialized as a maintenance gate without implying that the broader shared Phase 15 build replay or route bodies are landed",
         "",
@@ -160,7 +163,7 @@ def _sample_handoff_note() -> str:
             "",
             "## Roadmap-backed open handoff gaps",
             f"- {manifest['roadmap_alignment_markers'][0]}",
-            f"- {manifest['required_markers'][6]}",
+            f"- {manifest['required_markers'][7]}",
         ]
     )
     lines.extend(f"- no dedicated shared Phase 15 build replay `{path}` is directly materialized on current `master`" for path in manifest["still_missing_paths"])
@@ -333,7 +336,7 @@ def run_self_test() -> int:
         missing_surveyed_commit_root = root / "missing_surveyed_commit"
         _write(
             missing_surveyed_commit_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace("`current-master-readback-2026-05-23`", "`current-master-readback-YYYY-MM-DD`", 1),
+            _sample_handoff_note().replace("`current-master-readback-2026-05-24`", "`current-master-readback-YYYY-MM-DD`", 1),
         )
         _write(missing_surveyed_commit_root / MANIFEST_PATH, _sample_manifest())
         manifest = _read_manifest(missing_surveyed_commit_root / MANIFEST_PATH)
