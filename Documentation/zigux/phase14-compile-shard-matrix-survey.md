@@ -36,13 +36,13 @@ The roadmap keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the s
   - direct workqueue reviewability evidence is readable again, but the lane stays blocked on `phase14-workqueue-live-execution-blocker`
 - `kernel/trace/ring_buffer.c` -> lane `P14-L08`
   - `phase14-ring-buffer-survey-tests`
-  - the direct ring-buffer survey companion is readable again, but the lane remains study-only and maintenance-scoped
+  - the direct ring-buffer survey companion is readable again, and the dedicated survey gate now fail-closes on the shared-manifest compile row even while the lane remains study-only and maintenance-scoped
 - `net/core/skbuff.c` -> lane `P14-L11`
   - `phase14-skbuff-bridge-tests`
   - the manifest-backed compile row is present, and `scripts/zigux/check-phase14-skbuff-compile-route.py` now fail-closes on the shared-manifest row, the dedicated build-shard wiring, and the survey note's live skbuff-local review-route wording without promoting the anchor beyond freeze-in-C posture
 - `kernel/rcu/tree.c` -> lane `P14-L16`
   - `phase14-rcu-tree-survey-tests`
-  - the manifest-backed compile row is present, but the focused Zig replay remains partial through this lane's exact contents path and the anchor stays freeze-in-C initially
+  - the manifest-backed compile row is present, but it still has no dedicated compile-route checker and the focused Zig replay remains partial through this lane's exact contents path, so the anchor stays freeze-in-C initially
 
 ## Product reading
 
@@ -52,6 +52,10 @@ Current `master` now carries an exact six-row machine-readable matrix for the sh
 
 The skbuff compile-route packet is narrower but stronger too: the new dedicated skbuff compile-route checker now keeps the manifest-backed row, the build-file route, and the survey-note route wording aligned even while the direct skbuff Zig test body itself remains a separate anchor-local follow-up.
 
+The ring-buffer row is stronger too: the dedicated survey gate now exact-requires the shared-manifest compile row for `phase14-ring-buffer-survey-tests`, so that anchor is no longer represented here as prose-only matrix evidence even though it remains study-only.
+
+RCU is still the thinnest compile row in the packet: the shared manifest counts it, but there is still no dedicated compile-route checker and the focused replay remains partial through this lane's exact contents path.
+
 That still does not reopen the broader Phase 14 Makefile wrapper family and it does not change the roadmap posture for any deep-core anchor.
 
 The honest same-lane conclusion stays narrow:
@@ -60,10 +64,12 @@ The honest same-lane conclusion stays narrow:
 - keep the focused raw build-file shard explicit through `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`
 - keep the six compile rows explicit as reviewability evidence only
 - keep the returned exact-count checker explicit through `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+- keep the ring-buffer row framed as study-only coverage with a dedicated shared-manifest row guard, not a delivery claim
 - keep the skbuff compile-route checker explicit through `scripts/zigux/check-phase14-skbuff-compile-route.py`
-- keep workqueue and ring-buffer framed as study-only compile-adjacent footholds
-- keep skbuff and RCU framed as manifest-backed compile rows that still do not justify a delivery claim or a freeze-map status change
+- keep workqueue framed as a study-only compile-adjacent foothold that still relies on shared bundle wiring plus reviewability evidence
+- keep skbuff framed as a manifest-backed compile row with dedicated route-check coverage that still does not justify a delivery claim or a freeze-map status change
+- keep RCU framed as a manifest-backed compile row that still lacks dedicated compile-route coverage and still does not justify a delivery claim or a freeze-map status change
 
 ## Next bounded step
 
-If current repo state drifts again, repair the smallest Phase 14 reminder or checker surface that undercounts this six-row matrix, its single focused build-file shard, the skbuff compile-route packet, or the manifest-backed `6 / 1 / 5` split before widening any anchor-local work.
+If current repo state drifts again, repair the smallest Phase 14 reminder or checker surface that undercounts this six-row matrix, its single focused build-file shard, the ring-buffer row guard posture, the skbuff compile-route packet, the RCU manifest-only posture, or the manifest-backed `6 / 1 / 5` split before widening any anchor-local work.
