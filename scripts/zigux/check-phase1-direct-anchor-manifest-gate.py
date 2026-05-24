@@ -474,6 +474,18 @@ def run_self_test() -> None:
         )
         case_count += 1
 
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["lane_sequencing"].__setitem__("anti_overlap_rule", "drifted anti-overlap rule"),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:lane_sequencing.anti_overlap_rule",
+        )
+        case_count += 1
+
         insert_duplicate_manifest_line(
             root,
             '    "tools/lib/string.zig": {',
