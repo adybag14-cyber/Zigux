@@ -115,6 +115,20 @@ test "phase 7 cmdline companion replays nextArg empty-input and leading-whitespa
     try std.testing.expectEqual(@intFromPtr(leading.rest.ptr), @intFromPtr(leading.remaining.ptr));
 }
 
+test "phase 7 cmdline companion replays first-NUL quoted token and quoted value boundaries" {
+    const quoted_token = cmdline.nextArg("\"two words\"\x00 tail");
+    try std.testing.expectEqualStrings("two words", quoted_token.param);
+    try std.testing.expect(quoted_token.value == null);
+    try std.testing.expectEqualStrings("", quoted_token.rest);
+    try std.testing.expectEqualStrings("", quoted_token.remaining);
+
+    const quoted_value_nul = cmdline.nextArg("root=\"/dev/vda1\"\x00 quiet");
+    try std.testing.expectEqualStrings("root", quoted_value_nul.param);
+    try std.testing.expectEqualStrings("/dev/vda1", quoted_value_nul.value.?);
+    try std.testing.expectEqualStrings("", quoted_value_nul.rest);
+    try std.testing.expectEqualStrings("", quoted_value_nul.remaining);
+}
+
 test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {
     const parsed = cmdline.nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1");
     try std.testing.expectEqualStrings("console", parsed.param);
