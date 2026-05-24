@@ -5,174 +5,239 @@ import argparse
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3] if len(Path(__file__).resolve().parents) >= 4 else Path.cwd()
-NOTE = ROOT / "Documentation" / "zigux" / "artifact-diff.md"
 
-REQUIRED_MARKERS = (
-    "# Zigux Artifact-Diff Notes",
-    "## Current Phase 2 use",
-    "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep`, `genksyms`, and the kconfig bridge packet.",
-    "`zigux/tests/fixtures/fixdep/cases.json` keeps the current twelve-case fixdep packet reviewable by naming the committed stdout artifact for every shipped case and the expected stderr or exit-code contract whenever the case is not a plain success path, including the dedicated `sample_dependency_continuation`, `sample_comment_continuation`, `sample_output_write`, `sample_comment_only_stdout_full`, and `sample_missing_dep_stdout_full` write-failure replays.",
-    "`scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`.",
-    "`zigux/tests/fixtures/genksyms_bridge/minimal_expected.json` anchors the smallest wrapper-first `genksyms` invocation claim.",
-    "`scripts/zigux/check-genksyms-bridge.py` compares those committed JSON fixtures against both a bounded C harness and `scripts/zigux/genksyms.zig`.",
-    "`scripts/zigux/check-kconfig-bridge.py` compares those committed JSON fixtures against `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`.",
-    "`zigux/tests/fixtures/phase2_cross_targets.json` fixes the bounded cross-target compile set for the Phase 2 tool tranche.",
-    "`scripts/zigux/check-mk-elfconfig-diff.py` compares those committed JSON results against both the C tool and `scripts/zigux/mk_elfconfig.zig`.",
+ROOT = Path(__file__).resolve().parents[2]
+
+ARTIFACT_NOTE = Path("Documentation/zigux/artifact-diff.md")
+PHASE2_CLOSURE = Path("Documentation/zigux/phase2-closure.md")
+SCRIPTS_README = Path("scripts/zigux/README.md")
+BOOTSTRAP_LEDGER = Path("zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md")
+
+REQUIRED_FILES = (
+    ARTIFACT_NOTE,
+    PHASE2_CLOSURE,
+    SCRIPTS_README,
+    BOOTSTRAP_LEDGER,
 )
 
-FORBIDDEN_MARKERS: tuple[str, ...] = ()
+FILE_MARKERS = {
+    ARTIFACT_NOTE: (
+        "# Zigux Artifact-Diff Notes",
+        "## Current Phase 2 use",
+        "Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep`, `genksyms`, and the kconfig bridge packet.",
+    ),
+    PHASE2_CLOSURE: (
+        "`PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest`",
+        "The next bounded same-lane follow-through is to keep the shared Phase 2 closure packet parked unless one shared reminder surface drifts again.",
+    ),
+    SCRIPTS_README: (
+        "`scripts/zigux/check-phase2-artifact-tools-manifest.py`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep` keep the shipped artifact-support and fixdep packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
+    ),
+    BOOTSTRAP_LEDGER: (
+        "25. `docs(zigux): reopen and close broadened Phase 2 tranche`",
+        "- `Documentation/zigux/artifact-diff.md`",
+    ),
+}
 
-EXACT_COUNT_MARKERS = REQUIRED_MARKERS[2:]
+FORBIDDEN_MARKERS = {
+    PHASE2_CLOSURE: (
+        "`Documentation/zigux/artifact-diff.md`",
+    ),
+}
 
 
 def read_text(path: Path) -> str:
-    try:
-        return path.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise SystemExit(f"required file missing: {path}") from exc
+    return path.read_text(encoding="utf-8")
 
 
-def resolve_path(root: Path, path: Path) -> Path:
-    try:
-        return root / path.relative_to(ROOT)
-    except ValueError:
-        return root / path
-
-
-def collect_issues(root: Path) -> list[tuple[str, str]]:
-    note_text = read_text(resolve_path(root, NOTE))
-    issues: list[tuple[str, str]] = []
-    issues.extend(("MISSING_MARKER", marker) for marker in REQUIRED_MARKERS if marker not in note_text)
-    issues.extend(("FORBIDDEN_MARKER", marker) for marker in FORBIDDEN_MARKERS if marker in note_text)
-    for marker in EXACT_COUNT_MARKERS:
-        count = note_text.count(marker)
-        if count != 1:
-            issues.append(("EXACT_COUNT_MARKER", f"{count}::{marker}"))
-    return issues
-
-
-def emit_issues(issues: list[tuple[str, str]]) -> int:
-    grouped: dict[str, list[str]] = {}
-    for code, value in issues:
-        grouped.setdefault(code, []).append(value)
-    print("PHASE2_ARTIFACT_DIFF_NOTE=fail")
-    for code, values in grouped.items():
-        print(f"{code}_START")
-        for value in values:
-            print(value)
-        print(f"{code}_END")
-    return 1
-
-
-def write_text(path: Path, content: str) -> None:
+def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
-def sample_note_text() -> str:
-    return "\n".join(
-        (
-            "# Zigux Artifact-Diff Notes",
-            "",
-            "## Current Phase 2 use",
-            "",
-            REQUIRED_MARKERS[2],
-            REQUIRED_MARKERS[3],
-            REQUIRED_MARKERS[4],
-            REQUIRED_MARKERS[5],
-            REQUIRED_MARKERS[6],
-            REQUIRED_MARKERS[7],
-            REQUIRED_MARKERS[8],
-            REQUIRED_MARKERS[9],
-            "",
-        )
-    )
+    path.write_text(text, encoding="utf-8")
 
 
 def build_sample_root(root: Path) -> None:
-    write_text(resolve_path(root, NOTE), sample_note_text())
+    write_text(
+        root / ARTIFACT_NOTE,
+        "\n".join(
+            (
+                "# Zigux Artifact-Diff Notes",
+                "",
+                "## Current Phase 2 use",
+                "",
+                FILE_MARKERS[ARTIFACT_NOTE][2],
+                "",
+            )
+        ),
+    )
+    write_text(
+        root / PHASE2_CLOSURE,
+        "\n".join(
+            (
+                "# Phase 2 Closure",
+                "",
+                FILE_MARKERS[PHASE2_CLOSURE][0],
+                FILE_MARKERS[PHASE2_CLOSURE][1],
+                "",
+            )
+        ),
+    )
+    write_text(
+        root / SCRIPTS_README,
+        "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                FILE_MARKERS[SCRIPTS_README][0],
+                "",
+            )
+        ),
+    )
+    write_text(
+        root / BOOTSTRAP_LEDGER,
+        "\n".join(
+            (
+                "# Zigux Alpha Bootstrap Commit Ledger",
+                "",
+                "## Commit Train",
+                "",
+                FILE_MARKERS[BOOTSTRAP_LEDGER][0],
+                FILE_MARKERS[BOOTSTRAP_LEDGER][1],
+                "",
+            )
+        ),
+    )
 
 
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
+def collect_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+
+    for rel_path in REQUIRED_FILES:
+        abs_path = root / rel_path
+        if not abs_path.is_file():
+            issues.append(f"missing_file:{rel_path.as_posix()}")
+            continue
+
+        text = read_text(abs_path)
+        for marker in FILE_MARKERS[rel_path]:
+            if marker not in text:
+                issues.append(f"missing_marker:{rel_path.as_posix()}:{marker}")
+        for marker in FORBIDDEN_MARKERS.get(rel_path, ()):
+            if marker in text:
+                issues.append(f"forbidden_marker:{rel_path.as_posix()}:{marker}")
+
+    return issues
 
 
 def run_self_test() -> int:
-    checks_run = 0
-    expected_case_count = 1 + len(REQUIRED_MARKERS) + len(FORBIDDEN_MARKERS) + len(EXACT_COUNT_MARKERS) + 1
-    with tempfile.TemporaryDirectory(prefix="zigux_phase2_artifact_diff_note_") as tmp_dir:
+    cases_run = 0
+
+    with tempfile.TemporaryDirectory(prefix="phase2_artifact_diff_note_") as tmp_dir:
         root = Path(tmp_dir)
-        build_sample_root(root)
-        assert collect_issues(root) == []
-        checks_run += 1
-
-        for marker in REQUIRED_MARKERS:
-            build_sample_root(root)
-            path = resolve_path(root, NOTE)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_MARKER", marker) in issues
-            checks_run += 1
-
-        for marker in FORBIDDEN_MARKERS:
-            build_sample_root(root)
-            path = resolve_path(root, NOTE)
-            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("FORBIDDEN_MARKER", marker) in issues
-            checks_run += 1
-
-        for marker in EXACT_COUNT_MARKERS:
-            build_sample_root(root)
-            path = resolve_path(root, NOTE)
-            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("EXACT_COUNT_MARKER", f"2::{marker}") in issues
-            checks_run += 1
 
         build_sample_root(root)
-        resolve_path(root, NOTE).unlink()
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("missing note did not abort")
+        if collect_issues(root):
+            raise SystemExit("phase2-artifact-diff-note:self-test:good_tree")
+        cases_run += 1
 
-    assert checks_run == expected_case_count
+        build_sample_root(root)
+        (root / ARTIFACT_NOTE).unlink()
+        issues = collect_issues(root)
+        if issues != [f"missing_file:{ARTIFACT_NOTE.as_posix()}"]:
+            raise SystemExit("phase2-artifact-diff-note:self-test:missing_note")
+        cases_run += 1
+
+        build_sample_root(root)
+        write_text(root / ARTIFACT_NOTE, "# Zigux Artifact-Diff Notes\n")
+        issues = collect_issues(root)
+        expected_prefix = f"missing_marker:{ARTIFACT_NOTE.as_posix()}:"
+        if not issues or not all(issue.startswith(expected_prefix) for issue in issues):
+            raise SystemExit("phase2-artifact-diff-note:self-test:note_markers")
+        cases_run += 1
+
+        build_sample_root(root)
+        write_text(
+            root / PHASE2_CLOSURE,
+            "\n".join(
+                (
+                    "# Phase 2 Closure",
+                    "",
+                    FILE_MARKERS[PHASE2_CLOSURE][0],
+                    FILE_MARKERS[PHASE2_CLOSURE][1],
+                    "`Documentation/zigux/artifact-diff.md`",
+                    "",
+                )
+            ),
+        )
+        issues = collect_issues(root)
+        expected = f"forbidden_marker:{PHASE2_CLOSURE.as_posix()}:`Documentation/zigux/artifact-diff.md`"
+        if expected not in issues:
+            raise SystemExit("phase2-artifact-diff-note:self-test:closure_forbidden")
+        cases_run += 1
+
+        build_sample_root(root)
+        write_text(root / SCRIPTS_README, "# scripts/zigux\n")
+        issues = collect_issues(root)
+        expected_prefix = f"missing_marker:{SCRIPTS_README.as_posix()}:"
+        if not issues or not all(issue.startswith(expected_prefix) for issue in issues):
+            raise SystemExit("phase2-artifact-diff-note:self-test:scripts_marker")
+        cases_run += 1
+
+        build_sample_root(root)
+        write_text(root / BOOTSTRAP_LEDGER, "# Zigux Alpha Bootstrap Commit Ledger\n")
+        issues = collect_issues(root)
+        expected_prefix = f"missing_marker:{BOOTSTRAP_LEDGER.as_posix()}:"
+        if not issues or not all(issue.startswith(expected_prefix) for issue in issues):
+            raise SystemExit("phase2-artifact-diff-note:self-test:ledger_markers")
+        cases_run += 1
+
     print("PHASE2_ARTIFACT_DIFF_NOTE_SELF_TEST=pass")
-    print(f"PHASE2_ARTIFACT_DIFF_NOTE_SELF_TEST_CASE_COUNT={checks_run}")
+    print(f"PHASE2_ARTIFACT_DIFF_NOTE_SELF_TEST_CASE_COUNT={cases_run}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the shared Phase 2 artifact-diff note aligned with the current fixture-backed consumer packet."
+        description=(
+            "Check that the shared Lane 25 artifact-diff note stays aligned with the "
+            "current broadened Phase 2 reminder boundaries."
+        )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
-    parser.add_argument("--self-test", action="store_true", help="Run the built-in contract checks")
-    parser.add_argument("--write-sample-root", type=Path, help="Write a minimal passing sample root and exit")
+    parser.add_argument(
+        "--write-sample-root",
+        type=Path,
+        help="Write a current-like sample root for focused validation",
+    )
+    parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
     if args.write_sample_root is not None:
-        build_sample_root(args.write_sample_root.resolve())
+        build_sample_root(args.write_sample_root)
+        print(f"PHASE2_ARTIFACT_DIFF_NOTE_SAMPLE_ROOT={args.write_sample_root}")
         return 0
 
-    issues = collect_issues(args.root.resolve())
+    issues = collect_issues(args.root)
     if issues:
-        return emit_issues(issues)
+        print("PHASE2_ARTIFACT_DIFF_NOTE=fail")
+        print("PHASE2_ARTIFACT_DIFF_NOTE_ISSUES_START")
+        for issue in issues:
+            print(issue)
+        print("PHASE2_ARTIFACT_DIFF_NOTE_ISSUES_END")
+        return 1
 
     print("PHASE2_ARTIFACT_DIFF_NOTE=pass")
-    print(f"PHASE2_ARTIFACT_DIFF_NOTE_MARKER_COUNT={len(REQUIRED_MARKERS)}")
-    print(f"PHASE2_ARTIFACT_DIFF_NOTE_REQUIRED_PATH_COUNT={13}")
-    print(f"PHASE2_ARTIFACT_DIFF_NOTE_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_MARKERS)}")
+    print(f"PHASE2_ARTIFACT_DIFF_NOTE_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(
+        "PHASE2_ARTIFACT_DIFF_NOTE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in FILE_MARKERS.values())}"
+    )
+    print(
+        "PHASE2_ARTIFACT_DIFF_NOTE_FORBIDDEN_MARKER_COUNT="
+        f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
+    )
     return 0
 
 
