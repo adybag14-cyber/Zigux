@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 THIRD_PARTY_README = Path("third_party/README.md")
 TESTS_README = Path("zigux/tests/README.md")
+PHASE2_NOTES = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
 PHASE2_TOOL_MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 CHECK_PHASE2_TOOL_MANIFEST = Path("scripts/zigux/check-phase2-tool-manifest.py")
 CHECK_PHASE2_TESTS_ALIGNMENT = Path("scripts/zigux/check-phase2-tests-readme-alignment.py")
@@ -31,6 +32,17 @@ TESTS_README_MARKERS = (
     "## Phase 2 review packet",
     "current `master` now directly materializes `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-lane05-local-first-archive-workflow.py`, and `scripts/zigux/check-lane05-local-archive-readme.py`, so keep that returned repo-local pinned-archive workflow, bootstrap guard, and archive README contract explicit here instead of leaving them outside the tests-root reminder",
     "keep the repo-local pinned archive contract explicit through `third_party/README.md`, the pinned `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` filename plus digest and size contract, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, and the local-first `third_party`, mirror, then direct-download bootstrap order reused by `.github/workflows/zigux-bootstrap.yml` and the two Lane 05 archive checkers while the payload itself remains absent on current `master`",
+)
+
+PHASE2_NOTES_MARKERS = (
+    "- `third_party/README.md` is directly readable on current `master` and keeps the repo-local pinned archive filename, digest, size, duplicate-copy boundary, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` replay contract explicit beside the policy-driven toolchain packet while the payload itself remains absent until same-lane work rematerializes it.",
+    "## Current repo-reality gaps",
+    "- The bounded Phase 2 packet still has one current repo-reality gap on `master`: `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains absent even though its filename, digest, size, local-first fallback order, and allow-missing replay route stay directly reviewable through `third_party/README.md`, `.github/workflows/zigux-bootstrap.yml`, and the shipped Lane 05 reminder guards.",
+)
+
+PHASE2_NOTES_FORBIDDEN = (
+    "- `third_party/README.md` is directly readable on current `master` and keeps the repo-local pinned archive filename, digest, size, duplicate-copy boundary, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux` replay contract explicit beside the policy-driven toolchain packet.",
+    "- No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, local-first archive, returned archive-verification and staged-archive helper packet, or returned fixdep packet on current `master`.",
 )
 
 TOOL_MANIFEST_NOTE = (
@@ -85,6 +97,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if marker not in tests_text:
             issues.append(("MISSING_TESTS_MARKER", marker))
 
+    notes_text = read_text(root, PHASE2_NOTES)
+    for marker in PHASE2_NOTES_MARKERS:
+        if marker not in notes_text:
+            issues.append(("MISSING_PHASE2_NOTES_MARKER", marker))
+    for marker in PHASE2_NOTES_FORBIDDEN:
+        if marker in notes_text:
+            issues.append(("FORBIDDEN_PHASE2_NOTES_MARKER", marker))
+
     manifest = read_manifest(root)
     if manifest.get("repo_reality_gaps") != [PAYLOAD]:
         issues.append(("MANIFEST_GAPS_MISMATCH", repr(manifest.get("repo_reality_gaps"))))
@@ -112,6 +132,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 def build_self_test_root(root: Path) -> None:
     write_text(root, THIRD_PARTY_README, "\n".join(THIRD_PARTY_MARKERS) + "\n")
     write_text(root, TESTS_README, "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(root, PHASE2_NOTES, "\n".join(PHASE2_NOTES_MARKERS) + "\n")
     write_text(
         root,
         PHASE2_TOOL_MANIFEST,
@@ -145,6 +166,20 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, TESTS_README, "# broken\n")
         assert any(code == "MISSING_TESTS_MARKER" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, PHASE2_NOTES, "# broken\n")
+        assert any(code == "MISSING_PHASE2_NOTES_MARKER" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            PHASE2_NOTES,
+            "\n".join(PHASE2_NOTES_MARKERS + PHASE2_NOTES_FORBIDDEN) + "\n",
+        )
+        assert any(code == "FORBIDDEN_PHASE2_NOTES_MARKER" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
