@@ -26,88 +26,78 @@ REQUIRED_FILES = (
 
 MARKERS = {
     PHASE1_CLOSURE_REL: (
-        "- `scripts/zigux/check-phase1-bench.py`",
-        "- `zigux/tests/phase1_bench.zig`",
-        "- `zigux/tests/fixtures/phase1_bench_expectations.json`",
-        "- `PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+        "- `PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig`",
+        "- `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py`",
+        "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
+        "- `python3 scripts/zigux/install-zig.py --self-test` stays reviewable as the bounded installer-viability replay for that in-repo download step",
     ),
     SCRIPTS_README_REL: (
-        "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
-        "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
+        "- `validate-phase1-closure.py` confirms the closed Phase 1 packet still matches `Documentation/zigux/phase1-closure.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, the shared helper build wiring, and the bootstrap workflow.",
+        "- `check-phase1-parity.py` compares the bounded helper outputs against the committed Phase 1 fixture corpus so `bitmap`, `find_bit`, `string`, `rbtree`, and the rest of the closed helper set stay pinned to the current C behavior. - `check-phase1-bench.py` verifies the benchmark smoke outputs recorded in `zigux/tests/fixtures/phase1_bench_expectations.json` so the helper hot loops keep their checksum-backed replay contract.",
+        "- `zig build test --build-file zigux/tests/build.zig` and `zig build bench --build-file zigux/tests/build.zig` remain the executable Phase 1 unit and benchmark gates behind the validator and closure records.",
     ),
     TESTS_README_REL: (
-        "- `scripts/zigux/check-phase1-bench.py`",
-        "That shared smoke route should stay paired with the restored closure-side validator, the direct owner-map and string-review guards, the shipped bench checker, and the committed helper manifest so the tests-root note matches the same bounded Phase 1 packet already named by the docs root, lane-sequencing note, and scripts-root reminder.",
-        "Current `master` still keeps `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` outside the direct-readback packet here, so leave those validator-first, parity, bench-route, harness, and make-wrapper names framed as historical packet members until a fresh reread restores them on current `master`.",
+        "* keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
+        "* keep `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase1-installer-review-surfaces.py --self-test`, and `python3 scripts/zigux/check-phase1-installer-companion-checks.py` visible as focused companion checks for the closed Phase 1 installer-review surface without widening the counted tests-root packet line that `scripts/zigux/validate-phase1.py` currently enforces",
     ),
     WORKFLOW_REL: (
-        "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+        "run: python3 scripts/zigux/check-phase1-bench.py",
+        "run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe",
     ),
     BENCH_CHECKER_REL: (
         "class DuplicateTrackingDict(dict[str, object]):",
         "def parse_output(stdout: str) -> tuple[dict[str, str], dict[str, int]]:",
-        "def load_runtime_expectations(path: Path) -> tuple[str, object]:",
-        "def validate_bench_source(text: str) -> tuple[str, object]:",
-        'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
-        'print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")',
+        "def print_command_output(label: str, output: str | None) -> None:",
+        "print('PHASE1_BENCH_CHECK_SELF_TEST=pass')",
+        "print(f'PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={cases}')",
     ),
 }
 
 EXPECTED_BLOCKS = {
     BENCH_CHECKER_REL: (
         (
-            "HERE = Path(__file__).resolve()",
-            "DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent",
-            'EXPECTATIONS_REL = Path("zigux/tests/fixtures/phase1_bench_expectations.json")',
-            'PHASE1_BENCH_REL = Path("zigux/tests/phase1_bench.zig")',
+            "ROOT = Path(__file__).resolve().parents[2]",
+            "EXPECTATIONS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json'",
+            "PHASE1_BENCH = ROOT / 'zigux' / 'tests' / 'phase1_bench.zig'",
         ),
         (
-            'if kind == "missing_expectations_file":',
-            'print("PHASE1_BENCH_CHECK=fail")',
-            'print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
-            'print(f"EXPECTATIONS_PATH={payload}")',
+            "except json.JSONDecodeError as exc:",
+            "print('PHASE1_BENCH_CHECK=fail')",
+            "print(f'EXPECTATIONS_JSON_ERROR={exc.msg}')",
+            "print(f'EXPECTATIONS_JSON_LINE={exc.lineno}')",
+            "print(f'EXPECTATIONS_JSON_COLUMN={exc.colno}')",
             "return 1",
         ),
         (
-            'if kind == "expectations_json_error":',
-            "exc = payload",
-            "assert isinstance(exc, json.JSONDecodeError)",
-            'print("PHASE1_BENCH_CHECK=fail")',
-            'print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")',
-            'print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")',
-            'print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")',
-            "return 1",
-        ),
-        (
-            "status_mismatch_output = ok_output.replace(",
-            'kind, payload = validate_output(base_expectations(), status_mismatch_output)',
-            'assert_case(kind == "status", "status mismatch output", (kind, payload))',
-            'assert_case(payload == ("pass", "fail"), "status mismatch output payload", payload)',
-        ),
-        (
-            "for key, value, expected_kind in (",
-            '("PHASE1_BENCH_STRING_CHECKSUM", "5", "missing_string_exact_checksums"),',
-            '("PHASE1_BENCH_HWEIGHT_CHECKSUM", "6", "missing_hweight_exact_checksums"),',
-            '("PHASE1_BENCH_LIST_SORT_CHECKSUM", "7", "missing_list_sort_exact_checksums"),',
-            "):",
-            'missing_output = ok_output.replace(f"\\n{key}={value}", "")',
-            "kind, payload = validate_output(base_expectations(), missing_output)",
-            'assert_case(kind == expected_kind, "missing exact checksum output", (kind, payload))',
-            'assert_case(payload == [key], "missing exact checksum output payload", payload)',
+            "def validate_bench_source(source: str) -> tuple[str, object]:",
+            "missing_bitmap = [marker for marker in REQUIRED_BITMAP_SOURCE_MARKERS if marker not in source]",
+            "if missing_bitmap:",
+            "return ('missing_bitmap_source_markers', missing_bitmap)",
+            "missing_find_bit = [marker for marker in REQUIRED_FIND_BIT_SOURCE_MARKERS if marker not in source]",
+            "if missing_find_bit:",
+            "return ('missing_find_bit_source_markers', missing_find_bit)",
+            "missing_string = [marker for marker in REQUIRED_STRING_SOURCE_MARKERS if marker not in source]",
+            "if missing_string:",
+            "return ('missing_string_source_markers', missing_string)",
+            "missing_rbtree = [marker for marker in REQUIRED_RBTREE_SOURCE_MARKERS if marker not in source]",
+            "if missing_rbtree:",
+            "return ('missing_rbtree_source_markers', missing_rbtree)",
         ),
         (
             "kind, payload = validate_output(expectations, result.stdout)",
-            'if kind != "pass":',
-            'print("PHASE1_BENCH_CHECK=fail")',
-            'print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
-            "print(payload)",
+            "if kind == 'duplicate':",
+            "print('PHASE1_BENCH_CHECK=fail')",
+            "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
+            "for key in payload:",
+            "print(key)",
+            "print('DUPLICATE_PHASE1_BENCH_KEYS_END')",
             "return 1",
         ),
         (
-            'print("PHASE1_BENCH_CHECK=pass")',
-            'print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}")',
-            'print(f"PHASE1_BENCH_SOURCE={phase1_bench}")',
-            'print(f"PHASE1_BENCH_ZIG={zig}")',
+            "print('PHASE1_BENCH_CHECK=pass')",
+            "print(f'PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}')",
+            "print(f'PHASE1_BENCH_SOURCE={PHASE1_BENCH}')",
+            "print(f'PHASE1_BENCH_ZIG={zig}')",
             "return 0",
         ),
     ),
@@ -115,12 +105,13 @@ EXPECTED_BLOCKS = {
 
 FORBIDDEN_FRAGMENTS = {
     WORKFLOW_REL: (
-        "run: zig build bench --build-file zigux/tests/build.zig",
+        "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
     ),
     BENCH_CHECKER_REL: (
-        "PHASE1_BENCH_EXPECTATION_COUNT",
-        'print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")',
-        'print(f"PHASE1_BENCH_SOURCE={PHASE1_BENCH}")',
+        "PHASE1_BENCH_CHECK_REASON=",
+        'print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}")',
+        'print(f"PHASE1_BENCH_SOURCE={phase1_bench}")',
+        "DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent",
     ),
 }
 
@@ -235,35 +226,18 @@ def run_self_test() -> int:
         insert_after(
             root,
             BENCH_CHECKER_REL,
-            "for key, value, expected_kind in (",
-            "for key, value, expected_kind in (",
+            "kind, payload = validate_output(expectations, result.stdout)",
+            "kind, payload = validate_output(expectations, result.stdout)",
             (
-                "# interleaved tuple comment",
-                "# interleaved tuple comment",
-                "# interleaved tuple comment",
+                "# interleaved duplicate-output comment",
+                "# interleaved duplicate-output comment",
+                "# interleaved duplicate-output comment",
             ),
         )
         issues = collect_issues(root)
         if issues:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=interleaved_tuple_lines")
-            print(f"actual={issues!r}")
-            return 1
-
-    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-multiline-") as tmpdir:
-        root = Path(tmpdir)
-        build_sample_repo(root)
-        insert_after(
-            root,
-            BENCH_CHECKER_REL,
-            "status_mismatch_output = ok_output.replace(",
-            "status_mismatch_output = ok_output.replace(",
-            ('"PHASE1_BENCH=pass",', '"PHASE1_BENCH=fail",', "1,", ")"),
-        )
-        issues = collect_issues(root)
-        if issues:
-            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=multiline_replace_arguments")
+            print("case=interleaved_duplicate_output_lines")
             print(f"actual={issues!r}")
             return 1
 
@@ -274,24 +248,24 @@ def run_self_test() -> int:
         text = path.read_text(encoding="utf-8")
         old = "\n".join(
             (
-                'kind, payload = validate_output(base_expectations(), status_mismatch_output)',
-                'assert_case(kind == "status", "status mismatch output", (kind, payload))',
-                'assert_case(payload == ("pass", "fail"), "status mismatch output payload", payload)',
+                "if kind == 'duplicate':",
+                "print('PHASE1_BENCH_CHECK=fail')",
+                "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
             )
         )
         new = "\n".join(
             (
-                'assert_case(kind == "status", "status mismatch output", (kind, payload))',
-                'kind, payload = validate_output(base_expectations(), status_mismatch_output)',
-                'assert_case(payload == ("pass", "fail"), "status mismatch output payload", payload)',
+                "print('PHASE1_BENCH_CHECK=fail')",
+                "if kind == 'duplicate':",
+                "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
             )
         )
         path.write_text(text.replace(old, new, 1), encoding="utf-8")
         issues = collect_issues(root)
-        expected_prefix = f"{BENCH_CHECKER_REL}:assert_block:status_mismatch_output = ok_output.replace("
+        expected_prefix = f"{BENCH_CHECKER_REL}:assert_block:kind, payload = validate_output(expectations, result.stdout)"
         if len(issues) != 1 or not issues[0].startswith(expected_prefix):
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=reordered_expected_lines_fail_closed")
+            print("case=reordered_duplicate_output_lines_fail_closed")
             print(f"actual={issues!r}")
             return 1
 
@@ -302,22 +276,22 @@ def run_self_test() -> int:
         text = path.read_text(encoding="utf-8")
         duplicated_anchor = "\n".join(
             (
-                "status_mismatch_output = ok_output.replace(",
-                "status_mismatch_output = ok_output.replace(",
+                "kind, payload = validate_output(expectations, result.stdout)",
+                "kind, payload = validate_output(expectations, result.stdout)",
             )
         )
         path.write_text(
-            text.replace("status_mismatch_output = ok_output.replace(", duplicated_anchor, 1),
+            text.replace("kind, payload = validate_output(expectations, result.stdout)", duplicated_anchor, 1),
             encoding="utf-8",
         )
         issues = collect_issues(root)
         expected_issue = (
             f"{BENCH_CHECKER_REL}:marker_count:"
-            "status_mismatch_output = ok_output.replace(:expected=1:actual=2"
+            "kind, payload = validate_output(expectations, result.stdout):expected=1:actual=2"
         )
         if issues != [expected_issue]:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=duplicate_first_line_fail_closed")
+            print("case=duplicate_duplicate_output_anchor_fail_closed")
             print(f"actual={issues!r}")
             return 1
 
@@ -327,17 +301,36 @@ def run_self_test() -> int:
         path = root / WORKFLOW_REL
         text = path.read_text(encoding="utf-8")
         path.write_text(
-            text + "run: zig build bench --build-file zigux/tests/build.zig\n",
+            text + "run: python3 scripts/zigux/check-phase1-bench.py --self-test\n",
             encoding="utf-8",
         )
         issues = collect_issues(root)
         expected_issue = (
             f"{WORKFLOW_REL}:forbidden:"
-            "run: zig build bench --build-file zigux/tests/build.zig:actual=1"
+            "run: python3 scripts/zigux/check-phase1-bench.py --self-test:actual=1"
         )
         if issues != [expected_issue]:
             print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
-            print("case=workflow_forbidden_route_fail_closed")
+            print("case=workflow_stale_selftest_route_fail_closed")
+            print(f"actual={issues!r}")
+            return 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-bench-checker-forbidden-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / BENCH_CHECKER_REL
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text + "PHASE1_BENCH_CHECK_REASON=stale_generic_reason\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        expected_issue = (
+            f"{BENCH_CHECKER_REL}:forbidden:PHASE1_BENCH_CHECK_REASON=:actual=1"
+        )
+        if issues != [expected_issue]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=bench_checker_stale_reason_fail_closed")
             print(f"actual={issues!r}")
             return 1
 
