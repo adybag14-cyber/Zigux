@@ -7,12 +7,32 @@ pub const PolicyError = error{
     UnsafeScopeDenied,
 };
 
+pub const MmioRange = extern struct {
+    base_addr: usize,
+    length: u32,
+    stride: u32,
+};
+
 fn scopeFromInteropPolicy(policy: abi.InteropPolicy) PolicyError!abi.UnsafeScope {
     return unsafe_policy.scopeFromInteropPolicy(policy) orelse error.InvalidInteropPolicy;
 }
 
 fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) PolicyError!abi.UnsafeScope {
     return unsafe_policy.scopeFromInteropPolicyBytes(scope, reserved) orelse error.InvalidInteropPolicy;
+}
+
+fn byteOffsetAddress(base_addr: usize, byte_offset: usize) PolicyError!usize {
+    return std.math.add(usize, base_addr, byte_offset) catch error.InvalidInteropPolicy;
+}
+
+fn offsetConstPointer(comptime T: type, base_addr: usize, byte_offset: usize) PolicyError!*const volatile T {
+    if ((byte_offset % @alignOf(T)) != 0) return error.InvalidInteropPolicy;
+    return @ptrFromInt(try byteOffsetAddress(base_addr, byte_offset));
+}
+
+fn offsetPointer(comptime T: type, base_addr: usize, byte_offset: usize) PolicyError!*volatile T {
+    if ((byte_offset % @alignOf(T)) != 0) return error.InvalidInteropPolicy;
+    return @ptrFromInt(try byteOffsetAddress(base_addr, byte_offset));
 }
 
 pub fn allowsVolatileMmioScope(scope: abi.UnsafeScope) bool {
@@ -96,6 +116,37 @@ pub fn writeMaskedScoped(
 ) PolicyError!T {
     try requireVolatileMmioScope(scope);
     return writeMasked(T, ptr, clear_mask, set_mask);
+}
+
+pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) PolicyError!MmioRange {
+    try requireVolatileMmioScope(scope);
+    return .{
+        .base_addr = base_addr,
+        .length = length,
+        .stride = stride,
+    };
+}
+
+pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) PolicyError!MmioRange {
+    try requireInteropPolicy(policy);
+    return .{
+        .base_addr = base_addr,
+        .length = length,
+        .stride = stride,
+    };
+}
+
+pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) PolicyError!MmioRange {
+    try requireInteropPolicyBytes(unsafe_scope, reserved);
+    return .{
+        .base_addr = base_addr,
+        .length = length,
+        .stride = stride,
+    };
+}
+
+pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) PolicyError!MmioRange {
+    return rangeInteropPolicyBytes(base_addr, length, stride, unsafe_scope, 0);
 }
 
 pub fn readInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *const volatile T) PolicyError!T {
@@ -202,6 +253,30 @@ pub fn writeMaskedInteropPolicyByte(
 ) PolicyError!T {
     try requireInteropPolicyByte(unsafe_scope);
     return writeMasked(T, ptr, clear_mask, set_mask);
+}
+
+pub fn read8InteropPolicyBytes(base_addr: usize, byte_offset: usize, unsafe_scope: u8, reserved: u8) PolicyError!u8 {
+    return readInteropPolicyBytes(u8, unsafe_scope, reserved, try offsetConstPointer(u8, base_addr, byte_offset));
+}
+
+pub fn write8InteropPolicyBytes(base_addr: usize, byte_offset: usize, value: u8, unsafe_scope: u8, reserved: u8) PolicyError!void {
+    try writeInteropPolicyBytes(u8, unsafe_scope, reserved, try offsetPointer(u8, base_addr, byte_offset), value);
+}
+
+pub fn read32InteropPolicyByte(base_addr: usize, byte_offset: usize, unsafe_scope: u8) PolicyError!u32 {
+    return readInteropPolicyByte(u32, unsafe_scope, try offsetConstPointer(u32, base_addr, byte_offset));
+}
+
+pub fn write32InteropPolicyByte(base_addr: usize, byte_offset: usize, value: u32, unsafe_scope: u8) PolicyError!void {
+    try writeInteropPolicyByte(u32, unsafe_scope, try offsetPointer(u32, base_addr, byte_offset), value);
+}
+
+pub fn read64InteropPolicyBytes(base_addr: usize, byte_offset: usize, unsafe_scope: u8, reserved: u8) PolicyError!u64 {
+    return readInteropPolicyBytes(u64, unsafe_scope, reserved, try offsetConstPointer(u64, base_addr, byte_offset));
+}
+
+pub fn write64InteropPolicyBytes(base_addr: usize, byte_offset: usize, value: u64, unsafe_scope: u8, reserved: u8) PolicyError!void {
+    try writeInteropPolicyBytes(u64, unsafe_scope, reserved, try offsetPointer(u64, base_addr, byte_offset), value);
 }
 
 test "phase3 mmio helper keeps volatile register reads and writes reviewable" {
@@ -337,6 +412,32 @@ test "phase3 mmio helper keeps typed scope require gate explicit" {
     try requireVolatileMmioScope(.volatile_mmio);
     try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioScope(.none));
     try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioScope(.raw_pointer_bridge));
+}
+
+test "phase3 mmio helper keeps helper-local ranges and width aliases explicit" {
+    var bytes = [_]u8{0} ** 16;
+    const base_addr = @intFromPtr(&bytes[0]);
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const mmio_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio);
+    const no_unsafe_scope = @intFromEnum(abi.UnsafeScope.none);
+
+    const range = try rangeInteropPolicy(base_addr, 16, 4, mmio_policy);
+    try std.testing.expectEqual(base_addr, range.base_addr);
+    try std.testing.expectEqual(@as(u32, 16), range.length);
+    try std.testing.expectEqual(@as(u32, 4), range.stride);
+
+    try write8InteropPolicyBytes(base_addr, 1, 0x44, mmio_scope, 0);
+    try std.testing.expectEqual(@as(u8, 0x44), try read8InteropPolicyBytes(base_addr, 1, mmio_scope, 0));
+
+    try write32InteropPolicyByte(base_addr, 4, 0xC001_D00D, mmio_scope);
+    try std.testing.expectEqual(@as(u32, 0xC001_D00D), try read32InteropPolicyByte(base_addr, 4, mmio_scope));
+
+    try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base_addr, 8, 0, no_unsafe_scope, 0));
 }
 
 test "phase3 mmio helper keeps 64-bit const reads and masked updates reviewable" {
