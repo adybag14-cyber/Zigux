@@ -18,6 +18,7 @@ ROOT = _default_root()
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
 LIBBPF_SEGMENTS_TEST_PATH = "zigux/tests/phase8_libbpf_segments.zig"
@@ -51,6 +52,7 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     REVIEW_CHECKLIST_PATH,
+    BRIDGE_SLICE_PATH,
     SURVEY_PATH,
     "scripts/zigux/README.md",
     VALIDATOR_PATH,
@@ -71,6 +73,10 @@ SURVEY_MARKERS = [
     "The directly readable stable-output helper set therefore now keeps the aggregate verifier plus `cpu_mask.zig`, `cpu_mask_verify.zig`, `logging.zig`, `logging_verify.zig`, `pin_path.zig`, `pin_path_verify.zig`, `type_names.zig`, `type_names_verify.zig`, `perf_buffer_poll.zig`, `perf_buffer_poll_verify.zig`, `perf_buffer_ready_window.zig`, `online_cpu_routing.zig`, `online_cpu_routing_verify.zig`, `ready_buffer_attempt_verify.zig`, `ready_buffer_fd_verify.zig`, and `ready_buffer_window_verify.zig` explicit.",
     "Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/logging_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `tools/lib/bpf/zigux_segments/pin_path_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, and `tools/lib/bpf/zigux_segments/type_names_verify.zig` explicit.",
     "This survey should therefore keep the helper-first packet and the shared wrapper-route vocabulary explicit together without promoting the still-deferred setup-side routing, reopen-flow, token-materialization, object-model, or bridge-heavy work into direct authenticated helper proof.",
+]
+BRIDGE_SLICE_MARKERS = [
+    "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.",
+    "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.",
 ]
 VALIDATOR_MARKERS = [
     'LIBBPF_SEGMENT_GATE_CHECKER = Path("scripts/zigux/check-phase8-libbpf-segment-gate.py")',
@@ -150,6 +156,11 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     for marker in SURVEY_MARKERS:
         if marker not in survey_text:
             missing_markers.append(f"{SURVEY_PATH}:{marker}")
+
+    bridge_slice_text = read_text(root, BRIDGE_SLICE_PATH)
+    for marker in BRIDGE_SLICE_MARKERS:
+        if marker not in bridge_slice_text:
+            missing_markers.append(f"{BRIDGE_SLICE_PATH}:{marker}")
 
     for rel_path, markers in {
         VALIDATOR_PATH: VALIDATOR_MARKERS,
@@ -234,6 +245,18 @@ def fixture_survey() -> str:
         ]
     )
 
+def fixture_bridge_slice() -> str:
+    return "\n".join(
+        [
+            "# Phase 8 File-Path Handle Bridge Slice",
+            "",
+            BRIDGE_SLICE_MARKERS[0],
+            "",
+            BRIDGE_SLICE_MARKERS[1],
+            "",
+        ]
+    )
+
 def write(root: Path, rel_path: str, text: str) -> None:
     path = root / rel_path
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -243,6 +266,7 @@ def clone_fixture(root: Path) -> None:
     write(root, ".github/workflows/zigux-bootstrap.yml", "name: zigux-bootstrap\n- name: Validate Phase 8 tooling routes\n  run: make -C zigux phase8-validate\n")
     write(root, "Documentation/zigux/README.md", "# Zigux Documentation\n- `Documentation/zigux/phase8-libbpf-segment-survey.md`\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n")
     write(root, REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n- `scripts/zigux/validate-phase8.py`\n")
+    write(root, BRIDGE_SLICE_PATH, fixture_bridge_slice())
     write(root, "scripts/zigux/README.md", "# scripts/zigux\n- check-phase8-libbpf-segment-gate.py\n- Documentation/zigux/phase8-libbpf-segment-survey.md\n")
     write(
         root,
@@ -315,6 +339,20 @@ def run_self_test() -> int:
         if f"{SURVEY_PATH}:{SURVEY_MARKERS[0]}" not in validate(root)[1]:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:survey_marker")
         survey_path.write_text(original_survey, encoding="utf-8")
+
+        bridge_slice_path = root / BRIDGE_SLICE_PATH
+        original_bridge_slice = bridge_slice_path.read_text(encoding="utf-8")
+        bridge_slice_path.write_text(
+            original_bridge_slice.replace(
+                "bounded procfs path construction and fdinfo text parsing helpers",
+                "bounded procfs path shaping and fdinfo parsing helpers",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{BRIDGE_SLICE_PATH}:{BRIDGE_SLICE_MARKERS[0]}" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_slice_marker")
+        bridge_slice_path.write_text(original_bridge_slice, encoding="utf-8")
 
         validator_path = root / VALIDATOR_PATH
         original_validator = validator_path.read_text(encoding="utf-8")
@@ -546,7 +584,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=22")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 def main() -> int:
@@ -581,7 +619,7 @@ def main() -> int:
     print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT="
-        f"{len(SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(LIBBPF_SEGMENTS_TEST_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_BOUNDARY_GUARD_MARKERS) + len(BRIDGE_MANIFEST_SYNC_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
+        f"{len(SURVEY_MARKERS) + len(BRIDGE_SLICE_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(LIBBPF_SEGMENTS_TEST_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_BOUNDARY_GUARD_MARKERS) + len(BRIDGE_MANIFEST_SYNC_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
     )
     return 0
 
