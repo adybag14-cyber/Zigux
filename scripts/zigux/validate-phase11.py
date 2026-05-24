@@ -398,13 +398,18 @@ def run_self_test() -> int:
         for rel in (
             "Documentation/zigux/phase11-shared-replay-contract.md",
             "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+            "Documentation/zigux/phase11-hvc-console-survey.md",
             "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
             "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
             "drivers/tty/hvc/hvc_console.h",
             "drivers/tty/hvc/hvc_console.zig",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
+            "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
             "zigux/Makefile",
+            "zigux/tests/fixtures/phase11_build_inventory.json",
+            "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
+            "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
             "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
             "zigux/tests/phase11_hvc_modem_control_proof.zig",
@@ -498,7 +503,7 @@ def run_self_test() -> int:
             ("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig", "phase11-hvc-targetless-unregister-gap-build"),
         ):
             reset_fixture(fail_build_file=build_file)
-            expect_issue(f"live_failed:{spec_name}:exit=1")
+            expect_issue(f"live_failed:{spec.name}:exit=1")
             case_count += 1
 
         reset_fixture(fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
