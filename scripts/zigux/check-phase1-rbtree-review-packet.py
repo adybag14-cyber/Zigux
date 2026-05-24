@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 1 rbtree review packet against helper, fixture, manifest, and lane-note drift."""
+"""Guard the Phase 1 rbtree direct-anchor packet against helper-local drift."""
 
 from __future__ import annotations
 
@@ -14,42 +14,45 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 HELPER_REL = Path("tools/lib/rbtree.zig")
 LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
+CLOSURE_NOTE_REL = Path("Documentation/zigux/phase1-closure.md")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
+SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
+
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
 
 EXPECTED_SOURCE_SYMBOLS = [
-    "pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {",
-    "pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {",
+    "pub const MatchIterator = struct {",
     "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {",
     "pub fn rb_add_cached(node: *Node, root: *RootCached, less: LessFn) ?*Node {",
-    "pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
-    "pub fn rb_find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
-    "pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
-    "pub fn rb_find_first(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
+    "pub fn findAddCached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {",
+    "pub fn rb_find_add_cached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {",
     "pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {",
     "pub fn rb_next_match(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {",
     "pub fn matchIterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {",
     "pub fn rb_match_iterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {",
-    "pub fn findAddCached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {",
-    "pub fn rb_find_add_cached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {",
     "pub fn eraseCached(node: *Node, root: *RootCached) ?*Node {",
     "pub fn rb_erase_cached(node: *Node, root: *RootCached) ?*Node {",
+    "pub fn eraseInitCached(node: *Node, root: *RootCached) void {",
+    "pub fn rb_erase_init_cached(node: *Node, root: *RootCached) void {",
     "pub fn firstCached(root: *const RootCached) ?*Node {",
     "pub fn rb_first_cached(root: *const RootCached) ?*Node {",
     "pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {",
     "pub fn rb_replace_node_cached(victim: *Node, new: *Node, root: *RootCached) void {",
-    "pub fn eraseInitCached(node: *Node, root: *RootCached) void {",
-    "pub fn rb_erase_init_cached(node: *Node, root: *RootCached) void {",
 ]
 
 EXPECTED_HELPER_TEST_ANCHORS = [
-    'test "rbtree inserts and traverses in sorted order"',
-    'test "rbtree erase and replace keep traversal consistent"',
     'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
     'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
-    'test "rbtree eraseInit detaches erased node"',
-    'test "rbtree eraseInit clears singleton roots before reseed"',
-    'test "rbtree postorder and empty node helpers behave"',
     'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
     'test "rbtree nextMatch walks the duplicate range in order"',
     'test "rbtree matchIterator walks the duplicate range in order"',
@@ -64,31 +67,56 @@ EXPECTED_HELPER_TEST_ANCHORS = [
 ]
 
 EXPECTED_LANE_LINES = [
-    "- `tools/lib/rbtree.zig` now keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed coverage helper-local while the committed fixture still owns exact `find()`, `findFirst()`, `nextMatch()`, and `matchIterator()` duplicate-search fields and the shared host-tools smoke route already keeps duplicate-range iteration plus the parked `cached_leftmost_return_serials` witness explicit. The dedicated `low_level_alias_anchor` in `zigux/tests/fixtures/phase1_helper_manifest.json` also keeps the low-level Linux-style alias proof named explicitly inside that same helper-local packet instead of leaving it implied only by the broader helper test list. Until another committed cached-root replay field lands, leave the remaining cached-root anchors helper-local and do not batch a second widening into the same reopen step.",
     "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed fixture still owns exact find(), findFirst(), nextMatch(), and matchIterator() duplicate-search fields and the shared host-tools smoke route keeps duplicate-range iteration plus the parked cached_leftmost_return_serials witness explicit`",
-    "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
+    "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local ordered Linux-style alias proof, dedicated low_level_alias_anchor, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
+]
+
+EXPECTED_LANE_PARAGRAPH = (
+    "- `tools/lib/rbtree.zig` now keeps ordered Linux-style alias, low-level Linux-style "
+    "alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, "
+    "replacement, detach, and reseed coverage helper-local while the committed fixture still "
+    "owns exact `find()`, `findFirst()`, `nextMatch()`, and `matchIterator()` duplicate-search "
+    "fields and the shared host-tools smoke route already keeps duplicate-range iteration plus "
+    "the parked `cached_leftmost_return_serials` witness explicit. The dedicated "
+    "`low_level_alias_anchor` and `cached_root_alias_anchor` entries in "
+    "`zigux/tests/fixtures/phase1_helper_manifest.json` keep both Linux-style alias proofs named "
+    "explicitly inside that same helper-local packet instead of leaving either alias path implied "
+    "only by the broader helper test list. Until another committed cached-root replay field lands, "
+    "leave the remaining cached-root anchors helper-local and do not batch a second widening into "
+    "the same reopen step."
+)
+
+EXPECTED_CLOSURE_PARAGRAPH = (
+    "A second current helper-family tie-breaker inside that packet is the `rbtree` direct-anchor "
+    "route: keep `tools/lib/rbtree.zig` parked unless a fresh reread finds drift in the helper-local "
+    "ordered Linux-style alias proof, the dedicated manifest-backed `low_level_alias_anchor`, the "
+    "dedicated manifest-backed `cached_root_alias_anchor`, the cached-root insert-miss, leftmost-sync, "
+    "cached-root alias, singleton-erase, replacement, detach, or reseed anchors, or drift in the "
+    "already-committed duplicate-search replay fields or exact `cached_leftmost_return_serials` witness. "
+    "Current `master` still keeps both Linux-style alias proofs named explicitly in "
+    "`zigux/tests/fixtures/phase1_helper_manifest.json`, while the shared host-tools smoke route and "
+    "committed Phase 1 fixture already recheck duplicate-range iteration plus the exact cached-leftmost-return "
+    "packet, so leave rbtree parked unless one of those helper-local anchors or committed replay fields drifts "
+    "and do not batch a second cached-root widening into the same reopen step."
+)
+
+EXPECTED_SMOKE_ANCHORS = [
+    'test "phase1 host-tools smoke exercises live helper behavior"',
+    "const first_duplicate = rbtree.findFirst(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;",
+    "const second_duplicate = rbtree.nextMatch(&duplicate_key, first_duplicate, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;",
+    "var iter = rbtree.matchIterator(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp);",
+    "cached_leftmost_return_serials[0] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[0].node, &cached_leftmost_root, RbtreeSmokeEntry.less));",
+    "cached_leftmost_return_serials[1] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[1].node, &cached_leftmost_root, RbtreeSmokeEntry.less));",
+    "cached_leftmost_return_serials[2] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[2].node, &cached_leftmost_root, RbtreeSmokeEntry.less));",
+    "cached_leftmost_return_serials[3] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[3].node, &cached_leftmost_root, RbtreeSmokeEntry.less));",
+    "try std.testing.expectEqualSlices(i32, &.{ 0, -1, 2, -1 }, &cached_leftmost_return_serials);",
+    "cached_root_transition_serials[0] = returnedSerial(rbtree.eraseCached(&cached_entries[1].node, &cached_root));",
+    "rbtree.replaceNodeCached(&cached_entries[0].node, &cached_replacement.node, &cached_root);",
+    "rbtree.eraseInitCached(&cached_replacement.node, &cached_root);",
 ]
 
 EXPECTED_MANIFEST_PACKET = {
-    "helper_test_anchors": EXPECTED_HELPER_TEST_ANCHORS,
     "phase1_helper_replay_anchor": 'test "phase1 host-tools smoke exercises live helper behavior"',
-    "parity_fixture_keys": [
-        "empty_root",
-        "insert_order",
-        "reverse_order",
-        "replace_order",
-        "erase_init_order",
-        "postorder_count",
-        "erase_init_node_empty",
-        "cleared_node_empty",
-        "find_found_key",
-        "find_missing",
-        "find_first_serial",
-        "next_match_serials",
-        "match_iterator_serials",
-        "next_match_terminal_null",
-    ],
-    "cached_leftmost_fixture_keys": ["cached_leftmost_return_serials"],
     "shared_replay_summary": "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools smoke replay now rechecks duplicate-range iteration plus the exact `cached_leftmost_return_serials` cached-root leftmost-return sequence on current master",
     "traversal_replay_keys": [
         "empty_root",
@@ -111,22 +139,8 @@ EXPECTED_MANIFEST_PACKET = {
     "cached_root_direct_review_summary": "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors, while the exact `cached_leftmost_return_serials` witness now stays aligned across the helper-local tests, the shared host-tools smoke replay, and the committed fixture",
     "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
     "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
-    "duplicate_search_anchors": [
-        'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
-        'test "rbtree nextMatch walks the duplicate range in order"',
-        'test "rbtree matchIterator walks the duplicate range in order"',
-    ],
-    "cached_root_followup_anchors": [
-        'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
-        'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
-        'test "rbtree cached root keeps the leftmost pointer in sync"',
-        'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
-        'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
-        'test "rbtree eraseCached returns null for a singleton cached tree"',
-        'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
-        'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
-    ],
     "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+    "cached_leftmost_fixture_keys": ["cached_leftmost_return_serials"],
     "review_packet_summary": "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly",
     "next_safe_step_note": "If this helper lane reopens, keep the already-landed shared-replay promotion for `cached_leftmost_return_serials` aligned across the committed fixture, shared replay, and direct cached-root anchors; the ordered Linux-style alias proof, dedicated `low_level_alias_anchor`, and the remaining cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior stay owned by direct helper-local anchors until another committed cached-root field lands.",
 }
@@ -158,34 +172,43 @@ def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
-def load_json(root: Path, relative_path: Path) -> Any:
-    return json.loads(load_text(root, relative_path))
+def load_json_with_duplicate_tracking(text: str) -> Any:
+    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
+
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(collect_duplicate_json_key_paths(item, prefix))
+    return paths
 
 
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     count = text.count(marker)
-    if count != 1:
-        return [f"{label}:expected=1:actual={count}"]
-    return []
+    return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
 
 def require_exact_value(label: str, actual: Any, expected: Any) -> list[str]:
     return [] if actual == expected else [f"{label}:expected_current_packet"]
 
 
-def nested_value(data: object, path: tuple[str, ...]) -> object:
-    current = data
-    for key in path:
-        if not isinstance(current, dict):
-            return None
-        current = current.get(key)
-    return current
-
-
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-
-    for relative_path in (HELPER_REL, LANE_NOTE_REL, MANIFEST_REL, FIXTURE_REL):
+    for relative_path in (
+        HELPER_REL,
+        LANE_NOTE_REL,
+        CLOSURE_NOTE_REL,
+        MANIFEST_REL,
+        FIXTURE_REL,
+        SMOKE_REL,
+    ):
         if not (root / relative_path).exists():
             failures.append(f"missing_file:{relative_path.as_posix()}")
     if failures:
@@ -193,31 +216,56 @@ def collect_failures(root: Path) -> list[str]:
 
     helper_text = load_text(root, HELPER_REL)
     lane_text = load_text(root, LANE_NOTE_REL)
-    manifest = load_json(root, MANIFEST_REL)
-    fixture = load_json(root, FIXTURE_REL)
+    closure_text = load_text(root, CLOSURE_NOTE_REL)
+    smoke_text = load_text(root, SMOKE_REL)
+
+    try:
+        manifest = load_json_with_duplicate_tracking(load_text(root, MANIFEST_REL))
+    except json.JSONDecodeError as exc:
+        return [f"manifest:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
+
+    try:
+        fixture = load_json_with_duplicate_tracking(load_text(root, FIXTURE_REL))
+    except json.JSONDecodeError as exc:
+        return [f"fixture:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"]
+
+    if not isinstance(manifest, dict):
+        return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
+    duplicate_manifest_paths = collect_duplicate_json_key_paths(manifest)
+    if duplicate_manifest_paths:
+        return [f"manifest:duplicate_json_key:{path}" for path in duplicate_manifest_paths]
+
+    if not isinstance(fixture, dict):
+        return [f"fixture:expected=dict:actual={type(fixture).__name__}"]
+    duplicate_fixture_paths = collect_duplicate_json_key_paths(fixture)
+    if duplicate_fixture_paths:
+        return [f"fixture:duplicate_json_key:{path}" for path in duplicate_fixture_paths]
 
     for symbol in EXPECTED_SOURCE_SYMBOLS:
         failures.extend(require_exact_occurrence(helper_text, f"helper_symbol:{symbol}", symbol))
-
     for anchor in EXPECTED_HELPER_TEST_ANCHORS:
         failures.extend(require_exact_occurrence(helper_text, f"helper_anchor:{anchor}", anchor))
-
     for lane_line in EXPECTED_LANE_LINES:
         failures.extend(require_exact_occurrence(lane_text, f"lane_line:{lane_line}", lane_line))
+    failures.extend(require_exact_occurrence(lane_text, "lane_paragraph", EXPECTED_LANE_PARAGRAPH))
+    failures.extend(
+        require_exact_occurrence(closure_text, "closure_paragraph", EXPECTED_CLOSURE_PARAGRAPH)
+    )
+    for anchor in EXPECTED_SMOKE_ANCHORS:
+        failures.extend(require_exact_occurrence(smoke_text, f"smoke_anchor:{anchor}", anchor))
 
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return ["manifest:review_anchors"]
+    packet = review_anchors.get("tools/lib/rbtree.zig")
+    if not isinstance(packet, dict):
+        return ["manifest:tools/lib/rbtree.zig"]
     for field, expected in EXPECTED_MANIFEST_PACKET.items():
-        failures.extend(
-            require_exact_value(
-                f"manifest:{field}",
-                nested_value(manifest, ("review_anchors", "tools/lib/rbtree.zig", field)),
-                expected,
-            )
-        )
+        failures.extend(require_exact_value(f"manifest:{field}", packet.get(field), expected))
 
-    rbtree_fixture = fixture.get("rbtree") if isinstance(fixture, dict) else None
+    rbtree_fixture = fixture.get("rbtree")
     if not isinstance(rbtree_fixture, dict):
         return ["fixture:rbtree"]
-
     for field, expected in EXPECTED_FIXTURE_VALUES.items():
         failures.extend(require_exact_value(f"fixture:{field}", rbtree_fixture.get(field), expected))
 
@@ -231,9 +279,14 @@ def write_text(root: Path, relative_path: Path, text: str) -> None:
 
 
 def build_sample_repo(root: Path) -> None:
-    helper_text = "\n".join(EXPECTED_SOURCE_SYMBOLS + [""] + EXPECTED_HELPER_TEST_ANCHORS) + "\n"
-    write_text(root, HELPER_REL, helper_text)
-    write_text(root, LANE_NOTE_REL, "# sample\n\n" + "\n".join(EXPECTED_LANE_LINES) + "\n")
+    write_text(root, HELPER_REL, "\n".join(EXPECTED_SOURCE_SYMBOLS + EXPECTED_HELPER_TEST_ANCHORS) + "\n")
+    write_text(
+        root,
+        LANE_NOTE_REL,
+        "# sample\n\n" + "\n".join(EXPECTED_LANE_LINES + [EXPECTED_LANE_PARAGRAPH]) + "\n",
+    )
+    write_text(root, CLOSURE_NOTE_REL, "# sample\n\n" + EXPECTED_CLOSURE_PARAGRAPH + "\n")
+    write_text(root, SMOKE_REL, "\n".join(EXPECTED_SMOKE_ANCHORS) + "\n")
     write_text(
         root,
         MANIFEST_REL,
@@ -242,16 +295,29 @@ def build_sample_repo(root: Path) -> None:
     write_text(root, FIXTURE_REL, json.dumps({"rbtree": EXPECTED_FIXTURE_VALUES}, indent=2) + "\n")
 
 
+def insert_duplicate_json_line(root: Path, relative_path: Path, needle: str, duplicate_line: str) -> None:
+    path = root / relative_path
+    text = path.read_text(encoding="utf-8")
+    path.write_text(text.replace(needle, duplicate_line + "\n" + needle, 1), encoding="utf-8")
+
+
 def run_self_test() -> int:
     cases = [
         ("missing_helper", "missing_file:tools/lib/rbtree.zig"),
-        ("missing_lane_packet_note", f"lane_line:{EXPECTED_LANE_LINES[0]}:expected=1:actual=0"),
-        ("missing_lane_line", f"lane_line:{EXPECTED_LANE_LINES[1]}:expected=1:actual=0"),
-        ("missing_symbol", f"helper_symbol:{EXPECTED_SOURCE_SYMBOLS[0]}:expected=1:actual=0"),
-        ("missing_anchor", f"helper_anchor:{EXPECTED_HELPER_TEST_ANCHORS[5]}:expected=1:actual=0"),
+        ("missing_symbol", "helper_symbol:pub fn rb_match_iterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {:expected=1:actual=0"),
+        ('missing_anchor', 'helper_anchor:test "rbtree cached-root Linux-style aliases mirror the primary helpers":expected=1:actual=0'),
+        ("missing_lane_line", f"lane_line:{EXPECTED_LANE_LINES[0]}:expected=1:actual=0"),
+        ("missing_lane_paragraph", "lane_paragraph:expected=1:actual=0"),
+        ("missing_closure_paragraph", "closure_paragraph:expected=1:actual=0"),
+        ('missing_smoke_anchor', 'smoke_anchor:try std.testing.expectEqualSlices(i32, &.{ 0, -1, 2, -1 }, &cached_leftmost_return_serials);:expected=1:actual=0'),
         ("manifest_drift", "manifest:review_packet_summary:expected_current_packet"),
+        ("manifest_alias_drift", "manifest:cached_root_alias_anchor:expected_current_packet"),
         ("fixture_drift", "fixture:cached_leftmost_return_serials:expected_current_packet"),
-        ("duplicate_anchor", f"helper_anchor:{EXPECTED_HELPER_TEST_ANCHORS[5]}:expected=1:actual=2"),
+        ('duplicate_anchor', 'helper_anchor:test "rbtree eraseCached returns null for a singleton cached tree":expected=1:actual=2'),
+        ("manifest_invalid_json", "manifest:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1"),
+        ("fixture_invalid_json", "fixture:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1"),
+        ("manifest_duplicate_summary", "manifest:duplicate_json_key:review_anchors.tools/lib/rbtree.zig.review_packet_summary"),
+        ("fixture_duplicate_cached_leftmost", "fixture:duplicate_json_key:rbtree.cached_leftmost_return_serials"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_rbtree_review_") as tmp_dir:
@@ -263,54 +329,117 @@ def run_self_test() -> int:
         if collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:baseline")
 
-        lane_text = load_text(tmp_root, LANE_NOTE_REL).replace(EXPECTED_LANE_LINES[0] + "\n", "", 1)
-        write_text(tmp_root, LANE_NOTE_REL, lane_text)
-        if cases[1][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-rbtree-review:self-test:missing_lane_packet_note")
-
-        build_sample_repo(tmp_root)
-        lane_text = load_text(tmp_root, LANE_NOTE_REL).replace(EXPECTED_LANE_LINES[1] + "\n", "", 1)
-        write_text(tmp_root, LANE_NOTE_REL, lane_text)
-        if cases[2][1] not in collect_failures(tmp_root):
-            raise SystemExit("phase1-rbtree-review:self-test:missing_lane_line")
-
-        build_sample_repo(tmp_root)
-        helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_SOURCE_SYMBOLS[0] + "\n", "", 1)
+        helper_text = load_text(tmp_root, HELPER_REL).replace(
+            "pub fn rb_match_iterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {\n",
+            "",
+            1,
+        )
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[3][1] not in collect_failures(tmp_root):
+        if cases[1][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:missing_symbol")
 
         build_sample_repo(tmp_root)
-        helper_text = load_text(tmp_root, HELPER_REL).replace(EXPECTED_HELPER_TEST_ANCHORS[5] + "\n", "", 1)
+        helper_text = load_text(tmp_root, HELPER_REL).replace(
+            'test "rbtree cached-root Linux-style aliases mirror the primary helpers"\n',
+            "",
+            1,
+        )
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[4][1] not in collect_failures(tmp_root):
+        if cases[2][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:missing_anchor")
 
         build_sample_repo(tmp_root)
-        manifest = load_json(tmp_root, MANIFEST_REL)
+        lane_text = load_text(tmp_root, LANE_NOTE_REL).replace(EXPECTED_LANE_LINES[0] + "\n", "", 1)
+        write_text(tmp_root, LANE_NOTE_REL, lane_text)
+        if cases[3][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:missing_lane_line")
+
+        build_sample_repo(tmp_root)
+        lane_text = load_text(tmp_root, LANE_NOTE_REL).replace(EXPECTED_LANE_PARAGRAPH + "\n", "", 1)
+        write_text(tmp_root, LANE_NOTE_REL, lane_text)
+        if cases[4][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:missing_lane_paragraph")
+
+        build_sample_repo(tmp_root)
+        closure_text = load_text(tmp_root, CLOSURE_NOTE_REL).replace(EXPECTED_CLOSURE_PARAGRAPH + "\n", "", 1)
+        write_text(tmp_root, CLOSURE_NOTE_REL, closure_text)
+        if cases[5][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:missing_closure_paragraph")
+
+        build_sample_repo(tmp_root)
+        smoke_text = load_text(tmp_root, SMOKE_REL).replace(
+            "try std.testing.expectEqualSlices(i32, &.{ 0, -1, 2, -1 }, &cached_leftmost_return_serials);\n",
+            "",
+            1,
+        )
+        write_text(tmp_root, SMOKE_REL, smoke_text)
+        if cases[6][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:missing_smoke_anchor")
+
+        build_sample_repo(tmp_root)
+        manifest = load_json_with_duplicate_tracking(load_text(tmp_root, MANIFEST_REL))
         manifest["review_anchors"]["tools/lib/rbtree.zig"]["review_packet_summary"] = "drift"
         write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
-        if cases[5][1] not in collect_failures(tmp_root):
+        if cases[7][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:manifest_drift")
 
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(tmp_root)
-        fixture = load_json(tmp_root, FIXTURE_REL)
-        fixture["rbtree"]["cached_leftmost_return_serials"] = [0, -1, 2]
+        build_sample_repo(tmp_root)
+        manifest = load_json_with_duplicate_tracking(load_text(tmp_root, MANIFEST_REL))
+        manifest["review_anchors"]["tools/lib/rbtree.zig"]["cached_root_alias_anchor"] = "drift"
+        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        if cases[8][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:manifest_alias_drift")
+
+        build_sample_repo(tmp_root)
+        fixture = load_json_with_duplicate_tracking(load_text(tmp_root, FIXTURE_REL))
+        fixture["rbtree"]["cached_leftmost_return_serials"] = [0]
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
-        if cases[6][1] not in collect_failures(tmp_root):
+        if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:fixture_drift")
 
-        build_sampleRepo(tmp_root)
-        helper_text = load_text(tmp_root, HELPER_REL)
-        duplicated = EXPECTED_HELPER_TEST_ANCHORS[5]
-        helper_text = helper_text.replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
+        build_sample_repo(tmp_root)
+        helper_text = load_text(tmp_root, HELPER_REL).replace(
+            'test "rbtree eraseCached returns null for a singleton cached tree"\n',
+            'test "rbtree eraseCached returns null for a singleton cached tree"\n'
+            'test "rbtree eraseCached returns null for a singleton cached tree"\n',
+            1,
+        )
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[7][1] not in collect_failures(tmp_root):
+        if cases[10][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-rbtree-review:self-test:duplicate_anchor")
 
+        build_sample_repo(tmp_root)
+        write_text(tmp_root, MANIFEST_REL, "{\n")
+        if cases[11][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:manifest_invalid_json")
+
+        build_sampleRepo(tmp_root)
+        write_text(tmp_root, FIXTURE_REL, "{\n")
+        if cases[12][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:fixture_invalid_json")
+
+        build_sample_repo(tmp_root)
+        insert_duplicate_json_line(
+            tmp_root,
+            MANIFEST_REL,
+            '      "review_packet_summary": "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly",',
+            '      "review_packet_summary": "drifted duplicate summary",',
+        )
+        if cases[13][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:manifest_duplicate_summary")
+
+        build_sample_repo(tmp_root)
+        insert_duplicate_json_line(
+            tmp_root,
+            FIXTURE_REL,
+            '    "cached_leftmost_return_serials": [',
+            '    "cached_leftmost_return_serials": [99],',
+        )
+        if cases[14][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-rbtree-review:self-test:fixture_duplicate_cached_leftmost")
+
     print("PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST_CASE_COUNT=8")
+    print(f"PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
 
 
@@ -318,10 +447,20 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="Repository root to validate")
     parser.add_argument("--self-test", action="store_true", help="Run checker self-tests")
+    parser.add_argument(
+        "--write-sample-root",
+        help="Write a current-master-safe sample root and exit",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+
+    if args.write_sample_root:
+        root = Path(args.write_sample_root).resolve()
+        build_sample_repo(root)
+        print(f"PHASE1_RBTREE_REVIEW_PACKET_SAMPLE_ROOT={root}")
+        return 0
 
     failures = collect_failures(repo_root(args.root))
     if failures:
@@ -334,7 +473,9 @@ def main() -> int:
     print(f"PHASE1_RBTREE_REVIEW_PACKET_HELPER={HELPER_REL.as_posix()}")
     print(f"PHASE1_RBTREE_REVIEW_PACKET_MANIFEST={MANIFEST_REL.as_posix()}")
     print(f"PHASE1_RBTREE_REVIEW_PACKET_FIXTURE={FIXTURE_REL.as_posix()}")
+    print(f"PHASE1_RBTREE_REVIEW_PACKET_SMOKE={SMOKE_REL.as_posix()}")
     print(f"PHASE1_RBTREE_REVIEW_PACKET_LANE_NOTE={LANE_NOTE_REL.as_posix()}")
+    print(f"PHASE1_RBTREE_REVIEW_PACKET_CLOSURE_NOTE={CLOSURE_NOTE_REL.as_posix()}")
     return 0
 
 
