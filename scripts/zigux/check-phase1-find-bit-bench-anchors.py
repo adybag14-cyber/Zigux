@@ -36,13 +36,14 @@ REQUIRED_SOURCE_PRESENT_MARKERS = {
     "find_next_andnot_boundary": "findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)",
     "find_next_or_boundary": "findNextOrBit(&or_lhs, &or_rhs, nbits, boundary)",
     "find_next_zero_boundary": "findNextZeroBit(&zero_map, nbits, boundary)",
+    "find_first_andnot_low_level_alias": "try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
+    "find_last_empty_bitmap": "try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));",
 }
 
 REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_first_andnot_gap": "findFirstAndNotBit(&andnot_lhs, &andnot_rhs, bits_per_long * 3)",
-    "find_last_tail_single_word": "findLastBit(&single_word, single_word_nbits)",
+    "find_last_tail_single_word": "try std.testing.expectEqual(@as(usize, 4), findLastBit(&single_word, single_word_nbits));",
     "find_last_zero_sized": "findLastBit(&populated, 0)",
-    "find_last_empty_bitmap": "findLastBit(&bitmap, nbits)",
     "find_last_empty_zero": "findLastBit(&empty, 0)",
     "find_next_past_end": "findNextBit(&empty, 7, 11)",
     "find_next_zero_past_end": "findNextZeroBit(&empty, 7, 11)",
@@ -70,7 +71,6 @@ REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_clump8_low_level_alias_past_end": "_find_next_clump8(&clump, &empty, 8, 20)",
     "find_get_value8_last_aligned": "try std.testing.expectEqual(@as(u8, 0xa5), getValue8(&bitmap, last_aligned_byte));",
     "find_get_value8_next_word": "try std.testing.expectEqual(@as(u8, 0x11), getValue8(&bitmap, bits_per_long));",
-    "find_first_andnot_low_level_alias": "try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
     "find_next_andnot_low_level_alias": "try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), _find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
     "find_first_andnot_linux_alias": "try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));",
     "find_next_andnot_linux_alias": "try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
@@ -196,10 +196,10 @@ def build_sample_source(
         "    try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
         "}",
         'test "find last bit clamps tail words to nbits" {',
-        "    _ = findLastBit(&single_word, single_word_nbits);",
+        "    try std.testing.expectEqual(@as(usize, 4), findLastBit(&single_word, single_word_nbits));",
         "}",
         'test "find last bit returns nbits when no set bits remain" {',
-        "    _ = findLastBit(&bitmap, nbits);",
+        "    try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));",
         "    _ = findLastBit(&empty, 0);",
         "}",
     ]
