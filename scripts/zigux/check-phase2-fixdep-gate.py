@@ -14,6 +14,7 @@ DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 FIXDEP_REL = Path("scripts/zigux/fixdep.zig")
 FIXDEP_DIFF_REL = Path("scripts/zigux/check-fixdep-diff.py")
+VALIDATE_PHASE2_REL = Path("scripts/zigux/validate-phase2.py")
 FIXDEP_CASES_REL = Path("zigux/tests/fixtures/fixdep/cases.json")
 FIXDEP_SURVEY_REL = Path("Documentation/zigux/phase2-fixdep-dual-implementation-survey.md")
 PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
@@ -24,6 +25,7 @@ WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 REQUIRED_FILES = (
     FIXDEP_REL,
     FIXDEP_DIFF_REL,
+    VALIDATE_PHASE2_REL,
     FIXDEP_CASES_REL,
     FIXDEP_SURVEY_REL,
     PHASE2_CLOSURE_REL,
@@ -95,6 +97,32 @@ FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
     "cases = validate_cases(load_cases(CASES_PATH))",
 )
 
+VALIDATE_PHASE2_REQUIRED_PATH_LINES = (
+    '"scripts/zigux/check-phase2-fixdep-gate.py",',
+    '"scripts/zigux/check-fixdep-diff.py",',
+    '"scripts/zigux/fixdep.zig",',
+    '"zigux/tests/fixtures/fixdep/cases.json",',
+)
+
+VALIDATE_PHASE2_REQUIRED_WORKFLOW_LINES = (
+    '"run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",',
+    '"run: python3 scripts/zigux/check-phase2-fixdep-gate.py",',
+    '"run: python3 scripts/zigux/check-fixdep-diff.py --self-test",',
+    '"run: python3 scripts/zigux/check-fixdep-diff.py",',
+    '"run: zig test scripts/zigux/fixdep.zig",',
+    '"run: make -C zigux phase2-fixdep",',
+)
+
+VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES = (
+    '"phase2-fixdep:",',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",',
+    '"cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",',
+    '"cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",',
+    '"phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",',
+)
+
 REQUIRED_FIXDEP_CASE_NAMES = (
     "sample",
     "sample_multi_target",
@@ -158,6 +186,12 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
     + len(FIXDEP_DIFF_CONTRACT_EXACT_LINES)
     + len(FIXDEP_DIFF_CONTRACT_EXACT_LINES)
+    + len(VALIDATE_PHASE2_REQUIRED_PATH_LINES)
+    + len(VALIDATE_PHASE2_REQUIRED_PATH_LINES)
+    + len(VALIDATE_PHASE2_REQUIRED_WORKFLOW_LINES)
+    + len(VALIDATE_PHASE2_REQUIRED_WORKFLOW_LINES)
+    + len(VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES)
+    + len(VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_FIXDEP_CASE_NAMES)
     + 9
     + len(CLOSURE_REQUIRED_MARKERS)
@@ -296,6 +330,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     fixdep_text = read_text(resolve(root, FIXDEP_REL))
     fixdep_diff_text = read_text(resolve(root, FIXDEP_DIFF_REL))
+    validate_phase2_text = read_text(resolve(root, VALIDATE_PHASE2_REL))
     closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
     tests_readme_text = read_text(resolve(root, TESTS_README_REL))
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
@@ -323,6 +358,30 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             FIXDEP_DIFF_CONTRACT_EXACT_LINES,
             "MISSING_FIXDEP_DIFF_CONTRACT_LINE",
             "DUPLICATE_FIXDEP_DIFF_CONTRACT_LINE",
+        )
+    )
+    issues.extend(
+        collect_required_exact_lines(
+            validate_phase2_text,
+            VALIDATE_PHASE2_REQUIRED_PATH_LINES,
+            "MISSING_VALIDATE_PHASE2_PATH_LINE",
+            "DUPLICATE_VALIDATE_PHASE2_PATH_LINE",
+        )
+    )
+    issues.extend(
+        collect_required_exact_lines(
+            validate_phase2_text,
+            VALIDATE_PHASE2_REQUIRED_WORKFLOW_LINES,
+            "MISSING_VALIDATE_PHASE2_WORKFLOW_LINE",
+            "DUPLICATE_VALIDATE_PHASE2_WORKFLOW_LINE",
+        )
+    )
+    issues.extend(
+        collect_required_exact_lines(
+            validate_phase2_text,
+            VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES,
+            "MISSING_VALIDATE_PHASE2_MAKEFILE_LINE",
+            "DUPLICATE_VALIDATE_PHASE2_MAKEFILE_LINE",
         )
     )
     issues.extend(collect_fixdep_case_issues(resolve(root, FIXDEP_CASES_REL)))
@@ -508,6 +567,23 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
     write_text(
+        resolve(root, VALIDATE_PHASE2_REL),
+        "\n".join(
+            (
+                "REQUIRED_PATHS = (",
+                *VALIDATE_PHASE2_REQUIRED_PATH_LINES,
+                ")",
+                "REQUIRED_WORKFLOW_LINES = (",
+                *VALIDATE_PHASE2_REQUIRED_WORKFLOW_LINES,
+                ")",
+                "REQUIRED_MAKEFILE_LINES = (",
+                *VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES,
+                ")",
+            )
+        )
+        + "\n",
+    )
+    write_text(
         resolve(root, FIXDEP_CASES_REL),
         json.dumps([{"name": name} for name in REQUIRED_FIXDEP_CASE_NAMES], indent=2) + "\n",
     )
@@ -636,6 +712,48 @@ def run_self_test() -> int:
             ) in collect_issues(root)
             checks_run += 1
 
+        for marker in VALIDATE_PHASE2_REQUIRED_PATH_LINES:
+            build_self_test_root(root)
+            path = resolve(root, VALIDATE_PHASE2_REL)
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
+            assert ("MISSING_VALIDATE_PHASE2_PATH_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in VALIDATE_PHASE2_REQUIRED_PATH_LINES:
+            build_self_test_root(root)
+            path = resolve(root, VALIDATE_PHASE2_REL)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_VALIDATE_PHASE2_PATH_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in VALIDATE_PHASE2_REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve(root, VALIDATE_PHASE2_REL)
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
+            assert ("MISSING_VALIDATE_PHASE2_WORKFLOW_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in VALIDATE_PHASE2_REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve(root, VALIDATE_PHASE2_REL)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_VALIDATE_PHASE2_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve(root, VALIDATE_PHASE2_REL)
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
+            assert ("MISSING_VALIDATE_PHASE2_MAKEFILE_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve(root, VALIDATE_PHASE2_REL)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_VALIDATE_PHASE2_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
         for name in REQUIRED_FIXDEP_CASE_NAMES:
             build_self_test_root(root)
             path = resolve(root, FIXDEP_CASES_REL)
@@ -687,7 +805,7 @@ def run_self_test() -> int:
         cases[0]["name"] = ""
         path.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("INVALID_FIXDEP_CASE_NAME", "index=0:name=''") in issues
+        assert ("INVALID_FIXDEP_CASE_NAME", "index=0:name=''" ) in issues
         checks_run += 1
 
         for marker in CLOSURE_REQUIRED_MARKERS:
@@ -803,6 +921,9 @@ def main() -> int:
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_LINE_COUNT={len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_CONTRACT_LINE_COUNT={len(FIXDEP_DIFF_CONTRACT_EXACT_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_VALIDATE_PHASE2_PATH_LINE_COUNT={len(VALIDATE_PHASE2_REQUIRED_PATH_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_VALIDATE_PHASE2_WORKFLOW_LINE_COUNT={len(VALIDATE_PHASE2_REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_VALIDATE_PHASE2_MAKEFILE_LINE_COUNT={len(VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_CASE_COUNT={len(REQUIRED_FIXDEP_CASE_NAMES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_PHONY_TARGET_COUNT={len(REQUIRED_MAKEFILE_PHONY_TARGETS)}")
