@@ -125,3 +125,33 @@ test "phase 8 bridge boundary survey keeps the mixed-source helper packet and de
         "The timing-adjacent poll reminder also stays explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and the shared `phase8` routes; that dedicated packet keeps no standalone timer helper behavior, no standalone clockevent helper behavior, and no broader timeout-sensitive routing behavior explicit while the surrounding setup-side bridge remains deferred.",
     );
 }
+
+test "phase 8 bridge manifest sync keeps the shared validator bridge packet explicit" {
+    const validate_phase8 = try readWorkspaceFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase8.py",
+        96 * 1024,
+    );
+    defer std.testing.allocator.free(validate_phase8);
+
+    try expectContains(
+        validate_phase8,
+        "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+    );
+    try expectContains(
+        validate_phase8,
+        "zigux/tests/phase8_file_path_handle_boundary_guard.zig",
+    );
+    try expectContains(
+        validate_phase8,
+        "zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig",
+    );
+    try expectContains(
+        validate_phase8,
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    );
+    try expectContains(
+        validate_phase8,
+        "phase8-file-path-handle-bridge-test",
+    );
+}
