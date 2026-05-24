@@ -8,33 +8,36 @@ from pathlib import Path
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 
 REQUIRED_MARKERS = (
-    "# Zigux Documentation",
-    "Phase 14 notes",
-    "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
-    "`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`",
-    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
-)
-
-FORBIDDEN_PHASE15_MARKERS = (
     "Phase 15 notes",
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "`Documentation/zigux/phase15-shared-summary-gap.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-shared-summary-gap.py`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_readiness_gate_manifest.json`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` remain reminder surfaces",
+    "`Documentation/zigux/phase15-shared-summary-gap.md` before they are treated as fully aligned current-`master` evidence",
+    "do not by themselves imply a freeze-map status change or Architecture Council approval",
+    "`Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+    "the shared Phase 15 docs-root handoff should also keep",
+    "the named reopen trigger",
+    "deep-core blocker-posture change",
 )
 
 
-def collect_alignment_errors(root: Path) -> list[str]:
+def collect_missing_markers(root: Path) -> list[str]:
     source = (root / DOCS_README_PATH).read_text(encoding="utf-8")
-    errors: list[str] = []
+    missing: list[str] = []
     for marker in REQUIRED_MARKERS:
         if marker not in source:
-            errors.append(f"docs_readme:missing:{marker}")
-    for marker in FORBIDDEN_PHASE15_MARKERS:
-        if marker in source:
-            errors.append(f"docs_readme:unexpected:{marker}")
-    return errors
+            missing.append(f"docs_readme:{marker}")
+    return missing
 
 
 def _write(path: Path, text: str) -> None:
@@ -43,88 +46,101 @@ def _write(path: Path, text: str) -> None:
 
 
 def _sample_docs_readme() -> str:
-    return """# Zigux Documentation
-Phase 14 notes
-`Documentation/zigux/phase14-end-to-end-smoke-survey.md`
-`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`
+    return """Scope
+Phase 15 notes
+`Documentation/zigux/phase15-readiness-gate-survey.md`
+`Documentation/zigux/phase15-handoff-next-steps-survey.md`
+`Documentation/zigux/phase15-governance-lane-sequencing.md`
 `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+`Documentation/zigux/phase15-shared-summary-gap.md`
+`scripts/zigux/check-phase15-docs-readme-alignment.py`
+`scripts/zigux/check-phase15-scripts-readme-alignment.py`
+`scripts/zigux/check-phase15-shared-summary-gap.py`
+`scripts/zigux/check-phase15-review-process-handoff.py`
+`scripts/zigux/validate-phase15.py`
+`zigux/tests/phase15_readiness_gate_manifest.json`
+`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` remain reminder surfaces
+`Documentation/zigux/phase15-shared-summary-gap.md` before they are treated as fully aligned current-`master` evidence
+do not by themselves imply a freeze-map status change or Architecture Council approval
+`Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+the shared Phase 15 docs-root handoff should also keep
+the named reopen trigger
+deep-core blocker-posture change
 """
 
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase15_docs_readme_gap_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase15_docs_readme_") as tmp_dir:
         root = Path(tmp_dir)
         _write(root / DOCS_README_PATH, _sample_docs_readme())
 
-        if collect_alignment_errors(root):
+        if collect_missing_markers(root):
             raise AssertionError("baseline docs README fixture should pass")
         case_count += 1
 
-        _write(root / DOCS_README_PATH, _sample_docs_readme().replace("Phase 14 notes\n", "", 1))
-        errors = collect_alignment_errors(root)
-        if errors != ["docs_readme:missing:Phase 14 notes"]:
-            raise AssertionError(f"unexpected errors for missing phase-14 case: {errors}")
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "`Documentation/zigux/phase15-study-only-anchor-accounting.md`\n", "", 1
+            ),
+        )
+        missing = collect_missing_markers(root)
+        if missing != ["docs_readme:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"]:
+            raise AssertionError(
+                f"unexpected missing markers for study-only accounting case: {missing}"
+            )
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace("`scripts/zigux/check-phase15-docs-readme-alignment.py`\n", "", 1),
+        )
+        missing = collect_missing_markers(root)
+        if missing != ["docs_readme:`scripts/zigux/check-phase15-docs-readme-alignment.py`"]:
+            raise AssertionError(f"unexpected missing markers for docs checker case: {missing}")
         case_count += 1
 
         _write(
             root / DOCS_README_PATH,
             _sample_docs_readme().replace(
-                "`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`\n",
+                "do not by themselves imply a freeze-map status change or Architecture Council approval\n",
                 "",
                 1,
             ),
         )
-        errors = collect_alignment_errors(root)
+        missing = collect_missing_markers(root)
         expected = [
-            "docs_readme:missing:`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`"
+            "docs_readme:do not by themselves imply a freeze-map status change or Architecture Council approval"
         ]
-        if errors != expected:
-            raise AssertionError(f"unexpected errors for missing phase-14 gap marker case: {errors}")
+        if missing != expected:
+            raise AssertionError(f"unexpected missing markers for approval-posture case: {missing}")
         case_count += 1
 
         _write(
             root / DOCS_README_PATH,
             _sample_docs_readme().replace(
-                "`Documentation/zigux/phase15-study-only-anchor-accounting.md`\n",
+                "`Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`\n",
                 "",
                 1,
             ),
         )
-        errors = collect_alignment_errors(root)
+        missing = collect_missing_markers(root)
         expected = [
-            "docs_readme:missing:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"
+            "docs_readme:`Documentation/zigux/phase15-shared-summary-gap.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md`"
         ]
-        if errors != expected:
-            raise AssertionError(f"unexpected errors for missing study-only marker case: {errors}")
-        case_count += 1
-
-        _write(root / DOCS_README_PATH, _sample_docs_readme() + "Phase 15 notes\n")
-        errors = collect_alignment_errors(root)
-        if errors != ["docs_readme:unexpected:Phase 15 notes"]:
-            raise AssertionError(f"unexpected errors for unexpected phase-15 header case: {errors}")
+        if missing != expected:
+            raise AssertionError(f"unexpected missing markers for watchpoint-links case: {missing}")
         case_count += 1
 
         _write(
             root / DOCS_README_PATH,
-            _sample_docs_readme() + "`Documentation/zigux/phase15-readiness-gate-survey.md`\n",
+            _sample_docs_readme().replace("deep-core blocker-posture change\n", "", 1),
         )
-        errors = collect_alignment_errors(root)
-        expected = [
-            "docs_readme:unexpected:`Documentation/zigux/phase15-readiness-gate-survey.md`"
-        ]
-        if errors != expected:
-            raise AssertionError(f"unexpected errors for unexpected readiness marker case: {errors}")
-        case_count += 1
-
-        _write(
-            root / DOCS_README_PATH,
-            _sample_docs_readme() + "`scripts/zigux/validate-phase15.py`\n",
-        )
-        errors = collect_alignment_errors(root)
-        expected = ["docs_readme:unexpected:`scripts/zigux/validate-phase15.py`"]
-        if errors != expected:
-            raise AssertionError(f"unexpected errors for unexpected validator marker case: {errors}")
+        missing = collect_missing_markers(root)
+        if missing != ["docs_readme:deep-core blocker-posture change"]:
+            raise AssertionError(f"unexpected missing markers for blocker-posture case: {missing}")
         case_count += 1
 
     print("PHASE15_DOCS_README_ALIGNMENT_SELF_TEST=pass")
@@ -134,7 +150,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify that the docs-root README still aligns with the current Phase 15 shared-summary gap posture."
+        description="Verify that the docs-root Phase 15 summary still names the parked governance packet honestly."
     )
     parser.add_argument(
         "--root",
@@ -152,13 +168,13 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    errors = collect_alignment_errors(args.root)
-    if errors:
-        for item in errors:
+    missing = collect_missing_markers(args.root)
+    if missing:
+        for item in missing:
             print(f"ERROR: {item}")
         return 1
 
-    print("Phase 15 docs README gap alignment check passed.")
+    print("Phase 15 docs README alignment check passed.")
     return 0
 
 
