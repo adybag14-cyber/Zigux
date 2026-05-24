@@ -26,6 +26,16 @@ REQUIRED_TEST_MARKERS = {
 }
 
 REQUIRED_SOURCE_MARKERS = {
+    "match_iterator_struct": "pub const MatchIterator = struct {",
+    "match_iterator_next": "    pub fn next(self: *MatchIterator) ?*Node {",
+    "find": "pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
+    "rb_find": "pub fn rb_find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
+    "find_first": "pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
+    "rb_find_first": "pub fn rb_find_first(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
+    "next_match": "pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {",
+    "rb_next_match": "pub fn rb_next_match(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {",
+    "match_iterator": "pub fn matchIterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {",
+    "rb_match_iterator": "pub fn rb_match_iterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {",
     "insert_color_cached": "pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "rb_insert_color_cached": "pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "add_cached": "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {",
