@@ -169,6 +169,20 @@ def run_self_test() -> int:
         check(root)
         cases += 1
 
+        for relative_path in REQUIRED_FILES:
+            write_fixture(root)
+            (root / relative_path).unlink()
+            try:
+                check(root)
+            except CheckFailure as exc:
+                if f"missing required file: {relative_path}" not in str(exc):
+                    raise
+                cases += 1
+            else:
+                raise AssertionError(
+                    f"expected missing required file failure for {relative_path}"
+                )
+
         write_fixture(root)
         (root / NOTE_PATH).write_text("broken\n", encoding="utf-8")
         try:
@@ -203,6 +217,7 @@ def run_self_test() -> int:
             raise AssertionError("expected workflow marker failure")
 
         write_fixture(root)
+        (root / BUILD_PATH).writeText = None
         (root / BUILD_PATH).write_text("broken\n", encoding="utf-8")
         try:
             check(root)
@@ -250,7 +265,7 @@ def run_self_test() -> int:
         else:
             raise AssertionError("expected validator marker failure")
 
-        write_fixture(root)
+        writeFixture(root)
         path = root / NOTE_PATH
         path.write_text(
             path.read_text(encoding="utf-8").replace(
