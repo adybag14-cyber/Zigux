@@ -92,3 +92,31 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "narrow hweight helpers ignore bits outside their declared width" {
+    const noisy8: u32 = 0x1234_56b5;
+    const masked8: u32 = noisy8 & 0xff;
+    const count8 = swHweight8(masked8);
+    try std.testing.expectEqual(count8, swHweight8(noisy8));
+    try std.testing.expectEqual(count8, __sw_hweight8(noisy8));
+    try std.testing.expectEqual(count8, swHweight16(masked8));
+    try std.testing.expectEqual(count8, __sw_hweight16(masked8));
+    try std.testing.expectEqual(count8, swHweight32(masked8));
+    try std.testing.expectEqual(count8, __sw_hweight32(masked8));
+    try std.testing.expectEqual(@as(u64, count8), swHweight64(masked8));
+    try std.testing.expectEqual(@as(u64, count8), __sw_hweight64(masked8));
+    try std.testing.expectEqual(@as(usize, count8), hweightLong(masked8));
+    try std.testing.expectEqual(@as(usize, count8), hweight_long(masked8));
+
+    const noisy16: u32 = 0x55aa_a55a;
+    const masked16: u32 = noisy16 & 0xffff;
+    const count16 = swHweight16(masked16);
+    try std.testing.expectEqual(count16, swHweight16(noisy16));
+    try std.testing.expectEqual(count16, __sw_hweight16(noisy16));
+    try std.testing.expectEqual(count16, swHweight32(masked16));
+    try std.testing.expectEqual(count16, __sw_hweight32(masked16));
+    try std.testing.expectEqual(@as(u64, count16), swHweight64(masked16));
+    try std.testing.expectEqual(@as(u64, count16), __sw_hweight64(masked16));
+    try std.testing.expectEqual(@as(usize, count16), hweightLong(masked16));
+    try std.testing.expectEqual(@as(usize, count16), hweight_long(masked16));
+}
