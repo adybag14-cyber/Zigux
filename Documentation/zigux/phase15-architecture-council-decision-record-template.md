@@ -36,9 +36,10 @@ This is a review packet template, not approval by itself.
 
 ## Stay-In-C Closeout
 
-- retained `freeze_in_c` decision:
+- the retained `freeze_in_c` decision:
 - the current blocker:
 - the required approver set:
+- governance lane sequencing link or explicit scope note:
 - `retired_from_active_discussion` state:
 - automatic return-to-blocked trigger:
 - the reopen triggers:
@@ -73,5 +74,5 @@ This is a review packet template, not approval by itself.
 - Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance note.
 - Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.
 - If any required field above cannot be stated honestly, keep the request blocked and leave the C implementation as the product source of truth.
-- A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, the automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, and the evidence archive path that will be refreshed before any later reopen request explicit.
+- A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, the governance lane sequencing link or explicit scope note, the automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, and the evidence archive path that will be refreshed before any later reopen request explicit.
 - A reopen request must cite the exact reopen trigger being exercised, refreshed evidence by path, the blocker disposition being challenged, and the narrower seam or policy change that makes the new review safe to consider.
