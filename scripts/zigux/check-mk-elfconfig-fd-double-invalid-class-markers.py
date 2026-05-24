@@ -23,7 +23,6 @@ def validate_markers(path: Path) -> None:
             raise ValueError(f"{path}:duplicate_marker:{label}")
 
 
-
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="lane14-fd-double-invalid-class-") as tmp_dir:
         tmp_root = Path(tmp_dir)
@@ -43,7 +42,6 @@ def run_self_test() -> None:
             raise AssertionError("expected missing-marker self-test failure")
 
         duplicate_path = tmp_root / "duplicate.zig"
-        duplicate_path.writeText = None
         duplicate_path.write_text(
             "\n".join(
                 [
@@ -64,7 +62,6 @@ def run_self_test() -> None:
 
     print("MK_ELFCONFIG_FD_DOUBLE_INVALID_CLASS_MARKERS_SELF_TEST=pass")
     print("MK_ELFCONFIG_FD_DOUBLE_INVALID_CLASS_MARKERS_SELF_TEST_CASE_COUNT=3")
-
 
 
 def main() -> int:
