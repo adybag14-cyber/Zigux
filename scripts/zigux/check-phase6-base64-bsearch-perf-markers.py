@@ -87,6 +87,7 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
     "zigux/tests/phase6_bsearch_c_abi_budget.zig",
 ]
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
+EXPECTED_BSEARCH_BOUND_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_BASE64_ZIG_PERF_ROUTE = "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig"
 EXPECTED_BSEARCH_ZIG_PERF_ROUTE = "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig"
@@ -300,7 +301,7 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("bsearch perf labels drifted")
     if bsearch_perf.get("query_count") != 16:
         raise ValidationError("bsearch query count drifted")
-    if bsearch_perf.get("bound_budget_formula") != "len == 0 ? 0 : std.math.log2_int_floor(len) + 1":
+    if bsearch_perf.get("bound_budget_formula") != EXPECTED_BSEARCH_BOUND_BUDGET_FORMULA:
         raise ValidationError("bsearch bound budget formula drifted")
     require_string_list(
         bsearch_perf.get("runtime_selected_c_abi_replays"),
@@ -414,7 +415,7 @@ def scaffold_repo(root: Path) -> None:
                             "budget_model": "comparison_budget",
                             "case_labels": EXPECTED_BSEARCH_LABELS,
                             "query_count": 16,
-                            "bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1",
+                            "bound_budget_formula": EXPECTED_BSEARCH_BOUND_BUDGET_FORMULA,
                             "runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                             "linux_style_rerun_routes": [
                                 EXPECTED_BSEARCH_ZIG_PERF_ROUTE,
@@ -539,7 +540,7 @@ def run_self_test() -> None:
             "phase6-perf-gate-survey.md",
         )
         cases_run += 1
-        scaffold_repo(root)
+        scaffoldRepo(root)
 
         expect_failure(
             root,
@@ -977,7 +978,7 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
-                '"bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"',
+                f'"bound_budget_formula": "{EXPECTED_BSEARCH_BOUND_BUDGET_FORMULA}"',
                 '"bound_budget_formula": "len"',
             ),
             "bsearch bound budget formula drifted",
