@@ -5,8 +5,6 @@ const bcm2835_wdt = @import("bcm2835_wdt.zig");
 test "bcm2835 verify helper keeps timeout gates and PM-base handoff readiness explicit" {
     try std.testing.expectError(error.TimeoutTooSmall, bcm2835_wdt.summarizePlatformHandoff(.{
         .heartbeat_sec = 0,
-        .nowayout = false,
-        .bootloader_running = false,
         .system_power_controller = false,
         .poweroff_handler_present = false,
         .parent_attached = true,
@@ -15,8 +13,6 @@ test "bcm2835 verify helper keeps timeout gates and PM-base handoff readiness ex
 
     const ready = try bcm2835_wdt.summarizePlatformHandoff(.{
         .heartbeat_sec = 8,
-        .nowayout = true,
-        .bootloader_running = true,
         .system_power_controller = true,
         .poweroff_handler_present = false,
         .parent_attached = true,
@@ -39,8 +35,6 @@ test "bcm2835 verify helper keeps timeout gates and PM-base handoff readiness ex
 test "bcm2835 verify helper keeps timeout ceiling and non-controller poweroff branch explicit" {
     try std.testing.expectError(error.TimeoutTooLarge, bcm2835_wdt.summarizePlatformHandoff(.{
         .heartbeat_sec = bcm2835_wdt.max_timeout_sec + 1,
-        .nowayout = false,
-        .bootloader_running = false,
         .system_power_controller = false,
         .poweroff_handler_present = false,
         .parent_attached = true,
@@ -49,8 +43,6 @@ test "bcm2835 verify helper keeps timeout ceiling and non-controller poweroff br
 
     const no_controller = try bcm2835_wdt.summarizePlatformHandoff(.{
         .heartbeat_sec = 8,
-        .nowayout = false,
-        .bootloader_running = false,
         .system_power_controller = false,
         .poweroff_handler_present = true,
         .parent_attached = true,
@@ -68,8 +60,6 @@ test "bcm2835 verify helper keeps timeout ceiling and non-controller poweroff br
 test "bcm2835 verify helper keeps poweroff ownership conflict and PM-base blockers distinct" {
     const conflict = try bcm2835_wdt.summarizePlatformHandoff(.{
         .heartbeat_sec = 8,
-        .nowayout = false,
-        .bootloader_running = false,
         .system_power_controller = true,
         .poweroff_handler_present = true,
         .parent_attached = true,
@@ -85,8 +75,6 @@ test "bcm2835 verify helper keeps poweroff ownership conflict and PM-base blocke
 
     const blocked = try bcm2835_wdt.summarizePlatformHandoff(.{
         .heartbeat_sec = 8,
-        .nowayout = false,
-        .bootloader_running = false,
         .system_power_controller = true,
         .poweroff_handler_present = false,
         .parent_attached = true,
@@ -115,7 +103,6 @@ test "bcm2835 verify helper keeps stop and poweroff snapshots reviewable" {
     try std.testing.expect(!stopped.restart_path_reused);
 
     var claimed = try bcm2835_wdt.Bcm2835WdtLab.init(8);
-    claimed.importBootloaderRunning();
     const claimed_poweroff = claimed.poweroff(true);
     try std.testing.expect(claimed_poweroff.halt_partition_requested);
     try std.testing.expect(claimed_poweroff.restart_path_reused);
