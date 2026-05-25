@@ -32,6 +32,8 @@ Trusted mixed rereads on 2026-05-21 confirm three distinct current-master Phase 
 - surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - surviving exit-rollback runtime companion: `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
 - surviving registration-reentry runtime companion: `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
+- surviving re-init rollback runtime companion: `samples/zigux/runtime_trace_events_reinit_rollback_guard.zig`
+- surviving re-init plus re-exit rollback runtime companion: `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`
 - surviving family-local survey witness: `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig`
 - surviving runtime-module evidence inside that direct sample: `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking
 - balanced registration re-entry replay in `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` across both the initialized and selftest_complete stages remains part of the still-shipped narrow packet
