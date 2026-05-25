@@ -46,6 +46,7 @@ Use this compact index as the row-level roadmap check first. The detailed helper
 - focused helper replay: `zigux/tests/phase6_bsearch.zig`
 - helper-evidence row: `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `scripts/zigux/check-phase6-bsearch-c-parity.py`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`
 - current posture: direct helper readback is restored across the helper, focused replay, perf replay, C ABI review routes, direct C parity runner, direct C parity harness, fixture surface, dedicated corpus checker, direct C parity checker, and slice note
+- direct C parity spot-check marker: `PHASE6_BSEARCH_C_PARITY_CASES=17`
 
 ### checksum
 
