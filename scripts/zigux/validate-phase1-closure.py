@@ -38,6 +38,7 @@ ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-count
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")
 BITMAP_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-bitmap-direct-anchors.py")
+HOST_TOOLS_SMOKE_CHECKER_REL = Path("scripts/zigux/check-phase1-host-tools-smoke-alignment.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
@@ -64,6 +65,7 @@ REQUIRED_FILES = (
     BENCH_CHECKER_REL,
     FIND_BIT_BENCH_ANCHOR_CHECKER_REL,
     BITMAP_DIRECT_ANCHOR_CHECKER_REL,
+    HOST_TOOLS_SMOKE_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
@@ -272,6 +274,7 @@ DELEGATED_CHECKERS = (
     (BENCH_CHECKER_REL, "phase1-bench"),
     (FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),
     (BITMAP_DIRECT_ANCHOR_CHECKER_REL, "phase1-bitmap-direct-anchors"),
+    (HOST_TOOLS_SMOKE_CHECKER_REL, "phase1-host-tools-smoke-alignment"),
     (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
 )
 
@@ -491,7 +494,7 @@ def run_self_test() -> int:
         ("stale_find_bit_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/find_bit.zig", "next_safe_step_note")),
         ("missing_rbtree_cached_root_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor")),
         ("stale_rbtree_shared_replay_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "shared_replay_summary")),
-        ("stale_rbtree_cached_root_direct_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "cached_root_direct_review_summary")),
+        ("stale_rbtree_cached_root_direct_review_summary", lambda root: mutate_bad_reviewValue(root, "tools/lib/rbtree.zig", "cached_root_direct_review_summary")),
         ("missing_bitmap_or_window_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "or_window_anchor")),
         ("missing_bitmap_copy_raw_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "copy_raw_alias_anchor")),
         ("missing_bitmap_final_partial_word_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "final_partial_word_anchor")),
@@ -514,6 +517,8 @@ def run_self_test() -> int:
         ("failing_find_bit_bench_anchor_checker", lambda root: make_checker_stub(root / FIND_BIT_BENCH_ANCHOR_CHECKER_REL, ok=False)),
         ("missing_bitmap_direct_anchor_checker", lambda root: (root / BITMAP_DIRECT_ANCHOR_CHECKER_REL).unlink()),
         ("failing_bitmap_direct_anchor_checker", lambda root: make_checker_stub(root / BITMAP_DIRECT_ANCHOR_CHECKER_REL, ok=False)),
+        ("missing_host_tools_smoke_checker", lambda root: (root / HOST_TOOLS_SMOKE_CHECKER_REL).unlink()),
+        ("failing_host_tools_smoke_checker", lambda root: make_checker_stub(root / HOST_TOOLS_SMOKE_CHECKER_REL, ok=False)),
         ("failing_find_bit_review_checker", lambda root: make_checker_stub(root / FIND_BIT_REVIEW_CHECKER_REL, ok=False)),
         ("failing_rbtree_review_checker", lambda root: make_checker_stub(root / RBTREE_REVIEW_CHECKER_REL, ok=False)),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
