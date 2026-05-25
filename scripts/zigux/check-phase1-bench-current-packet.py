@@ -284,6 +284,21 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-duplicate-marker-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / PHASE1_CLOSURE_REL
+        marker = MARKERS[PHASE1_CLOSURE_REL][0]
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace(marker, f"{marker}\n{marker}", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        expected = f"{PHASE1_CLOSURE_REL}:marker_count:{marker}:expected=1:actual=2"
+        if issues != [expected]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=duplicate_marker_fails_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-lookalike-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
@@ -328,7 +343,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
