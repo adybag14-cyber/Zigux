@@ -43,3 +43,21 @@ test "strErrorR returns deterministic Linux-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", strErrorR(2, &buffer));
     try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", strErrorR(4096, &buffer));
 }
+
+test "strErrorR accepts zero-length caller buffers for known and fallback messages" {
+    var empty = [_]u8{};
+    try std.testing.expectEqual(@as(usize, 0), strErrorR(13, empty[0..]).len);
+    try std.testing.expectEqual(@as(usize, 0), strErrorR(4096, empty[0..]).len);
+}
+
+test "strErrorR truncates known and synthesized messages with a trailing terminator" {
+    var known = [_]u8{0xaa} ** 8;
+    const known_rendered = strErrorR(13, &known);
+    try std.testing.expectEqualStrings("Permiss", known_rendered);
+    try std.testing.expectEqual(@as(u8, 0), known[7]);
+
+    var fallback = [_]u8{0xbb} ** 8;
+    const fallback_rendered = strErrorR(4096, &fallback);
+    try std.testing.expectEqualStrings("INTERNA", fallback_rendered);
+    try std.testing.expectEqual(@as(u8, 0), fallback[7]);
+}
