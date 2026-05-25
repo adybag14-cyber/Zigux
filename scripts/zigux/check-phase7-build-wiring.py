@@ -35,6 +35,7 @@ EXPECTED_REPLAYS = [
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase7-shared-surface.py",
     "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
