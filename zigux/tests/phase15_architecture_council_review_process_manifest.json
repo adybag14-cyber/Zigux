@@ -105,6 +105,8 @@
     "required approver set",
     "automatic return-to-blocked trigger",
     "trigger-specific evidence refresh",
+    "governance lane sequencing link or explicit scope note",
+    "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
     "parity scorecard link or blocker record"
   ],
   "decision_record_template_required_markers": [
