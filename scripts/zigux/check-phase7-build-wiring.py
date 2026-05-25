@@ -35,7 +35,6 @@ EXPECTED_REPLAYS = [
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
     "Documentation/zigux/README.md",
-    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase7-shared-surface.py",
     "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
@@ -114,7 +113,9 @@ EXPECTED_BUILD_WIRING_EVIDENCE = [
             "phase7-string-helpers-test",
             "phase7-string-helpers-survey",
             "phase7-string-helpers-sample-boundary",
+            "phase7-string-helpers-format-boundary",
             "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+            "string_helpers_format_boundary_step.dependOn(&run_string_helpers_format_boundary_tests.step)",
             "phase7-cmdline-test",
             "phase7-cmdline-survey",
             "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)",
@@ -127,6 +128,7 @@ EXPECTED_BUILD_WIRING_EVIDENCE = [
             "test_step.dependOn(&run_string_helpers_tests.step)",
             "test_step.dependOn(&run_string_helpers_survey_tests.step)",
             "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+            "test_step.dependOn(&run_string_helpers_format_boundary_tests.step)",
             "test_step.dependOn(&run_cmdline_tests.step)",
             "test_step.dependOn(&run_cmdline_survey_tests.step)",
             "test_step.dependOn(&run_argv_split_tests.step)",
@@ -169,8 +171,8 @@ CATALOG_REQUIRED_SNIPPETS = [
     "- `make -C zigux phase7-validate`",
     "## Current build-wiring evidence",
     "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
-    "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, and sample-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.",
-    "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper, survey, and sample-boundary replay through the current `test_step.dependOn(...)` handoff list.",
+    "- `zigux/tests/phase7_build.zig` still exposes the dedicated helper, survey, sample-boundary, and format-boundary routes through `phase7-string-helpers-test`, `phase7-string-helpers-survey`, `phase7-string-helpers-sample-boundary`, `phase7-string-helpers-format-boundary`, `phase7-cmdline-test`, `phase7-cmdline-survey`, `phase7-argv-split-test`, `phase7-argv-split-survey`, `phase7-rbtree-test`, and `phase7-rbtree-survey`.",
+    "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper, survey, sample-boundary, and format-boundary replay through the current `test_step.dependOn(...)` handoff list.",
     "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.",
     "## Current repo-reality gaps",
     "- none currently",
@@ -190,11 +192,10 @@ MAKEFILE_REQUIRED_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
 
-FORBIDDEN_MAKEFILE_MARKERS = [
+MAKEFILE_FORBIDDEN_LINES = [
     "phase7-test:",
     "phase7:",
 ]
-MAKEFILE_FORBIDDEN_LINES = FORBIDDEN_MAKEFILE_MARKERS
 
 BUILD_REQUIRED_SNIPPETS = [
     "../../lib/string_helpers.zig",
@@ -204,7 +205,9 @@ BUILD_REQUIRED_SNIPPETS = [
     "phase7-string-helpers-test",
     "phase7-string-helpers-survey",
     "phase7-string-helpers-sample-boundary",
+    "phase7-string-helpers-format-boundary",
     "string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+    "string_helpers_format_boundary_step.dependOn(&run_string_helpers_format_boundary_tests.step)",
     "phase7-cmdline-test",
     "phase7-cmdline-survey",
     "cmdline_survey_step.dependOn(&run_cmdline_survey_tests.step)",
@@ -217,6 +220,7 @@ BUILD_REQUIRED_SNIPPETS = [
     "test_step.dependOn(&run_string_helpers_tests.step)",
     "test_step.dependOn(&run_string_helpers_survey_tests.step)",
     "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)",
+    "test_step.dependOn(&run_string_helpers_format_boundary_tests.step)",
     "test_step.dependOn(&run_cmdline_tests.step)",
     "test_step.dependOn(&run_cmdline_survey_tests.step)",
     "test_step.dependOn(&run_argv_split_tests.step)",
@@ -330,10 +334,7 @@ def build_fixture_root(root: Path) -> None:
         )
         + "\n",
     )
-    write(
-        root / CATALOG_PATH,
-        "\n".join(CATALOG_REQUIRED_SNIPPETS) + "\n",
-    )
+    write(root / CATALOG_PATH, "\n".join(CATALOG_REQUIRED_SNIPPETS) + "\n")
     write(
         root / MANIFEST_PATH,
         json.dumps(
