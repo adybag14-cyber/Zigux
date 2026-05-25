@@ -748,13 +748,32 @@ test "mode argument validation still accepts ordinary path text with equals" {
 }
 
 test "bridge options parser accepts explicit allconfig override for allmodconfig" {
-    const options = try parseBridgeOptions(.allmodconfig, &.{"allconfig="});
-    try std.testing.expect(options.silent == false);
-    try std.testing.expect(options.allconfig != null);
-    try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
-    try std.testing.expect(options.seed == null);
-    try std.testing.expect(options.probability == null);
-    try std.testing.expect(options.nosilentupdate == null);
+    const allmodconfig = try parseBridgeOptions(.allmodconfig, &.{"allconfig="});
+    try std.testing.expect(allmodconfig.silent == false);
+    try std.testing.expect(allmodconfig.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), allmodconfig.allconfig.?.len);
+    try std.testing.expect(allmodconfig.seed == null);
+    try std.testing.expect(allmodconfig.probability == null);
+    try std.testing.expect(allmodconfig.nosilentupdate == null);
+
+    const allnoconfig = try parseBridgeOptions(.allnoconfig, &.{"allconfig=mini-all.config"});
+    try std.testing.expect(allnoconfig.allconfig != null);
+    try std.testing.expectEqualStrings("mini-all.config", allnoconfig.allconfig.?);
+
+    const allyesconfig = try parseBridgeOptions(.allyesconfig, &.{"allconfig="});
+    try std.testing.expect(allyesconfig.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), allyesconfig.allconfig.?.len);
+
+    const alldefconfig = try parseBridgeOptions(.alldefconfig, &.{"allconfig=mini-all.config"});
+    try std.testing.expect(alldefconfig.allconfig != null);
+    try std.testing.expectEqualStrings("mini-all.config", alldefconfig.allconfig.?);
+
+    const randconfig = try parseBridgeOptions(.randconfig, &.{"allconfig=allrandom.config"});
+    try std.testing.expect(randconfig.allconfig != null);
+    try std.testing.expectEqualStrings("allrandom.config", randconfig.allconfig.?);
+    try std.testing.expect(randconfig.seed == null);
+    try std.testing.expect(randconfig.probability == null);
+    try std.testing.expect(randconfig.nosilentupdate == null);
 }
 
 test "bridge options parser accepts syncconfig nosilentupdate" {
