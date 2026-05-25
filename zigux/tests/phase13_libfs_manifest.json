@@ -10,110 +10,103 @@
   ],
   "survey_summary": {
     "current_phase13_build_present": false,
-    "current_libfs_zig_present": false,
-    "current_phase13_libfs_test_present": false,
-    "current_phase13_libfs_reviewability_present": false,
+    "current_libfs_zig_present": true,
+    "current_phase13_libfs_test_present": true,
+    "current_phase13_libfs_reviewability_present": true,
     "current_phase13_libfs_survey_present": true,
     "current_phase13_libfs_manifest_present": true
   },
   "gaps": [
     {
       "id": "phase13-libfs-helper-starter",
-      "status": "missing_on_current_master",
+      "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The roadmap still points at fs/libfs.zig, but the current public repo tree does not expose a top-level fs directory or a directly readable fs/libfs.zig helper on master."
+      "why_now": "Current master exposes `fs/libfs.zig` as the bounded libfs helper packet, so the direct helper foothold is landed repo evidence again."
     },
     {
       "id": "phase13-libfs-offset-add-planner",
-      "status": "blocked_on_missing_direct_helper",
+      "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The older reminder packet described simple_offset_add() planning, but current master does not expose the direct helper file that would carry that planner as live repo evidence."
+      "why_now": "Current master keeps `simple_offset_add()` planning reviewable in `fs/libfs.zig` instead of treating it as a missing direct helper follow-through."
     },
     {
       "id": "phase13-libfs-offset-remove-planner",
-      "status": "blocked_on_missing_direct_helper",
+      "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The older reminder packet described simple_offset_remove() planning, but current master does not expose the direct helper file that would carry that planner as live repo evidence."
+      "why_now": "Current master keeps `simple_offset_remove()` planning reviewable in `fs/libfs.zig` as an erase-only offset lifecycle helper."
     },
     {
       "id": "phase13-libfs-offset-rename-planner",
-      "status": "blocked_on_missing_direct_helper",
+      "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The docs-side packet still names offset-based rename planning, but current master does not expose the direct helper file that would keep that planner reviewable in code."
+      "why_now": "Current master keeps offset-based rename and rename-exchange planning reviewable in the direct libfs helper packet."
     },
     {
       "id": "phase13-libfs-transaction-acquire-helper",
-      "status": "blocked_on_missing_direct_helper",
+      "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The docs-side packet still names simple_transaction_get() planning, but current master does not expose the direct helper file that would carry that planner as live repo evidence."
+      "why_now": "Current master keeps `simple_transaction_get()` planning explicit in `fs/libfs.zig` as part of the helper-first packet."
     },
     {
       "id": "phase13-libfs-transaction-release-helper",
-      "status": "blocked_on_missing_direct_helper",
+      "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The docs-side packet still names simple_transaction_release() planning, but current master does not expose the direct helper file that would carry that planner as live repo evidence."
+      "why_now": "Current master keeps `simple_transaction_release()` planning explicit in `fs/libfs.zig` and the focused libfs replay packet."
     },
     {
       "id": "phase13-libfs-transaction-publish-helper",
-      "status": "blocked_on_missing_direct_helper",
+      "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The docs-side packet still names simple_transaction_set() planning, but current master does not expose the direct helper file that would carry that planner as live repo evidence."
+      "why_now": "Current master keeps `simple_transaction_set()` planning explicit in `fs/libfs.zig` and the focused libfs replay packet."
     },
     {
       "id": "phase13-libfs-addressability-helper",
-      "status": "blocked_on_missing_direct_helper",
+      "status": "starter_landed",
       "kind": "helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The docs-side packet still names generic_check_addressable() planning, but current master does not expose the direct helper file that would carry that planner as live repo evidence."
+      "why_now": "Current master keeps `generic_check_addressable()` planning explicit in the helper packet rather than leaving it as a docs-only reminder."
     },
     {
       "id": "phase13-libfs-reviewability-gate",
-      "status": "missing_on_current_master",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
-      "why_now": "Exact current-master GitHub readback returns missing for zigux/tests/phase13_libfs_reviewability.zig, so the older manifest claim that this dedicated gate is shipped had become stale."
+      "why_now": "Current master exposes the dedicated libfs reviewability gate again, so this focused validation surface is landed repo evidence."
     },
     {
       "id": "phase13-libfs-survey-note",
       "status": "starter_landed",
       "kind": "survey",
       "zigux_destination": "Documentation/zigux/phase13-libfs-survey.md",
-      "why_now": "The libfs roadmap anchor still needs one packet-local survey note, and current master still exposes that docs-side reminder surface directly."
-    },
-    {
-      "id": "phase13-libfs-slice-note",
-      "status": "starter_landed",
-      "kind": "survey",
-      "zigux_destination": "Documentation/zigux/phase13-libfs-slice.md",
-      "why_now": "Current master still exposes the docs-side libfs slice note directly, but it now stays parked on docs-only evidence instead of claiming a shipped helper packet."
+      "why_now": "The libfs roadmap anchor still needs one packet-local survey note, and current master keeps that reminder surface aligned with the shipped helper packet."
     },
     {
       "id": "phase13-build-gate",
       "status": "missing_on_current_master",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "Exact current-master GitHub readback returns missing for zigux/tests/phase13_build.zig, so the older manifest claim that the libfs packet is wired through the shared Phase 13 build route had become stale."
+      "why_now": "The older shared Phase 13 build route is still absent on current master, so the libfs packet remains focused rather than shared-build-backed."
     },
     {
       "id": "phase13-libfs-live-dcache-mutation",
       "status": "blocked_on_dcache_state",
       "kind": "runtime_boundary",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "Even if the direct helper packet returns later, this lane still must not overclaim live dcache entry insertion, negative-dentry installation side effects, or dentry-map mutation."
+      "why_now": "Even with the direct helper packet shipped, this lane still must not overclaim live dcache entry insertion, negative-dentry installation side effects, or dentry-map mutation."
     },
     {
       "id": "phase13-libfs-live-inode-state",
       "status": "blocked_on_inode_state",
       "kind": "runtime_boundary",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "Even if the direct helper packet returns later, this lane still must not overclaim live inode lifetime, inode lock ordering, or page-cache-backed filesystem state."
+      "why_now": "Even with the direct helper packet shipped, this lane still must not overclaim live inode lifetime, inode lock ordering, or page-cache-backed filesystem state."
     }
   ]
 }
