@@ -71,7 +71,7 @@ The remaining roadmap-backed gap is also intentionally narrow:
   * the boundary-map and concurrency-audit foothold is landed, but it is still a review-only packet rather than a deliverable wrapper around live worker execution
   * the freeze map still blocks any ownership claim for callback dispatch, flush or drain completion, delayed-work requeue control, runtime `max_active` retuning, rescuer execution, scheduler-visible worker-state parity, or hotplug-driven topology rebinding
   * the shared Phase 14 route layer still stops at `make -C zigux phase14-validate`; the older `phase14-smoke`, `phase14-test`, and `phase14` wrapper names remain absent from the readable current `zigux/Makefile` body
-  * the bridge-local trust surface still stops at `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while broader build-side proof such as `zigux/tests/phase14_build.zig` remains part of the shared packet's exact-readback gap vocabulary rather than a bridge-local promotion signal
+  * the bridge-local trust surface still stops at `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while broader build-side proof such as directly readable `zigux/tests/phase14_build.zig` remains shared-packet evidence rather than a bridge-local promotion signal
 
 That is the honest boundary gap for this lane on current `master`: the reviewable study packet exists and matches the roadmap's wrapper-first posture, but the freeze map still keeps the runtime workqueue engine in C and the broader executable packet still does not justify a stronger ownership claim.
 
@@ -116,7 +116,7 @@ The workqueue-local packet should stay aligned with the shared Phase 14 smoke pa
   * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
   * the bridge-local trusted rerun stays limited to the direct Zig test, while the broader `make -C zigux phase14-validate` route and its shared checker chain remain shared packet-local validation rather than bridge-local trust gates
   * any future same-lane reminder repair should keep the workqueue packet explicit without presenting missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers as current proof unless a fresh reread shows they returned
-  * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey until the bridge-local blocked-maintenance handoff is aligned again; leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet until that build layer is directly readable again
+  * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey until the bridge-local blocked-maintenance handoff is aligned again; leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet as shared-packet evidence rather than a bridge-local trust promotion signal
 
 ## Exact productization checks
 
@@ -151,4 +151,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep the workqueue anchor in blocked maintenance. If the bridge-local packet drifts again, reread the bridge, dedicated tests, manifest, this survey, and the slice note together until the bridge-local blocked-maintenance handoff is aligned again. Leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet until that build layer is directly readable again.
+Keep the workqueue anchor in blocked maintenance. If the bridge-local packet drifts again, reread the bridge, dedicated tests, manifest, this survey, and the slice note together until the bridge-local blocked-maintenance handoff is aligned again. Leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet as shared-packet evidence rather than a bridge-local trust promotion signal.
