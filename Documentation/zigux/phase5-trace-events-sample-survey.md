@@ -34,6 +34,8 @@ Fresh public current-`master` reread in this run also surfaced those four broade
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
+`samples/zigux/README.md` now also keeps `samples/zigux/trace_events_sample.zig` visible in the top current sample-root inventory for that same mixed-readback packet, so same-lane contributor guidance should not describe the owner file as repo absence even while authenticated contents reread still misses the broader four-file sample-local companion set.
+
 This note should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support evidence rather than collapsing it into repo absence. The shared `zigux/tests/phase5_build.zig` route should stay framed separately as returned shared build-route evidence again rather than as companion-only support vocabulary.
 
 The bounded formatting companion and the bounded callback-focus companion are therefore the strongest direct sample-root trace-events evidence this run could reconfirm.
