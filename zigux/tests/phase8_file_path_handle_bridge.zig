@@ -186,7 +186,7 @@ test "phase 8 file-path-handle bridge proof keeps the current libbpf survey role
 
     try expectContains(
         libbpf_survey,
-        "Current authenticated contents readback in this runtime still does not serve the bridge helper and focused bridge-only build shard from that same exact contents path, so the narrower split recorded here remains both packet role and mixed-source readback: the bridge-facing helper packet stays on the reminder and boundary side instead of joining the exact stable-output helper set.",
+        "Current authenticated helper readback in this runtime now serves only the narrow bridge-side reminder packet directly: the helper set above stays the exact authenticated helper anchor, while the same contents path now returns `tools/lib/bpf/zigux_segments/manifest.json`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` on current `master`. The broader bridge helper and focused build-route companions, including `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, remain public-tree-backed reminder vocabulary until the same authenticated contents path serves them directly again. Keep those bridge-facing paths explicit without folding them back into the exact helper set or promoting the deferred resource boundary into helper-first proof.",
     );
     try expectContains(
         libbpf_survey,
