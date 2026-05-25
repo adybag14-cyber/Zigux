@@ -9,6 +9,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const bytestream_fifo_window_contract_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/bytestream_fifo_window_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase5_bytestream_fifo_module = b.createModule(.{
         .root_source_file = b.path("phase5_bytestream_fifo.zig"),
         .target = target,
@@ -125,6 +130,20 @@ pub fn build(b: *std.Build) void {
     );
     phase5_bytestream_fifo_sample_selfcheck_step.dependOn(
         &run_phase5_bytestream_fifo_sample_selfcheck_tests.step,
+    );
+
+    const phase5_bytestream_fifo_window_contract_tests = b.addTest(.{
+        .name = "phase5-bytestream-fifo-window-contract-tests",
+        .root_module = bytestream_fifo_window_contract_module,
+    });
+    const run_phase5_bytestream_fifo_window_contract_tests =
+        b.addRunArtifact(phase5_bytestream_fifo_window_contract_tests);
+    const phase5_bytestream_fifo_window_contract_step = b.step(
+        "phase5-bytestream-fifo-window-contract",
+        "Run the Phase 5 bytestream FIFO window-contract companion checks",
+    );
+    phase5_bytestream_fifo_window_contract_step.dependOn(
+        &run_phase5_bytestream_fifo_window_contract_tests.step,
     );
 
     const phase5_bytestream_fifo_tests = b.addTest(.{
@@ -259,6 +278,7 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run Phase 5 reference sample checks");
     test_step.dependOn(&run_phase5_bytestream_fifo_sample_selfcheck_tests.step);
+    test_step.dependOn(&run_phase5_bytestream_fifo_window_contract_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
     test_step.dependOn(&run_phase5_kobject_example_sample_selfcheck_tests.step);
