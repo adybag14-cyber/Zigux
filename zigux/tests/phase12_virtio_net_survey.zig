@@ -100,12 +100,13 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
 
     try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("6791c1229b883d9f0acf9ec70e4159db1c9d1bf6", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-22", manifest.verified_on);
+    try std.testing.expectEqualStrings("e0c7303b0874af398d4f02221b97a6c9a1e49d5d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2026-05-25", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
 
     try std.testing.expectEqualStrings(
         "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present",
@@ -114,6 +115,10 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
     try expectContains(
         manifest.roadmap_gap_check.queueing_correctness.current_surface,
         "shared validate, smoke, and test routes",
+    );
+    try expectContains(
+        manifest.roadmap_gap_check.queueing_correctness.current_surface,
+        "standalone syntax-lab compile-smoke companion",
     );
     try expectContains(
         manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface,
@@ -141,6 +146,7 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("survey_present_shared_route_present", gap.status);
             try expectContains(gap.why_now, "`phase12-validate`");
+            try expectContains(gap.why_now, "standalone syntax-lab compile-smoke companion");
             try expectContains(gap.why_now, "blocked runtime-data-path boundary");
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -162,8 +168,11 @@ test "phase12 virtio net survey note reflects the shared survey-gate route" {
     try expectContains(survey_note, "lane owner: `P12-L04`");
     try expectContains(survey_note, "drivers/net/virtio_net_receive_refill_replay.zig");
     try expectContains(survey_note, "drivers/net/virtio_net_throughput_parity.zig");
+    try expectContains(survey_note, "zigux/tests/phase12_virtio_net_syntax_lab.zig");
+    try expectContains(survey_note, "zigux/tests/phase12_virtio_net_syntax_lab_build.zig");
     try expectContains(survey_note, "throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes");
     try expectContains(survey_note, "`phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof");
+    try expectContains(survey_note, "standalone syntax-lab companion remains compile-smoke evidence");
     try expectContains(survey_note, "explicit receive-refill and transmit-recycle readiness booleans");
     try expectContains(survey_note, "still does not claim live DMA-safe receive ownership");
     try expectContains(survey_note, "performance-risk wording refresh");
@@ -183,10 +192,11 @@ test "phase12 virtio net survey gate keeps the present files and shared routes e
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_transmit_recycle.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_post_reset_replay.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_throughput_parity.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab_build.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));
     try std.testing.expect(!try pathExists("drivers/net/virtio_net.zig"));
     try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_net.zig"));
-    try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
 
     const build_zig = try readFileAlloc("zigux/tests/phase12_build.zig", 32 * 1024);
     defer std.testing.allocator.free(build_zig);
