@@ -113,6 +113,8 @@
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test",
     "python3 scripts/zigux/check-phase3-wrapper-templates.py",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
