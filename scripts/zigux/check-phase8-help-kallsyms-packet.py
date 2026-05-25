@@ -77,8 +77,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "weak-object `V` and `v` classes still follow the current C header contract",
         "the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content",
         "the helper-local source tests still keep the split CRLF contract reviewable: the chunked parser normalizes the CRLF-backed name to `startup_64`, while the reader, path, and callback wrappers preserve one trailing carriage return before newline",
-        "the public raw fallback also returns usable `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_kallsyms_only_build.zig` bodies; the dedicated replay still keeps the chunked-reader `startup_64\r` expectation visible as a broader symbol-packet witness, while the focused `make -C zigux phase8-kallsyms-test` build route remains tied to the helper-local source tests in `tools/lib/symbol/kallsyms.zig`",
-        "the split raw-backed CRLF contract: the dedicated replay keeps the chunked-reader `startup_64\r` witness visible, while the helper-local wrapper tests still preserve the trailing carriage return on the reader, path, and callback wrapper path",
+        "the public raw fallback also returns usable `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_kallsyms_only_build.zig` bodies; the dedicated replay still keeps the chunked-reader `startup_64\\r` expectation visible as a broader symbol-packet witness, while the focused `make -C zigux phase8-kallsyms-test` build route remains tied to the helper-local source tests in `tools/lib/symbol/kallsyms.zig`",
+        "the split raw-backed CRLF contract: the dedicated replay keeps the chunked-reader `startup_64\\r` witness visible, while the helper-local wrapper tests still preserve the trailing carriage return on the reader, path, and callback wrapper path",
     ),
     TOOLING_LANE_SEQUENCE: (
         "current public default-branch raw readback now also serves `tools/lib/symbol/kallsyms.zig`, so the shared owner map should treat the helper path as readable current-tree evidence while the mixed help-plus-kallsyms build shard stays a shared validation route instead of turning help-local and symbol-local follow-through into one owner",
@@ -154,6 +154,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
         'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
         'test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"',
+        "help.CmdNames.init(",
+        "help.commandNameFromEntry(",
+        "help.planPrettyPrint(",
+        "help.loadCommandListsFromEnvPath(",
+        "help.writeCommandSectionsForTerminal(",
+        "help.writePrettyPrintStringListForTerminal(",
     ),
     HELP_SOURCE: (
         'pub const default_command_prefix = "perf-";',
