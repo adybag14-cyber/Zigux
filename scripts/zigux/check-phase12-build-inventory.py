@@ -75,6 +75,20 @@ def validate(root: Path) -> list[str]:
 
     expected = load_json(fixture_path)
     actual = render_inventory(build_path.read_text(encoding="utf-8"))
+
+    build_test_names = actual["build_test_names"]
+    shared_depend_steps = actual["shared_test_depend_steps"]
+    test_root_modules = actual["test_root_modules"]
+
+    if not build_test_names:
+        failures.append("phase12_build_inventory_missing_tests")
+    if len(build_test_names) != len(shared_depend_steps):
+        failures.append("phase12_build_inventory_depend_step_count_mismatch")
+    if len(build_test_names) != len(test_root_modules):
+        failures.append("phase12_build_inventory_test_root_count_mismatch")
+    if len(set(build_test_names)) != len(build_test_names):
+        failures.append("phase12_build_inventory_duplicate_test_name")
+
     if expected != actual:
         failures.append("phase12_build_inventory_mismatch")
         failures.append("expected=" + json.dumps(expected, sort_keys=True))
@@ -392,8 +406,20 @@ def run_self_test() -> int:
         if f"missing_file:{BUILD_PATH.as_posix()}" not in failures:
             raise SystemExit(f"expected missing build failure, got {failures!r}")
 
+        write_fixture_root(base)
+        (base / BUILD_PATH).write_text(
+            "const std = @import(\"std\");\n"
+            "pub fn build(b: *std.Build) void {\n"
+            "    _ = b;\n"
+            "}\n",
+            encoding="utf-8",
+        )
+        failures = validate(base)
+        if "phase12_build_inventory_missing_tests" not in failures:
+            raise SystemExit(f"expected missing tests failure, got {failures!r}")
+
         print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
-        print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=3")
+        print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=4")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
