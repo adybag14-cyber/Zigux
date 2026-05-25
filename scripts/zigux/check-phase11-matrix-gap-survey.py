@@ -23,6 +23,7 @@ REQUIRED_MARKERS = [
     "The shared `phase11-validate` route also now carries `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as focused watchdog teardown-or-failure-mode proofs outside the narrower three-entry HVC build inventory, so keep those shared watchdog replay routes explicit beside the returned driver-local matrices instead of reducing the shared gate to HVC-only proof coverage.",
     "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
     "`bcm2835_wdt`: authenticated GitHub contents rereads now rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "The returned bcm2835 matrix also keeps its bounded timeout, probe-summary ownership, runtime register modeling, restart-or-poweroff intent, and teardown-note packet explicit instead of reducing the bcm2835 lane to a presence-only roster entry while leaving bcm2835-only reminder wording, replay claims, and platform-backed execution in the bcm2835 owner lane.",
     "`gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` is directly readable on current `master`, and it keeps the bounded descriptor, platform-drvdata, teardown, registration-handoff, register-device request, and failure-mode parity review packet explicit without claiming live GPIO descriptor execution or platform registration.",
     "`dw_wdt`: authenticated GitHub contents rereads now rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
 ]
@@ -32,7 +33,9 @@ FORBIDDEN_MARKERS = [
     "Current direct contents reads in this run rematerialize the gpio watchdog and HVC console driver-local Phase 11 matrix notes named by the roadmap, but they do not rematerialize the bcm2835 or DesignWare driver-local matrix notes on current `master`",
     "Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
 ]
-FIXTURE_TEXT = Path(__file__).resolve().parents[2].joinpath(SURVEY_PATH).read_text(encoding="utf-8") if Path(__file__).resolve().parents[2].joinpath(SURVEY_PATH).exists() else ""
+_SELF_PATH = Path(__file__).resolve()
+_FIXTURE_ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else _SELF_PATH.parent
+FIXTURE_TEXT = _FIXTURE_ROOT.joinpath(SURVEY_PATH).read_text(encoding="utf-8") if _FIXTURE_ROOT.joinpath(SURVEY_PATH).exists() else ""
 
 
 class CheckError(RuntimeError):
@@ -100,7 +103,10 @@ def run_self_test() -> None:
             path.write_text(path.read_text(encoding="utf-8") + "\n" + marker + "\n", encoding="utf-8")
             expect_failure(case_root, marker)
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=20")
+        print(
+            "PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT="
+            f"{len(REQUIRED_MARKERS) + len(FORBIDDEN_MARKERS)}"
+        )
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
