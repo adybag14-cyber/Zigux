@@ -100,24 +100,13 @@ fn expectCurrentReminderRoute(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "zig test zigux/tests/phase15_parity_scorecard.zig");
     try expectContains(scorecard_doc, "anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`");
     try expectContains(scorecard_doc, "validator-first reminder route is directly readable on current `master` through `python3 scripts/zigux/validate-phase15.py`");
-    try expectContains(scorecard_doc, "shared replay build route remains a repo-reality gap on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`");
+    try expectContains(scorecard_doc, "shared replay build route is directly readable on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`");
     try expectContains(scorecard_doc, "current `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` targets, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain wrapper-gap vocabulary rather than shipped reminder-route evidence");
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "current `master` still returns missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`") == null);
-}
-
-fn expectSharedSummaryGapAlignment(scorecard_doc: []const u8, shared_gap_note: []const u8, tests_readme: []const u8) !void {
-    try expectContains(scorecard_doc, "shared replay build route remains a repo-reality gap on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`");
-    try expectContains(shared_gap_note, "## Still-missing broader dedicated-build companions on current master");
-    try expectContains(shared_gap_note, "- `zigux/tests/phase15_build.zig`");
-    try expectContains(shared_gap_note, "`scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate explicit while `zigux/tests/phase15_build.zig` remains the only broader dedicated-build companion still absent on current `master`");
-    try expectContains(tests_readme, "Current `master` now directly materializes `scripts/zigux/validate-phase15.py`, so keep that validator-first maintenance gate explicit beside the directly readable governance packet instead of carrying it as a broader repo-reality gap.");
-    try expectContains(tests_readme, "Current `master` still does not materialize `zigux/tests/phase15_build.zig`, so keep that broader dedicated-build companion framed as a repo-reality gap rather than shipped tests-root evidence.");
-    try expectContains(tests_readme, "Although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names in the same blocked-route bucket until direct readback proves they have returned.");
 }
 
 fn expectCurrentBoundedStepHandoff(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "## Next bounded step");
-    try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording and current-master shared-build or wrapper-gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.");
+    try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording, machine-readable companion inventory, and current-master wrapper-gap or workflow-gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.");
 }
 
 fn expectAnchorPacketAlignment(scorecard_doc: []const u8, governance_note: []const u8, anchor: Anchor) !void {
@@ -324,12 +313,6 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     const governance_note = try readRepoFile("Documentation/zigux/phase15-freeze-map-governance.md", 32 * 1024);
     defer std.testing.allocator.free(governance_note);
 
-    const shared_gap_note = try readRepoFile("Documentation/zigux/phase15-shared-summary-gap.md", 24 * 1024);
-    defer std.testing.allocator.free(shared_gap_note);
-
-    const tests_readme = try readRepoFile("zigux/tests/README.md", 64 * 1024);
-    defer std.testing.allocator.free(tests_readme);
-
     const manifest_json = try readRepoFile("zigux/tests/phase15_parity_scorecard.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -361,7 +344,6 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
     try expectCurrentReminderRoute(scorecard_doc);
-    try expectSharedSummaryGapAlignment(scorecard_doc, shared_gap_note, tests_readme);
     try expectCurrentBoundedStepHandoff(scorecard_doc);
     try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-tests-readme-alignment.py");
 
