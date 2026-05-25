@@ -177,6 +177,13 @@
       "why_now": "The dedicated teardown-preflight helper keeps pending status-drain blockers, armed runtime state, and identity preservation explicit before the reset-local teardown path is treated as ready."
     },
     {
+      "id": "phase10-virtio-input-teardown-preflight-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
+      "why_now": "The dedicated teardown-preflight replay keeps the reset-local ready-or-blocked handoff reviewable beside the helper without widening into transport-backed teardown callbacks, freeze or restore behavior, or remove lifecycle claims."
+    },
+    {
       "id": "phase10-virtio-input-teardown-observation-helper",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
