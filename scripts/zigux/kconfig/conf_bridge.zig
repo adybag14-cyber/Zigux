@@ -789,6 +789,29 @@ test "bridge options parser accepts silent alongside randconfig options" {
     try std.testing.expectEqualStrings("10:20", options.probability.?);
 }
 
+test "bridge options parser accepts silent alongside allconfig overrides for supported non-randconfig modes" {
+    const allmodconfig_options = try parseBridgeOptions(.allmodconfig, &.{
+        "silent",
+        "allconfig=",
+    });
+    try std.testing.expect(allmodconfig_options.silent);
+    try std.testing.expect(allmodconfig_options.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), allmodconfig_options.allconfig.?.len);
+    try std.testing.expect(allmodconfig_options.seed == null);
+    try std.testing.expect(allmodconfig_options.probability == null);
+    try std.testing.expect(allmodconfig_options.nosilentupdate == null);
+
+    const allnoconfig_options = try parseBridgeOptions(.allnoconfig, &.{
+        "silent",
+        "allconfig=mini-all.config",
+    });
+    try std.testing.expect(allnoconfig_options.silent);
+    try std.testing.expectEqualStrings("mini-all.config", allnoconfig_options.allconfig.?);
+    try std.testing.expect(allnoconfig_options.seed == null);
+    try std.testing.expect(allnoconfig_options.probability == null);
+    try std.testing.expect(allnoconfig_options.nosilentupdate == null);
+}
+
 test "bridge options parser rejects duplicate silent flag" {
     try std.testing.expectError(error.DuplicateSilent, parseBridgeOptions(.oldconfig, &.{
         "silent",
