@@ -1,6 +1,7 @@
 const std = @import("std");
 const atomic = @import("atomic");
 const barrier = @import("barrier");
+const layout_assert = @import("layout_assert");
 const mmio = @import("mmio");
 const unsafe_policy = @import("unsafe_policy");
 const narrow = @import("narrow");
@@ -19,6 +20,10 @@ test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoff
 
     barrier.acquire();
     try std.testing.expectEqual(@as(u32, 13), mmio.read(u32, register_ptr));
+}
+
+test "phase3 low-level wrappers keep helper-local MMIO layout assertions explicit" {
+    try layout_assert.assertMmioRangeLayout();
 }
 
 test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {
