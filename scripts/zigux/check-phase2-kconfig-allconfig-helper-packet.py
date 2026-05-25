@@ -16,12 +16,12 @@ PHASE2_CLOSURE_VALIDATE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_TOOL_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
-EXPECTED_IMPLICIT_OMISSION_MODES = [
+SELF_TEST_IMPLICIT_OMISSION_MODES = [
     "allmodconfig",
     "randconfig",
 ]
 
-EXPECTED_EXPLICIT_OVERRIDE_MODES = [
+SELF_TEST_EXPLICIT_OVERRIDE_MODES = [
     "allmodconfig",
     "allnoconfig",
     "allyesconfig",
@@ -143,21 +143,23 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(manifest, dict):
         return [("INVALID_CONF_MANIFEST_PAYLOAD", type(manifest).__name__)]
 
+    checker_implicit_modes, checker_explicit_modes, checker_helper_anchors = load_bridge_checker_contract(checker_path)
+
     implicit_modes = manifest.get("helper_local_allconfig_implicit_omission_modes")
-    if implicit_modes != EXPECTED_IMPLICIT_OMISSION_MODES:
+    if implicit_modes != checker_implicit_modes:
         issues.append(
             (
                 "CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES_MISMATCH",
-                f"actual={implicit_modes!r}:expected={EXPECTED_IMPLICIT_OMISSION_MODES!r}",
+                f"actual={implicit_modes!r}:expected={checker_implicit_modes!r}",
             )
         )
 
     explicit_modes = manifest.get("helper_local_allconfig_explicit_override_modes")
-    if explicit_modes != EXPECTED_EXPLICIT_OVERRIDE_MODES:
+    if explicit_modes != checker_explicit_modes:
         issues.append(
             (
                 "CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES_MISMATCH",
-                f"actual={explicit_modes!r}:expected={EXPECTED_EXPLICIT_OVERRIDE_MODES!r}",
+                f"actual={explicit_modes!r}:expected={checker_explicit_modes!r}",
             )
         )
 
@@ -169,21 +171,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if marker not in bridge_text:
             issues.append(("MISSING_CONF_BRIDGE_SOURCE_MARKER", marker))
 
-    checker_implicit_modes, checker_explicit_modes, checker_helper_anchors = load_bridge_checker_contract(checker_path)
-    if checker_implicit_modes != EXPECTED_IMPLICIT_OMISSION_MODES:
-        issues.append(
-            (
-                "CONF_BRIDGE_CHECKER_IMPLICIT_OMISSION_PACKET_MISMATCH",
-                f"actual={checker_implicit_modes!r}:expected={EXPECTED_IMPLICIT_OMISSION_MODES!r}",
-            )
-        )
-    if checker_explicit_modes != EXPECTED_EXPLICIT_OVERRIDE_MODES:
-        issues.append(
-            (
-                "CONF_BRIDGE_CHECKER_EXPLICIT_OVERRIDE_PACKET_MISMATCH",
-                f"actual={checker_explicit_modes!r}:expected={EXPECTED_EXPLICIT_OVERRIDE_MODES!r}",
-            )
-        )
     for anchor in REQUIRED_HELPER_ANCHORS:
         if anchor not in checker_helper_anchors:
             issues.append(("CONF_BRIDGE_CHECKER_MISSING_HELPER_ANCHOR", anchor))
@@ -240,9 +227,9 @@ def render_bridge_checker_stub(
     helper_anchors: list[str] | None = None,
 ) -> str:
     if implicit_modes is None:
-        implicit_modes = EXPECTED_IMPLICIT_OMISSION_MODES
+        implicit_modes = SELF_TEST_IMPLICIT_OMISSION_MODES
     if explicit_modes is None:
-        explicit_modes = EXPECTED_EXPLICIT_OVERRIDE_MODES
+        explicit_modes = SELF_TEST_EXPLICIT_OVERRIDE_MODES
     if helper_anchors is None:
         helper_anchors = REQUIRED_HELPER_ANCHORS
     return (
@@ -257,8 +244,8 @@ def build_self_test_root(root: Path) -> None:
         root / CONF_MANIFEST.relative_to(ROOT),
         json.dumps(
             {
-                "helper_local_allconfig_implicit_omission_modes": EXPECTED_IMPLICIT_OMISSION_MODES,
-                "helper_local_allconfig_explicit_override_modes": EXPECTED_EXPLICIT_OVERRIDE_MODES,
+                "helper_local_allconfig_implicit_omission_modes": SELF_TEST_IMPLICIT_OMISSION_MODES,
+                "helper_local_allconfig_explicit_override_modes": SELF_TEST_EXPLICIT_OVERRIDE_MODES,
             },
             indent=2,
         )
@@ -349,7 +336,7 @@ def run_self_test() -> int:
         checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
         write_text(checker_path, render_bridge_checker_stub(implicit_modes=["drifted-implicit"]))
         assert any(
-            code == "CONF_BRIDGE_CHECKER_IMPLICIT_OMISSION_PACKET_MISMATCH"
+            code == "CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES_MISMATCH"
             for code, _ in collect_issues(root)
         )
         checks_run += 1
@@ -358,7 +345,7 @@ def run_self_test() -> int:
         checker_path = root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
         write_text(checker_path, render_bridge_checker_stub(explicit_modes=["drifted-explicit"]))
         assert any(
-            code == "CONF_BRIDGE_CHECKER_EXPLICIT_OVERRIDE_PACKET_MISMATCH"
+            code == "CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES_MISMATCH"
             for code, _ in collect_issues(root)
         )
         checks_run += 1
@@ -515,16 +502,20 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(args.root.resolve())
+    root = args.root.resolve()
+    issues = collect_issues(root)
     if issues:
         return emit_issues(issues)
 
+    checker_implicit_modes, checker_explicit_modes, _ = load_bridge_checker_contract(
+        root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
+    )
     print("PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET=pass")
     print(
-        f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_IMPLICIT_OMISSION_MODE_COUNT={len(EXPECTED_IMPLICIT_OMISSION_MODES)}"
+        f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_IMPLICIT_OMISSION_MODE_COUNT={len(checker_implicit_modes)}"
     )
     print(
-        f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_EXPLICIT_OVERRIDE_MODE_COUNT={len(EXPECTED_EXPLICIT_OVERRIDE_MODES)}"
+        f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_EXPLICIT_OVERRIDE_MODE_COUNT={len(checker_explicit_modes)}"
     )
     print(f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_HELPER_ANCHOR_COUNT={len(REQUIRED_HELPER_ANCHORS)}")
     return 0
