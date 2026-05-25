@@ -362,7 +362,7 @@ def run_self_test() -> int:
         manifest = build_self_test_manifest()
         manifest["notes"] = "broken"
         write_manifest(manifest_path, manifest)
-        assert ("MISSING_NOTES", "notes")) in collect_issues(root)
+        assert ("MISSING_NOTES", "notes") in collect_issues(root)
         checks_run += 1
 
         for marker in REQUIRED_NOTE_MARKERS:
