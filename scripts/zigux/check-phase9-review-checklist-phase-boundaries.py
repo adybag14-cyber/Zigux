@@ -49,6 +49,7 @@ REVIEW_CHECKLIST_REQUIRED_MARKERS = [
     "the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` stay historical wider-family vocabulary",
     "older blocked module-metadata and depmod-publication vocabulary such as `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, `Module.symvers`, module install-root, and depmod script or manifest state stays historical blocked-boundary vocabulary until a fresh repo reread restores a current shared owner surface for that packet",
     "the partial separate runtime bitmap reminder packet stays explicit in `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md`",
+    "the shared `zigux/tests/phase9_build.zig` bundle now reruns that partial bitmap packet through `phase9-runtime-bitmap-cold-stage-guard-tests` plus the aggregate `phase9-runtime-bitmap-tests` handle",
     "keep that partial bitmap packet framed as a separate bounded Phase 9 runtime reminder rather than proof that the broader shared runtime-loader packet returned",
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
@@ -137,19 +138,19 @@ WORKFLOW_REQUIRED_MARKERS = [
 ]
 
 CONTRACT_REQUIRED_MARKERS = [
-    "test \"LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract\" {",
+    "test \\\"LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract\\\" {",
     "const blocked_publication_fields = [_][]const u8{",
-    "\"modinfo\",",
-    "\"module_alias\",",
-    "\"module_aliases\",",
-    "\"modules_alias_path\",",
-    "\"module_install_root\",",
-    "\"modules_order_path\",",
-    "\"modules_builtin_path\",",
-    "\"module_symvers_path\",",
-    "\"depmod_script\",",
-    "\"depmod_manifest\",",
-    "\"depmod_aliases\",",
+    "\\\"modinfo\\\",",
+    "\\\"module_alias\\\",",
+    "\\\"module_aliases\\\",",
+    "\\\"modules_alias_path\\\",",
+    "\\\"module_install_root\\\",",
+    "\\\"modules_order_path\\\",",
+    "\\\"modules_builtin_path\\\",",
+    "\\\"module_symvers_path\\\",",
+    "\\\"depmod_script\\\",",
+    "\\\"depmod_manifest\\\",",
+    "\\\"depmod_aliases\\\",",
     "try std.testing.expect(!@hasField(LoadPlan, field));",
 ]
 
@@ -236,7 +237,7 @@ def remove_makefile_route_definition(content: str, route: str) -> str:
             skipping = True
             continue
         if skipping:
-            if line.startswith("\t"):
+            if line.startswith("	"):
                 continue
             skipping = False
         kept.append(line)
