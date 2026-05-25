@@ -63,6 +63,7 @@ The current lane state is:
 - landed `phase13-devres-scatterlist-helper`
 - landed `phase13-devres-scatterlist-replay`
 - landed `phase13-devres-scatterlist-planner-note`
+- landed `phase13-devres-scatterlist-slice`
 - landed `phase13-devres-scatterlist-planner-manifest`
 - landed `phase13-devres-scatterlist-build-shard`
 - landed `phase13-devres-iounmap-planner-note`
