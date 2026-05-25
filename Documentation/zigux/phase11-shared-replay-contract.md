@@ -35,6 +35,9 @@ reminder surfaces:
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-validate-manifest-roster.py`
+- `scripts/zigux/check-phase11-validate-check-roster.py`
+- `scripts/zigux/check-phase11-validate-route-alignment.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-shared-replay-contract-counts.py`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
@@ -46,6 +49,7 @@ reminder surfaces:
 - `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/fixtures/phase11_validate_checks.json`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
@@ -80,8 +84,13 @@ reminder stack listed above.
   `master`, so do not treat those two broader reminders as current shared-packet
   proof until a future same-lane repair restores explicit simple-driver
   coverage there
-- the shared packet now uses the shipped `check-phase11-*.py` reminder scripts,
-  the validator self-test `python3 scripts/zigux/validate-phase11.py --self-test`,
+- the shared packet now uses the validator-roster guards
+  `scripts/zigux/check-phase11-validate-manifest-roster.py`,
+  `scripts/zigux/check-phase11-validate-check-roster.py`, and
+  `scripts/zigux/check-phase11-validate-route-alignment.py`, the exact-check
+  fixture `zigux/tests/fixtures/phase11_validate_checks.json`, the shipped
+  `check-phase11-*.py` reminder scripts, the validator self-test
+  `python3 scripts/zigux/validate-phase11.py --self-test`,
   `scripts/zigux/validate-phase11.py`, the shared inventory fixture, and the
   directly materialized proof-backed build routes rather than the older wrapper
   family
@@ -129,6 +138,9 @@ deterministic and reviewable:
 
 - shared validator self-test: `python3 scripts/zigux/validate-phase11.py --self-test`
 - shared checker self-tests:
+  `python3 scripts/zigux/check-phase11-validate-manifest-roster.py --self-test`,
+  `python3 scripts/zigux/check-phase11-validate-check-roster.py --self-test`,
+  `python3 scripts/zigux/check-phase11-validate-route-alignment.py --self-test`,
   `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`,
   `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`,
   `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py --self-test`,
@@ -140,6 +152,9 @@ deterministic and reviewable:
   `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py --self-test`,
   and `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py --self-test`
 - shared checker live routes:
+  `python3 scripts/zigux/check-phase11-validate-manifest-roster.py`,
+  `python3 scripts/zigux/check-phase11-validate-check-roster.py`,
+  `python3 scripts/zigux/check-phase11-validate-route-alignment.py`,
   `python3 scripts/zigux/check-phase11-build-inventory.py`,
   `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`,
   `python3 scripts/zigux/check-phase11-shared-replay-contract-counts.py`,
@@ -151,6 +166,7 @@ deterministic and reviewable:
   `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
   and `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 - shared validator route: `python3 scripts/zigux/validate-phase11.py`
+- shared validator fixture: `zigux/tests/fixtures/phase11_validate_checks.json`
 - shared Makefile route: `make -C zigux phase11-validate`
 - current `phase11-validate` proof fan-out:
   `zig build test --build-file zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`,
