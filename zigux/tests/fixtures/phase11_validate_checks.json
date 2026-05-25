@@ -163,6 +163,21 @@
       ]
     },
     {
+      "name": "phase11-hvc-cleanup-prerequisite-packet-self-test",
+      "command": [
+        "python",
+        "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py",
+        "--self-test"
+      ]
+    },
+    {
+      "name": "phase11-hvc-cleanup-prerequisite-packet",
+      "command": [
+        "python",
+        "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py"
+      ]
+    },
+    {
       "name": "phase11-hvc-targetless-unregister-witness-self-test",
       "command": [
         "python",
