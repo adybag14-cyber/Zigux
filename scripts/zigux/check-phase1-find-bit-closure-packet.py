@@ -303,7 +303,6 @@ def run_self_test() -> int:
             return 1
 
         build_sample_repo(root)
-        (root / LANE_NOTE_REL).writeText = None
         (root / LANE_NOTE_REL).write_text("# sample\n\n" + "\n".join(LANE_LINES[1:]) + "\n", encoding="utf-8")
         if not collect_failures(root):
             print("self-test:missing_lane_line:expected_failure")
@@ -321,7 +320,8 @@ def run_self_test() -> int:
             print("self-test:missing_validator_marker:expected_failure")
             return 1
 
-        build_sample_repo(root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(root)
         (root / REVIEW_CHECKER_REL).write_text("\n".join(REVIEW_CHECKER_MARKERS[1:]) + "\n", encoding="utf-8")
         if not collect_failures(root):
             print("self-test:missing_review_checker_marker:expected_failure")
