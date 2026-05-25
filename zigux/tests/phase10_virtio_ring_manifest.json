@@ -46,7 +46,8 @@
     "preexisting_virtio_ring_zig_present": true,
     "preexisting_virtio_ring_doc_present": true,
     "preexisting_ring_verify_present": true,
-    "preexisting_ring_publish_readiness_present": true
+    "preexisting_ring_publish_readiness_present": true,
+    "preexisting_ring_registration_summary_present": true
   },
   "gaps": [
     {
@@ -69,6 +70,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_registration_replay.zig",
       "why_now": "The dedicated queue-registration replay now materializes on current master and keeps noncontiguous queue definitions, registration counts, and failed-definition accounting reviewable beside the other queue-local ring replays."
+    },
+    {
+      "id": "phase10-queue-registration-summary-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring_registration_summary.zig",
+      "why_now": "The dedicated queue-registration-summary wrapper is directly readable on current master and keeps queue-definition discipline explicit beside the registration replay and the other queue-local ring wrappers."
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
