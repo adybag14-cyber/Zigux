@@ -226,7 +226,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 27
 
 
 class ValidationError(RuntimeError):
@@ -896,6 +896,27 @@ def run_self_test() -> None:
                                 "still_missing_direct_companions": [
                                     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"
                                 ],
+                            }
+                            for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "helpers": [
+                            helper
+                            if helper.get("key") != "hexdump"
+                            else {
+                                **helper,
+                                "current_perf_evidence": {"linux_style_rerun_routes": []},
                             }
                             for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
                         ],
