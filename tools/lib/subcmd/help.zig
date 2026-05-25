@@ -315,10 +315,10 @@ test "CommandNames sort and uniq keep the stable command set" {
     cmds.uniqSorted();
 
     try std.testing.expectEqual(@as(usize, 3), cmds.count());
-    try std.testing.expectEqualStrings("annotate", cmds.cnames.items[0].name);
+    try std.testing.expectEqualStrings("annotate", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("bench", cmds.cnames.items[1].name);
 
-    try std.testing.expectEqualStrings("bench", cmds.names.items[1].name);
-    try std.testing.expectEqualStrings("report", cmds.cnames.items[2].name);
+    try std.testing.expectEqualStrings("report", cmds.names.items[2].name);
 }
 
 test "excludeSorted removes commands already present in the primary list" {
@@ -333,7 +333,7 @@ test "excludeSorted removes commands already present in the primary list" {
     try other_cmds.add("bench");
     try other_cmds.add("report");
     try other_cmds.add("script");
-    other_cmds.cnames.sort();
+    other_cmds.sort();
 
     other_cmds.excludeSorted(&main_cmds);
 
@@ -427,7 +427,7 @@ test "renderCommandSections shares longest width across main and fallback groups
 
     try std.testing.expectEqualStrings(
         "available subcommands in '/usr/libexec/perf-core'\n" ++
-            "--------------------------------------------------\n" ++
+            "-------------------------------------------------\n" ++
             " annotate\n" ++
             " bench\n" ++
             " diff\n" ++
