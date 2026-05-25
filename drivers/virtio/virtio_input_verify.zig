@@ -4,6 +4,7 @@ const probe_preflight = @import("virtio_input_probe_preflight");
 const queue_callback_preflight = @import("virtio_input_queue_callback_preflight");
 const registration_preflight = @import("virtio_input_registration_preflight");
 const status_drain = @import("virtio_input_status_drain");
+const teardown_preflight = @import("virtio_input_teardown_preflight");
 const teardown_observation = @import("virtio_input_teardown_observation");
 
 test "phase10 virtio input verify keeps wrapper-facing queue preflight ordering explicit" {
@@ -143,12 +144,38 @@ test "phase10 virtio input verify keeps teardown and status-drain wrapper parity
     _ = try device.sendStatus(0x02, 0x01, 7);
     _ = try device.sendStatus(0x02, 0x02, 9);
 
+    var teardown_summary = teardown_preflight.summarize(&device);
+    try std.testing.expect(teardown_preflight.preservesIdentity(teardown_summary));
+    try std.testing.expect(teardown_preflight.runtimeStateArmed(teardown_summary));
+    try std.testing.expect(teardown_preflight.capabilityStateArmed(teardown_summary));
+    try std.testing.expectEqualStrings(
+        "pending_status_drain",
+        teardown_preflight.blockerTag(teardown_summary.blocker.?),
+    );
+    try std.testing.expect(teardown_preflight.waitingOnPendingStatusDrain(teardown_summary));
+    try std.testing.expectEqual(@as(usize, 2), teardown_preflight.queuedStatusCount(teardown_summary));
+    try std.testing.expectEqual(@as(usize, 1), teardown_preflight.suppressedStatusCount(teardown_summary));
+    try std.testing.expect(!teardown_preflight.readyForTeardown(teardown_summary));
+
     const drain = try status_drain.summarize(&device, 1);
     try std.testing.expectEqual(@as(usize, 1), drain.completed_status_count);
     try std.testing.expectEqual(@as(usize, 2), drain.pending_status_count_before);
     try std.testing.expectEqual(@as(usize, 1), drain.pending_status_count_after);
     try std.testing.expectEqual(@as(usize, 1), drain.suppressed_status_count);
     try std.testing.expect(drain.ready);
+
+    teardown_summary = teardown_preflight.summarize(&device);
+    try std.testing.expect(teardown_preflight.preservesIdentity(teardown_summary));
+    try std.testing.expect(teardown_preflight.runtimeStateArmed(teardown_summary));
+    try std.testing.expect(teardown_preflight.capabilityStateArmed(teardown_summary));
+    try std.testing.expectEqualStrings(
+        "pending_status_drain",
+        teardown_preflight.blockerTag(teardown_summary.blocker.?),
+    );
+    try std.testing.expect(teardown_preflight.waitingOnPendingStatusDrain(teardown_summary));
+    try std.testing.expectEqual(@as(usize, 1), teardown_preflight.queuedStatusCount(teardown_summary));
+    try std.testing.expectEqual(@as(usize, 1), teardown_preflight.suppressedStatusCount(teardown_summary));
+    try std.testing.expect(!teardown_preflight.readyForTeardown(teardown_summary));
 
     const before_reset = teardown_observation.summarize(&device);
     try std.testing.expect(teardown_observation.preservesIdentity(before_reset));
@@ -177,6 +204,15 @@ test "phase10 virtio input verify keeps teardown and status-drain wrapper parity
     try std.testing.expectEqualStrings(identity_before.name, identity_after.name);
     try std.testing.expectEqualStrings(identity_before.serial, identity_after.serial);
     try std.testing.expectEqualStrings(identity_before.phys, identity_after.phys);
+
+    teardown_summary = teardown_preflight.summarize(&device);
+    try std.testing.expect(teardown_preflight.preservesIdentity(teardown_summary));
+    try std.testing.expect(!teardown_preflight.runtimeStateArmed(teardown_summary));
+    try std.testing.expect(!teardown_preflight.capabilityStateArmed(teardown_summary));
+    try std.testing.expectEqual(@as(usize, 0), teardown_preflight.queuedStatusCount(teardown_summary));
+    try std.testing.expectEqual(@as(usize, 0), teardown_preflight.suppressedStatusCount(teardown_summary));
+    try std.testing.expect(teardown_summary.blocker == null);
+    try std.testing.expect(teardown_preflight.readyForTeardown(teardown_summary));
 
     const queue_after_reset = queue_callback_preflight.summarize(&device);
     try std.testing.expectEqualStrings(
@@ -246,6 +282,15 @@ test "phase10 virtio input verify keeps teardown and status-drain wrapper parity
     try std.testing.expect(probe_preflight.multitouchSlotsReady(probe_rearmed));
     try std.testing.expect(probe_rearmed.blocker == null);
     try std.testing.expect(probe_preflight.readyForProbeHandoff(probe_rearmed));
+
+    teardown_summary = teardown_preflight.summarize(&device);
+    try std.testing.expect(teardown_preflight.preservesIdentity(teardown_summary));
+    try std.testing.expect(teardown_preflight.runtimeStateArmed(teardown_summary));
+    try std.testing.expect(teardown_preflight.capabilityStateArmed(teardown_summary));
+    try std.testing.expectEqual(@as(usize, 0), teardown_preflight.queuedStatusCount(teardown_summary));
+    try std.testing.expectEqual(@as(usize, 0), teardown_preflight.suppressedStatusCount(teardown_summary));
+    try std.testing.expect(teardown_summary.blocker == null);
+    try std.testing.expect(teardown_preflight.readyForTeardown(teardown_summary));
 
     const rearmed_teardown = teardown_observation.summarize(&device);
     try std.testing.expect(teardown_observation.runtimeStateArmed(rearmed_teardown));
