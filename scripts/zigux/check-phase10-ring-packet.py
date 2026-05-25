@@ -273,8 +273,6 @@ def fixture_manifest() -> dict[str, object]:
         },
         "gaps": gaps,
     }
-}
-
 
 def write_fixture(root: Path) -> None:
     for rel_path, markers in REQUIRED_MARKERS.items():
@@ -360,6 +358,45 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def drift_lane_key(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["lane_key"] = "P10-L11"
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_lane_key,
+            f"{MANIFEST_PATH}:lane_key:P10-L11",
+        )
+        write_fixture(root)
+
+        def drift_phase(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["phase"] = "Phase 11"
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_phase,
+            f"{MANIFEST_PATH}:phase:Phase 11",
+        )
+        write_fixture(root)
+
+        def drift_anchor(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["anchor"] = "drivers/virtio/virtio_mmio.c"
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_anchor,
+            f"{MANIFEST_PATH}:anchor:drivers/virtio/virtio_mmio.c",
+        )
+        write_fixture(root)
+
         def drift_freeze_map(tmp_root: Path) -> None:
             path = tmp_root / MANIFEST_PATH
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -428,7 +465,6 @@ def run_self_test() -> int:
             f"{MANIFEST_PATH}:freeze_in_c_anchors:['kernel/sched/core.c', 'mm/page_alloc.c', 'kernel/rcu/tree.c']",
         )
         write_fixture(root)
-
         def drift_freeze_status_change_claimed(tmp_root: Path) -> None:
             path = tmp_root / MANIFEST_PATH
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -658,7 +694,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=25")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
