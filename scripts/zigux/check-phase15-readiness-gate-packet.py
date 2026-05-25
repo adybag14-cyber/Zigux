@@ -24,9 +24,10 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
     "the dedicated validator now exists as a directly readable maintenance gate",
-    "broader build and workflow companions still block any claim that the larger Phase 15 replay route is fully ready",
+    "the dedicated shared-build companion is now directly readable current-master evidence",
+    "broader make-wrapper and workflow companions still block any claim that the larger Phase 15 replay route is one-command or shared-CI ready",
     "Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes",
-    "ready for maintenance-mode truthfulness refreshes and direct validator-first replay only",
+    "ready for maintenance-mode truthfulness refreshes, direct validator-first replay, and shared-build companion review only",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
 )
 
@@ -57,6 +58,18 @@ def _read_manifest(path: Path) -> dict:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def _placeholder_for(rel: str) -> str:
+    if rel.endswith(".py"):
+        return "#!/usr/bin/env python3\n"
+    if rel.endswith(".json"):
+        return "{}\n"
+    if rel.endswith(".md"):
+        return f"# Placeholder for {rel}\n"
+    if rel.endswith(".zig"):
+        return 'const std = @import("std");\n\ntest "placeholder" {\n    try std.testing.expect(true);\n}\n'
+    return "\n"
 
 
 def _makefile_has_target(root: Path, target: str) -> bool:
@@ -112,6 +125,8 @@ def collect_failures(root: Path) -> list[str]:
         marker = f"`{rel}`"
         if marker not in note:
             failures.append(f"readiness note is missing direct-packet marker: {marker}")
+        if not (root / rel).exists():
+            failures.append(f"direct_packet_path_missing:{rel}")
 
     for rel in manifest["still_missing_broader_paths"]:
         marker = f"`{rel}`"
@@ -145,17 +160,17 @@ def collect_failures(root: Path) -> list[str]:
     observed = {
         "phase15_readiness_packet_checker_present": (root / SELF_PATH).exists(),
         "phase15_validator_script_present": (root / VALIDATOR_PATH).exists(),
-        "phase15_docs_readme_checker_present": True,
+        "phase15_docs_readme_checker_present": (root / Path("scripts/zigux/check-phase15-docs-readme-alignment.py")).exists(),
         "phase15_scripts_readme_checker_present": (root / SCRIPTS_CHECKER_PATH).exists(),
-        "phase15_tests_readme_checker_present": True,
-        "phase15_review_checklist_study_only_alignment_checker_present": True,
-        "phase15_handoff_note_checker_present": True,
-        "phase15_governance_lane_manifest_present": True,
-        "phase15_governance_lane_replay_present": True,
-        "phase15_handoff_manifest_present": True,
-        "phase15_review_process_build_replay_present": True,
+        "phase15_tests_readme_checker_present": (root / Path("scripts/zigux/check-phase15-tests-readme-alignment.py")).exists(),
+        "phase15_review_checklist_study_only_alignment_checker_present": (root / Path("scripts/zigux/check-phase15-review-checklist-study-only-alignment.py")).exists(),
+        "phase15_handoff_note_checker_present": (root / Path("scripts/zigux/check-phase15-handoff-note-alignment.py")).exists(),
+        "phase15_governance_lane_manifest_present": (root / Path("zigux/tests/phase15_governance_lane_sequencing_manifest.json")).exists(),
+        "phase15_governance_lane_replay_present": (root / Path("zigux/tests/phase15_governance_lane_sequencing.zig")).exists(),
+        "phase15_handoff_manifest_present": (root / Path("zigux/tests/phase15_handoff_next_steps_manifest.json")).exists(),
+        "phase15_review_process_build_replay_present": (root / Path("zigux/tests/phase15_architecture_council_review_process_build.zig")).exists(),
         "phase15_build_zig_present": (root / BUILD_ZIG_PATH).exists(),
-        "phase15_indefinite_c_lane_owner_alignment_present": True,
+        "phase15_indefinite_c_lane_owner_alignment_present": (root / Path("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig")).exists(),
         "phase15_makefile_present": (root / MAKEFILE_PATH).exists(),
         "phase15_validate_target_present": phase15_validate_target_present,
         "phase15_test_target_present": phase15_test_target_present,
@@ -177,9 +192,9 @@ def _sample_note() -> str:
 - `PHASE15_LANE_KEY=P15-L02`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-23`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
 
-This note says the governance packet is materially landed and reviewable, the dedicated validator now exists as a directly readable maintenance gate, and broader build and workflow companions still block any claim that the larger Phase 15 replay route is fully ready.
+This note says the governance packet is materially landed and reviewable, the dedicated validator now exists as a directly readable maintenance gate, the dedicated shared-build companion is now directly readable current-master evidence, and broader make-wrapper and workflow companions still block any claim that the larger Phase 15 replay route is one-command or shared-CI ready.
 
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `scripts/zigux/validate-phase15.py`
@@ -193,7 +208,7 @@ Although `zigux/Makefile` is present on current `master`, it still does not mate
 
 `.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route.
 
-This packet is ready for maintenance-mode truthfulness refreshes and direct validator-first replay only, and no Architecture Council approval is currently recorded for a freeze-map status change.
+This packet is ready for maintenance-mode truthfulness refreshes, direct validator-first replay, and shared-build companion review only, and no Architecture Council approval is currently recorded for a freeze-map status change.
 """
 
 
@@ -202,16 +217,15 @@ def _sample_manifest() -> str:
         "lane_key": EXPECTED_LANE_KEY,
         "phase": EXPECTED_PHASE,
         "surveyed_commit_mode": "dated_master_readback",
-        "surveyed_commit": "current-master-readback-2026-05-23",
+        "surveyed_commit": "current-master-readback-2026-05-25",
         "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
         "direct_packet_paths": [
             "scripts/zigux/check-phase15-readiness-gate-packet.py",
             "scripts/zigux/validate-phase15.py",
+            "zigux/tests/phase15_build.zig",
             "zigux/tests/phase15_readiness_gate_manifest.json"
         ],
-        "still_missing_broader_paths": [
-            "zigux/tests/phase15_build.zig"
-        ],
+        "still_missing_broader_paths": [],
         "repo_evidence": {
             "phase15_readiness_packet_checker_present": True,
             "phase15_validator_script_present": True,
@@ -224,7 +238,7 @@ def _sample_manifest() -> str:
             "phase15_governance_lane_replay_present": True,
             "phase15_handoff_manifest_present": True,
             "phase15_review_process_build_replay_present": True,
-            "phase15_build_zig_present": False,
+            "phase15_build_zig_present": True,
             "phase15_indefinite_c_lane_owner_alignment_present": True,
             "phase15_makefile_present": True,
             "phase15_validate_target_present": False,
@@ -247,11 +261,27 @@ def _sample_manifest() -> str:
 def _seed_repo(root: Path) -> None:
     _write(root / READINESS_NOTE_PATH, _sample_note())
     _write(root / MANIFEST_PATH, _sample_manifest())
-    _write(root / SELF_PATH, "#!/usr/bin/env python3\n")
-    _write(root / SCRIPTS_CHECKER_PATH, "#!/usr/bin/env python3\n")
-    _write(root / VALIDATOR_PATH, "#!/usr/bin/env python3\n")
     _write(root / MAKEFILE_PATH, "phase2-toolchain:\n\t@true\n")
     _write(root / WORKFLOW_PATH, "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-readiness-gate-packet.py\n")
+
+    manifest = json.loads(_sample_manifest())
+    for rel in manifest["direct_packet_paths"]:
+        if rel == str(MANIFEST_PATH):
+            continue
+        _write(root / rel, _placeholder_for(rel))
+    for rel in manifest["phase15_validate_checkers"]:
+        _write(root / rel, _placeholder_for(rel))
+    for rel in (
+        "scripts/zigux/check-phase15-docs-readme-alignment.py",
+        "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+        "scripts/zigux/check-phase15-handoff-note-alignment.py",
+        "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+        "zigux/tests/phase15_governance_lane_sequencing.zig",
+        "zigux/tests/phase15_handoff_next_steps_manifest.json",
+        "zigux/tests/phase15_architecture_council_review_process_build.zig",
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    ):
+        _write(root / rel, _placeholder_for(rel))
 
 
 def run_self_test() -> int:
@@ -281,13 +311,16 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected lane-drift failure: {failures}")
 
-        broader_root = root / "broader"
-        _seed_repo(broader_root)
-        _write(broader_root / "zigux/tests/phase15_build.zig", "const std = @import(\"std\");\n")
-        failures = collect_failures(broader_root)
-        expected = ["readiness note still treats materialized broader path as blocked: `zigux/tests/phase15_build.zig`", "readiness manifest phase15_build_zig_present disagrees with repo reality"]
+        direct_root = root / "direct_path"
+        _seed_repo(direct_root)
+        (direct_root / BUILD_ZIG_PATH).unlink()
+        failures = collect_failures(direct_root)
+        expected = [
+            "direct_packet_path_missing:zigux/tests/phase15_build.zig",
+            "readiness manifest phase15_build_zig_present disagrees with repo reality",
+        ]
         if failures != expected:
-            raise AssertionError(f"unexpected broader-path failure: {failures}")
+            raise AssertionError(f"unexpected direct-path failure: {failures}")
 
     print("PHASE15_READINESS_GATE_PACKET_SELF_TEST=pass")
     return 0
