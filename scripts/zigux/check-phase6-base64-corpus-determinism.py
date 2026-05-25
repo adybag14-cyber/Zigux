@@ -74,11 +74,11 @@ EXPECTED_PERF_TEST_SNIPPETS = [
 
 EXPECTED_C_PARITY_SNIPPETS = [
     'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
-    '.input = fixtures.standard_cases[17].input',
-    '.input = fixtures.variant_cases[2].input',
-    '.input = fixtures.variant_decode_cases[14].input',
-    '.input = fixtures.invalid_decode_cases[11].input',
-    'fn fixtureVariant(name: []const u8) base64.Variant {',
+    'findStandardEncodeCase("foobar", false),',
+    'findVariantEncodeCase("urlsafe", "APv_f4A", false),',
+    'findVariantDecodeCase("urlsafe", "__A", false),',
+    'findInvalidCase("std", "Zm9v====", false),',
+    'findInvalidCase("urlsafe", "Zg==", false),',
     'const bytes_result = base64.bytes(case.input, case.padding, case.variant);',
 ]
 
