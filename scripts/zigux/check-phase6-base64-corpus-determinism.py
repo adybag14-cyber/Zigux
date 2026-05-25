@@ -28,6 +28,12 @@ EXPECTED_COUNTS = {
     "perf_cases": 6,
 }
 
+EXPECTED_C_PARITY_COUNTS = {
+    "c_parity_encode_cases": 17,
+    "c_parity_decode_cases": 17,
+    "c_parity_invalid_cases": 6,
+}
+
 EXPECTED_PERF_LABELS = [
     "STD_PAD",
     "STD_NO_PAD",
@@ -64,6 +70,17 @@ EXPECTED_INVALID_FIXTURE_SNIPPETS = [
     '.{ .input = "Zg==", .padding = false, .variant_name = "imap" },',
 ]
 
+EXPECTED_C_PARITY_FIXTURE_SNIPPETS = [
+    "pub const CParityEncodeCase = struct {",
+    "pub const CParityDecodeCase = struct {",
+    "pub const CParityInvalidCase = struct {",
+    "pub const c_parity_encode_cases = [_]CParityEncodeCase{",
+    '    .{ .variant_name = "std", .padding = standard_cases[17].padding, .input = standard_cases[17].input },',
+    '    .{ .variant_name = variant_cases[14].variant_name, .padding = variant_cases[14].padding, .input = variant_cases[14].input },',
+    "pub const c_parity_decode_cases = [_]CParityDecodeCase{",
+    "pub const c_parity_invalid_cases = [_]CParityInvalidCase{",
+]
+
 EXPECTED_PERF_TEST_SNIPPETS = [
     "fn validatePerfMatrix() !void {",
     "if (fixtures.perf_payload.len != fixtures.perf_payload_buf_size) {",
@@ -74,15 +91,14 @@ EXPECTED_PERF_TEST_SNIPPETS = [
 
 EXPECTED_C_PARITY_SNIPPETS = [
     'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
-    'findStandardEncodeCase("foobar", false),',
-    'findVariantEncodeCase("urlsafe", "APv_f4A", false),',
-    'findVariantDecodeCase("urlsafe", "__A", false),',
-    'findInvalidCase("std", "Zm9v====", false),',
-    'findInvalidCase("urlsafe", "Zg==", false),',
-    'const bytes_result = base64.bytes(case.input, case.padding, case.variant);',
+    "for (fixtures.c_parity_encode_cases) |case| {",
+    "for (fixtures.c_parity_decode_cases) |case| {",
+    "for (fixtures.c_parity_invalid_cases) |case| {",
+    'const bytes_result = base64.bytes(case.input, case.padding, variant);',
+    'try writer.print("inv\\t{s}\\t{}\\t", .{ case.variant_name, @intFromBool(case.padding) });',
 ]
 
-SELF_TEST_CASES = 11
+SELF_TEST_CASES = 13
 
 
 def read_text(path: Path) -> str:
@@ -134,10 +150,24 @@ def count_entries(body: str) -> int:
     return len(re.findall(r"\.\{", body))
 
 
+def count_c_parity_entries(body: str) -> int:
+    return len(re.findall(r"\.input =", body))
+
+
 def validate_fixture_counts(content: str) -> None:
     for name, expected in EXPECTED_COUNTS.items():
         body = extract_array_body(content, name)
         actual = count_entries(body)
+        if actual != expected:
+            raise ValidationError(
+                f"{FIXTURES_PATH.as_posix()} {name} count drift: expected {expected}, found {actual}"
+            )
+
+
+def validate_c_parity_fixture_counts(content: str) -> None:
+    for name, expected in EXPECTED_C_PARITY_COUNTS.items():
+        body = extract_array_body(content, name)
+        actual = count_c_parity_entries(body)
         if actual != expected:
             raise ValidationError(
                 f"{FIXTURES_PATH.as_posix()} {name} count drift: expected {expected}, found {actual}"
@@ -187,11 +217,17 @@ def validate(repo_root: Path) -> None:
 
     fixtures_content = read_text(repo_root / FIXTURES_PATH)
     validate_fixture_counts(fixtures_content)
+    validate_c_parity_fixture_counts(fixtures_content)
     validate_perf_labels(fixtures_content)
     for snippet in EXPECTED_INVALID_FIXTURE_SNIPPETS:
         if snippet not in fixtures_content:
             raise ValidationError(
                 f"missing expected Phase 6 base64 corpus marker in {FIXTURES_PATH.as_posix()}: {snippet}"
+            )
+    for snippet in EXPECTED_C_PARITY_FIXTURE_SNIPPETS:
+        if snippet not in fixtures_content:
+            raise ValidationError(
+                f"missing expected Phase 6 base64 c-parity marker in {FIXTURES_PATH.as_posix()}: {snippet}"
             )
 
 
@@ -225,7 +261,13 @@ def scaffold_repo(root: Path) -> None:
     )
     write(
         root / FIXTURES_PATH,
-        """pub const standard_cases = [_]EncodeCase{
+        """pub const CParityEncodeCase = struct {
+};
+pub const CParityDecodeCase = struct {
+};
+pub const CParityInvalidCase = struct {
+};
+pub const standard_cases = [_]EncodeCase{
     .{},
     .{},
     .{},
@@ -271,6 +313,27 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
 pub const variant_decode_cases = [_]DecodeCase{
     .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{},
     .{}, .{}, .{}, .{}, .{}, .{},
+};
+pub const c_parity_encode_cases = [_]CParityEncodeCase{
+    .{ .variant_name = "std", .padding = standard_cases[17].padding, .input = standard_cases[17].input },
+    .{ .variant_name = variant_cases[14].variant_name, .padding = variant_cases[14].padding, .input = variant_cases[14].input },
+    .{ .input = standard_cases[0].input }, .{ .input = standard_cases[1].input }, .{ .input = standard_cases[2].input },
+    .{ .input = standard_cases[7].input }, .{ .input = variant_cases[2].input }, .{ .input = variant_cases[3].input },
+    .{ .input = variant_cases[8].input }, .{ .input = variant_cases[9].input }, .{ .input = variant_cases[15].input },
+    .{ .input = variant_cases[4].input }, .{ .input = variant_cases[5].input }, .{ .input = variant_cases[10].input },
+    .{ .input = variant_cases[11].input }, .{ .input = variant_cases[16].input }, .{ .input = variant_cases[17].input },
+};
+pub const c_parity_decode_cases = [_]CParityDecodeCase{
+    .{ .input = standard_decode_cases[0].input }, .{ .input = standard_decode_cases[1].input }, .{ .input = standard_decode_cases[2].input },
+    .{ .input = standard_decode_cases[16].input }, .{ .input = standard_decode_cases[7].input }, .{ .input = variant_decode_cases[2].input },
+    .{ .input = variant_decode_cases[3].input }, .{ .input = variant_decode_cases[8].input }, .{ .input = variant_decode_cases[9].input },
+    .{ .input = variant_decode_cases[14].input }, .{ .input = variant_decode_cases[15].input }, .{ .input = variant_decode_cases[4].input },
+    .{ .input = variant_decode_cases[5].input }, .{ .input = variant_decode_cases[10].input }, .{ .input = variant_decode_cases[11].input },
+    .{ .input = variant_decode_cases[16].input }, .{ .input = variant_decode_cases[17].input },
+};
+pub const c_parity_invalid_cases = [_]CParityInvalidCase{
+    .{ .input = invalid_decode_cases[0].input }, .{ .input = invalid_decode_cases[2].input }, .{ .input = invalid_decode_cases[11].input },
+    .{ .input = invalid_decode_cases[6].input }, .{ .input = invalid_decode_cases[14].input }, .{ .input = invalid_decode_cases[15].input },
 };
 pub const perf_cases = [_]PerfCase{
     .{ .label = "STD_PAD", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
@@ -376,6 +439,18 @@ def run_self_test() -> None:
             C_PARITY_TEST_PATH,
             EXPECTED_C_PARITY_SNIPPETS[0],
             'const fixtures = @import("fixtures/phase6_base64_c_parity_vectors.zig");',
+        )
+        expect_failure(
+            root,
+            FIXTURES_PATH,
+            "pub const c_parity_encode_cases = [_]CParityEncodeCase{",
+            "pub const c_parity_encode_selection = [_]CParityEncodeCase{",
+        )
+        expect_failure(
+            root,
+            FIXTURES_PATH,
+            '    .{ .variant_name = variant_cases[14].variant_name, .padding = variant_cases[14].padding, .input = variant_cases[14].input },',
+            '    .{ .variant_name = variant_cases[13].variant_name, .padding = variant_cases[13].padding, .input = variant_cases[13].input },',
         )
 
     print("PHASE6_BASE64_CORPUS_DETERMINISM_SELF_TEST=pass")
