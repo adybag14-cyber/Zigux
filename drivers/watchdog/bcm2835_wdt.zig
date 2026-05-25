@@ -31,6 +31,17 @@ pub const RuntimeSnapshot = struct {
     registers: RegisterImage,
 };
 
+pub const RestartSummary = struct {
+    anchor: []const u8,
+    running_before_restart: bool,
+    running_after_restart: bool,
+    full_reset_armed_after_restart: bool,
+    halt_partition_requested: bool,
+    restart_register_written: bool,
+    programmed_ticks: u32,
+    registers: RegisterImage,
+};
+
 pub const PlatformHandoffInput = struct {
     heartbeat_sec: u32,
     nowayout: bool,
@@ -145,6 +156,25 @@ pub const Bcm2835WdtLab = struct {
         };
     }
 
+    pub fn restart(self: *Self) RestartSummary {
+        const running_before_restart = self.isRunning();
+        const restart_control = pm_password | (self.registers.rstc & pm_rstc_wrcfg_clr) | pm_rstc_wrcfg_full_reset;
+
+        self.registers.wdog = pm_password | restart_timeout_ticks;
+        self.registers.rstc = restart_control;
+
+        return .{
+            .anchor = anchor_path,
+            .running_before_restart = running_before_restart,
+            .running_after_restart = self.isRunning(),
+            .full_reset_armed_after_restart = self.isRunning(),
+            .halt_partition_requested = hasHaltPartition(self.registers),
+            .restart_register_written = self.registers.rstc == restart_control,
+            .programmed_ticks = self.registers.wdog & pm_wdog_time_set,
+            .registers = self.registers,
+        };
+    }
+
     pub fn poweroff(self: *Self, owns_poweroff_handler: bool) RuntimeSnapshot {
         if (owns_poweroff_handler) {
             self.registers.rsts |= pm_password | pm_rsts_halt;
@@ -207,6 +237,28 @@ fn hasHaltPartition(registers: RegisterImage) bool {
 fn validateTimeout(timeout_sec: u32) !void {
     if (timeout_sec < min_timeout_sec) return error.TimeoutTooSmall;
     if (timeout_sec > max_timeout_sec) return error.TimeoutTooLarge;
+}
+
+test "bcm2835 restart summary keeps restart timeout programming explicit" {
+    var running = try Bcm2835WdtLab.init(8);
+    running.start();
+
+    const restarted = running.restart();
+    try @import("std").testing.expectEqualStrings(anchor_path, restarted.anchor);
+    try @import("std").testing.expect(restarted.running_before_restart);
+    try @import("std").testing.expect(restarted.running_after_restart);
+    try @import("std").testing.expect(restarted.full_reset_armed_after_restart);
+    try @import("std").testing.expect(!restarted.halt_partition_requested);
+    try @import("std").testing.expect(restarted.restart_register_written);
+    try @import("std").testing.expectEqual(@as(u32, restart_timeout_ticks), restarted.programmed_ticks);
+
+    var idle = try Bcm2835WdtLab.init(8);
+    const idle_restart = idle.restart();
+    try @import("std").testing.expect(!idle_restart.running_before_restart);
+    try @import("std").testing.expect(idle_restart.running_after_restart);
+    try @import("std").testing.expect(idle_restart.full_reset_armed_after_restart);
+    try @import("std").testing.expect(idle_restart.restart_register_written);
+    try @import("std").testing.expectEqual(@as(u32, restart_timeout_ticks), idle_restart.programmed_ticks);
 }
 
 test "bcm2835 teardown summary releases bcm-owned poweroff handler after stop" {
