@@ -67,6 +67,9 @@ REQUIRED_FILES = [
 EXPECTED_HELPER_EVIDENCE_PACKET = "phase6-helper-evidence"
 EXPECTED_HELPER_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
+EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
+EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
@@ -228,7 +231,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 25
 
 
 class ValidationError(RuntimeError):
@@ -347,6 +350,14 @@ def validate(root: Path) -> None:
         raise ValidationError("phase6 helper parity packet drift")
     if helper_evidence_manifest.get("phase") != EXPECTED_PHASE or helper_parity_manifest.get("phase") != EXPECTED_PHASE:
         raise ValidationError("phase6 phase drift")
+    if helper_evidence_manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
+        raise ValidationError("phase6 helper evidence surveyed_head drift")
+    if helper_parity_manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
+        raise ValidationError("phase6 helper parity surveyed_head drift")
+    if helper_evidence_manifest.get("lane_scope") != EXPECTED_EVIDENCE_LANE_SCOPE:
+        raise ValidationError("phase6 helper evidence lane_scope drift")
+    if helper_parity_manifest.get("lane_scope") != EXPECTED_PARITY_LANE_SCOPE:
+        raise ValidationError("phase6 helper parity lane_scope drift")
     if helper_evidence_manifest.get("current_direct_readback_companions") != EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS:
         raise ValidationError("phase6 helper evidence direct-readback companion drift")
     if helper_evidence_manifest.get("public_tree_backed_shared_companions") != EXPECTED_SHARED_PUBLIC_COMPANIONS:
@@ -477,6 +488,8 @@ def scaffold_repo(root: Path) -> None:
     write(root / HELPER_EVIDENCE_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_EVIDENCE_PACKET,
         "phase": EXPECTED_PHASE,
+        "surveyed_head": EXPECTED_SURVEYED_HEAD,
+        "lane_scope": EXPECTED_EVIDENCE_LANE_SCOPE,
         "current_direct_readback_companions": EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS,
         "public_tree_backed_shared_companions": EXPECTED_SHARED_PUBLIC_COMPANIONS,
         "current_repo_reality_gaps": EXPECTED_EVIDENCE_CURRENT_GAPS,
@@ -504,6 +517,8 @@ def scaffold_repo(root: Path) -> None:
     write(root / HELPER_PARITY_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_PARITY_PACKET,
         "phase": EXPECTED_PHASE,
+        "surveyed_head": EXPECTED_SURVEYED_HEAD,
+        "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
         "shared_direct_evidence": EXPECTED_SHARED_DIRECT_EVIDENCE,
         "public_tree_backed_shared_companions": EXPECTED_SHARED_PUBLIC_COMPANIONS,
         "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
@@ -593,6 +608,32 @@ def run_self_test() -> None:
                 json.dumps(
                     {
                         **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "surveyed_head": "current-master-readback-2026-05-21",
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "lane_scope": "shared helper-evidence rows only",
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
                         "helpers": [
                             helper
                             if helper.get("key") != "bsearch"
@@ -650,6 +691,32 @@ def run_self_test() -> None:
                             }
                             for helper in read_json(root / HELPER_EVIDENCE_MANIFEST)["helpers"]
                         ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "surveyed_head": "current-master-readback-2026-05-21",
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "lane_scope": "shared helper-parity rows only",
                     },
                     indent=2,
                 )
