@@ -6,9 +6,10 @@ Fail-closed checker for the current Phase 14 release-boundary count posture.
 This guard keeps the release-boundary packet honest around the exact manifest-
 backed compile-shard counts, the dedicated compile-shard matrix survey, the
 returned manifest posture in the shared smoke survey, the dedicated validator-side
-skbuff stay-in-C and compile-route packets, the dedicated RCU rollback packet, and the still-unreadable build-side or broader
-executable-layer gap while cross-reading the shared smoke survey markers that
-define the current Phase 14 route split.
+skbuff stay-in-C and compile-route packets, the dedicated ring-buffer compile-route
+packet, the dedicated RCU rollback packet, and the still-unreadable build-side or
+broader executable-layer gap while cross-reading the shared smoke survey markers
+that define the current Phase 14 route split.
 """
 
 from __future__ import annotations
@@ -29,6 +30,9 @@ COMPILE_SHARD_MATRIX_SURVEY_PATH = Path(
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 SKBUFF_COMPILE_ROUTE_CHECKER_PATH = Path(
     "scripts/zigux/check-phase14-skbuff-compile-route.py"
+)
+RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH = Path(
+    "scripts/zigux/check-phase14-ring-buffer-compile-route.py"
 )
 
 EXACT_COUNT_MARKERS = [
@@ -59,9 +63,10 @@ COMPILE_SHARD_MATRIX_MARKERS = [
     "- machine-readable source: `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "- checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
     "- skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`",
+    "- ring-buffer compile-route checker: `scripts/zigux/check-phase14-ring-buffer-compile-route.py`",
     "- shared survey shard: `phase14-end-to-end-smoke-tests` (`focused_and_full_bundle`)",
-    "- the direct ring-buffer survey companion is readable again, and the dedicated survey gate now fail-closes on the shared-manifest compile row even while the lane remains study-only and maintenance-scoped",
-    "- the manifest-backed compile row is present, but it still has no dedicated compile-route checker and the focused Zig replay remains partial through this lane's exact contents path, so the anchor stays freeze-in-C initially",
+    "- `scripts/zigux/check-phase14-ring-buffer-compile-route.py` now fail-closes on the shared-manifest row together with the note's returned ring-buffer-local replay wording even while the lane remains study-only and maintenance-scoped",
+    "- the manifest-backed compile row is present, but it still has no dedicated compile-route checker and the focused replay remains partial through this lane's exact contents path, so the anchor stays freeze-in-C initially",
 ]
 
 SURVEY_EXACT_LINE_SNIPPETS = [
@@ -227,6 +232,7 @@ def check(root: Path) -> list[str]:
         COMPILE_SHARD_MATRIX_SURVEY_PATH,
         MANIFEST_PATH,
         SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+        RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
     ]
     for rel in required_paths:
         if not (root / rel).exists():
@@ -338,6 +344,11 @@ def write_fixture_tree(root: Path) -> None:
     )
     write_text(root, MANIFEST_PATH, fixture_manifest())
     write_text(root, SKBUFF_COMPILE_ROUTE_CHECKER_PATH, "# present for shared-packet file checks\n")
+    write_text(
+        root,
+        RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+        "# present for shared-packet file checks\n",
+    )
 
 
 def remove_line(root: Path, rel: Path, marker: str) -> None:
@@ -405,7 +416,7 @@ def run_self_test() -> int:
             print("expected missing skbuff stay-in-c survey marker drift to fail")
             return 1
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         duplicate_line(base, SURVEY_PATH, SURVEY_EXACT_LINE_SNIPPETS[0])
         if not any(
             error.startswith(
@@ -421,23 +432,23 @@ def run_self_test() -> int:
         remove_line(
             base,
             COMPILE_SHARD_MATRIX_SURVEY_PATH,
-            COMPILE_SHARD_MATRIX_MARKERS[5],
+            "- ring-buffer compile-route checker: `scripts/zigux/check-phase14-ring-buffer-compile-route.py`",
         )
         if not any(
-            COMPILE_SHARD_MATRIX_MARKERS[5] in error for error in check(base)
+            "ring-buffer compile-route checker" in error for error in check(base)
         ):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
-            print("expected compile-shard survey checker marker drift to fail")
+            print("expected ring-buffer compile-route checker marker drift to fail")
             return 1
 
         write_fixture_tree(base)
         remove_line(
             base,
             COMPILE_SHARD_MATRIX_SURVEY_PATH,
-            COMPILE_SHARD_MATRIX_MARKERS[7],
+            "- `scripts/zigux/check-phase14-ring-buffer-compile-route.py` now fail-closes on the shared-manifest row together with the note's returned ring-buffer-local replay wording even while the lane remains study-only and maintenance-scoped",
         )
         if not any(
-            COMPILE_SHARD_MATRIX_MARKERS[7] in error for error in check(base)
+            "ring-buffer-local replay wording" in error for error in check(base)
         ):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
             print("expected ring-buffer row-guard marker drift to fail")
