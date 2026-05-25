@@ -48,6 +48,11 @@ EXACT_ONCE_LINES = (
     "- name: Check current Phase 1 closure packet",
     "run: python3 scripts/zigux/validate-phase1-closure.py",
     "- name: Self-test current Phase 3 interop packet",
+    "run: python3 scripts/zigux/validate_phase3_selftest.py",
+    "- name: Check current Phase 3 interop packet",
+    "run: python3 scripts/zigux/run-phase3-checks.py",
+    "- name: Run current Phase 1 shared tests-root smoke",
+    "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
 )
 
 ORDERED_LINES = EXACT_ONCE_LINES
@@ -59,6 +64,8 @@ FORBIDDEN_LINES = (
     "- name: Check Phase 1 shared reminder packet",
     "- name: Self-test Phase 1 closure validator",
     "- name: Check Phase 1 closure packet",
+    "- name: Check Phase 3 interop packet",
+    "- name: Run Phase 1 shared tests-root smoke",
 )
 
 
@@ -150,6 +157,10 @@ def build_sample_root(root: Path) -> None:
                 "        run: python3 scripts/zigux/validate-phase1-closure.py",
                 "      - name: Self-test current Phase 3 interop packet",
                 "        run: python3 scripts/zigux/validate_phase3_selftest.py",
+                "      - name: Check current Phase 3 interop packet",
+                "        run: python3 scripts/zigux/run-phase3-checks.py",
+                "      - name: Run current Phase 1 shared tests-root smoke",
+                "        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
             )
         )
         + "\n",
@@ -217,6 +228,18 @@ def run_self_test() -> int:
             lambda root: remove_line(root, "run: python3 scripts/zigux/validate-phase1-closure.py --self-test"),
         ),
         (
+            "missing_phase3_live_packet",
+            lambda root: remove_line(root, "run: python3 scripts/zigux/run-phase3-checks.py"),
+        ),
+        (
+            "missing_shared_smoke_route",
+            lambda root: remove_line(root, "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig"),
+        ),
+        (
+            "duplicate_shared_smoke_route",
+            lambda root: duplicate_line(root, "run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig"),
+        ),
+        (
             "bad_order",
             lambda root: swap_lines(
                 root,
@@ -225,16 +248,20 @@ def run_self_test() -> int:
             ),
         ),
         (
-            "closure_after_phase3_boundary",
+            "smoke_before_phase3_check",
             lambda root: swap_lines(
                 root,
-                "- name: Check current Phase 1 closure packet",
-                "- name: Self-test current Phase 3 interop packet",
+                "- name: Check current Phase 3 interop packet",
+                "- name: Run current Phase 1 shared tests-root smoke",
             ),
         ),
         (
             "forbidden_old_label",
             lambda root: append_line(root, "      - name: Self-test Phase 1 closure validator"),
+        ),
+        (
+            "forbidden_old_phase3_label",
+            lambda root: append_line(root, "      - name: Check Phase 3 interop packet"),
         ),
         ("missing_closure_validator_file", lambda root: (root / CLOSURE_VALIDATOR_REL).unlink()),
         ("missing_shared_reminder_file", lambda root: (root / SHARED_REMINDER_REL).unlink()),
