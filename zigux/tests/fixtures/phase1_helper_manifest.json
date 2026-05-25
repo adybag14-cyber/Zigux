@@ -405,6 +405,13 @@
         "test \"strtomem_pad copies through the first NUL and pads the remaining tail\""
       ],
       "copy_fill_review_summary": "helper-local raw-copy and pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated memcpyAndPad(), strtomem(), or strtomem_pad() fixture keys, so prefix-copy, first-NUL stop, and caller-selected pad behavior remain review-visible at the helper surface",
+      "memtostr_review_anchors": [
+        "test \"memtostr copies a bounded non-NUL source and adds one terminator\"",
+        "test \"memtostr stops at embedded NUL without padding the tail\"",
+        "test \"memtostrPad zero-pads the remaining tail after copying\"",
+        "test \"memtostr helpers keep one-byte destinations terminated\""
+      ],
+      "memtostr_review_summary": "helper-local memtostr boundary and tail-padding anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated memtostr(), memtostrPad(), or memtostr_pad() fixture keys, so bounded source copies, embedded-NUL stops, terminator insertion, and zero-padded destination tails remain review-visible at the helper surface",
       "prefix_suffix_review_anchors": [
         "test \"strHasPrefix returns the matched prefix length with C-string semantics\"",
         "test \"strHasSuffix returns the matched suffix length with C-string semantics\"",
