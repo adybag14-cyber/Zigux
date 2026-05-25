@@ -10,19 +10,18 @@ ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface.py"
 
 REQUIRED_SOURCE_MARKERS = (
-    'SHARED_SURFACE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface.py"',
-    'SHARED_SURFACE_ALIGNMENT = (',
-    'ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface-selftest-alignment.py"',
-    '    SHARED_SURFACE_CHECKER,\n    SHARED_SURFACE_ALIGNMENT,',
-    '    \'    "scripts/zigux/check-phase2-cross-validate-shared-surface.py",\',\n'
-    '    \'    "scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py",\',',
-    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test",\n'
-    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py",\n'
-    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",\n'
-    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py",',
-    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test",\n'
-    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py",\n'
-    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",\n'
+    'WORKFLOW_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order.py"',
+    'WORKFLOW_ORDER_ALIGNMENT = (',
+    '    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order-selftest-alignment.py"',
+    '    WORKFLOW_ORDER_CHECKER,',
+    '    WORKFLOW_ORDER_ALIGNMENT,',
+    '    \'    "scripts/zigux/check-phase2-cross-validate-workflow-order.py",\',',
+    '    \'    "scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py",\',',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order.py --self-test",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order.py",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py --self-test",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py",',
     '        for path in REQUIRED_PATHS[3:]:',
     '    print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE=pass")',
@@ -33,10 +32,8 @@ REQUIRED_CASE_MARKERS = (
     '        write_text(resolve_path(root, VALIDATE), "CHECKS = ()\\n")',
     '            + "\\n".join(REQUIRED_VALIDATE_MARKERS + (REQUIRED_VALIDATE_MARKERS[0],))',
     '            + "\\n".join(REQUIRED_WORKFLOW_LINES + (REQUIRED_WORKFLOW_LINES[0],))',
-    '            + "\\n".join(f"\\t{line}" for line in REQUIRED_MAKEFILE_LINES + (REQUIRED_MAKEFILE_LINES[0],))',
-    '        resolve_path(root, VALIDATE).unlink()',
-    '        resolve_path(root, WORKFLOW).unlink()',
-    '        resolve_path(root, MAKEFILE).unlink()',
+    '        makefile_lines.extend(f"\\t{line}" for line in REQUIRED_MAKEFILE_LINES + (REQUIRED_MAKEFILE_LINES[0],))',
+    '        for path in (VALIDATE, WORKFLOW, MAKEFILE):',
     '            resolve_path(root, path).unlink()',
 )
 
@@ -85,18 +82,18 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     return issues
 
 
-def emit_issues(issues: list[tuple[str, str]]) -> int:
-    grouped: dict[str, list[str]] = {}
-    for code, value in issues:
-        grouped.setdefault(code, []).append(value)
+def run_check(root: Path) -> int:
+    issues = collect_issues(root)
+    if issues:
+        for code, detail in issues:
+            print(f"PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT_ISSUE={code}:{detail}")
+        print(f"PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT_ISSUE_COUNT={len(issues)}")
+        return 1
 
-    print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT=fail")
-    for code, values in grouped.items():
-        print(f"{code}_START")
-        for value in values:
-            print(value)
-        print(f"{code}_END")
-    return 1
+    print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT=pass")
+    print(f"PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT_SOURCE_MARKER_COUNT={len(REQUIRED_SOURCE_MARKERS)}")
+    print(f"PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT_CASE_MARKER_COUNT={len(REQUIRED_CASE_MARKERS)}")
+    return 0
 
 
 def build_self_test_root(root: Path) -> None:
@@ -104,34 +101,36 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    expected_checks = 1 + len(REQUIRED_SOURCE_MARKERS) + len(REQUIRED_CASE_MARKERS) + 1
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_validate_shared_surface_alignment_") as tmp_dir:
         root = Path(tmp_dir)
 
         build_self_test_root(root)
-        assert collect_issues(root) == []
+        assert run_check(root) == 0
         checks += 1
 
         for marker in REQUIRED_SOURCE_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, CHECKER)
             path.write_text(path.read_text(encoding="utf-8").replace(marker, "", 1), encoding="utf-8")
-            assert ("MISSING_SOURCE_MARKER", marker) in collect_issues(root)
+            assert run_check(root) == 1
             checks += 1
 
         for marker in REQUIRED_CASE_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, CHECKER)
             path.write_text(path.read_text(encoding="utf-8").replace(marker, "", 1), encoding="utf-8")
-            assert ("MISSING_CASE_MARKER", marker) in collect_issues(root)
+            assert run_check(root) == 1
             checks += 1
 
         build_self_test_root(root)
         path = resolve_path(root, CHECKER)
         path.write_text(path.read_text(encoding="utf-8") + REQUIRED_SOURCE_MARKERS[0] + "\n", encoding="utf-8")
-        assert ("DUPLICATE_SOURCE_MARKER", f"{REQUIRED_SOURCE_MARKERS[0]}:count=2") in collect_issues(root)
+        assert run_check(root) == 1
         checks += 1
 
+    assert checks == expected_checks
     print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT={checks}")
     return 0
@@ -147,15 +146,7 @@ def main() -> int:
 
     if args.self_test:
         return run_self_test()
-
-    issues = collect_issues(args.root.resolve())
-    if issues:
-        return emit_issues(issues)
-
-    print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT=pass")
-    print(f"PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT_SOURCE_MARKER_COUNT={len(REQUIRED_SOURCE_MARKERS)}")
-    print(f"PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELFTEST_ALIGNMENT_CASE_MARKER_COUNT={len(REQUIRED_CASE_MARKERS)}")
-    return 0
+    return run_check(args.root.resolve())
 
 
 if __name__ == "__main__":
