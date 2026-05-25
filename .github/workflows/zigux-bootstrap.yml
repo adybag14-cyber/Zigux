@@ -193,6 +193,78 @@ jobs:
       - name: Check current Lane 05 stage helper selftest packet
         run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
 
+      - name: Self-test current Lane 05 split helper contract checker
+        run: python3 scripts/zigux/check-lane05-split-helper-contract.py --self-test
+
+      - name: Check current Lane 05 split helper contract packet
+        run: python3 scripts/zigux/check-lane05-split-helper-contract.py
+
+      - name: Self-test current Lane 05 split helper contract selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-contract-selftest.py --self-test
+
+      - name: Check current Lane 05 split helper contract selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-contract-selftest.py
+
+      - name: Self-test current Lane 05 split helper selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
+
+      - name: Check current Lane 05 split helper selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
+
+      - name: Self-test current Lane 05 split helper selftest selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest-selftest.py --self-test
+
+      - name: Check current Lane 05 split helper selftest selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest-selftest.py
+
+      - name: Self-test current Lane 05 split helper workflow checker
+        run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test
+
+      - name: Check current Lane 05 split helper workflow packet
+        run: python3 scripts/zigux/check-lane05-split-helper-workflow.py
+
+      - name: Self-test current Lane 05 split helper workflow selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-workflow-selftest.py --self-test
+
+      - name: Check current Lane 05 split helper workflow selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-workflow-selftest.py
+
+      - name: Self-test current Lane 05 split helper manifest packet checker
+        run: python3 scripts/zigux/check-lane05-split-helper-manifest-packet.py --self-test
+
+      - name: Check current Lane 05 split helper manifest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-manifest-packet.py
+
+      - name: Self-test current Lane 05 split helper manifest selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-manifest-selftest.py --self-test
+
+      - name: Check current Lane 05 split helper manifest selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-manifest-selftest.py
+
+      - name: Self-test current Lane 05 split helper cli-contract checker
+        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract.py --self-test
+
+      - name: Check current Lane 05 split helper cli-contract packet
+        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract.py
+
+      - name: Self-test current Lane 05 split helper cli-contract selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract-selftest.py --self-test
+
+      - name: Check current Lane 05 split helper cli-contract selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-cli-contract-selftest.py
+
+      - name: Self-test current Lane 05 split-stage alignment checker
+        run: python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py --self-test
+
+      - name: Check current Lane 05 split-stage alignment packet
+        run: python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py
+
+      - name: Self-test current Lane 05 split-stage alignment selftest checker
+        run: python3 scripts/zigux/check-lane05-split-stage-alignment-selftest.py --self-test
+
+      - name: Check current Lane 05 split-stage alignment selftest packet
+        run: python3 scripts/zigux/check-lane05-split-stage-alignment-selftest.py
+
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
 
