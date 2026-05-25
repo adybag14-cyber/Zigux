@@ -156,6 +156,7 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/check-phase3-policy-dump.py",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -198,6 +199,8 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-xarray-slot.py",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py",
     "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
@@ -470,6 +473,7 @@ def run_self_test() -> int:
             ("zigux/tests/phase3_policy_dump.zig", "expected policy-dump packet-file drift was not reported"),
             ("scripts/zigux/validate_phase3_selftest.py", "expected selftest-driver packet-file drift was not reported"),
             ("scripts/zigux/run-phase3-checks.py", "expected runner packet-file drift was not reported"),
+            ("scripts/zigux/check-phase3-readme-tooling-inventory.py", "expected readme-tooling-inventory checker packet-file drift was not reported"),
         )
         manifest_path = repo_root / MANIFEST_PATH
         for entry, failure_message in packet_file_cases:
@@ -480,7 +484,6 @@ def run_self_test() -> int:
             issues = validate_repo(repo_root)
             expected = f"phase3_abi_manifest.json missing packet_files entry: {entry}"
             _expect_issue(issues, expected, failure_message)
-
         replay_route_cases = (
             ("python3 scripts/zigux/check-phase3-abi.py --self-test", "expected shared ABI self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi.py", "expected shared ABI direct route drift was not reported"),
@@ -520,6 +523,8 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-xarray-slot.py", "expected xarray slot direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test", "expected shared-tests-routes self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-shared-tests-routes.py", "expected shared-tests-routes direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test", "expected readme-tooling-inventory self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-readme-tooling-inventory.py", "expected readme-tooling-inventory direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test", "expected catalog-selftest self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-catalog-selftest.py", "expected catalog-selftest direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test", "expected abi-header-family survey self-test route drift was not reported"),
@@ -614,7 +619,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=188")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=191")
     return 0
 
 def main() -> int:
