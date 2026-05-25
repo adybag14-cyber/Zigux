@@ -32,7 +32,7 @@ REQUIRED_CONF_HELPER_ANCHORS = [
     "conf bridge emits yes2modconfig argv and env",
     "conf bridge emits defconfig mode argument before kconfig",
     "conf bridge emits savedefconfig mode argument before kconfig",
-    "conf bridge escapes low control bytes in json strings",
+    "conf bridge escapes low control bytes in JSON strings",
     "mode argument validation rejects bridge option shaped defconfig payload",
     "mode argument validation accepts defconfig path that only starts with silent",
     "mode argument validation still accepts ordinary path text with equals",
@@ -437,7 +437,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     for mode in sorted(manifest_modes - bridge_mode_set):
         issues.append(("UNSUPPORTED_CONF_CASE_MODES", mode))
 
-    manifest_mode_order = [str(case["mode"] ) for case in conf_cases]
+    manifest_mode_order = [str(case["mode"]) for case in conf_cases]
     expected_mode_order = expected_conf_case_order(conf_cases)
     if manifest_mode_order != expected_mode_order:
         issues.append(("CONF_CASE_MODE_ORDER_ACTUAL", ",".join(manifest_mode_order)))
