@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L16",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-21",
+  "surveyed_commit": "current-master-readback-2026-05-25",
   "surveyed_commit_mode": "dated_master_readback",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
@@ -136,6 +136,13 @@
       "kind": "companion_sync",
       "zigux_destination": "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
       "why_now": "The direct lane-owner alignment replay already materializes on current master and should stay explicit beside the policy note so lane-owner and approver vocabulary do not drift into neighboring Phase 15 packets only."
+    },
+    {
+      "id": "phase15-indefinite-c-current-reread-refresh",
+      "status": "landed",
+      "kind": "maintenance_reread",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The direct stay-in-C packet had to be reread against current 2026-05-25 master so the roadmap-required policy surface stays explicitly landed instead of drifting behind newer Phase 15 governance companions."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
