@@ -4,11 +4,17 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
+
+EXPECTED_MANIFEST_LANE_KEY = "helper-local"
+EXPECTED_MANIFEST_PHASE = "Phase 7"
+EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"
+EXPECTED_MANIFEST_STATE = "expanded_starter_packet"
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-string-helpers-slice.md",
@@ -108,6 +114,10 @@ REQUIRED_MARKERS = {
         MANIFEST_PHASE_MARKER,
         MANIFEST_ANCHOR_MARKER,
         MANIFEST_STATE_MARKER,
+        "EXPECTED_MANIFEST_LANE_KEY = \"helper-local\"",
+        "EXPECTED_MANIFEST_PHASE = \"Phase 7\"",
+        "EXPECTED_MANIFEST_ANCHOR = \"lib/string_helpers.c\"",
+        "EXPECTED_MANIFEST_STATE = \"expanded_starter_packet\"",
         "MISSING_PHASE7_STRING_HELPERS_FILES_START",
         "MISSING_PHASE7_STRING_HELPERS_FILES_END",
         "MISSING_PHASE7_STRING_HELPERS_MARKERS_START",
@@ -156,10 +166,6 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix" {',
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
-        MANIFEST_LANE_KEY_MARKER,
-        MANIFEST_PHASE_MARKER,
-        MANIFEST_ANCHOR_MARKER,
-        MANIFEST_STATE_MARKER,
         '"scripts/zigux/check-phase7-string-helpers-packet.py"',
         "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings",
         "bounded uppercase and lowercase copies through the exported C-string boundary",
@@ -176,15 +182,19 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "* `*printf*`");',
         'try expectContains(checker, "* `*vsprintf*`");',
         'try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");',
-        'try expectContains(manifest, "\\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\\"");',
+        'try expectContains(manifest, "\\\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
         'try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping");',
-        'try expectContains(manifest, "\\\\\\"next_bounded_step\\\\\\": \\\\\\\"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\\\\\"");',
+        'try expectContains(manifest, "\\\\\\\"next_bounded_step\\\\\\\": \\\\\\\"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\\\\\"");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");',
-        'try expectContains(checker, "try expectContains(helper, \\\\\\\"pub fn stringIsTerminated(\\\\\\\");");',
-        'try expectContains(checker, "try expectContains(helper, \\\\\\\"pub fn string_is_terminated(\\\\\\\");");',
-        'try expectContains(checker, "try expectContains(helper_tests, \\\\\\\"test \\\\\\\\\\\\\\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\\\\\\\\\\\\\" {\\\\\\\");");',
-        'try expectContains(checker, "try expectContains(manifest, \\\\\\\"stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix\\\\\\\");");',
+        'try expectContains(checker, "EXPECTED_MANIFEST_LANE_KEY = \\"helper-local\\"");',
+        'try expectContains(checker, "EXPECTED_MANIFEST_PHASE = \\"Phase 7\\"");',
+        'try expectContains(checker, "EXPECTED_MANIFEST_ANCHOR = \\"lib/string_helpers.c\\"");',
+        'try expectContains(checker, "EXPECTED_MANIFEST_STATE = \\"expanded_starter_packet\\"");',
+        'try expectContains(checker, "try expectContains(helper, \\\\\\"pub fn stringIsTerminated(\\\\\\");");',
+        'try expectContains(checker, "try expectContains(helper, \\\\\\"pub fn string_is_terminated(\\\\\\");");',
+        'try expectContains(checker, "try expectContains(helper_tests, \\\\\\"test \\\\\\\\\\\\\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\\\\\\\\\\\\" {\\\\\\");");',
+        'try expectContains(checker, "try expectContains(manifest, \\\\\\"stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix\\\\\\");");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
         'try expectNotContains(helper, "pub fn parseIntArrayUser(");',
@@ -193,10 +203,10 @@ REQUIRED_MARKERS = {
         'try expectNotContains(helper_tests, "devm_kasprintf_strarray");',
         'try expectNotContains(helper_tests, "parseIntArrayUser");',
         'try expectNotContains(helper_tests, "parse_int_array_user");',
-        'try expectNotContains(manifest, "\\\\\\"devmKasprintfStrarray\\\\\\"");',
-        'try expectNotContains(manifest, "\\\\\\"devm_kasprintf_strarray\\\\\\"");',
-        'try expectNotContains(manifest, "\\\\\\"parseIntArrayUser\\\\\\"");',
-        'try expectNotContains(manifest, "\\\\\\"parse_int_array_user\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\\"devmKasprintfStrarray\\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\\"devm_kasprintf_strarray\\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\\"parseIntArrayUser\\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\\"parse_int_array_user\\\\\\\"");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local",
@@ -268,11 +278,45 @@ def write(path: Path, content: str) -> None:
 
 def write_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
+        if rel == "zigux/tests/phase7_string_helpers_manifest.json":
+            continue
         lines = list(REQUIRED_MARKERS[rel])
         for marker, expected in COUNTED_MARKERS.get(rel, []):
             if marker not in lines:
                 lines.extend([marker] * expected)
         write(tmp_root / rel, "\n".join(lines) + "\n")
+
+    manifest = {
+        "lane_key": EXPECTED_MANIFEST_LANE_KEY,
+        "phase": EXPECTED_MANIFEST_PHASE,
+        "verified_on_utc": "2026-05-25T16:43:22Z",
+        "anchor": EXPECTED_MANIFEST_ANCHOR,
+        "current_master_state": EXPECTED_MANIFEST_STATE,
+        "review_surfaces": [
+            "Documentation/zigux/phase7-string-helpers-slice.md",
+            "scripts/zigux/check-phase7-string-helpers-packet.py",
+            "lib/string_helpers.zig",
+            "zigux/tests/phase7_string_helpers.zig",
+            "zigux/tests/phase7_string_helpers_manifest.json",
+            "zigux/tests/phase7_string_helpers_survey.zig",
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+            "samples/zigux/README.md",
+        ],
+        "ownership_focus": [
+            "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings",
+            "bounded uppercase and lowercase copies through the exported C-string boundary",
+            "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters",
+            CMDLINE_OWNERSHIP_MARKER,
+            TERMINATION_OWNERSHIP_MARKER,
+            "dedicated helper-local checker-backed packet reviewability",
+            NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER,
+        ],
+        "next_bounded_step": NEXT_BOUNDED_STEP_MARKER,
+    }
+    write(
+        tmp_root / "zigux/tests/phase7_string_helpers_manifest.json",
+        json.dumps(manifest, indent=2) + "\n",
+    )
 
 
 def collect_missing_files(root: Path) -> list[str]:
@@ -314,6 +358,17 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, [], [], []
+
+    manifest = json.loads(read_text(root / "zigux/tests/phase7_string_helpers_manifest.json"))
+    if manifest.get("lane_key") != EXPECTED_MANIFEST_LANE_KEY:
+        return [], ["zigux/tests/phase7_string_helpers_manifest.json: lane_key"], [], []
+    if manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
+        return [], ["zigux/tests/phase7_string_helpers_manifest.json: phase"], [], []
+    if manifest.get("anchor") != EXPECTED_MANIFEST_ANCHOR:
+        return [], ["zigux/tests/phase7_string_helpers_manifest.json: anchor"], [], []
+    if manifest.get("current_master_state") != EXPECTED_MANIFEST_STATE:
+        return [], ["zigux/tests/phase7_string_helpers_manifest.json: current_master_state"], [], []
+
     return (
         missing_files,
         collect_missing_markers(root),
@@ -593,16 +648,33 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        for manifest_marker, case in [
-            (MANIFEST_LANE_KEY_MARKER, "missing_manifest_lane_key_marker"),
-            (MANIFEST_PHASE_MARKER, "missing_manifest_phase_marker"),
-            (MANIFEST_ANCHOR_MARKER, "missing_manifest_anchor_marker"),
-            (MANIFEST_STATE_MARKER, "missing_manifest_state_marker"),
-        ]:
-            remove_once(manifest_path, manifest_marker)
-            expect_missing_marker(case, tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
-            cases_run += 1
-            write_fixture_root(tmp_root)
+        manifest = json.loads(read_text(manifest_path))
+        manifest["lane_key"] = "P7-L09"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("missing_manifest_lane_key_marker", tmp_root, "zigux/tests/phase7_string_helpers_manifest.json: lane_key")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["phase"] = "Phase 8"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("missing_manifest_phase_marker", tmp_root, "zigux/tests/phase7_string_helpers_manifest.json: phase")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["anchor"] = "lib/cmdline.c"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("missing_manifest_anchor_marker", tmp_root, "zigux/tests/phase7_string_helpers_manifest.json: anchor")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["current_master_state"] = "starter_packet"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("missing_manifest_state_marker", tmp_root, "zigux/tests/phase7_string_helpers_manifest.json: current_master_state")
+        cases_run += 1
+        write_fixture_root(tmp_root)
 
         survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
         survey_marker = 'try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");'
@@ -617,7 +689,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        survey_marker = 'try expectContains(manifest, "\\\\\\"next_bounded_step\\\\\\": \\\\\\\"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\\\\\"");'
+        survey_marker = 'try expectContains(manifest, "\\\\\\\"next_bounded_step\\\\\\\": \\\\\\\"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\\\\\"");'
         remove_once(survey_path, survey_marker)
         expect_missing_marker("missing_survey_manifest_next_bounded_step_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
         cases_run += 1
@@ -738,25 +810,33 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         manifest_forbidden_marker = '"devmKasprintfStrarray"'
-        manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_marker + "\n", encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].append("devmKasprintfStrarray")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_unexpected_marker("unexpected_manifest_devm_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_forbidden_alias_marker = '"devm_kasprintf_strarray"'
-        manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_alias_marker + "\n", encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].append("devm_kasprintf_strarray")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_unexpected_marker("unexpected_manifest_devm_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden_alias_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_forbidden_parse_marker = '"parseIntArrayUser"'
-        manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_parse_marker + "\n", encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].append("parseIntArrayUser")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_unexpected_marker("unexpected_manifest_parse_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden_parse_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest_forbidden_parse_alias_marker = '"parse_int_array_user"'
-        manifest_path.write_text(read_text(manifest_path) + manifest_forbidden_parse_alias_marker + "\n", encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].append("parse_int_array_user")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_unexpected_marker("unexpected_manifest_parse_alias_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_forbidden_parse_alias_marker}")
         cases_run += 1
 
