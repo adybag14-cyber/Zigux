@@ -30,6 +30,7 @@ DIRECT_PACKET_PATHS = (
     "samples/zigux/kobject_example.zig",
     "samples/zigux/kobject_example_attr_group_contract.zig",
     "samples/zigux/kretprobe_example.zig",
+    "samples/zigux/trace_events_callback_focus_contract.zig",
     "samples/zigux/trace_events_string_formatting_sample.zig",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase5-review-guide-surface.py",
@@ -69,21 +70,22 @@ MARKERS = {
         "keep the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit alongside the registered teardown, post-`exit()` rejection, and anchor-replay rejection packet",
         "Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.",
         "`zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the companion-only validation route for the attr-group contract while `zigux/tests/phase5_build.zig` remains the directly readable shared build-route companion for this packet",
+        "`samples/zigux/trace_events_callback_focus_contract.zig` keeps the shared `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` `checked_focus` order plus the callback-registration recovery cues explicit at the sample root without turning that companion into a fifth Phase 5 sample.",
     ),
     DOCS_ROOT_PATH: (
         "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.",
         "keep the bounded `kobject` attr-group companion explicit here too: `samples/zigux/kobject_example_attr_group_contract.zig` is current direct sample-root evidence for the `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, and NULL-terminated attribute-list slot rather than a fifth Phase 5 sample family.",
         "keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof, and keep the current `kobject` anchor split explicit instead of falling back to older repo-reality-gap wording.",
-        "keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*kasprintf*`, `*strarray*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.",
+        "keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.",
         "keep the current `kobject` ownership-and-lifetime split explicit too: `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are current direct reminder or packet evidence again, while `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` stay public-tree-backed companion evidence until a fresh authenticated reread restores direct proof for those three routes.",
     ),
     APPROVED_IDIOM_PATH: (
         "Keep the approved formatting idiom bounded to the current landed reminder packet:",
         "Current `master` also still ships no standalone Phase 5 `samples/zigux/*string*`, `*kasprintf*`, `*strarray*`, `*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.",
         "Keep the sample-owned review contract explicit too: the bounded formatting companion now centralizes the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.",
-        "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\\\"iter=12\\\"` and keeps the sample in `.initialized`.",
+        "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\"iter=12\"` and keeps the sample in `.initialized`.",
         "Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.",
-        "Keep the selected-string iteration companion explicit too: `formatSelectedIterationMessageInto(3, [12]u8)` still returns `\\\"Frodo iter=3\\\"` while keeping the sample in `.initialized`, so the approved-idiom note must preserve the selected-string-plus-iteration wording instead of reducing the packet to the bare `iter=%d` formatter.",
+        "Keep the selected-string iteration companion explicit too: `formatSelectedIterationMessageInto(3, [12]u8)` still returns `\"Frodo iter=3\"` while keeping the sample in `.initialized`, so the approved-idiom note must preserve the selected-string-plus-iteration wording instead of reducing the packet to the bare `iter=%d` formatter.",
         "## Exact checks run on 2026-05-20",
         "This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.",
         "The exact checks that passed were:",
@@ -131,6 +133,7 @@ MARKERS = {
         "Current `master` also ships `samples/zigux/kobject_example_attr_group_contract.zig` as a bounded kobject companion. Keep that file framed as reviewability help for the current `foo`/`baz`/`bar` attribute-group contract, `0664` modes, unnamed-group cue, and NULL-terminated attribute-list slot rather than as a fifth Phase 5 sample family.",
         "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
         "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.",
+        "* `samples/zigux/trace_events_callback_focus_contract.zig` keeps the shared `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` focus order explicit as trace-events reviewability help at the sample root rather than as a separate Phase 5 sample family",
         "* `*kasprintf*`\n* `*strarray*`",
         "* `*rbtree*`",
         "Keep `zig test --dep kobject_attr_group_contract -Mroot=zigux/tests/phase5_kobject_attr_group_contract.zig -Mkobject_attr_group_contract=samples/zigux/kobject_example_attr_group_contract.zig` explicit as the focused replay route for that bounded attr-group packet, and keep `zig test zigux/tests/phase5_kobject_attr_group_contract_survey.zig` explicit as the survey-guard route that checks the companion, focused replay, and shared build-route markers together while `zigux/tests/phase5_build.zig` stays the current directly readable shared build-route companion for the broader kobject packet.",
@@ -147,16 +150,19 @@ FORBIDDEN_SAMPLE_ROOT_TEXT = (
     "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those three routes directly.",
 )
 
+
 def read_text(root: Path, path: Path) -> str:
     try:
         return (root / path).read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
+
 def write_text(root: Path, path: Path, text: str) -> None:
     full = root / path
     full.parent.mkdir(parents=True, exist_ok=True)
     full.write_text(text, encoding="utf-8")
+
 
 def placeholder(path: Path) -> str:
     lines = [f"# {path.name}"]
@@ -183,11 +189,13 @@ def placeholder(path: Path) -> str:
         )
     return "\n\n".join(lines) + "\n"
 
+
 def strip_standalone_path(text: str, rel: str) -> str:
     standalone = f"\n\n`{rel}`"
     if standalone in text:
         return text.replace(standalone, "", 1)
     return text
+
 
 def seed(root: Path) -> None:
     tracked = set(MARKERS)
@@ -200,6 +208,7 @@ def seed(root: Path) -> None:
         if rel_path in tracked:
             continue
         write_text(root, rel_path, "present\n")
+
 
 def collect_failures(root: Path) -> list[str]:
     texts = {path: read_text(root, path) for path in MARKERS}
@@ -251,19 +260,22 @@ def collect_failures(root: Path) -> list[str]:
 
     return failures
 
+
 def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
     if failures != expected:
         raise AssertionError(f"{label}: expected {expected}, got {failures}")
 
+
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 39
+    expected_case_count = 41
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
 
         expect_exact("baseline", collect_failures(root), [])
         checks_run += 1
+
         mutated = root / "missing_guide_validation_marker"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][3], ""))
@@ -381,6 +393,26 @@ def run_self_test() -> int:
             "missing sample-root marker",
             collect_failures(mutated),
             [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][6]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_guide_trace_callback_marker"
+        seed(mutated)
+        write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][7], ""))
+        expect_exact(
+            "missing guide trace callback marker",
+            collect_failures(mutated),
+            [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][7]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_sample_root_trace_callback_marker"
+        seed(mutated)
+        write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][4], ""))
+        expect_exact(
+            "missing sample-root trace callback marker",
+            collect_failures(mutated),
+            [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][4]}"],
         )
         checks_run += 1
 
@@ -694,6 +726,7 @@ def run_self_test() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_SELF_TEST_CASES={checks_run}")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT.parent.parent, help="repository root to validate")
@@ -715,6 +748,7 @@ def main() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_COMPANION_PATH_COUNT={len(PUBLIC_TREE_COMPANION_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_KOBJECT_DIRECT_PATH_COUNT={len(KOBJECT_DIRECT_PACKET_PATHS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
