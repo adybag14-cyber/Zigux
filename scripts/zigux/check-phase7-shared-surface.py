@@ -176,8 +176,12 @@ REQUIRED_MAKEFILE_SNIPPETS = [
 ]
 REQUIRED_BUILD_SNIPPETS = [
     "../../lib/rbtree.zig",
+    "phase7-string-helpers-format-boundary",
+    "string_helpers_format_boundary_step.dependOn(&run_string_helpers_format_boundary_tests.step)",
     "phase7-rbtree-test",
     "phase7-rbtree-survey",
+    'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");',
+    "test_step.dependOn(&run_string_helpers_format_boundary_tests.step)",
 ]
 REQUIRED_FILES = [
     CATALOG_PATH,
@@ -195,7 +199,7 @@ REQUIRED_FILES = [
     Path("lib/argv_split.zig"),
     Path("lib/rbtree.zig"),
 ]
-SELF_TEST_CASE_COUNT = 31
+SELF_TEST_CASE_COUNT = 35
 
 
 class ValidationError(RuntimeError):
@@ -354,7 +358,11 @@ def run_self_test() -> None:
         ("missing_manifest_rbtree_helper_entry", MANIFEST_PATH, '"lib/rbtree.zig"', '"tools/lib/rbtree.zig"'),
         ("missing_manifest_build_wiring_evidence", MANIFEST_PATH, '"phase7-rbtree-test"', '"phase7-rbtree-helper"'),
         ("missing_build_rbtree_import", BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
+        ("missing_build_format_boundary_route", BUILD_PATH, "phase7-string-helpers-format-boundary", "phase7-string-helpers-format-gap"),
+        ("missing_build_format_boundary_depend", BUILD_PATH, "string_helpers_format_boundary_step.dependOn(&run_string_helpers_format_boundary_tests.step)", "string_helpers_format_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step)"),
         ("missing_build_rbtree_route", BUILD_PATH, "phase7-rbtree-test", "phase7-rbtree-helper"),
+        ("missing_build_test_step_label", BUILD_PATH, 'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");', 'const test_step = b.step("phase7-test", "Run the Phase 7 runtime helper tests");'),
+        ("missing_build_test_step_format_dependency", BUILD_PATH, "test_step.dependOn(&run_string_helpers_format_boundary_tests.step)", "test_step.dependOn(&run_string_helpers_sample_boundary_tests.step)"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_shared_surface_") as tmp_dir_str:
