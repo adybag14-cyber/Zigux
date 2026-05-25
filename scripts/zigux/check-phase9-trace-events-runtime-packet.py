@@ -19,6 +19,8 @@ SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
 REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
 EXIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_exit_rollback_guard.zig"
+REINIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_reinit_rollback_guard.zig"
+REINIT_REEXIT_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_reinit_reexit_guard.zig"
 DIRECT_SUMMARY_CHECKER_PATH = "scripts/zigux/check-phase9-trace-events-direct-summary.py"
 SUMMARY_PRESERVATION_CHECKER_PATH = "scripts/zigux/check-phase9-trace-events-summary-preservation.py"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
@@ -50,6 +52,8 @@ FILE_MARKERS: dict[str, list[str]] = {
         "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
         "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`",
         "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
+        "`samples/zigux/runtime_trace_events_reinit_rollback_guard.zig`",
+        "`samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`",
         "`zigux/tests/runtime_trace_events_manifest.json`",
         "`zigux/tests/runtime_trace_events_survey.zig`",
         "`Documentation/zigux/phase9-runtime-trace-events-module-slice.md`",
@@ -58,7 +62,9 @@ FILE_MARKERS: dict[str, list[str]] = {
         "The direct sample also now keeps initialized-stage clean exit explicit",
         "The direct sample also keeps rejected re-selftest rollback explicit",
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay",
-        "Its paired initialized direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
+        "Its paired initialized direct-activity proof in `test \\\"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\\\"`",
+        "The re-init rollback companion still keeps rejected re-init rollback explicit across initialized, selftest-complete, and exited states",
+        "The reinit/reexit companion still keeps rejected re-init and rejected re-exit rollback explicit after both initialized direct activity and selftest-ready replay",
         "Current `master` also now keeps an adjacent shared loader-handoff build shard in `zigux/tests/phase9_build.zig`",
         "`phase9-runtime-loader-allocator-init-flow-tests`",
         "`phase9-runtime-loader-command-env-boundary-guard-tests`",
@@ -73,10 +79,12 @@ FILE_MARKERS: dict[str, list[str]] = {
         "`zigux/tests/runtime_trace_events_survey.zig`",
         ".provides_selftest_hook = true",
         "initialized, selftest_complete, and exited lifecycle tracking",
-        "The direct sample also keeps rejected re-selftest rollback explicit: `test \"trace-events sample keeps rejected re-selftest rollback explicit\"` proves `runSelftest()` stays rejected after both the selftest_complete and exited summaries without drift.",
-        "The shipped cold-stage guard in `test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\"`",
+        "The direct sample also keeps rejected re-selftest rollback explicit: `test \\\"trace-events sample keeps rejected re-selftest rollback explicit\\\"` proves `runSelftest()` stays rejected after both the selftest_complete and exited summaries without drift.",
+        "The shipped cold-stage guard in `test \\\"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\\\"`",
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay",
-        "Its paired initialized-direct-activity proof in `test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\"`",
+        "Its paired initialized-direct-activity proof in `test \\\"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\\\"`",
+        "The re-init rollback companion keeps rejected `init()` retries fail-closed across initialized, selftest-complete, and exited summaries without mutating the captured lifecycle checkpoints.",
+        "The reinit/reexit companion still keeps rejected re-init and rejected re-exit rollback explicit after both initialized direct activity and selftest-ready replay.",
         "sample-local pilot-module reviewability",
         "broader shared runtime-loader packet",
         "`zigux/tests/phase9_build.zig`",
@@ -87,11 +95,15 @@ FILE_MARKERS: dict[str, list[str]] = {
         "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`",
         "`samples/zigux/runtime_trace_events_unregistered_gate.zig`",
         "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`",
+        "`samples/zigux/runtime_trace_events_reinit_rollback_guard.zig`",
+        "`samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`",
         "The surviving direct runtime-module sample packet in this directory is still centered on `samples/zigux/runtime_trace_events.zig`.",
         "Keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the unregistered function-thread fail-closed companion for the same direct runtime packet.",
         "Keep `samples/zigux/runtime_trace_events.zig` explicit as the direct runtime sample, including the rejected re-selftest rollback proof that keeps both selftest-complete and exited summaries stable when `runSelftest()` is retried out of lifecycle order.",
         "Keep `samples/zigux/runtime_trace_events_exit_rollback_guard.zig` explicit as the failed-exit rollback companion for the selftest-ready proof plus both the initialized no-direct-activity and initialized direct-activity lifecycle proofs in the same packet.",
         "Keep `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit as the reusable registration-reentry companion, including the initialized direct-activity clean-exit proof without selftest.",
+        "Keep `samples/zigux/runtime_trace_events_reinit_rollback_guard.zig` explicit as the rejected re-init rollback companion for initialized, selftest-complete, and exited lifecycle checkpoints in the same direct runtime packet.",
+        "Keep `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig` explicit as the paired rejected re-init plus rejected re-exit rollback companion after initialized direct activity and selftest-ready replay in the same direct runtime packet.",
         "Fresh trusted mixed reread on 2026-05-23 also confirms a broader runtime bitmap sample-side packet on current `master`",
         "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
         "`zigux/tests/runtime_bitmap_module.zig`",
@@ -140,6 +152,8 @@ FILE_MARKERS: dict[str, list[str]] = {
         '.name = "phase9-runtime-trace-events-unregistered-gate-tests"',
         '.name = "phase9-runtime-trace-events-exit-rollback-guard-tests"',
         '.name = "phase9-runtime-trace-events-registration-reentry-gate-tests"',
+        '.name = "phase9-runtime-trace-events-reinit-rollback-guard-tests"',
+        '.name = "phase9-runtime-trace-events-reinit-reexit-guard-tests"',
         '.name = "phase9-first-loadable-runtime-module-parity-survey-tests"',
         "runtime_loader_allocator_init_flow.zig",
         "runtime_trace_events_loader_substrate_drift.zig",
@@ -147,6 +161,8 @@ FILE_MARKERS: dict[str, list[str]] = {
         "../../samples/zigux/runtime_trace_events_unregistered_gate.zig",
         "../../samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
         "../../samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
+        "../../samples/zigux/runtime_trace_events_reinit_rollback_guard.zig",
+        "../../samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
     ],
     LOADER_SUBSTRATE_DRIFT_PATH: [
         'const runtime_loader = @import("runtime_loader");',
@@ -212,6 +228,8 @@ FILE_MARKERS: dict[str, list[str]] = {
         "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig",
         "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
         "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
+        "zig test samples/zigux/runtime_trace_events_reinit_rollback_guard.zig",
+        "zig test samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
         "zig test zigux/tests/runtime_trace_events_survey.zig",
     ],
 }
@@ -230,6 +248,8 @@ FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
         "Keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the unregistered function-thread fail-closed companion for the same direct runtime packet.",
         "Keep `samples/zigux/runtime_trace_events_exit_rollback_guard.zig` explicit as the failed-exit rollback companion for the selftest-ready proof plus both the initialized no-direct-activity and initialized direct-activity lifecycle proofs in the same packet.",
         "Keep `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit as the reusable registration-reentry companion, including the initialized direct-activity clean-exit proof without selftest.",
+        "Keep `samples/zigux/runtime_trace_events_reinit_rollback_guard.zig` explicit as the rejected re-init rollback companion for initialized, selftest-complete, and exited lifecycle checkpoints in the same direct runtime packet.",
+        "Keep `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig` explicit as the paired rejected re-init plus rejected re-exit rollback companion after initialized direct activity and selftest-ready replay in the same direct runtime packet.",
     ],
     WORKFLOW_PATH: [
         "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
@@ -238,6 +258,8 @@ FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
         "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py",
         "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test",
         "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py",
+        "zig test samples/zigux/runtime_trace_events_reinit_rollback_guard.zig",
+        "zig test samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
     ],
 }
 
