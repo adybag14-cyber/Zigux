@@ -125,6 +125,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(helper, "fn nextSplitArgSpan");
     try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");
     try expectContains(helper, "test \\\"argvSplit treats a leading NUL as blank input\\\" {");
+    try expectContains(helper, "test \\\"argvSplit truncates owned storage at the first NUL and ignores the tail\\\" {");
     try expectContains(helper, "test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {");
     try expectContains(helper, "test \\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\" {");
 
