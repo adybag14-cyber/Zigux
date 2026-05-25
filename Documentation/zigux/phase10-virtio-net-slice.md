@@ -10,6 +10,7 @@ Current starter:
 - the new helper records aligned room, requested receive-buffer length, requested allocation length, and whether the plan is using recycled room from a prior mergeable refill step
 - `VirtioNetProbeLab.summarizeReceiveQueueRefill()` now turns the last bounded mergeable-buffer plan into an explicit refill-path summary so the lab slice can distinguish fresh mergeable allocation from recycled-room reuse without widening into page ownership or receive completion
 - `VirtioNetProbeLab.planReceiveQueueRefillBatch()` now turns that same bounded refill summary into queue-slot and byte counts for one refill pass, including a clampable batch limit and a fail-closed overfill guard, without widening into DMA submission, kicks, or receive completion
+- `VirtioNetProbeLab.reserveReceiveQueueRefillDescriptors()` now clamps one refill pass against the descriptors currently available on the receive queue, yielding one bounded reservation plan with pending-buffer carryover while still stopping short of live descriptor writes, DMA submission, or queue kicks
 
 Validation:
 - `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
