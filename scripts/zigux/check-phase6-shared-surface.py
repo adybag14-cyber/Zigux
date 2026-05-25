@@ -176,7 +176,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 50
+SELF_TEST_CASE_COUNT = 52
 
 
 class ValidationError(RuntimeError):
@@ -456,6 +456,10 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["checker_surfaces"].remove("scripts/zigux/check-phase6-checksum-c-parity.py")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-present-entrypoints.py")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/validate-phase6.py")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
         cases_run += 1
