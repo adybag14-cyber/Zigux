@@ -590,6 +590,12 @@ jobs:
       - name: Check current Phase 12 build-only surface
         run: python3 scripts/zigux/check-build-only-phase12-surface.py
 
+      - name: Self-test current Phase 12 build inventory checker
+        run: python3 scripts/zigux/check-phase12-build-inventory.py --self-test
+
+      - name: Check current Phase 12 build inventory packet
+        run: python3 scripts/zigux/check-phase12-build-inventory.py
+
       - name: Self-test current Phase 12 complex-driver lane packet checker
         run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test
 
