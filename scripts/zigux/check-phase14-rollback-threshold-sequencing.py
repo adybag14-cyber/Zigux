@@ -7,11 +7,12 @@ This checker stays inside the rollback-automation lane. It validates that the
 shared smoke reminder surfaces still agree on the current study-only rollback
 contract, on the returned route checker and tests-root reminder checker, on the
 returned rollback-threshold checker, dedicated skbuff stay-in-C guard,
-dedicated skbuff compile-route guard, dedicated RCU rollback guard, ring-buffer
-survey companion, dedicated RCU survey companion, and shared smoke manifest,
-and on the current repo-reality split where the Makefile is readable, ships
-`phase14-validate`, and still does not ship the broader `phase14-smoke`,
-`phase14-test`, or `phase14` wrapper targets.
+dedicated skbuff compile-route guard, dedicated ring-buffer compile-route
+guard, dedicated RCU rollback guard, ring-buffer survey companion, dedicated
+RCU survey companion, and shared smoke manifest, and on the current
+repo-reality split where the Makefile is readable, ships `phase14-validate`,
+and still does not ship the broader `phase14-smoke`, `phase14-test`, or
+`phase14` wrapper targets.
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ ROLLBACK_THRESHOLD_MARKER = (
     "readable validator path, the directly readable rollback-threshold "
     "sequencing checker, the directly readable dedicated skbuff stay-in-C "
     "guard, the directly readable dedicated skbuff compile-route guard, the "
+    "directly readable dedicated ring-buffer compile-route guard, the "
     "directly readable dedicated RCU rollback guard, the readable current "
     "Makefile body, the directly readable release-boundary exact-count guard, "
     "the directly readable workqueue boundary shard, the directly readable "
@@ -62,6 +64,7 @@ ROLLBACK_TRIGGER_MARKERS = [
     "    * rollback-threshold-sequencing drift",
     "    * dedicated-skbuff-stay-in-c-guard drift",
     "    * dedicated-skbuff-compile-route-guard drift",
+    "    * dedicated-ring-buffer-compile-route-guard drift",
     "    * dedicated-rcu-rollback-guard drift",
     "    * workqueue-boundary-shard drift",
     "    * ring-buffer-survey drift",
@@ -92,6 +95,7 @@ PRODUCTIZATION_GAP_MARKERS = [
     "the directly readable validator surface",
     "the directly readable release-boundary exact-count guard",
     "the directly readable shared smoke manifest",
+    "the directly readable dedicated ring-buffer compile-route guard",
     "the current Makefile posture",
 ]
 CHECKLIST_MARKERS = [
@@ -291,7 +295,7 @@ def fixture_productization_gap() -> str:
         [
             "# Phase 14 Productization Gap Survey",
             "Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.",
-            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable shared-smoke route checker, the directly readable tests-root reminder checker, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable shared smoke manifest, the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
+            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable shared-smoke route checker, the directly readable tests-root reminder checker, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable shared smoke manifest, the directly readable dedicated ring-buffer compile-route guard, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
             "",
         ]
     )
@@ -346,6 +350,7 @@ def run_self_test() -> int:
             ("    * rollback-threshold-sequencing drift\n", "rollback-threshold-sequencing drift", "rollback-threshold trigger drift"),
             ("    * dedicated-skbuff-stay-in-c-guard drift\n", "dedicated-skbuff-stay-in-c-guard drift", "dedicated skbuff stay-in-C trigger drift"),
             ("    * dedicated-skbuff-compile-route-guard drift\n", "dedicated-skbuff-compile-route-guard drift", "dedicated skbuff compile-route trigger drift"),
+            ("    * dedicated-ring-buffer-compile-route-guard drift\n", "dedicated-ring-buffer-compile-route-guard drift", "dedicated ring-buffer compile-route trigger drift"),
             ("    * dedicated-rcu-rollback-guard drift\n", "dedicated-rcu-rollback-guard drift", "dedicated RCU rollback trigger drift"),
             ("    * workqueue-boundary-shard drift\n", "workqueue-boundary-shard drift", "workqueue boundary trigger drift"),
             ("    * ring-buffer-survey drift\n", "ring-buffer-survey drift", "ring-buffer trigger drift"),
@@ -426,6 +431,21 @@ def run_self_test() -> int:
         write(root, PRODUCTIZATION_GAP_PATH, fixture_productization_gap())
         write(
             root,
+            PRODUCTIZATION_GAP_PATH,
+            fixture_productization_gap().replace(
+                "the directly readable dedicated ring-buffer compile-route guard",
+                "missing ring-buffer compile-route guard",
+                1,
+            ),
+        )
+        if not any("the directly readable dedicated ring-buffer compile-route guard" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected productization-gap ring-buffer compile-route drift to fail")
+            return 1
+
+        write(root, PRODUCTIZATION_GAP_PATH, fixture_productization_gap())
+        write(
+            root,
             MAKEFILE_PATH,
             fixture_makefile() + "phase14-smoke:\n",
         )
@@ -435,7 +455,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=19")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
