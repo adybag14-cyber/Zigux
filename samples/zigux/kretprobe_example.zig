@@ -62,6 +62,29 @@ pub const InstanceBudgetContract = struct {
     nmissed_suggests_increasing_maxactive: bool,
 };
 
+pub const OwnershipSummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    stage: SampleStage,
+    maxactive: usize,
+    active_instances: usize,
+    skipped_kernel_threads: usize,
+    nmissed: usize,
+    init_runs: usize,
+    replay_runs: usize,
+    exit_runs: usize,
+    entry_timestamp_armed: bool,
+};
+
+pub const OwnershipReplaySummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    stage_snapshots: [5]OwnershipSummary,
+    skipped_kernel_thread_path_checked: bool,
+    replay_return_value: usize,
+    replay_duration_ns: i64,
+};
+
 pub const KretprobeExampleSample = struct {
     const Self = @This();
     const InstanceData = struct {
@@ -140,6 +163,22 @@ pub const KretprobeExampleSample = struct {
         return @sizeOf(InstanceData);
     }
 
+    pub fn ownershipSummary(self: *const Self) OwnershipSummary {
+        return .{
+            .anchor = linux_anchor,
+            .symbol_name = self.symbol_name,
+            .stage = self.stage(),
+            .maxactive = self.maxactive,
+            .active_instances = self.active_instances,
+            .skipped_kernel_threads = self.skipped_kernel_threads,
+            .nmissed = self.nmissed,
+            .init_runs = self.init_runs,
+            .replay_runs = self.replay_runs,
+            .exit_runs = self.exit_runs,
+            .entry_timestamp_armed = self.instance_data.entry_stamp_ns >= 0,
+        };
+    }
+
     pub fn init(self: *Self) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
         if (self.symbol_name.len == 0) return error.InvalidSymbolName;
@@ -205,6 +244,46 @@ pub const KretprobeExampleSample = struct {
         return switch (self.stage()) {
             .initialized, .replay_complete => self.nmissed += 1,
             else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn runOwnershipReplay(self: *Self) !OwnershipReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        const cold_summary = self.ownershipSummary();
+
+        try self.init();
+        const initialized_summary = self.ownershipSummary();
+
+        const skipped = try self.entryHandler(false, 11);
+        if (skipped) return error.UnexpectedEntryArming;
+
+        const armed = try self.entryHandler(true, 100);
+        if (!armed) return error.UnexpectedEntrySkip;
+        const armed_summary = self.ownershipSummary();
+
+        const result = try self.retHandler(42, 175);
+        try self.recordMissedInstance();
+        self.replay_runs += 1;
+        self.stage_state = .replay_complete;
+        const replay_complete_summary = self.ownershipSummary();
+
+        try self.exit();
+        const exited_summary = self.ownershipSummary();
+
+        return .{
+            .anchor = linux_anchor,
+            .symbol_name = self.symbol_name,
+            .stage_snapshots = .{
+                cold_summary,
+                initialized_summary,
+                armed_summary,
+                replay_complete_summary,
+                exited_summary,
+            },
+            .skipped_kernel_thread_path_checked = replay_complete_summary.skipped_kernel_threads == 1,
+            .replay_return_value = result.retval,
+            .replay_duration_ns = result.duration_ns,
         };
     }
 
@@ -306,4 +385,36 @@ test "kretprobe sample keeps maxactive tuning pre-init and reviewable" {
     try std.testing.expectEqual(@as(usize, 3), replay.maxactive);
     try std.testing.expectEqual(@as(usize, 1), sample.replay_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.retargetMaxactive(4));
+}
+
+test "kretprobe sample ownership replay keeps lifecycle snapshots explicit" {
+    var sample = KretprobeExampleSample{};
+    const replay = try sample.runOwnershipReplay();
+
+    try std.testing.expectEqualStrings(linux_anchor, replay.anchor);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, replay.symbol_name);
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_snapshots[0].stage);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_snapshots[1].stage);
+    try std.testing.expectEqual(SampleStage.armed, replay.stage_snapshots[2].stage);
+    try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_snapshots[3].stage);
+    try std.testing.expectEqual(SampleStage.exited, replay.stage_snapshots[4].stage);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[0].active_instances);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[1].active_instances);
+    try std.testing.expectEqual(@as(usize, 1), replay.stage_snapshots[2].active_instances);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[3].active_instances);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[4].active_instances);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[0].skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[1].skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), replay.stage_snapshots[3].skipped_kernel_threads);
+    try std.testing.expect(replay.stage_snapshots[2].entry_timestamp_armed);
+    try std.testing.expect(!replay.stage_snapshots[3].entry_timestamp_armed);
+    try std.testing.expect(!replay.stage_snapshots[4].entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 1), replay.stage_snapshots[1].init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.stage_snapshots[3].replay_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.stage_snapshots[4].exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.stage_snapshots[3].nmissed);
+    try std.testing.expect(replay.skipped_kernel_thread_path_checked);
+    try std.testing.expectEqual(@as(usize, 42), replay.replay_return_value);
+    try std.testing.expectEqual(@as(i64, 75), replay.replay_duration_ns);
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
 }
