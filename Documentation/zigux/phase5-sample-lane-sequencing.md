@@ -60,6 +60,7 @@ Fresh authenticated reread in this run still directly proves these current sampl
 - `samples/zigux/kretprobe_example_instance_budget_contract.zig`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `samples/zigux/runtime_bitmap.zig`
+- `samples/zigux/runtime_bitmap_cold_stage_guard.zig`
 - `samples/zigux/runtime_bitmap_loader.zig`
 - `samples/zigux/runtime_bitmap_top_bit_contract.zig`
 - `samples/zigux/runtime_trace_events.zig`
@@ -79,7 +80,7 @@ Keep `samples/zigux/kretprobe_example_instance_budget_contract.zig` and `zigux/t
 Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
 Keep the roadmap-backed `kobject` anchor explicit because `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract_survey.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` remain the direct authenticated reminder or replay packet in this runtime, while fresh public current-`master` GitHub file readback still keeps `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` visible as the owner-plus-companion evidence. Keep shared contributor guidance honest about that mixed direct-versus-public-tree-backed split instead of repeating older kobject-reread-needed wording, collapsing the packet into repo absence, or overstating fully direct authenticated proof. When the lane reopens, reread the dedicated kobject survey note before tightening deeper lifecycle wording here.
 Keep `samples/zigux/kobject_example_attr_group_contract.zig` framed as a bounded kobject companion for the current `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, the unnamed-group marker, and the NULL-terminated attribute-list slot rather than as a fifth Phase 5 sample family.
-Keep the returned runtime bitmap reminder packet separate too: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` are current direct sample-root evidence for the separate Phase 9 runtime bitmap family, not extra Phase 5 sample proof.
+Keep the returned runtime bitmap reminder packet separate too: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` are current direct sample-root evidence for the separate Phase 9 runtime bitmap family, not extra Phase 5 sample proof.
 
 ## Tracing and probe packet
 
@@ -121,7 +122,7 @@ When the lane reopens, sequence same-lane work in this order:
 Keep the non-runtime Phase 5 boundary explicit:
 
 - do not widen Phase 5 work into runtime-loader or runtime-pilot behavior
-- keep the surviving `samples/zigux/runtime_trace_events*.zig` family in the separate Phase 9 lane, and keep the returned runtime bitmap reminder packet `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` framed as separate Phase 9 runtime evidence rather than extra Phase 5 sample proof
+- keep the surviving `samples/zigux/runtime_trace_events*.zig` family in the separate Phase 9 lane, and keep the returned runtime bitmap reminder packet `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` framed as separate Phase 9 runtime evidence rather than extra Phase 5 sample proof
 - do not widen toward freeze-in-C anchors such as `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`
 - do not pull study-only `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` into this lane
 
