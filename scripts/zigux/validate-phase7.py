@@ -21,6 +21,7 @@ CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
+STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py")
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -33,6 +34,7 @@ EXPECTED_COMPANIONS = [
     "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
+    "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -59,6 +61,8 @@ EXPECTED_REPLAYS = [
     "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase7-argv-split-packet.py",
     "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+    "python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
+    "python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
@@ -135,6 +139,7 @@ REQUIRED_FILES = [
     BUILD_WIRING_CHECKER_PATH,
     MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
+    STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH,
     Path("lib/string_helpers.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
@@ -145,7 +150,7 @@ REQUIRED_MAKEFILE_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 17
 
 
 class ValidationError(RuntimeError):
@@ -227,6 +232,7 @@ def validate(root: Path) -> None:
     run_checker(root, BUILD_WIRING_CHECKER_PATH)
     run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")
     run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)
+    run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)
 
 
 def write(path: Path, content: str) -> None:
@@ -251,6 +257,7 @@ def scaffold_repo(root: Path) -> None:
                 "- `scripts/zigux/check-phase7-build-wiring.py`",
                 "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
                 "- `scripts/zigux/check-phase7-argv-split-packet.py`",
+                "- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
                 "- `scripts/zigux/validate-phase7.py`",
                 "- `scripts/zigux/README.md`",
                 "- `zigux/tests/README.md`",
@@ -271,6 +278,8 @@ def scaffold_repo(root: Path) -> None:
                 "- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test`",
                 "- `python3 scripts/zigux/check-phase7-argv-split-packet.py`",
                 "- `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+                "- `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
+                "- `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py --self-test`",
                 "- `python3 scripts/zigux/validate-phase7.py`",
                 "- `python3 scripts/zigux/validate-phase7.py --self-test`",
                 "- `make -C zigux phase7-validate`",
@@ -285,7 +294,7 @@ def scaffold_repo(root: Path) -> None:
                 "- none currently",
                 "",
                 "## Review posture",
-                "- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the dedicated `argv_split` packet guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold",
+                "- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the dedicated `argv_split` packet guard, the dedicated `string_helpers` format-boundary packet guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold",
                 "- do not widen this packet into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes",
             ]
         ) + "\n",
@@ -374,6 +383,7 @@ def scaffold_repo(root: Path) -> None:
         (BUILD_WIRING_CHECKER_PATH, "PHASE7_BUILD_WIRING=pass", "--repo-root"),
         (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass", "--root"),
         (ARGV_SPLIT_PACKET_CHECKER_PATH, "PHASE7_ARGV_SPLIT_PACKET=pass", "--repo-root"),
+        (STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET=pass", "--repo-root"),
     ]:
         write(
             root / checker_path,
@@ -426,10 +436,13 @@ def run_self_test() -> None:
             (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n", False),
             (Path("lib/rbtree.zig"), "pub fn rb_find_add_cached()", False),
             (Path("lib/string_helpers.zig"), "pub fn parseIntArray()", False),
+            (MANIFEST_PATH, '"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py"', False),
+            (MANIFEST_PATH, '"python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py"', False),
             (CHECKER_PATH, "", True),
             (BUILD_WIRING_CHECKER_PATH, "", True),
             (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "", True),
             (ARGV_SPLIT_PACKET_CHECKER_PATH, "", True),
+            (STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "", True),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
             try:
