@@ -24,6 +24,35 @@ test "runtime bitmap sample keeps the highest valid bit explicit in the direct s
     try std.testing.expectEqualStrings("127", direct_formatted);
 }
 
+test "runtime bitmap sample keeps duplicate boundary init arrays normalized in the top-bit direct sample leg" {
+    const top_bit = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits - 1;
+
+    var direct = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try direct.initWithSetBits(&.{ top_bit, 0, top_bit, 0 });
+
+    const direct_summary = direct.summary();
+    try std.testing.expectEqual(@as(u32, 0), direct_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), direct_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 2), direct_summary.weight);
+    try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, direct_summary.nbits);
+    try std.testing.expectEqual(@as(usize, 1), direct_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), direct_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), direct_summary.exit_runs);
+    try std.testing.expect(direct.isSet(0));
+    try std.testing.expect(direct.isSet(top_bit));
+    try std.testing.expect(!direct.isSet(1));
+    try std.testing.expect(!direct.isSet(top_bit - 1));
+    try std.testing.expectEqual(@as(?u32, 0), direct.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, top_bit), direct.nthSetBit(1));
+    try std.testing.expectEqual(@as(?u32, null), direct.nthSetBit(2));
+    try std.testing.expectEqual(@as(u32, 1), try direct.countSetBitsInRange(0, 1));
+    try std.testing.expectEqual(@as(u32, 1), try direct.countSetBitsInRange(top_bit, 1));
+
+    const direct_formatted = try direct.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(direct_formatted);
+    try std.testing.expectEqualStrings("0,127", direct_formatted);
+}
+
 test "runtime bitmap sample keeps top-bit lifecycle mutation explicit in the direct sample leg" {
     const top_bit = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits - 1;
 
