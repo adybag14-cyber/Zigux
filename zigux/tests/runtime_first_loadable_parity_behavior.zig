@@ -236,3 +236,37 @@ test "first-loadable runtime pilot families keep post-selftest mutation parity e
     try std.testing.expectEqual(kretprobe_before_exit.completed_instances, kretprobe_module.lifecycleSnapshot().completed_instances);
     try std.testing.expectEqual(kretprobe_before_exit.last_retval, kretprobe_module.lifecycleSnapshot().last_retval);
 }
+
+test "first-loadable runtime pilot families keep post-exit mutation guards aligned" {
+    var atomic_module = RuntimeAtomic64Sample{};
+    var bitmap_module = RuntimeBitmapSample{};
+    var kretprobe_module = RuntimeKretprobeSample{};
+
+    try atomic_module.init(17);
+    try bitmap_module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    try kretprobe_module.init();
+
+    _ = try atomic_module.runSelftest();
+    _ = try bitmap_module.runSelftest();
+    _ = try kretprobe_module.runSelftest();
+
+    try atomic_module.exit();
+    try bitmap_module.exit();
+    try kretprobe_module.exit();
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .exited, 1, 1, 1);
+
+    const exited_atomic_summary = atomic_module.summary();
+    const exited_bitmap_summary = bitmap_module.summary();
+    const exited_kretprobe_snapshot = kretprobe_module.lifecycleSnapshot();
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, atomic_module.addCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.setRange(9, 4));
+    try std.testing.expectError(error.InvalidLifecycleTransition, kretprobe_module.registerProbe());
+
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .exited, 1, 1, 1);
+    try std.testing.expectEqual(exited_atomic_summary.counter_snapshot, atomic_module.summary().counter_snapshot);
+    try std.testing.expectEqual(exited_bitmap_summary.first_set, bitmap_module.summary().first_set);
+    try std.testing.expectEqual(exited_bitmap_summary.weight, bitmap_module.summary().weight);
+    try std.testing.expectEqual(exited_kretprobe_snapshot.completed_instances, kretprobe_module.lifecycleSnapshot().completed_instances);
+    try std.testing.expectEqual(exited_kretprobe_snapshot.last_retval, kretprobe_module.lifecycleSnapshot().last_retval);
+}
