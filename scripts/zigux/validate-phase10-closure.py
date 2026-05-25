@@ -34,6 +34,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
 ]
 
 MAKE_MARKERS = [
@@ -78,6 +79,19 @@ REVIEW_CHECKLIST_MARKERS = [
     "zigux/tests/phase10_closure_manifest.json",
     "make -C zigux phase10-test",
     "make -C zigux phase10",
+]
+
+LEDGER_MARKERS = [
+    "PHASE10_LEDGER_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md",
+    "PHASE10_LEDGER_MANIFEST=zigux/tests/phase10_closure_manifest.json",
+    "PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L01",
+    "PHASE10_LEDGER_SURVEY_RING_LANE=P10-L10",
+    "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L22",
+    "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L11",
+    "PHASE10_LEDGER_SURVEY_CORE_COMMIT=c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+    "PHASE10_LEDGER_SURVEY_RING_COMMIT=0aa2db32bcb1c7065850ee3f66ec119b071fbf5c",
+    "PHASE10_LEDGER_SURVEY_INPUT_COMMIT=ee789f026f11a0c5c70ded9a868979cdf4f55393",
+    "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8",
 ]
 
 MANIFEST_MARKERS = [
@@ -349,6 +363,7 @@ def collect_missing_markers(root: Path) -> list[str]:
         ("closure", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_DOC_MARKERS),
         ("lane", "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", LANE_MARKERS),
         ("review", "Documentation/zigux/review-checklist.md", REVIEW_CHECKLIST_MARKERS),
+        ("ledger", "zigux-alpha/PHASE10_CLOSURE_LEDGER.md", LEDGER_MARKERS),
         ("manifest", "zigux/tests/phase10_closure_manifest.json", MANIFEST_MARKERS),
     ]
     for label, rel_path, markers in checks:
@@ -537,6 +552,7 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-closure-evidence.md": CLOSURE_DOC_MARKERS,
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": LANE_MARKERS,
         "Documentation/zigux/review-checklist.md": REVIEW_CHECKLIST_MARKERS,
+        "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": LEDGER_MARKERS,
         "zigux/Makefile": MAKE_MARKERS,
     }.items():
         write_text(root / rel_path, "\n".join(markers) + "\n")
@@ -865,6 +881,36 @@ def run_self_test() -> int:
         cases += 1
         closure_doc.write_text(original_doc, encoding="utf-8")
 
+        ledger = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+        original_ledger = ledger.read_text(encoding="utf-8")
+        ledger.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L22",
+                "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L17",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_contains(collect_missing_markers(root), "ledger:PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L22", "phase10-closure-self-test")
+        cases += 1
+        ledger.write_text(original_ledger, encoding="utf-8")
+
+        ledger.write_text(
+            original_ledger.replace(
+                "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8",
+                "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=stale-mmio-commit",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_contains(
+            collect_missing_markers(root),
+            "ledger:PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+        ledger.write_text(original_ledger, encoding="utf-8")
+
         makefile = root / "zigux/Makefile"
         makefile.write_text("", encoding="utf-8")
         expect_contains(collect_missing_markers(root), "make:PHONY += phase10-validate phase10-test phase10", "phase10-closure-self-test")
@@ -968,7 +1014,7 @@ def main() -> int:
 
     print("PHASE10_CLOSURE_VALIDATION=pass")
     print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(MANIFEST_MARKERS)}")
+    print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(CLOSURE_DOC_MARKERS) + len(LANE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(LEDGER_MARKERS) + len(MANIFEST_MARKERS)}")
     print(f"PHASE10_CLOSURE_EXACT_CHECK_COUNT={len(EXPECTED_EXACT_CHECKS)}")
     return 0
 
