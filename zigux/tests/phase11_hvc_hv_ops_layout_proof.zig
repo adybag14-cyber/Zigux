@@ -1,4 +1,5 @@
 const std = @import("std");
+const hvc_console = @import("hvc_console");
 const layout_assert = @import("layout_assert");
 
 const HvcStruct = opaque {};
@@ -49,6 +50,20 @@ test "phase11 hvc hv_ops layout proof keeps callback table explicit" {
     try layout_assert.expectOffset(HvOps, "dtr_rts", 64);
 }
 
+test "phase11 hvc hv_ops layout proof keeps imported callback table layout tied to current module" {
+    try layout_assert.expectSize(hvc_console.HvOps, 72);
+    try layout_assert.expectAlign(hvc_console.HvOps, 8);
+    try layout_assert.expectOffset(hvc_console.HvOps, "get_chars", 0);
+    try layout_assert.expectOffset(hvc_console.HvOps, "put_chars", 8);
+    try layout_assert.expectOffset(hvc_console.HvOps, "flush", 16);
+    try layout_assert.expectOffset(hvc_console.HvOps, "notifier_add", 24);
+    try layout_assert.expectOffset(hvc_console.HvOps, "notifier_del", 32);
+    try layout_assert.expectOffset(hvc_console.HvOps, "notifier_hangup", 40);
+    try layout_assert.expectOffset(hvc_console.HvOps, "tiocmget", 48);
+    try layout_assert.expectOffset(hvc_console.HvOps, "tiocmset", 56);
+    try layout_assert.expectOffset(hvc_console.HvOps, "dtr_rts", 64);
+}
+
 test "phase11 hvc hv_ops layout proof keeps callback signatures exact" {
     comptime {
         assertExactType(
@@ -90,6 +105,47 @@ test "phase11 hvc hv_ops layout proof keeps callback signatures exact" {
     }
 }
 
+test "phase11 hvc hv_ops layout proof keeps imported callback signatures tied to current module" {
+    comptime {
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "get_chars"),
+            ?*const fn (u32, [*]c_char, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "put_chars"),
+            ?*const fn (u32, [*]const c_char, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "flush"),
+            ?*const fn (u32, bool) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "notifier_add"),
+            ?*const fn (*hvc_console.HvcStruct, c_int) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "notifier_del"),
+            ?*const fn (*hvc_console.HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "notifier_hangup"),
+            ?*const fn (*hvc_console.HvcStruct, c_int) callconv(.c) void,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "tiocmget"),
+            ?*const fn (*hvc_console.HvcStruct) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "tiocmset"),
+            ?*const fn (*hvc_console.HvcStruct, c_uint, c_uint) callconv(.c) c_int,
+        );
+        assertExactType(
+            @FieldType(hvc_console.HvOps, "dtr_rts"),
+            ?*const fn (*hvc_console.HvcStruct, bool) callconv(.c) void,
+        );
+    }
+}
+
 test "phase11 hvc hv_ops layout proof stays tied to the exported header" {
     const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 32 * 1024);
     defer std.testing.allocator.free(hvc_header);
@@ -98,10 +154,10 @@ test "phase11 hvc hv_ops layout proof stays tied to the exported header" {
     try expectContains(hvc_header, "int (*get_chars)(uint32_t vtermno, char *buf, int count);");
     try expectContains(hvc_header, "int (*put_chars)(uint32_t vtermno, const char *buf, int count);");
     try expectContains(hvc_header, "int (*flush)(uint32_t vtermno, bool wait);");
-    try expectContains(hvc_header, "(*notifier_add)");
-    try expectContains(hvc_header, "(*notifier_del)");
-    try expectContains(hvc_header, "(*notifier_hangup)");
-    try expectContains(hvc_header, "(*tiocmget)");
-    try expectContains(hvc_header, "(*tiocmset)");
-    try expectContains(hvc_header, "(*dtr_rts)");
+    try expectContains(hvc_header, "int (*notifier_add)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "void (*notifier_del)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "void (*notifier_hangup)(struct hvc_struct *hp, int irq);");
+    try expectContains(hvc_header, "int (*tiocmget)(struct hvc_struct *hp);");
+    try expectContains(hvc_header, "int (*tiocmset)(struct hvc_struct *hp, unsigned int set, unsigned int clear);");
+    try expectContains(hvc_header, "void (*dtr_rts)(struct hvc_struct *hp, bool active);");
 }
