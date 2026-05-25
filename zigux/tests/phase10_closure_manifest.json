@@ -5,7 +5,7 @@
   "doc_count": 7,
   "manifest_count": 4,
   "driver_count": 4,
-  "test_count": 28,
+  "test_count": 29,
   "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
@@ -233,6 +233,9 @@
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
       "phase10 ring notification-data readiness replay"
     ],
+    "zigux/tests/phase10_virtio_ring_registration_replay.zig": [
+      "phase10 ring queue-registration replay"
+    ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
       "phase10 ring prepare-kick idempotence replay"
     ],
@@ -339,6 +342,7 @@
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_ring.zig",
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+    "zigux/tests/phase10_virtio_ring_registration_replay.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_ring_publish_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
