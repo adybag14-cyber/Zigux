@@ -81,7 +81,7 @@ ATOMIC64_DIRECT_PACKET = (
 
 NOTE_REQ = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31`",
+    "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=32`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`",
     "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
     PERF_PACKET_CHECKERS_LINE,
@@ -189,7 +189,7 @@ def _baseline_note() -> str:
             "# Phase 4 Reversible Delivery Evidence",
             "",
             "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31`",
+            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=32`",
             "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`",
             NOTE_REQ[3],
             "",
@@ -197,7 +197,7 @@ def _baseline_note() -> str:
             "",
             NOTE_REQ[5],
             "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state. In this runtime authenticated contents reads now return `scripts/zigux/validate-phase4.py` directly, while the broader build and bitmap replay companions still remain unreadable on that same route.",
-            "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
+            "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=32` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
             NOTE_REQ[6],
             "The recovered broader note pair therefore no longer overstates those validator-side and bitmap-side companions as absent current-head evidence.",
             "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff: current-head proof for the docs-root reminder, the scripts-root reminder, the review checklist, the tests-root reminder, the repo-reality warning checker, the tests-readme packet checker, the reversible-delivery pin checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the atomic64 manifest-backed survey pair, and the dedicated local-only perf checker plus companion packet; archival anchor pin only for this note's self-reference; current-head direct-readback proof that `scripts/zigux/validate-phase4.py` is present again on `master`; public-raw current-tree proof that `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for that broader build-and-bitmap trio until exact authenticated blob capture stabilizes.",
@@ -277,7 +277,7 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
-            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31`\n",
+            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=32`\n",
             "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=29`\n",
         )
         cases += _expect_failure(root, NOTE, "scripts/zigux/check-phase4-tests-readme-packet.py", "scripts/zigux/old-phase4-tests-readme-packet.py")
@@ -325,6 +325,7 @@ def run_self_test() -> int:
         cases += _expect_failure(root, BITMAP_DIFF, None, None)
         cases += _expect_failure(root, ATOMIC64_MANIFEST, None, None)
         cases += _expect_failure(root, BITMAP_HELPER_REPLAY, None, None)
+        cases += _expect_failure(root, ATOMIC64_SURVEY, None, None)
         cases += _expect_failure(
             root,
             SELF,
