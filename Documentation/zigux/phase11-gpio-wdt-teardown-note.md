@@ -28,6 +28,8 @@ The current teardown-facing GPIO packet on `master` is:
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
@@ -70,9 +72,15 @@ The current host-free teardown review packet keeps these handoffs explicit:
   proof surface that keeps the first bounded register-device request, the paired
   failure summary, and the teardown-facing stop-policy split tied to the
   reboot-glue boundary without claiming live watchdog-core registration
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig` as the direct proof
+  surface that keeps `platformCleanupCheckpointSummary()` and
+  `summarizeRemoveHandoff()` replayable as the cleanup-to-remove handoff packet
+  without claiming live platform cleanup callbacks, platform-driver removal,
+  watchdog-core unregister side effects, or host-backed shutdown execution
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
-  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`, and
+  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`, and
   `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig` as the dedicated
   bounded replay routes for the returned teardown packet
 - `timeoutPropertyCheckpointSummary()` and
