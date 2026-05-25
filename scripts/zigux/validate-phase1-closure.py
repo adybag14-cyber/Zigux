@@ -39,6 +39,8 @@ BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")
 BITMAP_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-bitmap-direct-anchors.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
+LANE_SEQUENCING_PACKET_CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-packet.py")
+LANE_SEQUENCING_WORKFLOW_CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-workflow.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
@@ -65,6 +67,8 @@ REQUIRED_FILES = (
     FIND_BIT_BENCH_ANCHOR_CHECKER_REL,
     BITMAP_DIRECT_ANCHOR_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
+    LANE_SEQUENCING_PACKET_CHECKER_REL,
+    LANE_SEQUENCING_WORKFLOW_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
@@ -273,6 +277,8 @@ DELEGATED_CHECKERS = (
     (FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),
     (BITMAP_DIRECT_ANCHOR_CHECKER_REL, "phase1-bitmap-direct-anchors"),
     (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
+    (LANE_SEQUENCING_PACKET_CHECKER_REL, "phase1-lane-sequencing-packet"),
+    (LANE_SEQUENCING_WORKFLOW_CHECKER_REL, "phase1-lane-sequencing-workflow"),
 )
 
 
@@ -514,6 +520,10 @@ def run_self_test() -> int:
         ("failing_find_bit_bench_anchor_checker", lambda root: make_checker_stub(root / FIND_BIT_BENCH_ANCHOR_CHECKER_REL, ok=False)),
         ("missing_bitmap_direct_anchor_checker", lambda root: (root / BITMAP_DIRECT_ANCHOR_CHECKER_REL).unlink()),
         ("failing_bitmap_direct_anchor_checker", lambda root: make_checker_stub(root / BITMAP_DIRECT_ANCHOR_CHECKER_REL, ok=False)),
+        ("missing_lane_sequencing_packet_checker", lambda root: (root / LANE_SEQUENCING_PACKET_CHECKER_REL).unlink()),
+        ("failing_lane_sequencing_packet_checker", lambda root: make_checker_stub(root / LANE_SEQUENCING_PACKET_CHECKER_REL, ok=False)),
+        ("missing_lane_sequencing_workflow_checker", lambda root: (root / LANE_SEQUENCING_WORKFLOW_CHECKER_REL).unlink()),
+        ("failing_lane_sequencing_workflow_checker", lambda root: make_checker_stub(root / LANE_SEQUENCING_WORKFLOW_CHECKER_REL, ok=False)),
         ("failing_find_bit_review_checker", lambda root: make_checker_stub(root / FIND_BIT_REVIEW_CHECKER_REL, ok=False)),
         ("failing_rbtree_review_checker", lambda root: make_checker_stub(root / RBTREE_REVIEW_CHECKER_REL, ok=False)),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
