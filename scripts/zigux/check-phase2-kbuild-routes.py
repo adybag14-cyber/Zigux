@@ -15,6 +15,7 @@ PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 VALIDATE_PHASE2_CLOSURE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 THIRD_PARTY_README = ROOT / "third_party" / "README.md"
+THIRD_PARTY_ARCHIVE = ROOT / "third_party" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
@@ -53,6 +54,7 @@ SURFACE_PATHS = (
     VALIDATE_PHASE2,
     VALIDATE_PHASE2_CLOSURE,
     THIRD_PARTY_README,
+    THIRD_PARTY_ARCHIVE,
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
