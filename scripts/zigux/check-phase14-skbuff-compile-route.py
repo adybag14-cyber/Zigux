@@ -18,6 +18,8 @@ from pathlib import Path
 
 
 MARKER = "PHASE14_CHECK_PACKET=skbuff_compile_route"
+CHECKER_PATH = "scripts/zigux/check-phase14-skbuff-compile-route.py"
+EXPECTED_SURVEYED_COMMIT = "f05e02445443e7743c3675a6f8ca4f70f6e736fb"
 NOTE_PATH = Path("Documentation/zigux/phase14-skbuff-bridge-survey.md")
 BUILD_PATH = Path("zigux/tests/phase14_build.zig")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
@@ -44,6 +46,16 @@ REQUIRED_MANIFEST_VALUES = {
     ("smoke_shard_commands",): [
         "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
     ],
+}
+
+REQUIRED_SHARED_SMOKE_SURFACES = [
+    CHECKER_PATH,
+    "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+    "zigux/tests/phase14_build.zig",
+]
+
+REQUIRED_SURVEY_SUMMARY_FLAGS = {
+    "shared_manifest_records_skbuff_compile_route_checker": True,
 }
 
 
@@ -86,6 +98,40 @@ def require_manifest_values(errors: list[str], manifest: object) -> None:
             errors.append(
                 "manifest_value_mismatch:"
                 f"{'.'.join(path)}:expected={expected!r}:actual={actual!r}"
+            )
+
+
+def require_shared_smoke_surfaces(errors: list[str], manifest: object) -> None:
+    if not isinstance(manifest, dict):
+        errors.append("manifest_not_object")
+        return
+
+    shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
+    if not isinstance(shared_smoke_surfaces, list):
+        errors.append("missing_manifest_key:shared_smoke_surfaces")
+        return
+
+    for surface in REQUIRED_SHARED_SMOKE_SURFACES:
+        if surface not in shared_smoke_surfaces:
+            errors.append(f"missing_shared_smoke_surface:{surface}")
+
+
+def require_survey_summary_flags(errors: list[str], manifest: object) -> None:
+    if not isinstance(manifest, dict):
+        errors.append("manifest_not_object")
+        return
+
+    survey_summary = manifest.get("survey_summary")
+    if not isinstance(survey_summary, dict):
+        errors.append("missing_manifest_key:survey_summary")
+        return
+
+    for key, expected in REQUIRED_SURVEY_SUMMARY_FLAGS.items():
+        actual = survey_summary.get(key)
+        if actual != expected:
+            errors.append(
+                "survey_summary_mismatch:"
+                f"{key}:expected={expected!r}:actual={actual!r}"
             )
 
 
@@ -134,6 +180,7 @@ def require_compile_shard(errors: list[str], manifest: object) -> None:
 
     expected_anchor_fields = {
         "lane_key": "P14-L11",
+        "surveyed_commit": EXPECTED_SURVEYED_COMMIT,
         "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
         "survey_note_path": "Documentation/zigux/phase14-skbuff-bridge-survey.md",
         "blocked_gap": "phase14-skbuff-live-ownership-blocker",
@@ -175,6 +222,8 @@ def check(root: Path) -> list[str]:
         return errors
 
     require_manifest_values(errors, manifest)
+    require_shared_smoke_surfaces(errors, manifest)
+    require_survey_summary_flags(errors, manifest)
     require_compile_shard(errors, manifest)
     return errors
 
@@ -193,6 +242,7 @@ def fixture_build() -> str:
 
 def fixture_manifest() -> str:
     payload = {
+        "shared_smoke_surfaces": REQUIRED_SHARED_SMOKE_SURFACES,
         "smoke_shard_commands": [
             "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
         ],
@@ -207,11 +257,15 @@ def fixture_manifest() -> str:
             {
                 "lane_key": "P14-L11",
                 "anchor": "net/core/skbuff.c",
+                "surveyed_commit": EXPECTED_SURVEYED_COMMIT,
                 "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
                 "survey_note_path": "Documentation/zigux/phase14-skbuff-bridge-survey.md",
                 "blocked_gap": "phase14-skbuff-live-ownership-blocker",
             }
         ],
+        "survey_summary": {
+            "shared_manifest_records_skbuff_compile_route_checker": True,
+        },
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -283,8 +337,31 @@ def run_self_test() -> int:
             print("expected anchor lane drift to fail")
             return 1
 
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["shared_smoke_surfaces"].remove(CHECKER_PATH)
+        write_manifest_payload(base, manifest)
+        if not any(
+            error == f"missing_shared_smoke_surface:{CHECKER_PATH}" for error in check(base)
+        ):
+            print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=fail")
+            print("expected shared smoke surface drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["shared_manifest_records_skbuff_compile_route_checker"] = False
+        write_manifest_payload(base, manifest)
+        if not any(
+            error.startswith("survey_summary_mismatch:shared_manifest_records_skbuff_compile_route_checker:")
+            for error in check(base)
+        ):
+            print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=fail")
+            print("expected survey summary drift to fail")
+            return 1
+
         print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST_CASE_COUNT=4")
+        print("PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST_CASE_COUNT=6")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
