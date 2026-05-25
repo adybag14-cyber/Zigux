@@ -21,52 +21,52 @@ const InvalidCase = struct {
 };
 
 const encode_cases = [_]EncodeCase{
-    .{ .variant = .std, .padding = fixtures.standard_cases[0].padding, .input = fixtures.standard_cases[0].input },
-    .{ .variant = .std, .padding = fixtures.standard_cases[1].padding, .input = fixtures.standard_cases[1].input },
-    .{ .variant = .std, .padding = fixtures.standard_cases[2].padding, .input = fixtures.standard_cases[2].input },
-    .{ .variant = .std, .padding = fixtures.standard_cases[17].padding, .input = fixtures.standard_cases[17].input },
-    .{ .variant = .std, .padding = fixtures.standard_cases[7].padding, .input = fixtures.standard_cases[7].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[2].variant_name), .padding = fixtures.variant_cases[2].padding, .input = fixtures.variant_cases[2].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[3].variant_name), .padding = fixtures.variant_cases[3].padding, .input = fixtures.variant_cases[3].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[8].variant_name), .padding = fixtures.variant_cases[8].padding, .input = fixtures.variant_cases[8].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[9].variant_name), .padding = fixtures.variant_cases[9].padding, .input = fixtures.variant_cases[9].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[14].variant_name), .padding = fixtures.variant_cases[14].padding, .input = fixtures.variant_cases[14].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[15].variant_name), .padding = fixtures.variant_cases[15].padding, .input = fixtures.variant_cases[15].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[4].variant_name), .padding = fixtures.variant_cases[4].padding, .input = fixtures.variant_cases[4].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[5].variant_name), .padding = fixtures.variant_cases[5].padding, .input = fixtures.variant_cases[5].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[10].variant_name), .padding = fixtures.variant_cases[10].padding, .input = fixtures.variant_cases[10].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[11].variant_name), .padding = fixtures.variant_cases[11].padding, .input = fixtures.variant_cases[11].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[16].variant_name), .padding = fixtures.variant_cases[16].padding, .input = fixtures.variant_cases[16].input },
-    .{ .variant = fixtureVariant(fixtures.variant_cases[17].variant_name), .padding = fixtures.variant_cases[17].padding, .input = fixtures.variant_cases[17].input },
+    findStandardEncodeCase("", true),
+    findStandardEncodeCase("f", true),
+    findStandardEncodeCase("fo", true),
+    findStandardEncodeCase("foobar", false),
+    findStandardEncodeCase("Hello, world!", true),
+    findVariantEncodeCase("urlsafe", "APv_f4A", false),
+    findVariantEncodeCase("urlsafe", "APv_f4A=", true),
+    findVariantEncodeCase("urlsafe", "-w", false),
+    findVariantEncodeCase("urlsafe", "-w==", true),
+    findVariantEncodeCase("urlsafe", "__A", false),
+    findVariantEncodeCase("urlsafe", "__A=", true),
+    findVariantEncodeCase("imap", "APv,f4A", false),
+    findVariantEncodeCase("imap", "APv,f4A=", true),
+    findVariantEncodeCase("imap", "+w", false),
+    findVariantEncodeCase("imap", "+w==", true),
+    findVariantEncodeCase("imap", ",,A", false),
+    findVariantEncodeCase("imap", ",,A=", true),
 };
 
 const decode_cases = [_]DecodeCase{
-    .{ .variant = .std, .padding = fixtures.standard_decode_cases[0].padding, .input = fixtures.standard_decode_cases[0].input },
-    .{ .variant = .std, .padding = fixtures.standard_decode_cases[1].padding, .input = fixtures.standard_decode_cases[1].input },
-    .{ .variant = .std, .padding = fixtures.standard_decode_cases[2].padding, .input = fixtures.standard_decode_cases[2].input },
-    .{ .variant = .std, .padding = fixtures.standard_decode_cases[16].padding, .input = fixtures.standard_decode_cases[16].input },
-    .{ .variant = .std, .padding = fixtures.standard_decode_cases[7].padding, .input = fixtures.standard_decode_cases[7].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[2].variant_name), .padding = fixtures.variant_decode_cases[2].padding, .input = fixtures.variant_decode_cases[2].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[3].variant_name), .padding = fixtures.variant_decode_cases[3].padding, .input = fixtures.variant_decode_cases[3].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[8].variant_name), .padding = fixtures.variant_decode_cases[8].padding, .input = fixtures.variant_decode_cases[8].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[9].variant_name), .padding = fixtures.variant_decode_cases[9].padding, .input = fixtures.variant_decode_cases[9].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[14].variant_name), .padding = fixtures.variant_decode_cases[14].padding, .input = fixtures.variant_decode_cases[14].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[15].variant_name), .padding = fixtures.variant_decode_cases[15].padding, .input = fixtures.variant_decode_cases[15].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[4].variant_name), .padding = fixtures.variant_decode_cases[4].padding, .input = fixtures.variant_decode_cases[4].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[5].variant_name), .padding = fixtures.variant_decode_cases[5].padding, .input = fixtures.variant_decode_cases[5].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[10].variant_name), .padding = fixtures.variant_decode_cases[10].padding, .input = fixtures.variant_decode_cases[10].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[11].variant_name), .padding = fixtures.variant_decode_cases[11].padding, .input = fixtures.variant_decode_cases[11].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[16].variant_name), .padding = fixtures.variant_decode_cases[16].padding, .input = fixtures.variant_decode_cases[16].input },
-    .{ .variant = fixtureVariant(fixtures.variant_decode_cases[17].variant_name), .padding = fixtures.variant_decode_cases[17].padding, .input = fixtures.variant_decode_cases[17].input },
+    findStandardDecodeCase("", true),
+    findStandardDecodeCase("Zg==", true),
+    findStandardDecodeCase("Zm8=", true),
+    findStandardDecodeCase("Zm9vYmFy", false),
+    findStandardDecodeCase("SGVsbG8sIHdvcmxkIQ==", true),
+    findVariantDecodeCase("urlsafe", "APv_f4A", false),
+    findVariantDecodeCase("urlsafe", "APv_f4A=", true),
+    findVariantDecodeCase("urlsafe", "-w", false),
+    findVariantDecodeCase("urlsafe", "-w==", true),
+    findVariantDecodeCase("urlsafe", "__A", false),
+    findVariantDecodeCase("urlsafe", "__A=", true),
+    findVariantDecodeCase("imap", "APv,f4A", false),
+    findVariantDecodeCase("imap", "APv,f4A=", true),
+    findVariantDecodeCase("imap", "+w", false),
+    findVariantDecodeCase("imap", "+w==", true),
+    findVariantDecodeCase("imap", ",,A", false),
+    findVariantDecodeCase("imap", ",,A=", true),
 };
 
 const invalid_cases = [_]InvalidCase{
-    .{ .variant = fixtureVariant(fixtures.invalid_decode_cases[0].variant_name), .padding = fixtures.invalid_decode_cases[0].padding, .input = fixtures.invalid_decode_cases[0].input },
-    .{ .variant = fixtureVariant(fixtures.invalid_decode_cases[2].variant_name), .padding = fixtures.invalid_decode_cases[2].padding, .input = fixtures.invalid_decode_cases[2].input },
-    .{ .variant = fixtureVariant(fixtures.invalid_decode_cases[11].variant_name), .padding = fixtures.invalid_decode_cases[11].padding, .input = fixtures.invalid_decode_cases[11].input },
-    .{ .variant = fixtureVariant(fixtures.invalid_decode_cases[6].variant_name), .padding = fixtures.invalid_decode_cases[6].padding, .input = fixtures.invalid_decode_cases[6].input },
-    .{ .variant = fixtureVariant(fixtures.invalid_decode_cases[14].variant_name), .padding = fixtures.invalid_decode_cases[14].padding, .input = fixtures.invalid_decode_cases[14].input },
-    .{ .variant = fixtureVariant(fixtures.invalid_decode_cases[15].variant_name), .padding = fixtures.invalid_decode_cases[15].padding, .input = fixtures.invalid_decode_cases[15].input },
+    findInvalidCase("std", "Zg=!", true),
+    findInvalidCase("std", "Z===", true),
+    findInvalidCase("std", "Zm9v====", false),
+    findInvalidCase("std", &[_]u8{ 'Z', 'g', 0, '=' }, true),
+    findInvalidCase("urlsafe", "Zg==", false),
+    findInvalidCase("imap", "Zg==", false),
 };
 
 pub fn main(init: std.process.Init) !void {
@@ -104,6 +104,72 @@ pub fn main(init: std.process.Init) !void {
     }
 
     try stdout.flush();
+}
+
+fn findStandardEncodeCase(comptime input: []const u8, comptime padding: bool) EncodeCase {
+    inline for (fixtures.standard_cases) |case| {
+        if (case.padding == padding and std.mem.eql(u8, case.input, input)) {
+            return .{ .variant = .std, .padding = case.padding, .input = case.input };
+        }
+    }
+    @compileError("missing standard Phase 6 base64 C parity encode case");
+}
+
+fn findVariantEncodeCase(comptime variant_name: []const u8, comptime expected: []const u8, comptime padding: bool) EncodeCase {
+    inline for (fixtures.variant_cases) |case| {
+        if (case.padding == padding and
+            std.mem.eql(u8, case.variant_name, variant_name) and
+            std.mem.eql(u8, case.expected, expected))
+        {
+            return .{
+                .variant = fixtureVariant(case.variant_name),
+                .padding = case.padding,
+                .input = case.input,
+            };
+        }
+    }
+    @compileError("missing variant Phase 6 base64 C parity encode case");
+}
+
+fn findStandardDecodeCase(comptime input: []const u8, comptime padding: bool) DecodeCase {
+    inline for (fixtures.standard_decode_cases) |case| {
+        if (case.padding == padding and std.mem.eql(u8, case.input, input)) {
+            return .{ .variant = .std, .padding = case.padding, .input = case.input };
+        }
+    }
+    @compileError("missing standard Phase 6 base64 C parity decode case");
+}
+
+fn findVariantDecodeCase(comptime variant_name: []const u8, comptime input: []const u8, comptime padding: bool) DecodeCase {
+    inline for (fixtures.variant_decode_cases) |case| {
+        if (case.padding == padding and
+            std.mem.eql(u8, case.variant_name, variant_name) and
+            std.mem.eql(u8, case.input, input))
+        {
+            return .{
+                .variant = fixtureVariant(case.variant_name),
+                .padding = case.padding,
+                .input = case.input,
+            };
+        }
+    }
+    @compileError("missing variant Phase 6 base64 C parity decode case");
+}
+
+fn findInvalidCase(comptime variant_name: []const u8, comptime input: []const u8, comptime padding: bool) InvalidCase {
+    inline for (fixtures.invalid_decode_cases) |case| {
+        if (case.padding == padding and
+            std.mem.eql(u8, case.variant_name, variant_name) and
+            std.mem.eql(u8, case.input, input))
+        {
+            return .{
+                .variant = fixtureVariant(case.variant_name),
+                .padding = case.padding,
+                .input = case.input,
+            };
+        }
+    }
+    @compileError("missing invalid Phase 6 base64 C parity case");
 }
 
 fn fixtureVariant(name: []const u8) base64.Variant {
