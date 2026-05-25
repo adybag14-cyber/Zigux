@@ -91,6 +91,14 @@ phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract-selftest-alignment.py --self-test
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract-selftest-alignment.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py
@@ -217,7 +225,6 @@ phase6-hexdump-test:
 
 phase6-hexdump-perf:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
-
 phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf
 
 phase7-validate:
