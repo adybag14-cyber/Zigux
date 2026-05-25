@@ -240,10 +240,5 @@
       }
     }
   ],
-  "shared_follow_through_gaps": [
-    "Documentation/zigux/phase6-helper-evidence-catalog.md",
-    "zigux/tests/phase6_helper_evidence_manifest.json",
-    "scripts/zigux/README.md",
-    "zigux/tests/README.md"
-  ]
+  "shared_follow_through_gaps": []
 }
