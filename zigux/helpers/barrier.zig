@@ -277,6 +277,49 @@ test "phase3 barrier wrappers keep non-mutating full fences reviewable" {
     try std.testing.expectEqual(packet.published, packet.consumed);
 }
 
+test "phase3 barrier wrappers keep seq-cst aliases aligned" {
+    const Packet = struct {
+        staged: u32,
+        published: u32,
+        consumed: u32,
+        ready: bool,
+    };
+
+    var packet = Packet{
+        .staged = 0,
+        .published = 0,
+        .consumed = 0,
+        .ready = false,
+    };
+
+    packet.staged = 0x11;
+    compiler();
+    full();
+    packet.published = packet.staged;
+    fullFence();
+    packet.ready = true;
+
+    try fence(.seq_cst);
+    try std.testing.expect(packet.ready);
+    try std.testing.expectEqual(@as(u32, 0x11), packet.published);
+
+    packet.consumed = packet.published;
+    storeLoad();
+    try std.testing.expectEqual(packet.published, packet.consumed);
+
+    packet.ready = false;
+    packet.staged = 0x22;
+    compiler();
+    try fence(.seq_cst);
+    packet.published = packet.staged;
+    full();
+    packet.consumed = packet.published;
+    fullFence();
+
+    try std.testing.expect(!packet.ready);
+    try std.testing.expectEqual(@as(u32, 0x22), packet.consumed);
+}
+
 pub fn compiler() void {
     asm volatile ("" ::: .{ .memory = true });
 }
