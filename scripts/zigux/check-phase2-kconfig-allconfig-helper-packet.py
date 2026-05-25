@@ -35,6 +35,12 @@ REQUIRED_HELPER_ANCHORS = [
     "conf bridge omits randconfig allconfig sentinel without explicit override",
 ]
 
+REQUIRED_BRIDGE_SOURCE_MARKERS = [
+    "var alldefconfig_path_capture = try TestCapture.init(std.testing.allocator, 224);",
+    "try runConfBridge(&alldefconfig_path_capture, .{",
+    '.allconfig = "mini-all.config",',
+]
+
 REQUIRED_CLOSURE_MARKERS = [
     "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "PHASE2_KCONFIG_BRIDGE_CONF_HELPER_ANCHOR_COUNT=4",
@@ -64,7 +70,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def read_json(path: Path) -> object:
@@ -159,6 +165,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for anchor in REQUIRED_HELPER_ANCHORS:
         if anchor not in bridge_text:
             issues.append(("MISSING_CONF_BRIDGE_HELPER_ANCHOR", anchor))
+    for marker in REQUIRED_BRIDGE_SOURCE_MARKERS:
+        if marker not in bridge_text:
+            issues.append(("MISSING_CONF_BRIDGE_SOURCE_MARKER", marker))
 
     checker_implicit_modes, checker_explicit_modes, checker_helper_anchors = load_bridge_checker_contract(checker_path)
     if checker_implicit_modes != EXPECTED_IMPLICIT_OMISSION_MODES:
@@ -257,7 +266,13 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(
         root / CONF_BRIDGE.relative_to(ROOT),
-        "\n".join(f'test "{anchor}" {{}}' for anchor in REQUIRED_HELPER_ANCHORS) + "\n",
+        "\n".join(
+            [
+                *(f'test "{anchor}" {{}}' for anchor in REQUIRED_HELPER_ANCHORS),
+                *REQUIRED_BRIDGE_SOURCE_MARKERS,
+            ]
+        )
+        + "\n",
     )
     write_text(root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT), render_bridge_checker_stub())
     write_text(
@@ -321,6 +336,13 @@ def run_self_test() -> int:
         bridge_text = read_text(bridge_path).replace(REQUIRED_HELPER_ANCHORS[-1], "drifted anchor", 1)
         write_text(bridge_path, bridge_text)
         assert ("MISSING_CONF_BRIDGE_HELPER_ANCHOR", REQUIRED_HELPER_ANCHORS[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bridge_path = root / CONF_BRIDGE.relative_to(ROOT)
+        bridge_text = read_text(bridge_path).replace(REQUIRED_BRIDGE_SOURCE_MARKERS[-1], '.allconfig = "drifted-all.config",', 1)
+        write_text(bridge_path, bridge_text)
+        assert ("MISSING_CONF_BRIDGE_SOURCE_MARKER", REQUIRED_BRIDGE_SOURCE_MARKERS[-1]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
