@@ -62,6 +62,16 @@ Current `master` now materializes `Documentation/zigux/phase13-contributor-workf
 
 Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, still-missing direct Landlock syscall companions, older direct devres companions, and missing notifier-chain companion.
 
+## Docs-Root Follow-Through
+
+`Documentation/zigux/README.md` remains part of the shared reminder surface for this tranche, but current docs-root readback still jumps from the Phase 12 release packet to the Phase 14 study-only packet without a dedicated Phase 13 reminder block.
+
+Treat that missing docs-root Phase 13 block as a bounded traceability gap rather than as proof that the docs root already reflects the shared-helper tranche.
+
+Until that docs-root reminder lands, keep the stable contributor-facing handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and let the broader release-note, roadmap-traceability, shared-summary-gap, notifier-gap, contributor-sync, and tests-root companion packet carry the top-level Phase 13 reminder burden.
+
+The next docs-root follow-through should stay limited to one Phase 13 reminder section that names the four roadmap anchors, the stable contributor-facing handle, the shipped shared-summary, tests-root alignment, and release-discipline validator trio, the helper-local `libfs`, `devres`, and `landlock` split, the adjacent notifier evidence, and the still-missing `make -C zigux phase13-validate` and `make -C zigux phase13` route family as repo-reality gaps.
+
 ## Anchor Map
 
 Current `master` maps the four roadmap anchors to these bounded packet states:
@@ -95,6 +105,7 @@ Keep the remaining current gaps explicit, but do not leave stale missing-file in
 
 The active shared reminder gaps are now narrower:
 
+- docs-root `Documentation/zigux/README.md` still lacks a dedicated Phase 13 reminder block
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `zigux/tests/phase13_build.zig`
