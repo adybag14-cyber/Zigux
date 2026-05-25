@@ -4,9 +4,9 @@
 Fail-closed checker for the current Phase 14 attached-toolchain guidance split.
 
 This guard stays inside the Phase 14 shared-reminder lane. It validates that the
-current reminder packet keeps the attached Zig toolchain explicit as historical
-packet-local vocabulary while the readable Makefile still omits every
-`phase14-*` route.
+current reminder packet keeps the attached Zig toolchain explicit as a bounded
+fallback while the readable Makefile exposes `phase14-validate` only and leaves
+the broader `phase14-*` wrapper family as historical packet-local vocabulary.
 """
 
 from __future__ import annotations
@@ -28,57 +28,54 @@ SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
 ATTACHED_GUIDANCE_MARKERS = [
-    "- lane: `P14-L07`",
+    "- lane: `P14-L10`",
     "- status: `current-master reminder truthfulness follow-through`",
-    "- `scripts/zigux/README.md` mirrors the same three attached-toolchain wrapper examples in its Phase 14 block and keeps them framed as packet-local rerun vocabulary when `zig` is unavailable on `PATH`",
-    "- `scripts/zigux/validate-phase14.py` is directly readable again through the current contents path and now carries a real shared-smoke validator surface rather than the older placeholder-only body",
-    "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py` is directly readable again through the current contents path and now keeps the release-facing exact-count posture aligned with the same reminder packet",
-    "- the shared smoke note and release-boundary note now treat those same wrapper names as historical packet-local vocabulary instead of current fallback guidance, which better matches the readable `zigux/Makefile` route reality",
-    "- `zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
+    "attached Zig bundle used by this lane still behaves like a usable bounded-check fallback rather than a stale archival assumption",
+    "`phase14-validate`",
+    "manual `ZIG=/absolute/path/to/attached-zig/zig ...` overrides remain optional packet-local escape hatches rather than the primary current rerun path",
+    "the scripts-root Phase 14 summary still owns the smallest same-lane reminder repair because it undercounts the returned skbuff stay-in-C guard",
 ]
 
 SMOKE_SURVEY_MARKERS = [
-    "This lane no longer treats the older `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, `make -C zigux phase14`, or their `ZIG=/absolute/path/to/attached-zig/zig ...` variants as current rerun guidance",
-    "Keep those wrapper names only as historical packet vocabulary until the same exact readback mode restores both the missing build-side files named above and the `phase14-*` Makefile routes.",
+    "* `PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE=packet_local_only`",
+    "the current readable route layer still stops at `make -C zigux phase14-validate`",
+    "Keep those older wrapper names recorded only as historical packet vocabulary until the same exact readback mode restores the missing broader Phase 14 Makefile routes on current `master`.",
 ]
 
 RELEASE_BOUNDARY_MARKERS = [
-    "Keep the historical route names and direct-build names below only as archival packet-local vocabulary for traceability.",
-    "Keep the attached-toolchain boundary here as historical packet-local vocabulary too, without restating the older `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-*` wrapper triplet as current fallback guidance while the readable Makefile still omits those targets.",
+    "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
+    "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
+    "Keep the attached-toolchain boundary here as historical packet-local vocabulary too, without restating the older `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-*` wrapper triplet as current fallback guidance while the readable Makefile still omits those broader targets.",
 ]
 
 PRODUCTIZATION_GAP_MARKERS = [
     "The higher-value same-lane task is reminder-surface truthfulness:",
-    "the directly readable validator surface",
-    "the directly readable release-boundary exact-count guard",
-    "the current Makefile posture",
+    "the directly readable shared smoke manifest",
+    "the readable non-owner Makefile body with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes plus `phase14-validate` but no `phase14-smoke`, `phase14-test`, or `phase14` targets",
 ]
 
 SHARED_SMOKE_GAP_MARKERS = [
-    "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md",
-    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-    "the next same-lane follow-through should keep the visible post-Phase-2 Makefile route families and the readable non-owner posture explicit",
+    "the returned `phase14-validate` gate",
+    "the returned route checker",
+    "the returned tests-root reminder checker",
+    "the aligned manifest posture",
+    "the continued absence of the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers on current `master`",
 ]
 
 SCRIPTS_README_MARKERS = [
-    "attached-toolchain fallback stays bounded vocabulary here too:",
-    "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`",
-    "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`",
-    "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14` remain the bounded packet-local rerun examples while the readable Makefile still omits the matching `phase14-*` targets.",
+    "## Phase 14",
+    "the current scripts-root shared smoke packet stays reviewable",
+    "the readable `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)` chain in `zigux/Makefile`",
+    "without implying that manual `ZIG=/absolute/path/to/attached-zig/zig ...` overrides are the default current rerun path",
 ]
 
 MAKEFILE_PRESENT_MARKERS = [
-    "phase3-validate:",
-    "phase4-validate:",
-    "phase4-test:",
-    "phase6-base64-test:",
-    "phase8-validate:",
-    "phase10-validate:",
+    "ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)",
     "phase12-smoke:",
+    "phase14-validate:",
 ]
 
 MAKEFILE_ABSENT_MARKERS = [
-    "phase14-validate:",
     "phase14-smoke:",
     "phase14-test:",
     "phase14: phase14-validate phase14-smoke phase14-test",
@@ -131,31 +128,11 @@ def check(root: Path) -> list[str]:
     if errors:
         return errors
 
-    require_markers(
-        errors,
-        ATTACHED_GUIDANCE_PATH,
-        read_text(root, ATTACHED_GUIDANCE_PATH),
-        ATTACHED_GUIDANCE_MARKERS,
-    )
+    require_markers(errors, ATTACHED_GUIDANCE_PATH, read_text(root, ATTACHED_GUIDANCE_PATH), ATTACHED_GUIDANCE_MARKERS)
     require_markers(errors, SMOKE_SURVEY_PATH, read_text(root, SMOKE_SURVEY_PATH), SMOKE_SURVEY_MARKERS)
-    require_markers(
-        errors,
-        RELEASE_BOUNDARY_PATH,
-        read_text(root, RELEASE_BOUNDARY_PATH),
-        RELEASE_BOUNDARY_MARKERS,
-    )
-    require_markers(
-        errors,
-        PRODUCTIZATION_GAP_PATH,
-        read_text(root, PRODUCTIZATION_GAP_PATH),
-        PRODUCTIZATION_GAP_MARKERS,
-    )
-    require_markers(
-        errors,
-        SHARED_SMOKE_GAP_PATH,
-        read_text(root, SHARED_SMOKE_GAP_PATH),
-        SHARED_SMOKE_GAP_MARKERS,
-    )
+    require_markers(errors, RELEASE_BOUNDARY_PATH, read_text(root, RELEASE_BOUNDARY_PATH), RELEASE_BOUNDARY_MARKERS)
+    require_markers(errors, PRODUCTIZATION_GAP_PATH, read_text(root, PRODUCTIZATION_GAP_PATH), PRODUCTIZATION_GAP_MARKERS)
+    require_markers(errors, SHARED_SMOKE_GAP_PATH, read_text(root, SHARED_SMOKE_GAP_PATH), SHARED_SMOKE_GAP_MARKERS)
     require_markers(errors, SCRIPTS_README_PATH, read_text(root, SCRIPTS_README_PATH), SCRIPTS_README_MARKERS)
 
     makefile = read_text(root, MAKEFILE_PATH)
@@ -166,64 +143,27 @@ def check(root: Path) -> list[str]:
 
 
 def fixture_attached_guidance() -> str:
-    return "\n".join(
-        [
-            "# Phase 14 Attached Toolchain Guidance Gap",
-            "## Scope",
-            *ATTACHED_GUIDANCE_MARKERS,
-            "",
-        ]
-    )
+    return "\n".join(["# Phase 14 Attached Toolchain Guidance Gap", "## Scope", *ATTACHED_GUIDANCE_MARKERS, ""])
 
 
 def fixture_smoke_survey() -> str:
-    return "\n".join(
-        [
-            "# Phase 14 End-to-End Smoke Survey",
-            *SMOKE_SURVEY_MARKERS,
-            "",
-        ]
-    )
+    return "\n".join(["# Phase 14 End-to-End Smoke Survey", *SMOKE_SURVEY_MARKERS, ""])
 
 
 def fixture_release_boundary() -> str:
-    return "\n".join(
-        [
-            "# Phase 14 Release Boundary Survey",
-            *RELEASE_BOUNDARY_MARKERS,
-            "",
-        ]
-    )
+    return "\n".join(["# Phase 14 Release Boundary Survey", *RELEASE_BOUNDARY_MARKERS, ""])
 
 
 def fixture_productization_gap() -> str:
-    return "\n".join(
-        [
-            "# Phase 14 Productization Gap Survey",
-            *PRODUCTIZATION_GAP_MARKERS,
-            "",
-        ]
-    )
+    return "\n".join(["# Phase 14 Productization Gap Survey", *PRODUCTIZATION_GAP_MARKERS, ""])
 
 
 def fixture_shared_smoke_gap() -> str:
-    return "\n".join(
-        [
-            "# Phase 14 Shared Smoke Current-Master Gap",
-            *SHARED_SMOKE_GAP_MARKERS,
-            "",
-        ]
-    )
+    return "\n".join(["# Phase 14 Shared Smoke Current-Master Gap", *SHARED_SMOKE_GAP_MARKERS, ""])
 
 
 def fixture_scripts_readme() -> str:
-    return "\n".join(
-        [
-            "# scripts/zigux",
-            *SCRIPTS_README_MARKERS,
-            "",
-        ]
-    )
+    return "\n".join(["# scripts/zigux", *SCRIPTS_README_MARKERS, ""])
 
 
 def fixture_makefile() -> str:
@@ -261,6 +201,7 @@ def run_self_test() -> int:
                 print(error)
             return 1
 
+        write_fixture_tree(base)
         remove_marker(base, ATTACHED_GUIDANCE_PATH, ATTACHED_GUIDANCE_MARKERS[2])
         if not any(ATTACHED_GUIDANCE_MARKERS[2] in error for error in check(base)):
             print("PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE_GAP_SELF_TEST=fail")
@@ -268,22 +209,22 @@ def run_self_test() -> int:
             return 1
 
         write_fixture_tree(base)
-        remove_marker(base, RELEASE_BOUNDARY_PATH, RELEASE_BOUNDARY_MARKERS[1])
-        if not any(RELEASE_BOUNDARY_MARKERS[1] in error for error in check(base)):
+        remove_marker(base, RELEASE_BOUNDARY_PATH, RELEASE_BOUNDARY_MARKERS[2])
+        if not any(RELEASE_BOUNDARY_MARKERS[2] in error for error in check(base)):
             print("PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE_GAP_SELF_TEST=fail")
             print("expected release-boundary archival drift to fail")
             return 1
 
         write_fixture_tree(base)
-        remove_marker(base, SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[0])
-        if not any(SCRIPTS_README_MARKERS[0] in error for error in check(base)):
+        remove_marker(base, SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[2])
+        if not any(SCRIPTS_README_MARKERS[2] in error for error in check(base)):
             print("PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE_GAP_SELF_TEST=fail")
             print("expected scripts-readme guidance drift to fail")
             return 1
 
         write_fixture_tree(base)
-        write_text(base, MAKEFILE_PATH, fixture_makefile() + "phase14-validate:\n")
-        if not any("phase14-validate:" in error for error in check(base)):
+        write_text(base, MAKEFILE_PATH, fixture_makefile() + "phase14-smoke:\n")
+        if not any("phase14-smoke:" in error for error in check(base)):
             print("PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE_GAP_SELF_TEST=fail")
             print("expected stale phase14 make route to fail")
             return 1
@@ -314,7 +255,7 @@ def main() -> int:
         return 1
 
     print("PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE_GAP=pass")
-    print(f"PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE_GAP_REQUIRED_FILE_COUNT=7")
+    print("PHASE14_ATTACHED_TOOLCHAIN_GUIDANCE_GAP_REQUIRED_FILE_COUNT=7")
     return 0
 
 
