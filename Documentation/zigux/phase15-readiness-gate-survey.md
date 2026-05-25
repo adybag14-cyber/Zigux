@@ -5,7 +5,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 ## Status
 
 - `PHASE15_STATUS=readiness_gate_survey_landed`
-- `PHASE15_LANE_KEY=P15-L02`
+- `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
