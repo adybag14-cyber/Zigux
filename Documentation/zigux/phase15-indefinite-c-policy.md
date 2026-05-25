@@ -8,8 +8,8 @@ This note keeps the roadmap-required Phase 15 stay-in-C policy surface explicit 
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=maintenance-mode-policy-truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-21`
-- current repo reality: the roadmap-required stay-in-C policy packet is landed and remains maintenance-only under the same blocked deep-core posture
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
+- current repo reality: the roadmap-required stay-in-C policy packet remains landed on `current-master-readback-2026-05-25` and stays maintenance-only under the same blocked deep-core posture
 - scope: keep the dedicated indefinite-C policy note, its direct policy vocabulary, and its lane-owner alignment companion truthful without widening into neighboring Phase 15 packets
 
 ## Why this slice exists
@@ -107,6 +107,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-review-process-companion-sync`
 - landed `phase15-indefinite-c-ownership-template-sync`
 - landed `phase15-indefinite-c-lane-owner-companion-sync`
+- landed `phase15-indefinite-c-current-reread-refresh`
 - blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`
 
 ## Next bounded step
