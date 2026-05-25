@@ -121,6 +121,34 @@ pub const ReceiveQueueRefillBatchPlan = struct {
     total_allocation_bytes: u32,
 };
 
+pub const ReceiveQueueRefillReservationRequest = struct {
+    queue_capacity: u16,
+    buffers_posted: u16,
+    batch_limit: u16 = 0,
+    descriptors_available: u16,
+    descriptors_per_buffer: u16 = 1,
+};
+
+pub const ReceiveQueueRefillReservationPlan = struct {
+    anchor: []const u8,
+    planned_queue_pairs: u16,
+    rx_queue_count: u16,
+    queue_capacity: u16,
+    buffers_posted: u16,
+    descriptors_available: u16,
+    descriptors_per_buffer: u16,
+    requested_refill_count: u16,
+    refill_count: u16,
+    descriptors_reserved: u16,
+    buffers_after_reservation: u16,
+    buffers_left_pending: u16,
+    descriptor_budget_exhausted: bool,
+    queue_will_be_full: bool,
+    refill_path: ReceiveQueueRefillPath,
+    total_posted_bytes: u32,
+    total_allocation_bytes: u32,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -315,6 +343,44 @@ pub const VirtioNetProbeLab = struct {
         };
     }
 
+    pub fn reserveReceiveQueueRefillDescriptors(
+        self: *Self,
+        request: ReceiveQueueRefillReservationRequest,
+    ) !ReceiveQueueRefillReservationPlan {
+        if (request.descriptors_per_buffer == 0) return error.InvalidDescriptorsPerBuffer;
+
+        const summary = try self.summarizeReceiveQueueRefill();
+        const batch = try self.planReceiveQueueRefillBatch(.{
+            .queue_capacity = request.queue_capacity,
+            .buffers_posted = request.buffers_posted,
+            .batch_limit = request.batch_limit,
+        });
+        const descriptor_budget = request.descriptors_available / request.descriptors_per_buffer;
+        const refill_count = @min(batch.refill_count, descriptor_budget);
+        const descriptors_reserved = try checkedMulU16(refill_count, request.descriptors_per_buffer);
+        const buffers_after_reservation = try checkedAddU16(request.buffers_posted, refill_count);
+
+        return .{
+            .anchor = batch.anchor,
+            .planned_queue_pairs = batch.planned_queue_pairs,
+            .rx_queue_count = batch.rx_queue_count,
+            .queue_capacity = batch.queue_capacity,
+            .buffers_posted = batch.buffers_posted,
+            .descriptors_available = request.descriptors_available,
+            .descriptors_per_buffer = request.descriptors_per_buffer,
+            .requested_refill_count = batch.refill_count,
+            .refill_count = refill_count,
+            .descriptors_reserved = descriptors_reserved,
+            .buffers_after_reservation = buffers_after_reservation,
+            .buffers_left_pending = batch.refill_count - refill_count,
+            .descriptor_budget_exhausted = refill_count < batch.refill_count,
+            .queue_will_be_full = buffers_after_reservation == batch.queue_capacity,
+            .refill_path = batch.refill_path,
+            .total_posted_bytes = try checkedMulU32(summary.requested_len, refill_count),
+            .total_allocation_bytes = try checkedMulU32(summary.requested_alloc_len, refill_count),
+        };
+    }
+
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) * rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
@@ -339,4 +405,4 @@ pub const VirtioNetProbeLab = struct {
         const widened = std.mem.alignForward(u64, value, alignment);
         return std.math.cast(u32, widened) orelse error.BufferLengthOverflow;
     }
-};
+}
