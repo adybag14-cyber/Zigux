@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
+TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
 
 REQUIRED_TOP_LEVEL = {
     "phase": "Phase 2",
@@ -15,6 +16,16 @@ REQUIRED_TOP_LEVEL = {
     "scope": "current directly readable scripts-root toolchain, local-archive, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, fixdep, and tranche-closure reminder packet",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
+
+DEFAULT_REQUIRED_MAKE_ROUTES = (
+    "phase2-toolchain",
+    "phase2-tools",
+    "phase2-kconfig",
+    "phase2-cross",
+    "phase2-genksyms",
+    "phase2-fixdep",
+    "phase2-validate",
+)
 
 KCONFIG_CONF_STDOUT_PACKET = (
     "zigux/tests/fixtures/kconfig_bridge/oldaskconfig_expected.json",
@@ -71,7 +82,16 @@ KCONFIG_CONFDATA_EXPECTED_PACKET = (
     "zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_assignment_expected.json",
 )
 
-REQUIRED_PRESENT_SURFACES = {
+
+def expected_make_wrappers(required_make_routes: tuple[str, ...]) -> tuple[str, ...]:
+    return (
+        "zigux/Makefile",
+        *(f"make -C zigux {route}" for route in required_make_routes),
+        "make -C zigux phase2",
+    )
+
+
+BASE_REQUIRED_PRESENT_SURFACES = {
     "review_surfaces": (
         "Documentation/zigux/README.md",
         "Documentation/zigux/phase2-closure.md",
@@ -128,17 +148,6 @@ REQUIRED_PRESENT_SURFACES = {
     "archive_support": (
         "third_party/README.md",
         "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
-    ),
-    "make_wrappers": (
-        "zigux/Makefile",
-        "make -C zigux phase2-toolchain",
-        "make -C zigux phase2-tools",
-        "make -C zigux phase2-kconfig",
-        "make -C zigux phase2-cross",
-        "make -C zigux phase2-genksyms",
-        "make -C zigux phase2-fixdep",
-        "make -C zigux phase2-validate",
-        "make -C zigux phase2",
     ),
     "cross_route_support": (
         "scripts/zigux/check-phase2-cross.py",
@@ -249,6 +258,47 @@ REQUIRED_NOTE_MARKERS = (
 )
 
 
+def read_json_dict(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit(f"invalid json shape in required file: {path}")
+    return payload
+
+
+def load_required_make_routes(root: Path) -> tuple[str, ...]:
+    payload = read_json_dict(root / TOOLCHAIN_POLICY)
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        raise SystemExit(f"invalid upgrade_policy in required file: {root / TOOLCHAIN_POLICY}")
+    routes = upgrade_policy.get("required_make_routes")
+    if not isinstance(routes, list) or not routes:
+        raise SystemExit(f"invalid required_make_routes in required file: {root / TOOLCHAIN_POLICY}")
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for route in routes:
+        if not isinstance(route, str) or not route.strip():
+            raise SystemExit(f"invalid required_make_routes entry in required file: {root / TOOLCHAIN_POLICY}")
+        normalized_route = route.strip()
+        if normalized_route in seen:
+            raise SystemExit(f"duplicate required_make_routes entry in required file: {root / TOOLCHAIN_POLICY}: {normalized_route}")
+        normalized.append(normalized_route)
+        seen.add(normalized_route)
+    return tuple(normalized)
+
+
+def build_required_present_surfaces(required_make_routes: tuple[str, ...]) -> dict[str, tuple[str, ...]]:
+    return {
+        **BASE_REQUIRED_PRESENT_SURFACES,
+        "make_wrappers": expected_make_wrappers(required_make_routes),
+    }
+
+
 def read_manifest(path: Path) -> dict:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -275,16 +325,25 @@ def is_repo_relative_path(entry: str) -> bool:
     return not entry.startswith("make -C ")
 
 
-def iter_required_repo_paths() -> tuple[tuple[str, str], ...]:
+def iter_required_repo_paths(required_present_surfaces: dict[str, tuple[str, ...]]) -> tuple[tuple[str, str], ...]:
     return tuple(
         (category, entry)
-        for category, entries in REQUIRED_PRESENT_SURFACES.items()
+        for category, entries in required_present_surfaces.items()
         for entry in entries
         if is_repo_relative_path(entry)
     )
 
 
+def seed_required_repo_paths(root: Path, required_present_surfaces: dict[str, tuple[str, ...]]) -> None:
+    for _, entry in iter_required_repo_paths(required_present_surfaces):
+        if entry == TOOLCHAIN_POLICY.as_posix():
+            continue
+        write_text(root / entry, "present\n")
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
+    required_make_routes = load_required_make_routes(root)
+    required_present_surfaces = build_required_present_surfaces(required_make_routes)
     manifest = read_manifest(root / MANIFEST)
     issues: list[tuple[str, str]] = []
     for key, expected in REQUIRED_TOP_LEVEL.items():
@@ -294,7 +353,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(surfaces, dict):
         issues.append(("MISSING_PRESENT_SURFACES", "present_surfaces"))
     else:
-        for category, required_entries in REQUIRED_PRESENT_SURFACES.items():
+        for category, required_entries in required_present_surfaces.items():
             entries = surfaces.get(category)
             if not isinstance(entries, list):
                 issues.append(("MISSING_SURFACE_CATEGORY", category))
@@ -351,35 +410,48 @@ def write_manifest(path: Path, manifest: dict) -> None:
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
-def build_self_test_manifest() -> dict:
+def build_self_test_manifest(required_make_routes: tuple[str, ...] = DEFAULT_REQUIRED_MAKE_ROUTES) -> dict:
+    required_present_surfaces = build_required_present_surfaces(required_make_routes)
     return {
         **REQUIRED_TOP_LEVEL,
         "present_surfaces": {
             category: list(entries)
-            for category, entries in REQUIRED_PRESENT_SURFACES.items()
+            for category, entries in required_present_surfaces.items()
         },
         "repo_reality_gaps": [],
         "notes": list(REQUIRED_NOTE_MARKERS),
     }
 
 
-def build_self_test_root(root: Path) -> None:
-    write_manifest(root / MANIFEST, build_self_test_manifest())
-    for _, entry in iter_required_repo_paths():
-        write_text(root / entry, "present\n")
+def build_self_test_root(root: Path, required_make_routes: tuple[str, ...] = DEFAULT_REQUIRED_MAKE_ROUTES) -> None:
+    write_manifest(root / MANIFEST, build_self_test_manifest(required_make_routes))
+    policy_payload = {
+        "phase": "Phase 2",
+        "channel": "0.17.0-dev.87+9b177a7d2",
+        "minimum_version": "0.17.0-dev.87+9b177a7d2",
+        "archive_sha256": {"x86_64-linux": "3" * 64},
+        "upgrade_policy": {
+            "channel_minimum_lockstep": True,
+            "archive_target_scope": ["x86_64-linux"],
+            "required_make_routes": list(required_make_routes),
+        },
+    }
+    write_text(root / TOOLCHAIN_POLICY, json.dumps(policy_payload, indent=2) + "\n")
+    seed_required_repo_paths(root, build_required_present_surfaces(required_make_routes))
 
 
 def run_self_test() -> int:
+    required_present_surfaces = build_required_present_surfaces(DEFAULT_REQUIRED_MAKE_ROUTES)
     expected_case_count = (
         1
         + len(REQUIRED_TOP_LEVEL)
         + 1
-        + sum(1 for entries in REQUIRED_PRESENT_SURFACES.values() if len(entries) > 1)
-        + sum(len(entries) for entries in REQUIRED_PRESENT_SURFACES.values())
-        + len(REQUIRED_PRESENT_SURFACES)
-        + len(REQUIRED_PRESENT_SURFACES)
-        + len(REQUIRED_PRESENT_SURFACES)
-        + len(iter_required_repo_paths())
+        + sum(1 for entries in required_present_surfaces.values() if len(entries) > 1)
+        + sum(len(entries) for entries in required_present_surfaces.values())
+        + len(required_present_surfaces)
+        + len(required_present_surfaces)
+        + len(required_present_surfaces)
+        + len(iter_required_repo_paths(required_present_surfaces)) - 1
         + 1
         + 1
         + len(REQUIRED_NOTE_MARKERS)
@@ -387,6 +459,7 @@ def run_self_test() -> int:
         + 1
         + 1
         + 1
+        + 3
     )
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_tool_manifest_") as tmp_dir:
@@ -400,8 +473,14 @@ def run_self_test() -> int:
             manifest = build_self_test_manifest()
             manifest[key] = "broken"
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
+            seed_required_repo_paths(root, required_present_surfaces)
+            write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+            }, indent=2) + "\n")
             assert ("TOP_LEVEL_MISMATCH", key) in collect_issues(root)
             checks_run += 1
 
@@ -411,34 +490,58 @@ def run_self_test() -> int:
         assert ("MISSING_PRESENT_SURFACES", "present_surfaces") in collect_issues(root)
         checks_run += 1
 
-        for category, entries in REQUIRED_PRESENT_SURFACES.items():
+        for category, entries in required_present_surfaces.items():
             manifest = build_self_test_manifest()
             del manifest["present_surfaces"][category]
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
+            seed_required_repo_paths(root, required_present_surfaces)
+            write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+            }, indent=2) + "\n")
             assert ("MISSING_SURFACE_CATEGORY", category) in collect_issues(root)
             checks_run += 1
             for entry in entries:
                 manifest = build_self_test_manifest()
                 manifest["present_surfaces"][category].remove(entry)
                 write_manifest(manifest_path, manifest)
-                for _, required_entry in iter_required_repo_paths():
-                    write_text(root / required_entry, "present\n")
+                seed_required_repo_paths(root, required_present_surfaces)
+                write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": "3" * 64},
+                    "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+                }, indent=2) + "\n")
                 assert ("MISSING_SURFACE_ENTRY", f"{category}:{entry}") in collect_issues(root)
                 checks_run += 1
             manifest = build_self_test_manifest()
             manifest["present_surfaces"][category].append(entries[0])
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
+            seed_required_repo_paths(root, required_present_surfaces)
+            write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+            }, indent=2) + "\n")
             assert ("DUPLICATE_SURFACE_ENTRY", f"{category}:{entries[0]}") in collect_issues(root)
             checks_run += 1
             manifest = build_self_test_manifest()
             manifest["present_surfaces"][category].append(123)
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
+            seed_required_repo_paths(root, required_present_surfaces)
+            write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+            }, indent=2) + "\n")
             assert ("INVALID_SURFACE_ENTRY", f"{category}:123") in collect_issues(root)
             checks_run += 1
             if len(entries) > 1:
@@ -446,12 +549,20 @@ def run_self_test() -> int:
                 reordered = manifest["present_surfaces"][category]
                 reordered[0], reordered[1] = reordered[1], reordered[0]
                 write_manifest(manifest_path, manifest)
-                for _, entry in iter_required_repo_paths():
-                    write_text(root / entry, "present\n")
+                seed_required_repo_paths(root, required_present_surfaces)
+                write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": "3" * 64},
+                    "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+                }, indent=2) + "\n")
                 assert ("SURFACE_ORDER_MISMATCH", category) in collect_issues(root)
                 checks_run += 1
 
-        for category, entry in iter_required_repo_paths():
+        for category, entry in iter_required_repo_paths(required_present_surfaces):
+            if entry == TOOLCHAIN_POLICY.as_posix():
+                continue
             build_self_test_root(root)
             (root / entry).unlink()
             assert ("MISSING_SURFACE_PATH", f"{category}:{entry}") in collect_issues(root)
@@ -460,16 +571,28 @@ def run_self_test() -> int:
         manifest = build_self_test_manifest()
         manifest["repo_reality_gaps"] = ["unexpected-gap"]
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
+        seed_required_repo_paths(root, required_present_surfaces)
+        write_text(root / TOOLCHAIN_POLICY, json.dumps({
+            "phase": "Phase 2",
+            "channel": "0.17.0-dev.87+9b177a7d2",
+            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "archive_sha256": {"x86_64-linux": "3" * 64},
+            "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+        }, indent=2) + "\n")
         assert ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps") in collect_issues(root)
         checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["notes"] = "broken"
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
+        seed_required_repo_paths(root, required_present_surfaces)
+        write_text(root / TOOLCHAIN_POLICY, json.dumps({
+            "phase": "Phase 2",
+            "channel": "0.17.0-dev.87+9b177a7d2",
+            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "archive_sha256": {"x86_64-linux": "3" * 64},
+            "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+        }, indent=2) + "\n")
         assert ("MISSING_NOTES", "notes") in collect_issues(root)
         checks_run += 1
 
@@ -477,35 +600,86 @@ def run_self_test() -> int:
             manifest = build_self_test_manifest()
             manifest["notes"].remove(marker)
             write_manifest(manifest_path, manifest)
-            for _, entry in iter_required_repo_paths():
-                write_text(root / entry, "present\n")
+            seed_required_repo_paths(root, required_present_surfaces)
+            write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+            }, indent=2) + "\n")
             assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["notes"].append(REQUIRED_NOTE_MARKERS[0])
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
+        seed_required_repo_paths(root, required_present_surfaces)
+        write_text(root / TOOLCHAIN_POLICY, json.dumps({
+            "phase": "Phase 2",
+            "channel": "0.17.0-dev.87+9b177a7d2",
+            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "archive_sha256": {"x86_64-linux": "3" * 64},
+            "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+        }, indent=2) + "\n")
         assert ("DUPLICATE_NOTE_ENTRY", REQUIRED_NOTE_MARKERS[0]) in collect_issues(root)
         checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["notes"].append(123)
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
+        seed_required_repo_paths(root, required_present_surfaces)
+        write_text(root / TOOLCHAIN_POLICY, json.dumps({
+            "phase": "Phase 2",
+            "channel": "0.17.0-dev.87+9b177a7d2",
+            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "archive_sha256": {"x86_64-linux": "3" * 64},
+            "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+        }, indent=2) + "\n")
         assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
         checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["notes"][0], manifest["notes"][1] = manifest["notes"][1], manifest["notes"][0]
         write_manifest(manifest_path, manifest)
-        for _, entry in iter_required_repo_paths():
-            write_text(root / entry, "present\n")
+        seed_required_repo_paths(root, required_present_surfaces)
+        write_text(root / TOOLCHAIN_POLICY, json.dumps({
+            "phase": "Phase 2",
+            "channel": "0.17.0-dev.87+9b177a7d2",
+            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "archive_sha256": {"x86_64-linux": "3" * 64},
+            "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+        }, indent=2) + "\n")
         assert ("NOTE_ORDER_MISMATCH", "notes") in collect_issues(root)
         checks_run += 1
 
+        build_self_test_root(root, DEFAULT_REQUIRED_MAKE_ROUTES + ("phase2-future",))
+        manifest = build_self_test_manifest()
+        write_manifest(manifest_path, manifest)
+        assert ("MISSING_SURFACE_ENTRY", "make_wrappers:make -C zigux phase2-future") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root / TOOLCHAIN_POLICY, "{broken\n")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid json in required file" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid policy json did not abort")
+
+        build_self_test_root(root)
+        (root / TOOLCHAIN_POLICY).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing policy file did not abort")
+
+        build_self_test_root(root)
         manifest_path.unlink()
         try:
             collect_issues(root)
