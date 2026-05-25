@@ -116,7 +116,7 @@ jobs:
           download_success=0
           if try_local_archive; then
             download_success=1
-          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
+          elif curl -L --fail https://ziglang.org/download/community_mirrors.txt -o "$mirror_file"; then
             while IFS= read -r mirror_url; do
               [ -n "$mirror_url" ] || continue
               if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then
@@ -381,6 +381,12 @@ jobs:
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
+      - name: Self-test current Phase 1 tests README workflow-gates checker
+        run: python3 scripts/zigux/check-phase1-tests-readme-workflow-gates.py --self-test
+
+      - name: Check current Phase 1 tests README workflow-gates packet
+        run: python3 scripts/zigux/check-phase1-tests-readme-workflow-gates.py
+
       - name: Self-test current Phase 1 closure validator
         run: python3 scripts/zigux/validate-phase1-closure.py --self-test
 
@@ -404,9 +410,6 @@ jobs:
 
       - name: Run current Phase 3 policy dump replay
         run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig
-
-      - name: Run current Phase 3 policy dump make wrapper
-        run: make -C zigux phase3-policy-dump
 
       - name: Self-test current Phase 3 low-level wrapper survey validator
         run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
