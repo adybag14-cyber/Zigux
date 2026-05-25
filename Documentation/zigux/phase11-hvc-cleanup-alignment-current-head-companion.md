@@ -42,6 +42,12 @@ promoting either pair into the shared three-entry build inventory, and the
 smaller proof-backed HVC continuity packet remains reviewable through the
 shared inventory-backed proof routes.
 
+That same smaller proof-backed packet also keeps cleanup-prerequisite trigger
+parity explicit through `error.CleanupRequiresFinalCloseOrHangup` together with
+`CleanupTrigger.final_close_only`, `CleanupTrigger.hangup_only`, and
+`CleanupTrigger.final_close_and_hangup`, so teardown evidence stays bounded to
+preconditions instead of drifting into unconditional `hvc_cleanup()` claims.
+
 ## Drift Kept Explicit
 
 This companion exists so nearby reminders do not keep describing the currently
