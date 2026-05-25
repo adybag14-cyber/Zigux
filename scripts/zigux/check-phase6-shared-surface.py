@@ -116,6 +116,7 @@ REQUIRED_SCRIPTS_README_SNIPPETS = [
 REQUIRED_EVIDENCE_CATALOG_SNIPPETS = [
     "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`, and that broader perf note is now aligned again on the currently readable base64, bsearch, checksum, and hexdump measurement packet.",
     "Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and `scripts/zigux/check-phase6-hexdump-route.py`.",
+    "The docs-root README now keeps a dedicated Phase 6 helper-evidence stanza aligned with surveyed head `current-master-readback-2026-05-22`, so keep `Documentation/zigux/README.md` inside the current direct-readback packet rather than treating it as a remaining shared-note follow-through gap.",
 ]
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
@@ -180,7 +181,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 47
+SELF_TEST_CASE_COUNT = 48
 
 
 class ValidationError(RuntimeError):
@@ -415,6 +416,8 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_EVIDENCE_CATALOG_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_EVIDENCE_CATALOG_SNIPPETS[2] + "\n", "", 1)))
+        cases_run += 1
         expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_CATALOG_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_PARITY_CATALOG_SNIPPETS[2] + "\n", "", 1)))
@@ -443,7 +446,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
-        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": ["lib/base64.c", "lib/bsearch.c", "lib/hexdump.c"]})))
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": ["lib/base64.c", "lib/bsearch.c", "lib.hexdump.c"]})))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")))
         cases_run += 1
@@ -475,7 +478,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
-        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": ["lib/base64.c", "lib/checksum.c", "lib.hexdump.c"]})))
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": ["lib/base64.c", "lib.checksum.c", "lib.hexdump.c"]})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"shared_follow_through_gaps": ["Documentation/zigux/phase6-helper-parity-catalog.md"]})))
         cases_run += 1
