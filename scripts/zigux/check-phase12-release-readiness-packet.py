@@ -98,6 +98,7 @@ REQUIRED_MARKERS = {
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "keep `make -C zigux phase12-validate` explicit here as shipped wrapper evidence again on current `master`.",
         "The active shared build packet on current `master` is the six-file `virtio_net` follow-up sextet wired through `zigux/tests/phase12_build.zig`",
+        "The current driver-local `virtio_scsi` split must stay explicit too: current `master` keeps the dedicated `Documentation/zigux/phase12-virtio-scsi-slice.md` plus `Documentation/zigux/phase12-virtio-scsi-survey.md` pair together with `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `zigux/tests/phase12_virtio_scsi_survey_build.zig`, while `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, and `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig` remain absent on current `master`.",
         "The deterministic libbpf fixture pair stays explicit: `zigux/tests/fixtures/phase12_libbpf_snapshot.json` and `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` remain required",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
