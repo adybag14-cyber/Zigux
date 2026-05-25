@@ -32,7 +32,7 @@ REQUIRED_CONF_HELPER_ANCHORS = [
     "conf bridge emits yes2modconfig argv and env",
     "conf bridge emits defconfig mode argument before kconfig",
     "conf bridge emits savedefconfig mode argument before kconfig",
-    "conf bridge escapes low control bytes in json strings",
+    "conf bridge escapes low control bytes in JSON strings",
     "mode argument validation rejects bridge option shaped defconfig payload",
     "mode argument validation accepts defconfig path that only starts with silent",
     "mode argument validation still accepts ordinary path text with equals",
@@ -128,6 +128,26 @@ REQUIRED_CONF_CASE_MODES = [
     "mod2noconfig",
 ]
 
+REQUIRED_CONF_CASE_ORDER = [
+    "oldaskconfig",
+    "syncconfig",
+    "oldconfig",
+    "allnoconfig",
+    "allyesconfig",
+    "allmodconfig",
+    "alldefconfig",
+    "alldefconfig_allconfig",
+    "randconfig",
+    "defconfig",
+    "savedefconfig",
+    "listnewconfig",
+    "helpnewconfig",
+    "olddefconfig",
+    "yes2modconfig",
+    "mod2yesconfig",
+    "mod2noconfig",
+]
+
 ALLCONFIG_OVERRIDE_MODES = {
     "allnoconfig",
     "allyesconfig",
@@ -150,6 +170,7 @@ SAMPLE_CONF_CASES = [
     {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
     {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
     {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
+    {"name": "alldefconfig_allconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "allconfig": "mini-all.config", "expected": "alldefconfig_allconfig_expected.json"},
     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "silent=debug_defconfig", "expected": "savedefconfig_expected.json"},
@@ -296,8 +317,8 @@ def ordered_test_anchors(path: Path, error: str) -> list[str]:
 
 
 def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:
-    manifest_mode_set = {str(case["mode"]) for case in conf_cases}
-    return [mode for mode in REQUIRED_CONF_CASE_MODES if mode in manifest_mode_set]
+    manifest_case_name_set = {str(case["name"]) for case in conf_cases}
+    return [case_name for case_name in REQUIRED_CONF_CASE_ORDER if case_name in manifest_case_name_set]
 
 
 def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf_cases: list[dict[str, object]]) -> list[tuple[str, str]]:
@@ -322,7 +343,7 @@ def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf
     expected_mode_arg_cases = [str(case["name"]) for case in conf_cases if "mode_arg" in case]
     expected_silent_request_packet = [str(case["expected"]) for case in conf_cases if case.get("silent")]
     expected_syncconfig_env_packet = [str(case["expected"]) for case in conf_cases if "nosilentupdate" in case]
-    expected_allconfig_sentinel_packet = [str(case["expected"]) for case in conf_cases if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES]
+    expected_allconfig_sentinel_packet = [str(case["expected"]) for case in conf_cases if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES and "allconfig" not in case]
     expected_allconfig_override_packet = [str(case["expected"]) for case in conf_cases if "allconfig" in case]
     expected_randconfig_env_packet = [str(case["expected"]) for case in conf_cases if "seed" in case or "probability" in case]
 
@@ -349,10 +370,10 @@ def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf
         "syncconfig_env_packet": expected_syncconfig_env_packet,
         "allconfig_sentinel_packet": expected_allconfig_sentinel_packet,
         "allconfig_override_packet": expected_allconfig_override_packet,
+        "randconfig_env_packet": expected_randconfig_env_packet,
         "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
         "helper_local_allconfig_implicit_omission_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
         "helper_local_allconfig_explicit_override_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
-        "randconfig_env_packet": expected_randconfig_env_packet,
     }
     for field_name, expected_values in sequence_fields.items():
         if manifest.get(field_name) != expected_values:
@@ -437,11 +458,11 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     for mode in sorted(manifest_modes - bridge_mode_set):
         issues.append(("UNSUPPORTED_CONF_CASE_MODES", mode))
 
-    manifest_mode_order = [str(case["mode"] ) for case in conf_cases]
-    expected_mode_order = expected_conf_case_order(conf_cases)
-    if manifest_mode_order != expected_mode_order:
-        issues.append(("CONF_CASE_MODE_ORDER_ACTUAL", ",".join(manifest_mode_order)))
-        issues.append(("CONF_CASE_MODE_ORDER_EXPECTED", ",".join(expected_mode_order)))
+    conf_case_order = [str(case["name"]) for case in conf_cases]
+    expected_case_order = expected_conf_case_order(conf_cases)
+    if conf_case_order != expected_case_order:
+        issues.append(("CONF_CASE_ORDER_ACTUAL", ",".join(conf_case_order)))
+        issues.append(("CONF_CASE_ORDER_EXPECTED", ",".join(expected_case_order)))
 
     confdata_case_order = [str(case["name"]) for case in confdata_cases]
     if confdata_case_order != REQUIRED_CONFDATA_CASES:
@@ -576,13 +597,13 @@ def build_conf_manifest() -> dict[str, object]:
         "mode": "bounded request-plan bridge",
         "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
         "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
-        "case_count": len(REQUIRED_CONF_CASE_MODES),
-        "cases": REQUIRED_CONF_CASE_MODES,
+        "case_count": len(SAMPLE_CONF_CASES),
+        "cases": [str(case["name"]) for case in SAMPLE_CONF_CASES],
         "stdout_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES],
         "mode_arg_cases": [str(case["name"]) for case in SAMPLE_CONF_CASES if "mode_arg" in case],
         "silent_request_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if case.get("silent")],
         "syncconfig_env_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if "nosilentupdate" in case],
-        "allconfig_sentinel_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES],
+        "allconfig_sentinel_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES and "allconfig" not in case],
         "allconfig_override_packet": [str(case["expected"]) for case in SAMPLE_CONF_CASES if "allconfig" in case],
         "helper_local_allconfig_implicit_omission_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
         "helper_local_allconfig_explicit_override_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
@@ -624,6 +645,16 @@ def build_self_test_root(root: Path) -> None:
         write_text(fixture_root / rel_path, "{}\n")
 
 
+def find_case_by_name(payload: dict[str, object], group_name: str, case_name: str) -> dict[str, object]:
+    raw_cases = payload[group_name]
+    assert isinstance(raw_cases, list)
+    for case in raw_cases:
+        assert isinstance(case, dict)
+        if case.get("name") == case_name:
+            return case
+    raise AssertionError(f"missing {group_name} case {case_name}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_") as tmp_dir_str:
@@ -646,16 +677,16 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][0]["mode"] = "unsupported_mode"
+        find_case_by_name(payload, "conf_cases", "oldaskconfig")["mode"] = "unsupported_mode"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         assert ("UNSUPPORTED_CONF_CASE_MODES", "unsupported_mode") in collect_manifest_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][11]["silent"] = "true"
+        find_case_by_name(payload, "conf_cases", "helpnewconfig")["silent"] = "true"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        assert ("INVALID_CONF_CASES_FIELD_TYPE", "11:silent:str") in collect_manifest_issues(root)
+        assert ("INVALID_CONF_CASES_FIELD_TYPE", "12:silent:str") in collect_manifest_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -700,7 +731,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][11].pop("silent")
+        find_case_by_name(payload, "conf_cases", "helpnewconfig").pop("silent")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_MANIFEST_SILENT_REQUEST_PACKET_MISMATCH" for issue in issues)
@@ -708,7 +739,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][8].pop("mode_arg")
+        find_case_by_name(payload, "conf_cases", "defconfig").pop("mode_arg")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_MANIFEST_MODE_ARG_CASES_MISMATCH" for issue in issues)
@@ -716,7 +747,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][7].pop("allconfig")
+        find_case_by_name(payload, "conf_cases", "alldefconfig_allconfig").pop("allconfig")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_MANIFEST_ALLCONFIG_OVERRIDE_PACKET_MISMATCH" for issue in issues)
@@ -724,7 +755,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][1].pop("nosilentupdate")
+        find_case_by_name(payload, "conf_cases", "syncconfig").pop("nosilentupdate")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_MANIFEST_SYNCCONFIG_ENV_PACKET_MISMATCH" for issue in issues)
@@ -732,8 +763,9 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][7].pop("seed")
-        payload["conf_cases"][7].pop("probability")
+        randconfig_case = find_case_by_name(payload, "conf_cases", "randconfig")
+        randconfig_case.pop("seed")
+        randconfig_case.pop("probability")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert any(issue[0] == "CONF_MANIFEST_RANDCONFIG_ENV_PACKET_MISMATCH" for issue in issues)
