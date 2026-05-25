@@ -83,6 +83,7 @@ MARKERS = {
         "Keep the sample-owned review contract explicit too: the bounded formatting companion now centralizes the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.",
         "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\\\"iter=12\\\"` and keeps the sample in `.initialized`.",
         "Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.",
+        "Keep the selected-string iteration companion explicit too: `formatSelectedIterationMessageInto(3, [12]u8)` still returns `\\\"Frodo iter=3\\\"` while keeping the sample in `.initialized`, so the approved-idiom note must preserve the selected-string-plus-iteration wording instead of reducing the packet to the bare `iter=%d` formatter.",
         "## Exact checks run on 2026-05-20",
         "This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.",
         "The exact checks that passed were:",
@@ -146,19 +147,16 @@ FORBIDDEN_SAMPLE_ROOT_TEXT = (
     "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those three routes directly.",
 )
 
-
 def read_text(root: Path, path: Path) -> str:
     try:
         return (root / path).read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
-
 def write_text(root: Path, path: Path, text: str) -> None:
     full = root / path
     full.parent.mkdir(parents=True, exist_ok=True)
     full.write_text(text, encoding="utf-8")
-
 
 def placeholder(path: Path) -> str:
     lines = [f"# {path.name}"]
@@ -185,13 +183,11 @@ def placeholder(path: Path) -> str:
         )
     return "\n\n".join(lines) + "\n"
 
-
 def strip_standalone_path(text: str, rel: str) -> str:
     standalone = f"\n\n`{rel}`"
     if standalone in text:
         return text.replace(standalone, "", 1)
     return text
-
 
 def seed(root: Path) -> None:
     tracked = set(MARKERS)
@@ -204,7 +200,6 @@ def seed(root: Path) -> None:
         if rel_path in tracked:
             continue
         write_text(root, rel_path, "present\n")
-
 
 def collect_failures(root: Path) -> list[str]:
     texts = {path: read_text(root, path) for path in MARKERS}
@@ -256,22 +251,19 @@ def collect_failures(root: Path) -> list[str]:
 
     return failures
 
-
 def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
     if failures != expected:
         raise AssertionError(f"{label}: expected {expected}, got {failures}")
 
-
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 38
+    expected_case_count = 39
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
 
         expect_exact("baseline", collect_failures(root), [])
         checks_run += 1
-
         mutated = root / "missing_guide_validation_marker"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][3], ""))
@@ -299,6 +291,16 @@ def run_self_test() -> int:
             "missing approved idiom marker",
             collect_failures(mutated),
             [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][2]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_approved_selected_iteration_marker"
+        seed(mutated)
+        write_text(mutated, APPROVED_IDIOM_PATH, placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][5], ""))
+        expect_exact(
+            "missing approved selected iteration marker",
+            collect_failures(mutated),
+            [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][5]}"],
         )
         checks_run += 1
 
@@ -692,7 +694,6 @@ def run_self_test() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_SELF_TEST_CASES={checks_run}")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT.parent.parent, help="repository root to validate")
@@ -714,7 +715,6 @@ def main() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_COMPANION_PATH_COUNT={len(PUBLIC_TREE_COMPANION_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_KOBJECT_DIRECT_PATH_COUNT={len(KOBJECT_DIRECT_PACKET_PATHS)}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
