@@ -10,6 +10,7 @@ pub const AccessBoundary = enum {
 
 pub const Surface = narrow.Surface;
 pub const UnsafeScopeError = narrow.UnsafeScopeError;
+pub const RawPointerBridgeError = narrow.RawPointerBridgeError;
 
 fn fromNarrowAccessBoundary(boundary: narrow.AccessBoundary) AccessBoundary {
     return switch (boundary) {
@@ -285,6 +286,115 @@ pub fn requiresDedicatedAuditByte(scope: u8) bool {
     return narrow.requiresDedicatedAuditByte(scope);
 }
 
+pub fn pointerAtInteropPolicyBytes(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    scope: u8,
+    reserved: u8,
+) RawPointerBridgeError!*align(1) T {
+    return narrow.pointerAtInteropPolicyBytes(T, address, byte_len, scope, reserved);
+}
+
+pub fn pointerAtInteropPolicy(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    policy: abi.InteropPolicy,
+) RawPointerBridgeError!*align(1) T {
+    return narrow.pointerAtInteropPolicy(T, address, byte_len, policy);
+}
+
+pub fn pointerAtByte(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    scope: u8,
+) RawPointerBridgeError!*align(1) T {
+    return narrow.pointerAtByte(T, address, byte_len, scope);
+}
+
+pub fn constPointerAtInteropPolicyBytes(
+    comptime T: type,
+    address: usize,
+    scope: u8,
+    reserved: u8,
+) RawPointerBridgeError!*align(1) const T {
+    return narrow.constPointerAtInteropPolicyBytes(T, address, scope, reserved);
+}
+
+pub fn constPointerAtInteropPolicy(
+    comptime T: type,
+    address: usize,
+    policy: abi.InteropPolicy,
+) RawPointerBridgeError!*align(1) const T {
+    return narrow.constPointerAtInteropPolicy(T, address, policy);
+}
+
+pub fn constPointerAtByte(
+    comptime T: type,
+    address: usize,
+    scope: u8,
+) RawPointerBridgeError!*align(1) const T {
+    return narrow.constPointerAtByte(T, address, scope);
+}
+
+pub fn constSliceAtInteropPolicyBytes(
+    comptime T: type,
+    address: usize,
+    len: usize,
+    scope: u8,
+    reserved: u8,
+) RawPointerBridgeError![]align(1) const T {
+    return narrow.constSliceAtInteropPolicyBytes(T, address, len, scope, reserved);
+}
+
+pub fn constSliceAtInteropPolicy(
+    comptime T: type,
+    address: usize,
+    len: usize,
+    policy: abi.InteropPolicy,
+) RawPointerBridgeError![]align(1) const T {
+    return narrow.constSliceAtInteropPolicy(T, address, len, policy);
+}
+
+pub fn constSliceAtByte(
+    comptime T: type,
+    address: usize,
+    len: usize,
+    scope: u8,
+) RawPointerBridgeError![]align(1) const T {
+    return narrow.constSliceAtByte(T, address, len, scope);
+}
+
+pub fn writeValueAtInteropPolicyBytes(
+    comptime T: type,
+    address: usize,
+    value: T,
+    scope: u8,
+    reserved: u8,
+) RawPointerBridgeError!void {
+    return narrow.writeValueAtInteropPolicyBytes(T, address, value, scope, reserved);
+}
+
+pub fn writeValueAtInteropPolicy(
+    comptime T: type,
+    address: usize,
+    value: T,
+    policy: abi.InteropPolicy,
+) RawPointerBridgeError!void {
+    return narrow.writeValueAtInteropPolicy(T, address, value, policy);
+}
+
+pub fn writeValueAtByte(
+    comptime T: type,
+    address: usize,
+    value: T,
+    scope: u8,
+) RawPointerBridgeError!void {
+    return narrow.writeValueAtByte(T, address, value, scope);
+}
+
 test "phase3 unsafe policy keeps scope decoding and boundary relays explicit" {
     const safe = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 };
     const mmio = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 1, .reserved = 0 };
@@ -427,4 +537,43 @@ test "phase3 unsafe policy keeps byte and reserved shorthands aligned with helpe
     try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioPolicyBytes(1, 1));
     try requireRawPointerBridgePolicyBytes(2, 0);
     try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgePolicyBytes(2, 1));
+}
+
+test "phase3 unsafe policy keeps raw-pointer bridge relays helper-local" {
+    const raw = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 2, .reserved = 0 };
+    const reserved = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 2, .reserved = 1 };
+    const safe = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 };
+
+    var bridge_words = [_]u32{ 31, 47 };
+    const first_addr = @intFromPtr(&bridge_words[0]);
+    const second_addr = @intFromPtr(&bridge_words[1]);
+
+    const ptr = try pointerAtInteropPolicy(u32, first_addr, @sizeOf(u32), raw);
+    try std.testing.expectEqual(@as(u32, 31), ptr.*);
+
+    const byte_ptr = try pointerAtByte(u32, second_addr, @sizeOf(u32), 2);
+    try std.testing.expectEqual(@as(u32, 47), byte_ptr.*);
+
+    const const_ptr = try constPointerAtInteropPolicy(u32, second_addr, raw);
+    try std.testing.expectEqual(@as(u32, 47), const_ptr.*);
+
+    const const_slice = try constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, raw);
+    try std.testing.expectEqual(@as(usize, bridge_words.len), const_slice.len);
+    try std.testing.expectEqual(@as(u32, 31), const_slice[0]);
+    try std.testing.expectEqual(@as(u32, 47), const_slice[1]);
+
+    try writeValueAtInteropPolicy(u32, second_addr, 73, raw);
+    try std.testing.expectEqual(@as(u32, 73), bridge_words[1]);
+
+    const const_byte_slice = try constSliceAtByte(u32, first_addr, bridge_words.len, 2);
+    try std.testing.expectEqual(@as(u32, 73), const_byte_slice[1]);
+
+    try writeValueAtInteropPolicyBytes(u32, second_addr, 79, 2, 0);
+    try std.testing.expectEqual(@as(u32, 79), bridge_words[1]);
+
+    try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicy(u32, first_addr, @sizeOf(u32), safe));
+    try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicyBytes(u32, first_addr, @sizeOf(u32), 2, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, constPointerAtInteropPolicy(u32, second_addr, reserved));
+    try std.testing.expectError(error.UnsafeScopeDenied, constSliceAtInteropPolicyBytes(u32, first_addr, bridge_words.len, 2, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtByte(u32, second_addr, 83, 0));
 }
