@@ -139,16 +139,16 @@ WORKFLOW_LINES = (
 )
 
 README_REQUIRED_LINES = (
-    "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet, `conf_bridge` and `confdata_bridge` helper surfaces, the restored closure-side validator packet, the manifest-backed kconfig fixture roster, the shipped make-wrapper packet, and the surviving Phase 2 alignment guards instead of replaying older missing-route assumptions inside that now-rematerialized toolchain packet",
+    "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet, `conf_bridge` and `confdata_bridge` helper surfaces, the restored closure-side validator packet, the manifest-backed kconfig fixture roster, the helper-local kconfig allconfig guard, the shipped make-wrapper packet, and the surviving Phase 2 alignment guards instead of replaying older missing-route assumptions inside that now-rematerialized toolchain packet",
     "- `scripts/zigux/kconfig/conf_bridge.zig` keeps the shipped sixteen-mode request-plan bridge explicit from the scripts root, including the `helpnewconfig` `silent` option handling and the same `randconfig`, `defconfig`, `savedefconfig`, and `syncconfig` argument surfaces that the Phase 2 wrapper-first roadmap tranche expects",
     "- `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` keep the current conf-side and confdata-side bridge evidence packet explicit from the scripts root without pretending the broader closure packet is still directly readable",
-    "- `scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-toolchain-pinning.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-artifact-tools-manifest.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `scripts/zigux/check-phase2-required-make-routes.py` remain the shipped Phase 2 toolchain, reminder, alignment, artifact-support, fixdep, genksyms-bridge, and required-make-route guards that survive on current `master`",
+    "- `scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-toolchain-pinning.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/check-phase2-tool-manifest.py`, `scripts/zigux/check-phase2-artifact-tools-manifest.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, and `scripts/zigux/check-phase2-required-make-routes.py` remain the shipped Phase 2 toolchain, reminder, alignment, artifact-support, fixdep, genksyms-bridge, helper-local kconfig allconfig, and required-make-route guards that survive on current `master`",
     "- `.github/workflows/zigux-bootstrap.yml`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` keep the shipped pinned Zig toolchain guard explicit in the live bootstrap action path before the surviving Phase 2 bridge and pinning checks",
     "- `third_party/README.md`, `scripts/zigux/stage-pinned-zig-archive.py`, `python3 scripts/zigux/stage-pinned-zig-archive.py --self-test`, `scripts/zigux/check-lane05-stage-helper-contract.py`, and `scripts/zigux/check-lane05-stage-helper-selftest.py` keep the staged repo-local archive helper, contract, and self-test packet explicit from the scripts root beside that same shipped Lane 05 local-first archive path",
     "- `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-fixdep`, `make -C zigux phase2-validate`, `make -C zigux phase2`, `zigux/tests/fixtures/phase2_tool_manifest.json`, and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keep the shipped closure-side reminder, closure-validator, validator entrypoint, make-wrapper, and artifact-support packet explicit from the scripts root beside the surviving checker set",
     "- `scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed current Phase 2 tool packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
     "- `scripts/zigux/check-phase2-artifact-tools-manifest.py`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep` keep the shipped artifact-support and fixdep packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
-    "- keep those installer, tool-manifest, artifact-support, direct cross-route, genksyms bridge, and fixdep surfaces explicit beside the shipped toolchain and kbuild reminder packet",
+    "- keep those installer, helper-local kconfig allconfig guard, tool-manifest, artifact-support, direct cross-route, genksyms bridge, and fixdep surfaces explicit beside the shipped toolchain and kbuild reminder packet",
     "- if future work widens the installer or direct cross-route packet, update this reminder packet only after rereading those direct current-`master` surfaces together with the live toolchain policy, manifest-backed kconfig fixture roster, the fixture-backed Phase 2 tool packet, and shipped make-wrapper packet so the scripts-root summary stays aligned with the now-returned Phase 2 evidence",
 )
 
@@ -224,13 +224,11 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(DISALLOWED_MAKEFILE_LINES)
 )
 
-
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
-
 
 def resolve_path(root: Path, path: Path) -> Path:
     try:
@@ -238,18 +236,13 @@ def resolve_path(root: Path, path: Path) -> Path:
     except ValueError:
         return root / path
 
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
 
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
-
-def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker in text]
-
-
-def collect_exact_line_issues(
-    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
-) -> list[tuple[str, str]]:
+def collect_exact_line_issues(text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for marker in markers:
         count = count_exact_lines(text, marker)
@@ -259,67 +252,183 @@ def collect_exact_line_issues(
             issues.append((duplicate_code, f"{marker}:count={count}"))
     return issues
 
-
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     readme_text = read_text(resolve_path(root, SCRIPTS_README))
     makefile_text = read_text(resolve_path(root, MAKEFILE))
-
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
         if count == 0:
             issues.append(("MISSING_WORKFLOW_HOOKS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
-
-    issues.extend(
-        collect_exact_line_issues(
-            readme_text,
-            README_REQUIRED_LINES,
-            "MISSING_README_REQUIRED_LINES",
-            "DUPLICATE_README_REQUIRED_LINES",
-        )
-    )
-    issues.extend(
-        collect_exact_line_issues(
-            readme_text,
-            README_WARNING_LINES,
-            "MISSING_README_WARNING_LINES",
-            "DUPLICATE_README_WARNING_LINES",
-        )
-    )
+    issues.extend(collect_exact_line_issues(readme_text, README_REQUIRED_LINES, "MISSING_README_REQUIRED_LINES", "DUPLICATE_README_REQUIRED_LINES"))
+    issues.extend(collect_exact_line_issues(readme_text, README_WARNING_LINES, "MISSING_README_WARNING_LINES", "DUPLICATE_README_WARNING_LINES"))
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
-    issues.extend(
-        collect_exact_line_issues(
-            makefile_text,
-            REQUIRED_MAKEFILE_LINES,
-            "MISSING_MAKEFILE_LINES",
-            "DUPLICATE_MAKEFILE_LINES",
-        )
-    )
-    issues.extend(
-        collect_forbidden_markers(
-            makefile_text,
-            DISALLOWED_MAKEFILE_LINES,
-            "FORBIDDEN_MAKEFILE_LINES",
-        )
-    )
-
+    issues.extend(collect_exact_line_issues(makefile_text, REQUIRED_MAKEFILE_LINES, "MISSING_MAKEFILE_LINES", "DUPLICATE_MAKEFILE_LINES"))
+    issues.extend(collect_forbidden_markers(makefile_text, DISALLOWED_MAKEFILE_LINES, "FORBIDDEN_MAKEFILE_LINES"))
     for path in SURFACE_PATHS:
         if not resolve_path(root, path).exists():
             issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
-
     if not any(resolve_path(root, path).exists() for path in ARCHIVE_SURFACE_PATHS):
-        issues.append(
-            (
-                "MISSING_ARCHIVE_SURFACE_PATHS",
-                " or ".join(path.relative_to(ROOT).as_posix() for path in ARCHIVE_SURFACE_PATHS),
-            )
-        )
-
+        issues.append(("MISSING_ARCHIVE_SURFACE_PATHS", " or ".join(path.relative_to(ROOT).as_posix() for path in ARCHIVE_SURFACE_PATHS)))
     return issues
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+def build_self_test_root(root: Path) -> None:
+    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
+    readme_lines = ["# scripts/zigux", "", "## Phase 2", "", *README_REQUIRED_LINES, *README_WARNING_LINES]
+    write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
+    write_text(resolve_path(root, MAKEFILE), "\n".join(("ZIG ?= zig", "ZIGUX_ROOT := ..", "", *REQUIRED_MAKEFILE_LINES)) + "\n")
+    for path in SURFACE_PATHS:
+        if path == MAKEFILE:
+            continue
+        write_text(resolve_path(root, path), "present\n")
+    write_text(resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST), "present\n")
+
+def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+def run_self_test() -> int:
+    checks_run = 0
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_kbuild_routes_") as tmp_dir:
+        root = Path(tmp_dir)
+        build_self_test_root(root)
+        assert collect_issues(root) == []
+        checks_run += 1
+        for marker in WORKFLOW_LINES:
+            build_self_test_root(root)
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(replace_exact_line(workflow_path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
+            checks_run += 1
+        for marker in WORKFLOW_LINES:
+            build_self_test_root(root)
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
+            checks_run += 1
+        for marker in README_REQUIRED_LINES:
+            build_self_test_root(root)
+            readme_path = resolve_path(root, SCRIPTS_README)
+            readme_path.write_text(replace_exact_line(readme_path.read_text(encoding="utf-8"), marker, "BROKEN_PRESENT_MARKER"), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_README_REQUIRED_LINES", marker) in issues
+            checks_run += 1
+        for marker in README_REQUIRED_LINES:
+            build_self_test_root(root)
+            readme_path = resolve_path(root, SCRIPTS_README)
+            readme_path.write_text(duplicate_exact_line(readme_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_README_REQUIRED_LINES", f"{marker}:count=2") in issues
+            checks_run += 1
+        for marker in README_WARNING_LINES:
+            build_self_test_root(root)
+            readme_path = resolve_path(root, SCRIPTS_README)
+            readme_path.write_text(replace_exact_line(readme_path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_README_WARNING_LINES", marker) in issues
+            checks_run += 1
+        for marker in README_WARNING_LINES:
+            build_self_test_root(root)
+            readme_path = resolve_path(root, SCRIPTS_README)
+            readme_path.write_text(duplicate_exact_line(readme_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_README_WARNING_LINES", f"{marker}:count=2") in issues
+            checks_run += 1
+        for marker in README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            readme_path = resolve_path(root, SCRIPTS_README)
+            readme_path.write_text(readme_path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_README_MARKERS", marker) in issues
+            checks_run += 1
+        build_self_test_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_path.unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing makefile did not abort")
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing workflow did not abort")
+        for path in SURFACE_PATHS:
+            if path == MAKEFILE:
+                continue
+            build_self_test_root(root)
+            surface_path = resolve_path(root, path)
+            surface_path.unlink()
+            issues = collect_issues(root)
+            assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
+            checks_run += 1
+        build_self_test_root(root)
+        resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST).unlink()
+        write_text(resolve_path(root, THIRD_PARTY_ARCHIVE), "present\n")
+        assert collect_issues(root) == []
+        checks_run += 1
+        build_self_test_root(root)
+        archive_path = resolve_path(root, THIRD_PARTY_ARCHIVE)
+        if archive_path.exists():
+            archive_path.unlink()
+        resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST).unlink()
+        issues = collect_issues(root)
+        assert ("MISSING_ARCHIVE_SURFACE_PATHS", " or ".join(path.relative_to(ROOT).as_posix() for path in ARCHIVE_SURFACE_PATHS)) in issues
+        checks_run += 1
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            makefile_path = resolve_path(root, MAKEFILE)
+            makefile_path.write_text(replace_exact_line(makefile_path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_MAKEFILE_LINES", marker) in issues
+            checks_run += 1
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            makefile_path = resolve_path(root, MAKEFILE)
+            makefile_path.write_text(duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_MAKEFILE_LINES", f"{marker}:count=2") in issues
+            checks_run += 1
+        for marker in DISALLOWED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            makefile_path = resolve_path(root, MAKEFILE)
+            makefile_path.write_text(makefile_path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_MAKEFILE_LINES", marker) in issues
+            checks_run += 1
+    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT, (checks_run, EXPECTED_SELF_TEST_CASE_COUNT)
+    print("PHASE2_KBUILD_ROUTES_SELF_TEST=pass")
+    print(f"PHASE2_KBUILD_ROUTES_SELF_TEST_CASE_COUNT={checks_run}")
+    return 0
 
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
@@ -333,203 +442,6 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
             print(value)
         print(f"{code}_END")
     return 1
-
-
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
-def build_self_test_root(root: Path) -> None:
-    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
-    readme_lines = [
-        "# scripts/zigux",
-        "",
-        "## Phase 2",
-        "",
-        *README_REQUIRED_LINES,
-        *README_WARNING_LINES,
-    ]
-    write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
-    write_text(
-        resolve_path(root, MAKEFILE),
-        "\n".join(
-            (
-                "ZIG ?= zig",
-                "ZIGUX_ROOT := ..",
-                "",
-                *REQUIRED_MAKEFILE_LINES,
-            )
-        )
-        + "\n",
-    )
-    for path in SURFACE_PATHS:
-        if path == MAKEFILE:
-            continue
-        write_text(resolve_path(root, path), "present\n")
-    write_text(resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST), "present\n")
-
-
-def replace_exact_line(text: str, marker: str, replacement: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines[index] = replacement
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
-def run_self_test() -> int:
-    checks_run = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase2_kbuild_routes_") as tmp_dir:
-        root = Path(tmp_dir)
-        build_self_test_root(root)
-        assert collect_issues(root) == []
-        checks_run += 1
-
-        for marker in WORKFLOW_LINES:
-            build_self_test_root(root)
-            workflow_path = resolve_path(root, WORKFLOW)
-            workflow_path.write_text(replace_exact_line(workflow_path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
-            checks_run += 1
-
-        for marker in WORKFLOW_LINES:
-            build_self_test_root(root)
-            workflow_path = resolve_path(root, WORKFLOW)
-            workflow_path.write_text(duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
-            checks_run += 1
-
-        for marker in README_REQUIRED_LINES:
-            build_self_test_root(root)
-            readme_path = resolve_path(root, SCRIPTS_README)
-            readme_path.write_text(replace_exact_line(readme_path.read_text(encoding="utf-8"), marker, "BROKEN_PRESENT_MARKER"), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_README_REQUIRED_LINES", marker) in issues
-            checks_run += 1
-
-        for marker in README_REQUIRED_LINES:
-            build_self_test_root(root)
-            readme_path = resolve_path(root, SCRIPTS_README)
-            readme_path.write_text(duplicate_exact_line(readme_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_README_REQUIRED_LINES", f"{marker}:count=2") in issues
-            checks_run += 1
-
-        for marker in README_WARNING_LINES:
-            build_self_test_root(root)
-            readme_path = resolve_path(root, SCRIPTS_README)
-            readme_path.write_text(replace_exact_line(readme_path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_README_WARNING_LINES", marker) in issues
-            checks_run += 1
-
-        for marker in README_WARNING_LINES:
-            build_self_test_root(root)
-            readme_path = resolve_path(root, SCRIPTS_README)
-            readme_path.write_text(duplicate_exact_line(readme_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_README_WARNING_LINES", f"{marker}:count=2") in issues
-            checks_run += 1
-
-        for marker in README_FORBIDDEN_MARKERS:
-            build_self_test_root(root)
-            readme_path = resolve_path(root, SCRIPTS_README)
-            readme_path.write_text(readme_path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("FORBIDDEN_README_MARKERS", marker) in issues
-            checks_run += 1
-
-        build_self_test_root(root)
-        makefile_path = resolve_path(root, MAKEFILE)
-        makefile_path.unlink()
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("missing makefile did not abort")
-
-        build_self_test_root(root)
-        workflow_path = resolve_path(root, WORKFLOW)
-        workflow_path.unlink()
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("missing workflow did not abort")
-
-        for path in SURFACE_PATHS:
-            if path == MAKEFILE:
-                continue
-            build_self_test_root(root)
-            surface_path = resolve_path(root, path)
-            surface_path.unlink()
-            issues = collect_issues(root)
-            assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
-            checks_run += 1
-
-        build_self_test_root(root)
-        resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST).unlink()
-        write_text(resolve_path(root, THIRD_PARTY_ARCHIVE), "present\n")
-        assert collect_issues(root) == []
-        checks_run += 1
-
-        build_self_test_root(root)
-        archive_path = resolve_path(root, THIRD_PARTY_ARCHIVE)
-        if archive_path.exists():
-            archive_path.unlink()
-        resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST).unlink()
-        issues = collect_issues(root)
-        assert (
-            "MISSING_ARCHIVE_SURFACE_PATHS",
-            " or ".join(path.relative_to(ROOT).as_posix() for path in ARCHIVE_SURFACE_PATHS),
-        ) in issues
-        checks_run += 1
-
-        for marker in REQUIRED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            makefile_path = resolve_path(root, MAKEFILE)
-            makefile_path.write_text(replace_exact_line(makefile_path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_MAKEFILE_LINES", marker) in issues
-            checks_run += 1
-
-        for marker in REQUIRED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            makefile_path = resolve_path(root, MAKEFILE)
-            makefile_path.write_text(duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_MAKEFILE_LINES", f"{marker}:count=2") in issues
-            checks_run += 1
-
-        for marker in DISALLOWED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            makefile_path = resolve_path(root, MAKEFILE)
-            makefile_path.write_text(makefile_path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("FORBIDDEN_MAKEFILE_LINES", marker) in issues
-            checks_run += 1
-
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT, (checks_run, EXPECTED_SELF_TEST_CASE_COUNT)
-    print("PHASE2_KBUILD_ROUTES_SELF_TEST=pass")
-    print(f"PHASE2_KBUILD_ROUTES_SELF_TEST_CASE_COUNT={checks_run}")
-    return 0
 
 
 def main() -> int:
