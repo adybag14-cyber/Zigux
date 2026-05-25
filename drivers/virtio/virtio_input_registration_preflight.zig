@@ -131,3 +131,51 @@ test "phase10 virtio input registration preflight helper keeps non-multitouch de
     try std.testing.expectEqual(@as(?virtio_input.RegistrationBlocker, null), summary.blocker);
     try std.testing.expect(readyForRegistration(summary));
 }
+
+test "phase10 virtio input registration preflight helper revokes registration until capability setup is restored after reset" {
+    var device = try virtio_input.VirtioInputLab.init("Virtio Tablet Lab", "serial-reset", 10, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    try device.configureConfigBitmap(.ev_bits, 0x02, &[_]u16{ 0x00, 0x01 });
+
+    var summary = summarize(&device);
+    try std.testing.expect(queuePlanReady(summary));
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(capabilitySetupReady(summary));
+    try std.testing.expect(multitouchSlotsReady(summary));
+    try std.testing.expect(!waitingOnCapabilitySetup(summary));
+    try std.testing.expect(!waitingOnMultitouchSlots(summary));
+    try std.testing.expectEqual(@as(?virtio_input.RegistrationBlocker, null), summary.blocker);
+    try std.testing.expect(readyForRegistration(summary));
+
+    device.reset();
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+
+    summary = summarize(&device);
+    try std.testing.expectEqual(virtio_input.RegistrationBlocker.capability_setup_incomplete, summary.blocker.?);
+    try std.testing.expect(queuePlanReady(summary));
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(!capabilitySetupReady(summary));
+    try std.testing.expect(multitouchSlotsReady(summary));
+    try std.testing.expect(waitingOnCapabilitySetup(summary));
+    try std.testing.expect(!waitingOnMultitouchSlots(summary));
+    try std.testing.expect(!readyForRegistration(summary));
+
+    try device.configureConfigBitmap(.ev_bits, 0x02, &[_]u16{ 0x00, 0x01 });
+
+    summary = summarize(&device);
+    try std.testing.expect(queuePlanReady(summary));
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(capabilitySetupReady(summary));
+    try std.testing.expect(multitouchSlotsReady(summary));
+    try std.testing.expect(!waitingOnCapabilitySetup(summary));
+    try std.testing.expect(!waitingOnMultitouchSlots(summary));
+    try std.testing.expectEqual(@as(?virtio_input.RegistrationBlocker, null), summary.blocker);
+    try std.testing.expect(readyForRegistration(summary));
+}
