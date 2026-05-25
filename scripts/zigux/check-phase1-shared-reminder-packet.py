@@ -88,7 +88,7 @@ MARKERS = {
         'print("PHASE1_FIND_BIT_BENCH_ANCHORS_SELF_TEST=pass")',
     ),
     "scripts/zigux/check-phase1-find-bit-review-packet.py": (
-        '"""Guard the Phase 1 find_bit review packet against helper-local drift."""',
+        '"""Guard the Phase 1 find_bit review packet against helper, fixture, smoke, and lane drift."""',
         'print("phase1-find-bit-review-packet:ok")',
     ),
     "scripts/zigux/check-phase1-find-bit-validator-anchors.py": (
