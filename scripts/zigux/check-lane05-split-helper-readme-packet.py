@@ -8,7 +8,6 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent
-SCRIPTS_README = Path("scripts/zigux/README.md")
 THIRD_PARTY_README = Path("third_party/README.md")
 SPLIT_HELPER = Path("scripts/zigux/split-pinned-zig-archive.py")
 STAGE_HELPER = Path("scripts/zigux/stage-pinned-zig-archive.py")
@@ -109,29 +108,6 @@ def check_stage_helper(root: Path) -> None:
         require_marker(stage_text, marker, "stage helper marker")
 
 
-def check_scripts_readme(root: Path, contract: dict[str, str]) -> None:
-    readme_text = read_text(root / SCRIPTS_README)
-    markers = (
-        "`scripts/zigux/split-pinned-zig-archive.py`",
-        "`python3 scripts/zigux/split-pinned-zig-archive.py --self-test`",
-        "`scripts/zigux/stage-pinned-zig-archive.py`",
-        "`python3 scripts/zigux/stage-pinned-zig-archive.py --self-test`",
-        "`third_party/README.md`",
-        "`.parts` shard-emitter",
-        "`scripts/zigux/check-lane05-split-helper-readme-packet.py`",
-        "`scripts/zigux/check-lane05-stage-helper-contract.py`",
-        "`scripts/zigux/check-lane05-stage-helper-selftest.py`",
-    )
-    for marker in markers:
-        require_marker(readme_text, marker, "scripts README marker")
-    require_order(
-        readme_text,
-        "`scripts/zigux/split-pinned-zig-archive.py`",
-        "`scripts/zigux/stage-pinned-zig-archive.py`",
-        "scripts README helper order",
-    )
-
-
 def check_third_party_readme(root: Path, contract: dict[str, str]) -> None:
     readme_text = read_text(root / THIRD_PARTY_README)
     markers = (
@@ -142,6 +118,7 @@ def check_third_party_readme(root: Path, contract: dict[str, str]) -> None:
         "`part-*.b64`",
         "matching shard emitter",
         "verified pinned archive",
+        "`scripts/zigux/check-lane05-split-helper-readme-packet.py`",
     )
     for marker in markers:
         require_marker(readme_text, marker, "third_party README marker")
@@ -219,20 +196,6 @@ def build_sample_root(root: Path) -> None:
     )
 
     write_text(
-        root / SCRIPTS_README,
-        "\n".join(
-            (
-                "# scripts/zigux",
-                "",
-                "## Phase 2",
-                "",
-                "- `third_party/README.md`, `scripts/zigux/split-pinned-zig-archive.py`, `python3 scripts/zigux/split-pinned-zig-archive.py --self-test`, `scripts/zigux/stage-pinned-zig-archive.py`, `python3 scripts/zigux/stage-pinned-zig-archive.py --self-test`, `scripts/zigux/check-lane05-split-helper-readme-packet.py`, `scripts/zigux/check-lane05-stage-helper-contract.py`, and `scripts/zigux/check-lane05-stage-helper-selftest.py` keep the repo-local direct-archive, `.parts` shard-emitter, staged-recovery, README, contract, and self-test packet explicit from the scripts root beside that same shipped Lane 05 local-first archive path",
-            )
-        )
-        + "\n",
-    )
-
-    write_text(
         root / THIRD_PARTY_README,
         "\n".join(
             (
@@ -240,6 +203,7 @@ def build_sample_root(root: Path) -> None:
                 "",
                 f"- If the exact archive file is absent but `{contract['parts_dir']}` is present, `.github/workflows/zigux-bootstrap.yml` stages the same pinned payload locally with `scripts/zigux/stage-pinned-zig-archive.py` before mirror or direct-download fallback.",
                 f"- `scripts/zigux/split-pinned-zig-archive.py` is the matching shard emitter for `{contract['manifest_path']}`, writing `manifest.json` plus `part-*.b64` from a verified pinned archive before that staged recovery path is published.",
+                "- `scripts/zigux/check-lane05-split-helper-readme-packet.py` keeps that split-helper README packet fail-closed beside the staged local-first archive path.",
             )
         )
         + "\n",
@@ -254,28 +218,9 @@ def run_self_test() -> int:
         contract = load_contract(root)
         check_split_helper(root)
         check_stage_helper(root)
-        check_scripts_readme(root, contract)
         check_third_party_readme(root, contract)
         case_count += 1
 
-        write_text(
-            root / SCRIPTS_README,
-            read_text(root / SCRIPTS_README).replace(
-                "`scripts/zigux/split-pinned-zig-archive.py`, ", "", 1
-            ),
-        )
-        try:
-            check_scripts_readme(root, contract)
-        except SystemExit as exc:
-            assert "`scripts/zigux/split-pinned-zig-archive.py`" in str(exc), str(exc)
-            case_count += 1
-        else:
-            raise AssertionError("expected scripts README marker failure")
-
-    with tempfile.TemporaryDirectory(prefix="lane05_split_helper_readme_") as tmp_dir:
-        root = Path(tmp_dir)
-        build_sample_root(root)
-        contract = load_contract(root)
         write_text(
             root / THIRD_PARTY_README,
             read_text(root / THIRD_PARTY_README).replace("`part-*.b64`", "`parts`", 1),
@@ -306,20 +251,20 @@ def run_self_test() -> int:
         build_sample_root(root)
         contract = load_contract(root)
         write_text(
-            root / SCRIPTS_README,
-            read_text(root / SCRIPTS_README).replace(
-                "`scripts/zigux/split-pinned-zig-archive.py`",
-                "`scripts/zigux/stage-pinned-zig-archive.py`",
+            root / THIRD_PARTY_README,
+            read_text(root / THIRD_PARTY_README).replace(
+                "`scripts/zigux/check-lane05-split-helper-readme-packet.py`",
+                "`scripts/zigux/check-lane05-split-helper-readme-packet-missing.py`",
                 1,
             ),
         )
         try:
-            check_scripts_readme(root, contract)
+            check_third_party_readme(root, contract)
         except SystemExit as exc:
-            assert "exactly" not in str(exc)
+            assert "check-lane05-split-helper-readme-packet.py" in str(exc), str(exc)
             case_count += 1
         else:
-            raise AssertionError("expected scripts README duplicate-order failure")
+            raise AssertionError("expected third_party README checker marker failure")
 
     print("LANE05_SPLIT_HELPER_README_PACKET_SELF_TEST=pass")
     print(f"LANE05_SPLIT_HELPER_README_PACKET_SELF_TEST_CASE_COUNT={case_count}")
@@ -328,7 +273,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that Lane 05 scripts-root reminders keep the split-helper shard packet explicit."
+        description="Check that Lane 05 reminder surfaces keep the split-helper shard packet explicit."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument(
@@ -351,7 +296,6 @@ def main() -> int:
     contract = load_contract(root)
     check_split_helper(root)
     check_stage_helper(root)
-    check_scripts_readme(root, contract)
     check_third_party_readme(root, contract)
     print("LANE05_SPLIT_HELPER_README_PACKET=pass")
     print(f"LANE05_SPLIT_HELPER_README_PACKET_TARGET={contract['target']}")
