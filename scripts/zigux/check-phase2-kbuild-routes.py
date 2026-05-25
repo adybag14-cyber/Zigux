@@ -94,6 +94,8 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
@@ -104,10 +106,16 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross.py",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
@@ -127,6 +135,7 @@ WORKFLOW_LINES = (
     "run: make -C zigux phase2-fixdep",
     "run: make -C zigux phase2-genksyms",
     "run: make -C zigux phase2-validate",
+    "run: python3 scripts/zigux/validate-phase2.py",
 )
 
 README_REQUIRED_LINES = (
