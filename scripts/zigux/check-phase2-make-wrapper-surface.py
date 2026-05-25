@@ -108,6 +108,10 @@ def _sample_makefile(
     return "\n".join(lines)
 
 
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
 def validate(repo_root: Path) -> list[str]:
     manifest_path = repo_root / MANIFEST_PATH
     makefile_path = repo_root / MAKEFILE_PATH
@@ -159,8 +163,11 @@ def validate(repo_root: Path) -> list[str]:
 
     makefile_text = makefile_path.read_text(encoding="utf-8")
     for line in REQUIRED_MAKEFILE_LINES:
-        if line not in makefile_text:
+        count = count_exact_lines(makefile_text, line)
+        if count == 0:
             issues.append(f"missing makefile line: {line}")
+        elif count != 1:
+            issues.append(f"duplicate makefile line: {line}:count={count}")
 
     return issues
 
@@ -246,6 +253,24 @@ def run_self_test() -> int:
         if f"missing makefile line: {REQUIRED_MAKEFILE_LINES[-2]}" not in issues:
             print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
             print("expected phase2-validate dependency drift was not reported")
+            return 1
+        case_count += 1
+
+        duplicate_makefile = _sample_makefile() + "\n" + REQUIRED_MAKEFILE_LINES[4] + "\n\t@true\n"
+        _write(root / MAKEFILE_PATH, duplicate_makefile)
+        issues = validate(root)
+        if "duplicate makefile line: phase2-cross::count=2" not in issues:
+            print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
+            print("expected duplicate phase2-cross target was not reported")
+            return 1
+        case_count += 1
+
+        duplicate_phony = _sample_makefile() + "\n" + REQUIRED_MAKEFILE_LINES[0] + "\n"
+        _write(root / MAKEFILE_PATH, duplicate_phony)
+        issues = validate(root)
+        if f"duplicate makefile line: {REQUIRED_MAKEFILE_LINES[0]}:count=2" not in issues:
+            print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
+            print("expected duplicate phony line was not reported")
             return 1
         case_count += 1
 
