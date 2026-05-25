@@ -20,6 +20,12 @@ VERIFIER_PATH = Path("drivers/nvme/host/pci_verify.zig")
 FALLBACK_MAP_PATH = Path(
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
 )
+SLICE_PATH = Path("Documentation/zigux/phase12-nvme-pci-slice.md")
+SURVEY_NOTE_PATH = Path("Documentation/zigux/phase12-nvme-pci-survey.md")
+REOPEN_GOVERNANCE_PATH = Path(
+    "Documentation/zigux/phase12-nvme-pci-reopen-governance.md"
+)
+SURVEY_GATE_PATH = Path("zigux/tests/phase12_nvme_pci_survey.zig")
 
 EXPECTED_LANE_KEY = "P12-L08"
 EXPECTED_PHASE = "Phase 12"
@@ -182,6 +188,65 @@ FALLBACK_MAP_MARKERS = (
     "- keep this current-master raw-path map as a browser-side routing aid only; it does not turn the NVMe gap-note companion into a commit-pinned fallback artifact",
 )
 
+SLICE_MARKERS = (
+    "queue-pair planning",
+    "IO queue reservation sizing",
+    "recovery reservation replay debt",
+    "recovery reservation replay preflight",
+    "PRP buffer-shape accounting",
+    "PRP metadata budgeting",
+    "dropped-backlog retirement review",
+    "rollback-gate review",
+    "frozen queue-restore budgeting",
+    "It stays below live DMA mapping",
+)
+
+SURVEY_NOTE_MARKERS = (
+    "PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_dedicated_build_present_shared_build_absent",
+    "lane owner: `P12-L08`",
+    "drivers/nvme/host/pci.zig",
+    "drivers/nvme/host/pci_verify.zig",
+    "zigux/tests/phase12_nvme_pci.zig",
+    "zigux/tests/phase12_nvme_pci_build.zig",
+    "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`",
+    "`zigux/tests/phase12_build.zig` route still stays virtio-net-only",
+    "survey gate still stays packet-local",
+    "IO queue reservation sizing",
+    "recovery reservation replay debt",
+    "PRP metadata budgeting",
+    "live DMA mapping",
+    "transport-backed queue execution",
+)
+
+SURVEY_NOTE_FORBIDDEN_MARKERS = (
+    "now wires the NVMe direct replay into the shared `phase12-smoke` and `phase12` routes",
+)
+
+REOPEN_GOVERNANCE_MARKERS = (
+    "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`",
+    "`zigux/tests/phase12_build.zig` still stays virtio_net-only",
+    "must not promote the bounded NVMe starter beyond its current dedicated direct-build claim",
+    "phase12-smoke",
+    "phase12-test",
+    "phase12",
+)
+
+REOPEN_GOVERNANCE_FORBIDDEN_MARKERS = (
+    "shares one bounded direct replay through the shared `phase12-smoke` and `phase12` routes",
+    "`zigux/tests/phase12_build.zig` now wires the NVMe direct replay into the smoke-first shared route",
+)
+
+SURVEY_GATE_MARKERS = (
+    "phase12 nvme pci survey manifest keeps the bounded starter packet truthful",
+    "phase12 nvme pci survey note keeps the roadmap gap and dedicated-build split explicit",
+    "phase12 nvme pci reopen governance note keeps the dedicated direct replay and packet-local survey split explicit",
+    "phase12 nvme pci slice note keeps the bounded recovery-preflight packet explicit",
+    "phase12 nvme pci survey gate keeps present packet files explicit",
+    "phase12 nvme pci survey gate keeps the dedicated direct route driver-local for NVMe",
+    "phase12 nvme pci survey gate keeps the make wrapper surface explicit",
+    "phase12 nvme pci survey gate keeps the current recovery helper packet explicit",
+)
+
 
 class CheckFailure(RuntimeError):
     pass
@@ -203,6 +268,12 @@ def require_markers(text: str, markers: tuple[str, ...], message_prefix: str) ->
     for marker in markers:
         if marker not in text:
             raise CheckFailure(f"{message_prefix} missing marker: {marker}")
+
+
+def forbid_markers(text: str, markers: tuple[str, ...], message_prefix: str) -> None:
+    for marker in markers:
+        if marker in text:
+            raise CheckFailure(f"{message_prefix} contains forbidden marker: {marker}")
 
 
 def require_existing_path(root: Path, relative_path: str) -> None:
@@ -302,6 +373,36 @@ def check_manifest(root: Path) -> int:
     verifier_text = read_text(root, VERIFIER_PATH)
     require_markers(verifier_text, VERIFIER_MARKERS, "nvme_pci verifier shard")
 
+    slice_text = read_text(root, SLICE_PATH)
+    require_markers(slice_text, SLICE_MARKERS, "nvme_pci slice note")
+
+    survey_note_text = read_text(root, SURVEY_NOTE_PATH)
+    require_markers(survey_note_text, SURVEY_NOTE_MARKERS, "nvme_pci survey note")
+    forbid_markers(
+        survey_note_text,
+        SURVEY_NOTE_FORBIDDEN_MARKERS,
+        "nvme_pci survey note",
+    )
+    require(
+        surveyed_commit in survey_note_text,
+        "nvme_pci survey note lost the manifest surveyed_commit pin",
+    )
+
+    reopen_governance_text = read_text(root, REOPEN_GOVERNANCE_PATH)
+    require_markers(
+        reopen_governance_text,
+        REOPEN_GOVERNANCE_MARKERS,
+        "nvme_pci reopen governance note",
+    )
+    forbid_markers(
+        reopen_governance_text,
+        REOPEN_GOVERNANCE_FORBIDDEN_MARKERS,
+        "nvme_pci reopen governance note",
+    )
+
+    survey_gate_text = read_text(root, SURVEY_GATE_PATH)
+    require_markers(survey_gate_text, SURVEY_GATE_MARKERS, "nvme_pci survey gate")
+
     return len(gaps)
 
 
@@ -342,6 +443,29 @@ def write_fixture(root: Path) -> None:
         DIRECT_REPLAY_PATH: "\n".join(DIRECT_REPLAY_MARKERS) + "\n",
         VERIFIER_PATH: "\n".join(VERIFIER_MARKERS) + "\n",
         FALLBACK_MAP_PATH: "\n".join(FALLBACK_MAP_MARKERS) + "\n",
+        SLICE_PATH: "\n".join(SLICE_MARKERS) + "\n",
+        SURVEY_NOTE_PATH: "\n".join(
+            (
+                SURVEY_NOTE_MARKERS[0],
+                SURVEY_NOTE_MARKERS[1],
+                SURVEY_NOTE_MARKERS[2],
+                SURVEY_NOTE_MARKERS[3],
+                SURVEY_NOTE_MARKERS[4],
+                SURVEY_NOTE_MARKERS[5],
+                SURVEY_NOTE_MARKERS[6],
+                SURVEY_NOTE_MARKERS[7],
+                SURVEY_NOTE_MARKERS[8],
+                SURVEY_NOTE_MARKERS[9],
+                SURVEY_NOTE_MARKERS[10],
+                SURVEY_NOTE_MARKERS[11],
+                SURVEY_NOTE_MARKERS[12],
+                SURVEY_NOTE_MARKERS[13],
+                "0123456789abcdef0123456789abcdef01234567",
+            )
+        )
+        + "\n",
+        REOPEN_GOVERNANCE_PATH: "\n".join(REOPEN_GOVERNANCE_MARKERS) + "\n",
+        SURVEY_GATE_PATH: "\n".join(SURVEY_GATE_MARKERS) + "\n",
     }
     for relative_path, text in fixture_files.items():
         absolute_path = root / relative_path
@@ -351,24 +475,28 @@ def write_fixture(root: Path) -> None:
     for expected in EXPECTED_GAPS.values():
         absolute_path = root / expected["zigux_destination"]
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path in (
+        if absolute_path in {
             root / MANIFEST_PATH,
             root / DIRECT_BUILD_PATH,
             root / DIRECT_REPLAY_PATH,
             root / VERIFIER_PATH,
             root / FALLBACK_MAP_PATH,
-        ):
+            root / SLICE_PATH,
+            root / SURVEY_NOTE_PATH,
+            root / REOPEN_GOVERNANCE_PATH,
+            root / SURVEY_GATE_PATH,
+        }:
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
     for relative_path in EXTRA_REQUIRED_PATHS:
         absolute_path = root / relative_path
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path in (
+        if absolute_path in {
             root / DIRECT_BUILD_PATH,
             root / DIRECT_REPLAY_PATH,
             root / VERIFIER_PATH,
-        ):
+        }:
             continue
         absolute_path.write_text("fixture\n", encoding="utf-8")
 
@@ -487,6 +615,7 @@ def run_self_test() -> int:
             raise AssertionError("expected direct-build marker drift to fail")
 
         write_fixture(root)
+        (root / DIRECT_REPLAY_PATH).writeText = None
         (root / DIRECT_REPLAY_PATH).write_text(
             "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit\n",
             encoding="utf-8",
@@ -513,6 +642,88 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected verifier-marker drift to fail")
+
+        write_fixture(root)
+        (root / SURVEY_NOTE_PATH).write_text(
+            "PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_dedicated_build_present_shared_build_absent\n",
+            encoding="utf-8",
+        )
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "survey note" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected survey-note marker drift to fail")
+
+        write_fixture(root)
+        (root / SURVEY_NOTE_PATH).write_text(
+            "\n".join(SURVEY_NOTE_MARKERS + SURVEY_NOTE_FORBIDDEN_MARKERS + ("0123456789abcdef0123456789abcdef01234567",))
+            + "\n",
+            encoding="utf-8",
+        )
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "forbidden marker" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected survey-note forbidden drift to fail")
+
+        write_fixture(root)
+        (root / REOPEN_GOVERNANCE_PATH).write_text(
+            "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`\n",
+            encoding="utf-8",
+        )
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "reopen governance note" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected reopen-governance marker drift to fail")
+
+        write_fixture(root)
+        (root / REOPEN_GOVERNANCE_PATH).write_text(
+            "\n".join(REOPEN_GOVERNANCE_MARKERS + REOPEN_GOVERNANCE_FORBIDDEN_MARKERS) + "\n",
+            encoding="utf-8",
+        )
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "forbidden marker" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected reopen-governance forbidden drift to fail")
+
+        write_fixture(root)
+        (root / SLICE_PATH).write_text("queue-pair planning\n", encoding="utf-8")
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "slice note" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected slice-note marker drift to fail")
+
+        write_fixture(root)
+        (root / SURVEY_GATE_PATH).write_text(
+            "phase12 nvme pci survey manifest keeps the bounded starter packet truthful\n",
+            encoding="utf-8",
+        )
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "survey gate" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected survey-gate marker drift to fail")
 
         write_fixture(root)
         (root / DIRECT_BUILD_PATH).unlink()
