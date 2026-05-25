@@ -37,9 +37,10 @@ Fresh current-master reread in this slot also directly returned these shared, le
 
 `zigux/tests/phase7_build.zig` now rematerialized through the same authenticated reread path in this slot, so keep it explicit as returned shared non-owner build evidence without treating it as helper-local ownership.
 
-The dedicated C harness now returns as a helper-local parity companion rather than a repo-reality gap:
+The dedicated parity companions now keep the erase-boundary surface broader than the earlier four-scenario packet:
 
-- `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
+- `zigux/tests/fixtures/phase7_rbtree.json` now also carries non-leftmost cached erase, singleton cached erase, and plain erase-init reseed scenarios
+- `zigux/tests/fixtures/phase7_rbtree_c_harness.c` now mirrors those same three erase-boundary scenarios as direct C-side parity evidence
 
 Repo-reality warning for the still-missing dedicated Phase 7 rbtree wrapper routes:
 
