@@ -264,7 +264,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 37
+    expected_case_count = 38
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -319,6 +319,16 @@ def run_self_test() -> int:
             "missing review checklist marker",
             collect_failures(mutated),
             [f"{REVIEW_CHECKLIST_PATH}:missing_text:{MARKERS[REVIEW_CHECKLIST_PATH][2]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_review_checklist_trace_events_marker"
+        seed(mutated)
+        write_text(mutated, REVIEW_CHECKLIST_PATH, placeholder(REVIEW_CHECKLIST_PATH).replace(MARKERS[REVIEW_CHECKLIST_PATH][1], ""))
+        expect_exact(
+            "missing review checklist trace-events marker",
+            collect_failures(mutated),
+            [f"{REVIEW_CHECKLIST_PATH}:missing_text:{MARKERS[REVIEW_CHECKLIST_PATH][1]}"],
         )
         checks_run += 1
 
@@ -423,7 +433,7 @@ def run_self_test() -> int:
             collect_failures(mutated),
             [
                 f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][0]}",
-                f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}" ,
+                f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}",
                 "kobject_survey:missing_path:zigux/tests/phase5_kobject_attr_group_contract_survey.zig",
             ],
         )
