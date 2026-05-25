@@ -141,12 +141,7 @@ REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS = [
 REQUIRED_PARITY_PERF_NOTE_SNIPPETS = [
     "Verified the current Phase 6 perf packet on 2026-05-20 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/phase6_hexdump_perf_matrix.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, Documentation/zigux/phase6-hexdump-slice.md, Documentation/zigux/phase6-hexdump-perf-refresh.md, zigux/tests/phase6_build.zig, and zigux/Makefile.",
 ]
-EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
-    "Documentation/zigux/phase6-helper-evidence-catalog.md",
-    "zigux/tests/phase6_helper_evidence_manifest.json",
-    "scripts/zigux/README.md",
-    "zigux/tests/README.md",
-]
+EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = []
 EXPECTED_EVIDENCE_HELPER_DIRECT_C_PARITY = {
     "base64": {
         "focused_direct_c_parity_replay": "zigux/tests/phase6_base64_c_parity.zig",
