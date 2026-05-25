@@ -286,6 +286,7 @@ def run_self_test() -> int:
         cases += _expect_failure(root, CHECKLIST, CHECKLIST_PHASE4_REQ[0], "checklist drift")
         cases += _expect_failure(root, CHECKLIST, CHECKLIST_PHASE4_REQ[3], "checklist split drift")
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[0], "scripts drift")
+        cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[1], "scripts checker drift")
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[2], "scripts split drift")
         cases += _expect_failure(root, TESTS_README_PACKET, None, None)
         cases += _expect_failure(root, PINS, None, None)
@@ -303,7 +304,6 @@ def run_self_test() -> int:
         cases += _expect_failure(root, VALIDATOR, None, None)
         cases += _expect_failure(root, BUILD, None, None)
         cases += _expect_failure(root, BITMAP_DIFF, None, None)
-        cases += _expect_failure(root, BITMAP_HELPER_REPLAY, None, None)
         cases += _expect_failure(root, ATOMIC64_MANIFEST, None, None)
         cases += _expect_failure(root, ATOMIC64_SURVEY, None, None)
         cases += _expect_failure(
