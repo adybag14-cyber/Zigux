@@ -30,16 +30,24 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     );
     defer allocator.free(publish_readiness_file);
 
+    const registration_summary_file = try readRepoRelative(
+        allocator,
+        "drivers/virtio/virtio_ring_registration_summary.zig",
+    );
+    defer allocator.free(registration_summary_file);
+
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "lane: `P10-L10`");
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_publish_readiness.zig");
+    try expectContains(survey_note, "drivers/virtio/virtio_ring_registration_summary.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
+    try expectContains(survey_note, "phase10-queue-registration-summary-helper");
     try expectContains(
         survey_note,
-        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
     );
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_survey.zig");
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_ring_survey.zig");
@@ -67,6 +75,18 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
         publish_readiness_file,
         "test \"phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity\" {",
     );
+    try expectContains(
+        registration_summary_file,
+        "pub fn summarizeQueueRegistration(",
+    );
+    try expectContains(
+        registration_summary_file,
+        "pub fn queueDefinitionDisciplineStable(summary: QueueRegistrationSummary, expected_registered_queue_count: usize) bool {",
+    );
+    try expectContains(
+        registration_summary_file,
+        "test \"phase10 virtio ring registration-summary wrapper keeps definition discipline explicit\" {",
+    );
     try expectContains(build_file, "virtio_ring_publish_readiness_module");
     try expectContains(build_file, "phase10_virtio_ring_survey_module");
     try expectContains(build_file, "\"phase10-virtio-ring-publish-readiness-tests\"");
@@ -90,8 +110,9 @@ test "phase10 virtio ring survey manifest keeps lane identity and freeze-boundar
     try expectContains(manifest, "\"allowed_evidence_kinds\": [");
     try expectContains(manifest, "\"driver_local_lab_slices\"");
     try expectContains(manifest, "\"survey_manifests\"");
-    try expectContains(manifest, "\"preexisting_phase10_test_files\": 7");
+    try expectContains(manifest, "\"preexisting_phase10_test_files\": 8");
     try expectContains(manifest, "\"shared_validation_gates\"");
+    try expectContains(manifest, "\"preexisting_ring_registration_summary_present\": true");
     try expectContains(manifest, "\"forbidden_transport_claims\": [");
     try expectContains(manifest, "\"queue_setup_reset_paths\"");
     try expectContains(manifest, "\"irq_parity\"");
@@ -102,13 +123,15 @@ test "phase10 virtio ring survey manifest keeps lane identity and freeze-boundar
     try expectContains(manifest, "\"architecture_council_reopen_attached\": false");
     try expectContains(manifest, "\"freeze_boundary_owner_lane\": \"P10-L11\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-ring-survey-gate\"");
+    try expectContains(manifest, "\"id\": \"phase10-queue-registration-summary-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-queue-reset-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-queue-reset-readiness-helper\"");
     try expectContains(manifest, "\"status\": \"starter_landed\"");
+    try expectContains(manifest, "\"zigux_destination\": \"drivers/virtio/virtio_ring_registration_summary.zig\"");
     try expectContains(manifest, "\"zigux_destination\": \"zigux/tests/phase10_virtio_ring_survey.zig\"");
 }
 
-test "phase10 virtio ring slice companions keep the notification-data replay, direct-readback broader replay, and landed survey gate explicit" {
+test "phase10 virtio ring slice companions keep the notification-data replay, registration-summary wrapper, direct-readback broader replay, and landed survey gate explicit" {
     const allocator = std.testing.allocator;
 
     const slice_note = try readRepoRelative(
@@ -117,6 +140,8 @@ test "phase10 virtio ring slice companions keep the notification-data replay, di
     );
     defer allocator.free(slice_note);
 
+    try expectContains(slice_note, "drivers/virtio/virtio_ring_registration_summary.zig");
+    try expectContains(slice_note, "phase10-queue-registration-summary-helper");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
     try expectContains(
         slice_note,
