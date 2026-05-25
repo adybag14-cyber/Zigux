@@ -105,7 +105,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(path: Path) -> str:
@@ -230,12 +230,14 @@ def run_self_test() -> None:
             ("samples/zigux/README.md", "* `*cmdline*`", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Documentation/zigux/phase7-cmdline-slice.md", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "--self-test", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET_SELF_TEST=pass", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET=pass", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET=fail", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_FILES_START", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_FILES_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_MARKERS_START", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_MARKERS_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", '"Documentation/zigux/phase7-cmdline-slice.md",', ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", '"lib/cmdline.zig",', ""),
             ("zigux/tests/phase7_cmdline.zig", 'test "phase 7 cmdline companion replays leading-plus fallback boundaries" {', ""),
