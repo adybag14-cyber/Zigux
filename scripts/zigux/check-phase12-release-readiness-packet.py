@@ -41,6 +41,7 @@ PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = (
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 )
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
+LIBBPF_LANE_MARKER_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-lane-marker.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 MAKEFILE_PATH = "zigux/Makefile"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -59,6 +60,7 @@ REQUIRED_FILES = [
     PHASE12_COMPLEX_DRIVER_LANE_PATH,
     PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
     SCRIPTS_README_PATH,
+    LIBBPF_LANE_MARKER_CHECKER_PATH,
     VALIDATOR_PATH,
     MAKEFILE_PATH,
     TESTS_README_PATH,
@@ -88,6 +90,7 @@ REQUIRED_MARKERS = {
         "the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, and `.github/workflows/zigux-bootstrap.yml`",
         "`scripts/zigux/check-build-only-phase12-surface.py` remains the bounded build-only contract checker",
         "`scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` remains the packet-local boundary guard that keeps the rollback-only `virtio_scsi` survey packet distinct from the parked libbpf reviewability packet inside the shared Phase 12 release story.",
+        "`scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` remain the parked libbpf support guards",
     ],
     RELEASE_SEQUENCING_PATH: [
         "Current repo-reality override: the route story on current `master` is now fully returned rather than split. `zigux/Makefile` now exposes shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrappers again",
