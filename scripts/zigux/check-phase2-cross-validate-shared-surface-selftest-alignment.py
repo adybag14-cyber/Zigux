@@ -10,22 +10,21 @@ ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface.py"
 
 REQUIRED_SOURCE_MARKERS = (
-    'VALIDATE = ROOT / "scripts" / "zigux" / "validate-phase2.py"',
-    'WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"',
-    'MAKEFILE = ROOT / "zigux" / "Makefile"',
-    'ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-contract.py",',
-    'ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-route-policy.py",',
-    '    validate_path = resolve_path(root, VALIDATE)',
-    '    if validate_path.exists():',
-    '    workflow_path = resolve_path(root, WORKFLOW)',
-    '    if workflow_path.exists():',
-    '    makefile_path = resolve_path(root, MAKEFILE)',
-    '    if makefile_path.exists():',
-    '    "run: python3 scripts/zigux/check-phase2-cross-validate-contract.py --self-test",',
-    '    "run: python3 scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py",',
-    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py --self-test",',
-    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy-selftest-alignment.py",',
-    '        for code, detail in issues:',
+    'SHARED_SURFACE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface.py"',
+    'SHARED_SURFACE_ALIGNMENT = (',
+    'ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface-selftest-alignment.py"',
+    '    SHARED_SURFACE_CHECKER,\n    SHARED_SURFACE_ALIGNMENT,',
+    '    \'    "scripts/zigux/check-phase2-cross-validate-shared-surface.py",\',\n'
+    '    \'    "scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py",\',',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test",\n'
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py",\n'
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",\n'
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test",\n'
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py",\n'
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",\n'
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py",',
+    '        for path in REQUIRED_PATHS[3:]:',
     '    print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE=pass")',
     '    print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELF_TEST=pass")',
 )
@@ -38,7 +37,7 @@ REQUIRED_CASE_MARKERS = (
     '        resolve_path(root, VALIDATE).unlink()',
     '        resolve_path(root, WORKFLOW).unlink()',
     '        resolve_path(root, MAKEFILE).unlink()',
-    '        resolve_path(root, REQUIRED_PATHS[3]).unlink()',
+    '            resolve_path(root, path).unlink()',
 )
 
 
