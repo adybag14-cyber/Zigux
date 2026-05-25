@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE = Path("zigux/Makefile")
 DOCS_README = Path("Documentation/zigux/README.md")
+PHASE2_TOOLCHAIN_NOTES = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
 PHASE2_CLOSURE = Path("Documentation/zigux/phase2-closure.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
@@ -27,6 +28,7 @@ REQUIRED_FILES = (
     WORKFLOW,
     MAKEFILE,
     DOCS_README,
+    PHASE2_TOOLCHAIN_NOTES,
     PHASE2_CLOSURE,
     REVIEW_CHECKLIST,
     SCRIPTS_README,
@@ -84,6 +86,17 @@ MARKER_GROUPS: dict[str, tuple[Path, tuple[str, ...]]] = {
             "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
             "`zig test scripts/zigux/kconfig/conf_bridge.zig`",
             "`zig test scripts/zigux/kconfig/confdata_bridge.zig`",
+            "`make -C zigux phase2-kconfig`",
+        ),
+    ),
+    "bootstrap": (
+        PHASE2_TOOLCHAIN_NOTES,
+        (
+            "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+            "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
+            "`scripts/zigux/kconfig/conf_bridge.zig`",
+            "`scripts/zigux/kconfig/confdata_bridge.zig`",
+            "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
             "`make -C zigux phase2-kconfig`",
         ),
     ),
@@ -145,6 +158,10 @@ EXPECT_MANIFEST = {
         "Documentation/zigux/phase2-closure.md",
         "Documentation/zigux/review-checklist.md",
         "zigux/tests/README.md",
+    ),
+    "closure_notes": (
+        "Documentation/zigux/phase2-closure.md",
+        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     ),
 }
 
@@ -309,6 +326,7 @@ def run_self_test() -> int:
             (MAKEFILE, MAKEFILE_LINES[0], "MISSING_MAKEFILE_LINE"),
             (DOCS_README, MARKER_GROUPS["docs"][1][0], "MISSING_DOCS_MARKER"),
             (PHASE2_CLOSURE, MARKER_GROUPS["closure"][1][0], "MISSING_CLOSURE_MARKER"),
+            (PHASE2_TOOLCHAIN_NOTES, MARKER_GROUPS["bootstrap"][1][0], "MISSING_BOOTSTRAP_MARKER"),
             (REVIEW_CHECKLIST, MARKER_GROUPS["review"][1][0], "MISSING_REVIEW_MARKER"),
             (SCRIPTS_README, MARKER_GROUPS["scripts"][1][0], "MISSING_SCRIPTS_MARKER"),
             (TESTS_README, MARKER_GROUPS["tests"][1][0], "MISSING_TESTS_MARKER"),
@@ -385,6 +403,7 @@ def main() -> int:
     print(f"PHASE2_KCONFIG_ACTION_PATH_MAKEFILE_LINE_COUNT={len(MAKEFILE_LINES)}")
     print(f"PHASE2_KCONFIG_ACTION_PATH_DOCS_MARKER_COUNT={len(MARKER_GROUPS['docs'][1])}")
     print(f"PHASE2_KCONFIG_ACTION_PATH_CLOSURE_MARKER_COUNT={len(MARKER_GROUPS['closure'][1])}")
+    print(f"PHASE2_KCONFIG_ACTION_PATH_BOOTSTRAP_MARKER_COUNT={len(MARKER_GROUPS['bootstrap'][1])}")
     print(f"PHASE2_KCONFIG_ACTION_PATH_REVIEW_MARKER_COUNT={len(MARKER_GROUPS['review'][1])}")
     print(f"PHASE2_KCONFIG_ACTION_PATH_SCRIPTS_MARKER_COUNT={len(MARKER_GROUPS['scripts'][1])}")
     print(f"PHASE2_KCONFIG_ACTION_PATH_TESTS_MARKER_COUNT={len(MARKER_GROUPS['tests'][1])}")
