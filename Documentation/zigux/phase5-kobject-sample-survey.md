@@ -28,16 +28,17 @@ Authenticated contents readback in this run directly returned:
 
 The same-lane shared reminder packet on current `master` still keeps `samples/zigux/kobject_example.zig` explicit as the direct sample-root owner for this anchor even when this run's authenticated contents route flaked on that one path.
 
-Fresh public current-`master` fallback remains the honest companion path for the still-flaky companion pair:
+Fresh public current-`master` fallback remains the honest companion path for the still-flaky owner-plus-companion set:
 
+- `samples/zigux/kobject_example.zig`
 - `zigux/tests/phase5_kobject_example_manifest.json`
 - `zigux/tests/phase5_kobject_example_survey.zig`
 
 That means the strongest current packet for this lane is:
 
 - the direct sample-owned replay, bounded attr-group companion, focused attr-group replay, attr-group survey guard, and shared build-route companion are current direct evidence again
-- the dedicated manifest and survey replay remain current public-tree-backed companions in this runtime
-- connector-local `404` results on the companion paths are a readback limitation here, not proof that the packet vanished from `master`
+- the sample-root owner together with the dedicated manifest and survey replay remain current public-tree-backed companions in this runtime when the authenticated contents route flakes on them
+- connector-local `404` results on the owner or companion paths are a readback limitation here, not proof that the packet vanished from `master`
 
 ## Approved idiom
 
@@ -75,7 +76,7 @@ Keep the direct attr-group validation cues explicit too:
 When a same-lane change touches this anchor or one of its shared reminder surfaces, keep these questions explicit:
 
 - does the note still treat `zigux/tests/phase5_build.zig` as the current directly readable shared build-route companion rather than parking it in the public-tree-backed bucket?
-- does the note still treat `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` as current public-tree-backed companions instead of direct readback proof in this runtime?
+- does the note still treat `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` as the current public-tree-backed owner-plus-companion set instead of direct readback proof in this runtime?
 - does the note still treat `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` as current direct evidence for the bounded attr-group companion packet?
 - does the surrounding shared packet in `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the same mixed direct-versus-public-tree-backed split?
 - do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, and the attr-group companion packet still describe the same bounded ownership-and-lifetime surface across the sample root, focused replay, companion survey guard, survey note, and shared build route?
@@ -93,4 +94,4 @@ This note still does not claim:
 
 Leave this lane parked unless a fresh reread changes one bounded fact inside the same packet.
 
-If the lane reopens soon, start with `Documentation/zigux/phase5-kobject-sample-survey.md` and verify only whether the current direct sample-owned replay, bounded attr-group companion, focused attr-group replay, dedicated attr-group survey guard, shared build-route companion, and public-tree-backed manifest-plus-survey companions still keep the same split before widening anything else.
+If the lane reopens soon, start with `Documentation/zigux/phase5-kobject-sample-survey.md` and verify only whether the current sample-root owner, direct sample-owned replay, bounded attr-group companion, focused attr-group replay, dedicated attr-group survey guard, shared build-route companion, and public-tree-backed manifest-plus-survey companions still keep the same split before widening anything else.
