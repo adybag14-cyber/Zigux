@@ -100,6 +100,13 @@ REQUIRED_DESIGNWARE_CURRENT_HEAD_MARKERS = (
     "execution, IRQ execution, and MMIO follow-through remain parked as the next",
 )
 
+REQUIRED_VALIDATE_SUPPORT_MARKERS = (
+    "`scripts/zigux/check-phase11-validate-manifest-roster.py`",
+    "`scripts/zigux/check-phase11-validate-check-roster.py`",
+    "`scripts/zigux/check-phase11-validate-route-alignment.py`",
+    "`zigux/tests/fixtures/phase11_validate_checks.json`",
+)
+
 REQUIRED_WORKFLOW_MARKERS = (
     "run: make -C zigux phase11-validate",
 )
@@ -182,6 +189,7 @@ def run_check(root: Path) -> None:
 
     require_markers(str(CONTRACT_PATH), contract, REQUIRED_CONTRACT_MARKERS)
     require_markers(str(CONTRACT_PATH), contract, REQUIRED_DESIGNWARE_CURRENT_HEAD_MARKERS)
+    require_markers(str(CONTRACT_PATH), contract, REQUIRED_VALIDATE_SUPPORT_MARKERS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_EXACT_CURRENT_CHECKS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS)
@@ -227,6 +235,7 @@ def build_fixture(root: Path) -> None:
                 "11 HVC current-head exact command markers",
                 "`make -C zigux phase11-validate` wrapper now cover thirteen focused proof builds through",
                 *REQUIRED_DESIGNWARE_CURRENT_HEAD_MARKERS,
+                *REQUIRED_VALIDATE_SUPPORT_MARKERS,
                 *EXPECTED_EXACT_CURRENT_CHECKS,
                 *EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS,
                 *EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS,
@@ -306,6 +315,22 @@ def run_self_test() -> int:
         expect_failure(
             missing_designware_current_head_marker,
             "`Documentation/zigux/phase11-dw-wdt-survey.md`,",
+        )
+        case_count += 1
+
+        missing_validate_support_marker = tmpdir / "missing_validate_support_marker"
+        shutil.copytree(fixture, missing_validate_support_marker, dirs_exist_ok=True)
+        write(
+            missing_validate_support_marker / CONTRACT_PATH,
+            read_text(missing_validate_support_marker / CONTRACT_PATH).replace(
+                "`scripts/zigux/check-phase11-validate-route-alignment.py`",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_validate_support_marker,
+            "`scripts/zigux/check-phase11-validate-route-alignment.py`",
         )
         case_count += 1
 
