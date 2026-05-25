@@ -48,6 +48,10 @@ REQUIRED_MARKERS = {
         "MISSING_PHASE7_ARGV_SPLIT_MARKERS_START",
         "MISSING_PHASE7_ARGV_SPLIT_MARKERS_END",
         "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",",
+        'EXPECTED_MANIFEST_LANE_KEY = "P7-L09"',
+        'EXPECTED_MANIFEST_PHASE = "Phase 7"',
+        'EXPECTED_MANIFEST_ANCHOR = "lib/argv_split.c"',
+        'EXPECTED_MANIFEST_STATE = "helper_slice_test_fixture_survey_manifest_anchor"',
     ],
     "lib/argv_split.zig": [
         "pub const ArgvSplitResult = struct {",
@@ -119,7 +123,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 66
+SELF_TEST_CASE_COUNT = 70
 
 
 def read_text(path: Path) -> str:
@@ -307,6 +311,13 @@ def run_self_test() -> None:
             ("MISSING_PHASE7_ARGV_SPLIT_FILES_END", "missing_checker_missing_files_end_marker"),
             ("MISSING_PHASE7_ARGV_SPLIT_MARKERS_START", "missing_checker_missing_markers_start_marker"),
             ("MISSING_PHASE7_ARGV_SPLIT_MARKERS_END", "missing_checker_missing_markers_end_marker"),
+            ('EXPECTED_MANIFEST_LANE_KEY = "P7-L09"', "missing_checker_expected_manifest_lane_key"),
+            ('EXPECTED_MANIFEST_PHASE = "Phase 7"', "missing_checker_expected_manifest_phase"),
+            ('EXPECTED_MANIFEST_ANCHOR = "lib/argv_split.c"', "missing_checker_expected_manifest_anchor"),
+            (
+                'EXPECTED_MANIFEST_STATE = "helper_slice_test_fixture_survey_manifest_anchor"',
+                "missing_checker_expected_manifest_state",
+            ),
         ]:
             checker_text = read_text(checker_path)
             checker_path.write_text(checker_text.replace(checker_marker + "\n", "", 1), encoding="utf-8")
