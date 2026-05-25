@@ -36,6 +36,7 @@ EXACT_LINE_MARKERS = {
     ),
     "Documentation/zigux/phase1-host-helper-lane-sequencing.md": (
         "- `PHASE1_DIRECT_ANCHOR_FOLLOWUP_HELPERS=tools/lib/bitmap.zig,tools/lib/find_bit.zig,tools/lib/rbtree.zig,tools/lib/string.zig`",
+        "- current authenticated reads also recover `scripts/zigux/check-phase1-route-summary-counts.py`, but the restored closure packet treats it as an adjacent workflow and Makefile guard rather than as one of the narrow shared reminder-packet members on current `master`",
         "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
         "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), underscore-alias or Linux-style alias coverage including the shipped andnot scan entry points, or tail-word skip anchors, or for committed tail-clamped or tail-inclusive-boundary replay drift; do not reopen older saved validator cues or neighboring helper families`",
         "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local ordered Linux-style alias proof, dedicated low_level_alias_anchor, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
@@ -83,19 +84,24 @@ FORBIDDEN_EXACT_LINES = {
     ),
 }
 
+
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
 
+
 def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
+
 
 def require_exact_line(text: str, label: str, marker: str) -> list[str]:
     count = sum(1 for line in text.splitlines() if line.strip() == marker.strip())
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
+
 def require_absent_line(text: str, label: str, marker: str) -> list[str]:
     count = sum(1 for line in text.splitlines() if line.strip() == marker.strip())
     return [] if count == 0 else [f"{label}:expected=0:actual={count}"]
+
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
@@ -117,15 +123,18 @@ def collect_failures(root: Path) -> list[str]:
 
     return failures
 
+
 def write_text(root: Path, relative_path: str, content: str) -> None:
     path = root / relative_path
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
+
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
         lines = list(EXACT_LINE_MARKERS.get(relative_path, ()))
         write_text(root, relative_path, "\n".join(lines) + ("\n" if lines else ""))
+
 
 def remove_marker(root: Path, relative_path: str, marker: str) -> None:
     path = root / relative_path
@@ -137,6 +146,7 @@ def remove_marker(root: Path, relative_path: str, marker: str) -> None:
             return
     raise ValueError(f"missing marker: {relative_path}: {marker}")
 
+
 def duplicate_marker(root: Path, relative_path: str, marker: str) -> None:
     path = root / relative_path
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -147,11 +157,13 @@ def duplicate_marker(root: Path, relative_path: str, marker: str) -> None:
             return
     raise ValueError(f"missing marker: {relative_path}: {marker}")
 
+
 def add_forbidden(root: Path, relative_path: str, marker: str) -> None:
     path = root / relative_path
     text = path.read_text(encoding="utf-8")
     text += marker + "\n"
     path.write_text(text, encoding="utf-8")
+
 
 def run_self_test() -> int:
     cases = [("success", None)]
@@ -193,6 +205,7 @@ def run_self_test() -> int:
     print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=pass")
     print(f"PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
