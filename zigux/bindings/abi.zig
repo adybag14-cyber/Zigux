@@ -177,12 +177,32 @@ pub const notifier_block_notifier_call_offset = @offsetOf(NotifierBlock, "notifi
 pub const notifier_block_next_offset = @offsetOf(NotifierBlock, "next");
 pub const notifier_block_priority_offset = @offsetOf(NotifierBlock, "priority");
 
+pub fn notifierResultFromInt(result: u32) ?NotifierResult {
+    return notifier_abi.resultFromInt(result);
+}
+
+pub fn notifierResultIsKnown(result: u32) bool {
+    return notifier_abi.resultIsKnown(result);
+}
+
+pub fn notifierResultStopsChainValue(result: u32) bool {
+    return notifier_abi.resultStopsChainValue(result);
+}
+
+pub fn notifierResultStopsChain(result: NotifierResult) bool {
+    return notifier_abi.resultStopsChain(result);
+}
+
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     return notifier_abi.chainHasNonincreasingPriority(head);
 }
 
 pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
     return notifier_abi.listHasConsistentBacklinks(head);
+}
+
+pub fn hlistFirstPprevMatchesHead(head: ?*const HListHead) bool {
+    return notifier_abi.firstPprevMatchesHead(head);
 }
 
 pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
@@ -556,6 +576,41 @@ test "abi binding enums stay aligned with exported constants" {
     try std.testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
 }
 
+test "abi binding notifier result and hlist-first relays stay aligned with notifier helpers" {
+    try std.testing.expectEqual(@as(?NotifierResult, .done), notifierResultFromInt(NOTIFIER_DONE));
+    try std.testing.expectEqual(@as(?NotifierResult, .ok), notifierResultFromInt(NOTIFIER_OK));
+    try std.testing.expectEqual(@as(?NotifierResult, .stop), notifierResultFromInt(NOTIFIER_STOP));
+    try std.testing.expectEqual(@as(?NotifierResult, null), notifierResultFromInt(7));
+
+    try std.testing.expectEqual(notifier_abi.resultFromInt(NOTIFIER_DONE), notifierResultFromInt(NOTIFIER_DONE));
+    try std.testing.expectEqual(notifier_abi.resultIsKnown(NOTIFIER_OK), notifierResultIsKnown(NOTIFIER_OK));
+    try std.testing.expectEqual(notifier_abi.resultIsKnown(7), notifierResultIsKnown(7));
+    try std.testing.expect(notifierResultIsKnown(NOTIFIER_STOP));
+    try std.testing.expect(!notifierResultIsKnown(7));
+    try std.testing.expectEqual(notifier_abi.resultStopsChainValue(NOTIFIER_STOP), notifierResultStopsChainValue(NOTIFIER_STOP));
+    try std.testing.expect(!notifierResultStopsChainValue(NOTIFIER_DONE));
+
+    const stop = notifierResultFromInt(NOTIFIER_STOP) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(notifier_abi.resultStopsChain(.stop), notifierResultStopsChain(stop));
+    try std.testing.expect(notifierResultStopsChain(stop));
+
+    const empty_hlist = HListHead{ .first = 0 };
+    try std.testing.expectEqual(notifier_abi.firstPprevMatchesHead(&empty_hlist), hlistFirstPprevMatchesHead(&empty_hlist));
+
+    var hlist_head = HListHead{ .first = 0 };
+    var hlist_node = HListNode{ .next = 0, .pprev = 0 };
+    hlist_head.first = @intFromPtr(&hlist_node);
+    hlist_node.pprev = @intFromPtr(&hlist_head.first);
+
+    try std.testing.expectEqual(notifier_abi.firstPprevMatchesHead(&hlist_head), hlistFirstPprevMatchesHead(&hlist_head));
+    try std.testing.expect(hlistFirstPprevMatchesHead(&hlist_head));
+
+    hlist_node.pprev = 0;
+    try std.testing.expectEqual(notifier_abi.firstPprevMatchesHead(&hlist_head), hlistFirstPprevMatchesHead(&hlist_head));
+    try std.testing.expect(!hlistFirstPprevMatchesHead(&hlist_head));
+    try std.testing.expect(!hlistFirstPprevMatchesHead(null));
+}
+
 test "abi binding chrdev notify window constants stay explicit" {
     try std.testing.expectEqual(
         @as(u32, 1),
@@ -761,6 +816,7 @@ test "abi binding first priority increase and list helpers stay explicit" {
     try std.testing.expectEqual(@as(?ListBackLinkBreak, null), firstBrokenBacklink(&list_head));
 
     const hlist_head = HListHead{ .first = 0 };
+    try std.testing.expect(hlistFirstPprevMatchesHead(&hlist_head));
     try std.testing.expect(hlistHasConsistentPrevLinks(&hlist_head));
     try std.testing.expectEqual(@as(?HListPrevLinkBreak, null), firstBrokenPrevLink(&hlist_head));
 }
