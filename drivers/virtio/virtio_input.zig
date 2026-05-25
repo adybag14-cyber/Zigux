@@ -434,7 +434,7 @@ pub const VirtioInputLab = struct {
         const capability_setup_ready = if (has_multitouch_capability)
             self.findAbsInfoIndex(abs_mt_slot) != null
         else
-            self.config_bitmap_count != 0;
+            self.hasEventCapabilities();
         const multitouch_slots_ready = if (has_multitouch_capability)
             self.planned_multitouch_slots != 0
         else
@@ -560,6 +560,14 @@ pub const VirtioInputLab = struct {
         };
     }
 
+    fn hasEventCapabilities(self: *const Self) bool {
+        for (self.config_bitmaps) |record| {
+            if (!record.active) continue;
+            if (record.select == .ev_bits) return true;
+        }
+        return false;
+    }
+
     fn validateDescriptorCount(descriptor_count: u16) !void {
         if (descriptor_count == 0) return error.EmptyDescriptorCount;
         if (descriptor_count > max_descriptor_count) return error.DescriptorCountTooLarge;
@@ -650,6 +658,16 @@ test "phase10 virtio input registration preflight keeps non-multitouch devices b
     try device.markReady();
 
     var summary = device.registrationPreflightSummary();
+    try std.testing.expectEqual(RegistrationBlocker.capability_setup_incomplete, summary.blocker.?);
+    try std.testing.expect(summary.queue_plan_ready);
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(!summary.capability_setup_ready);
+    try std.testing.expect(summary.multitouch_slots_ready);
+    try std.testing.expect(!summary.ready_for_registration);
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0x01});
+
+    summary = device.registrationPreflightSummary();
     try std.testing.expectEqual(RegistrationBlocker.capability_setup_incomplete, summary.blocker.?);
     try std.testing.expect(summary.queue_plan_ready);
     try std.testing.expect(summary.device_ready);
