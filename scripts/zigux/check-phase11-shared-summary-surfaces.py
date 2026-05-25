@@ -26,9 +26,9 @@ DOCS_README_FORBIDDEN_MARKERS = (
     "phase11",
 )
 
-REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
+REVIEW_CHECKLIST_REQUIRED_MARKERS = (
     "shared Phase 11",
-    "phase11",
+    "make -C zigux phase11-validate",
 )
 
 SCRIPTS_README_FORBIDDEN_MARKERS = (
@@ -104,10 +104,17 @@ def run_self_test() -> int:
             ),
         ),
         (
-            "review_checklist_claims_phase11",
+            "review_checklist_missing_shared_phase11",
             CheckResult(
                 "review_checklist",
-                "unexpected marker present: shared Phase 11",
+                "missing marker: shared Phase 11",
+            ),
+        ),
+        (
+            "review_checklist_missing_phase11_validate",
+            CheckResult(
+                "review_checklist",
+                "missing marker: make -C zigux phase11-validate",
             ),
         ),
         (
@@ -148,11 +155,9 @@ def check_root(root: Path) -> CheckResult | None:
             return CheckResult("docs_readme", f"unexpected marker present: {marker}")
 
     review_checklist_text = read_text(root, REVIEW_CHECKLIST)
-    for marker in REVIEW_CHECKLIST_FORBIDDEN_MARKERS:
-        if marker in review_checklist_text:
-            return CheckResult(
-                "review_checklist", f"unexpected marker present: {marker}"
-            )
+    for marker in REVIEW_CHECKLIST_REQUIRED_MARKERS:
+        if marker not in review_checklist_text:
+            return CheckResult("review_checklist", f"missing marker: {marker}")
 
     scripts_readme_text = read_text(root, SCRIPTS_README)
     for marker in SCRIPTS_README_FORBIDDEN_MARKERS:
@@ -181,9 +186,9 @@ def write_sample_root(root: Path) -> None:
                 "# Phase 11 Shared Replay Contract",
                 "",
                 "Keep the shared reminder surface narrow until the broader summaries catch up.",
-                "Documentation/zigux/README.md and Documentation/zigux/review-checklist.md skipping the active Phase 11 packet entirely,",
-                "and the broader docs-root README, shared review checklist, and scripts-root README still skip Phase 11 in current wording,",
-                "so treat those three broad surfaces as the next same-lane reminder follow-through instead of as already current packet members.",
+                "Documentation/zigux/README.md and scripts/zigux/README.md still skip Phase 11 in their active broad-summary wording,",
+                "but Documentation/zigux/review-checklist.md already carries the active shared Phase 11 packet and make -C zigux phase11-validate route,",
+                "so treat those two broader summaries as the next same-lane reminder follow-through instead of as already current packet members.",
                 "scripts/zigux/README.md remains outside the active shared packet until that follow-through lands.",
                 "",
             )
@@ -196,7 +201,16 @@ def write_sample_root(root: Path) -> None:
         encoding="utf-8",
     )
     (root / REVIEW_CHECKLIST).write_text(
-        "# Zigux Review Checklist\n\n- shared Phase 10 packet alignment\n- shared Phase 12 packet alignment\n",
+        "\n".join(
+            (
+                "# Zigux Review Checklist",
+                "",
+                "- shared Phase 10 packet alignment",
+                "- if the change touches the shared Phase 11 packet, keep make -C zigux phase11-validate explicit",
+                "- shared Phase 12 packet alignment",
+                "",
+            )
+        ),
         encoding="utf-8",
     )
     (root / SCRIPTS_README).write_text(
@@ -222,10 +236,24 @@ def apply_case_mutation(root: Path, case_name: str) -> None:
         path.write_text(path.read_text(encoding="utf-8") + "\nPhase 11 notes\n", encoding="utf-8")
         return
 
-    if case_name == "review_checklist_claims_phase11":
+    if case_name == "review_checklist_missing_shared_phase11":
         path = root / REVIEW_CHECKLIST
         path.write_text(
-            path.read_text(encoding="utf-8") + "\n- if the change touches the shared Phase 11 packet\n",
+            path.read_text(encoding="utf-8").replace(
+                "- if the change touches the shared Phase 11 packet, keep make -C zigux phase11-validate explicit\n",
+                "- if the change touches the shared simple-driver packet, keep make -C zigux phase11-validate explicit\n",
+            ),
+            encoding="utf-8",
+        )
+        return
+
+    if case_name == "review_checklist_missing_phase11_validate":
+        path = root / REVIEW_CHECKLIST
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "make -C zigux phase11-validate",
+                "make -C zigux phase11-review",
+            ),
             encoding="utf-8",
         )
         return
