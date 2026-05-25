@@ -54,6 +54,27 @@ test "phase11 bcm2835 watchdog verify keeps PM-base readiness and ownership expl
     try std.testing.expect(blocked.blocked_on_live_platform_registration);
 }
 
+test "phase11 bcm2835 watchdog restart proof keeps the dedicated restart path explicit" {
+    var running = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    running.start();
+    const restarted = running.restart();
+    try std.testing.expectEqualStrings(bcm2835_wdt.anchor_path, restarted.anchor);
+    try std.testing.expect(restarted.running_before_restart);
+    try std.testing.expect(restarted.running_after_restart);
+    try std.testing.expect(restarted.full_reset_armed_after_restart);
+    try std.testing.expect(!restarted.halt_partition_requested);
+    try std.testing.expect(restarted.restart_register_written);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_timeout_ticks), restarted.programmed_ticks);
+
+    var idle = try bcm2835_wdt.Bcm2835WdtLab.init(8);
+    const idle_restart = idle.restart();
+    try std.testing.expect(!idle_restart.running_before_restart);
+    try std.testing.expect(idle_restart.running_after_restart);
+    try std.testing.expect(idle_restart.full_reset_armed_after_restart);
+    try std.testing.expect(idle_restart.restart_register_written);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_timeout_ticks), idle_restart.programmed_ticks);
+}
+
 test "phase11 bcm2835 watchdog verify keeps poweroff ownership distinct" {
     var claimed = try bcm2835_wdt.Bcm2835WdtLab.init(8);
     claimed.importBootloaderRunning();
