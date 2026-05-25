@@ -114,6 +114,33 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     try expectContains(driver, "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {");
 }
 
+test "phase11 hvc cleanup packet proof keeps close teardown carryover details tied to matrix evidence" {
+    const matrix_doc = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(matrix_doc);
+
+    const driver = try readRepoFileAlloc(
+        std.testing.allocator,
+        "drivers/tty/hvc/hvc_console.zig",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(driver);
+
+    try expectContains(matrix_doc, "DTR/RTS shutdown");
+    try expectContains(matrix_doc, "`wait_until_sent()` carryover");
+    try expectContains(matrix_doc, "`close_wait` ownership");
+    try expectContains(matrix_doc, "`port_initialized` clearing");
+    try expectContains(driver, "pub const CloseTeardownSummary = struct {");
+    try expectContains(driver, "dtr_rts_shutdown: bool,");
+    try expectContains(driver, "wait_until_sent_intent: bool,");
+    try expectContains(driver, "close_wait_ownership: bool,");
+    try expectContains(driver, "port_initialized_cleared: bool,");
+    try expectContains(driver, "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {");
+}
+
 test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to matrix evidence" {
     const matrix_doc = try readRepoFileAlloc(
         std.testing.allocator,
