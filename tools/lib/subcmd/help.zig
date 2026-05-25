@@ -315,9 +315,10 @@ test "CommandNames sort and uniq keep the stable command set" {
     cmds.uniqSorted();
 
     try std.testing.expectEqual(@as(usize, 3), cmds.count());
-    try std.testing.expectEqualStrings("annotate", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("annotate", cmds.cnames.items[0].name);
+
     try std.testing.expectEqualStrings("bench", cmds.names.items[1].name);
-    try std.testing.expectEqualStrings("report", cmds.names.items[2].name);
+    try std.testing.expectEqualStrings("report", cmds.cnames.items[2].name);
 }
 
 test "excludeSorted removes commands already present in the primary list" {
@@ -332,13 +333,13 @@ test "excludeSorted removes commands already present in the primary list" {
     try other_cmds.add("bench");
     try other_cmds.add("report");
     try other_cmds.add("script");
-    other_cmds.sort();
+    other_cmds.cnames.sort();
 
     other_cmds.excludeSorted(&main_cmds);
 
     try std.testing.expectEqual(@as(usize, 2), other_cmds.count());
     try std.testing.expectEqualStrings("bench", other_cmds.names.items[0].name);
-    try std.testing.expectEqualStrings("script", other_cmds.cnames.items[1].name);
+    try std.testing.expectEqualStrings("script", other_cmds.names.items[1].name);
 }
 
 test "renderPrettyStringList keeps the same row-major pretty layout as help.c" {
