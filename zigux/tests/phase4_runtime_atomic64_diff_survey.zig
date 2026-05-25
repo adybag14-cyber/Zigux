@@ -46,14 +46,14 @@ const phase4_gate_evidence_self_test_cases_line =
     "gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift," ++
     "shared_validator_reruns_gate_evidence_check_drift,shared_validator_reruns_gate_evidence_self_test_drift," ++
     "shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift," ++
-    "runtime_atomic64_survey_packet_presence_drift,bitmap_diff_survey_replay_marker_drift,workflow_route_checker_matrix_presence_drift," ++
+    "runtime_atomic64_survey_packet_presence_drift,bitmap_manifest_gate_evidence_blob_drift,workflow_route_checker_matrix_presence_drift," ++
     "kprobe_gap_packet_presence_drift,kprobe_owner_drift,kprobe_validation_entrypoint_drift," ++
     "kprobe_next_step_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift," ++
     "perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift," ++
     "test_fsmount_gap_packet_presence_drift,test_fsmount_threshold_posture_drift,test_fsmount_owner_drift," ++
     "test_fsmount_validation_entrypoint_drift,test_fsmount_linux_style_wrapper_drift,test_fsmount_next_step_drift," ++
     "missing_validator_file,missing_phase4_build_file,missing_artifact_diff_helper_file,missing_atomic64_manifest_file," ++
-    "missing_bitmap_survey_file,missing_perf_survey_file,missing_kprobe_manifest_file,missing_test_fsmount_survey_file," ++
+    "missing_bitmap_manifest_file,missing_perf_survey_file,missing_kprobe_manifest_file,missing_test_fsmount_survey_file," ++
     "missing_note_file";
 
 fn readRepoFile(allocator: std.mem.Allocator, repo_root_relative_path: []const u8) ![]u8 {
