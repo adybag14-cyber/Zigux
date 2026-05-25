@@ -1048,7 +1048,7 @@ def run_self_test() -> None:
             raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
 
     print("PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST=pass")
-    print(f"PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run})
+    print(f"PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
 
 
 def parse_args() -> argparse.Namespace:
