@@ -165,6 +165,13 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const abi_bindings = abiBindingsModule(b, target, optimize);
+    const narrow_module = addAbiHelperModule(
+        b,
+        "../unsafe/narrow.zig",
+        target,
+        optimize,
+        abi_bindings,
+    );
 
     const layout_assert = addAbiHelperTest(
         b,
@@ -190,6 +197,11 @@ pub fn build(b: *std.Build) void {
         optimize,
         abi_bindings,
     );
+    const narrow = addModuleTest(
+        b,
+        "helper-narrow",
+        narrow_module,
+    );
     const unsafe_policy_module = addAbiHelperModule(
         b,
         "unsafe_policy.zig",
@@ -197,6 +209,7 @@ pub fn build(b: *std.Build) void {
         optimize,
         abi_bindings,
     );
+    unsafe_policy_module.addImport("narrow", narrow_module);
     const unsafe_policy = addModuleTest(
         b,
         "helper-unsafe-policy",
@@ -293,6 +306,7 @@ pub fn build(b: *std.Build) void {
     );
     policy_helpers.dependOn(&panic_policy.step);
     policy_helpers.dependOn(&allocator_policy.step);
+    policy_helpers.dependOn(&narrow.step);
     policy_helpers.dependOn(&unsafe_policy.step);
 
     const low_level_helpers = b.step(
@@ -302,6 +316,13 @@ pub fn build(b: *std.Build) void {
     low_level_helpers.dependOn(&atomic.step);
     low_level_helpers.dependOn(&barrier.step);
     low_level_helpers.dependOn(&mmio.step);
+
+    const unsafe_boundary_helpers = b.step(
+        "test-unsafe-boundary",
+        "Run the helper-local Phase 3 unsafe-boundary tests.",
+    );
+    unsafe_boundary_helpers.dependOn(&narrow.step);
+    unsafe_boundary_helpers.dependOn(&unsafe_policy.step);
 
     const shared_view_helpers = b.step(
         "test-shared-view-helpers",
@@ -333,6 +354,7 @@ pub fn build(b: *std.Build) void {
     all.dependOn(&layout_assert.step);
     all.dependOn(&panic_policy.step);
     all.dependOn(&allocator_policy.step);
+    all.dependOn(&narrow.step);
     all.dependOn(&unsafe_policy.step);
     all.dependOn(&atomic.step);
     all.dependOn(&barrier.step);
