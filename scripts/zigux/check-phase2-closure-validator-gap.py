@@ -6,7 +6,7 @@ import json
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 
 PHASE2_CLOSURE = Path("Documentation/zigux/phase2-closure.md")
 VALIDATE_PHASE2_CLOSURE = Path("scripts/zigux/validate-phase2-closure.py")
@@ -14,12 +14,15 @@ MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 
 PAYLOAD = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
 ARCHIVE_README = "third_party/README.md"
+TESTS_ROOT_SUMMARY_ROUTE_GAP = "scripts/zigux/check-phase2-tests-root-summary-route-gap.py"
+CLOSURE_VALIDATOR_GAP = "scripts/zigux/check-phase2-closure-validator-gap.py"
 
 REQUIRED_CLOSURE_MARKERS = (
     f"`PHASE2_CURRENT_GAP_PACKET={PAYLOAD}`",
     (
-        "The closure-side archive-contract packet now stays explicit through "
-        "`scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, "
+        "The current closure-side archive-contract packet now stays explicit through "
+        "`scripts/zigux/check-phase2-archive-contract-packet.py`, "
+        "`scripts/zigux/check-phase2-closure-archive-contract.py`, `third_party/README.md`, "
         "`zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, "
         "`scripts/zigux/check-phase2-tool-manifest.py`, and "
         "`scripts/zigux/check-phase2-tests-readme-alignment.py` while "
@@ -28,16 +31,19 @@ REQUIRED_CLOSURE_MARKERS = (
 )
 
 REQUIRED_VALIDATE_MARKERS = (
-    f'ARCHIVE_PAYLOAD_REL = Path("{PAYLOAD}")',
-    "EXPECTED_MANIFEST_GAPS = (",
-    f'    "{PAYLOAD}",',
-    "manifest_gaps != list(EXPECTED_MANIFEST_GAPS)",
-    'EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (\n    "third_party/README.md",\n)',
+    f'TESTS_ROOT_SUMMARY_ROUTE_GAP_REL = Path("{TESTS_ROOT_SUMMARY_ROUTE_GAP}")',
+    f'CLOSURE_VALIDATOR_GAP_REL = Path("{CLOSURE_VALIDATOR_GAP}")',
+    "EXPECTED_MANIFEST_GAPS = [ARCHIVE_PAYLOAD_REL.as_posix()]",
+    "TESTS_ROOT_SUMMARY_ROUTE_GAP_REL,",
+    "CLOSURE_VALIDATOR_GAP_REL,",
+    '"archive_support": (',
+    '"third_party/README.md",',
+    "if manifest_gaps != EXPECTED_MANIFEST_GAPS:",
 )
 
 FORBIDDEN_VALIDATE_MARKERS = (
-    "ARCHIVE_PAYLOAD_REL,",
     "manifest_gaps != []",
+    "manifest_gaps != list(EXPECTED_MANIFEST_GAPS)",
 )
 
 
@@ -117,8 +123,9 @@ def build_self_test_root(root: Path) -> None:
                 f"- `PHASE2_CURRENT_GAP_PACKET={PAYLOAD}`",
                 "",
                 (
-                    "The closure-side archive-contract packet now stays explicit through "
-                    "`scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, "
+                    "The current closure-side archive-contract packet now stays explicit through "
+                    "`scripts/zigux/check-phase2-archive-contract-packet.py`, "
+                    "`scripts/zigux/check-phase2-closure-archive-contract.py`, `third_party/README.md`, "
                     "`zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, "
                     "`scripts/zigux/check-phase2-tool-manifest.py`, and "
                     "`scripts/zigux/check-phase2-tests-readme-alignment.py` while "
@@ -135,16 +142,22 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(
             (
                 "from pathlib import Path",
+                f'TESTS_ROOT_SUMMARY_ROUTE_GAP_REL = Path("{TESTS_ROOT_SUMMARY_ROUTE_GAP}")',
+                f'CLOSURE_VALIDATOR_GAP_REL = Path("{CLOSURE_VALIDATOR_GAP}")',
                 f'ARCHIVE_PAYLOAD_REL = Path("{PAYLOAD}")',
-                "EXPECTED_MANIFEST_GAPS = (",
-                f'    "{PAYLOAD}",',
+                "EXPECTED_MANIFEST_GAPS = [ARCHIVE_PAYLOAD_REL.as_posix()]",
+                "EXPECTED_MANIFEST_SURFACES = {",
+                '    "archive_support": (',
+                '        "third_party/README.md",',
+                "    ),",
+                "}",
+                "REQUIRED_FILES = (",
+                "    TESTS_ROOT_SUMMARY_ROUTE_GAP_REL,",
+                "    CLOSURE_VALIDATOR_GAP_REL,",
                 ")",
-                "EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (",
-                '    "third_party/README.md",',
-                ")",
-                "manifest_gaps = manifest.get(\"repo_reality_gaps\")",
-                "if manifest_gaps != list(EXPECTED_MANIFEST_GAPS):",
-                "    issues.append((\"UNEXPECTED_MANIFEST_GAPS\", repr(manifest_gaps)))",
+                'manifest_gaps = manifest.get("repo_reality_gaps")',
+                "if manifest_gaps != EXPECTED_MANIFEST_GAPS:",
+                '    issues.append(("UNEXPECTED_MANIFEST_GAPS", repr(manifest_gaps)))',
             )
         )
         + "\n",
@@ -155,9 +168,7 @@ def build_self_test_root(root: Path) -> None:
         json.dumps(
             {
                 "repo_reality_gaps": [PAYLOAD],
-                "present_surfaces": {
-                    "archive_support": [ARCHIVE_README],
-                },
+                "present_surfaces": {"archive_support": [ARCHIVE_README]},
             },
             indent=2,
         )
@@ -196,15 +207,17 @@ def run_self_test() -> int:
             "\n".join(
                 (
                     "from pathlib import Path",
+                    f'TESTS_ROOT_SUMMARY_ROUTE_GAP_REL = Path("{TESTS_ROOT_SUMMARY_ROUTE_GAP}")',
+                    f'CLOSURE_VALIDATOR_GAP_REL = Path("{CLOSURE_VALIDATOR_GAP}")',
                     f'ARCHIVE_PAYLOAD_REL = Path("{PAYLOAD}")',
-                    "EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (",
-                    '    "third_party/README.md",',
-                    ")",
                 )
             )
             + "\n",
         )
-        expect_issue(root, ("MISSING_VALIDATE_MARKER", "EXPECTED_MANIFEST_GAPS = ("))
+        expect_issue(
+            root,
+            ("MISSING_VALIDATE_MARKER", "EXPECTED_MANIFEST_GAPS = [ARCHIVE_PAYLOAD_REL.as_posix()]"),
+        )
         checks += 1
 
         build_self_test_root(root)
@@ -218,10 +231,7 @@ def run_self_test() -> int:
         manifest = json.loads(read_text(root, MANIFEST))
         manifest["present_surfaces"]["archive_support"] = [ARCHIVE_README, PAYLOAD]
         write_text(root, MANIFEST, json.dumps(manifest, indent=2) + "\n")
-        expect_issue(
-            root,
-            ("UNEXPECTED_ARCHIVE_SUPPORT", repr([ARCHIVE_README, PAYLOAD])),
-        )
+        expect_issue(root, ("UNEXPECTED_ARCHIVE_SUPPORT", repr([ARCHIVE_README, PAYLOAD])))
         checks += 1
 
     print("PHASE2_CLOSURE_VALIDATOR_GAP_SELF_TEST=pass")
@@ -231,7 +241,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Fail closed when the Phase 2 closure validator drifts away from the lone archive-gap posture."
+        description="Fail closed when the Phase 2 closure validator drifts away from the parked lone-archive-gap posture."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
