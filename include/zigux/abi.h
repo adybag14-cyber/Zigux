@@ -89,7 +89,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
     uint32_t applied;
     uint32_t skipped;
 };
-typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary
+typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_DELIVERY_WINDOW_BUDGET_SUMMARY
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary;
 
 struct zigux_notifier_block {
@@ -369,6 +369,13 @@ static inline struct zigux_interop_policy zigux_default_interop_policy(void)
     return policy;
 }
 
+static inline int zigux_facility_is_known(uint16_t facility)
+{
+    return facility == (uint16_t)ZIGUX_FACILITY_KERNEL ||
+        facility == (uint16_t)ZIGUX_FACILITY_HELPERS ||
+        facility == (uint16_t)ZIGUX_FACILITY_DRIVERS;
+}
+
 static inline struct zigux_export_status zigux_make_status(
     int32_t code,
     uint16_t facility)
@@ -389,6 +396,12 @@ static inline struct zigux_export_status zigux_ok_status(uint16_t facility)
 static inline int zigux_export_status_ok(struct zigux_export_status status)
 {
     return (status.flags & (uint16_t)ZIGUX_STATUS_FLAG_ERROR) == 0;
+}
+
+static inline int zigux_export_status_has_known_facility(
+    struct zigux_export_status status)
+{
+    return zigux_facility_is_known(status.facility);
 }
 
 #endif
