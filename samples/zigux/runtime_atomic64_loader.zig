@@ -90,7 +90,7 @@ test "runtime atomic64 loader keeps post-selftest mutation explicit before exit"
     var module = RuntimeAtomic64Sample{};
     try module.init(load_plan.seed);
     _ = try module.runSelftest();
-    try module.addCounter(9);
+    _ = try module.addCounter(9);
 
     const before_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
