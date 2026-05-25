@@ -1,0 +1,57 @@
+{
+  "lane_key": "P11-L06",
+  "phase": "Phase 11",
+  "status": "shared_packet_aggregate_surface_materialized",
+  "scope": "shared Phase 11 codegen and manifest tooling",
+  "shared_docs": [
+    "Documentation/zigux/phase11-shared-replay-contract.md",
+    "Documentation/zigux/phase11-driver-lane-sequencing.md",
+    "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
+    "Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md"
+  ],
+  "shared_checkers": [
+    "scripts/zigux/check-phase11-build-inventory.py",
+    "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
+    "scripts/zigux/check-phase11-matrix-gap-survey.py",
+    "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
+    "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+    "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
+    "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
+    "scripts/zigux/check-phase11-shared-tooling-manifest.py"
+  ],
+  "shared_routes": [
+    "python3 scripts/zigux/validate-phase11.py",
+    "make -C zigux phase11-validate"
+  ],
+  "proof_builds": [
+    "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig",
+    "zigux/tests/phase11_dw_wdt_build.zig",
+    "zigux/tests/phase11_dw_wdt_restart_build.zig",
+    "zigux/tests/phase11_dw_wdt_pm_build.zig",
+    "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+    "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
+  ],
+  "driver_local_matrices": [
+    "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+    "Documentation/zigux/phase11-dw-wdt-validation-matrix.md"
+  ],
+  "narrow_inventory_boundary": {
+    "inventory_path": "zigux/tests/fixtures/phase11_build_inventory.json",
+    "inventory_scope": "HVC current-head continuity packet",
+    "aggregate_scope": "shared phase11-validate proof fan-out"
+  },
+  "retired_shared_routes": [
+    "make -C zigux phase11",
+    "make -C zigux phase11-contract",
+    "zigux/tests/phase11_build.zig"
+  ]
+}
