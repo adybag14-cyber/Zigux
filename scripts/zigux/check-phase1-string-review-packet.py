@@ -657,6 +657,30 @@ def run_self_test() -> int:
             "fixture_duplicate_json_key",
             "fixture:duplicate_json_key:string.replace_char",
         ),
+        (
+            "missing_helper_local_memtostr_anchor",
+            'string_helper:test "memtostr copies a bounded non-NUL source and adds one terminator":expected=1:actual=0',
+        ),
+        (
+            "missing_helper_local_memcpy_and_pad_alias_anchor",
+            'string_helper:test "memcpy_and_pad mirrors memcpyAndPad padding semantics":expected=1:actual=0',
+        ),
+        (
+            "manifest_memtostr_anchors_drift",
+            "string_manifest:review_anchors.tools/lib/string.zig.memtostr_review_anchors:expected=",
+        ),
+        (
+            "manifest_memtostr_summary_drift",
+            "string_manifest:review_anchors.tools/lib/string.zig.memtostr_review_summary:expected=",
+        ),
+        (
+            "manifest_counted_search_anchors_drift",
+            "string_manifest:review_anchors.tools/lib/string.zig.counted_search_review_anchors:expected=",
+        ),
+        (
+            "manifest_counted_search_summary_drift",
+            "string_manifest:review_anchors.tools/lib/string.zig.strnchr_review_summary:expected=",
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_string_review_") as tmp_dir:
@@ -709,7 +733,8 @@ def run_self_test() -> int:
         if cases[4][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:missing_lane_marker")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(tmp_root)
         line = EXPECTED_STRING_LANE_MARKERS[3][1]
         text = lane_path.read_text(encoding="utf-8").replace(line + "\n", line + "\n" + line + "\n", 1)
         lane_path.write_text(text, encoding="utf-8")
@@ -760,6 +785,58 @@ def run_self_test() -> int:
         )
         if cases[11][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:fixture_duplicate_json_key")
+
+        build_sample_repo(tmp_root)
+        text = helper_path.read_text(encoding="utf-8").replace(
+            'test "memtostr copies a bounded non-NUL source and adds one terminator"\n',
+            "",
+            1,
+        )
+        helper_path.write_text(text, encoding="utf-8")
+        if cases[12][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:missing_helper_local_memtostr_anchor")
+
+        build_sample_repo(tmp_root)
+        text = helper_path.read_text(encoding="utf-8").replace(
+            'test "memcpy_and_pad mirrors memcpyAndPad padding semantics"\n',
+            "",
+            1,
+        )
+        helper_path.write_text(text, encoding="utf-8")
+        if cases[13][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:missing_helper_local_memcpy_and_pad_alias_anchor")
+
+        build_sample_repo(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["memtostr_review_anchors"] = []
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        manifest_failures = collect_failures(tmp_root)
+        if not any(item.startswith(cases[14][1]) for item in manifest_failures):
+            raise SystemExit("phase1-string-review:self-test:manifest_memtostr_anchors_drift")
+
+        build_sample_repo(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["memtostr_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        manifest_failures = collect_failures(tmp_root)
+        if not any(item.startswith(cases[15][1]) for item in manifest_failures):
+            raise SystemExit("phase1-string-review:self-test:manifest_memtostr_summary_drift")
+
+        build_sample_repo(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["counted_search_review_anchors"] = []
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        manifest_failures = collect_failures(tmp_root)
+        if not any(item.startswith(cases[16][1]) for item in manifest_failures):
+            raise SystemExit("phase1-string-review:self-test:manifest_counted_search_anchors_drift")
+
+        build_sample_repo(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["strnchr_review_summary"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        manifest_failures = collect_failures(tmp_root)
+        if not any(item.startswith(cases[17][1]) for item in manifest_failures):
+            raise SystemExit("phase1-string-review:self-test:manifest_counted_search_summary_drift")
 
     print("PHASE1_STRING_REVIEW_PACKET_SELF_TEST=pass")
     print(f"PHASE1_STRING_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
