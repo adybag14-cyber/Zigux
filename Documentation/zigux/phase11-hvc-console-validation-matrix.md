@@ -18,6 +18,7 @@ This document records the bounded current-head validation matrix for the Zigux
 
 Treat the current matrix packet as:
 
+- `drivers/tty/hvc/hvc_console.h`
 - `drivers/tty/hvc/hvc_console.zig`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
@@ -63,6 +64,10 @@ explicitly separate from the smaller proof-backed continuity packet.
   cleanup-prerequisite trigger split, targetless notifier, `hvc_kick()`
   wakeup-cue, notifier-irq, and modem-control helper summaries reviewable on
   current `master`.
+- `drivers/tty/hvc/hvc_console.h` keeps the exported `struct hvc_struct`
+  forward declaration, `struct hv_ops` callback-table tag, `struct winsize`
+  layout, and helper declarations directly readable for the focused exported
+  surface proofs on current `master`.
 - `Documentation/zigux/phase11-hvc-console-survey.md` and
   `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
   keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`,
