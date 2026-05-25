@@ -61,9 +61,9 @@ TEXT_MARKERS = {
     FALLBACK_CATALOG_PATH: [
         "`PHASE12_STATUS=archival-raw-read-fallback`",
         "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`",
-        "- exact coverage evidence refreshed on `2026-05-24` against live current `master`",
+        "- exact coverage evidence refreshed on `2026-05-25` against live current `master`",
         "- authenticated contents view now returns this refreshed archival catalog body on current `master`",
-        "- public blob page and public raw `master` fallback still serve the older `2026-05-23` archival body for this same path as of `2026-05-24`",
+        "- public blob page and public raw `master` fallback now match the refreshed current-master body for this same path as of `2026-05-25`",
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
         "- survey replay: `zigux/tests/phase12_virtio_scsi_survey.zig`",
@@ -73,7 +73,7 @@ TEXT_MARKERS = {
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
         "exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
         "`make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf heavy-consumer, and `virtio_net` packet checkers plus `scripts/zigux/validate-phase12.py`",
-        "treat the authenticated contents readback and the public blob or raw `master` fallback as split evidence again until the public path catches up to the refreshed current-master body",
+        "treat the authenticated contents readback and the public blob or raw `master` fallback as matching current-master archival evidence for this path, while direct container-side `curl`, `wget`, and `urllib` raw-URL fetches in this runtime still fail through the proxy tunnel with HTTP `403`",
         "archival commit-pinned history only",
     ],
     SURVEY_GATE_PATH: [
