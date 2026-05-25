@@ -12,6 +12,31 @@ MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 EXPECTED_SELF_TEST_CASES = 5
 
+SELF_TEST_MANIFEST = """{
+  "atomic64": {
+    "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+    "acceptable_limit_metric": "median_elapsed_ns",
+    "acceptable_limit_max_elapsed_ns": 8192,
+    "acceptable_limit_iterations": 4,
+    "acceptable_limit_sample_count": 7
+  },
+  "bitmap": {
+    "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+    "acceptable_limit_metric": "median_elapsed_ns",
+    "acceptable_limit_max_elapsed_ns": 12288,
+    "acceptable_limit_iterations": 4,
+    "acceptable_limit_sample_count": 7
+  }
+}
+"""
+
+SELF_TEST_MATRIX = """# Phase 4 Validation Matrix
+
+## Local-Only Perf Promotion
+  * `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 8192` over `4` iterations with `7` monotonic samples
+  * `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 12288` over `4` iterations with `7` monotonic samples
+"""
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -76,8 +101,8 @@ def validate_root(root: Path) -> list[str]:
 
 
 def build_fixture_tree(root: Path) -> None:
-    write_text(root / MANIFEST, read_text(Path("/workspace/.scratch/p4_l20_threshold/zigux/tests/phase4_perf_baseline_manifest.json")))
-    write_text(root / MATRIX, read_text(Path("/workspace/.scratch/p4_l20_threshold/Documentation/zigux/phase4-validation-matrix.md")))
+    write_text(root / MANIFEST, SELF_TEST_MANIFEST)
+    write_text(root / MATRIX, SELF_TEST_MATRIX)
 
 
 def replace_once(text: str, old: str, new: str) -> str:
