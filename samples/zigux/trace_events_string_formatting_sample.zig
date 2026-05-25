@@ -338,3 +338,28 @@ test "phase 5 trace-events formatting companion keeps bounded destination failur
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
 }
+
+test "phase 5 trace-events formatting companion keeps wrapped selected-string exact-fit boundaries explicit" {
+    var sample = TraceEventsStringFormattingSample{};
+    try sample.init();
+
+    var short_wrapped_selected_destination: [31]u8 = undefined;
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        sample.formatSelectedIterationMessageInto(9, &short_wrapped_selected_destination),
+    );
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
+
+    var exact_wrapped_selected_destination: [32]u8 = undefined;
+    const exact_wrapped_selected_message = try sample.formatSelectedIterationMessageInto(
+        9,
+        &exact_wrapped_selected_destination,
+    );
+    try std.testing.expectEqualStrings(
+        "One ring to rule them all iter=9",
+        exact_wrapped_selected_message,
+    );
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
+}
