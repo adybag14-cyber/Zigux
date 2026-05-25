@@ -83,7 +83,7 @@ def run_self_test() -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(FIXTURE_TEXT, encoding="utf-8")
         run_check(fixture_root)
-        for index, marker in enumerate(REQUIRED_MARKERS[:6], start=1):
+        for index, marker in enumerate(REQUIRED_MARKERS, start=1):
             case_root = tmpdir / f"missing_marker_{index}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / SURVEY_PATH
@@ -96,7 +96,7 @@ def run_self_test() -> None:
             path.write_text(path.read_text(encoding="utf-8") + "\n" + marker + "\n", encoding="utf-8")
             expect_failure(case_root, marker)
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=10")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=16")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
