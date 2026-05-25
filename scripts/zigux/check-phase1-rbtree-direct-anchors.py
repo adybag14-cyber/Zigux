@@ -157,11 +157,14 @@ def main() -> int:
 
     kind, payload = load_rbtree_source(repo_root(args.root))
     if kind != "pass":
+        print("PHASE1_RBTREE_DIRECT_ANCHORS=fail")
         if isinstance(payload, list):
+            print("PHASE1_RBTREE_DIRECT_ANCHORS_REASON=" + kind)
             for failure in payload:
                 print(failure)
         else:
-            print(f"{kind}:{payload}")
+            print(f"PHASE1_RBTREE_DIRECT_ANCHORS_REASON={kind}")
+            print(payload)
         return 1
 
     print("PHASE1_RBTREE_DIRECT_ANCHORS=pass")
