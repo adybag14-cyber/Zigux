@@ -19,6 +19,7 @@ The current gpio watchdog matrix packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
 - `drivers/watchdog/gpio_wdt_verify.zig`
+- `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
@@ -50,6 +51,7 @@ packet below:
 
 - `drivers/watchdog/gpio_wdt.zig`
 - `drivers/watchdog/gpio_wdt_verify.zig`
+- `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
@@ -90,7 +92,10 @@ The driver-backed verify helper in `drivers/watchdog/gpio_wdt_verify.zig` keeps
 `summarizeTeardown()`, and `summarizeRemoveHandoff()` compile-local and directly
 replayed beside the dedicated focused proofs without claiming live GPIO,
 platform-driver registration, watchdog-core registration, remove-hook
-execution, or shutdown execution.
+execution, or shutdown execution. The dedicated
+`zigux/tests/phase11_gpio_wdt_verify_helper_build.zig` route keeps that helper
+on its own bounded `zig build` path instead of leaving it implied by the wider
+proof packet.
 
 The direct nowayout proof keeps `nowayoutPolicySummary()` machine-checked
 across the bounded stopped, blocked-by-nowayout, and kept-running outcomes,
@@ -136,6 +141,7 @@ platform-driver removal, watchdog-core unregister, or shutdown execution.
   cleanup callbacks, platform-driver removal, watchdog-core unregister, or
   host-backed shutdown execution.
 - dedicated replay routes:
+  `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`,
   `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`, and
