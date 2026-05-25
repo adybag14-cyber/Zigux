@@ -703,7 +703,7 @@ def run_self_test() -> int:
         if cases[5][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:duplicate_lane_marker")
 
-        build_sampleRepo(tmp_root)
+        build_sample_repo(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -723,7 +723,7 @@ def run_self_test() -> int:
         if cases[8][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:manifest_invalid_json")
 
-        build_sampleRepo(tmp_root)
+        build_sample_repo(tmp_root)
         fixture_path.write_text("{\n", encoding="utf-8")
         if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:fixture_invalid_json")
