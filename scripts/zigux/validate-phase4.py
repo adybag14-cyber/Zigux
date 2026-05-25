@@ -76,8 +76,8 @@ WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
     "missing_workflow_artifact_diff_contract_check,",
     "missing_workflow_artifact_diff_determinism_selftest,",
     "missing_workflow_artifact_diff_determinism_check,",
-    "missing_workflow_artifact_diff_validator_replays_selftest,",
-    "missing_workflow_artifact_diff_validator_replays_check,",
+    "missing_workflow_artifact_diff-validator_replays_selftest,",
+    "missing_workflow_artifact_diff-validator_replays_check,",
     "missing_matrix_remaining_gap_marker,",
     "missing_gate_evidence_bitmap_build_route,",
     "missing_gate_evidence_bitmap_wrapper,",
@@ -794,7 +794,7 @@ def main() -> int:
         return run_self_test()
 
     try:
-        return run_check(args.root.resolve(), skip_zig_builds=args.skip_zig-builds)
+        return run_check(args.root.resolve(), skip_zig_builds=args.skip_zig_builds)
     except Exception as exc:  # pragma: no cover
         print(f"PHASE4_VALIDATION=fail: {exc}")
         return 1
