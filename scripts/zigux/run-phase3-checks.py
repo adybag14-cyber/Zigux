@@ -362,6 +362,26 @@ def run_self_test() -> int:
                 _write_synthetic_script(path, output_markers)
             _write_synthetic_manifest(root)
 
+        def expect_missing_output_marker(
+            index: int,
+            missing_marker_index: int,
+            message: str,
+        ) -> int:
+            populate_repo()
+            output_markers = CHECK_COMMANDS[index][2]
+            kept_markers = tuple(
+                marker
+                for marker_index, marker in enumerate(output_markers)
+                if marker_index != missing_marker_index
+            )
+            target_path = root / CHECK_COMMANDS[index][0]
+            _write_synthetic_script(target_path, kept_markers)
+            if run_packet(root) != 1:
+                print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+                print(message)
+                return 1
+            return 0
+
         populate_repo()
 
         if validate_script_list(root):
@@ -585,32 +605,84 @@ def run_self_test() -> int:
             print("expected missing abi manifest replay-routes pass marker to fail the runner")
             return 1
 
-        bitmap_cpumask_path = root / CHECK_COMMANDS[22][0]
-        populate_repo()
-        _write_synthetic_script(
-            bitmap_cpumask_path,
-            ("PHASE3_BITMAP_CPUMASK_PACKET=pass",),
-        )
-        if run_packet(root) != 1:
-            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
-            print("expected missing bitmap-cpumask manifest output marker to fail the runner")
+        if (
+            expect_missing_output_marker(
+                22,
+                0,
+                "expected missing bitmap-cpumask pass marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                22,
+                1,
+                "expected missing bitmap-cpumask manifest output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                22,
+                2,
+                "expected missing bitmap-cpumask starter-packet output marker to fail the runner",
+            )
+            != 0
+        ):
             return 1
 
-        list_hlist_path = root / CHECK_COMMANDS[23][0]
-        populate_repo()
-        _write_synthetic_script(
-            list_hlist_path,
-            ("validated zigux/helpers/list_view.zig",),
-        )
-        if run_packet(root) != 1:
-            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
-            print("expected missing list-hlist output marker to fail the runner")
+        if (
+            expect_missing_output_marker(
+                23,
+                0,
+                "expected missing list-hlist list-view output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                23,
+                1,
+                "expected missing list-hlist hlist-view output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                23,
+                2,
+                "expected missing list-hlist starter-packet output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                23,
+                3,
+                "expected missing list-hlist build output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                23,
+                4,
+                "expected missing list-hlist manifest output marker to fail the runner",
+            )
+            != 0
+        ):
             return 1
 
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 22}"
+            f"{len(SELF_TEST_MISSING_CASES) + 28}"
         )
         return 0
 
