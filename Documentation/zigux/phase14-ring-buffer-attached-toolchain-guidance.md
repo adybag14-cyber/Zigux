@@ -36,6 +36,14 @@ If a run stops after `zig version` and `zig env`, record the result as environme
 
 Keep those notes as run-log facts, not as survey replay evidence.
 
+## Checkout-capable staging rule
+If a later run has both a checkout-capable Zigux tree and the extracted bundle, prefer the staged-toolchain path that current `zigux/Makefile` already checks first:
+- repo-local `.zig-toolchain/*/zig`
+- `ZIG_PINNED_TOOLCHAIN`
+
+Only fall back to a manual `ZIG=/absolute/path/to/attached-zig/zig ...` override when that staged path is unavailable.
+Keep the manual override framed as a packet-local escape hatch, not as the default rerun story for this lane.
+
 ## Replay boundary
 Keep the packet-local replay vocabulary subordinate to that environment rule:
 - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
