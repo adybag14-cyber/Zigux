@@ -17,7 +17,7 @@ fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usiz
     );
 }
 
-test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explicit" {
+test "phase 8 file-path-handle bridge docs keep the bounded fdinfo helper explicit" {
     const note = try readWorkspaceFile(
         std.testing.allocator,
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
@@ -41,7 +41,7 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "no descriptor replacement, transfer, or close ownership semantics");
 }
 
-test "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard" {
+test "phase 8 file-path-handle bridge helper stays wired into its focused Phase 8 build shard" {
     const focused_build_file = try readWorkspaceFile(
         std.testing.allocator,
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
@@ -54,7 +54,7 @@ test "phase 8 file-path handle bridge helper stays wired into its focused Phase 
     try expectContains(focused_build_file, "phase8-file-path-handle-bridge-tests");
 }
 
-test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard" {
+test "phase 8 file-path-handle bridge helper stays wired into the shared Phase 8 build shard" {
     const shared_build_file = try readWorkspaceFile(
         std.testing.allocator,
         "zigux/tests/phase8_build.zig",
@@ -67,7 +67,7 @@ test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8
     try expectContains(shared_build_file, "phase8-file-path-handle-bridge-tests");
 }
 
-test "phase 8 file-path handle bridge helper stays wired into the Linux-style replay routes" {
+test "phase 8 file-path-handle bridge helper stays wired into the Linux-style replay routes" {
     const makefile = try readWorkspaceFile(std.testing.allocator, "zigux/Makefile", 64 * 1024);
     defer std.testing.allocator.free(makefile);
 
@@ -79,7 +79,7 @@ test "phase 8 file-path handle bridge helper stays wired into the Linux-style re
     try expectContains(makefile, "phase8-file-path-handle-bridge-test");
 }
 
-test "phase 8 file-path handle bridge proof keeps helper-local routing evidence smaller than deferred setup-side routing" {
+test "phase 8 file-path-handle bridge proof keeps helper-local routing evidence smaller than deferred setup-side routing" {
     const boundary_note = try readWorkspaceFile(
         std.testing.allocator,
         "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
@@ -117,7 +117,7 @@ test "phase 8 file-path handle bridge proof keeps helper-local routing evidence 
     );
 }
 
-test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {
+test "phase 8 file-path-handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {
     const manifest = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/zigux_segments/manifest.json",
@@ -157,7 +157,7 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     try expectContains(manifest, "token creation, bpffs reopen flow, and other fd-handle bridge side effects");
 }
 
-test "phase 8 file-path handle bridge helper source keeps planning-only bridge boundaries explicit" {
+test "phase 8 file-path-handle bridge helper source keeps planning-only bridge boundaries explicit" {
     const helper_source = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
@@ -176,7 +176,7 @@ test "phase 8 file-path handle bridge helper source keeps planning-only bridge b
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "readFile") == null);
 }
 
-test "phase 8 file-path handle bridge proof keeps the current libbpf survey role-only bridge split explicit" {
+test "phase 8 file-path-handle bridge proof keeps the current libbpf survey role-only bridge split explicit" {
     const libbpf_survey = try readWorkspaceFile(
         std.testing.allocator,
         "Documentation/zigux/phase8-libbpf-segment-survey.md",
@@ -200,7 +200,7 @@ test "phase 8 file-path handle bridge proof keeps the current libbpf survey role
     );
 }
 
-test "phase 8 file-path handle bridge helper keeps proc fdinfo path formatting explicit" {
+test "phase 8 file-path-handle bridge helper keeps proc fdinfo path formatting explicit" {
     var buffer: [64]u8 = undefined;
     try std.testing.expectEqualStrings(
         "/proc/777/fdinfo/9",
@@ -208,7 +208,7 @@ test "phase 8 file-path handle bridge helper keeps proc fdinfo path formatting e
     );
 }
 
-test "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compact" {
+test "phase 8 file-path-handle bridge helper keeps fdinfo map info parsing compact" {
     const parsed = try file_path_handle_bridge.parseFdinfoMapInfo(
         \\map_type: 5
         \\key_size: 8
@@ -227,7 +227,7 @@ test "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compa
     try std.testing.expect(summary.has_map_extra);
 }
 
-test "phase 8 file-path handle bridge helper keeps malformed fdinfo values explicit" {
+test "phase 8 file-path-handle bridge helper keeps malformed fdinfo values explicit" {
     var info = file_path_handle_bridge.FdinfoMapInfo{};
     try std.testing.expectError(
         error.InvalidInteger,
