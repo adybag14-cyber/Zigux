@@ -64,8 +64,12 @@ pub fn validate(version: Version) abi.ExportStatus {
     return abi.makeStatus(invalid_argument, .kernel);
 }
 
-pub fn boundaryHeader(flags: u16) Header {
+pub fn canonicalHeader(flags: u16) Header {
     return abi.defaultHeader(flags);
+}
+
+pub fn boundaryHeader(flags: u16) Header {
+    return canonicalHeader(flags);
 }
 
 pub fn compatibleHeader(size: u32, flags: u16) Header {
@@ -154,7 +158,7 @@ test "version helpers keep current compatibility explicit" {
 }
 
 test "version helpers keep boundary header compatibility explicit" {
-    const canonical = boundaryHeader(0x31);
+    const canonical = canonicalHeader(0x31);
     const expanded = compatibleHeader(header_size + 8, 0x31);
     const stale = Header{
         .size = header_size,
@@ -165,6 +169,7 @@ test "version helpers keep boundary header compatibility explicit" {
     const valid = validateBoundaryHeader(canonical);
     const invalid = validateBoundaryHeader(stale);
 
+    try std.testing.expectEqual(boundaryHeader(0x31), canonical);
     try std.testing.expectEqual(@as(u32, 8), header_size);
     try std.testing.expectEqual(@as(usize, 4), header_align);
     try std.testing.expectEqual(@as(usize, 0), header_size_offset);
