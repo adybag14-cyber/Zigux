@@ -13,8 +13,10 @@ from typing import Iterable
 
 MANIFEST_REL_PATH = Path("zigux/tests/phase12_libbpf_manifest.json")
 SURVEY_NOTE_REL_PATH = Path("Documentation/zigux/phase12-libbpf-segment-survey.md")
+VERIFY_SHARD_NOTE_REL_PATH = Path("Documentation/zigux/phase12-libbpf-verify-shard-note.md")
 SEGMENT_TEST_REL_PATH = Path("zigux/tests/phase12_libbpf_segments.zig")
 SEGMENT_TEST_NOTE_MARKER = '"Documentation/zigux/phase12-libbpf-segment-survey.md"'
+VERIFY_SHARD_NOTE_CHECKER_MARKER = '- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`'
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -70,6 +72,13 @@ def collect_missing_markers(root: Path) -> list[str]:
     else:
         survey_note = survey_note_path.read_text(encoding="utf-8")
 
+    verify_note_path = root / VERIFY_SHARD_NOTE_REL_PATH
+    if not verify_note_path.is_file():
+        missing.append(f"missing_file:{VERIFY_SHARD_NOTE_REL_PATH.as_posix()}")
+        verify_note = ""
+    else:
+        verify_note = verify_note_path.read_text(encoding="utf-8")
+
     segment_test_path = root / SEGMENT_TEST_REL_PATH
     if not segment_test_path.is_file():
         missing.append(f"missing_file:{SEGMENT_TEST_REL_PATH.as_posix()}")
@@ -78,6 +87,7 @@ def collect_missing_markers(root: Path) -> list[str]:
         segment_test = segment_test_path.read_text(encoding="utf-8")
 
     missing.extend(exact_count_errors("survey_note", survey_note, lane_marker))
+    missing.extend(exact_count_errors("verify_shard_note", verify_note, VERIFY_SHARD_NOTE_CHECKER_MARKER))
     missing.extend(exact_count_errors("segment_test", segment_test, SEGMENT_TEST_NOTE_MARKER))
     missing.extend(exact_count_errors("segment_test", segment_test, lane_marker))
     missing.extend(exact_count_errors("segment_test", segment_test, segment_assertion))
@@ -98,6 +108,7 @@ def check_lane_marker(root: Path) -> int:
 def build_self_test_tree(root: Path) -> None:
     (root / MANIFEST_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
     (root / SURVEY_NOTE_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
+    (root / VERIFY_SHARD_NOTE_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
     (root / SEGMENT_TEST_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
 
     (root / MANIFEST_REL_PATH).write_text(
@@ -117,6 +128,11 @@ def build_self_test_tree(root: Path) -> None:
         "PHASE12_LANE_KEY=P12-L16\n",
         encoding="utf-8",
     )
+    (root / VERIFY_SHARD_NOTE_REL_PATH).write_text(
+        "# Phase 12 Libbpf Verify Shard Note\n"
+        "- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`\n",
+        encoding="utf-8",
+    )
     (root / SEGMENT_TEST_REL_PATH).write_text(
         'const survey_path = "Documentation/zigux/phase12-libbpf-segment-survey.md";\n'
         'try std.testing.expect(std.mem.containsAtLeast(u8, survey_text, 1, "PHASE12_LANE_KEY=P12-L16"));\n'
@@ -132,7 +148,7 @@ def expect_failure(root: Path, marker: str) -> None:
 
 
 def run_self_test() -> int:
-    cases = 5
+    cases = 6
     with tempfile.TemporaryDirectory(prefix="phase12-libbpf-lane-marker-") as tmp:
         root = Path(tmp)
 
@@ -144,6 +160,11 @@ def run_self_test() -> int:
         survey_path = root / SURVEY_NOTE_REL_PATH
         survey_path.write_text("# Phase 12 Libbpf Segment Survey\n", encoding="utf-8")
         expect_failure(root, "survey_note:PHASE12_LANE_KEY=P12-L16")
+
+        build_self_test_tree(root)
+        verify_path = root / VERIFY_SHARD_NOTE_REL_PATH
+        verify_path.write_text("# Phase 12 Libbpf Verify Shard Note\n", encoding="utf-8")
+        expect_failure(root, "verify_shard_note:- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`")
 
         build_self_test_tree(root)
         segment_path = root / SEGMENT_TEST_REL_PATH
