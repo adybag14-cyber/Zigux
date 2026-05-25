@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=freeze-map-route-gap-truthfulness-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-22`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-24`
 - scope: the live freeze map, the dedicated Phase 15 freeze-map manifest and gate, the live review-checklist study-only routing guard, the landed tests-root governance reminder plus focused checker, the current Phase 15 readiness-gate survey plus focused checker, the current Phase 14 blocker-owner notes, the directly readable lane-owner replay, the directly readable validator-first companion, and the adjacent dedicated-build and make-wrapper route vocabulary needed to keep this packet truthful without promoting missing Phase 15 entrypoints into landed evidence
 - direct lane-owned boundary:
   - `Documentation/zigux/freeze-map.md`
