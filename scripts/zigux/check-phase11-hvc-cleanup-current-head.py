@@ -30,6 +30,7 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
+    "`.github/workflows/zigux-bootstrap.yml`",
     "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
@@ -37,6 +38,7 @@ SURVEY_MARKERS = (
     "`scripts/zigux/check-phase11-build-inventory.py`",
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+    "`scripts/zigux/validate-phase11.py`",
     "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
     "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
     "repo-reality gaps or archival vocabulary",
@@ -321,10 +323,12 @@ def run_self_test() -> int:
         run_check(fixture)
 
         cases = [
+            (SURVEY_PATH, "`.github/workflows/zigux-bootstrap.yml`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-slice.md`"),
             (SURVEY_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
             (SURVEY_PATH, "`zigux/tests/fixtures/phase11_build_inventory.json`"),
+            (SURVEY_PATH, "`scripts/zigux/validate-phase11.py`"),
             (SURVEY_PATH, "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey`"),
             (SURVEY_PATH, "`zigux/tests/phase11_hvc_modem_control_proof.zig`"),
             (SURVEY_PATH, "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`"),
