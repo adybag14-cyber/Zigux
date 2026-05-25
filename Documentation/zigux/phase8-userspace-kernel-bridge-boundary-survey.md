@@ -19,8 +19,10 @@ The separate Phase 8 command-side anchors under `tools/lib/subcmd/` and `tools/l
 
 ## Current mixed-source bridge packet
 Current `master` still keeps the mixed-source bridge packet reviewable, but the readable sources stay split in this runtime.
+Current authenticated contents readback now also reaches the bridge helper and witness files directly again, but the narrower split recorded here is packet role only: those files still belong to the bridge-boundary companion packet instead of the exact stable-output helper set.
 
 Exact authenticated contents readback now serves this survey note, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `tools/lib/bpf/zigux_segments/manifest.json` directly, while the broader bridge helper and replay companions remain mixed-source reminder evidence through `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_file_path_handle_boundary_guard.zig`, `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/validate-phase8.py`, `zigux/Makefile`, `make -C zigux phase8-file-path-handle-bridge-test`, and `make -C zigux phase8`.
+That older reminder-side fetch wording is now narrower than current repo reality: the bridge helper and replay companions are directly readable again, but they still stay on the boundary side of the packet so the survey does not overclaim delivered procfs, bpffs, token, or fd-ownership behavior.
 
 That packet stays smaller than live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior.
 
