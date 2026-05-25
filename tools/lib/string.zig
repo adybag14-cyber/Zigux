@@ -933,6 +933,16 @@ test "memchrInv keeps the earliest dirty byte across the fast-path cutoff" {
     try std.testing.expectEqual(@as(?usize, long.len - 1), memchrInv(long[0..], 0));
 }
 
+test "memchrInv keeps non-zero scans stable across the fast-path cutoff" {
+    var short = [_]u8{7} ** (@sizeOf(usize) * 2 - 1);
+    short[short.len - 1] = 9;
+    try std.testing.expectEqual(@as(?usize, short.len - 1), memchrInv(short[0..], 7));
+
+    var long = [_]u8{7} ** (@sizeOf(usize) * 2);
+    long[long.len - 1] = 9;
+    try std.testing.expectEqual(@as(?usize, long.len - 1), memchrInv(long[0..], 7));
+}
+
 test "memparse handles decimal hexadecimal octal and suffixes" {
     try std.testing.expectEqual(@as(u64, 16), memparse("16").value);
     try std.testing.expectEqual(@as(u64, 16), memparse("0x10").value);
