@@ -203,15 +203,17 @@ REQUIRED_MARKERS = {
         "- exact coverage evidence checked on `2026-05-25`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` `1793b998777d7d402b79108690ecd0ba070a5492`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py` `24946f6a72b3b67faa6be4d54ed09d59518fa210`, `scripts/zigux/check-phase12-libbpf-snapshot.py` `92759632d6db2a6419de41d561aa8c5ffba6dd05`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` `9d437058691bec8c7db0ca72422430c52b5a5e8f`, `scripts/zigux/validate-phase12.py` `cfd57eeff2d705fc4f02a9a85a3e1763c19a17f2`, `scripts/zigux/check-phase12-release-readiness-packet.py` `6989a61948e2e5d585275fba3af4fbecbe743b78`, `.github/workflows/zigux-bootstrap.yml` `f72787f799d497897122b86ddc65fd1ada31d77e`, `scripts/zigux/README.md` `5aff90b361628405898c7e83766acb43bcc4ef54`, `zigux/Makefile` `adcb33fc7dd30009e24210b2c44e3412427854fb`, and `zigux/tests/phase12_build.zig` `c338d24f4d12317c6a58d25708bbc14a5006852c` on current `master`; browser-side raw GitHub readback remains the matching public-read fallback for the shipped Phase 12 support bundle while direct container-side `curl`, `wget`, and `urllib` raw-URL fetches in this runtime still fail through the proxy tunnel with HTTP `403`",
         "- exact same-day support-bundle refresh checked later on `2026-05-25`: the current GitHub contents bridge now directly reads `scripts/zigux/validate-phase12.py` `f5c2db6f5b154c8f8576046bf4e75cc1d843f54e`, `scripts/zigux/check-phase12-release-readiness-packet.py` `5c7fffadc13b53b3b44e2c3fd5053a3caa47547b`, and `.github/workflows/zigux-bootstrap.yml` `30f30f327e8205a667d1b843c1dbd69a09beef17`; keep this later same-day readback explicit so the support-bundle inventory stays truthful after the readiness checker and workflow moved again while the rest of the returned `2026-05-25` bridge set remained unchanged.",
         "- exact latest same-day support-bundle refresh checked on `2026-05-25`: the current GitHub contents bridge now directly reads `scripts/zigux/validate-phase12.py` `53aa081f2ab503707ecdb34cf49ec96ecc11d7d5`, `scripts/zigux/check-phase12-release-readiness-packet.py` `ee26948c12322848ca8e772899d8714efb33e403`, `.github/workflows/zigux-bootstrap.yml` `ffc17180c68e54714ce28a59a6cf3c0757caf9fe`, and `scripts/zigux/README.md` `f81fcac2f5e8f07c3f60a565503fe5d2a374d1c2`; keep this latest same-day refresh explicit so the support-bundle inventory stays truthful after the validator, readiness checker, workflow, and scripts-root companion moved again while the rest of the returned `2026-05-25` bridge set remained unchanged.",
+        "- exact current support-bundle reread checked on `2026-05-25`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` `1793b998777d7d402b79108690ecd0ba070a5492`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py` `1b10a8a4d36fbc3fe0c7297cde21406914401f0e`, `scripts/zigux/check-phase12-libbpf-snapshot.py` `92759632d6db2a6419de41d561aa8c5ffba6dd05`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` `222dab688ce63e50229704668a0a91e4299043b8`, `scripts/zigux/validate-phase12.py` `4c494494019845cd4cfec9bbc1ba9f1de32ed53e`, `scripts/zigux/check-phase12-release-readiness-packet.py` `e422f7d3b2bd9962e905f2c99aaf688729533ad2`, `.github/workflows/zigux-bootstrap.yml` `ffc17180c68e54714ce28a59a6cf3c0757caf9fe`, `scripts/zigux/README.md` `b4fa028577161eea393eda37efcd78908a73e736`, `zigux/Makefile` `770082f5313b8125f55300dc3f0b2805cf2f6551`, and `zigux/tests/phase12_build.zig` `c338d24f4d12317c6a58d25708bbc14a5006852c` on current `master`; browser-side raw GitHub readback remains the matching public-read fallback for the shipped Phase 12 support bundle while direct container-side `curl`, `wget`, and `urllib` raw-URL fetches in this runtime still fail through the proxy tunnel with HTTP `403`.",
         "- exact runtime-reality evidence checked on `2026-05-25`: the directly readable `zigux/Makefile` blob `34654c70c864378012494bd0068ccf260678ec0d` still prefers the repo-local `.zig-toolchain` executable through `ZIG_PINNED_EXECUTABLE`, `ZIG_LOCAL_TOOLCHAIN`, `ZIG_PINNED_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)`, and the directly readable workflow blob `30f30f327e8205a667d1b843c1dbd69a09beef17` still rebuilds that repo-local fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org` before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`",
         "- exact latest runtime-reality evidence checked on `2026-05-25`: the directly readable `zigux/Makefile` blob `34654c70c864378012494bd0068ccf260678ec0d` still prefers the repo-local `.zig-toolchain` executable through `ZIG_PINNED_EXECUTABLE`, `ZIG_LOCAL_TOOLCHAIN`, `ZIG_PINNED_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)`, and the directly readable workflow blob `ffc17180c68e54714ce28a59a6cf3c0757caf9fe` still rebuilds that repo-local fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org` before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`",
+        "- exact current runtime-reality evidence checked on `2026-05-25`: the directly readable `zigux/Makefile` blob `770082f5313b8125f55300dc3f0b2805cf2f6551` still prefers the repo-local `.zig-toolchain` executable through `ZIG_PINNED_EXECUTABLE`, `ZIG_LOCAL_TOOLCHAIN`, `ZIG_PINNED_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)`, and the directly readable workflow blob `ffc17180c68e54714ce28a59a6cf3c0757caf9fe` still rebuilds that repo-local fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org` before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`.",
         *RAW_GITHUB_BRIDGE_MARKERS,
         "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, current Makefile, and current `zigux/tests/phase12_build.zig` as bounded reminder evidence only",
         "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, the contents-bridge-backed build-only anchor pair, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
     ],
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
         "Keep the shared validator-first then smoke-first packet wording explicit: current `zigux/Makefile` now ships `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`, so `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
-        "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12`.",
+        "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12`.",
         "The readable build file currently wires `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig` through the shared `smoke` and `test` steps, and the readable Makefile now exposes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`, so that checker-plus-validator-plus-workflow-plus-scripts-plus-Makefile-plus-build-file set stays direct support evidence only rather than proof for the larger starter-present `virtio_net`, rollback-lab `virtio_scsi`, or driver-local NVMe packet.",
     ],
     PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH: [
@@ -232,55 +234,6 @@ REQUIRED_MARKERS = {
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
         "- survey gate: `scripts/zigux/check-phase12-virtio-scsi-packet.py`",
-        "- `scripts/zigux/validate-phase12.py`",
-        "- `.github/workflows/zigux-bootstrap.yml` now replays the current shared Phase 12 support bundle and adjacent shared reruns in the exact order `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test`, `python3 scripts/zigux/check-phase12-cross-compile-smoke.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
-        "- exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
-        "- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf heavy-consumer, and `virtio_net` packet checkers plus `scripts/zigux/validate-phase12.py`",
-        "current authoritative packet truth therefore lives in the rollback-evidence survey companions on `master`",
-    ],
-    VIRTIO_SCSI_SURVEY_PATH: [
-        "PHASE12_STATUS=rollback-evidence-only-live-starter-missing",
-        "PHASE12_LANE=P12-L09",
-        "fallback path: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
-        "still does not claim live DMA-safe request submission",
-        "rollback-only split machine-checkable",
-        "reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent",
-    ],
-    VIRTIO_NET_PACKET_CHECKER_PATH: [
-        "PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass",
-        "Documentation/zigux/phase12-virtio-net-survey.md",
-        "zigux/tests/phase12_virtio_net_manifest.json",
-        "zigux/tests/phase12_build.zig",
-        "phase12_virtio_net_post_reset_replay.zig",
-        "phase12-virtio-net-post-reset-replay-tests",
-    ],
-    HEAVY_CONSUMER_PACKET_CHECKER_PATH: [
-        "PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass",
-        "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-        "scripts/zigux/check-phase12-libbpf-snapshot.py",
-    ],
-    LIBBPF_SEGMENT_SURVEY_PATH: [
-        "PHASE12_LANE_KEY=P12-L16",
-    ],
-    LIBBPF_SEGMENT_GATE_PATH: [
-        "Documentation/zigux/phase12-libbpf-segment-survey.md",
-        "PHASE12_LANE_KEY=P12-L16",
-        "try std.testing.expectEqualStrings(\"P12-L16\", manifest.lane_key);",
-    ],
-    VIRTIO_NET_MANIFEST_PATH: [
-        "\"lane_key\": \"P12-L04\"",
-        "\"phase\": \"Phase 12\"",
-        "\"anchor\": \"drivers/net/virtio_net.c\"",
-        "\"roadmap_gap_check\"",
-        "\"status\": \"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present\"",
-        "\"status\": \"throughput_parity_helper_present_review_only_runtime_completion_missing\"",
-        "\"status\": \"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete\"",
-        "\"id\": \"phase12-build-gate\"",
-        "\"status\": \"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays\"",
-        "\"id\": \"phase12-virtio-net-survey-gate\"",
-        "\"zigux_destination\": \"zigux/tests/phase12_virtio_net_survey.zig\"",
-        "\"id\": \"phase12-virtio-net-runtime-data-path\"",
-        "\"status\": \"blocked_on_dma_transport_runtime\"",
     ],
     VIRTIO_SCSI_MANIFEST_PATH: [
         "\"lane_key\": \"P12-L09\"",
@@ -396,8 +349,10 @@ EXACT_COUNT_MARKERS = {
         "- exact coverage evidence checked on `2026-05-25`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` `1793b998777d7d402b79108690ecd0ba070a5492`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py` `24946f6a72b3b67faa6be4d54ed09d59518fa210`, `scripts/zigux/check-phase12-libbpf-snapshot.py` `92759632d6db2a6419de41d561aa8c5ffba6dd05`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` `9d437058691bec8c7db0ca72422430c52b5a5e8f`, `scripts/zigux/validate-phase12.py` `cfd57eeff2d705fc4f02a9a85a3e1763c19a17f2`, `scripts/zigux/check-phase12-release-readiness-packet.py` `6989a61948e2e5d585275fba3af4fbecbe743b78`, `.github/workflows/zigux-bootstrap.yml` `f72787f799d497897122b86ddc65fd1ada31d77e`, `scripts/zigux/README.md` `5aff90b361628405898c7e83766acb43bcc4ef54`, `zigux/Makefile` `adcb33fc7dd30009e24210b2c44e3412427854fb`, and `zigux/tests/phase12_build.zig` `c338d24f4d12317c6a58d25708bbc14a5006852c` on current `master`; browser-side raw GitHub readback remains the matching public-read fallback for the shipped Phase 12 support bundle while direct container-side `curl`, `wget`, and `urllib` raw-URL fetches in this runtime still fail through the proxy tunnel with HTTP `403`": 1,
         "- exact same-day support-bundle refresh checked later on `2026-05-25`: the current GitHub contents bridge now directly reads `scripts/zigux/validate-phase12.py` `f5c2db6f5b154c8f8576046bf4e75cc1d843f54e`, `scripts/zigux/check-phase12-release-readiness-packet.py` `5c7fffadc13b53b3b44e2c3fd5053a3caa47547b`, and `.github/workflows/zigux-bootstrap.yml` `30f30f327e8205a667d1b843c1dbd69a09beef17`; keep this later same-day readback explicit so the support-bundle inventory stays truthful after the readiness checker and workflow moved again while the rest of the returned `2026-05-25` bridge set remained unchanged.": 1,
         "- exact latest same-day support-bundle refresh checked on `2026-05-25`: the current GitHub contents bridge now directly reads `scripts/zigux/validate-phase12.py` `53aa081f2ab503707ecdb34cf49ec96ecc11d7d5`, `scripts/zigux/check-phase12-release-readiness-packet.py` `ee26948c12322848ca8e772899d8714efb33e403`, `.github/workflows/zigux-bootstrap.yml` `ffc17180c68e54714ce28a59a6cf3c0757caf9fe`, and `scripts/zigux/README.md` `f81fcac2f5e8f07c3f60a565503fe5d2a374d1c2`; keep this latest same-day refresh explicit so the support-bundle inventory stays truthful after the validator, readiness checker, workflow, and scripts-root companion moved again while the rest of the returned `2026-05-25` bridge set remained unchanged.": 1,
+        "- exact current support-bundle reread checked on `2026-05-25`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` `1793b998777d7d402b79108690ecd0ba070a5492`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py` `1b10a8a4d36fbc3fe0c7297cde21406914401f0e`, `scripts/zigux/check-phase12-libbpf-snapshot.py` `92759632d6db2a6419de41d561aa8c5ffba6dd05`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` `222dab688ce63e50229704668a0a91e4299043b8`, `scripts/zigux/validate-phase12.py` `4c494494019845cd4cfec9bbc1ba9f1de32ed53e`, `scripts/zigux/check-phase12-release-readiness-packet.py` `e422f7d3b2bd9962e905f2c99aaf688729533ad2`, `.github/workflows/zigux-bootstrap.yml` `ffc17180c68e54714ce28a59a6cf3c0757caf9fe`, `scripts/zigux/README.md` `b4fa028577161eea393eda37efcd78908a73e736`, `zigux/Makefile` `770082f5313b8125f55300dc3f0b2805cf2f6551`, and `zigux/tests/phase12_build.zig` `c338d24f4d12317c6a58d25708bbc14a5006852c` on current `master`; browser-side raw GitHub readback remains the matching public-read fallback for the shipped Phase 12 support bundle while direct container-side `curl`, `wget`, and `urllib` raw-URL fetches in this runtime still fail through the proxy tunnel with HTTP `403`.": 1,
         "- exact runtime-reality evidence checked on `2026-05-25`: the directly readable `zigux/Makefile` blob `34654c70c864378012494bd0068ccf260678ec0d` still prefers the repo-local `.zig-toolchain` executable through `ZIG_PINNED_EXECUTABLE`, `ZIG_LOCAL_TOOLCHAIN`, `ZIG_PINNED_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)`, and the directly readable workflow blob `30f30f327e8205a667d1b843c1dbd69a09beef17` still rebuilds that repo-local fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org` before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`": 1,
         "- exact latest runtime-reality evidence checked on `2026-05-25`: the directly readable `zigux/Makefile` blob `34654c70c864378012494bd0068ccf260678ec0d` still prefers the repo-local `.zig-toolchain` executable through `ZIG_PINNED_EXECUTABLE`, `ZIG_LOCAL_TOOLCHAIN`, `ZIG_PINNED_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)`, and the directly readable workflow blob `ffc17180c68e54714ce28a59a6cf3c0757caf9fe` still rebuilds that repo-local fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org` before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`": 1,
+        "- exact current runtime-reality evidence checked on `2026-05-25`: the directly readable `zigux/Makefile` blob `770082f5313b8125f55300dc3f0b2805cf2f6551` still prefers the repo-local `.zig-toolchain` executable through `ZIG_PINNED_EXECUTABLE`, `ZIG_LOCAL_TOOLCHAIN`, `ZIG_PINNED_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)`, and the directly readable workflow blob `ffc17180c68e54714ce28a59a6cf3c0757caf9fe` still rebuilds that repo-local fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org` before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`.": 1,
     },
 }
 
@@ -518,11 +473,8 @@ FIXTURE_TEXT = {
         "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
         REQUIRED_MARKERS[PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH],
     ),
-    LIBBPF_SEGMENT_SURVEY_PATH: marker_fixture(
-        "# Phase 12 Libbpf Segment Survey",
-        REQUIRED_MARKERS[LIBBPF_SEGMENT_SURVEY_PATH],
-    ),
-    LIBBPF_SEGMENT_GATE_PATH: "\n".join(REQUIRED_MARKERS[LIBBPF_SEGMENT_GATE_PATH]) + "\n",
+    LIBBPF_SEGMENT_SURVEY_PATH: "# Phase 12 Libbpf Segment Survey\n",
+    LIBBPF_SEGMENT_GATE_PATH: "// phase12 libbpf segment gate fixture\n",
     VIRTIO_NET_SURVEY_PATH: marker_fixture(
         "# Phase 12 Virtio Net Survey",
         REQUIRED_MARKERS[VIRTIO_NET_SURVEY_PATH],
@@ -532,10 +484,7 @@ FIXTURE_TEXT = {
         REQUIRED_MARKERS[VIRTIO_SCSI_FALLBACK_PATH],
     ),
     VIRTIO_SCSI_SLICE_PATH: "# Phase 12 virtio_scsi Slice\n",
-    VIRTIO_SCSI_SURVEY_PATH: marker_fixture(
-        "# Phase 12 Virtio SCSI Survey",
-        REQUIRED_MARKERS[VIRTIO_SCSI_SURVEY_PATH],
-    ),
+    VIRTIO_SCSI_SURVEY_PATH: "# Phase 12 Virtio SCSI Survey\n",
     NVME_FALLBACK_PATH: marker_fixture(
         "# Phase 12 NVMe PCI Raw GitHub Fallback Map",
         REQUIRED_MARKERS[NVME_FALLBACK_PATH],
@@ -551,14 +500,8 @@ FIXTURE_TEXT = {
     RELEASE_READINESS_CHECKER_PATH: "#!/usr/bin/env python3\n",
     COMPLEX_DRIVER_LANE_CHECKER_PATH: "#!/usr/bin/env python3\n",
     LIBBPF_SNAPSHOT_CHECKER_PATH: "#!/usr/bin/env python3\n",
-    HEAVY_CONSUMER_PACKET_CHECKER_PATH: "\n".join(
-        REQUIRED_MARKERS[HEAVY_CONSUMER_PACKET_CHECKER_PATH]
-    )
-    + "\n",
-    VIRTIO_NET_PACKET_CHECKER_PATH: "\n".join(
-        REQUIRED_MARKERS[VIRTIO_NET_PACKET_CHECKER_PATH]
-    )
-    + "\n",
+    HEAVY_CONSUMER_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
+    VIRTIO_NET_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH: "\n".join(
@@ -577,7 +520,7 @@ FIXTURE_TEXT = {
     ),
     MAKEFILE_PATH: "\n".join(REQUIRED_MARKERS[MAKEFILE_PATH]) + "\n",
     PHASE12_BUILD_PATH: "// phase12 build fixture\n",
-    VIRTIO_NET_MANIFEST_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_NET_MANIFEST_PATH]) + "\n",
+    VIRTIO_NET_MANIFEST_PATH: '{\n  "lane_key": "P12-L04"\n}\n',
     VIRTIO_SCSI_MANIFEST_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_SCSI_MANIFEST_PATH]) + "\n",
     VIRTIO_SCSI_SURVEY_GATE_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_SCSI_SURVEY_GATE_PATH]) + "\n",
     VIRTIO_SCSI_SUPPORT_MANIFEST_PATH: (
