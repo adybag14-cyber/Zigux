@@ -220,6 +220,7 @@ FOCUSED_HARNESS_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_ring.zig",
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+    "zigux/tests/phase10_virtio_ring_registration_replay.zig",
     "drivers/virtio/virtio_ring_publish_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
@@ -229,6 +230,7 @@ FOCUSED_HARNESS_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
     "drivers/virtio/virtio_mmio_verify.zig",
@@ -268,6 +270,7 @@ EXPECTED_TESTS = [
     "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_ring.zig",
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+    "zigux/tests/phase10_virtio_ring_registration_replay.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_ring_publish_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
@@ -734,7 +737,7 @@ def run_self_test() -> int:
         broken = json.loads(json.dumps(original))
         broken["tests"] = [item for item in broken["tests"] if item != "zigux/tests/phase10_virtio_mmio_survey.zig"]
         write_closure(broken)
-        expect_contains(collect_manifest_drift(root), "test_count:28!=27", "phase10-closure-self-test")
+        expect_contains(collect_manifest_drift(root), "test_count:29!=28", "phase10-closure-self-test")
         expect_contains(collect_manifest_drift(root), "tests:'zigux/tests/phase10_virtio_mmio_survey.zig':missing", "phase10-closure-self-test")
         expect_contains(
             collect_manifest_drift(root),
