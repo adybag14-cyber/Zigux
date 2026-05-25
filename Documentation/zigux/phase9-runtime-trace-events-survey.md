@@ -21,7 +21,7 @@ Current `master` keeps one narrow trace-events runtime sample family:
 - `samples/zigux/runtime_trace_events_reinit_rollback_guard.zig`
 - `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`
 
-Current `master` also now keeps two direct family-local `zigux/tests/runtime_*` witnesses for that same packet together with the paired owner-facing note:
+Current `master` also now keeps the manifest plus two direct family-local `zigux/tests/runtime_*` witnesses for that same packet together with the paired owner-facing note:
 
 - `zigux/tests/runtime_trace_events_manifest.json`
 - `zigux/tests/runtime_trace_events_survey.zig`
