@@ -311,6 +311,53 @@ test "runtime kretprobe sample keeps rejected re-exit rollback explicit" {
     try expectSnapshotStable(selftested_before_reexit, selftested.lifecycleSnapshot());
 }
 
+test "runtime kretprobe sample keeps post-exit probe mutation guards explicit" {
+    var initialized = RuntimeKretprobeSample{};
+    try initialized.init();
+    try initialized.exit();
+
+    const initialized_before_post_exit = initialized.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, initialized_before_post_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_before_post_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before_post_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_before_post_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before_post_exit.registration_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before_post_exit.unregistration_runs);
+    try std.testing.expect(!initialized_before_post_exit.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before_post_exit.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before_post_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, null), initialized_before_post_exit.last_retval);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized.registerProbe());
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized.recordEntry());
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized.recordReturn(5));
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized.unregisterProbe());
+    try expectSnapshotStable(initialized_before_post_exit, initialized.lifecycleSnapshot());
+
+    var selftested = RuntimeKretprobeSample{};
+    try selftested.init();
+    _ = try selftested.runSelftest();
+    try selftested.exit();
+
+    const selftested_before_post_exit = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, selftested_before_post_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_post_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_post_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_post_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_post_exit.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_post_exit.unregistration_runs);
+    try std.testing.expect(!selftested_before_post_exit.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), selftested_before_post_exit.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_post_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), selftested_before_post_exit.last_retval);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested.registerProbe());
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested.recordEntry());
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested.recordReturn(11));
+    try std.testing.expectError(error.InvalidLifecycleTransition, selftested.unregisterProbe());
+    try expectSnapshotStable(selftested_before_post_exit, selftested.lifecycleSnapshot());
+}
+
 test "runtime kretprobe sample keeps failed exit rollback explicit while a probe is still registered across initialized and selftested stages" {
     var module = RuntimeKretprobeSample{};
     try module.init();
