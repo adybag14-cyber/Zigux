@@ -118,12 +118,7 @@ EXPECTED_BASE64_DIRECT_GAPS = [
     "zigux/tests/phase6_base64_c_casegen.zig",
 ]
 EXPECTED_EVIDENCE_CURRENT_GAPS = EXPECTED_BASE64_DIRECT_GAPS
-EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
-    "Documentation/zigux/phase6-helper-evidence-catalog.md",
-    "zigux/tests/phase6_helper_evidence_manifest.json",
-    "scripts/zigux/README.md",
-    "zigux/tests/README.md",
-]
+EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = []
 EXPECTED_SHARED_REPLAY_INVENTORY = [
     "zig build phase6-base64-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-base64-test",
