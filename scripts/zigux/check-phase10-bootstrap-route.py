@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Check that the bootstrap workflow and shared Phase 10 make route still replay the shared Phase 10 route."""
+"""Check that the bootstrap workflow, shared Phase 10 make route, and manifest-backed review packet stay aligned."""
 
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import sys
 
@@ -11,6 +12,7 @@ import sys
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 CLOSURE_NOTE_PATH = Path("Documentation/zigux/phase10-closure-evidence.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
+MANIFEST_PATH = Path("zigux/tests/phase10_closure_manifest.json")
 
 SELF_TEST_STEP = "Self-test current Phase 10 bootstrap route checker"
 SELF_TEST_CMD = "python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test"
@@ -18,8 +20,10 @@ CHECK_STEP = "Check current Phase 10 bootstrap route"
 CHECK_CMD = "python3 scripts/zigux/check-phase10-bootstrap-route.py"
 VALIDATE_STEP = "Validate Phase 10 checker-backed review packet"
 VALIDATE_CMD = "make -C zigux phase10-validate"
+BUILD_CMD = "zig build test --build-file zigux/tests/phase10_build.zig --summary all"
 TEST_STEP = "Run Phase 10 helper tests"
 TEST_CMD = "make -C zigux phase10-test"
+AGGREGATE_CMD = "make -C zigux phase10"
 SELF_TEST_RUN_LINE = f"run: {SELF_TEST_CMD}\n"
 CHECK_RUN_LINE = f"run: {CHECK_CMD}\n"
 VALIDATE_RUN_LINE = f"run: {VALIDATE_CMD}\n"
@@ -49,6 +53,14 @@ NOTE_COUNTS_PHRASE = (
     "drivers, or tests surfaces"
 )
 NOTE_AGGREGATE_MARKER = "`make -C zigux phase10`"
+MANIFEST_EXACT_CHECKS_KEY = "exact_checks"
+MANIFEST_REQUIRED_ROUTE = [
+    CHECK_CMD,
+    VALIDATE_CMD,
+    BUILD_CMD,
+    TEST_CMD,
+    AGGREGATE_CMD,
+]
 
 
 def require_marker(text: str, marker: str, label: str) -> None:
@@ -128,6 +140,39 @@ def check_makefile(text: str) -> None:
     require_exact_count(text, MAKE_AGGREGATE_TARGET, 1, "phase10 aggregate target")
 
 
+
+def check_manifest(text: str) -> None:
+    try:
+        manifest = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(
+            f"phase10 bootstrap route checker invalid manifest json: {exc}"
+        ) from exc
+
+    exact_checks = manifest.get(MANIFEST_EXACT_CHECKS_KEY)
+    if not isinstance(exact_checks, list) or not exact_checks:
+        raise SystemExit(
+            "phase10 bootstrap route checker missing manifest exact_checks list"
+        )
+
+    indexes: list[int] = []
+    for item in MANIFEST_REQUIRED_ROUTE:
+        count = exact_checks.count(item)
+        if count != 1:
+            raise SystemExit(
+                "phase10 bootstrap route checker expected exactly one manifest exact "
+                f"check {item}, found {count}"
+            )
+        indexes.append(exact_checks.index(item))
+
+    if indexes != sorted(indexes):
+        raise SystemExit(
+            "phase10 bootstrap route checker expected manifest exact_checks to keep "
+            "the bootstrap route ordered before validate, build, test, and aggregate "
+            "replays"
+        )
+
+
 def check_note(text: str) -> None:
     require_marker(text, NOTE_SCRIPT_MARKER, "closure note script marker")
     require_marker(text, NOTE_ROUTE_PHRASE, "closure note route phrase")
@@ -176,9 +221,11 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
 The shared closure-manifest count guard now stays explicit through `scripts/zigux/check-phase10-closure-manifest-counts.py` so the closure packet fails closed if its summary counts drift from the listed docs, manifests, drivers, or tests surfaces.
 The manifest-backed shared closure route still keeps `make -C zigux phase10` explicit as the aggregate replay entrypoint.
 """
+    good_manifest = json.dumps({MANIFEST_EXACT_CHECKS_KEY: MANIFEST_REQUIRED_ROUTE}, indent=2) + "\n"
     check_workflow(good_workflow)
     check_makefile(good_makefile)
     check_note(good_note)
+    check_manifest(good_manifest)
 
     bad_workflow_missing_self_test = good_workflow.replace(
         SELF_TEST_CMD,
@@ -370,8 +417,48 @@ The manifest-backed shared closure route still keeps `make -C zigux phase10` exp
     else:
         raise AssertionError("expected missing note aggregate marker failure")
 
+
+
+    bad_manifest_missing_exact_checks = json.dumps({}, indent=2) + "\n"
+    try:
+        check_manifest(bad_manifest_missing_exact_checks)
+    except SystemExit as exc:
+        assert "manifest exact_checks list" in str(exc)
+    else:
+        raise AssertionError("expected missing manifest exact_checks failure")
+
+    bad_manifest_missing_validate = json.dumps(
+        {MANIFEST_EXACT_CHECKS_KEY: [CHECK_CMD, BUILD_CMD, TEST_CMD, AGGREGATE_CMD]},
+        indent=2,
+    ) + "\n"
+    try:
+        check_manifest(bad_manifest_missing_validate)
+    except SystemExit as exc:
+        assert VALIDATE_CMD in str(exc)
+    else:
+        raise AssertionError("expected missing manifest validate command failure")
+
+    bad_manifest_reordered = json.dumps(
+        {
+            MANIFEST_EXACT_CHECKS_KEY: [
+                CHECK_CMD,
+                BUILD_CMD,
+                VALIDATE_CMD,
+                TEST_CMD,
+                AGGREGATE_CMD,
+            ]
+        },
+        indent=2,
+    ) + "\n"
+    try:
+        check_manifest(bad_manifest_reordered)
+    except SystemExit as exc:
+        assert "manifest exact_checks" in str(exc)
+    else:
+        raise AssertionError("expected reordered manifest route failure")
+
     print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass")
-    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
@@ -396,6 +483,12 @@ def main() -> int:
         default=MAKEFILE_PATH,
         help="path to zigux/Makefile",
     )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=MANIFEST_PATH,
+        help="path to zigux/tests/phase10_closure_manifest.json",
+    )
     args = parser.parse_args()
 
     if args.self_test:
@@ -403,6 +496,7 @@ def main() -> int:
 
     check_workflow(args.workflow.read_text(encoding="utf-8"))
     check_makefile(args.makefile.read_text(encoding="utf-8"))
+    check_manifest(args.manifest.read_text(encoding="utf-8"))
     check_note(args.closure_note.read_text(encoding="utf-8"))
     print("PHASE10_BOOTSTRAP_ROUTE_CHECK=pass")
     return 0
