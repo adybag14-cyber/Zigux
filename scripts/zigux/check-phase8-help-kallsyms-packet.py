@@ -169,6 +169,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "pub fn renderCommandSections(",
         'test "renderPrettyStringList keeps the same row-major pretty layout as help.c" {',
         'test "renderCommandSections keeps stable headers for main and fallback command groups" {',
+        'test "renderCommandSections emits the fallback-only packet without a blank main header" {',
+        'test "renderCommandSections omits an empty quoted exec path when none is available" {',
     ),
     KALLSYMS_BUILD: (
         "../../tools/lib/symbol/kallsyms.zig",
