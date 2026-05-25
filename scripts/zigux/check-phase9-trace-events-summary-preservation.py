@@ -9,6 +9,8 @@ import tempfile
 
 EXIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_exit_rollback_guard.zig"
 REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
+REINIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_reinit_rollback_guard.zig"
+REINIT_REEXIT_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_reinit_reexit_guard.zig"
 
 EXIT_ROLLBACK_REQUIRED_MARKERS = [
     'test "phase9 trace-events sample keeps exit rollback explicit after reusable selftest replay" {',
@@ -54,9 +56,54 @@ REENTRY_REQUIRED_MARKERS = [
     "try std.testing.expect(std.meta.eql(after_exit, after_rejected_lifecycle));",
 ]
 
+REINIT_ROLLBACK_REQUIRED_MARKERS = [
+    'test "phase9 trace-events sample keeps re-init rollback explicit across initialized, selftest-complete, and exited states" {',
+    "try std.testing.expectEqual(ModuleStage.initialized, before_initialized_reinit.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), before_initialized_reinit.registration_depth);",
+    "try std.testing.expectEqual(@as(usize, 1), before_initialized_reinit.init_runs);",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.init());",
+    "try expectSummaryStable(before_initialized_reinit, after_initialized_reinit);",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_selftested_reinit.stage);",
+    "try std.testing.expectEqual(@as(usize, 14), before_selftested_reinit.total_events);",
+    'try std.testing.expectEqualStrings("Some times print", before_selftested_reinit.last_main_conditional_message orelse return error.ExpectedMainPayload);',
+    'try std.testing.expectEqualStrings("prints other times", before_selftested_reinit.last_main_template_cond_message orelse return error.ExpectedMainPayload);',
+    "try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.init());",
+    "try expectSummaryStable(before_selftested_reinit, after_selftested_reinit);",
+    "try std.testing.expectEqual(ModuleStage.exited, before_exited_reinit.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), before_exited_reinit.exit_runs);",
+    "try std.testing.expectEqual(@as(?[]const u8, null), before_exited_reinit.last_main_conditional_message);",
+    "try std.testing.expectEqual(@as(?[]const u8, null), before_exited_reinit.last_main_template_cond_message);",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.init());",
+    "try expectSummaryStable(before_exited_reinit, after_exited_reinit);",
+]
+
+REINIT_REEXIT_REQUIRED_MARKERS = [
+    'test "phase9 trace-events sample keeps initialized direct-activity summary explicit across clean exit" {',
+    "try std.testing.expectEqual(@as(?usize, 4), before_exit.last_main_emitted_events);",
+    'try std.testing.expectEqualStrings("Mother Goose", before_exit.last_main_random_choice_message orelse return error.ExpectedMainPayload);',
+    "try module.exit();",
+    "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);",
+    'test "phase9 trace-events sample keeps re-init rollback explicit after initialized, selftest-complete, and exited replay" {',
+    "try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.init());",
+    "try expectSummaryStable(before_initialized_reinit, initialized_module.summary());",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_selftested_reinit.stage);",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.init());",
+    "try expectSummaryStable(before_selftested_reinit, selftested_module.summary());",
+    "try std.testing.expectEqual(ModuleStage.exited, before_exited_reinit.stage);",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.init());",
+    "try expectSummaryStable(before_exited_reinit, exited_module.summary());",
+    'test "phase9 trace-events sample keeps re-exit rollback explicit after initialized and selftest-complete replay" {',
+    "try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.exit());",
+    "try expectSummaryStable(before_initialized_reexit, initialized_module.summary());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, selftested_module.exit());",
+    "try expectSummaryStable(before_selftested_reexit, selftested_module.summary());",
+]
+
 FILE_MARKERS = {
     EXIT_ROLLBACK_GUARD_SAMPLE_PATH: EXIT_ROLLBACK_REQUIRED_MARKERS,
     REENTRY_GATE_SAMPLE_PATH: REENTRY_REQUIRED_MARKERS,
+    REINIT_ROLLBACK_GUARD_SAMPLE_PATH: REINIT_ROLLBACK_REQUIRED_MARKERS,
+    REINIT_REEXIT_GUARD_SAMPLE_PATH: REINIT_REEXIT_REQUIRED_MARKERS,
 }
 
 
@@ -66,6 +113,12 @@ FILE_EXACT_ONCE_MARKERS = {
     ],
     REENTRY_GATE_SAMPLE_PATH: [
         'test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest" {',
+    ],
+    REINIT_ROLLBACK_GUARD_SAMPLE_PATH: [
+        'test "phase9 trace-events sample keeps re-init rollback explicit across initialized, selftest-complete, and exited states" {',
+    ],
+    REINIT_REEXIT_GUARD_SAMPLE_PATH: [
+        'test "phase9 trace-events sample keeps re-exit rollback explicit after initialized and selftest-complete replay" {',
     ],
 }
 
@@ -162,6 +215,14 @@ def run_self_test() -> int:
             f"{len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}"
         )
         print(
+            "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_REINIT_MARKER_COUNT="
+            f"{len(FILE_MARKERS[REINIT_ROLLBACK_GUARD_SAMPLE_PATH])}"
+        )
+        print(
+            "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_REINIT_REEXIT_MARKER_COUNT="
+            f"{len(FILE_MARKERS[REINIT_REEXIT_GUARD_SAMPLE_PATH])}"
+        )
+        print(
             "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_EXACT_ONCE_MARKER_COUNT="
             f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
         )
@@ -196,6 +257,14 @@ def main() -> int:
     print(
         "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_REENTRY_MARKER_COUNT="
         f"{len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}"
+    )
+    print(
+        "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_REINIT_MARKER_COUNT="
+        f"{len(FILE_MARKERS[REINIT_ROLLBACK_GUARD_SAMPLE_PATH])}"
+    )
+    print(
+        "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_REINIT_REEXIT_MARKER_COUNT="
+        f"{len(FILE_MARKERS[REINIT_REEXIT_GUARD_SAMPLE_PATH])}"
     )
     print(
         "PHASE9_TRACE_EVENTS_SUMMARY_PRESERVATION_EXACT_ONCE_MARKER_COUNT="
