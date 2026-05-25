@@ -119,60 +119,60 @@ def fixture_inventory() -> dict[str, object]:
     }
 
 
-FIXTURE_MODEM_BUILD_TEXT = """const std = @import(\"std\");
+FIXTURE_MODEM_BUILD_TEXT = """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const hvc_console_module = b.createModule(.{
-        .root_source_file = b.path(\"../../drivers/tty/hvc/hvc_console.zig\"),
+        .root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),
         .target = target,
         .optimize = optimize,
     });
     const root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase11_hvc_modem_control_proof.zig\"),
+        .root_source_file = b.path("phase11_hvc_modem_control_proof.zig"),
         .target = target,
         .optimize = optimize,
     });
-    root_module.addImport(\"hvc_console\", hvc_console_module);
+    root_module.addImport("hvc_console", hvc_console_module);
 
     const unit_tests = b.addTest(.{
-        .name = \"phase11-hvc-modem-control-proof\",
+        .name = "phase11-hvc-modem-control-proof",
         .root_module = root_module,
     });
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
-    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC modem-control proof.\");
+    const test_step = b.step("test", "Run the focused Phase 11 HVC modem-control proof.");
     test_step.dependOn(&run_unit_tests.step);
 }
 """
 
 
-FIXTURE_TARGETLESS_BUILD_TEXT = """const std = @import(\"std\");
+FIXTURE_TARGETLESS_BUILD_TEXT = """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase11_hvc_targetless_unregister_gap.zig\"),
+        .root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const unit_tests = b.addTest(.{
-        .name = \"phase11-hvc-targetless-unregister-gap\",
+        .name = "phase11-hvc-targetless-unregister-gap",
         .root_module = root_module,
     });
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
-    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC targetless-unregister gap witness.\");
+    const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");
     test_step.dependOn(&run_unit_tests.step);
 }
 """
 
 FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
-    (\"python\", \"scripts/zigux/check-phase11-focused-direct-build-replays.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-focused-direct-build-replays.py\"),
+    ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),
 )
 """
 
@@ -273,6 +273,22 @@ def run_self_test() -> int:
         expect_failure(
             missing_targetless_step_marker,
             'const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");',
+        )
+        case_count += 1
+
+        missing_validate_self_test_marker = tmpdir / "missing_validate_self_test_marker"
+        shutil.copytree(fixture, missing_validate_self_test_marker, dirs_exist_ok=True)
+        write(
+            missing_validate_self_test_marker / VALIDATE_PHASE11_PATH,
+            read_text(missing_validate_self_test_marker / VALIDATE_PHASE11_PATH).replace(
+                '    ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),\n',
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_validate_self_test_marker,
+            '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test")',
         )
         case_count += 1
 
