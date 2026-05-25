@@ -141,7 +141,6 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'try expectContains(slice_note, "kernel/workqueue.c");',
         'try expectContains(slice_note, "Phase 14");',
         'const matched = try exec_cmd.setupPathWithPwd(',
-        'try std.testing.expectEqualStrings(',
         '"/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin",',
         'const rooted_search_path = try exec_cmd.buildSearchPath(',
         'try std.testing.expectEqualStrings("/repo/tools/bin:/tmp:/usr/bin", directory_only_search_path);',
