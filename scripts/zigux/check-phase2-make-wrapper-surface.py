@@ -186,11 +186,60 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        (root / MANIFEST_PATH).unlink()
+        issues = validate(root)
+        if f"missing manifest file: {MANIFEST_PATH.as_posix()}" not in issues:
+            print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
+            print("expected missing manifest file was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MANIFEST_PATH, _sample_manifest())
+        (root / MAKEFILE_PATH).unlink()
+        issues = validate(root)
+        if f"missing makefile: {MAKEFILE_PATH.as_posix()}" not in issues:
+            print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
+            print("expected missing makefile was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MAKEFILE_PATH, _sample_makefile())
+        _write(root / MANIFEST_PATH, '{"phase": "Phase 2",\n')
+        issues = validate(root)
+        if not any(issue.startswith("invalid manifest json:") for issue in issues):
+            print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
+            print("expected invalid manifest json was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MANIFEST_PATH, '{"phase": "Phase 2", "present_surfaces": []}\n')
+        issues = validate(root)
+        if "invalid present_surfaces object" not in issues:
+            print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
+            print("expected invalid present_surfaces object was not reported")
+            return 1
+        case_count += 1
+
         _write(root / MANIFEST_PATH, _sample_manifest(list(EXPECTED_WRAPPERS[:-1])))
         issues = validate(root)
         if "missing make_wrappers entry: make -C zigux phase2" not in issues:
             print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
             print("expected missing phase2 wrapper entry was not reported")
+            return 1
+        case_count += 1
+
+        _write(
+            root / MANIFEST_PATH,
+            '{"phase": "Phase 2", "present_surfaces": {"make_wrappers": ['
+            '"zigux/Makefile", 17, "make -C zigux phase2-tools", '
+            '"make -C zigux phase2-kconfig", "make -C zigux phase2-cross", '
+            '"make -C zigux phase2-genksyms", "make -C zigux phase2-fixdep", '
+            '"make -C zigux phase2-validate", "make -C zigux phase2"]}}\n',
+        )
+        issues = validate(root)
+        if "invalid make_wrappers entry at index 1: 17" not in issues:
+            print("PHASE2_MAKE_WRAPPER_SURFACE_SELF_TEST=fail")
+            print("expected invalid make_wrappers entry type was not reported")
             return 1
         case_count += 1
 
