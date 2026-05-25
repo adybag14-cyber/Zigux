@@ -107,6 +107,10 @@ REQUIRED_MARKERS = {
         "MISSING_PHASE7_CMDLINE_MARKERS_END",
         "\"Documentation/zigux/phase7-cmdline-slice.md\",",
         "\"lib/cmdline.zig\",",
+        'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"',
+        'EXPECTED_MANIFEST_PHASE = "Phase 7"',
+        'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"',
+        'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"',
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -114,7 +118,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 38
+SELF_TEST_CASE_COUNT = 42
 
 
 def read_text(path: Path) -> str:
@@ -263,6 +267,10 @@ def run_self_test() -> None:
             ("scripts/zigux/check-phase7-cmdline-packet.py", "\"lib/cmdline.zig\",", ""),
             ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays leading-plus fallback boundaries\" {", ""),
             ("lib/cmdline.zig", "test \"memparse saturates signed overflow instead of trapping\" {", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"', 'EXPECTED_MANIFEST_LANE_KEY = "P7-L07"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = "Phase 7"', 'EXPECTED_MANIFEST_PHASE = "Phase 8"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"', 'EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"', 'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_anchor"'),
         ]
 
         for rel, old, new in mutations:
