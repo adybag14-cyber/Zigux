@@ -195,6 +195,45 @@ fn encodedChars(nbytes: usize, padding: bool) usize {
     };
 }
 
+pub fn validatePerfPacket() !void {
+    if (perf_cases.len == 0) {
+        return error.Base64PerfMatrixMismatch;
+    }
+    if (perf_payload.len == 0) {
+        return error.Base64PerfMatrixMismatch;
+    }
+    if (perf_payload.len != perf_payload_buf_size) {
+        return error.Base64PerfMatrixMismatch;
+    }
+
+    for (perf_cases, 0..) |case, idx| {
+        if (case.label.len == 0 or case.payload.len == 0 or case.iterations == 0) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (case.max_encode_slowdown_pct == 0 or case.max_decode_slowdown_pct == 0) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (!std.mem.eql(u8, perf_payload, case.payload)) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (perf_encoded_buf_size < encodedChars(case.payload.len, case.padding)) {
+            return error.Base64PerfMatrixMismatch;
+        }
+        if (!std.mem.eql(u8, case.variant_name, "std") and !std.mem.eql(u8, case.variant_name, "urlsafe") and !std.mem.eql(u8, case.variant_name, "imap")) {
+            return error.Base64PerfMatrixMismatch;
+        }
+
+        for (perf_cases[idx + 1 ..]) |other| {
+            if (std.mem.eql(u8, case.label, other.label)) {
+                return error.Base64PerfMatrixMismatch;
+            }
+            if (case.padding == other.padding and std.mem.eql(u8, case.variant_name, other.variant_name)) {
+                return error.Base64PerfMatrixMismatch;
+            }
+        }
+    }
+}
+
 test "phase 6 base64 perf fixture packet stays bounded to the documented matrix" {
     const expected_case_count = 6;
     const expected_iterations = 12_000;
@@ -211,6 +250,7 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     var saw_imap_pad = false;
     var saw_imap_no_pad = false;
 
+    try validatePerfPacket();
     try std.testing.expectEqual(expected_case_count, perf_cases.len);
     try std.testing.expectEqual(expected_variant_decode_case_count, variant_decode_cases.len);
     try std.testing.expectEqual(perf_payload.len, perf_payload_buf_size);
