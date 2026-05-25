@@ -37,6 +37,7 @@ CPU_MASK_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/cpu_mask_verify.zig
 LOGGING_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging.zig")
 PERF_BUFFER_POLL_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig")
 PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
+READY_BUFFER_FD_LOOKUP_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
 PIN_PATH_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path.zig")
 LOGGING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging_verify.zig")
@@ -98,6 +99,7 @@ REQUIRED_FILES = (
     LOGGING_SEGMENT,
     PERF_BUFFER_POLL_VERIFY_SEGMENT,
     PERF_BUFFER_READY_WINDOW_SEGMENT,
+    READY_BUFFER_FD_LOOKUP_SEGMENT,
     ONLINE_CPU_ROUTING_SEGMENT,
     PIN_PATH_SEGMENT,
     LOGGING_VERIFY_SEGMENT,
@@ -202,7 +204,6 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "current direct-readback Phase 8 anchors:",
         "`scripts/zigux/check-phase8-tests-readme-alignment.py`",
         "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
-        "`scripts/zigux/validate-phase8.py`",
         "`zigux/tests/phase8_exec_cmd.zig`",
         "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
@@ -257,207 +258,14 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         "phase8_perf_buffer_poll.zig",
         "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
+        "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
+        "phase8-ready-buffer-fd-lookup-tests",
+        "test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);",
         "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         "phase8_file_path_handle_bridge.zig",
         "../../tools/lib/bpf/zigux_segments/verify.zig",
         "phase8_libbpf_segments.zig",
         "phase8_verify_routing_gap.zig",
-    ),
-    EXEC_CMD_HELPER: (
-        "pub fn collectExeclArgs(",
-        "pub fn buildDeferredExeclCall(",
-        "pub fn buildDeferredExecvCall(",
-    ),
-    EXEC_CMD_TEST: (
-        "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit",
-        "scripts/zigux/validate-phase8.py",
-        "tools/lib/subcmd/exec-cmd.zig",
-        "Run focused Phase 8 exec-cmd tests",
-        'try expectNotContains(validate_phase8, "expectMissingPath(\\"tools/lib/subcmd/exec-cmd.zig\\")");',
-    ),
-    EXEC_CMD_BUILD: (
-        "phase8_exec_cmd.zig",
-        "phase8_exec_cmd",
-        "Run focused Phase 8 exec-cmd tests",
-    ),
-    Path("zigux/tests/phase8_file_path_handle_bridge.zig"): (
-        "phase 8 file-path-handle bridge",
-        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-    ),
-    FILE_PATH_HANDLE_BOUNDARY_GUARD_TEST: (
-        'test "phase 8 file-path-handle boundary guard keeps landed helper slices distinct from the deferred bridge" {',
-        '"slug": "fdinfo-map-info-helpers"',
-        '"slug": "file-path-and-handle-bridge"',
-        "planTokenPreparation",
-    ),
-    FILE_PATH_HANDLE_BRIDGE_MANIFEST_SYNC_TEST: (
-        'test "phase 8 file-path-handle bridge manifest keeps the landed helper wording explicit" {',
-        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
-        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
-        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
-    ),
-    Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"): (
-        "phase8_file_path_handle_bridge.zig",
-        "phase8_file_path_handle_bridge",
-        "Run the phase 8 file-path-handle bridge tests.",
-    ),
-    LIBBPF_SEGMENTS_TEST: (
-        'test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {',
-        'test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit" {',
-        'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
-    ),
-    LIBBPF_SEGMENTS_BUILD: (
-        'b.path("../../tools/lib/bpf/zigux_segments/verify.zig")',
-        '"phase8-libbpf-segment-verify-tests"',
-        '"Run focused Phase 8 libbpf segment verify build"',
-    ),
-    Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
-        "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit",
-        '"zigux/tests/README.md"',
-        '"scripts/zigux/README.md"',
-        "resolveReadyBufferFdAtAttempt",
-        "resolveReadyBufferFdLookupReturnAtAttempt",
-        "summarizePollExecutionResultFromWaitResult",
-        "summarizeBufferFdLookup",
-        "summarizeBufferWindowLookup",
-    ),
-    PERF_BUFFER_POLL_BUILD: (
-        "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-        "phase8_perf_buffer_poll.zig",
-        "phase8-perf-buffer-poll-tests",
-        "Run focused Phase 8 perf-buffer poll tests",
-    ),
-    VERIFY_ROUTING_GAP_TEST: (
-        "phase 8 verify routing witness records the current CPU-index verifier closure",
-        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
-        "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit",
-        "phase 8 verify routing witness records the current direct-readback libbpf survey packet",
-    ),
-    VERIFY_ROUTING_GAP_BUILD: (
-        "phase8_verify_routing_gap.zig",
-        "phase8_verify_routing_gap",
-        "Run the phase 8 verify routing witness tests.",
-    ),
-    CPU_MASK_SEGMENT: (
-        "pub fn parseCpuMaskString(",
-        "pub fn summarizePossibleCpusFromReader(",
-        "pub fn derivePerfBufferAutoCpuCountFromReader(",
-    ),
-    CPU_MASK_VERIFY_SEGMENT: (
-        "phase8 cpu-mask helper entrypoints stay explicit",
-        "derivePerfBufferAutoCpuCountFromReader",
-        "phase8 cpu-mask helpers keep invalid direct and reader-backed inputs fail-closed",
-    ),
-    LOGGING_SEGMENT: (
-        "pub fn parseLogLevelSetting(",
-        "pub fn libbpfVersionString(",
-        "pub fn formatLibbpfError(",
-    ),
-    LOGGING_VERIFY_SEGMENT: (
-        "phase8 logging helper entrypoints stay explicit",
-        "parseLogLevelSetting",
-        "formatLibbpfError",
-    ),
-    ONLINE_CPU_ROUTING_SEGMENT: (
-        "pub fn resolveNextOnlineCpuRouteCpuIndex(",
-        "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
-        'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
-    ),
-    ONLINE_CPU_ROUTING_VERIFY_SEGMENT: (
-        "phase8 online-cpu route helpers keep typed cpu-index wrappers stable",
-        "resolveNextOnlineCpuRouteCpuIndex",
-        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
-    ),
-    PIN_PATH_SEGMENT: (
-        'pub const default_bpf_fs_path = "/sys/fs/bpf";',
-        "pub fn buildValidatedMapPinPath(",
-        "pub fn buildValidatedSanitizedProgramPinPath(",
-        'test "program pin-path helpers mirror the bounded libbpf program pin contract" {',
-    ),
-    PIN_PATH_VERIFY_SEGMENT: (
-        "phase8 pin-path helper entrypoints stay explicit",
-        "buildValidatedSanitizedProgramPinPath",
-        "phase8 pin-path helpers keep stable map and program outputs explicit",
-    ),
-    Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"): (
-        "pub const BufferFdLookupDisposition = enum {",
-        "pub fn resolveReadyBufferFdAtAttempt(",
-        "pub fn resolveReadyBufferFdLookupReturnAtAttempt(",
-        "pub fn summarizeBufferWindowLookup(",
-        'test "phase8 perf-buffer poll resolves ready-buffer fd lookups without manual slot plumbing" {',
-    ),
-    PERF_BUFFER_POLL_VERIFY_SEGMENT: (
-        "phase8 perf-buffer poll helper entrypoints stay explicit",
-        "summarizePollExecutionResultFromWaitResult",
-        "phase8 perf-buffer poll rejects impossible hand-built summaries and mismatched ready waits",
-    ),
-    READY_BUFFER_ATTEMPT_VERIFY_SEGMENT: (
-        "phase8 ready-buffer attempt helper entrypoints stay explicit",
-        "resolveReadyBufferAttemptLookupReturn",
-        "phase8 ready-buffer attempt helpers keep errno-shaped outputs stable",
-    ),
-    READY_BUFFER_FD_VERIFY_SEGMENT: (
-        "phase8 ready-buffer fd helper entrypoints stay explicit",
-        "resolveReadyBufferFdAtAttempt",
-        "resolveReadyBufferFdLookupReturnAtAttempt",
-    ),
-    READY_BUFFER_WINDOW_VERIFY_SEGMENT: (
-        "phase8 ready-buffer window helper entrypoints stay explicit",
-        "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
-        "resolveReadyBufferWindowLookupReturnAtAttempt",
-    ),
-    TYPE_NAMES_SEGMENT: (
-        "pub fn libbpfBpfMapTypeStr(",
-        "pub fn libbpfBpfAttachTypeStr(",
-        "pub fn formatLibbpfBpfProgType(",
-    ),
-    TYPE_NAMES_VERIFY_SEGMENT: (
-        "phase8 libbpf type-name helper entrypoints stay explicit",
-        "libbpfBpfMapTypeStr",
-        "formatLibbpfBpfProgType",
-    ),
-    VERIFY_SEGMENT: (
-        'const cpu_mask_verify = @import("cpu_mask_verify.zig");',
-        'const logging_verify = @import("logging_verify.zig");',
-        'const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");',
-        'const pin_path_verify = @import("pin_path_verify.zig");',
-        'const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");',
-        'const ready_buffer_fd_verify = @import("ready_buffer_fd_verify.zig");',
-        'const ready_buffer_window_verify = @import("ready_buffer_window_verify.zig");',
-        'const type_names_verify = @import("type_names_verify.zig");',
-        "std.testing.refAllDecls(cpu_mask_verify);",
-        "std.testing.refAllDecls(logging_verify);",
-        "std.testing.refAllDecls(online_cpu_routing_verify);",
-        "std.testing.refAllDecls(pin_path_verify);",
-        "std.testing.refAllDecls(ready_buffer_attempt_verify);",
-        "std.testing.refAllDecls(ready_buffer_fd_verify);",
-        "std.testing.refAllDecls(ready_buffer_window_verify);",
-        "std.testing.refAllDecls(type_names_verify);",
-        "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-cpu wrappers explicit",
-        "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex",
-        "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit",
-        "resolveNextOnlineCpuRouteBufferFdAtIndex",
-        "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd wrappers explicit",
-        "resolveReadyBufferFdLookupReturnAtAttempt",
-        "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window wrappers explicit",
-        "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
-        "resolveReadyBufferWindowLookupReturnAtAttempt",
-        "materialized tools/lib/bpf Zigux segments keep stable libbpf type-name formatters explicit",
-        "formatLibbpfBpfLinkType",
-    ),
-    Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"): (
-        "file_path_handle_bridge",
-    ),
-    VALIDATOR: (
-        'EXEC_CMD_HELPER = Path("tools/lib/subcmd/exec-cmd.zig")',
-        'EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")',
-        'EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")',
-        'EXEC_CMD_PACKET_CHECKER = Path("scripts/zigux/check-phase8-exec-cmd-packet.py")',
-        "EXEC_CMD_PACKET_CHECKER,",
-        'HELP_KALLSYMS_PACKET_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-packet.py")',
-        'HELP_KALLSYMS_BUILD_SHARD_CHECKER = Path("scripts/zigux/check-phase8-help-kallsyms-build-shard.py")',
-        "HELP_KALLSYMS_PACKET_CHECKER,",
-        "HELP_KALLSYMS_BUILD_SHARD_CHECKER,",
     ),
 }
 
@@ -614,7 +422,7 @@ def run_self_test() -> int:
             root / TESTS_ALIGNMENT_CHECKER,
             _failing_checker(
                 "PHASE8_TESTS_README_ALIGNMENT",
-                "missing-marker:zigux/tests/README.md:`scripts/zigux/validate-phase8.py`",
+                'missing-marker:zigux/tests/README.md:`scripts/zigux/validate-phase8.py`',
             ),
         )
         failing_tests_alignment_checker = validate_root(root)
@@ -624,7 +432,7 @@ def run_self_test() -> int:
         if (
             tests_alignment_checker_output is None
             or "PHASE8_TESTS_README_ALIGNMENT=fail" not in tests_alignment_checker_output
-            or "missing-marker:zigux/tests/README.md:`scripts/zigux/validate-phase8.py`"
+            or 'missing-marker:zigux/tests/README.md:`scripts/zigux/validate-phase8.py`'
             not in tests_alignment_checker_output
         ):
             raise AssertionError("expected failing tests-readme alignment checker output to be reported")
@@ -638,7 +446,7 @@ def run_self_test() -> int:
             root / HELP_KALLSYMS_PACKET_CHECKER,
             _failing_checker(
                 "PHASE8_HELP_KALLSYMS_PACKET",
-                "missing-marker:Documentation/zigux/phase8-kallsyms-slice.md:`zigux/tests/phase8_kallsyms.zig`",
+                'missing-marker:Documentation/zigux/phase8-kallsyms-slice.md:`zigux/tests/phase8_kallsyms.zig`',
             ),
         )
         failing_help_kallsyms_checker = validate_root(root)
@@ -648,7 +456,7 @@ def run_self_test() -> int:
         if (
             help_kallsyms_checker_output is None
             or "PHASE8_HELP_KALLSYMS_PACKET=fail" not in help_kallsyms_checker_output
-            or "missing-marker:Documentation/zigux/phase8-kallsyms-slice.md:`zigux/tests/phase8_kallsyms.zig`"
+            or 'missing-marker:Documentation/zigux/phase8-kallsyms-slice.md:`zigux/tests/phase8_kallsyms.zig`'
             not in help_kallsyms_checker_output
         ):
             raise AssertionError("expected failing help-kallsyms checker output to be reported")
@@ -738,7 +546,7 @@ def run_self_test() -> int:
             root / EXEC_CMD_PACKET_CHECKER,
             _failing_checker(
                 "PHASE8_EXEC_CMD_PACKET",
-                "missing-marker:Documentation/zigux/phase8-exec-cmd-slice.md:`PHASE8_SLICE=exec-cmd-deferred-exec-packet`",
+                'missing-marker:Documentation/zigux/phase8-exec-cmd-slice.md:`PHASE8_SLICE=exec-cmd-deferred-exec-packet`',
             ),
         )
         failing_exec_cmd_checker = validate_root(root)
@@ -748,7 +556,7 @@ def run_self_test() -> int:
         if (
             exec_cmd_checker_output is None
             or "PHASE8_EXEC_CMD_PACKET=fail" not in exec_cmd_checker_output
-            or "missing-marker:Documentation/zigux/phase8-exec-cmd-slice.md:`PHASE8_SLICE=exec-cmd-deferred-exec-packet`"
+            or 'missing-marker:Documentation/zigux/phase8-exec-cmd-slice.md:`PHASE8_SLICE=exec-cmd-deferred-exec-packet`'
             not in exec_cmd_checker_output
         ):
             raise AssertionError("expected failing exec-cmd checker output to be reported")
@@ -761,7 +569,7 @@ def run_self_test() -> int:
                 continue
             original = _read(path)
             for marker in markers:
-                path.write_text(original.replace(marker, "", 1), encoding="utf-8")
+                path.write_text(original.replace(marker, ""), encoding="utf-8")
                 result = validate_root(root)
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
