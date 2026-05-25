@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 TESTS_README = Path("zigux/tests/README.md")
 
-PHASE13_HEADING = "## Phase 13 review packet"
+PHASE13_HEADING = "## Phase 13 shared-helper packet"
 PHASE13_SECTION_END = "Tests-root reviewer prompt:"
 
 REQUIRED_SHIPPED_MARKERS = (
