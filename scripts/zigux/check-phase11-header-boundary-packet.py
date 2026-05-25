@@ -28,6 +28,8 @@ SURVEY_REQUIRED_MARKERS = (
     "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
     "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
@@ -37,6 +39,7 @@ SURVEY_REQUIRED_MARKERS = (
     "returned `zigux/helpers/layout_assert.zig` substrate",
     "adjacent failure-mode continuity rather than a restored shared header-parity replay roster",
     "documentation-level continuity evidence",
+    "bounded modem-control callback proof",
 )
 
 SURVEY_FORBIDDEN_MARKERS = (
@@ -62,6 +65,8 @@ MATRIX_REQUIRED_MARKERS = (
     "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof.zig`",
+    "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap.zig`",
     "`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`",
     "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
@@ -70,7 +75,7 @@ MATRIX_REQUIRED_MARKERS = (
     "returned `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
     "returned `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "keep the returned header-boundary checker framed as note-side evidence only",
-    "Keep the adjacent cleanup and targetless-unregister companions explicit as directly readable HVC failure-mode continuity evidence",
+    "Keep the adjacent cleanup, modem-control, and targetless-unregister companions explicit as directly readable HVC failure-mode continuity evidence",
 )
 
 MATRIX_FORBIDDEN_MARKERS = (
@@ -155,6 +160,8 @@ def run_self_test() -> int:
   - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
   - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
   - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+  - `zigux/tests/phase11_hvc_modem_control_proof.zig`
+  - `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
   - `scripts/zigux/check-phase11-build-inventory.py`
@@ -170,6 +177,7 @@ def run_self_test() -> int:
 - current shared reminder and machine-checked HVC header-boundary evidence therefore still lives in the newer focused proof packet and its adjacent current-head companion stack.
 - that narrower proof packet remains `layout_assert`-backed through the returned `zigux/helpers/layout_assert.zig` substrate.
 - the adjacent HVC failure-mode companion stack remains adjacent failure-mode continuity rather than a restored shared header-parity replay roster.
+- the current note also needs to keep the newer bounded modem-control callback proof explicit beside cleanup and targetless-unregister continuity.
 - the returned `Documentation/zigux/phase11-shared-replay-contract.md` note is documentation-level continuity evidence.
 - `phase11-header-boundary-checker`: `scripts/zigux/check-phase11-header-boundary-packet.py` now fail-closes on the survey note and validation matrix through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`.
 """
@@ -178,7 +186,7 @@ def run_self_test() -> int:
 ## Review Rules
 
 - Treat `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, the returned `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, and the returned `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` as returned reminder-only continuity evidence unless the missing shared replay files rematerialize beside them.
-- Keep the adjacent cleanup and targetless-unregister companions explicit as directly readable HVC failure-mode continuity evidence without promoting them into shared header-parity replay coverage.
+- Keep the adjacent cleanup, modem-control, and targetless-unregister companions explicit as directly readable HVC failure-mode continuity evidence without promoting them into shared header-parity replay coverage.
 
 ## Status
 
@@ -198,6 +206,8 @@ def run_self_test() -> int:
   - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
   - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
   - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+  - `zigux/tests/phase11_hvc_modem_control_proof.zig`
+  - `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
   - `scripts/zigux/check-phase11-build-inventory.py`
@@ -225,29 +235,43 @@ def run_self_test() -> int:
         survey_missing = tmpdir / "survey_missing"
         shutil.copytree(fixture_root, survey_missing, dirs_exist_ok=True)
         path = survey_missing / SURVEY_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[21]), encoding="utf-8")
-        expect_failure(survey_missing, SURVEY_REQUIRED_MARKERS[21])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[23]), encoding="utf-8")
+        expect_failure(survey_missing, SURVEY_REQUIRED_MARKERS[23])
         case_count += 1
 
         survey_companion_missing = tmpdir / "survey_companion_missing"
         shutil.copytree(fixture_root, survey_companion_missing, dirs_exist_ok=True)
         path = survey_companion_missing / SURVEY_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[20]), encoding="utf-8")
-        expect_failure(survey_companion_missing, SURVEY_REQUIRED_MARKERS[20])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[22]), encoding="utf-8")
+        expect_failure(survey_companion_missing, SURVEY_REQUIRED_MARKERS[22])
+        case_count += 1
+
+        survey_modem_missing = tmpdir / "survey_modem_missing"
+        shutil.copytree(fixture_root, survey_modem_missing, dirs_exist_ok=True)
+        path = survey_modem_missing / SURVEY_PATH
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[17]), encoding="utf-8")
+        expect_failure(survey_modem_missing, SURVEY_REQUIRED_MARKERS[17])
         case_count += 1
 
         matrix_missing = tmpdir / "matrix_missing"
         shutil.copytree(fixture_root, matrix_missing, dirs_exist_ok=True)
         path = matrix_missing / MATRIX_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[21]), encoding="utf-8")
-        expect_failure(matrix_missing, MATRIX_REQUIRED_MARKERS[21])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[22]), encoding="utf-8")
+        expect_failure(matrix_missing, MATRIX_REQUIRED_MARKERS[22])
         case_count += 1
 
         matrix_companion_missing = tmpdir / "matrix_companion_missing"
         shutil.copytree(fixture_root, matrix_companion_missing, dirs_exist_ok=True)
         path = matrix_companion_missing / MATRIX_PATH
-        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[20]), encoding="utf-8")
-        expect_failure(matrix_companion_missing, MATRIX_REQUIRED_MARKERS[20])
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[21]), encoding="utf-8")
+        expect_failure(matrix_companion_missing, MATRIX_REQUIRED_MARKERS[21])
+        case_count += 1
+
+        matrix_modem_missing = tmpdir / "matrix_modem_missing"
+        shutil.copytree(fixture_root, matrix_modem_missing, dirs_exist_ok=True)
+        path = matrix_modem_missing / MATRIX_PATH
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[17]), encoding="utf-8")
+        expect_failure(matrix_modem_missing, MATRIX_REQUIRED_MARKERS[17])
         case_count += 1
 
         survey_forbidden = tmpdir / "survey_forbidden"
