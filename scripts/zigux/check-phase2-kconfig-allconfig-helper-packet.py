@@ -25,6 +25,7 @@ SELF_TEST_EXPLICIT_OVERRIDE_MODES = [
     "allmodconfig",
     "allnoconfig",
     "allyesconfig",
+    "alldefconfig",
     "randconfig",
 ]
 
