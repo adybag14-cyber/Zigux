@@ -30,6 +30,7 @@ Fresh repo-first inspection on 2026-05-19 confirmed that current `master` now di
 
 * `Documentation/zigux/phase5-kfifo-sample-survey.md`
 * `samples/zigux/bytestream_fifo.zig`
+* `samples/zigux/bytestream_fifo_window_contract.zig`
 * `zigux/tests/phase5_bytestream_fifo.zig`
 * `zigux/tests/phase5_bytestream_fifo_manifest.json`
 * `zigux/tests/phase5_bytestream_fifo_survey.zig`
@@ -38,8 +39,9 @@ That same reread now directly returns the shared build-route companion for this 
 
 * `zigux/tests/phase5_build.zig`
 
-Keep the direct bytestream sample-plus-tests packet explicit while the shared build-route companion stays framed as current directly readable shared packet evidence for the bytestream lane instead of flattening the packet back into a sample-only story or treating that shared build route as sample-local proof.
+Keep the direct bytestream sample-plus-tests packet explicit while the bounded queue-window companion `samples/zigux/bytestream_fifo_window_contract.zig` and the shared build-route companion stay framed as current directly readable packet evidence for the bytestream lane instead of flattening the packet back into a sample-only story or treating that shared build route as sample-local proof.
 Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.
+Keep the bounded queue-window companion explicit too: `samples/zigux/bytestream_fifo_window_contract.zig` now keeps the stable two-window visible-span and writable-span reference pattern reviewable through `referencePattern()`, `visible_windows`, `writable_windows`, and the non-destructive preview or rollover booleans instead of leaving that queue-shape contract implied by the broader sample alone.
 
 The same 2026-05-19 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:
 
@@ -83,8 +85,9 @@ Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/
 
 ## Bytestream posture
 
-For `kfifo`, follow the restored direct sample-plus-tests packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`.
+For `kfifo`, follow the restored direct sample-plus-tests packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `samples/zigux/bytestream_fifo_window_contract.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`.
 Current `master` keeps that packet sharper than the older sample-only story: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the note and manifest.
+Keep the bounded queue-window companion explicit too: `samples/zigux/bytestream_fifo_window_contract.zig` keeps the stable two-window visible-span and writable-span reference pattern reviewable through `referencePattern()`, `visible_windows`, `writable_windows`, and the non-destructive preview or rollover booleans instead of leaving that queue-shape contract implied by the broader sample alone.
 
 Keep the current ten-cue review contract explicit in shared contributor guidance when a bytestream reminder surface is refreshed:
 
@@ -100,11 +103,11 @@ Keep the current ten-cue review contract explicit in shared contributor guidance
 * `ownership_and_lifetime`
 
 Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, and `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
-Keep the direct validation routes explicit in that same guidance too: `zig test samples/zigux/bytestream_fifo.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay visible as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays visible as current directly readable shared build-route companion evidence for this bytestream packet rather than as sample-local proof.
+Keep the direct validation routes explicit in that same guidance too: `zig test samples/zigux/bytestream_fifo.zig`, `zig test samples/zigux/bytestream_fifo_window_contract.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay visible as the sample-owned self-check route, the queue-window companion route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays visible as current directly readable shared build-route companion evidence for this bytestream packet rather than as sample-local proof.
 
 Keep the current split explicit too:
 
-* `zigux/tests/phase5_build.zig` is current directly readable shared build-route companion evidence for the bytestream packet, but it still should not be treated as sample-local proof or as proof that broader trace-events companions returned directly
+* `zigux/tests/phase5_build.zig` is current directly readable shared build-route companion evidence for the bytestream packet, and it now reruns the sample-owned self-check route, the queue-window companion, the focused replay route, and the survey-packet guard together, but it still should not be treated as sample-local proof or as proof that broader trace-events companions returned directly
 * same-lane follow-through should repair one reminder surface at a time instead of reclassifying the whole bytestream packet from memory or older wording alone
 * the lane still stays non-runtime and should not widen into procfs, user-copy, locking, runtime loader, or module-registration claims
 
