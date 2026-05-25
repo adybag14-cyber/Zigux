@@ -29,7 +29,8 @@ REQUIRED_MARKERS = {
         "`zigux/kernel/runtime_loader_contract.zig`",
         "`phase9-runtime-loader-shared-tests` shard remain neighboring shared-owner evidence",
         "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
-        "the runtime bitmap sample, cold-stage guard, survey, module, diff, loader, and top-bit companion packet members",
+        "the runtime bitmap sample, survey, module, diff, loader, and top-bit companion packet members",
+        "`phase9-runtime-bitmap-cold-stage-guard-tests` plus the aggregate `phase9-runtime-bitmap-tests` handle",
     ],
     PHASE9_BITMAP_SURVEY_PATH: [
         "`samples/zigux/runtime_bitmap_direct_init_contract.zig`",
