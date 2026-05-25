@@ -93,6 +93,13 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def exact_line_index(text: str, marker: str) -> int | None:
+    for index, line in enumerate(text.splitlines()):
+        if line.strip() == marker:
+            return index
+    return None
+
+
 def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -157,19 +164,35 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_SHAPE", "root"))
         return issues
 
+    workflow_indices: list[int] = []
     for marker in REQUIRED_WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
         if count == 0:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
-        elif count != 1:
+            continue
+        if count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
+            continue
+        workflow_indices.append(exact_line_index(workflow_text, marker) or 0)
+    if len(workflow_indices) == len(REQUIRED_WORKFLOW_LINES) and workflow_indices != sorted(
+        workflow_indices
+    ):
+        issues.append(("WORKFLOW_ORDER_MISMATCH", "phase2-validate-route-order"))
 
+    makefile_indices: list[int] = []
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
         if count == 0:
             issues.append(("MISSING_MAKEFILE_LINE", marker))
-        elif count != 1:
+            continue
+        if count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+            continue
+        makefile_indices.append(exact_line_index(makefile_text, marker) or 0)
+    if len(makefile_indices) == len(REQUIRED_MAKEFILE_LINES) and makefile_indices != sorted(
+        makefile_indices
+    ):
+        issues.append(("MAKEFILE_ORDER_MISMATCH", "phase2-validate-packet-order"))
 
     for marker in REQUIRED_SCRIPTS_README_MARKERS:
         if marker not in scripts_readme_text:
@@ -244,8 +267,10 @@ def run_self_test() -> int:
         1
         + len(REQUIRED_WORKFLOW_LINES)
         + len(REQUIRED_WORKFLOW_LINES)
+        + 1
         + len(REQUIRED_MAKEFILE_LINES)
         + len(REQUIRED_MAKEFILE_LINES)
+        + 1
         + len(REQUIRED_SCRIPTS_README_MARKERS)
         + 2
         + 2
@@ -280,6 +305,15 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
             checks += 1
 
+        build_sample_root(root)
+        workflow_path = resolve(root, WORKFLOW)
+        workflow_path.write_text(
+            "name: zigux-bootstrap\n" + "\n".join(reversed(REQUIRED_WORKFLOW_LINES)) + "\n",
+            encoding="utf-8",
+        )
+        assert ("WORKFLOW_ORDER_MISMATCH", "phase2-validate-route-order") in collect_issues(root)
+        checks += 1
+
         for marker in REQUIRED_MAKEFILE_LINES:
             build_sample_root(root)
             makefile_path = resolve(root, MAKEFILE)
@@ -299,6 +333,23 @@ def run_self_test() -> int:
             )
             assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
             checks += 1
+
+        build_sample_root(root)
+        makefile_path = resolve(root, MAKEFILE)
+        makefile_path.write_text(
+            "\n".join(
+                (
+                    "PYTHON ?= python3",
+                    "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+                    "",
+                    *reversed(REQUIRED_MAKEFILE_LINES),
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        assert ("MAKEFILE_ORDER_MISMATCH", "phase2-validate-packet-order") in collect_issues(root)
+        checks += 1
 
         for marker in REQUIRED_SCRIPTS_README_MARKERS:
             build_sample_root(root)
