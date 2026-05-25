@@ -14,7 +14,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_harness.c"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig"
-SELF_TEST_CASE_COUNT = 4
+EXPECTED_PARITY_CASE_COUNT = 40
+SELF_TEST_CASE_COUNT = 5
 
 
 def require_tool(name: str, env_name: str) -> str:
@@ -50,6 +51,13 @@ def compare_outputs(c_output: str, zig_output: str) -> int:
         print("ZIG_OUTPUT_START")
         print(zig_output.rstrip())
         print("ZIG_OUTPUT_END")
+        return 1
+
+    if len(c_lines) != EXPECTED_PARITY_CASE_COUNT:
+        print("PHASE6_BASE64_C_PARITY=fail")
+        print(
+            f"PHASE6_BASE64_C_PARITY_CASE_COUNT_MISMATCH=expected:{EXPECTED_PARITY_CASE_COUNT}:actual:{len(c_lines)}"
+        )
         return 1
 
     print("PHASE6_BASE64_C_PARITY=pass")
@@ -150,6 +158,15 @@ def run_self_test() -> int:
     if not outputs_match("a\nb\n", "a\nb\n"):
         raise SystemExit("self-test compare success case failed")
 
+    if outputs_match("left\n", "right\n"):
+        raise SystemExit("self-test mismatch case failed")
+
+    if compare_outputs("row\n" * EXPECTED_PARITY_CASE_COUNT, "row\n" * EXPECTED_PARITY_CASE_COUNT) != 0:
+        raise SystemExit("self-test exact-count success case failed")
+
+    if compare_outputs("row\n", "row\n") == 0:
+        raise SystemExit("self-test count mismatch case failed")
+
     with tempfile.TemporaryDirectory(prefix="phase6_base64_c_parity_selftest_") as tmpdir:
         tmp_path = Path(tmpdir)
         runner = tmp_path / "runner.zig"
@@ -158,7 +175,7 @@ def run_self_test() -> int:
 
         runner.write_text("pub fn main() void {}\n", encoding="utf-8")
         harness.write_text("int main(void) { return 0; }\n", encoding="utf-8")
-        build_file.write_text("const std = @import(\"std\");\n", encoding="utf-8")
+        build_file.write_text('const std = @import("std");\n', encoding="utf-8")
 
         if not runner.exists():
             raise SystemExit("self-test runner scaffold missing")
@@ -166,9 +183,6 @@ def run_self_test() -> int:
             raise SystemExit("self-test harness scaffold missing")
         if not build_file.exists():
             raise SystemExit("self-test build scaffold missing")
-
-    if outputs_match("left\n", "right\n"):
-        raise SystemExit("self-test mismatch case failed")
 
     print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")
     print(f"PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
