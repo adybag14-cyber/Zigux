@@ -11,16 +11,18 @@ SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 LANE_SEQ_NOTE_PATH = Path("Documentation/zigux/phase15-governance-lane-sequencing.md")
 
 DOCS_REQUIRED_MARKERS = (
-    "Phase 14 notes",
-    "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
+    "Phase 9 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-study-only-anchor-accounting.md` - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`",
+    "keep the freeze-map boundary explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
+    "Phase 14 notes - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
+    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
 )
 
 DOCS_FORBIDDEN_MARKERS = (
     "Phase 15 notes",
+    "## Phase 15",
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
-    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
 )
 
 HANDOFF_REQUIRED_MARKERS = (
@@ -93,8 +95,10 @@ def collect_failures(root: Path) -> list[str]:
 def _sample_docs_readme() -> str:
     return """# Zigux Documentation
 
-Phase 14 notes
-- `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+Phase 9 notes - `Documentation/zigux/freeze-map.md` - `Documentation/zigux/phase15-study-only-anchor-accounting.md` - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+- keep the freeze-map boundary explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues
+
+Phase 14 notes - `Documentation/zigux/phase14-end-to-end-smoke-survey.md` - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 """
 
 
@@ -148,12 +152,28 @@ def run_self_test() -> int:
         _seed(unexpected_phase15_root)
         _write(
             unexpected_phase15_root / DOCS_README_PATH,
-            _sample_docs_readme() + "Phase 15 notes\n",
+            _sample_docs_readme() + "\nPhase 15 notes\n",
         )
         failures = collect_failures(unexpected_phase15_root)
         expected = ["docs_readme:unexpected_phase15_marker:Phase 15 notes"]
         if failures != expected:
             raise AssertionError(f"unexpected Phase 15 marker failure: {failures}")
+        case_count += 1
+
+        missing_phase9_study_only_root = root / "missing_phase9_study_only"
+        _seed(missing_phase9_study_only_root)
+        _write(
+            missing_phase9_study_only_root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                DOCS_REQUIRED_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(missing_phase9_study_only_root)
+        expected = [f"docs_readme:missing:{DOCS_REQUIRED_MARKERS[0]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected Phase 9 marker failure: {failures}")
         case_count += 1
 
         missing_handoff_root = root / "missing_handoff"
@@ -191,7 +211,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify that the docs-root Phase 15 reminder state matches the current shared-summary gap posture."
+        description="Verify that the docs-root Phase 15 shared-summary posture matches current repo reality."
     )
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
