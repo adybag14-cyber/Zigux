@@ -89,7 +89,7 @@ pub fn makeDevTFields(major: u32, minor: u32) DevTFields {
 }
 
 pub fn encodeDeviceNumber(fields: DevTFields) ?u32 {
-    if (!dev_t.validate(fields)) return null;
+    if (!deviceFieldsAreValid(fields)) return null;
     return dev_t.makeDeviceNumber(fields.major, fields.minor);
 }
 
@@ -109,17 +109,30 @@ pub fn statusIsOk(status: ExportStatus) bool {
     return abi.statusIsOk(status);
 }
 
+pub fn deviceFieldsAreValid(fields: DevTFields) bool {
+    return dev_t.validate(fields);
+}
+
+pub fn deviceComponentsAreValid(major: u32, minor: u32) bool {
+    return deviceFieldsAreValid(makeDevTFields(major, minor));
+}
+
 pub fn validateDeviceFields(fields: DevTFields) ExportStatus {
-    if (dev_t.validate(fields)) return okStatus(.kernel);
+    if (deviceFieldsAreValid(fields)) return okStatus(.kernel);
     return errorStatus(invalid_argument, .kernel);
 }
 
 pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {
-    return validateDeviceFields(makeDevTFields(major, minor));
+    if (deviceComponentsAreValid(major, minor)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
+}
+
+pub fn deviceRangeIsValid(start: DevTFields, end: DevTFields) bool {
+    return dev_t.validateRange(start, end);
 }
 
 pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {
-    if (dev_t.validateRange(start, end)) return okStatus(.kernel);
+    if (deviceRangeIsValid(start, end)) return okStatus(.kernel);
     return errorStatus(invalid_argument, .kernel);
 }
 
@@ -324,6 +337,8 @@ test "export shim forwards starter dev_t fields without changing layout semantic
     const fields = makeDevTFields(11, 29);
     const same = makeDevTFields(11, 29);
     const different = makeDevTFields(11, 30);
+    const invalid_major = makeDevTFields(dev_t.max_major + 1, 0);
+    const invalid_minor = makeDevTFields(0, dev_t.max_minor + 1);
 
     try testing.expectEqual(@as(usize, 8), @sizeOf(DevTFields));
     try testing.expectEqual(@as(usize, 4), @alignOf(DevTFields));
@@ -331,6 +346,13 @@ test "export shim forwards starter dev_t fields without changing layout semantic
     try testing.expectEqual(@as(u32, 29), fields.minor);
     try testing.expect(dev_t.eql(fields, same));
     try testing.expect(!dev_t.eql(fields, different));
+    try testing.expect(deviceFieldsAreValid(fields));
+    try testing.expect(deviceFieldsAreValid(same));
+    try testing.expect(!deviceFieldsAreValid(invalid_major));
+    try testing.expect(!deviceFieldsAreValid(invalid_minor));
+    try testing.expect(deviceComponentsAreValid(11, 29));
+    try testing.expect(!deviceComponentsAreValid(dev_t.max_major + 1, 0));
+    try testing.expect(!deviceComponentsAreValid(0, dev_t.max_minor + 1));
 }
 
 test "export shim keeps validated dev_t encoding explicit" {
@@ -347,14 +369,16 @@ test "export shim keeps validated dev_t encoding explicit" {
 test "export shim relays bounded dev_t validation through status helpers" {
     const valid = validateDeviceNumber(dev_t.max_major, dev_t.max_minor);
     const invalid = validateDeviceNumber(dev_t.max_major + 1, 0);
-    const good_range = validateDeviceRange(
-        makeDevTFields(1, 2),
-        makeDevTFields(1, 3),
-    );
-    const bad_range = validateDeviceRange(
-        makeDevTFields(1, 3),
-        makeDevTFields(1, 2),
-    );
+    const same = makeDevTFields(1, 2);
+    const later = makeDevTFields(1, 3);
+    const invalid_minor = makeDevTFields(0, dev_t.max_minor + 1);
+    const good_range = validateDeviceRange(same, later);
+    const bad_range = validateDeviceRange(later, same);
+
+    try testing.expect(deviceRangeIsValid(same, later));
+    try testing.expect(deviceRangeIsValid(same, same));
+    try testing.expect(!deviceRangeIsValid(later, same));
+    try testing.expect(!deviceRangeIsValid(same, invalid_minor));
 
     try testing.expectEqual(@as(i32, 0), valid.code);
     try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), valid.facility);
