@@ -26,6 +26,11 @@ static uint32_t csum_block_add(uint32_t sum, uint32_t other, int offset)
 	return csum_add(sum, csum_shift(other, offset));
 }
 
+static uint32_t csum_negate(uint32_t sum)
+{
+	return 0U - sum;
+}
+
 static uint16_t csum_from32to16(uint32_t sum)
 {
 	sum += (sum >> 16) | (sum << 16);
@@ -35,6 +40,13 @@ static uint16_t csum_from32to16(uint32_t sum)
 static uint16_t csum_fold(uint32_t sum)
 {
 	return (uint16_t)~csum_from32to16(sum);
+}
+
+static uint32_t csum_from64to32(uint64_t sum)
+{
+	sum = (sum & 0xffffffffULL) + (sum >> 32);
+	sum = (sum & 0xffffffffULL) + (sum >> 32);
+	return (uint32_t)sum;
 }
 
 static uint32_t csum_unfold(uint16_t sum)
@@ -190,6 +202,16 @@ int main(void)
 	print_u32_case("tcpudp-nofold", "udp pseudo header",
 		       csum_tcpudp_nofold(udp_saddr, udp_daddr, sizeof(udp_payload) - 1, udp_proto,
 					  partial_bytes(udp_payload, sizeof(udp_payload) - 1, 0)));
+
+	print_u32_case("negate", "zero", csum_negate(0x00000000U));
+	print_u32_case("negate", "unit", csum_negate(0x00000001U));
+	print_u32_case("negate", "saturated", csum_negate(0xffffffffU));
+	print_u32_case("negate", "carry-heavy", csum_negate(0xdeadbef0U));
+
+	print_u32_case("from64to32", "zero", csum_from64to32(0x0000000000000000ULL));
+	print_u32_case("from64to32", "single carry", csum_from64to32(0x0000000100000000ULL));
+	print_u32_case("from64to32", "saturated plus one", csum_from64to32(0xffffffff00000001ULL));
+	print_u32_case("from64to32", "mixed words", csum_from64to32(0x123456789abcdef0ULL));
 
 	old_partial = partial_bytes(payload, sizeof(payload), 0);
 	old_word = ((uint32_t)payload[0] << 8) | payload[1];
