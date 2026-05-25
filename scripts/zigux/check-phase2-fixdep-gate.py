@@ -80,6 +80,7 @@ FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
 
 FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
     "EXPECTED_FIXTURE_FILES = frozenset(",
+    "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)",
     "def validate_fixture_inventory(",
     "actual_files = {path.name for path in fixture_dir.iterdir() if path.is_file()}",
     'raise FileNotFoundError(f"{fixture_dir}:missing_fixtures:{\',\'.join(missing)}")',
@@ -93,6 +94,13 @@ FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
     'raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")',
     'if stdout_mode not in (None, "dev_full"):',
     'raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")',
+    'if seen_names != EXPECTED_CASE_ORDER:',
+    'raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")',
+    'if len(validated) != len(EXPECTED_CASES):',
+    'raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")',
+    "missing_names = sorted(set(EXPECTED_CASES) - seen_name_set)",
+    'if missing_names:',
+    'raise ValueError(f"{CASES_PATH}:missing_name:{missing_names[0]}")',
     "validate_fixture_inventory()",
     "cases = validate_cases(load_cases(CASES_PATH))",
 )
