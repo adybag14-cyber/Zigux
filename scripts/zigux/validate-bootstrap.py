@@ -25,10 +25,33 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-lane05-stage-helper-contract.py",
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
+    "scripts/zigux/check-phase2-kbuild-routes.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-toolchain-pinning.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-phase2-required-make-routes.py",
+    "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/check-phase2-tool-manifest.py",
+    "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/install-zig.py",
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
+    "zigux/Makefile",
     "zigux/tests/README.md",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
     WORKFLOW,
 )
 
@@ -86,10 +109,46 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
     "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
     "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "run: python3 scripts/zigux/check-fixdep-diff.py",
+    "run: zig test scripts/zigux/fixdep.zig",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
+    "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross.py",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "run: make -C zigux phase2-toolchain",
+    "run: make -C zigux phase2-tools",
+    "run: make -C zigux phase2-kconfig",
+    "run: make -C zigux phase2-fixdep",
+    "run: make -C zigux phase2-cross",
+    "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
+    "run: zig test scripts/zigux/genksyms.zig",
+    "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "run: make -C zigux phase2-genksyms",
+    "run: make -C zigux phase2-validate",
+    "run: python3 scripts/zigux/validate-phase2.py",
     "run: make -C zigux phase6-validate",
     "run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
     "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
@@ -294,10 +353,33 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/check-lane05-stage-helper-contract.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-selftest.py", "present\n")
     write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-kbuild-routes.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-cross.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-cross-selftest-alignment.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-toolchain-pinning.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-toolchain-pin-scope.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-required-make-routes.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-docs-shared-reminder.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-tool-manifest.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-artifact-tools-manifest.py", "present\n")
+    write_text(root, "scripts/zigux/check-genksyms-bridge.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-genksyms-selftest-alignment.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-fixdep-gate.py", "present\n")
+    write_text(root, "scripts/zigux/check-fixdep-diff.py", "present\n")
     write_text(root, "scripts/zigux/install-zig.py", "present\n")
+    write_text(root, "scripts/zigux/validate-phase2.py", "present\n")
+    write_text(root, "scripts/zigux/validate-phase2-closure.py", "present\n")
+    write_text(root, "scripts/zigux/fixdep.zig", "present\n")
+    write_text(root, "scripts/zigux/genksyms.zig", "present\n")
+    write_text(root, "scripts/zigux/kconfig/conf_bridge.zig", "present\n")
+    write_text(root, "scripts/zigux/kconfig/confdata_bridge.zig", "present\n")
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
     write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
+    write_text(root, "zigux/Makefile", "present\n")
     write_text(root, "zigux/tests/README.md", "present\n")
+    write_text(root, "zigux/tests/fixtures/phase2_tool_manifest.json", "{}\n")
+    write_text(root, "zigux/tests/fixtures/phase2_artifact_tools_manifest.json", "{}\n")
+    write_text(root, "zigux/tests/fixtures/phase2_cross_targets.json", "[]\n")
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
 
 
@@ -362,6 +444,19 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            replace_exact_line(
+                read_text(root, WORKFLOW),
+                "run: make -C zigux phase2-genksyms",
+                "run: make -C zigux phase2-genksyms-again",
+            ),
+        )
+        assert ("MISSING_WORKFLOW_LINE", "run: make -C zigux phase2-genksyms") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), REQUIRED_WORKFLOW_LINES[-1]))
         assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[-1]}:count=2") in collect_issues(root)
         checks += 1
@@ -376,6 +471,14 @@ def run_self_test() -> int:
         assert (
             "MISSING_REQUIRED_PATH",
             "scripts/zigux/check-phase1-route-summary-counts.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-required-make-routes.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/check-phase2-required-make-routes.py",
         ) in collect_issues(root)
         checks += 1
 
