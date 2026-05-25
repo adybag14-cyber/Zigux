@@ -28,7 +28,7 @@
     "workqueue_internal_h_lines": 84,
     "test_workqueue_c_lines": 294,
     "preexisting_kernel_export_shim_present": true,
-    "preexisting_phase14_build_present": false,
+    "preexisting_phase14_build_present": true,
     "preexisting_phase14_make_target_present": true,
     "preexisting_workqueue_bridge_present": true,
     "preexisting_phase14_workqueue_test_present": true,
@@ -61,7 +61,7 @@
       "the lane-local handoff wording stops matching kernel/workqueue_bridge.zig's blocked-maintenance next-step guidance for the workqueue anchor",
       "genuinely narrower stay-in-C evidence appears around delayed-work timer expiry, delayed-work requeue governance, flush-drain ownership, hotplug topology rebinding, or scheduler-visible worker-state transitions without implying live execution ownership"
     ],
-    "next_future_target": "stay in blocked maintenance unless one of those packet-local reopen conditions fires; this remains the roadmap's wrapper-first study packet for the freeze map's Study / Boundary Only workqueue anchor, so if a future truthfulness drift is workqueue-local, reread kernel/workqueue_bridge.zig, especially the explicit cancel-path handoff around __cancel_work_sync(), disable_work(), and __flush_work(), together with zigux/tests/phase14_workqueue_bridge.zig, zigux/tests/phase14_workqueue_reviewability.zig, zigux/tests/phase14_workqueue_bridge_manifest.json, Documentation/zigux/phase14-workqueue-bridge-slice.md, and Documentation/zigux/phase14-workqueue-bridge-survey.md until the bridge-local blocked-maintenance handoff is aligned again, and leave broader phase14_build rerun vocabulary to the shared Phase 14 smoke packet until that build layer is directly readable again"
+    "next_future_target": "stay in blocked maintenance unless one of those packet-local reopen conditions fires; this remains the roadmap's wrapper-first study packet for the freeze map's Study / Boundary Only workqueue anchor, so if a future truthfulness drift is workqueue-local, reread kernel/workqueue_bridge.zig, especially the explicit cancel-path handoff around __cancel_work_sync(), disable_work(), and __flush_work(), together with zigux/tests/phase14_workqueue_bridge.zig, zigux/tests/phase14_workqueue_reviewability.zig, zigux/tests/phase14_workqueue_bridge_manifest.json, Documentation/zigux/phase14-workqueue-bridge-slice.md, and Documentation/zigux/phase14-workqueue-bridge-survey.md until the bridge-local blocked-maintenance handoff is aligned again, and leave broader phase14_build rerun vocabulary to the shared Phase 14 smoke packet as shared-packet evidence rather than a bridge-local trust promotion signal"
   },
   "gaps": [
     {"id":"phase14-build-gate","status":"starter_landed","kind":"validation","zigux_destination":"zigux/tests/phase14_build.zig","why_now":"A dedicated build gate keeps the workqueue bridge reviewable without pretending Zigux owns live async execution."},
