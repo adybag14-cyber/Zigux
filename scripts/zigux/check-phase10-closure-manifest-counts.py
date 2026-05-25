@@ -70,6 +70,10 @@ REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE = [
     "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
 ]
 
+REQUIRED_MMIO_LAB_VALIDATION_EVIDENCE = [
+    "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig",
+]
+
 REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE = [
     "samples/zigux",
     "zigux/tests/phase5_build.zig",
@@ -124,6 +128,9 @@ REQUIRED_FOCUSED_HARNESS_REPLAYS = {
     ],
     "zigux/tests/phase10_virtio_mmio.zig": [
         "phase10 mmio lab replay",
+    ],
+    "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig": [
+        "phase10 mmio apply-observation replay",
     ],
     "zigux/tests/phase10_virtio_mmio_survey.zig": [
         "phase10 mmio survey replay",
@@ -331,6 +338,13 @@ def collect_drift(manifest: dict) -> list[str]:
             )
 
     for item in REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE:
+        if item not in lab_validation_evidence:
+            drift.append(
+                "roadmap_parity_scoreboard:lab_only_driver_validation:"
+                f"{item!r}:missing"
+            )
+
+    for item in REQUIRED_MMIO_LAB_VALIDATION_EVIDENCE:
         if item not in lab_validation_evidence:
             drift.append(
                 "roadmap_parity_scoreboard:lab_only_driver_validation:"
@@ -561,6 +575,7 @@ def fixture_manifest() -> dict:
                 "status": "starter_landed",
                 "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE
                 + REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE
+                + REQUIRED_MMIO_LAB_VALIDATION_EVIDENCE
                 + REQUIRED_CORE_LAB_VALIDATION_EVIDENCE,
             },
             "dual_implementations_for_risky_areas": {
@@ -1074,6 +1089,21 @@ def run_self_test() -> int:
         write_fixture(root)
 
         broken = dict(original)
+        broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            item
+            for item in broken["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if item != "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig"
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = dict(original)
         broken["roadmap_parity_scoreboard"]["dual_implementations_for_risky_areas"]["evidence"] = [
             item
             for item in broken["roadmap_parity_scoreboard"]["dual_implementations_for_risky_areas"]["evidence"]
@@ -1229,6 +1259,19 @@ def run_self_test() -> int:
         expect_contains(
             validate(root)[1],
             "focused_harness_replays:zigux/tests/phase10_virtio_mmio.zig:'phase10 mmio lab replay':missing",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = dict(original)
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig"] = [
+            "phase10 mmio apply-observation drift",
+        ]
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig:'phase10 mmio apply-observation replay':missing",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
@@ -1430,7 +1473,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_MMIO_EVIDENCE_COUNT={len(REQUIRED_MMIO_SCOREBOARD_EVIDENCE)}")
     print(
         "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_LAB_VALIDATION_EVIDENCE_COUNT="
-        f"{len(REQUIRED_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_CORE_LAB_VALIDATION_EVIDENCE)}"
+        f"{len(REQUIRED_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_MMIO_LAB_VALIDATION_EVIDENCE) + len(REQUIRED_CORE_LAB_VALIDATION_EVIDENCE)}"
     )
     print(
         "PHASE10_CLOSURE_MANIFEST_COUNTS_REQUIRED_REFERENCE_SAMPLE_EVIDENCE_COUNT="
