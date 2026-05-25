@@ -16,6 +16,7 @@ SNAPSHOT_PATH = Path("zigux/tests/fixtures/phase12_libbpf_snapshot.json")
 SNAPSHOT_DETERMINISM_PATH = Path(
     "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
 )
+REVIEWABILITY_PATH = Path("zigux/tests/phase12_libbpf_reviewability.zig")
 
 EXPECTED_SNAPSHOT_LANE_KEY = "P12-L16"
 EXPECTED_PHASE = "Phase 12"
@@ -25,13 +26,25 @@ EXPECTED_SNAPSHOT_TRACKED_PATHS = [
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
     "Documentation/zigux/phase12-release-coordination-matrix.md",
 ]
+REVIEWABILITY_SNAPSHOT_MARKERS = {
+    "test_name": 'test "phase12 libbpf reviewability gate keeps the current snapshot anchor exact"',
+    "tracked_file_count_assertion": "try std.testing.expectEqual(expected_paths.len, fixture.tracked_file_count);",
+    "per_path_assertion": "try std.testing.expectEqualStrings(expected_path, file_entry.path);",
+    "snapshot_fixture_path": SNAPSHOT_PATH.as_posix(),
+    "snapshot_determinism_fixture_path": SNAPSHOT_DETERMINISM_PATH.as_posix(),
+    "survey_note_path": EXPECTED_SNAPSHOT_TRACKED_PATHS[0],
+    "verify_note_path": EXPECTED_SNAPSHOT_TRACKED_PATHS[1],
+    "heavy_consumer_note_path": EXPECTED_SNAPSHOT_TRACKED_PATHS[2],
+    "release_coordination_note_path": EXPECTED_SNAPSHOT_TRACKED_PATHS[3],
+    "legacy_segment_catalog_path": "tools/lib/bpf/zigux_segments/manifest.json",
+}
 
 EXPECTED_DETERMINISM_LANE_KEY = "P12-L17"
 EXPECTED_DETERMINISM_TRACKED_PATHS = [
     "tools/lib/bpf/zigux_segments/pin_path.zig",
 ]
 EXPECTED_READBACK_MODE = "github-contents-readback"
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 30
 
 
 def load_json(path: Path) -> dict[str, object]:
@@ -194,6 +207,20 @@ def collect_note_blob_missing(
     return missing
 
 
+def collect_reviewability_marker_missing(*, root: Path, prefix: str) -> list[str]:
+    reviewability_path = root / REVIEWABILITY_PATH
+    if not reviewability_path.exists():
+        return [f"missing_file:{REVIEWABILITY_PATH.as_posix()}"]
+
+    reviewability_text = reviewability_path.read_text(encoding="utf-8")
+    missing: list[str] = []
+    for label, marker in REVIEWABILITY_SNAPSHOT_MARKERS.items():
+        if marker not in reviewability_text:
+            missing.append(f"{prefix}:reviewability:{label}")
+
+    return missing
+
+
 def collect_current_helper_blob_missing(*, root: Path, verification_evidence: object) -> list[str]:
     if not isinstance(verification_evidence, dict):
         return []
@@ -278,6 +305,12 @@ def collect_snapshot_missing(root: Path) -> list[str]:
             prefix="snapshot",
         )
     )
+    missing.extend(
+        collect_reviewability_marker_missing(
+            root=root,
+            prefix="snapshot",
+        )
+    )
     return missing
 
 
@@ -356,6 +389,25 @@ def build_fixture_tree(root: Path) -> None:
     helper_path.parent.mkdir(parents=True, exist_ok=True)
     helper_path.write_text(
         'pub const default_bpf_fs_path = "/sys/fs/bpf";\n',
+        encoding="utf-8",
+    )
+
+    reviewability_path = root / REVIEWABILITY_PATH
+    reviewability_path.parent.mkdir(parents=True, exist_ok=True)
+    reviewability_path.write_text(
+        "\n".join(
+            [
+                'test "phase12 libbpf reviewability gate keeps the current snapshot anchor exact" {',
+                "    try std.testing.expectEqual(expected_paths.len, fixture.tracked_file_count);",
+                "    try std.testing.expectEqualStrings(expected_path, file_entry.path);",
+                f'    _ = "{SNAPSHOT_PATH.as_posix()}";',
+                f'    _ = "{SNAPSHOT_DETERMINISM_PATH.as_posix()}";',
+                *(f'    _ = "{rel_path}";' for rel_path in EXPECTED_SNAPSHOT_TRACKED_PATHS),
+                '    _ = "tools/lib/bpf/zigux_segments/manifest.json";',
+                "}",
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -683,6 +735,18 @@ def run_self_test() -> None:
             tmp_root,
             "snapshot:verification_evidence:current_note_blobs:3:blob_sha:mismatch",
             "snapshot_current_note_blob_sha_mismatch",
+        )
+        build_fixture_tree(tmp_root)
+
+        replace_once(
+            tmp_root / REVIEWABILITY_PATH,
+            "    try std.testing.expectEqual(expected_paths.len, fixture.tracked_file_count);\n",
+            "",
+        )
+        expect_case(
+            tmp_root,
+            "snapshot:reviewability:tracked_file_count_assertion",
+            "reviewability_tracked_file_count_assertion",
         )
         build_fixture_tree(tmp_root)
 
