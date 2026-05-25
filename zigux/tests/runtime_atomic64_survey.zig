@@ -149,11 +149,31 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary.missing_capability, "runtime substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary.next_gate, "review-only evidence") != null);
 
-    try std.testing.expect(manifest.delivery_evidence_catalog.len >= 8);
+    try std.testing.expectEqual(@as(usize, 13), manifest.delivery_evidence_catalog.len);
     try std.testing.expect(hasEvidence(
         manifest.delivery_evidence_catalog,
         "runtime-atomic64-sample",
         "samples/zigux/runtime_atomic64.zig",
+    ));
+    try std.testing.expect(hasEvidence(
+        manifest.delivery_evidence_catalog,
+        "runtime-atomic64-family-make-route",
+        "zigux/Makefile",
+    ));
+    try std.testing.expect(hasEvidence(
+        manifest.delivery_evidence_catalog,
+        "runtime-loader-facade",
+        "zigux/kernel/runtime_loader.zig",
+    ));
+    try std.testing.expect(hasEvidence(
+        manifest.delivery_evidence_catalog,
+        "runtime-loader-contract",
+        "zigux/kernel/runtime_loader_contract.zig",
+    ));
+    try std.testing.expect(hasEvidence(
+        manifest.delivery_evidence_catalog,
+        "runtime-loader-allocator-init-flow",
+        "zigux/tests/runtime_loader_allocator_init_flow.zig",
     ));
     try std.testing.expect(hasEvidence(
         manifest.delivery_evidence_catalog,
@@ -181,7 +201,7 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
         "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
     ));
 
-    try std.testing.expect(manifest.ownership_map.len >= 4);
+    try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
     try std.testing.expect(hasOwnership(
         manifest.ownership_map,
         "zigux/tests/runtime_atomic64_manifest.json",
@@ -189,10 +209,26 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     ));
     try std.testing.expect(hasOwnership(
         manifest.ownership_map,
+        "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+        "P9-L04",
+    ));
+    try std.testing.expect(hasOwnership(
+        manifest.ownership_map,
+        "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+        "P9-L04",
+    ));
+    try std.testing.expect(hasOwnership(
+        manifest.ownership_map,
+        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+        "P9-L11",
+    ));
+    try std.testing.expect(hasOwnership(
+        manifest.ownership_map,
         "zigux/tests/phase9_build.zig",
         "P9-L11",
     ));
 
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
@@ -212,6 +248,27 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
 
     const survey_gap = findGap(manifest.gaps, "runtime-atomic64-survey-gate") orelse return error.MissingSurveyGap;
     try std.testing.expectEqualStrings("starter_landed", survey_gap.status);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_survey.zig", survey_gap.zigux_destination);
+
+    const make_route_gap = findGap(manifest.gaps, "runtime-atomic64-make-route") orelse return error.MissingMakeRouteGap;
+    try std.testing.expectEqualStrings("starter_landed", make_route_gap.status);
+    try std.testing.expectEqualStrings("zigux/Makefile", make_route_gap.zigux_destination);
+
+    const sample_gap = findGap(manifest.gaps, "runtime-atomic64-sample-module") orelse return error.MissingSampleGap;
+    try std.testing.expectEqualStrings("starter_landed", sample_gap.status);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", sample_gap.zigux_destination);
+
+    const selftest_gap = findGap(manifest.gaps, "runtime-atomic64-selftest-hook") orelse return error.MissingSelftestGap;
+    try std.testing.expectEqualStrings("starter_landed", selftest_gap.status);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", selftest_gap.zigux_destination);
+
+    const module_gap = findGap(manifest.gaps, "runtime-atomic64-module-tests") orelse return error.MissingModuleGap;
+    try std.testing.expectEqualStrings("starter_landed", module_gap.status);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_module.zig", module_gap.zigux_destination);
+
+    const diff_gap = findGap(manifest.gaps, "runtime-atomic64-diff-gate") orelse return error.MissingDiffGap;
+    try std.testing.expectEqualStrings("starter_landed", diff_gap.status);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", diff_gap.zigux_destination);
 
     const blocked_gap = findGap(manifest.gaps, "runtime-atomic64-live-loader-binding") orelse return error.MissingBlockedGap;
     try std.testing.expectEqualStrings("blocked_on_runtime_substrate", blocked_gap.status);
@@ -239,6 +296,9 @@ test "phase 9 runtime atomic64 note family records the current shared-loader rem
     try expectContains(survey_note_source, "later counter mutation");
     try expectContains(survey_note_source, "later selftest activity");
     try expectContains(survey_note_source, "later exit activity");
+    try expectContains(survey_note_source, "Freeze-Map Governance Evidence");
+    try expectContains(survey_note_source, "phase9-runtime-loader-allocator-init-flow-tests");
+    try expectContains(survey_note_source, "phase9-runtime-loader-command-env-boundary-guard-tests");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_gap_survey.zig");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_selftest_complete_exit_parity.zig");
     try expectLacks(survey_note_source, "scripts/zigux/kconfig/conf_bridge.zig");
@@ -254,6 +314,8 @@ test "phase 9 runtime atomic64 note family records the current shared-loader rem
     try expectContains(module_slice_note_source, "zigux/tests/README.md");
     try expectContains(module_slice_note_source, "zigux/Makefile");
     try expectContains(module_slice_note_source, "review-only evidence");
+    try expectContains(module_slice_note_source, "Freeze-Map Governance Boundary");
+    try expectContains(module_slice_note_source, "Minimum Freeze-Map Review Record");
     try expectLacks(module_slice_note_source, "scripts/zigux/kconfig/conf_bridge.zig");
     try expectLacks(module_slice_note_source, "scripts/zigux/kconfig/confdata_bridge.zig");
     try expectLacks(module_slice_note_source, "rust/exports.c");
