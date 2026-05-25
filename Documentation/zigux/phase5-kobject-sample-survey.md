@@ -77,8 +77,8 @@ When a same-lane change touches this anchor or one of its shared reminder surfac
 - does the note still treat `zigux/tests/phase5_build.zig` as the current directly readable shared build-route companion rather than parking it in the public-tree-backed bucket?
 - does the note still treat `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` as the current public-tree-backed companion set rather than direct readback proof in this runtime?
 - does the note still treat `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` as current direct evidence for the bounded attr-group companion packet?
-- does the surrounding shared packet in `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the same mixed direct-versus-public-tree-backed split?
-- do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, and the attr-group companion packet still describe the same bounded ownership-and-lifetime surface across the sample root, focused replay, companion survey guard, survey note, and shared build route?
+- does the surrounding shared packet in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the same mixed direct-versus-public-tree-backed split and keep the bounded attr-group companion explicit beside the broader ownership-and-lifetime sample?
+- do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, and the attr-group companion packet still describe the same bounded ownership-and-lifetime surface across the sample root, focused replay, companion survey guard, survey note, shared checklist, and shared build route?
 
 ## Non-goals
 
@@ -93,4 +93,4 @@ This note still does not claim:
 
 Leave this lane parked unless a fresh reread changes one bounded fact inside the same packet.
 
-If the lane reopens soon, start with `Documentation/zigux/phase5-kobject-sample-survey.md` and verify only whether the current sample-root owner, direct sample-owned replay, bounded attr-group companion, focused attr-group replay, dedicated attr-group survey guard, shared build-route companion, and public-tree-backed manifest-plus-survey companions still keep the same split before widening anything else.
+If the lane reopens soon, start with `Documentation/zigux/phase5-kobject-sample-survey.md` and verify only whether the current sample-root owner, direct sample-owned replay, bounded attr-group companion, focused attr-group replay, dedicated attr-group survey guard, shared checklist, shared build-route companion, and public-tree-backed manifest-plus-survey companions still keep the same split before widening anything else.
