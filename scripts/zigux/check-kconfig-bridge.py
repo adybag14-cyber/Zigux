@@ -168,7 +168,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
@@ -500,6 +500,15 @@ def run_self_test() -> int:
         manifest["helper_local_allconfig_implicit_omission_modes"] = REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES[:-1]
         write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
         assert any(code == "CONF_MANIFEST_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        explicit_override_modes = list(REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES)
+        explicit_override_modes.remove("alldefconfig")
+        manifest["helper_local_allconfig_explicit_override_modes"] = explicit_override_modes
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "CONF_MANIFEST_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES_MISMATCH" for code, _ in collect_manifest_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
