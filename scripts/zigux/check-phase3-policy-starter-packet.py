@@ -61,6 +61,7 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
+    "make -C zigux phase3-policy-starter-packet-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
@@ -213,6 +214,7 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
         '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
+        '"make -C zigux phase3-policy-starter-packet-test"',
     ),
 }
 
@@ -237,6 +239,7 @@ SELF_TEST_CASES = (
     (BUILD_PATH, '"phase3-policy-starter-packet-test"'),
     (DUMP_CHECKER_PATH, 'EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")'),
     (MANIFEST_PATH, '"zigux/tests/phase3_policy_dump.zig"'),
+    (MANIFEST_PATH, '"make -C zigux phase3-policy-starter-packet-test"'),
 )
 
 
