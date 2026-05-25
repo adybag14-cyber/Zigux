@@ -80,13 +80,13 @@ fn rawBridgeReplay(policy: abi.InteropPolicy) RawBridgeReplay {
     const first_addr = @intFromPtr(&bridge_words[0]);
     const second_addr = @intFromPtr(&bridge_words[1]);
 
-    const ptr = narrow_surface.pointerAtInteropPolicy(u32, first_addr, @sizeOf(u32), policy) catch {
+    const ptr = unsafe_policy.pointerAtInteropPolicy(u32, first_addr, @sizeOf(u32), policy) catch {
         return .{ .read_ok = false, .write_ok = false };
     };
-    const const_ptr = narrow_surface.constPointerAtInteropPolicy(u32, second_addr, policy) catch {
+    const const_ptr = unsafe_policy.constPointerAtInteropPolicy(u32, second_addr, policy) catch {
         return .{ .read_ok = false, .write_ok = false };
     };
-    const const_slice = narrow_surface.constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, policy) catch {
+    const const_slice = unsafe_policy.constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, policy) catch {
         return .{ .read_ok = false, .write_ok = false };
     };
     const read_ok =
@@ -96,11 +96,11 @@ fn rawBridgeReplay(policy: abi.InteropPolicy) RawBridgeReplay {
         const_slice[0] == 31 and
         const_slice[1] == 47;
 
-    narrow_surface.writeValueAtInteropPolicy(u32, second_addr, 73, policy) catch {
+    unsafe_policy.writeValueAtInteropPolicy(u32, second_addr, 73, policy) catch {
         return .{ .read_ok = read_ok, .write_ok = false };
     };
 
-    const written_slice = narrow_surface.constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, policy) catch {
+    const written_slice = unsafe_policy.constSliceAtInteropPolicy(u32, first_addr, bridge_words.len, policy) catch {
         return .{ .read_ok = read_ok, .write_ok = false };
     };
 
