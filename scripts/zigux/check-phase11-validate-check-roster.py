@@ -273,7 +273,7 @@ def build_fixture(
             "    command: tuple[str, ...]",
             "",
             "REQUIRED_PATHS = (",
-            *(f'    "{path}",' for path in required_paths),
+            *(f'    \"{path}\",' for path in required_paths),
             ")",
             "",
             "CHECKS = (",
