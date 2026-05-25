@@ -23,13 +23,13 @@ RUNTIME_LOADER_ALLOCATOR_INIT_FLOW_PATH = "zigux/tests/runtime_loader_allocator_
 
 REQUIRED_MARKERS = {
     DOCS_README_PATH: [
-        "keep the returned shared runtime-loader allocator/init-flow packet explicit too:",
+        "keep the returned shared runtime-loader allocator/init-flow and command/environment boundary packet explicit as neighboring shared-owner evidence through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`",
         "`zigux/tests/runtime_loader_allocator_init_flow.zig`",
         "`zigux/kernel/runtime_loader.zig`",
         "`zigux/kernel/runtime_loader_contract.zig`",
         "`phase9-runtime-loader-shared-tests` shard remain neighboring shared-owner evidence",
         "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
-        "the runtime bitmap sample, survey, module, diff, loader, and top-bit companion packet members",
+        "the runtime bitmap sample, cold-stage guard, survey, module, diff, loader, and top-bit companion packet members",
         "`phase9-runtime-bitmap-cold-stage-guard-tests` plus the aggregate `phase9-runtime-bitmap-tests` handle",
     ],
     PHASE9_BITMAP_SURVEY_PATH: [
@@ -53,7 +53,7 @@ REQUIRED_MARKERS = {
     LANE_SEQUENCING_PATH: [
         "The shared runtime-loader allocator/init-flow and command/environment boundary packet now survives as a narrower direct-readback shared-owner surface",
         "Trusted GitHub rereads on 2026-05-21 directly recover the still-live shared loader packet through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the still-returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, and the bounded `zigux/tests/phase9_build.zig` shard.",
-        "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
+        "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
         "`zigux/tests/phase9_build.zig` now also names `phase9-runtime-loader-command-env-boundary-guard-tests`",
         "`samples/zigux/runtime_bitmap_cold_stage_guard.zig` now also returns on the trusted path as sample-root-only cold-stage selftest, exit, mutation, and source-lifecycle guard proof",
         "`phase9-runtime-bitmap-cold-stage-guard-tests` route plus the aggregate `phase9-runtime-bitmap-tests` handle",
