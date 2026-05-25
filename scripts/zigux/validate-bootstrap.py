@@ -24,6 +24,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/stage-pinned-zig-archive.py",
     "scripts/zigux/check-lane05-stage-helper-contract.py",
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/validate-bootstrap.py",
@@ -80,12 +81,14 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
     "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
     "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
-    "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
     "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
     "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
     "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
     "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
@@ -293,6 +296,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-contract.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-selftest.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-fixdep-gate.py", "present\n")
     write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
     write_text(root, "scripts/zigux/install-zig.py", "present\n")
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
@@ -351,13 +355,13 @@ def run_self_test() -> int:
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
-                "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
+                "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
                 "run: python3 scripts/zigux/other.py",
             ),
         )
         assert (
             "MISSING_WORKFLOW_LINE",
-            "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
+            "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
         ) in collect_issues(root)
         checks += 1
 
@@ -372,6 +376,38 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        (root / "scripts/zigux/check-lane05-stage-helper-contract.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/check-lane05-stage-helper-contract.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            replace_exact_line(
+                read_text(root, WORKFLOW),
+                "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
+                "run: python3 scripts/zigux/other-install-zig-archive-verification.py",
+            ),
+        )
+        assert (
+            "MISSING_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase1-route-summary-counts.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/check-phase1-route-summary-counts.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         (root / "scripts/zigux/check-lane05-install-zig-archive-verification.py").unlink()
         assert (
             "MISSING_REQUIRED_PATH",
@@ -381,14 +417,9 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         (root / "scripts/zigux/stage-pinned-zig-archive.py").unlink()
-        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/stage-pinned-zig-archive.py") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        (root / "scripts/zigux/check-lane05-stage-helper-contract.py").unlink()
         assert (
             "MISSING_REQUIRED_PATH",
-            "scripts/zigux/check-lane05-stage-helper-contract.py",
+            "scripts/zigux/stage-pinned-zig-archive.py",
         ) in collect_issues(root)
         checks += 1
 
@@ -417,26 +448,26 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-fixdep-gate.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/check-phase2-fixdep-gate.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         write_text(
             root,
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
-                "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
-                "run: python3 scripts/zigux/other-install-zig-archive-verification.py",
+                "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+                "run: python3 scripts/zigux/other-phase2-fixdep-gate.py",
             ),
         )
         assert (
             "MISSING_WORKFLOW_LINE",
-            "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
-        ) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        (root / "scripts/zigux/check-phase1-route-summary-counts.py").unlink()
-        assert (
-            "MISSING_REQUIRED_PATH",
-            "scripts/zigux/check-phase1-route-summary-counts.py",
+            "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
         ) in collect_issues(root)
         checks += 1
 
