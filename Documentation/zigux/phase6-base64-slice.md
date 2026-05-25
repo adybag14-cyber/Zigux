@@ -78,7 +78,7 @@ The current tests check:
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 - the committed slowdown replay in `zigux/tests/phase6_base64_perf.zig`, which keeps the helper tied to the shared Phase 6 build foothold without widening into broader runtime-core work
 - a representative external C-vs-Zig portability replay through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`, covering standard padded and unpadded cases plus URL-safe, IMAP, and malformed decode spot checks
-- the dedicated parity checker self-test contract in `scripts/zigux/check-phase6-base64-c-parity.py`, which still records `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=4` separately from the broader replayed portability packet
+- the dedicated parity checker self-test contract in `scripts/zigux/check-phase6-base64-c-parity.py`, which still records `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=5` separately from the broader replayed portability packet
 
 ## Non-goals
 
