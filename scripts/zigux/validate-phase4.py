@@ -208,7 +208,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
             "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
         ),
     ),
-    "phase4-gate-evidence-self-test": (("phase4 gate evidence self-test", "phase4 gate evidence self-test: PASS (44 cases)"),),
+    "phase4-gate-evidence-self-test": (("phase4 gate evidence self-test", "phase4 gate evidence self-test: PASS (45 cases)"),),
     "phase4-gate-evidence": (("phase4 gate evidence check passed", "phase4 gate evidence check passed"),),
     "phase4-perf-baseline-packet-self-test": (
         ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass"),
@@ -581,7 +581,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-gate-evidence.py",
-        self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",),
+        self_test_stdout_lines=("phase4 gate evidence self-test: PASS (45 cases)",),
         live_stdout_lines=("phase4 gate evidence check passed",),
     )
     build_stub_script(
@@ -754,6 +754,10 @@ def run_self_test() -> int:
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES),
+                "PHASE4_WORKFLOW_ROUTE_COUNT=12",
+                "PHASE4_WORKFLOW_MARKER_COUNT=20",
+                "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=7",
             ),
             live_stdout_lines=(
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass",
