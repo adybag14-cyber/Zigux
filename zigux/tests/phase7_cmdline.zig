@@ -93,6 +93,20 @@ test "phase 7 cmdline companion replays validator-only getOption cursor movement
     try std.testing.expectEqualStrings("rest", negative_rest);
 }
 
+test "phase 7 cmdline companion replays get_option alias cursor parity" {
+    var alias_plus_rest: []const u8 = "+12,tail";
+    var alias_plus_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 2), cmdline.get_option(&alias_plus_rest, &alias_plus_value));
+    try std.testing.expectEqual(@as(i32, 12), alias_plus_value);
+    try std.testing.expectEqualStrings("tail", alias_plus_rest);
+
+    var alias_range_rest: []const u8 = "9-11";
+    var alias_range_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 3), cmdline.get_option(&alias_range_rest, &alias_range_value));
+    try std.testing.expectEqual(@as(i32, 9), alias_range_value);
+    try std.testing.expectEqualStrings("-11", alias_range_rest);
+}
+
 test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {
     const parsed = cmdline.nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1");
     try std.testing.expectEqualStrings("console", parsed.param);
