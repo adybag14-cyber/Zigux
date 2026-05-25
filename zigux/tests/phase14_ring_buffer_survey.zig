@@ -157,7 +157,7 @@ test "phase14 ring-buffer manifest tracks the parked study packet with its full 
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.reopen_conditions[0], "replay-route wording") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "public-raw-backed ring-buffer-local evidence") != null);
-    try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-mapping-limitations", "stay_in_c", "shared tracefs lockout boundary", "ring_buffer_resize", "mapped reader pins `resize_disabled`"));
+    try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-mapping-limitations", "stay_in_c", "shared tracefs lockout boundary", "rb_remove_pages", "page-lifetime contract"));
     try std.testing.expect(hasDecisionChecklist(manifest, "read-page-extraction-boundary", "stay_in_c", "partial-copy fallback", "ring_buffer_read_page", "commit-page visibility"));
     try std.testing.expect(hasDecisionChecklist(manifest, "tracefs-reader-serialization-boundary", "stay_in_c", "consumed-page lifetime", "tracing_buffers_splice_read", "pipe-buffer references"));
     try std.testing.expect(hasDecisionChecklist(manifest, "remote-reader-metadata", "stay_in_c", "callback boundary", "rb_read_remote_meta_page", "callback-driven metadata refresh"));
@@ -234,6 +234,7 @@ test "phase14 ring-buffer survey note keeps the exact compile-route posture expl
     try std.testing.expect(std.mem.indexOf(u8, note, "`/absolute/path/to/attached-zig/zig test zigux/tests/phase14_ring_buffer_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`/absolute/path/to/attached-zig/zig build test --build-file zigux/tests/phase14_build.zig --summary all`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "these examples stay subordinate to the same study-only, no-parity, no-wrapper-restoration posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "rb_remove_pages() keeps mapped-reader lifetime teardown in the same C-owned boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "## Mapped-reader ioctl audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`TRACE_MMAP_IOCTL_GET_READER`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`ring_buffer_map_get_reader()`") != null);
