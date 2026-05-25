@@ -1,0 +1,81 @@
+{
+  "lane_key": "P5-L16",
+  "phase": "Phase 5",
+  "surveyed_commit": "08cdfd65024fced143db1ba414423846810e02c8",
+  "anchor": "samples/trace_events/trace-events-sample.c",
+  "sample_path": "samples/zigux/trace_events_sample.zig",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "review_prompts": [
+    "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
+    "the sample-backed survey note, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still describe the same bounded trace-events replay contract and keep this Phase 5 sample separate from the Phase 9 runtime pilot",
+    "the manifest and survey test still describe the exact main-iteration, callback-iteration, vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
+    "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
+    "function-callback replay stays a single live register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
+    "after `exit()` the sample still rejects replayMainIteration, registerFunctionCallback, replayFunctionIteration, and unregisterFunctionCallback so the teardown boundary stays fully explicit",
+    "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer the new boundary from code alone",
+    "docs and tests still keep CREATE_TRACE_POINTS, tracepoint macros, kernel scheduling, and module registration wiring out of scope for this Phase 5 sample"
+  ],
+  "exact_checks": [
+    {
+      "id": "descriptor-anchor",
+      "kind": "anchor_shape",
+      "expected": "the in-memory sample names samples/trace_events/trace-events-sample.c and stays in the non-runtime reference-sample lane"
+    },
+    {
+      "id": "message-and-string-shape",
+      "kind": "bounded_payload",
+      "expected": "runAnchorReplay formats iter=7 and selects Gandalf from the Linux random_strings table for len 2"
+    },
+    {
+      "id": "iteration-cues",
+      "kind": "bounded_payload",
+      "expected": "the replay summary exposes main iteration 7 and function-callback iteration 9 so the two Linux cnt-driven paths stay reviewable without reading private sample state"
+    },
+    {
+      "id": "array-and-sentinel-shape",
+      "kind": "bounded_payload",
+      "expected": "the replay keeps a 1,2 payload prefix with a zero sentinel in the next slot so the Linux array idiom remains reviewable in memory"
+    },
+    {
+      "id": "bitmask-and-rel-loc",
+      "kind": "bounded_payload",
+      "expected": "the replay records the 0xdeadbeef bitmask word and marks the relative-location payload path as checked in the replay summary"
+    },
+    {
+      "id": "vararg-payload-path",
+      "kind": "bounded_payload",
+      "expected": "the replay marks the vararg payload path as checked so the fmt plus va_list trace_foo_bar idiom is explicit in the public replay summary"
+    },
+    {
+      "id": "event-family-counts",
+      "kind": "bounded_summary",
+      "expected": "the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls after the public main-iteration and callback-iteration cues have been captured"
+    },
+    {
+      "id": "checked-focus-order",
+      "kind": "review_surface",
+      "expected": "the replay summary keeps the exact checked_focus order payload_shape,string_selection,formatted_message,conditional_event_families,function_callback_registration,ownership_and_lifetime so reviewers can see the approved trace-events reading contract directly"
+    },
+    {
+      "id": "callback-registration-balance",
+      "kind": "ownership_lifetime",
+      "expected": "the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes"
+    },
+    {
+      "id": "single-registration-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "the in-memory callback lane rejects a second registerFunctionCallback call while already registered so the Phase 5 sample keeps one live callback registration before balance returns to zero"
+    },
+    {
+      "id": "post-exit-rejection",
+      "kind": "ownership_lifetime",
+      "expected": "after exit the sample rejects later replayMainIteration, registerFunctionCallback, replayFunctionIteration, and unregisterFunctionCallback calls"
+    }
+  ],
+  "non_goals": [
+    "CREATE_TRACE_POINTS parity",
+    "tracepoint macro parity from trace-events-sample.h",
+    "kernel thread scheduling or timeout parity",
+    "module registration or unregister wiring parity"
+  ]
+}
