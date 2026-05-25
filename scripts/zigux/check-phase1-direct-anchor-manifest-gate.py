@@ -297,7 +297,6 @@ def sample_manifest() -> dict:
         },
         "review_anchors": EXPECTED_REVIEW_FIELDS,
     }
-}
 
 
 def write_sample_root(root: Path) -> None:
