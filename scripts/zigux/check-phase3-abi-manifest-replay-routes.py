@@ -142,6 +142,7 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/phase3_export_shim_build.zig",
+    "zigux/kernel/export_shim.zig",
     "zigux/tests/phase3_policy_dump.zig",
     "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
@@ -217,15 +218,12 @@ REQUIRED_REPLAY_ROUTES = (
     "make -C zigux phase3-low-level-wrappers-test",
 )
 
-
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
-
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -286,13 +284,11 @@ def validate_repo(repo_root: Path) -> list[str]:
 
     return issues
 
-
 def _sample_validator() -> str:
     lines = ["#!/usr/bin/env python3", "REQUIRED_MANIFEST_REPLAY_ROUTES = ("]
     lines.extend(f"    {marker}," for marker in REQUIRED_VALIDATOR_MARKERS)
     lines.extend([")", ""])
     return "\n".join(lines)
-
 
 def _sample_manifest() -> str:
     manifest = {
@@ -308,11 +304,9 @@ def _sample_manifest() -> str:
     }
     return json.dumps(manifest, indent=2) + "\n"
 
-
 def _populate_repo(root: Path) -> None:
     _write(root / VALIDATOR_PATH, _sample_validator())
     _write(root / MANIFEST_PATH, _sample_manifest())
-
 
 def _remove_validator_marker(repo_root: Path, marker: str) -> None:
     validator_path = repo_root / VALIDATOR_PATH
@@ -320,13 +314,11 @@ def _remove_validator_marker(repo_root: Path, marker: str) -> None:
     needle = f"    {marker},\n"
     _write(validator_path, current.replace(needle, "", 1))
 
-
 def _expect_issue(issues: list[str], expected: str, failure_message: str) -> None:
     if expected not in issues:
         print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=fail")
         print(failure_message)
         raise SystemExit(1)
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_abi_manifest_routes_") as temp_dir:
@@ -457,6 +449,7 @@ def run_self_test() -> int:
             ("zigux/tests/phase3_export_uapi_layout.zig", "expected export-uapi layout replay packet-file drift was not reported"),
             ("zigux/tests/phase3_export_uapi_layout_build.zig", "expected export-uapi layout build packet-file drift was not reported"),
             ("zigux/tests/phase3_export_shim_build.zig", "expected export-shim build packet-file drift was not reported"),
+            ("zigux/kernel/export_shim.zig", "expected export-shim source packet-file drift was not reported"),
             ("zigux/tests/phase3_policy_dump.zig", "expected policy-dump packet-file drift was not reported"),
             ("scripts/zigux/validate_phase3_selftest.py", "expected selftest-driver packet-file drift was not reported"),
             ("scripts/zigux/run-phase3-checks.py", "expected runner packet-file drift was not reported"),
@@ -601,9 +594,8 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=177")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=178")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(
