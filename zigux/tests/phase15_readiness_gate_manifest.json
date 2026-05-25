@@ -41,11 +41,10 @@
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json"
   ],
-  "still_missing_broader_paths": [
-    "zigux/tests/phase15_build.zig"
-  ],
+  "still_missing_broader_paths": [],
   "repo_evidence": {
     "phase15_readiness_packet_checker_present": true,
     "phase15_validator_script_present": true,
@@ -58,7 +57,7 @@
     "phase15_governance_lane_replay_present": true,
     "phase15_handoff_manifest_present": true,
     "phase15_review_process_build_replay_present": true,
-    "phase15_build_zig_present": false,
+    "phase15_build_zig_present": true,
     "phase15_indefinite_c_lane_owner_alignment_present": true,
     "phase15_makefile_present": true,
     "phase15_validate_target_present": false,
