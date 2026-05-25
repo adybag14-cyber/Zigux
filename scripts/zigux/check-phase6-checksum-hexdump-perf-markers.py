@@ -68,6 +68,14 @@ REQUIRED_EVIDENCE_REPLAYS = [
 ]
 
 REQUIRED_DIRECT_READBACK_COMPANION = CHECKER_PATH.as_posix()
+REQUIRED_SHARED_DIRECT_EVIDENCE = [
+    "Documentation/zigux/phase6-perf-gate-survey.md",
+    "scripts/zigux/validate-phase6.py",
+    "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "scripts/zigux/check-phase6-perf-threshold-markers.py",
+    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-hexdump-route.py",
+]
 REQUIRED_CHECKSUM_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-checksum-corpus-evidence.py",
     "scripts/zigux/check-phase6-checksum-c-parity.py",
@@ -127,7 +135,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 61
+SELF_TEST_CASE_COUNT = 67
 
 
 class ValidationError(RuntimeError):
@@ -301,6 +309,13 @@ def validate_parity_manifest(path: Path) -> None:
     if manifest.get("lane_scope") != EXPECTED_PARITY_LANE_SCOPE:
         raise ValidationError("helper-parity lane_scope drifted")
 
+    shared_direct_evidence = manifest.get("shared_direct_evidence")
+    if not isinstance(shared_direct_evidence, list):
+        raise ValidationError("helper-parity shared_direct_evidence missing")
+    for surface in REQUIRED_SHARED_DIRECT_EVIDENCE:
+        if surface not in shared_direct_evidence:
+            raise ValidationError(f"helper-parity shared_direct_evidence drifted: {surface}")
+
     checksum = get_helper(manifest, "checksum")
     hexdump = get_helper(manifest, "hexdump")
 
@@ -370,6 +385,7 @@ def scaffold_repo(root: Path) -> None:
         "phase": "Phase 6",
         "surveyed_head": EXPECTED_SURVEYED_HEAD,
         "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
+        "shared_direct_evidence": REQUIRED_SHARED_DIRECT_EVIDENCE,
         "helpers": [
             {"key": "checksum", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "still_missing_direct_companions": EXPECTED_CHECKSUM_NO_DIRECT_COMPANION_GAPS, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_cases": [{"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100}, {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100}], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS, "linux_style_rerun_routes": ["make -C zigux phase6-checksum-perf-matrix-test", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-perf"]}},
             {"key": "hexdump", "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES, "still_missing_direct_companions": EXPECTED_HEXDUMP_NO_DIRECT_COMPANION_GAPS, "perf_matrix_preflight": EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT, "current_perf_evidence": {"cases": [{"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175}, {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600}], "linux_style_rerun_routes": ["make -C zigux phase6-hexdump-review", "make -C zigux phase6-hexdump-perf-matrix-test", "make -C zigux phase6-hexdump-perf", "make -C zigux phase6-perf"]}}
@@ -430,6 +446,12 @@ def run_self_test() -> None:
             (EVIDENCE_MANIFEST_PATH, '"ipv4_fast_path_case_labels": [\n          "IPV4_20B",\n          "IPV4_20B_UPDATED",\n          "IPV4_24B",\n          "IPV4_60B"\n        ]', '"ipv4_fast_path_case_labels": ["IPV4_20B", "IPV4_24B", "IPV4_64B"]', "checksum evidence ipv4_fast_path_case_labels drifted"),
             (EVIDENCE_MANIFEST_PATH, '"reps": 10000', '"reps": 8000', "hexdump evidence 32B-ascii-g2 reps drifted"),
             (PARITY_MANIFEST_PATH, '"lane_scope": "shared helper-parity rows and machine-readable manifest only"', '"lane_scope": "shared helper-parity rows only"', "helper-parity lane_scope drifted"),
+            (PARITY_MANIFEST_PATH, '"Documentation/zigux/phase6-perf-gate-survey.md"', '"Documentation/zigux/phase6-hexdump-slice.md"', "helper-parity shared_direct_evidence drifted: Documentation/zigux/phase6-perf-gate-survey.md"),
+            (PARITY_MANIFEST_PATH, '"scripts/zigux/validate-phase6.py"', '"scripts/zigux/check-phase6-present-entrypoints.py"', "helper-parity shared_direct_evidence drifted: scripts/zigux/validate-phase6.py"),
+            (PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"', '"scripts/zigux/check-phase6-checksum-c-parity.py"', "helper-parity shared_direct_evidence drifted: scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"),
+            (PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-perf-threshold-markers.py"', '"scripts/zigux/check-phase6-base64-bsearch-perf-markers.py"', "helper-parity shared_direct_evidence drifted: scripts/zigux/check-phase6-perf-threshold-markers.py"),
+            (PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-hexdump-packet.py"', '"scripts/zigux/check-phase6-checksum-c-parity.py"', "helper-parity shared_direct_evidence drifted: scripts/zigux/check-phase6-hexdump-packet.py"),
+            (PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-hexdump-route.py"', '"scripts/zigux/check-phase6-hexdump-packet.py"', "helper-parity shared_direct_evidence drifted: scripts/zigux/check-phase6-hexdump-route.py"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-checksum-corpus-evidence.py",\n        "scripts/zigux/check-phase6-checksum-c-parity.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]', "checksum checker surface drifted"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-hexdump-packet.py"]', "hexdump checker surface drifted"),
             (PARITY_MANIFEST_PATH, '"still_missing_direct_companions": []', '"still_missing_direct_companions": ["zigux/tests/phase6_checksum_c_parity.zig"]', "checksum parity still_missing_direct_companions drifted"),
