@@ -94,6 +94,7 @@ MAKEFILE_MARKERS = [
     "phase8-validate:",
     "phase8-libbpf-segments-test:",
     "zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+    "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
 ]
 BUILD_MARKERS = [
     "../../tools/lib/bpf/zigux_segments/verify.zig",
@@ -318,7 +319,7 @@ def clone_fixture(root: Path) -> None:
         ),
     )
     write(root, "zigux/tests/README.md", "# zigux/tests\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n- `zigux/tests/phase8_libbpf_segments_only_build.zig`\n")
-    write(root, MAKEFILE_PATH, "phase8-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py\n\nphase8-libbpf-segments-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all\n")
+    write(root, MAKEFILE_PATH, "phase8-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py\n\nphase8-libbpf-segments-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all\n\nphase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test\n")
     write(root, BUILD_PATH, 'const std = @import("std");\n\npub fn build(b: *std.Build) void {\n    const target = b.standardTargetOptions(.{});\n    const optimize = b.standardOptimizeOption(.{});\n    const libbpf_segment_verify_module = b.createModule(.{\n        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/verify.zig"),\n        .target = target,\n        .optimize = optimize,\n    });\n    const libbpf_segment_verify_tests = b.addTest(.{\n        .name = "phase8-libbpf-segment-verify-tests",\n        .root_module = libbpf_segment_verify_module,\n    });\n    const run_libbpf_segment_verify_tests = b.addRunArtifact(libbpf_segment_verify_tests);\n    const test_step = b.step("test", "Run focused Phase 8 libbpf segment verify build");\n    test_step.dependOn(&run_libbpf_segment_verify_tests.step);\n}\n')
     write(root, LIBBPF_SEGMENTS_TEST_PATH, "\n".join(LIBBPF_SEGMENTS_TEST_MARKERS) + "\n")
     write(root, BRIDGE_TEST_PATH, "\n".join(BRIDGE_TEST_MARKERS) + "\n")
@@ -554,6 +555,22 @@ def run_self_test() -> int:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:makefile_marker")
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        makefile_path.write_text(
+            original_makefile.replace(
+                "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
+                "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-test",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expected_phase8_aggregate_marker = (
+            f"{MAKEFILE_PATH}:"
+            "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test"
+        )
+        if expected_phase8_aggregate_marker not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:phase8_aggregate_marker")
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         bridge_test_path = root / BRIDGE_TEST_PATH
         original_bridge_test = bridge_test_path.read_text(encoding="utf-8")
         bridge_test_path.write_text(
@@ -652,7 +669,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=26")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=27")
     return 0
 
 def main() -> int:
