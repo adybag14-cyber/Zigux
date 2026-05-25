@@ -76,7 +76,7 @@ def run_self_test() -> None:
         duplicate_marker = EXPECTED_MARKERS[
             ROOT / "scripts" / "zigux" / "mk_elfconfig_fd_double_elf_test.zig"
         ]["marker"]
-        duplicate_path.writeText(
+        duplicate_path.write_text(
             "\n".join([duplicate_marker, duplicate_marker]) + "\n",
             encoding="utf-8",
         )
