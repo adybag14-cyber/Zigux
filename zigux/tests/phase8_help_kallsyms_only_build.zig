@@ -31,4 +31,5 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run the focused Phase 8 help and kallsyms shared tests.");
     test_step.dependOn(&run_help_tests.step);
     test_step.dependOn(&run_kallsyms_tests.step);
+    b.default_step.dependOn(test_step);
 }
