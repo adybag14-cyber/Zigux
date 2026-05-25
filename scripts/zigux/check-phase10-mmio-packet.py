@@ -427,6 +427,7 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\\"risky_transport_posture\\\": \\\"blocked_on_risky_transport\\\"");', 'try expectContains(manifest, "\\\"risky_transport_posture\\\": \\\"missing\\\"");', 'survey_gate:try expectContains(manifest, "\\\"risky_transport_posture\\\": \\\"blocked_on_risky_transport\\\"");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");', 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-feature-negotiation-missing\\\"");', 'survey_gate:try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-config-write-apply-observation-helper\\\"");', 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-config-write-apply-observation-missing\\\"");', 'survey_gate:try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-config-write-apply-observation-helper\\\"");')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-virtio-mmio-survey-gate\\\"");', 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-virtio-mmio-survey-missing\\\"");', 'survey_gate:try expectContains(manifest, "\\\"id\\\": \\\"phase10-virtio-mmio-survey-gate\\\"");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {', 'test "phase10 virtio mmio survey gate keeps helper-local queue isolation explicit" {', 'survey_gate:test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(helper_tests, "test \\\"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\\\" {");', 'try expectContains(helper_tests, "test \\\"phase10 virtio mmio apply observation drifts\\\" {");', 'survey_gate:try expectContains(helper_tests, "test \\\"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\\\" {");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(helper_tests, "try std.testing.expect(!summary.interrupt_ack_ready);");', 'try expectContains(helper_tests, "try std.testing.expect(summary.interrupt_ack_ready);");', 'survey_gate:try expectContains(helper_tests, "try std.testing.expect(!summary.interrupt_ack_ready);");')
@@ -436,7 +437,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=95")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=96")
     return 0
 
 
