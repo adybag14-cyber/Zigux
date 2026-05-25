@@ -144,6 +144,22 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     );
     defer std.testing.allocator.free(reentry_file);
 
+    const reinit_rollback_file = try cwd.readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_trace_events_reinit_rollback_guard.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(reinit_rollback_file);
+
+    const reinit_reexit_file = try cwd.readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_trace_events_reinit_reexit_guard.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(reinit_reexit_file);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
     const manifest = parsed.value;
@@ -305,6 +321,8 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig");
+    try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_reinit_rollback_guard.zig");
+    try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_reinit_reexit_guard.zig");
     try expectContains(workflow_file, "zig test zigux/tests/runtime_trace_events_survey.zig");
 
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-atomic64-diff-tests\"");
@@ -355,4 +373,12 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(exit_guard_file, "phase9 trace-events sample keeps exit rollback explicit after reusable selftest replay");
     try expectContains(reentry_file, "phase9 trace-events sample keeps registration reentry reusable across initialized and selftest_complete stages");
     try expectContains(reentry_file, "test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\" {");
+
+    try expectContains(reinit_rollback_file, "phase9 trace-events sample keeps re-init rollback explicit across initialized, selftest-complete, and exited states");
+    try expectContains(reinit_rollback_file, "try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.init());");
+    try expectContains(reinit_rollback_file, "try expectSummaryStable(before_exited_reinit, after_exited_reinit);");
+
+    try expectContains(reinit_reexit_file, "phase9 trace-events sample keeps initialized direct-activity summary explicit across clean exit");
+    try expectContains(reinit_reexit_file, "phase9 trace-events sample keeps re-init rollback explicit after initialized, selftest-complete, and exited replay");
+    try expectContains(reinit_reexit_file, "phase9 trace-events sample keeps re-exit rollback explicit after initialized and selftest-complete replay");
 }
