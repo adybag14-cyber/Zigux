@@ -24,7 +24,8 @@ pub fn hasCurrentAbiMinor(value: u32) bool { return uapi.hasCurrentAbiMinor(valu
 pub fn hasCurrentHeaderFamilyRevision(value: u32) bool { return uapi.hasCurrentHeaderFamilyRevision(value); }
 pub fn matchesCurrent(version: Version) bool { return uapi.matchesCurrent(version); }
 pub fn validate(version: Version) ExportStatus { return uapi.validate(version); }
-pub fn boundaryHeader(flags: u16) Header { return uapi.boundaryHeader(flags); }
+pub fn canonicalHeader(flags: u16) Header { return uapi.canonicalHeader(flags); }
+pub fn boundaryHeader(flags: u16) Header { return canonicalHeader(flags); }
 pub fn compatibleHeader(size: u32, flags: u16) Header { return uapi.compatibleHeader(size, flags); }
 pub fn hasCurrentAbiVersion(value: u16) bool { return uapi.hasCurrentAbiVersion(value); }
 pub fn isCanonicalSize(value: u32) bool { return uapi.isCanonicalSize(value); }
