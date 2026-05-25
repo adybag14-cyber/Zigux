@@ -29,6 +29,8 @@ FORBIDDEN_PHASE4_MARKERS = (
     "zigux/tests/bitmap_diff.zig",
     "make -C zigux phase4-perf-baseline-survey",
     "scripts/zigux/check-phase4-tests-readme-packet.py",
+    "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
 )
 
 SELF_TEST_CASE_NAMES = (
@@ -169,8 +171,15 @@ def run_self_test() -> int:
         ),
         (
             "stale_phase4_perf_reference",
-            baseline + FORBIDDEN_PHASE4_MARKERS[8] + "\n",
-            [f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[8]}"],
+            baseline
+            + FORBIDDEN_PHASE4_MARKERS[8] + "\n"
+            + FORBIDDEN_PHASE4_MARKERS[12] + "\n"
+            + FORBIDDEN_PHASE4_MARKERS[13] + "\n",
+            [
+                f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[8]}",
+                f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[12]}",
+                f"stale_phase4_marker_present={FORBIDDEN_PHASE4_MARKERS[13]}",
+            ],
         ),
         (
             "stale_phase4_perf_make_route",
