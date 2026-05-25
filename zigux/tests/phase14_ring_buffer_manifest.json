@@ -92,16 +92,17 @@
     },
     {
       "id": "tracefs-mapping-limitations",
-      "summary": "Keep mapped-reader resize, snapshot, and splice limitations in C while the survey records their shared tracefs lockout boundary.",
+      "summary": "Keep mapped-reader resize, snapshot, teardown, and splice limitations in C while the survey records their shared tracefs lockout boundary.",
       "ownership": "stay_in_c",
       "anchor_symbols": [
         "ring_buffer_map",
         "ring_buffer_resize",
         "ring_buffer_swap_cpu",
         "ring_buffer_map_get_reader",
+        "rb_remove_pages",
         "tracing_buffers_splice_read"
       ],
-      "rationale": "A mapped reader pins `resize_disabled`, blocks snapshot-style buffer swaps for mapped pages, and forces tracefs splice reads onto the copying path, so the mapping limitations remain one shared C-owned contract rather than a wrapper-first seam."
+      "rationale": "A mapped reader pins `resize_disabled`, blocks snapshot-style buffer swaps for mapped pages, keeps `rb_remove_pages()` teardown under the same page-lifetime contract, and forces tracefs splice reads onto the copying path, so the mapping limitations remain one shared C-owned contract rather than a wrapper-first seam."
     },
     {
       "id": "reader-page-consume-boundary",
@@ -198,7 +199,7 @@
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "why_now": "The lane now records one small tracefs mapping limitation audit around resize prohibition, snapshot incompatibility, and splice copy fallback so mapped-reader lockouts stay explicit before any bridge candidate is entertained."
+      "why_now": "The lane now records one small tracefs mapping limitation audit around resize prohibition, snapshot incompatibility, mapped-reader teardown lifetime, and splice copy fallback so mapped-reader lockouts stay explicit before any bridge candidate is entertained."
     },
     {
       "id": "phase14-ring-buffer-mapped-reader-ioctl-followup",
