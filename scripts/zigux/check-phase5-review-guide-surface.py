@@ -86,6 +86,7 @@ MARKERS = {
         "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\"iter=12\"` and keeps the sample in `.initialized`.",
         "Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.",
         "Keep the selected-string iteration companion explicit too: `formatSelectedIterationMessageInto(3, [12]u8)` still returns `\"Frodo iter=3\"` while keeping the sample in `.initialized`, so the approved-idiom note must preserve the selected-string-plus-iteration wording instead of reducing the packet to the bare `iter=%d` formatter.",
+        "The same authenticated sample-root reread now directly exposes this bounded callback-focus companion too:",
         "## Exact checks run on 2026-05-20",
         "This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.",
         "The exact checks that passed were:",
@@ -178,6 +179,7 @@ def placeholder(path: Path) -> str:
             for rel in (
                 "samples/trace_events/trace-events-sample.c",
                 "samples/zigux/trace_events_string_formatting_sample.zig",
+                "samples/zigux/trace_events_callback_focus_contract.zig",
                 "Documentation/zigux/phase5-trace-events-sample-survey.md",
                 "samples/zigux/trace_events_sample.zig",
                 "zigux/tests/phase5_trace_events_sample.zig",
@@ -245,6 +247,7 @@ def collect_failures(root: Path) -> list[str]:
     for rel in (
         "samples/trace_events/trace-events-sample.c",
         "samples/zigux/trace_events_string_formatting_sample.zig",
+        "samples/zigux/trace_events_callback_focus_contract.zig",
         "zigux/tests/phase5_build.zig",
     ):
         if all(token not in approved for token in (f"`{rel}`", rel)):
@@ -268,7 +271,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 41
+    expected_case_count = 43
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -313,6 +316,16 @@ def run_self_test() -> int:
             "missing approved selected iteration marker",
             collect_failures(mutated),
             [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][5]}"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_approved_callback_focus_marker"
+        seed(mutated)
+        write_text(mutated, APPROVED_IDIOM_PATH, placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][6], ""))
+        expect_exact(
+            "missing approved callback-focus marker",
+            collect_failures(mutated),
+            [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][6]}"],
         )
         checks_run += 1
 
@@ -467,7 +480,7 @@ def run_self_test() -> int:
             collect_failures(mutated),
             [
                 f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][0]}",
-                f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}",
+                f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}" ,
                 "kobject_survey:missing_path:zigux/tests/phase5_kobject_attr_group_contract_survey.zig",
             ],
         )
@@ -608,6 +621,23 @@ def run_self_test() -> int:
             "missing trace formatting companion in approved idiom",
             collect_failures(mutated),
             ["approved_idiom:missing_path:samples/zigux/trace_events_string_formatting_sample.zig"],
+        )
+        checks_run += 1
+
+        mutated = root / "missing_trace_callback_focus_companion_in_approved"
+        seed(mutated)
+        write_text(
+            mutated,
+            APPROVED_IDIOM_PATH,
+            strip_standalone_path(
+                placeholder(APPROVED_IDIOM_PATH),
+                "samples/zigux/trace_events_callback_focus_contract.zig",
+            ),
+        )
+        expect_exact(
+            "missing trace callback-focus companion in approved idiom",
+            collect_failures(mutated),
+            ["approved_idiom:missing_path:samples/zigux/trace_events_callback_focus_contract.zig"],
         )
         checks_run += 1
 
