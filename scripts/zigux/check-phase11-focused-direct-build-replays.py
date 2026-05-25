@@ -231,6 +231,22 @@ def run_self_test() -> int:
         expect_failure(missing_modem_marker, 'root_module.addImport("hvc_console", hvc_console_module);')
         case_count += 1
 
+        missing_modem_step_marker = tmpdir / "missing_modem_step_marker"
+        shutil.copytree(fixture, missing_modem_step_marker, dirs_exist_ok=True)
+        write(
+            missing_modem_step_marker / MODEM_BUILD_PATH,
+            read_text(missing_modem_step_marker / MODEM_BUILD_PATH).replace(
+                'const test_step = b.step("test", "Run the focused Phase 11 HVC modem-control proof.");\n',
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_modem_step_marker,
+            'const test_step = b.step("test", "Run the focused Phase 11 HVC modem-control proof.");',
+        )
+        case_count += 1
+
         missing_targetless_marker = tmpdir / "missing_targetless_marker"
         shutil.copytree(fixture, missing_targetless_marker, dirs_exist_ok=True)
         write(
