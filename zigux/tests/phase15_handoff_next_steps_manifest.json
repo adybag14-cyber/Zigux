@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L12",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-24",
+  "surveyed_commit": "current-master-readback-2026-05-25",
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
   "checker": "scripts/zigux/check-phase15-handoff-note-alignment.py",
   "present_paths": [
@@ -29,10 +29,12 @@
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
+    "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-readiness-gate-packet.py",
@@ -41,23 +43,22 @@
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
     "scripts/zigux/validate-phase15.py"
   ],
-  "still_missing_paths": [
-    "zigux/tests/phase15_build.zig"
-  ],
+  "still_missing_paths": [],
   "required_markers": [
     "PHASE15_STATUS=handoff_next_steps_survey_landed",
     "PHASE15_LANE_KEY=P15-L12",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
+    "The dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
     "The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.",
     "The dedicated deep-core blocker survey `Documentation/zigux/phase15-deep-core-blocker-survey.md` is also directly materialized on current `master` and keeps the roadmap-versus-current-master blocker crosswalk explicit beside the broader handoff packet.",
-    "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the dedicated shared-build companion and blocked route bodies remain gap-tracked.",
-    "The dedicated validator `scripts/zigux/validate-phase15.py` is directly materialized on current `master` as a maintenance gate, but it does not by itself land the broader shared Phase 15 build replay or route bodies.",
+    "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `zigux/tests/phase15_build.zig` as the handoff-specific source of truth while the blocked route bodies and shared-CI route remain gap-tracked.",
+    "The dedicated validator `scripts/zigux/validate-phase15.py` and shared build companion `zigux/tests/phase15_build.zig` are directly materialized on current `master`, but they do not by themselves land the broader dedicated `phase15*` wrapper routes or shared-CI route.",
     "an Architecture Council approval workflow implementation",
     "a direct port-readiness decision for any Phase 15 anchor"
   ],
   "checker_group_markers": [
     "one focused docs-readme checker",
+    "one focused scripts-readme checker",
     "one focused review-process checker",
     "one focused review-checklist study-only checker",
     "one focused readiness-packet checker",
@@ -67,7 +68,7 @@
   ],
   "handoff_rule_markers": [
     "if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts",
-    "if the dedicated shared-build companion or blocked route bodies are published later, reread this note together with those new direct paths before presenting them as current evidence here"
+    "if dedicated `phase15*` wrapper routes or a dedicated shared-CI route are published later, reread this note together with those new direct paths before presenting them as current evidence here"
   ],
   "roadmap_alignment_markers": [
     "The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.",
@@ -75,10 +76,11 @@
   ],
   "pending_next_step_markers": [
     "tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet",
-    "reread this handoff note together with any newly landed dedicated shared-build companion or route-body recovery before treating that broader replay surface as current evidence here",
+    "reread this handoff note together with any newly landed dedicated `phase15*` wrapper or shared-CI route recovery before treating that broader replay surface as current evidence here",
     "revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves"
   ],
   "missing_route_markers": [
-    "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`"
+    "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`",
+    "no dedicated shared-CI Phase 15 validate, test, or aggregate route is materialized in `.github/workflows/zigux-bootstrap.yml` on current `master`"
   ]
 }
