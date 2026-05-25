@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Lane 17 Phase 1 workflow step pair against drift."""
+"""Guard the Lane 17 Phase 1 workflow step pairs against drift."""
 
 from __future__ import annotations
 
@@ -14,12 +14,21 @@ DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-packet.py")
 
-SELF_TEST_STEP = "      - name: Self-test current Phase 1 lane sequencing packet checker"
-SELF_TEST_RUN = (
+PACKET_SELF_TEST_STEP = "      - name: Self-test current Phase 1 lane sequencing packet checker"
+PACKET_SELF_TEST_RUN = (
     "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py --self-test"
 )
-CHECK_STEP = "      - name: Check current Phase 1 lane sequencing packet"
-CHECK_RUN = "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py"
+PACKET_CHECK_STEP = "      - name: Check current Phase 1 lane sequencing packet"
+PACKET_CHECK_RUN = "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py"
+
+WORKFLOW_SELF_TEST_STEP = "      - name: Self-test current Phase 1 lane sequencing workflow checker"
+WORKFLOW_SELF_TEST_RUN = (
+    "        run: python3 scripts/zigux/check-phase1-lane-sequencing-workflow.py --self-test"
+)
+WORKFLOW_CHECK_STEP = "      - name: Check current Phase 1 lane sequencing workflow packet"
+WORKFLOW_CHECK_RUN = (
+    "        run: python3 scripts/zigux/check-phase1-lane-sequencing-workflow.py"
+)
 
 BEFORE_STEP = "      - name: Check current Phase 1 shared reminder packet"
 BEFORE_RUN = "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py"
@@ -29,10 +38,14 @@ AFTER_RUN = "        run: python3 scripts/zigux/validate-phase1-closure.py --sel
 REQUIRED_LINES = (
     BEFORE_STEP,
     BEFORE_RUN,
-    SELF_TEST_STEP,
-    SELF_TEST_RUN,
-    CHECK_STEP,
-    CHECK_RUN,
+    PACKET_SELF_TEST_STEP,
+    PACKET_SELF_TEST_RUN,
+    PACKET_CHECK_STEP,
+    PACKET_CHECK_RUN,
+    WORKFLOW_SELF_TEST_STEP,
+    WORKFLOW_SELF_TEST_RUN,
+    WORKFLOW_CHECK_STEP,
+    WORKFLOW_CHECK_RUN,
     AFTER_STEP,
     AFTER_RUN,
 )
@@ -74,35 +87,49 @@ def collect_failures(root: Path) -> list[str]:
     if not (
         positions[BEFORE_STEP]
         < positions[BEFORE_RUN]
-        < positions[SELF_TEST_STEP]
-        < positions[SELF_TEST_RUN]
-        < positions[CHECK_STEP]
-        < positions[CHECK_RUN]
+        < positions[PACKET_SELF_TEST_STEP]
+        < positions[PACKET_SELF_TEST_RUN]
+        < positions[PACKET_CHECK_STEP]
+        < positions[PACKET_CHECK_RUN]
+        < positions[WORKFLOW_SELF_TEST_STEP]
+        < positions[WORKFLOW_SELF_TEST_RUN]
+        < positions[WORKFLOW_CHECK_STEP]
+        < positions[WORKFLOW_CHECK_RUN]
         < positions[AFTER_STEP]
         < positions[AFTER_RUN]
     ):
-        failures.append(
-            f"{WORKFLOW_REL.as_posix()}:lane17_phase1_packet_order_invalid"
-        )
+        failures.append(f"{WORKFLOW_REL.as_posix()}:lane17_phase1_packet_order_invalid")
     if positions[BEFORE_RUN] != positions[BEFORE_STEP] + 1:
         failures.append(
             f"{WORKFLOW_REL.as_posix()}:shared_reminder_run_not_after_shared_reminder_step"
         )
-    if positions[SELF_TEST_STEP] != positions[BEFORE_RUN] + 1:
+    if positions[PACKET_SELF_TEST_STEP] != positions[BEFORE_RUN] + 1:
         failures.append(
-            f"{WORKFLOW_REL.as_posix()}:selftest_step_not_after_shared_reminder_run"
+            f"{WORKFLOW_REL.as_posix()}:packet_selftest_step_not_after_shared_reminder_run"
         )
-    if positions[CHECK_STEP] != positions[SELF_TEST_RUN] + 1:
+    if positions[PACKET_CHECK_STEP] != positions[PACKET_SELF_TEST_RUN] + 1:
         failures.append(
-            f"{WORKFLOW_REL.as_posix()}:check_step_not_adjacent_to_selftest_run"
+            f"{WORKFLOW_REL.as_posix()}:packet_check_step_not_adjacent_to_packet_selftest_run"
         )
-    if positions[CHECK_RUN] != positions[CHECK_STEP] + 1:
+    if positions[PACKET_CHECK_RUN] != positions[PACKET_CHECK_STEP] + 1:
         failures.append(
-            f"{WORKFLOW_REL.as_posix()}:check_run_not_adjacent_to_check_step"
+            f"{WORKFLOW_REL.as_posix()}:packet_check_run_not_adjacent_to_packet_check_step"
         )
-    if positions[AFTER_STEP] != positions[CHECK_RUN] + 1:
+    if positions[WORKFLOW_SELF_TEST_STEP] != positions[PACKET_CHECK_RUN] + 1:
         failures.append(
-            f"{WORKFLOW_REL.as_posix()}:closure_validator_step_not_after_lane17_packet"
+            f"{WORKFLOW_REL.as_posix()}:workflow_selftest_step_not_after_packet_check_run"
+        )
+    if positions[WORKFLOW_CHECK_STEP] != positions[WORKFLOW_SELF_TEST_RUN] + 1:
+        failures.append(
+            f"{WORKFLOW_REL.as_posix()}:workflow_check_step_not_adjacent_to_workflow_selftest_run"
+        )
+    if positions[WORKFLOW_CHECK_RUN] != positions[WORKFLOW_CHECK_STEP] + 1:
+        failures.append(
+            f"{WORKFLOW_REL.as_posix()}:workflow_check_run_not_adjacent_to_workflow_check_step"
+        )
+    if positions[AFTER_STEP] != positions[WORKFLOW_CHECK_RUN] + 1:
+        failures.append(
+            f"{WORKFLOW_REL.as_posix()}:closure_validator_step_not_after_workflow_packet"
         )
     if positions[AFTER_RUN] != positions[AFTER_STEP] + 1:
         failures.append(
@@ -127,10 +154,14 @@ def sample_workflow() -> str:
             "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
             BEFORE_STEP,
             BEFORE_RUN,
-            SELF_TEST_STEP,
-            SELF_TEST_RUN,
-            CHECK_STEP,
-            CHECK_RUN,
+            PACKET_SELF_TEST_STEP,
+            PACKET_SELF_TEST_RUN,
+            PACKET_CHECK_STEP,
+            PACKET_CHECK_RUN,
+            WORKFLOW_SELF_TEST_STEP,
+            WORKFLOW_SELF_TEST_RUN,
+            WORKFLOW_CHECK_STEP,
+            WORKFLOW_CHECK_RUN,
             AFTER_STEP,
             AFTER_RUN,
         )
@@ -173,34 +204,52 @@ def mutate_replace_line(root: Path, old: str, new: str) -> None:
 def mutate_swap_step_order(root: Path) -> None:
     mutate_replace_line(
         root,
-        "\n".join((SELF_TEST_STEP, SELF_TEST_RUN, CHECK_STEP, CHECK_RUN)),
-        "\n".join((CHECK_STEP, CHECK_RUN, SELF_TEST_STEP, SELF_TEST_RUN)),
+        "\n".join(
+            (
+                PACKET_SELF_TEST_STEP,
+                PACKET_SELF_TEST_RUN,
+                PACKET_CHECK_STEP,
+                PACKET_CHECK_RUN,
+            )
+        ),
+        "\n".join(
+            (
+                PACKET_CHECK_STEP,
+                PACKET_CHECK_RUN,
+                PACKET_SELF_TEST_STEP,
+                PACKET_SELF_TEST_RUN,
+            )
+        ),
     )
 
 
-def mutate_insert_gap_before_selftest(root: Path) -> None:
+def mutate_insert_gap_before_workflow_selftest(root: Path) -> None:
     mutate_replace_line(
         root,
-        "\n".join((BEFORE_RUN, SELF_TEST_STEP)),
-        "\n".join((
-            BEFORE_RUN,
-            "      - name: Drifted gap step",
-            "        run: echo drift",
-            SELF_TEST_STEP,
-        )),
+        "\n".join((PACKET_CHECK_RUN, WORKFLOW_SELF_TEST_STEP)),
+        "\n".join(
+            (
+                PACKET_CHECK_RUN,
+                "      - name: Drifted gap step",
+                "        run: echo drift",
+                WORKFLOW_SELF_TEST_STEP,
+            )
+        ),
     )
 
 
 def mutate_insert_gap_before_closure(root: Path) -> None:
     mutate_replace_line(
         root,
-        "\n".join((CHECK_RUN, AFTER_STEP)),
-        "\n".join((
-            CHECK_RUN,
-            "      - name: Drifted gap step",
-            "        run: echo drift",
-            AFTER_STEP,
-        )),
+        "\n".join((WORKFLOW_CHECK_RUN, AFTER_STEP)),
+        "\n".join(
+            (
+                WORKFLOW_CHECK_RUN,
+                "      - name: Drifted gap step",
+                "        run: echo drift",
+                AFTER_STEP,
+            )
+        ),
     )
 
 
@@ -217,14 +266,38 @@ def run_self_test() -> int:
             "replace_line",
             (BEFORE_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py"),
         ),
-        ("missing_self_test_step", "remove_line", SELF_TEST_STEP),
-        ("duplicate_self_test_step", "duplicate_line", SELF_TEST_STEP),
-        ("missing_self_test_run", "remove_line", SELF_TEST_RUN),
-        ("stale_self_test_run", "replace_line", (SELF_TEST_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py")),
-        ("missing_check_step", "remove_line", CHECK_STEP),
-        ("duplicate_check_step", "duplicate_line", CHECK_STEP),
-        ("missing_check_run", "remove_line", CHECK_RUN),
-        ("stale_check_run", "replace_line", (CHECK_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py --self-test")),
+        ("missing_packet_self_test_step", "remove_line", PACKET_SELF_TEST_STEP),
+        ("duplicate_packet_self_test_step", "duplicate_line", PACKET_SELF_TEST_STEP),
+        ("missing_packet_self_test_run", "remove_line", PACKET_SELF_TEST_RUN),
+        (
+            "stale_packet_self_test_run",
+            "replace_line",
+            (PACKET_SELF_TEST_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py"),
+        ),
+        ("missing_packet_check_step", "remove_line", PACKET_CHECK_STEP),
+        ("duplicate_packet_check_step", "duplicate_line", PACKET_CHECK_STEP),
+        ("missing_packet_check_run", "remove_line", PACKET_CHECK_RUN),
+        (
+            "stale_packet_check_run",
+            "replace_line",
+            (PACKET_CHECK_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py --self-test"),
+        ),
+        ("missing_workflow_self_test_step", "remove_line", WORKFLOW_SELF_TEST_STEP),
+        ("duplicate_workflow_self_test_step", "duplicate_line", WORKFLOW_SELF_TEST_STEP),
+        ("missing_workflow_self_test_run", "remove_line", WORKFLOW_SELF_TEST_RUN),
+        (
+            "stale_workflow_self_test_run",
+            "replace_line",
+            (WORKFLOW_SELF_TEST_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py --self-test"),
+        ),
+        ("missing_workflow_check_step", "remove_line", WORKFLOW_CHECK_STEP),
+        ("duplicate_workflow_check_step", "duplicate_line", WORKFLOW_CHECK_STEP),
+        ("missing_workflow_check_run", "remove_line", WORKFLOW_CHECK_RUN),
+        (
+            "stale_workflow_check_run",
+            "replace_line",
+            (WORKFLOW_CHECK_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py"),
+        ),
         ("missing_after_step", "remove_line", AFTER_STEP),
         ("duplicate_after_step", "duplicate_line", AFTER_STEP),
         ("missing_after_run", "remove_line", AFTER_RUN),
@@ -235,7 +308,7 @@ def run_self_test() -> int:
             (AFTER_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py"),
         ),
         ("swapped_order", "swap_order", None),
-        ("gap_before_selftest", "insert_gap_before_selftest", None),
+        ("gap_before_workflow_selftest", "insert_gap_before_workflow_selftest", None),
         ("gap_before_closure", "insert_gap_before_closure", None),
     ]
 
@@ -255,8 +328,8 @@ def run_self_test() -> int:
                 mutate_replace_line(root, old, new)
             elif mode == "swap_order":
                 mutate_swap_step_order(root)
-            elif mode == "insert_gap_before_selftest":
-                mutate_insert_gap_before_selftest(root)
+            elif mode == "insert_gap_before_workflow_selftest":
+                mutate_insert_gap_before_workflow_selftest(root)
             elif mode == "insert_gap_before_closure":
                 mutate_insert_gap_before_closure(root)
 
@@ -293,7 +366,7 @@ def main() -> int:
         return 1
 
     print("PHASE1_LANE_SEQUENCING_WORKFLOW=pass")
-    print("PHASE1_LANE_SEQUENCING_WORKFLOW_REQUIRED_STEP_PAIR_COUNT=2")
+    print("PHASE1_LANE_SEQUENCING_WORKFLOW_REQUIRED_STEP_PAIR_COUNT=4")
     return 0
 
 
