@@ -23,6 +23,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
     "scripts/zigux/check-phase2-genksyms-survey-alignment.py",
     "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+    "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/genksyms_bridge/cases.json",
@@ -36,6 +37,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
@@ -52,6 +54,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.",
     "Current `master` directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, and restored process-output packet again:",
     "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "the dedicated survey note, selftest-alignment checker, standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, dash-prefixed-long-option-arguments-as-data expected-output fixture, and the nine process-output fixtures.",
     "The narrower repo-reality gap that once lived at the checker layer is now closed on current `master`:",
     "Relative to the roadmap and ledger, the older inventory-shaped governance gap is no longer truthful on current `master`;",
     "Leave this survey parked unless a future reread finds another genksyms-local wording, inventory, or replay drift.",
@@ -126,9 +129,9 @@ Lane: `P2-L07`
 ## Current repo evidence
 
 - Current `master` directly serves `scripts/zigux/genksyms.zig`, so the core dual-implementation helper is still present on head.
-- Current `master` directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, and restored process-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`, `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`, `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`, `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`, `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`, `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`, `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json`, `zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json`, and `zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json` are all readable on head.
-- Current shared Phase 2 reminder surfaces also keep the genksyms packet explicit: `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json` all still name the checker, fixture roster, or `phase2-genksyms` replay route.
-- The narrower repo-reality gap that once lived at the checker layer is now closed on current `master`: the dedicated checker directly validates the manifest-backed bridge packet, the restored process-output fixtures, the help fixture, and the standalone invalid-long-option version-side-effect proof, while `scripts/zigux/check-phase2-genksyms-selftest-alignment.py` keeps that checker-owned packet tied back to the workflow and Makefile hooks.
+- Current `master` directly serves the bounded checker, invocation-fixture packet, dedicated manifest, help fixture, and restored process-output packet again: `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/genksyms_bridge/cases.json`, `zigux/tests/fixtures/genksyms_bridge/manifest.json`, `zigux/tests/fixtures/genksyms_bridge/help_expected.json`, `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`, `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`, `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json`, `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`, `zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json`, `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`, `zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json`, `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`, `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_long_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/missing_reference_argument_expected.json`, `zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json`, `zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json`, and `zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json` are all readable on head.
+- Current shared Phase 2 reminder surfaces also keep the genksyms packet explicit: `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/fixtures/phase2_tool_manifest.json` all still name the dedicated survey note, selftest-alignment checker, standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, dash-prefixed-long-option-arguments-as-data expected-output fixture, and the nine process-output fixtures.
+- The narrower repo-reality gap that once lived at the checker layer is now closed on current `master`: the dedicated checker directly validates the manifest-backed bridge packet, the restored process-output fixtures, the help fixture, and the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, while `scripts/zigux/check-phase2-genksyms-selftest-alignment.py` keeps that checker-owned packet tied back to the workflow and Makefile hooks.
 
 ## Survey result
 
@@ -178,6 +181,7 @@ Lane: `P2-L07`
         "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
         "scripts/zigux/check-phase2-genksyms-survey-alignment.py",
         "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+        "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
         "zigux/tests/README.md",
         "zigux/tests/fixtures/phase2_tool_manifest.json",
     }
@@ -193,7 +197,6 @@ Lane: `P2-L07`
         }:
             continue
         write_text(root, rel, "present\n")
-
 
 
 def run_self_test() -> int:
