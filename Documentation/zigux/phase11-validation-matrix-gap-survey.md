@@ -34,13 +34,15 @@ The shared build inventory now carries 3 HVC proof-backed build tests, 0 shared 
 
 ## Deterministic Tooling Gap
 
-The shared Phase 11 packet still does not rematerialize a dedicated golden-output fixture roster, a refresh helper route, or an artifact-diff-style deterministic output guard for the driver-local proof builds.
+The shared Phase 11 packet now rematerializes a dedicated golden-output fixture roster through `zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py` and `scripts/zigux/check-phase11-validate-route-alignment.py` guards.
 
-`scripts/zigux/validate-phase11.py` and `make -C zigux phase11-validate` stay build-proof-first rather than expected-output-first.
+It still does not rematerialize a refresh helper route or an artifact-diff-style deterministic output guard for the driver-local proof builds.
 
-The current machine-readable fixtures capture route inventory, validate-check coverage, and manifest coverage, but they do not yet refresh or compare stable expected-output artifacts for the shared Phase 11 proof fan-out.
+`scripts/zigux/validate-phase11.py` and `make -C zigux phase11-validate` therefore stay build-proof-first rather than expected-output-refresh-first.
 
-That leaves a roadmap-facing deterministic tooling gap: the repo can prove that the focused builds still compile and run, but it cannot yet refresh and diff shared golden outputs for the same bounded packet.
+The current machine-readable fixtures now capture route inventory, validate-check coverage, and manifest coverage, but they still do not refresh or compare stable expected-output artifacts for the shared Phase 11 proof fan-out.
+
+That leaves a narrower roadmap-facing deterministic tooling gap: the repo can prove that the focused builds still compile and run, and it can exact-check the shared validate roster, but it still cannot refresh and diff shared golden outputs for the same bounded packet.
 
 ## Review Rules
 
@@ -49,4 +51,4 @@ That leaves a roadmap-facing deterministic tooling gap: the repo can prove that 
 - Keep the machine-readable deterministic packet explicit through `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, and `zigux/tests/phase11_dw_wdt_manifest.json`.
 - Keep the focused teardown-or-failure-mode proof builds explicit through `zigux/tests/phase11_hvc_modem_control_proof_build.zig`, `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, `zigux/tests/phase11_dw_wdt_restart_build.zig`, and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` rather than silently collapsing them into the narrower three-entry HVC inventory.
 - Do not claim that golden-output refresh tooling already exists just because the shared validate route and focused proof builds returned.
-- If a dedicated expected-output fixture roster, refresh helper, or artifact-diff guard lands later, update this survey, `zigux/tests/fixtures/phase11_build_inventory.json`, and `scripts/zigux/check-phase11-validation-matrix-gap-survey.py` in the same bounded pass.
+- If a dedicated refresh helper route or artifact-diff guard lands later, update this survey, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/fixtures/phase11_validate_checks.json`, and `scripts/zigux/check-phase11-validation-matrix-gap-survey.py` in the same bounded pass.
