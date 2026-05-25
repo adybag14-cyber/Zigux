@@ -74,11 +74,11 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L01`");
     try expectContains(
         parity_note,
-        "`PHASE9_SURVEYED_COMMIT=2026-05-24-first-loadable-parity-kretprobe-direct-packet-readback`",
+        "`PHASE9_SURVEYED_COMMIT=2026-05-25-first-loadable-parity-bitmap-direct-init-readback`",
     );
     try expectContains(
         parity_note,
-        "Trusted current-tree reads on 2026-05-24 now show a four-part Phase 9 pilot picture",
+        "Trusted current-tree reads on 2026-05-25 now show a four-part Phase 9 pilot picture",
     );
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`");
@@ -101,6 +101,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-module-slice.md`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap.zig`");
+    try expectContains(parity_note, "`samples/zigux/runtime_bitmap_direct_init_contract.zig`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap_loader.zig`");
     try expectContains(parity_note, "`samples/zigux/runtime_bitmap_top_bit_contract.zig`");
@@ -109,6 +110,10 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`zigux/tests/phase9_build.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_diff.zig`");
+    try expectContains(
+        parity_note,
+        "Current `master` now directly materializes the bitmap direct-init companion beside the visible sample, cold-stage guard, loader, top-bit, survey, manifest, module, and diff packet while broader shared loader completion remains blocked.",
+    );
     try expectContains(
         parity_note,
         "These shared runtime-loader-facing surfaces are directly readable on current `master`:",
@@ -123,7 +128,8 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "the build-local `phase9-runtime-kretprobe-sample-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-kretprobe-module-tests` route name");
     try expectContains(parity_note, "the aggregate `phase9-runtime-kretprobe-tests` route name");
-    try expectContains(parity_note, "the bounded bitmap sample, loader, survey, top-bit, module, and diff routes");
+    try expectContains(parity_note, "the build-local `phase9-runtime-bitmap-direct-init-contract-tests` route name");
+    try expectContains(parity_note, "the bounded bitmap sample, direct-init companion, cold-stage guard, loader, survey, top-bit, module, and diff routes");
     try expectContains(parity_note, "the build-local `phase9-runtime-loader-allocator-init-flow-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-loader-command-env-boundary-guard-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-loader-shared-tests` route name");
@@ -140,7 +146,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     try expectContains(
         parity_note,
-        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 and kretprobe direct packets without returned family-local loader scaffolds, and the still-partial bitmap reminder packet with restored cold-stage guard, module, and diff proof but without broader shared runtime-loader parity.",
+        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 and kretprobe direct packets without returned family-local loader scaffolds, and the still-partial bitmap reminder packet with returned direct-init companion, restored cold-stage guard, module, and diff proof but without broader shared runtime-loader parity.",
     );
 
     try expectContains(atomic64_survey_note, "`PHASE9_STATUS=active`");
@@ -267,6 +273,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(phase9_build, "phase9-runtime-atomic64-diff");
     try expectContains(phase9_build, "phase9-runtime-bitmap-tests");
     try expectContains(phase9_build, "phase9-runtime-bitmap-sample-tests");
+    try expectContains(phase9_build, "phase9-runtime-bitmap-direct-init-contract-tests");
     try expectContains(phase9_build, "phase9-runtime-bitmap-loader-tests");
     try expectContains(phase9_build, "phase9-runtime-bitmap-survey-tests");
     try expectContains(phase9_build, "phase9-runtime-bitmap-diff-tests");
