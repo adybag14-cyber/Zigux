@@ -149,7 +149,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 45
+SELF_TEST_CASE_COUNT = 46
 
 
 def read_text(path: Path) -> str:
@@ -287,6 +287,7 @@ def run_self_test() -> None:
             ("lib/cmdline.zig", "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {", ""),
             ("lib/cmdline.zig", "test \\\"memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable\\\" {", ""),
             ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\\\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "try std.testing.expectEqualStrings(\\\"2,9\\\", descending_rest);", ""),
             ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays get_option alias cursor parity\\\" {", ""),
             ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\\\"helper_slice_test_survey_manifest_checker_anchor\\\", manifest.current_master_state);", ""),
             ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \\\"PHASE7_CMDLINE_PACKET=pass\\\");", ""),
