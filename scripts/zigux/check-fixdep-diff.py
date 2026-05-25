@@ -75,6 +75,15 @@ EXPECTED_CASES = {
         "expected_stderr": "sample_double_backslash_comment_expected.stderr.txt",
         "expected_exit_code": 2,
     },
+    "sample_double_backslash_comment_stdout_full": {
+        "depfile": "sample_double_backslash_comment.d",
+        "target": "sample_double_backslash_comment_stdout_full.o",
+        "cmdline": "rustc --emit dep-info=sample_double_backslash_comment.d",
+        "expected": "sample_output_write_expected.txt",
+        "expected_stderr": "sample_double_backslash_comment_expected.stderr.txt",
+        "expected_exit_code": 2,
+        "stdout_mode": "dev_full",
+    },
     "sample_comment_only": {
         "depfile": "sample_comment_only.d",
         "target": "sample_comment_only.o",
@@ -123,9 +132,9 @@ EXPECTED_CASE_ORDER = list(EXPECTED_CASES)
 EXPECTED_FIXTURE_FILES = frozenset(
     {
         "cases.json",
-        "dep:colon.so",
-        "dep\\ name.rmeta",
-        "escaped\\ space-config.h",
+        r"dep:colon.so",
+        r"dep\ name.rmeta",
+        r"escaped\ space-config.h",
         "sample-config.h",
         "sample.c",
         "sample.d",
@@ -439,7 +448,7 @@ def run_self_test() -> int:
     expect_failure(
         "unsupported_stdout_mode",
         lambda: validate_cases(unsupported_stdout_mode_cases),
-        f"{CASES_PATH}:sample_comment_only_stdout_full:stdout_mode='pipe_full',expected='dev_full'",
+        f"{CASES_PATH}:sample_comment_only_stdout_full:unsupported_stdout_mode:'pipe_full'",
     )
     checks_run += 1
 
@@ -455,10 +464,10 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / "escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
-            frozenset({"fixture_a.txt", "escaped\\ space-config.h"}),
+            frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
         )
     checks_run += 1
 
@@ -469,7 +478,7 @@ def run_self_test() -> int:
             "missing_escaped_space_fixture",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", "escaped\\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
             ),
             f"{fixture_dir}:missing_fixtures:escaped\\ space-config.h",
         )
@@ -478,13 +487,13 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_unexpected_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / "escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
         expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", "escaped\\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
             ),
             f"{fixture_dir}:unexpected_fixtures:unexpected.txt",
         )
