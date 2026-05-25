@@ -312,6 +312,15 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const runtime_trace_events_reinit_rollback_guard_tests = b.addTest(.{
+        .name = "phase9-runtime-trace-events-reinit-rollback-guard-tests",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("../../samples/zigux/runtime_trace_events_reinit_rollback_guard.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
     const runtime_trace_events_reinit_reexit_guard_tests = b.addTest(.{
         .name = "phase9-runtime-trace-events-reinit-reexit-guard-tests",
         .root_module = b.createModule(.{
@@ -364,6 +373,9 @@ pub fn build(b: *std.Build) void {
     );
     const run_runtime_trace_events_registration_reentry_gate_tests = b.addRunArtifact(
         runtime_trace_events_registration_reentry_gate_tests,
+    );
+    const run_runtime_trace_events_reinit_rollback_guard_tests = b.addRunArtifact(
+        runtime_trace_events_reinit_rollback_guard_tests,
     );
     const run_runtime_trace_events_reinit_reexit_guard_tests = b.addRunArtifact(
         runtime_trace_events_reinit_reexit_guard_tests,
@@ -494,6 +506,9 @@ pub fn build(b: *std.Build) void {
     );
     phase9_runtime_trace_events.dependOn(
         &run_runtime_trace_events_registration_reentry_gate_tests.step,
+    );
+    phase9_runtime_trace_events.dependOn(
+        &run_runtime_trace_events_reinit_rollback_guard_tests.step,
     );
     phase9_runtime_trace_events.dependOn(
         &run_runtime_trace_events_reinit_reexit_guard_tests.step,
