@@ -55,7 +55,6 @@ def run_self_test() -> None:
         missing_path = (
             missing_root / "scripts" / "zigux" / "mk_elfconfig_fd_trailing_elf64_hides_elf32_test.zig"
         )
-        missing_path.writeText = None
         missing_path.write_text("", encoding="utf-8")
         try:
             validate_markers(missing_root)
