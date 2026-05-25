@@ -344,6 +344,23 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-rbtree-guard-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / PHASE1_CLOSURE_REL
+        marker = "- `PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns`"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace(marker, f"{marker}\n{marker}", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        expected_issue = (
+            f"{PHASE1_CLOSURE_REL}:marker_count:{marker}:expected=1:actual=2"
+        )
+        if issues != [expected_issue]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=duplicate_rbtree_bench_guard_marker_fail_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-find-bit-anchor-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
@@ -402,7 +419,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
