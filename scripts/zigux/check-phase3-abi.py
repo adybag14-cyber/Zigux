@@ -62,6 +62,7 @@ REQUIRED_MARKERS = {
         "typedef struct zigux_notifier_chain_priority_increase {",
         "zigux_notifier_chain_has_nonincreasing_priority(",
         "zigux_notifier_first_chain_priority_increase(",
+        "static inline int zigux_hlist_first_pprev_matches_head(",
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
         "static inline zigux_boundary_header zigux_compatible_header(",
         "static inline uint32_t zigux_header_requested_extra_bytes(",
@@ -100,6 +101,7 @@ REQUIRED_MARKERS = {
         "pub const InteropPolicy = extern struct {",
         "pub fn defaultHeader(flags: u16) BoundaryHeader {",
         "pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {",
+        "pub fn hlistFirstPprevMatchesHead(head: ?*const HListHead) bool {",
         "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {",
         "pub fn okStatus(facility: Facility) ExportStatus {",
     ),
@@ -489,6 +491,16 @@ def run_self_test() -> int:
                 ABI_HEADER,
                 "zigux_notifier_chain_has_nonincreasing_priority(\n",
                 "missing include/zigux/abi.h marker: zigux_notifier_chain_has_nonincreasing_priority(",
+            ),
+            (
+                ABI_HEADER,
+                "static inline int zigux_hlist_first_pprev_matches_head(\n",
+                "missing include/zigux/abi.h marker: static inline int zigux_hlist_first_pprev_matches_head(",
+            ),
+            (
+                BINDING_ABI,
+                "pub fn hlistFirstPprevMatchesHead(head: ?*const HListHead) bool {\n",
+                "missing zigux/bindings/abi.zig marker: pub fn hlistFirstPprevMatchesHead(head: ?*const HListHead) bool {",
             ),
             (
                 ABI_SLICE_NOTE,
@@ -921,7 +933,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=40")
+    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=42")
     return 0
 
 
