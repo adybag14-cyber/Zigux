@@ -32,11 +32,12 @@ test "phase11 bcm2835 manifest packet survey keeps the returned driver proof tru
     try expectContains(survey_note, "`drivers/watchdog/bcm2835_wdt.zig`");
     try expectContains(survey_note, "`drivers/watchdog/bcm2835_wdt_verify.zig`");
     try expectContains(survey_note, "`zigux/tests/phase11_bcm2835_wdt.zig`");
-    try expectContains(survey_note, "driver-return proof plus a coupled verify helper");
-    try expectContains(survey_note, "validation matrix");
-    try expectContains(survey_note, "manifest-backed closure or teardown-note step");
-    try expectNotContains(survey_note, "does not return `drivers/watchdog/bcm2835_wdt_verify.zig`");
-    try expectNotContains(survey_note, "one bcm2835-only manifest or slice-note extension");
+    try expectContains(survey_note, "driver proof, coupled verify helper, validation plan, validation matrix, focused replay, and dedicated reminder-packet survey route are directly readable together");
+    try expectContains(survey_note, "direct current `master` readback still does not return `Documentation/zigux/phase11-bcm2835-wdt-slice.md`, `Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`, or `zigux/tests/phase11_bcm2835_wdt_manifest.json`");
+    try expectContains(survey_note, "wider slice, teardown-note, and manifest surfaces have already returned");
+    try expectContains(survey_note, "manifest-backed closure, slice-note, or teardown-note return");
+    try expectNotContains(survey_note, "the bounded starter packet that is now directly readable on current `master`, without overclaiming live platform registration or hardware-backed poweroff execution.");
+    try expectNotContains(survey_note, "the bounded driver template, validation matrix, teardown note, slice note, manifest, verify helper, and focused replay are all directly readable together");
 }
 
 test "phase11 bcm2835 manifest packet survey keeps the blocker plan aligned with current master" {
