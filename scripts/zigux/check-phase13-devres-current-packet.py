@@ -174,8 +174,8 @@ PATH_MARKERS = {
         "PHASE13_DEVRES_IOMAP_PLANNER=pass",
     ],
     MMIO_PACKET_CHECKER_PATH: [
-        "PHASE13_DEVRES_DMA_BOUNDARY_SELF_TEST=pass",
-        "PHASE13_DEVRES_DMA_BOUNDARY=pass",
+        "PHASE13_DEVRES_MMIO_PACKET_SELF_TEST=pass",
+        "PHASE13_DEVRES_MMIO_PACKET=pass",
     ],
 }
 
@@ -274,6 +274,18 @@ def run_self_test() -> int:
             validate(root),
             [f"{DMA_CHECKER_PATH.as_posix()}:missing_marker:PHASE13_DEVRES_DMAM_ALLOC_COHERENT_PLANNER=pass"],
             "missing_dma_checker_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / MMIO_PACKET_CHECKER_PATH,
+            "PHASE13_DEVRES_MMIO_PACKET_SELF_TEST=pass\n",
+        )
+        assert_only(
+            validate(root),
+            [f"{MMIO_PACKET_CHECKER_PATH.as_posix()}:missing_marker:PHASE13_DEVRES_MMIO_PACKET=pass"],
+            "missing_mmio_checker_marker_failed",
         )
         case_count += 1
 
