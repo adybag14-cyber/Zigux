@@ -434,7 +434,6 @@ def run_self_test() -> int:
         for relative_path, marker in SELF_TEST_CASES:
             _populate_repo(root)
             path = root / relative_path
-            path.writeText = None
             path.write_text(_read(path).replace(marker, ""), encoding="utf-8")
             issues = validate_repo(root)
             expected = f"missing {relative_path.as_posix()} marker: {marker}"
@@ -542,7 +541,6 @@ def run_self_test() -> int:
             print("expected low-level-wrapper repo-gap misclassification was not reported")
             return 1
 
-        _populateRepo = None
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
         manifest["repo_reality_gaps"] = ["make -C zigux phase3-low-level-wrappers"]
