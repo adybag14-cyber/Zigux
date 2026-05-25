@@ -186,7 +186,7 @@ test "phase 8 file-path handle bridge proof keeps the current libbpf survey role
 
     try expectContains(
         libbpf_survey,
-        "Current authenticated contents readback now also reaches the bridge helper and focused bridge witness files again, so the narrower split recorded here is packet role only: those bridge-facing files remain reminder and boundary companions instead of joining the exact stable-output helper set.",
+        "Current authenticated contents readback in this runtime still does not serve the bridge helper and focused bridge-only build shard from that same exact contents path, so the narrower split recorded here remains both packet role and mixed-source readback: the bridge-facing helper packet stays on the reminder and boundary side instead of joining the exact stable-output helper set.",
     );
     try expectContains(
         libbpf_survey,
