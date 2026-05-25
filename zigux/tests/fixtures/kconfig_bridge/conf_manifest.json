@@ -69,6 +69,7 @@
     "allmodconfig",
     "allnoconfig",
     "allyesconfig",
+    "alldefconfig",
     "randconfig"
   ],
   "randconfig_env_packet": [
