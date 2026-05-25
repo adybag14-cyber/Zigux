@@ -18,6 +18,24 @@ test "list starter packet keeps a sentinel-only list empty and reviewable" {
     try testing.expect(view.firstBrokenBacklink() == null);
 }
 
+test "list starter packet keeps a broken sentinel backlink explicit at index zero" {
+    var head = list_view.ListHead{ .next = 0, .prev = 0 };
+    head.next = @intFromPtr(&head);
+    head.prev = 0;
+
+    const view = list_view.ListView.init(&head);
+    try testing.expect(!view.isEmpty());
+    try testing.expectEqual(@as(usize, 0), view.len());
+    try testing.expectEqual(@as(?*const list_view.ListHead, null), view.first());
+    try testing.expectEqual(@as(?*const list_view.ListHead, null), view.last());
+    try testing.expect(!view.hasConsistentBacklinks());
+
+    const breakage = view.firstBrokenBacklink().?;
+    try testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.expected_prev);
+    try testing.expectEqual(@as(usize, 0), breakage.actual_prev);
+}
+
 test "list starter packet keeps circular ordering and broken backlinks explicit" {
     var head = list_view.ListHead{ .next = 0, .prev = 0 };
     var first = list_view.ListHead{ .next = 0, .prev = 0 };
@@ -71,6 +89,28 @@ test "hlist starter packet keeps empty heads and bounded chains explicit" {
     try testing.expect(view.firstPprevMatchesHead());
     try testing.expect(view.hasConsistentPrevLinks());
     try testing.expect(view.tailNextIsNull());
+}
+
+test "hlist starter packet keeps a first-node head mismatch explicit at index zero" {
+    var head = hlist_view.HListHead{ .first = 0 };
+    var first = hlist_view.HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = 0;
+    first.pprev = 0;
+
+    const view = hlist_view.HListView.init(&head);
+    try testing.expect(!view.isEmpty());
+    try testing.expectEqual(@as(usize, 1), view.len());
+    try testing.expectEqual(@as(?*const hlist_view.HListNode, &first), view.first());
+    try testing.expect(!view.firstPprevMatchesHead());
+    try testing.expect(!view.hasConsistentPrevLinks());
+    try testing.expect(view.tailNextIsNull());
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.expected_pprev);
+    try testing.expectEqual(@as(usize, 0), breakage.actual_pprev);
 }
 
 test "hlist starter packet reports the first broken prev-link witness" {
