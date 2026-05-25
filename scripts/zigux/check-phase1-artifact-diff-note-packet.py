@@ -75,8 +75,13 @@ FIXTURE_SENTINELS = {
 SELF_TEST_CASES = [
     "round_trip",
     "sample_root_writer",
+    "note_directory_drift",
+    "artifact_diff_directory_drift",
     "note_marker_drift",
     "artifact_marker_drift",
+    "manifest_invalid_json",
+    "fixture_invalid_json",
+    "blockers_invalid_json",
     "helper_count_drift",
     "shared_helper_drift",
     "direct_helper_drift",
@@ -342,13 +347,33 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def load_json_with_issue(path: Path, label: str) -> tuple[object | None, str | None]:
+    try:
+        return json.loads(read_text(path)), None
+    except json.JSONDecodeError as exc:
+        return None, f"{label}:json_decode:{exc.lineno}:{exc.colno}:{exc.msg}"
+
+
 def load_json(path: Path) -> object:
-    return json.loads(read_text(path))
+    payload, issue = load_json_with_issue(path, "internal")
+    if issue is not None:
+        raise ValueError(issue)
+    return payload
 
 
 def ensure(condition: bool, issues: list[str], label: str) -> None:
     if not condition:
         issues.append(label)
+
+
+def ensure_file(path: Path, root: Path, issues: list[str]) -> None:
+    relative = path.relative_to(root).as_posix()
+    if path.is_file():
+        return
+    if path.exists():
+        issues.append(f"not_file:{relative}")
+        return
+    issues.append(f"missing:{relative}")
 
 
 def validate(root: Path) -> list[str]:
@@ -360,7 +385,7 @@ def validate(root: Path) -> list[str]:
     fixture_path = root / FIXTURE_REL
     blockers_path = root / BLOCKERS_REL
     for path in [note_path, artifact_diff_path, manifest_path, fixture_path, blockers_path]:
-        ensure(path.is_file(), issues, f"missing:{path.relative_to(root).as_posix()}")
+        ensure_file(path, root, issues)
     if issues:
         return issues
 
@@ -372,9 +397,14 @@ def validate(root: Path) -> list[str]:
     for marker in ARTIFACT_DIFF_MARKERS:
         ensure(marker in artifact_diff_text, issues, f"artifact_diff:marker:{marker}")
 
-    manifest = load_json(manifest_path)
-    fixture = load_json(fixture_path)
-    blockers = load_json(blockers_path)
+    manifest, manifest_issue = load_json_with_issue(manifest_path, "manifest")
+    fixture, fixture_issue = load_json_with_issue(fixture_path, "fixture")
+    blockers, blockers_issue = load_json_with_issue(blockers_path, "blockers")
+    for issue in [manifest_issue, fixture_issue, blockers_issue]:
+        if issue is not None:
+            issues.append(issue)
+    if issues:
+        return issues
     ensure(isinstance(manifest, dict), issues, "manifest:not_object")
     ensure(isinstance(fixture, dict), issues, "fixture:not_object")
     ensure(isinstance(blockers, dict), issues, "blockers:not_object")
@@ -515,6 +545,23 @@ def run_self_test() -> int:
         assert (writer_root / BLOCKERS_REL).is_file(), "sample_root_writer"
         covered.append("sample_root_writer")
 
+        note_directory_drift = root / "note_directory_drift"
+        write_sample_root(note_directory_drift)
+        (note_directory_drift / NOTE_REL).unlink()
+        (note_directory_drift / NOTE_REL).mkdir(parents=True)
+        expect_failure("note_directory_drift", lambda: assert_validation_pass(note_directory_drift))
+        covered.append("note_directory_drift")
+
+        artifact_diff_directory_drift = root / "artifact_diff_directory_drift"
+        write_sample_root(artifact_diff_directory_drift)
+        (artifact_diff_directory_drift / ARTIFACT_DIFF_REL).unlink()
+        (artifact_diff_directory_drift / ARTIFACT_DIFF_REL).mkdir(parents=True)
+        expect_failure(
+            "artifact_diff_directory_drift",
+            lambda: assert_validation_pass(artifact_diff_directory_drift),
+        )
+        covered.append("artifact_diff_directory_drift")
+
         note_marker_drift = root / "note_marker_drift"
         write_sample_root(note_marker_drift)
         note_path = note_marker_drift / NOTE_REL
@@ -536,6 +583,24 @@ def run_self_test() -> int:
         )
         expect_failure("artifact_marker_drift", lambda: assert_validation_pass(artifact_marker_drift))
         covered.append("artifact_marker_drift")
+
+        manifest_invalid_json = root / "manifest_invalid_json"
+        write_sample_root(manifest_invalid_json)
+        write_text(manifest_invalid_json / MANIFEST_REL, '{"phase": "Phase 1",\n')
+        expect_failure("manifest_invalid_json", lambda: assert_validation_pass(manifest_invalid_json))
+        covered.append("manifest_invalid_json")
+
+        fixture_invalid_json = root / "fixture_invalid_json"
+        write_sample_root(fixture_invalid_json)
+        write_text(fixture_invalid_json / FIXTURE_REL, '{"bitmap": {\n')
+        expect_failure("fixture_invalid_json", lambda: assert_validation_pass(fixture_invalid_json))
+        covered.append("fixture_invalid_json")
+
+        blockers_invalid_json = root / "blockers_invalid_json"
+        write_sample_root(blockers_invalid_json)
+        write_text(blockers_invalid_json / BLOCKERS_REL, '{"status": "parked",\n')
+        expect_failure("blockers_invalid_json", lambda: assert_validation_pass(blockers_invalid_json))
+        covered.append("blockers_invalid_json")
 
         helper_count_drift = root / "helper_count_drift"
         write_sample_root(helper_count_drift)
