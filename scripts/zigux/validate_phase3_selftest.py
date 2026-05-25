@@ -5,10 +5,20 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
+import shlex
 import subprocess
 import sys
 import tempfile
+
+MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+ORCHESTRATION_ROUTES = frozenset(
+    {
+        Path("scripts/zigux/run-phase3-checks.py"),
+        Path("scripts/zigux/validate_phase3_selftest.py"),
+    }
+)
 
 SELFTEST_COMMANDS = (
     (
@@ -209,14 +219,39 @@ def _has_output_marker(stdout: str, marker: str) -> bool:
     return marker in stdout
 
 
-def _missing_output_markers(rel_path: Path, stdout: str, markers: tuple[str, ...]) -> list[str]:
+def _missing_output_markers(stdout: str, markers: tuple[str, ...]) -> list[str]:
     missing: list[str] = []
     for marker in markers:
         if not _has_output_marker(stdout, marker):
-            missing.append(
-                f"missing selftest output marker for {rel_path.as_posix()}: {marker}"
-            )
+            missing.append(marker)
     return missing
+
+
+def _expected_manifest_selftest_routes(
+    manifest: object,
+) -> set[tuple[Path, tuple[str, ...]]]:
+    if not isinstance(manifest, dict):
+        return set()
+
+    replay_routes = manifest.get("replay_routes")
+    if not isinstance(replay_routes, list):
+        return set()
+
+    expected: set[tuple[Path, tuple[str, ...]]] = set()
+    for route in replay_routes:
+        if not isinstance(route, str):
+            continue
+        parts = shlex.split(route)
+        if len(parts) < 3 or parts[0] != "python3" or "--self-test" not in parts[2:]:
+            continue
+        script_path = Path(parts[1])
+        if (
+            script_path.parts[:2] == ("scripts", "zigux")
+            and script_path.suffix == ".py"
+            and script_path not in ORCHESTRATION_ROUTES
+        ):
+            expected.add((script_path, tuple(parts[2:])))
+    return expected
 
 
 def validate_script_list(repo_root: Path) -> list[str]:
@@ -227,8 +262,29 @@ def validate_script_list(repo_root: Path) -> list[str]:
     return missing
 
 
+def validate_manifest_selftest_coverage(repo_root: Path) -> list[str]:
+    manifest_path = repo_root / MANIFEST_PATH
+    if not manifest_path.is_file():
+        return [f"missing phase3 manifest: {MANIFEST_PATH.as_posix()}"]
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"invalid phase3 manifest JSON: {MANIFEST_PATH.as_posix()}: {exc}"]
+
+    expected = _expected_manifest_selftest_routes(manifest)
+    actual = {(rel_path, args) for rel_path, args, _markers in SELFTEST_COMMANDS}
+    missing = sorted(expected - actual, key=lambda item: (item[0].as_posix(), item[1]))
+    return [
+        "manifest self-test replay route missing from SELFTEST_COMMANDS: "
+        + " ".join([rel_path.as_posix(), *args])
+        for rel_path, args in missing
+    ]
+
+
 def run_packet(repo_root: Path) -> int:
     missing = validate_script_list(repo_root)
+    missing.extend(validate_manifest_selftest_coverage(repo_root))
     if missing:
         print("PHASE3_VALIDATE_SELFTEST=fail")
         print("\n".join(missing))
@@ -250,10 +306,15 @@ def run_packet(repo_root: Path) -> int:
                 print(result.stderr.rstrip())
             return 1
 
-        marker_issues = _missing_output_markers(rel_path, result.stdout, output_markers)
+        marker_issues = _missing_output_markers(result.stdout, output_markers)
         if marker_issues:
             print("PHASE3_VALIDATE_SELFTEST=fail")
-            print("\n".join(marker_issues))
+            print(
+                "\n".join(
+                    f"missing selftest output marker for {rel_path.as_posix()}: {marker}"
+                    for marker in marker_issues
+                )
+            )
             if result.stdout:
                 print(result.stdout.rstrip())
             if result.stderr:
@@ -283,6 +344,28 @@ def _write_synthetic_script(
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _write_synthetic_manifest(root: Path, replay_routes: list[str] | None = None) -> None:
+    manifest_path = root / MANIFEST_PATH
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    if replay_routes is None:
+        replay_routes = [
+            f"python3 {rel_path.as_posix()} {' '.join(args)}".rstrip()
+            for rel_path, args, _markers in SELFTEST_COMMANDS
+        ]
+        replay_routes.extend(
+            [
+                "python3 scripts/zigux/run-phase3-checks.py",
+                "python3 scripts/zigux/validate_phase3_selftest.py",
+                "python3 scripts/zigux/check-phase3-abi.py",
+                "zig build phase3-test --build-file zigux/tests/build.zig",
+            ]
+        )
+    manifest_path.write_text(
+        json.dumps({"replay_routes": replay_routes}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _populate_repo(root: Path) -> None:
     for rel_path, _args, output_markers in SELFTEST_COMMANDS:
         path = root / rel_path
@@ -290,6 +373,7 @@ def _populate_repo(root: Path) -> None:
         pass_marker = output_markers[0] if output_markers else None
         count_marker = output_markers[1] if len(output_markers) > 1 else None
         _write_synthetic_script(path, pass_marker, count_marker)
+    _write_synthetic_manifest(root)
 
 
 def _expect_missing(root: Path, index: int, message: str) -> int:
@@ -312,6 +396,13 @@ def run_self_test() -> int:
         if validate_script_list(root):
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected synthetic self-test script set to validate")
+            return 1
+
+        manifest_missing = validate_manifest_selftest_coverage(root)
+        if manifest_missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected synthetic self-test manifest coverage to validate")
+            print("\n".join(manifest_missing))
             return 1
 
         if run_packet(root) != 0:
@@ -348,6 +439,34 @@ def run_self_test() -> int:
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
                 return 1
+
+        _populate_repo(root)
+        _write_synthetic_manifest(
+            root,
+            replay_routes=[
+                f"python3 {rel_path.as_posix()} {' '.join(args)}".rstrip()
+                for rel_path, args, _markers in SELFTEST_COMMANDS
+            ]
+            + ["python3 scripts/zigux/manifest-only-selftest.py --self-test"],
+        )
+        manifest_missing = validate_manifest_selftest_coverage(root)
+        expected_manifest_gap = (
+            "manifest self-test replay route missing from SELFTEST_COMMANDS: "
+            "scripts/zigux/manifest-only-selftest.py --self-test"
+        )
+        if expected_manifest_gap not in manifest_missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected manifest-only self-test replay route omission to be reported")
+            return 1
+
+        _populate_repo(root)
+        (root / MANIFEST_PATH).unlink()
+        manifest_missing = validate_manifest_selftest_coverage(root)
+        expected_manifest_missing = f"missing phase3 manifest: {MANIFEST_PATH.as_posix()}"
+        if expected_manifest_missing not in manifest_missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing manifest to be reported")
+            return 1
 
         _populate_repo(root)
         failing_path = root / SELFTEST_COMMANDS[19][0]
@@ -629,7 +748,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 24}"
+        f"{len(missing_cases) + 26}"
     )
     return 0
 
