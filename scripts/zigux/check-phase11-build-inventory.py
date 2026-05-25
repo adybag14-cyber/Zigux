@@ -146,6 +146,10 @@ REQUIRED_SCRIPTS_ROOT_MARKERS = (
 )
 
 REQUIRED_VALIDATE_PHASE11_MARKERS = (
+    '("python", "scripts/zigux/check-phase11-validate-check-roster.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-validate-check-roster.py")',
+    '("python", "scripts/zigux/check-phase11-validate-route-alignment.py", "--self-test")',
+    '("python", "scripts/zigux/check-phase11-validate-route-alignment.py")',
     '("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test")',
     '("python", "scripts/zigux/check-phase11-build-inventory.py")',
     '("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test")',
@@ -257,6 +261,7 @@ def expect_string_list(label: str, value: object) -> list[str]:
     if len(value) != len(set(value)):
         raise CheckError(f"duplicate entry in {label}")
     return list(value)
+
 
 def expect_object_list(label: str, value: object) -> list[dict[str, object]]:
     if not isinstance(value, list) or any(not isinstance(item, dict) for item in value):
@@ -386,7 +391,6 @@ def run_check(root: Path) -> None:
     )
     build_text = read_text(root / BUILD_FILE_PATH)
     workflow_text = read_text(root / WORKFLOW_PATH)
-    makefile_text = read_text(root / MAKEFILE_PATH)
     for marker in REQUIRED_BUILD_TEXT_MARKERS:
         if marker not in build_text:
             raise CheckError(f"missing marker in {BUILD_FILE_PATH}: {marker}")
@@ -562,108 +566,108 @@ def fixture_inventory() -> dict[str, object]:
     }
 
 
-FIXTURE_BUILD_TEXT = """const std = @import(\"std\");
+FIXTURE_BUILD_TEXT = """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path(\"phase11_hvc_cleanup_packet_proof.zig\"),
+        .root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),
         .target = target,
         .optimize = optimize,
     });
     const proof_tests = b.addTest(.{
-        .name = \"phase11-hvc-cleanup-packet-proof\",
+        .name = "phase11-hvc-cleanup-packet-proof",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC cleanup packet proof\");
+    const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");
     test_step.dependOn(&run_proof_tests.step);
 }
 """
 
 
-FIXTURE_HV_OPS_BUILD_TEXT = """const std = @import(\"std\");
+FIXTURE_HV_OPS_BUILD_TEXT = """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const hv_ops_proof_module = b.createModule(.{
-        .root_source_file = b.path(\"phase11_hvc_hv_ops_layout_proof.zig\"),
+        .root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const hv_ops_proof_tests = b.addTest(.{
-        .name = \"phase11-hvc-hv-ops-layout-proof-tests\",
+        .name = "phase11-hvc-hv-ops-layout-proof-tests",
         .root_module = hv_ops_proof_module,
     });
     const run_hv_ops_proof_tests = b.addRunArtifact(hv_ops_proof_tests);
 
     const export_surface_proof_module = b.createModule(.{
-        .root_source_file = b.path(\"phase11_hvc_export_surface_layout_proof.zig\"),
+        .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const export_surface_proof_tests = b.addTest(.{
-        .name = \"phase11-hvc-export-surface-layout-proof-tests\",
+        .name = "phase11-hvc-export-surface-layout-proof-tests",
         .root_module = export_surface_proof_module,
     });
     const run_export_surface_proof_tests = b.addRunArtifact(export_surface_proof_tests);
 
-    const test_step = b.step(\"test\", \"Run the focused Phase 11 exported-header proofs\");
+    const test_step = b.step("test", "Run the focused Phase 11 exported-header proofs");
     test_step.dependOn(&run_hv_ops_proof_tests.step);
     test_step.dependOn(&run_export_surface_proof_tests.step);
 }
 """
 
 
-FIXTURE_EXPORT_BUILD_TEXT = """const std = @import(\"std\");
+FIXTURE_EXPORT_BUILD_TEXT = """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path(\"phase11_hvc_export_surface_layout_proof.zig\"),
+        .root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const proof_tests = b.addTest(.{
-        .name = \"phase11-hvc-export-surface-layout-proof\",
+        .name = "phase11-hvc-export-surface-layout-proof",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC exported-helper ABI proof\");
+    const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");
     test_step.dependOn(&run_proof_tests.step);
 }
 """
 
 
-FIXTURE_TARGETLESS_BUILD_TEXT = """const std = @import(\"std\");
+FIXTURE_TARGETLESS_BUILD_TEXT = """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const root_module = b.createModule(.{
-        .root_source_file = b.path(\"phase11_hvc_targetless_unregister_gap.zig\"),
+        .root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const unit_tests = b.addTest(.{
-        .name = \"phase11-hvc-targetless-unregister-gap\",
+        .name = "phase11-hvc-targetless-unregister-gap",
         .root_module = root_module,
     });
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
-    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC targetless-unregister gap witness.\");
+    const test_step = b.step("test", "Run the focused Phase 11 HVC targetless-unregister gap witness.");
     test_step.dependOn(&run_unit_tests.step);
 }
 """
@@ -701,27 +705,31 @@ FIXTURE_SCRIPTS_README_TEXT = """# scripts/zigux
 """
 
 FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
-    (\"python\", \"scripts/zigux/check-phase11-build-inventory.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-build-inventory.py\"),
-    (\"python\", \"scripts/zigux/check-phase11-focused-direct-build-replays.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-focused-direct-build-replays.py\"),
-    (\"python\", \"scripts/zigux/check-phase11-matrix-gap-survey.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-matrix-gap-survey.py\"),
-    (\"python\", \"scripts/zigux/check-phase11-validation-matrix-gap-survey.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-validation-matrix-gap-survey.py\"),
-    (\"python\", \"scripts/zigux/check-phase11-hvc-cleanup-current-head.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-hvc-cleanup-current-head.py\"),
-    (\"python\", \"scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py\"),
-    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-teardown-packet.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-teardown-packet.py\"),
-    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-verify-alignment.py\", \"--self-test\"),
-    (\"python\", \"scripts/zigux/check-phase11-dw-wdt-verify-alignment.py\"),
-    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_hv_ops_layout_build.zig\"),
-    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_export_surface_layout_build.zig\"),
-    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_cleanup_packet_build.zig\"),
-    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig\"),
-    (\"zig\", \"build\", \"test\", \"--build-file\", \"zigux/tests/phase11_hvc_modem_control_proof_build.zig\"),
+    ("python", "scripts/zigux/check-phase11-validate-check-roster.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-validate-check-roster.py"),
+    ("python", "scripts/zigux/check-phase11-validate-route-alignment.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-validate-route-alignment.py"),
+    ("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-build-inventory.py"),
+    ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),
+    ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py"),
+    ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
+    ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
+    ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
+    ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"),
+    ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "--self-test"),
+    ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig"),
 )
 """
 
@@ -754,13 +762,14 @@ jobs:
 """
 
 FIXTURE_MAKEFILE_TEXT = """phase11-validate:
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig
 """
+
 
 def build_fixture(root: Path) -> None:
     write(root / BUILD_FILE_PATH, FIXTURE_BUILD_TEXT)
@@ -778,6 +787,7 @@ def build_fixture(root: Path) -> None:
     write(root / WORKFLOW_PATH, FIXTURE_WORKFLOW_TEXT)
     write(root / MAKEFILE_PATH, FIXTURE_MAKEFILE_TEXT)
 
+
 def expect_failure(root: Path, fragment: str) -> None:
     try:
         run_check(root)
@@ -786,6 +796,7 @@ def expect_failure(root: Path, fragment: str) -> None:
             raise AssertionError(f"expected {fragment!r}, got {exc!r}") from exc
         return
     raise AssertionError(f"expected failure containing {fragment!r}")
+
 
 def run_self_test() -> int:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_build_inventory_current_head_"))
@@ -981,6 +992,38 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        missing_validate_check_roster_marker = tmpdir / "missing_validate_check_roster_marker"
+        shutil.copytree(fixture, missing_validate_check_roster_marker, dirs_exist_ok=True)
+        write(
+            missing_validate_check_roster_marker / VALIDATE_PHASE11_PATH,
+            read_text(missing_validate_check_roster_marker / VALIDATE_PHASE11_PATH).replace(
+                '("python", "scripts/zigux/check-phase11-validate-check-roster.py", "--self-test")',
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_validate_check_roster_marker,
+            '("python", "scripts/zigux/check-phase11-validate-check-roster.py", "--self-test")',
+        )
+        case_count += 1
+
+        missing_validate_route_alignment_marker = tmpdir / "missing_validate_route_alignment_marker"
+        shutil.copytree(fixture, missing_validate_route_alignment_marker, dirs_exist_ok=True)
+        write(
+            missing_validate_route_alignment_marker / VALIDATE_PHASE11_PATH,
+            read_text(missing_validate_route_alignment_marker / VALIDATE_PHASE11_PATH).replace(
+                '("python", "scripts/zigux/check-phase11-validate-route-alignment.py")',
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_validate_route_alignment_marker,
+            '("python", "scripts/zigux/check-phase11-validate-route-alignment.py")',
+        )
+        case_count += 1
+
         missing_validate_marker = tmpdir / "missing_validate_marker"
         shutil.copytree(fixture, missing_validate_marker, dirs_exist_ok=True)
         write(
@@ -1126,6 +1169,7 @@ def run_self_test() -> int:
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
