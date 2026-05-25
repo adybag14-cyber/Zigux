@@ -1,6 +1,7 @@
 # Phase 3 bitmap/cpumask Slice
 
 This note records one bounded shared-subsystems helper packet for the missing bitmap/cpumask Phase 3 slice.
+On current `master`, that formerly missing slice is now present as a helper-local starter packet, so the honest remaining interop gap against the roadmap's `lib/bitmap.c` and `lib/cpumask.c` anchors is the still-absent narrow C harness and expected fixture rather than helper absence.
 
 ## Current Slice
 
