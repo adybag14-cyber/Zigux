@@ -37,6 +37,7 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
 Treat the current bounded HVC packet on `master` as:
 
 - `.github/workflows/zigux-bootstrap.yml`
+- `drivers/tty/hvc/hvc_console.h`
 - `drivers/tty/hvc/hvc_console.zig`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
@@ -64,15 +65,19 @@ The shared build-inventory checker, focused-direct-build replay checker, and
 shared build inventory still record the three proof-backed build tests while
 keeping the dedicated modem-control and standalone targetless-unregister build
 routes explicit as direct-readback checks instead of promoting either pair into
-that shared three-entry inventory. `scripts/zigux/validate-phase11.py`,
-`zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` keep the same
-validator-backed route directly readable on current `master` too. Keep the
-dedicated survey route absent until `zigux/Makefile` grows it explicitly. The
-dedicated modem-control proof pair likewise stays directly readable as a
-focused adjunct route without promoting itself into the shared three-entry
-build inventory, and the standalone targetless-unregister witness pair likewise
-stays directly readable as a separate failure-mode replay without promoting
-itself into the shared three-entry build inventory.
+that shared three-entry inventory. `drivers/tty/hvc/hvc_console.h` now stays
+explicit in the current packet too, keeping the exported `struct hvc_struct`
+forward declaration, `struct hv_ops` tag, `struct winsize` layout, and helper
+prototypes directly readable beside the starter Zig module and the focused
+export-surface proofs. `scripts/zigux/validate-phase11.py`, `zigux/Makefile`,
+and `.github/workflows/zigux-bootstrap.yml` keep the same validator-backed
+route directly readable on current `master` too. Keep the dedicated survey
+route absent until `zigux/Makefile` grows it explicitly. The dedicated
+modem-control proof pair likewise stays directly readable as a focused adjunct
+route without promoting itself into the shared three-entry build inventory, and
+the standalone targetless-unregister witness pair likewise stays directly
+readable as a separate failure-mode replay without promoting itself into the
+shared three-entry build inventory.
 
 ## Still-Bounded Gaps
 
