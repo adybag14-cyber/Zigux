@@ -6,7 +6,7 @@ Fail-closed checker for the current Phase 14 release-boundary count posture.
 This guard keeps the release-boundary packet honest around the exact manifest-
 backed compile-shard counts, the dedicated compile-shard matrix survey, the
 returned manifest posture in the shared smoke survey, the dedicated validator-side
-skbuff stay-in-C and compile-route packets, and the still-unreadable build-side or broader
+skbuff stay-in-C and compile-route packets, the dedicated RCU rollback packet, and the still-unreadable build-side or broader
 executable-layer gap while cross-reading the shared smoke survey markers that
 define the current Phase 14 route split.
 """
@@ -97,6 +97,9 @@ REQUIRED_MANIFEST_VALUES = {
     ("survey_summary", "workflow_runs_phase14_build"): False,
     ("survey_summary", "workflow_runs_phase14_smoke_shard"): False,
     ("survey_summary", "phase14_validate_runs_skbuff_stay_in_c_guardrail"): True,
+    ("survey_summary", "phase14_validate_runs_skbuff_compile_route_checker"): True,
+    ("survey_summary", "shared_manifest_records_skbuff_compile_route_checker"): True,
+    ("survey_summary", "phase14_validate_runs_rcu_rollback_guardrail"): True,
 }
 
 
@@ -307,6 +310,9 @@ def fixture_manifest() -> str:
             "workflow_runs_phase14_build": False,
             "workflow_runs_phase14_smoke_shard": False,
             "phase14_validate_runs_skbuff_stay_in_c_guardrail": True,
+            "phase14_validate_runs_skbuff_compile_route_checker": True,
+            "shared_manifest_records_skbuff_compile_route_checker": True,
+            "phase14_validate_runs_rcu_rollback_guardrail": True,
         },
         "compile_shards": [
             {
@@ -451,6 +457,42 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_validate_runs_skbuff_compile_route_checker"] = False
+        write_manifest_payload(base, manifest)
+        if not any(
+            error.startswith("manifest_value_mismatch:survey_summary.phase14_validate_runs_skbuff_compile_route_checker")
+            for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected skbuff compile-route manifest drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["shared_manifest_records_skbuff_compile_route_checker"] = False
+        write_manifest_payload(base, manifest)
+        if not any(
+            error.startswith("manifest_value_mismatch:survey_summary.shared_manifest_records_skbuff_compile_route_checker")
+            for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected shared manifest skbuff compile-route drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_validate_runs_rcu_rollback_guardrail"] = False
+        write_manifest_payload(base, manifest)
+        if not any(
+            error.startswith("manifest_value_mismatch:survey_summary.phase14_validate_runs_rcu_rollback_guardrail")
+            for error in check(base)
+        ):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected RCU rollback manifest drift to fail")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
         manifest["compile_shards"] = manifest["compile_shards"][:-1]
         write_manifest_payload(base, manifest)
         if not any(
@@ -474,7 +516,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=10")
+        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
