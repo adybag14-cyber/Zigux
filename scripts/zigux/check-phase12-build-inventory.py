@@ -28,7 +28,7 @@ TEST_RE = re.compile(
     r'\.root_module\s*=\s*([A-Za-z0-9_]+)\s*,',
     re.S,
 )
-DEPEND_RE = re.compile(r'test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);')
+DEPEND_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 
 
 def load_json(path: Path) -> object:
@@ -255,123 +255,9 @@ pub fn build(b: *std.Build) void {
 }
 """
 
-CURRENT_FIXTURE = {
-    "build_test_names": [
-        "phase12-virtio-net-queue-resume-tests",
-        "phase12-virtio-net-transmit-recycle-tests",
-        "phase12-virtio-net-receive-refill-replay-tests",
-        "phase12-virtio-net-post-reset-replay-tests",
-        "phase12-virtio-net-throughput-parity-tests",
-        "phase12-virtio-net-survey-tests",
-    ],
-    "shared_test_depend_steps": [
-        "run_virtio_net_queue_resume_tests",
-        "run_virtio_net_transmit_recycle_tests",
-        "run_virtio_net_receive_refill_replay_tests",
-        "run_virtio_net_post_reset_replay_tests",
-        "run_virtio_net_throughput_parity_tests",
-        "run_virtio_net_survey_tests",
-    ],
-    "module_root_source_files": [
-        {
-            "module": "virtio_net_queue_resume_module",
-            "path": "../../drivers/net/virtio_net_queue_resume.zig",
-        },
-        {
-            "module": "virtio_net_queue_resume_root_module",
-            "path": "phase12_virtio_net_queue_resume.zig",
-        },
-        {
-            "module": "virtio_net_transmit_recycle_module",
-            "path": "../../drivers/net/virtio_net_transmit_recycle.zig",
-        },
-        {
-            "module": "virtio_net_transmit_recycle_root_module",
-            "path": "phase12_virtio_net_transmit_recycle.zig",
-        },
-        {
-            "module": "virtio_net_receive_refill_replay_module",
-            "path": "../../drivers/net/virtio_net_receive_refill_replay.zig",
-        },
-        {
-            "module": "virtio_net_receive_refill_replay_root_module",
-            "path": "phase12_virtio_net_receive_refill_replay.zig",
-        },
-        {
-            "module": "virtio_net_post_reset_replay_module",
-            "path": "../../drivers/net/virtio_net_post_reset_replay.zig",
-        },
-        {
-            "module": "virtio_net_post_reset_replay_root_module",
-            "path": "phase12_virtio_net_post_reset_replay.zig",
-        },
-        {
-            "module": "virtio_net_throughput_parity_module",
-            "path": "../../drivers/net/virtio_net_throughput_parity.zig",
-        },
-        {
-            "module": "virtio_net_throughput_parity_root_module",
-            "path": "phase12_virtio_net_throughput_parity.zig",
-        },
-        {
-            "module": "virtio_net_survey_root_module",
-            "path": "phase12_virtio_net_survey.zig",
-        },
-    ],
-    "module_imports": [
-        {
-            "module": "virtio_net_queue_resume_root_module",
-            "import_name": "virtio_net_queue_resume",
-            "imported_module": "virtio_net_queue_resume_module",
-        },
-        {
-            "module": "virtio_net_transmit_recycle_root_module",
-            "import_name": "virtio_net_transmit_recycle",
-            "imported_module": "virtio_net_transmit_recycle_module",
-        },
-        {
-            "module": "virtio_net_receive_refill_replay_root_module",
-            "import_name": "virtio_net_receive_refill_replay",
-            "imported_module": "virtio_net_receive_refill_replay_module",
-        },
-        {
-            "module": "virtio_net_post_reset_replay_root_module",
-            "import_name": "virtio_net_post_reset_replay",
-            "imported_module": "virtio_net_post_reset_replay_module",
-        },
-        {
-            "module": "virtio_net_throughput_parity_root_module",
-            "import_name": "virtio_net_throughput_parity",
-            "imported_module": "virtio_net_throughput_parity_module",
-        },
-    ],
-    "test_root_modules": [
-        {
-            "test": "phase12-virtio-net-queue-resume-tests",
-            "root_module": "virtio_net_queue_resume_root_module",
-        },
-        {
-            "test": "phase12-virtio-net-transmit-recycle-tests",
-            "root_module": "virtio_net_transmit_recycle_root_module",
-        },
-        {
-            "test": "phase12-virtio-net-receive-refill-replay-tests",
-            "root_module": "virtio_net_receive_refill_replay_root_module",
-        },
-        {
-            "test": "phase12-virtio-net-post-reset-replay-tests",
-            "root_module": "virtio_net_post_reset_replay_root_module",
-        },
-        {
-            "test": "phase12-virtio-net-throughput-parity-tests",
-            "root_module": "virtio_net_throughput_parity_root_module",
-        },
-        {
-            "test": "phase12-virtio-net-survey-tests",
-            "root_module": "virtio_net_survey_root_module",
-        },
-    ],
-}
+
+def current_fixture() -> dict[str, object]:
+    return render_inventory(CURRENT_BUILD_TEXT)
 
 
 def write_fixture_root(root: Path) -> None:
@@ -379,7 +265,7 @@ def write_fixture_root(root: Path) -> None:
     (root / FIXTURE_PATH).parent.mkdir(parents=True, exist_ok=True)
     (root / BUILD_PATH).write_text(CURRENT_BUILD_TEXT, encoding="utf-8")
     (root / FIXTURE_PATH).write_text(
-        json.dumps(CURRENT_FIXTURE, indent=2) + "\n",
+        json.dumps(current_fixture(), indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -408,7 +294,7 @@ def run_self_test() -> int:
 
         write_fixture_root(base)
         (base / BUILD_PATH).write_text(
-            "const std = @import(\"std\");\n"
+            'const std = @import("std");\n'
             "pub fn build(b: *std.Build) void {\n"
             "    _ = b;\n"
             "}\n",
@@ -443,11 +329,12 @@ def main() -> int:
             print(failure)
         return 1
 
+    actual = render_inventory((args.root / BUILD_PATH).read_text(encoding="utf-8"))
     print("PHASE12_BUILD_INVENTORY=pass")
-    print(f"PHASE12_BUILD_INVENTORY_TEST_COUNT={len(CURRENT_FIXTURE['build_test_names'])}")
+    print(f"PHASE12_BUILD_INVENTORY_TEST_COUNT={len(actual['build_test_names'])}")
     print(
         "PHASE12_BUILD_INVENTORY_MODULE_COUNT="
-        f"{len(CURRENT_FIXTURE['module_root_source_files'])}"
+        f"{len(actual['module_root_source_files'])}"
     )
     return 0
 
