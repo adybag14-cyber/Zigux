@@ -21,6 +21,8 @@ Fresh mixed readback on 2026-05-25 confirmed these current sample-root reminder-
 * `samples/zigux/runtime_bitmap_cold_stage_guard.zig`
 * `samples/zigux/runtime_bitmap_loader.zig`
 * `samples/zigux/runtime_bitmap_top_bit_contract.zig`
+* `samples/zigux/runtime_kretprobe.zig`
+* `samples/zigux/runtime_kretprobe_loader.zig`
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
@@ -97,7 +99,7 @@ Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sampl
 
 ## Phase 9 runtime pilot family
 
-The surviving direct runtime-module sample packet in this directory is still centered on `samples/zigux/runtime_trace_events.zig`.
+One direct runtime-module sample packet in this directory is centered on `samples/zigux/runtime_trace_events.zig`.
 
 Keep `samples/zigux/runtime_trace_events.zig` explicit as the direct runtime sample, including the rejected re-selftest rollback proof that keeps both selftest-complete and exited summaries stable when `runSelftest()` is retried out of lifecycle order.
 Keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the unregistered function-thread fail-closed companion for the same direct runtime packet.
@@ -106,6 +108,11 @@ Keep `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit
 Keep `samples/zigux/runtime_trace_events_reinit_rollback_guard.zig` explicit as the rejected re-init rollback companion for initialized, selftest-complete, and exited lifecycle checkpoints in the same direct runtime packet.
 Keep `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig` explicit as the paired rejected re-init plus rejected re-exit rollback companion after initialized direct activity and selftest-ready replay in the same direct runtime packet.
 Keep the older `samples/zigux/runtime_trace_events_loader.zig` name framed as historical wider-family vocabulary instead of current sample-root proof. The surviving shared loader packet on current `master` is the narrower shared-owner surface carried by `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` shard, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` companion.
+
+Current `master` also keeps a returned runtime kretprobe sample-side packet explicit through `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, `zigux/tests/runtime_kretprobe_manifest.json`, and the dedicated `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, and `phase9-runtime-kretprobe-tests` routes in `zigux/tests/phase9_build.zig`.
+Keep that kretprobe packet framed as a bounded Phase 9 runtime reminder rather than as proof that the broader shared runtime-loader substrate has closed or that loadable `register_kretprobe` parity already exists.
+Keep `samples/zigux/runtime_kretprobe.zig` explicit as the direct runtime sample, including the selftest-hook path, reusable post-selftest probe replay, failed unregister rollback while a return instance is still active, and failed exit rollback while registration remains armed.
+Keep `samples/zigux/runtime_kretprobe_loader.zig` explicit as the sample-side loader companion that preserves initialized and selftest-complete prepared shared-request snapshots until active probe state drains, rather than as proof of live runtime-substrate closure.
 
 Fresh trusted mixed reread on 2026-05-23 also confirms a broader runtime bitmap sample-side packet on current `master`: direct authenticated contents reads now materialize `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_module.zig`, and `zigux/tests/runtime_bitmap_diff.zig`, while `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_survey.zig`, and the shared `zigux/tests/phase9_build.zig` bundle keep the same sample-side reminder packet explicit. Keep that bitmap packet framed as a separate Phase 9 runtime reminder rather than as proof that the broader shared runtime-loader packet returned or as evidence that a fifth approved Phase 5 sample family landed here.
 
