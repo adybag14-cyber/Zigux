@@ -14,7 +14,7 @@ ROADMAP_NOTE = "Documentation/zigux/phase13-roadmap-traceability.md"
 REQUIRED_MARKERS = [
     "The roadmap keeps that tranche bounded to four Linux anchors:",
     "Keep `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the stable contributor-facing handle.",
-    "- refresh basis: current `master` direct readback on `2026-05-24`",
+    "- refresh basis: current `master` direct readback on `2026-05-25`",
     "- dedicated roadmap-traceability guard: `python3 scripts/zigux/check-phase13-roadmap-traceability.py`",
     "- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
     "- shared tests-root alignment guard: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`",
