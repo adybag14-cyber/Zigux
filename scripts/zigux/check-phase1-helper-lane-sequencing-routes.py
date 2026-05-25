@@ -77,6 +77,7 @@ def write_text(root: Path, relative_path: str, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+
 def build_sample_repo(root: Path) -> None:
     write_text(root, HELPER_CHECKER_REL, "# sample helper checker\n")
     for relative_path, markers in EXACT_LINE_MARKERS.items():
@@ -149,8 +150,18 @@ def run_self_test() -> int:
                 print(f"self-test:{name}:expected_failure")
                 return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-helper-lane-routes-write-root-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        failures = collect_failures(root)
+        if failures:
+            print("self-test:write_sample_root:unexpected_failures")
+            for failure in failures:
+                print(failure)
+            return 1
+
     print("PHASE1_HELPER_LANE_SEQUENCING_ROUTES_SELF_TEST=pass")
-    print(f"PHASE1_HELPER_LANE_SEQUENCING_ROUTES_SELF_TEST_CASE_COUNT={len(cases)}")
+    print(f"PHASE1_HELPER_LANE_SEQUENCING_ROUTES_SELF_TEST_CASE_COUNT={len(cases) + 1}")
     return 0
 
 
@@ -158,10 +169,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override repository root")
     parser.add_argument("--self-test", action="store_true", help="run built-in self-test")
+    parser.add_argument(
+        "--write-sample-root",
+        help="write a current-like sample root that satisfies this checker",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+
+    if args.write_sample_root:
+        build_sample_repo(Path(args.write_sample_root).resolve())
+        return 0
 
     failures = collect_failures(repo_root(args.root))
     if failures:
