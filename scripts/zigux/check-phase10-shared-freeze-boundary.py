@@ -61,6 +61,16 @@ PHASE14_FUTURE_DESTINATION_POLICY = (
     "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it"
 )
 
+EXPECTED_SURVEY_PROVENANCE = {
+    "source": "manifest_derived",
+    "lane_keys": {
+        "core": "P10-L01",
+        "ring": "P10-L10",
+        "input": "P10-L22",
+        "mmio": "P10-L11",
+    },
+}
+
 CLOSURE_ALLOWED_ROADMAP_DESTINATIONS = [
     "drivers/virtio/*.zig",
     "zigux/kernel/",
@@ -168,6 +178,11 @@ TEXT_MARKERS = {
         "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence",
     ],
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": [
+        "PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived",
+        "PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L01",
+        "PHASE10_LEDGER_SURVEY_RING_LANE=P10-L10",
+        "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L22",
+        "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L11",
         "PHASE10_LEDGER_PHASE14_STUDY_ONLY_ANCHORS=kernel/workqueue.c,kernel/trace/ring_buffer.c",
     ],
 }
@@ -270,6 +285,18 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 + repr(phase14_boundary.get("future_destination_policy"))
             )
 
+    survey_provenance = closure_manifest.get("survey_provenance")
+    if not isinstance(survey_provenance, dict):
+        missing_markers.append("closure_manifest:survey_provenance")
+    else:
+        if survey_provenance.get("source") != EXPECTED_SURVEY_PROVENANCE["source"]:
+            missing_markers.append(
+                "closure_manifest:survey_provenance:source="
+                + repr(survey_provenance.get("source"))
+            )
+        if survey_provenance.get("lane_keys") != EXPECTED_SURVEY_PROVENANCE["lane_keys"]:
+            missing_markers.append("closure_manifest:survey_provenance:lane_keys")
+
     for rel_path, expected_fields in EXPECTED_DRIVER_MANIFEST_FIELDS.items():
         manifest = json.loads(read_text(root, rel_path))
         label = Path(rel_path).name
@@ -302,6 +329,7 @@ def build_fixture_manifest() -> str:
                 "future_destinations": PHASE14_FUTURE_DESTINATIONS,
                 "future_destination_policy": PHASE14_FUTURE_DESTINATION_POLICY,
             },
+            "survey_provenance": EXPECTED_SURVEY_PROVENANCE,
             "exact_checks": [CHECK_COMMAND],
         },
         indent=2,
@@ -486,6 +514,18 @@ def run_self_test() -> int:
             ),
             (
                 "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived",
+                "PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manual_note",
+                "PHASE10_CLOSURE_LEDGER.md:PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived",
+            ),
+            (
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L11",
+                "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L99",
+                "PHASE10_CLOSURE_LEDGER.md:PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L11",
+            ),
+            (
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
                 "PHASE10_LEDGER_PHASE14_STUDY_ONLY_ANCHORS=kernel/workqueue.c,kernel/trace/ring_buffer.c",
                 "PHASE10_LEDGER_PHASE14_STUDY_ONLY_ANCHORS=kernel/workqueue_bridge.zig",
                 "PHASE10_CLOSURE_LEDGER.md:PHASE10_LEDGER_PHASE14_STUDY_ONLY_ANCHORS=kernel/workqueue.c,kernel/trace/ring_buffer.c",
@@ -575,6 +615,33 @@ def run_self_test() -> int:
         )
         reset_fixture(root)
 
+        run_manifest_case(
+            root,
+            "survey_provenance",
+            {
+                "source": "manual_note",
+                "lane_keys": EXPECTED_SURVEY_PROVENANCE["lane_keys"],
+            },
+            "closure_manifest:survey_provenance:source='manual_note'",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
+            "survey_provenance",
+            {
+                "source": EXPECTED_SURVEY_PROVENANCE["source"],
+                "lane_keys": {
+                    "core": "P10-L01",
+                    "ring": "P10-L10",
+                    "input": "P10-L22",
+                    "mmio": "P10-L99",
+                },
+            },
+            "closure_manifest:survey_provenance:lane_keys",
+        )
+        reset_fixture(root)
+
         run_phase14_case(
             root,
             "status",
@@ -637,7 +704,7 @@ def run_self_test() -> int:
         reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
@@ -660,7 +727,7 @@ if missing_markers:
     print("MISSING_PHASE10_SHARED_FREEZE_MARKERS_END")
     sys.exit(1)
 
-total_manifest_checks = 16 + sum(
+total_manifest_checks = 18 + sum(
     len(fields) for fields in EXPECTED_DRIVER_MANIFEST_FIELDS.values()
 )
 
