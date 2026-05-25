@@ -319,23 +319,22 @@ test "phase 5 trace-events formatting companion keeps bounded destination failur
     try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
 
     var exact_destination: [7]u8 = undefined;
-    const rendered = try sample.formatIterationMessageInto(12, &exact_destination);
-    try std.testing.expectEqualStrings("iter=12", rendered);
+    const exact_message = try sample.formatIterationMessageInto(12, &exact_destination);
+    try std.testing.expectEqualStrings("iter=12", exact_message);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
 
-    var short_selected_destination: [11]u8 = undefined;
+    var short_selected_destination: [13]u8 = undefined;
     try std.testing.expectError(
         error.NoSpaceLeft,
-        sample.formatSelectedIterationMessageInto(3, &short_selected_destination),
+        sample.formatSelectedIterationMessageInto(2, &short_selected_destination),
     );
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
 
-    var exact_selected_destination: [12]u8 = undefined;
-    const selected_rendered = try sample.formatSelectedIterationMessageInto(
-        3,
-        &exact_selected_destination,
-    );
-    try std.testing.expectEqualStrings("Frodo iter=3", selected_rendered);
+    var exact_selected_destination: [14]u8 = undefined;
+    const exact_selected_message = try sample.formatSelectedIterationMessageInto(2, &exact_selected_destination);
+    try std.testing.expectEqualStrings("Gandalf iter=2", exact_selected_message);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
 }
