@@ -26,6 +26,7 @@ SURVEY_GATE_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
 SURVEY_BUILD_PATH = "zigux/tests/phase12_virtio_scsi_survey_build.zig"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
+SUPPORT_PACKET_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
 
 REQUIRED_FILES = [
     SLICE_PATH,
@@ -247,6 +248,10 @@ def check(root: Path) -> list[str]:
     for rel_path in EXPECTED_ABSENT:
         if (root / rel_path).exists():
             errors.append(f"expected absent path unexpectedly present: {rel_path}")
+    if (root / SUPPORT_PACKET_PATH).exists():
+        errors.append(
+            f"expected absent support packet unexpectedly present: {SUPPORT_PACKET_PATH}"
+        )
 
     if survey_manifest.get("lane_key") != "P12-L09":
         errors.append("survey manifest lane_key drift")
