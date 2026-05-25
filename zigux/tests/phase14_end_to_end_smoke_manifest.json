@@ -141,6 +141,7 @@
     "workflow_runs_phase14_smoke_shard": false,
     "phase14_validate_runs_rollback_threshold_sequencing": true,
     "phase14_validate_runs_skbuff_stay_in_c_guardrail": true,
+    "phase14_validate_runs_skbuff_compile_route_checker": true,
     "shared_manifest_records_skbuff_compile_route_checker": true,
     "phase14_validate_runs_rcu_rollback_guardrail": true,
     "review_checklist_has_phase14_smoke_prompt": true,
