@@ -1,0 +1,38 @@
+{
+  "phase": "Phase 3",
+  "lane": "abi-runtime",
+  "slice": "mmio-window-contract",
+  "scope": "bounded MMIO range helpers, policy gates, and width-specific wrapper replay evidence",
+  "files": {
+    "zigux/helpers/mmio.zig": [
+      "pub const MmioRange = extern struct {",
+      "pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {",
+      "pub fn requireVolatileMmioScope(scope: abi.UnsafeScope) PolicyError!void {",
+      "pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) PolicyError!MmioRange {",
+      "pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) PolicyError!MmioRange {",
+      "pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) PolicyError!MmioRange {",
+      "pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8) PolicyError!MmioRange {",
+      "pub fn read8InteropPolicyBytes(base_addr: usize, byte_offset: usize, unsafe_scope: u8, reserved: u8) PolicyError!u8 {",
+      "pub fn write8InteropPolicyBytes(base_addr: usize, byte_offset: usize, value: u8, unsafe_scope: u8, reserved: u8) PolicyError!void {",
+      "pub fn read32InteropPolicyByte(base_addr: usize, byte_offset: usize, unsafe_scope: u8) PolicyError!u32 {",
+      "pub fn write32InteropPolicyByte(base_addr: usize, byte_offset: usize, value: u32, unsafe_scope: u8) PolicyError!void {",
+      "pub fn read64InteropPolicyBytes(base_addr: usize, byte_offset: usize, unsafe_scope: u8, reserved: u8) PolicyError!u64 {",
+      "pub fn write64InteropPolicyBytes(base_addr: usize, byte_offset: usize, value: u64, unsafe_scope: u8, reserved: u8) PolicyError!void {",
+      "test \"phase3 mmio helper keeps helper-local ranges and width aliases explicit\" {"
+    ],
+    "zigux/tests/phase3_low_level_wrappers.zig": [
+      "test \"phase3 low-level wrappers keep MMIO range helpers and width aliases explicit beside raw bridge gates\" {",
+      "const scoped_range = try mmio.rangeScoped(base_addr, 16, 4, .volatile_mmio);",
+      "try std.testing.expectError(error.UnsafeScopeDenied, mmio.rangeInteropPolicy(base_addr, 16, 4, raw_policy));",
+      "const policy_range = try mmio.rangeInteropPolicy(base_addr, 16, 4, mmio_policy);",
+      "const byte_range = try mmio.rangeInteropPolicyByte(base_addr, 16, 4, mmio_scope);",
+      "try mmio.write8InteropPolicyBytes(base_addr, 1, 0x44, mmio_scope, 0);",
+      "try std.testing.expectEqual(@as(u8, 0x44), try mmio.read8InteropPolicyBytes(base_addr, 1, mmio_scope, 0));",
+      "try mmio.write32InteropPolicyByte(base_addr, 4, 0xCAFE_BABE, mmio_scope);",
+      "try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), try mmio.read32InteropPolicyByte(base_addr, 4, mmio_scope));",
+      "try mmio.write64InteropPolicyBytes(base_addr, 8, 0x0123_4567_89AB_CDEF, mmio_scope, 0);",
+      "try narrow.readValueAtInteropPolicyBytes(u64, base_addr + 8, @sizeOf(u64), raw_scope, 0),",
+      "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAtByte(u32, base_addr + 4, mmio_scope));"
+    ]
+  }
+}
