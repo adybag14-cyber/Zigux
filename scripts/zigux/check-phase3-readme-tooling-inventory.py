@@ -50,6 +50,7 @@ ABI_DUMP_REPLAY_FILE = Path("zigux/tests/phase3_abi_dump_current.zig")
 CATALOG_TOOL_FILE = Path("scripts/zigux/phase3_catalog.py")
 CATALOG_SELFTEST_CHECK_FILE = Path("scripts/zigux/check-phase3-catalog-selftest.py")
 GENERATED_WRAPPER_FILE = Path("scripts/zigux/generate-phase3-check-wrappers.py")
+WRAPPER_TEMPLATE_CHECK_FILE = Path("scripts/zigux/check-phase3-wrapper-templates.py")
 FIXTURE_MANIFEST_FILE = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 HEADER_FAMILY_VALIDATOR_FILE = Path(
     "scripts/zigux/validate-phase3-abi-header-family-survey.py"
@@ -136,6 +137,10 @@ HEADER_GOVERNANCE_VALIDATOR_SELFTEST_MARKER = (
 CATALOG_SELFTEST_GAP_MARKER = "scripts/zigux/check-phase3-catalog-selftest.py"
 CATALOG_TOOL_MARKER = "scripts/zigux/phase3_catalog.py"
 WRAPPER_GENERATION_GAP_MARKER = "scripts/zigux/generate-phase3-check-wrappers.py"
+WRAPPER_TEMPLATE_CHECK_MARKER = "scripts/zigux/check-phase3-wrapper-templates.py"
+WRAPPER_TEMPLATE_CHECK_SELFTEST_MARKER = (
+    "python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"
+)
 SHARED_VALIDATOR_MARKER = "scripts/zigux/validate-phase3.py"
 ABI_CHECK_MARKER = "scripts/zigux/check-phase3-abi.py"
 ABI_SUPPORT_PACKET_MARKER = "scripts/zigux/check-phase3-abi-support-packet.py"
@@ -200,6 +205,7 @@ REQUIRED_FILES = (
     CATALOG_TOOL_FILE,
     CATALOG_SELFTEST_CHECK_FILE,
     GENERATED_WRAPPER_FILE,
+    WRAPPER_TEMPLATE_CHECK_FILE,
     FIXTURE_MANIFEST_FILE,
     HEADER_FAMILY_VALIDATOR_FILE,
     HEADER_FAMILY_NOTE_FILE,
@@ -280,6 +286,8 @@ REQUIRED_MARKERS = (
     ABI_SUPPORT_PACKET_MARKER,
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
+    WRAPPER_TEMPLATE_CHECK_SELFTEST_MARKER,
+    WRAPPER_TEMPLATE_CHECK_MARKER,
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     XARRAY_SLOT_CHECK_MARKER,
@@ -332,6 +340,7 @@ REQUIRED_MARKERS = (
     LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER,
     CATALOG_SELFTEST_GAP_MARKER,
     WRAPPER_GENERATION_GAP_MARKER,
+    WRAPPER_TEMPLATE_CHECK_MARKER,
     SHARED_VALIDATOR_MARKER,
     FIXTURE_MANIFEST_MARKER,
     HEADER_FAMILY_VALIDATOR_GAP_MARKER,
@@ -457,6 +466,14 @@ README_MARKER_CASES = (
         "expected missing wrapper-generation gap README marker was not reported",
     ),
     (
+        WRAPPER_TEMPLATE_CHECK_SELFTEST_MARKER,
+        "expected missing wrapper-template self-test README marker was not reported",
+    ),
+    (
+        WRAPPER_TEMPLATE_CHECK_MARKER,
+        "expected missing wrapper-template checker README marker was not reported",
+    ),
+    (
         SHARED_VALIDATOR_MARKER,
         "expected missing shared validator README marker was not reported",
     ),
@@ -551,6 +568,10 @@ FILE_CASES = (
     (
         GENERATED_WRAPPER_FILE,
         "expected missing generated-wrapper file was not reported",
+    ),
+    (
+        WRAPPER_TEMPLATE_CHECK_FILE,
+        "expected missing wrapper-template checker file was not reported",
     ),
     (FIXTURE_MANIFEST_FILE, "expected missing fixture manifest file was not reported"),
     (
