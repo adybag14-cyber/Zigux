@@ -150,6 +150,9 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     const gap_note = try readRepoFile("Documentation/zigux/phase15-shared-summary-gap.md", 20 * 1024);
     defer std.testing.allocator.free(gap_note);
 
+    const tests_readme = try readRepoFile("zigux/tests/README.md", 96 * 1024);
+    defer std.testing.allocator.free(tests_readme);
+
     const manifest_json = try readRepoFile("zigux/tests/phase15_architecture_council_review_process_manifest.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -177,6 +180,12 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_checklist, manifest.review_process_note);
     try expectContains(review_checklist, manifest.decision_record_template);
     try expectContains(review_checklist, manifest.review_checklist_stay_in_c_policy_boundary_rule);
+    try expectContains(tests_readme, "## Phase 15 governance packet");
+    try expectContains(tests_readme, "`scripts/zigux/check-phase15-review-process-handoff.py`");
+    try expectContains(tests_readme, "`zigux/tests/phase15_architecture_council_review_process.zig`");
+    try expectContains(tests_readme, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
+    try expectContains(tests_readme, "Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.");
+    try expectContains(tests_readme, "returned review-process build replay");
 
     for (manifest.required_review_fields) |field| {
         try expectContains(review_process, field);
