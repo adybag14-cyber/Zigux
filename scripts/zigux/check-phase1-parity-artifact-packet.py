@@ -42,6 +42,12 @@ DIRECT_HELPERS = [
     "tools/lib/rbtree.zig",
     "tools/lib/string.zig",
 ]
+ANTI_OVERLAP_RULE = (
+    "Do not reopen Phase 1 by batching helpers across those two sets in one lane; "
+    "shared-replay parked helpers reopen only for packet drift, while direct-anchor "
+    "helpers reopen only for their existing helper-local anchors or already-committed "
+    "shared fixture keys."
+)
 ARTIFACT_DIFF_MARKERS = [
     'MODE_CHOICES = ("text", "json", "bytes")',
     'LEGACY_MODE_ALIASES = {"sha256": "bytes"}',
@@ -87,6 +93,7 @@ SELF_TEST_CASES = [
     "direct_helper_drift",
     "blocker_helper_mismatch",
     "blocker_state_drift",
+    "blocker_anti_overlap_rule_drift",
     "fixture_section_missing",
     "fixture_key_missing",
     "readme_gap_missing",
@@ -148,9 +155,8 @@ def check_manifest(root: Path) -> dict[str, object]:
         "direct helper packet drifted",
     )
     ensure(
-        "Do not reopen Phase 1 by batching helpers across those two sets in one lane;"
-        in str(lane.get("anti_overlap_rule", "")),
-        "anti-overlap rule drifted",
+        lane.get("anti_overlap_rule") == ANTI_OVERLAP_RULE,
+        "manifest anti-overlap rule drifted",
     )
     return manifest
 
@@ -183,6 +189,10 @@ def check_replay_blockers(root: Path, manifest: dict[str, object]) -> None:
         lane.get("direct_anchor_followup_helpers")
         == manifest["lane_sequencing"]["direct_anchor_followup_helpers"],
         "phase1 replay blocker direct helper roster drifted",
+    )
+    ensure(
+        lane.get("anti_overlap_rule") == ANTI_OVERLAP_RULE,
+        "phase1 replay blocker anti-overlap rule drifted",
     )
 
     replay = blockers.get("replay")
@@ -270,12 +280,7 @@ def sample_manifest() -> dict[str, object]:
                 "above, while bitmap, find_bit, rbtree, and string keep the only bounded "
                 "direct helper-local follow-up anchors on current master."
             ),
-            "anti_overlap_rule": (
-                "Do not reopen Phase 1 by batching helpers across those two sets in one lane; "
-                "shared-replay parked helpers reopen only for packet drift, while direct-anchor "
-                "helpers reopen only for their existing helper-local anchors or already-committed "
-                "shared fixture keys."
-            ),
+            "anti_overlap_rule": ANTI_OVERLAP_RULE,
         },
     }
 
@@ -289,7 +294,7 @@ def sample_replay_blockers() -> dict[str, object]:
             "shared_replay_parked_helpers": SHARED_HELPERS,
             "direct_anchor_followup_helper_count": len(DIRECT_HELPERS),
             "direct_anchor_followup_helpers": DIRECT_HELPERS,
-            "anti_overlap_rule": sample_manifest()["lane_sequencing"]["anti_overlap_rule"],
+            "anti_overlap_rule": ANTI_OVERLAP_RULE,
         },
         "replay": {
             "path": "zigux/tests/phase1_helpers.zig",
@@ -487,6 +492,17 @@ def run_self_test() -> int:
             json.dumps(blockers, indent=2) + "\n",
         )
         covered.append("blocker_state_drift")
+
+        blockers = json.loads(old_blockers)
+        blockers["lane_sequencing"]["anti_overlap_rule"] = "drifted"
+        expect_failure(
+            "blocker_anti_overlap_rule_drift",
+            root,
+            blockers_path,
+            old_blockers,
+            json.dumps(blockers, indent=2) + "\n",
+        )
+        covered.append("blocker_anti_overlap_rule_drift")
 
         fixture_path = root / "zigux/tests/fixtures/phase1_helpers.json"
         old_fixture = read_text(fixture_path)
