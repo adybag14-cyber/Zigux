@@ -456,3 +456,90 @@ test "phase12 nvme pci direct replay applies planner-limited stale reservations 
     try std.testing.expect(replayed.planner_limited);
     try std.testing.expectEqual(@as(u32, 1), replayed.reset_generation);
 }
+
+test "phase12 nvme pci direct replay applies controller-limited stale reservations with restart still explicit" {
+    var applied_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try applied_lab.planAdminQueue(32, 64, false);
+    const reservation = try applied_lab.reserveIoQueues(8, 8);
+
+    _ = applied_lab.beginReset();
+    _ = applied_lab.completeReset();
+    _ = try applied_lab.planAdminQueue(32, 64, false);
+
+    const preflight = try applied_lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try std.testing.expect(preflight.controller_limited);
+    try std.testing.expect(!preflight.planner_limited);
+    try std.testing.expect(preflight.queue_numbering_restarted);
+    try std.testing.expectEqual(@as(usize, 3), preflight.replayable_reserved_io_queues);
+    try std.testing.expectEqual(@as(u16, 1), preflight.first_queue_id);
+    try std.testing.expectEqual(@as(u16, 3), preflight.last_queue_id);
+    try std.testing.expectEqual(@as(u16, 4), preflight.next_io_queue_id_after_replay);
+
+    const applied = try applied_lab.applyRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", applied.anchor);
+    try std.testing.expectEqual(nvme_pci.RecoveryState.running, applied.state);
+    try std.testing.expectEqual(@as(u32, 1), applied.reset_generation);
+    try std.testing.expectEqual(@as(usize, 8), applied.requested_reserved_io_queues);
+    try std.testing.expectEqual(@as(usize, 3), applied.controller_io_queue_limit);
+    try std.testing.expectEqual(@as(usize, 64), applied.planner_remaining_io_slots);
+    try std.testing.expectEqual(@as(usize, 3), applied.replayed_reserved_io_queues);
+    try std.testing.expectEqual(@as(u16, 1), applied.first_queue_id);
+    try std.testing.expectEqual(@as(u16, 3), applied.last_queue_id);
+    try std.testing.expectEqual(@as(usize, 3), applied.planned_io_queues_after_replay);
+    try std.testing.expectEqual(@as(u16, 4), applied.next_io_queue_id_after_replay);
+    try std.testing.expect(applied.queue_numbering_restarted);
+    try std.testing.expect(applied.controller_limited);
+    try std.testing.expect(!applied.planner_limited);
+    try std.testing.expect(!applied.queue_planning_blocked);
+    try std.testing.expect(!applied.queues_frozen);
+    try std.testing.expect(applied.cached_queue_reservation_stale);
+    try std.testing.expect(!applied.cached_prp_metadata_stale);
+    try std.testing.expect(!applied.descriptor_rebuild_required);
+    try std.testing.expect(!applied.admin_queue_must_be_replanned);
+
+    const applied_summary = applied_lab.recoverySummary();
+    try std.testing.expectEqual(@as(usize, 3), applied_summary.planned_io_queues);
+    const next = try applied_lab.planIoQueue(8, 64, false);
+    try std.testing.expectEqual(@as(u16, 4), next.queue_id);
+
+    var replay_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try replay_lab.planAdminQueue(32, 64, false);
+    _ = try replay_lab.reserveIoQueues(8, 8);
+    _ = replay_lab.beginReset();
+    _ = replay_lab.completeReset();
+    _ = try replay_lab.planAdminQueue(32, 64, false);
+
+    const replayed = try replay_lab.replayReservedIoQueues(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", replayed.anchor);
+    try std.testing.expectEqual(@as(usize, 8), replayed.requested_io_queues);
+    try std.testing.expectEqual(@as(usize, 3), replayed.controller_io_queue_limit);
+    try std.testing.expectEqual(@as(usize, 64), replayed.planner_remaining_io_slots);
+    try std.testing.expectEqual(@as(usize, 3), replayed.reserved_io_queues);
+    try std.testing.expectEqual(@as(u16, 1), replayed.first_queue_id);
+    try std.testing.expectEqual(@as(u16, 3), replayed.last_queue_id);
+    try std.testing.expectEqual(@as(usize, 3), replayed.planned_io_queues_after_reserve);
+    try std.testing.expect(replayed.controller_limited);
+    try std.testing.expect(!replayed.planner_limited);
+    try std.testing.expectEqual(@as(u32, 1), replayed.reset_generation);
+}
