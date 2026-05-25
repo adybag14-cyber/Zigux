@@ -19,6 +19,8 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
   - `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`
   - `Documentation/zigux/phase10-virtio-mmio-slice.md`
   - `zigux/tests/phase10_virtio_mmio_survey.zig`
+  - `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`
+  - `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`
   - `zigux/tests/phase10_build.zig`
   - `Documentation/zigux/phase10-closure-evidence.md`
   - `Documentation/zigux/freeze-map.md`
