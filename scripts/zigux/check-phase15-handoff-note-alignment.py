@@ -66,6 +66,7 @@ SAMPLE_MANIFEST = {
         "zigux/tests/phase15_indefinite_c_policy.json",
         "zigux/tests/phase15_indefinite_c_policy.zig",
         "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+        "scripts/zigux/check-phase15-docs-readme-alignment.py",
         "scripts/zigux/check-phase15-review-process-handoff.py",
         "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
@@ -90,6 +91,7 @@ SAMPLE_MANIFEST = {
         "a direct port-readiness decision for any Phase 15 anchor",
     ],
     "checker_group_markers": [
+        "one focused docs-readme checker",
         "one focused review-process checker",
         "one focused review-checklist study-only checker",
         "one focused readiness-packet checker",
@@ -146,7 +148,7 @@ def _sample_handoff_note() -> str:
         f"- {manifest['required_markers'][4]}",
         f"- {manifest['required_markers'][5]}",
         f"- {manifest['required_markers'][6]}",
-        "- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`",
+        "- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused docs-readme checker, one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`",
         "- `scripts/zigux/validate-phase15.py`, which keeps the dedicated validator directly materialized as a maintenance gate without implying that the broader shared Phase 15 build replay or route bodies are landed",
         "",
         "## Current handed-off packet on current master",
@@ -352,7 +354,7 @@ def run_self_test() -> int:
         _write(
             missing_checker_path_root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
-                "- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`\n",
+                "- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused docs-readme checker, one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`\n",
                 "",
                 1,
             ),
@@ -362,6 +364,7 @@ def run_self_test() -> int:
         _seed_present_paths(missing_checker_path_root, manifest)
         failures = collect_failures(missing_checker_path_root)
         expected = [
+            "handoff note is missing checker-group marker: one focused docs-readme checker",
             "handoff note is missing checker-group marker: one focused review-process checker",
             "handoff note is missing checker-group marker: one focused review-checklist study-only checker",
             "handoff note is missing checker-group marker: one focused readiness-packet checker",
