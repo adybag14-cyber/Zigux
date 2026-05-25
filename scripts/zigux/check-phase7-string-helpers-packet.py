@@ -70,6 +70,8 @@ REQUIRED_MARKERS = {
     "scripts/zigux/check-phase7-string-helpers-packet.py": [
         "--self-test",
         "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass",
+        'print("PHASE7_STRING_HELPERS_PACKET=pass")',
+        'print("PHASE7_STRING_HELPERS_PACKET=fail")',
         '"zigux/tests/phase7_string_helpers_sample_boundary.zig",',
         '"lib/string_helpers.zig": [',
         '"pub fn devmKasprintfStrarray("',
@@ -77,10 +79,10 @@ REQUIRED_MARKERS = {
         '"pub fn parseIntArrayUser("',
         '"pub fn parse_int_array_user("',
         '"zigux/tests/phase7_string_helpers_manifest.json": [',
-        '"\\\"devmKasprintfStrarray\\\""',
-        '"\\\"devm_kasprintf_strarray\\\""',
-        '"\\\"parseIntArrayUser\\\""',
-        '"\\\"parse_int_array_user\\\""',
+        '"\\"devmKasprintfStrarray\\""',
+        '"\\"devm_kasprintf_strarray\\""',
+        '"\\"parseIntArrayUser\\""',
+        '"\\"parse_int_array_user\\""',
         '"* `*printf*`"',
         '"* `*vsprintf*`"',
         FORMAT_BOUNDARY_MARKER,
@@ -142,27 +144,27 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
         'const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");',
-        'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
-        'try expectContains(checker, "* `*printf*`");',
-        'try expectContains(checker, "* `*vsprintf*`");',
-        'try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");',
-        'try expectContains(manifest, "\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\"");',
-        'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
-        'try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping");',
-        'try expectContains(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\"");',
-        'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");',
-        'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
-        'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
-        'try expectNotContains(helper, "pub fn parseIntArrayUser(");',
-        'try expectNotContains(helper, "pub fn parse_int_array_user(");',
-        'try expectNotContains(helper_tests, "devmKasprintfStrarray");',
-        'try expectNotContains(helper_tests, "devm_kasprintf_strarray");',
-        'try expectNotContains(helper_tests, "parseIntArrayUser");',
-        'try expectNotContains(helper_tests, "parse_int_array_user");',
-        'try expectNotContains(manifest, "\\\"devmKasprintfStrarray\\\"");',
-        'try expectNotContains(manifest, "\\\"devm_kasprintf_strarray\\\"");',
-        'try expectNotContains(manifest, "\\\"parseIntArrayUser\\\"");',
-        'try expectNotContains(manifest, "\\\"parse_int_array_user\\\"");',
+        'try std.testing.expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
+        'try std.testing.expectContains(checker, "* `*printf*`");',
+        'try std.testing.expectContains(checker, "* `*vsprintf*`");',
+        'try std.testing.expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");',
+        'try std.testing.expectContains(manifest, "\\"scripts/zigux/check-phase7-string-helpers-packet.py\\"");',
+        'try std.testing.expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
+        'try std.testing.expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping");',
+        'try std.testing.expectContains(manifest, "\\"next_bounded_step\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\"");',
+        'try std.testing.expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");',
+        'try std.testing.expectNotContains(helper, "pub fn devmKasprintfStrarray");',
+        'try std.testing.expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
+        'try std.testing.expectNotContains(helper, "pub fn parseIntArrayUser(");',
+        'try std.testing.expectNotContains(helper, "pub fn parse_int_array_user(");',
+        'try std.testing.expectNotContains(helper_tests, "devmKasprintfStrarray");',
+        'try std.testing.expectNotContains(helper_tests, "devm_kasprintf_strarray");',
+        'try std.testing.expectNotContains(helper_tests, "parseIntArrayUser");',
+        'try std.testing.expectNotContains(helper_tests, "parse_int_array_user");',
+        'try std.testing.expectNotContains(manifest, "\\"devmKasprintfStrarray\\"");',
+        'try std.testing.expectNotContains(manifest, "\\"devm_kasprintf_strarray\\"");',
+        'try std.testing.expectNotContains(manifest, "\\"parseIntArrayUser\\"");',
+        'try std.testing.expectNotContains(manifest, "\\"parse_int_array_user\\"");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local",
@@ -220,7 +222,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 61
+SELF_TEST_CASE_COUNT = 63
 
 
 def read_text(path: Path) -> str:
@@ -369,6 +371,24 @@ def run_self_test() -> None:
             "missing_checker_selftest_pass_marker",
             tmp_root,
             "scripts/zigux/check-phase7-string-helpers-packet.py: PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        remove_once(checker_path, 'print("PHASE7_STRING_HELPERS_PACKET=pass")')
+        expect_missing_marker(
+            "missing_checker_pass_output_marker",
+            tmp_root,
+            'scripts/zigux/check-phase7-string-helpers-packet.py: print("PHASE7_STRING_HELPERS_PACKET=pass")',
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        remove_once(checker_path, 'print("PHASE7_STRING_HELPERS_PACKET=fail")')
+        expect_missing_marker(
+            "missing_checker_fail_output_marker",
+            tmp_root,
+            'scripts/zigux/check-phase7-string-helpers-packet.py: print("PHASE7_STRING_HELPERS_PACKET=fail")',
         )
         cases_run += 1
         write_fixture_root(tmp_root)
