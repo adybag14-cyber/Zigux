@@ -24,7 +24,7 @@ The scorecard now also carries the same phase, status-bucket, required-approver-
 
 For `net/core/skbuff.c`, that evidence bundle now keeps both the packet-local Phase 14 survey note and the shared Phase 14 traceability note explicit, because the live freeze-map governance packet uses both surfaces to keep the blocked ownership posture reviewable.
 
-That means the current parity-tracking gap is maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, current reminder-route wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata or overclaiming the still-missing shared-build companion or blocked `phase15*` wrapper routes on current `master`.
+That means the current parity-tracking gap is maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, current reminder-route wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata or overclaiming the still-missing `phase15*` wrapper routes or dedicated Phase 15 workflow routes on current `master`.
 
 ## Aggregate Metrics
 
@@ -42,7 +42,7 @@ That means the current parity-tracking gap is maintenance-only: keep the scoreca
 - the machine-readable blocked-posture companion stays explicit through `zigux/tests/phase15_parity_scorecard.json` while the dedicated Zig replay stays reviewable through `zig test zigux/tests/phase15_parity_scorecard.zig`
 - anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - validator-first reminder route is directly readable on current `master` through `python3 scripts/zigux/validate-phase15.py`
-- shared replay build route remains a repo-reality gap on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`
+- shared replay build route is directly readable on current `master` through `zigux/tests/phase15_build.zig` and `zig build test --build-file zigux/tests/phase15_build.zig`
 - current `zigux/Makefile` still lacks `phase15-validate`, `phase15-test`, and `phase15` targets, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain wrapper-gap vocabulary rather than shipped reminder-route evidence
 
 ## Anchor Scorecard
@@ -128,7 +128,7 @@ This scorecard does not claim:
    - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
 2. run the dedicated parity scorecard replay
    - `zig test zigux/tests/phase15_parity_scorecard.zig`
-3. keep the validator-first route directly readable while the shared build route stays explicit as a current gap
+3. keep the validator-first route and the shared build route directly readable while wrapper and workflow routes stay explicit as gaps
    - `python3 scripts/zigux/validate-phase15.py`
    - `zig build test --build-file zigux/tests/phase15_build.zig`
 4. keep the parked wrapper routes explicit as gaps until `zigux/Makefile` grows them
@@ -138,4 +138,4 @@ This scorecard does not claim:
 
 ## Next bounded step
 
-Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording, machine-readable companion inventory, and current-master shared-build or wrapper-gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.
+Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording, machine-readable companion inventory, and current-master wrapper-gap or workflow-gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.
