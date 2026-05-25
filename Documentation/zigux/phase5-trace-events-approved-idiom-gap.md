@@ -12,6 +12,10 @@ Authenticated sample-root readback still directly exposes this bounded non-runti
 
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 
+The same authenticated sample-root reread now directly exposes this bounded callback-focus companion too:
+
+- `samples/zigux/trace_events_callback_focus_contract.zig`
+
 Fresh mixed reread on 2026-05-23 keeps the dedicated survey note and the broader non-runtime trace-events companions in a split state rather than a missing state.
 
 This survey note is directly readable again on current `master` and should stay grouped with the shared reminder packet rather than with the still-split sample-local companion set:
@@ -38,17 +42,20 @@ Keep the approved formatting idiom bounded to the current landed reminder packet
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
+- `samples/zigux/trace_events_callback_focus_contract.zig`
 - `scripts/zigux/README.md`
 - `scripts/zigux/check-phase5-review-guide-surface.py`
 - `zigux/tests/README.md`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, `Documentation/zigux/phase5-trace-events-sample-survey.md` is directly readable again as a shared reminder surface, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is returned shared build-route evidence again rather than companion-only support, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the bounded callback-focus companion is directly readable there too as reviewability help for the same anchor, `Documentation/zigux/phase5-trace-events-sample-survey.md` is directly readable again as a shared reminder surface, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is returned shared build-route evidence again rather than companion-only support, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
 
 Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `"iter=12"` and keeps the sample in `.initialized`.
 
 Keep the direct modulo-selected cycle explicit too: `runStringFormattingCycleReplay()` now walks all five selected strings through the bounded `iter=%d` formatter while keeping the companion in `.initialized` and leaving `replay_runs` unchanged.
 
 Keep the sample-owned review contract explicit too: the bounded formatting companion now centralizes the exact `checked_focus` order `string_selection,formatted_message,bounded_destination_discipline,non_allocating_runtime_safe`, and the approved-idiom reminder should preserve that same reading order beside the selected-string slot and `iter=%d` cue instead of reducing the trace-events packet to message text alone.
+
+Keep the bounded callback-focus companion explicit too: `anchorFocusOrder()` and `callbackBoundaryContract()` now keep the shared `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` focus order plus the callback-registration recovery cues reviewable at the sample root without turning that companion into a fifth Phase 5 sample family.
 
 ## Exact checks run on 2026-05-20
 
@@ -93,4 +100,4 @@ Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/v
 
 ## Next bounded step
 
-Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still collapses the current split by treating the broader sample-local packet as fully missing, or by promoting it to fully returned authenticated proof before the contents route actually does so, or by losing the selected-string plus `iter=%d` cue, the exact `checked_focus` review order, or the shipped guide-surface guard.
+Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still collapses the current split by treating the broader sample-local packet as fully missing, or by promoting it to fully returned authenticated proof before the contents route actually does so, or by losing the selected-string plus `iter=%d` cue, the exact `checked_focus` review order, the callback-focus reviewability cue, or the shipped guide-surface guard.
