@@ -145,6 +145,18 @@ jobs:
       - name: Check current Phase 2 mk_elfconfig non-ELF first-header packet
         run: python3 scripts/zigux/check-mk-elfconfig-non-elf-first-header-markers.py
 
+      - name: Self-test current Phase 2 mk_elfconfig fd double-ELF checker
+        run: python3 scripts/zigux/check-mk-elfconfig-fd-double-elf-markers.py --self-test
+
+      - name: Check current Phase 2 mk_elfconfig fd double-ELF packet
+        run: python3 scripts/zigux/check-mk-elfconfig-fd-double-elf-markers.py
+
+      - name: Self-test current Phase 2 mk_elfconfig fd double same-class ELF checker
+        run: python3 scripts/zigux/check-mk-elfconfig-fd-double-same-class-elf-markers.py --self-test
+
+      - name: Check current Phase 2 mk_elfconfig fd double same-class ELF packet
+        run: python3 scripts/zigux/check-mk-elfconfig-fd-double-same-class-elf-markers.py
+
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
 
