@@ -426,7 +426,7 @@ def build_stub_script(
                 f"LIVE_EXIT_CODE = {live_exit}",
                 f"SELF_TEST_STDOUT_LINES = {list(self_test_stdout_lines)!r}",
                 f"LIVE_STDOUT_LINES = {list(live_stdout_lines)!r}",
-                "for line in (SELF_TEST_STDOUT_LINES if args.self-test else LIVE_STDOUT_LINES):",
+                "for line in (SELF_TEST_STDOUT_LINES if args.self_test else LIVE_STDOUT_LINES):",
                 "    print(line)",
                 "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
             ]
