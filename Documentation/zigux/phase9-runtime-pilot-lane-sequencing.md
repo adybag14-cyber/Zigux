@@ -59,16 +59,18 @@ Trusted GitHub rereads on 2026-05-25 directly recover the still-live shared load
 - `zigux/tests/phase9_build.zig` keeps the returned bitmap packet inside the shared rerun bundle through `phase9-runtime-bitmap-tests` plus the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route
 - that broader bitmap-side visibility still must not be used to imply that the broader shared runtime-loader or blocked publication boundaries returned
 
-### 4. The runtime kretprobe side returns a family-local pilot packet, but shared reminder surfaces still lag it
+### 4. The runtime kretprobe side returns a family-local pilot packet, and shared reminder surfaces still need one-surface-at-a-time follow-through
 
-Trusted GitHub rereads on 2026-05-25 directly recover `samples/zigux/runtime_kretprobe.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_first_loadable_parity_behavior.zig`, and the live `zigux/tests/phase9_build.zig` routes that now wire them.
+Trusted GitHub rereads on 2026-05-25 directly recover `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_first_loadable_parity_behavior.zig`, and the live `zigux/tests/phase9_build.zig` routes that now wire them.
 
 - `samples/zigux/runtime_kretprobe.zig` is a returned family-local runtime sample rooted in the Phase 9 `samples/kprobes/kretprobe_example.c` anchor, with selftest-hook and lifecycle-parity proof kept inside that pilot packet
+- `samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig` is the returned sample-side initialized-snapshot companion for that same pilot family, keeping captured initialized lifecycle state explicit across later selftest and exit without treating that guard as proof of shared runtime-loader closure
+- `zigux/tests/runtime_kretprobe_survey.zig` is the returned family-local survey witness for that same pilot family
 - `zigux/tests/runtime_kretprobe_module.zig` is the returned module-side lifecycle companion for that same pilot family
 - `zigux/tests/runtime_first_loadable_parity_behavior.zig` now includes the kretprobe pilot beside the atomic64 and bitmap pilots, so current `master` no longer supports treating kretprobe as absent from the cross-family parity surface
-- `zigux/tests/phase9_build.zig` now exposes `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-tests`, and `phase9-first-loadable-runtime-module-parity-behavior-tests`
+- `zigux/tests/phase9_build.zig` now exposes `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-initialized-snapshot-guard-tests`, `phase9-runtime-kretprobe-survey-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-tests`, and `phase9-first-loadable-runtime-module-parity-behavior-tests`
 - those returned kretprobe routes and files are still family-local pilot evidence, not proof that broader shared loader, publication, or install-root boundaries returned
-- shared reminder surfaces outside this sequencing note still undercount that returned kretprobe packet, so the current shared-lane task is sequencing truthfulness, not family-local behavior work
+- shared reminder surfaces outside this sequencing note still need one-surface-at-a-time follow-through so they do not undercount the returned initialized-snapshot or survey witnesses, overclaim absent loader or manifest companions, or widen that bounded pilot packet into shared-loader completion claims
 
 ## Current shared-owner state
 
@@ -81,7 +83,7 @@ The shared Phase 9 reminder family should now be read as four distinct truths:
 
 The broader shared reminder packet is therefore only partly aligned on current `master`:
 
-- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still keep the shared Phase 9 packet narrower than the live kretprobe return described here
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still need one-surface-at-a-time follow-through where they undercount the returned initialized-snapshot or survey witnesses, overclaim absent loader or manifest companions, or otherwise drift from the bounded family-local kretprobe packet confirmed here on current `master`
 - `Documentation/zigux/README.md` and `zigux/tests/README.md` still correctly frame the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` references as historical wider-family vocabulary rather than current direct evidence
 - treat any future docs-root, checklist, scripts-root, or tests-root drift as shared reminder debt to repair one surface at a time instead of widening it into runtime behavior claims or broader checklist churn inside this lane
 
@@ -127,8 +129,8 @@ Treat stale shared-owner undercount or overclaim as the active blocker before re
 
 ## Recommended next-step order
 
-1. Start with `Documentation/zigux/README.md` if a fresh reread still omits the returned kretprobe pilot packet or otherwise drifts from the shared-owner split confirmed here on current `master`.
-2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces still treats the returned kretprobe packet as absent or drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the bounded runtime bitmap packet confirmed here on current `master`.
+1. Start with `Documentation/zigux/README.md` if a fresh reread still undercounts the returned initialized-snapshot or survey witnesses, overclaims absent loader or manifest companions, or otherwise drifts from the shared-owner split confirmed here on current `master`.
+2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces still treats the returned kretprobe packet as absent, overclaims absent loader or manifest companions, or drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the bounded runtime bitmap packet confirmed here on current `master`.
 3. If the broader shared runtime-loader family changes again, widen this note only after an exact reread proves the specific returned file family or blocked-boundary vocabulary moved.
 4. If the runtime bitmap packet changes again, widen the bitmap-side reminder packet only after the trusted direct read path proves the specific returned file set changed.
 5. If the kretprobe packet changes again, keep the next follow-through inside one shared reminder surface only unless the live family-local sample or module packet itself drifts first.
