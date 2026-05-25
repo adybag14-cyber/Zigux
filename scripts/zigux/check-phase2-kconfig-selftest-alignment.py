@@ -99,57 +99,6 @@ EXPECTED_MODE_ARG_CASE_NAMES = ("defconfig", "savedefconfig")
 EXPECTED_ALLCONFIG_OVERRIDE_CASE_NAMES = ("allmodconfig", "randconfig")
 EXPECTED_SYNCCONFIG_ENV_CASE_NAMES = ("syncconfig",)
 EXPECTED_RANDCONFIG_ENV_CASE_NAMES = ("randconfig",)
-EXPECTED_CONFDATA_CASE_NAMES = (
-    "sample",
-    "escaped_strings",
-    "escaped_control_sequences",
-    "trailing_escaped_backslash",
-    "sample_crlf",
-    "explicit_n_tristate",
-    "final_trailing_carriage_return",
-    "final_unterminated_unset_comment",
-    "uppercase_tristate",
-    "non_config_lines",
-    "empty_config_symbol_names",
-    "malformed_unset_comment_tokens",
-    "last_state_transitions",
-    "duplicate_assignments",
-    "duplicate_malformed_quoted_assignment",
-)
-EXPECTED_CONFDATA_INPUT_PACKET = (
-    "sample.config",
-    "escaped_strings.config",
-    "escaped_control_sequences.config",
-    "trailing_escaped_backslash.config",
-    "sample_crlf.config",
-    "explicit_n_tristate.config",
-    "final_trailing_carriage_return.config",
-    "final_unterminated_unset_comment.config",
-    "uppercase_tristate.config",
-    "non_config_lines.config",
-    "empty_config_symbol_names.config",
-    "malformed_unset_comment_tokens.config",
-    "last_state_transitions.config",
-    "duplicate_assignments.config",
-    "duplicate_malformed_quoted_assignment.config",
-)
-EXPECTED_CONFDATA_EXPECTED_PACKET = (
-    "sample_expected.json",
-    "escaped_strings_expected.json",
-    "escaped_control_sequences_expected.json",
-    "trailing_escaped_backslash_expected.json",
-    "sample_crlf_expected.json",
-    "explicit_n_tristate_expected.json",
-    "final_trailing_carriage_return_expected.json",
-    "final_unterminated_unset_comment_expected.json",
-    "uppercase_tristate_expected.json",
-    "non_config_lines_expected.json",
-    "empty_config_symbol_names_expected.json",
-    "malformed_unset_comment_tokens_expected.json",
-    "last_state_transitions_expected.json",
-    "duplicate_assignments_expected.json",
-    "duplicate_malformed_quoted_assignment_expected.json",
-)
 
 CONF_MANIFEST_STATIC_FIELDS = {
     "tool": "scripts/zigux/kconfig/conf_bridge.zig",
@@ -171,6 +120,7 @@ CONF_HELPER_ANCHOR_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
 CONFDATA_HELPER_ANCHOR_CONST = "REQUIRED_CONFDATA_HELPER_ANCHORS"
 CONF_HELPER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 CONF_HELPER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
+CONFDATA_CASE_PACKET_CONST = "SAMPLE_CONFDATA_CASES"
 
 VALID_CONF_HELPER_ANCHORS = (
     "conf bridge mode surface stays aligned with conf.c long options",
@@ -405,7 +355,7 @@ VALID_CASES_PAYLOAD = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 37
+EXPECTED_SELF_TEST_CASE_COUNT = 38
 
 
 def read_text(path: Path) -> str:
@@ -439,25 +389,42 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
-def extract_string_sequence(module_text: str, const_name: str) -> tuple[str, ...]:
+def extract_literal(module_text: str, const_name: str) -> object:
     module = ast.parse(module_text)
     for node in module.body:
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id == const_name:
-                    value = ast.literal_eval(node.value)
-                    return tuple(value)
+                    return ast.literal_eval(node.value)
     raise ValueError(f"missing constant {const_name}")
+
+
+def extract_string_sequence(module_text: str, const_name: str) -> tuple[str, ...]:
+    value = extract_literal(module_text, const_name)
+    return tuple(value)
+
+
+def extract_case_mapping_sequence(module_text: str, const_name: str) -> tuple[dict[str, object], ...]:
+    value = extract_literal(module_text, const_name)
+    if not isinstance(value, list):
+        raise ValueError(f"constant {const_name} must be a list")
+    cases: list[dict[str, object]] = []
+    for index, case in enumerate(value):
+        if not isinstance(case, dict):
+            raise ValueError(f"constant {const_name} entry {index} must be a dict")
+        cases.append(case)
+    return tuple(cases)
 
 
 def load_bridge_checker_anchor_packets(
     bridge_checker_text: str,
-) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[dict[str, object], ...]]:
     return (
         extract_string_sequence(bridge_checker_text, CONF_HELPER_ANCHOR_CONST),
         extract_string_sequence(bridge_checker_text, CONFDATA_HELPER_ANCHOR_CONST),
         extract_string_sequence(bridge_checker_text, CONF_HELPER_IMPLICIT_OMISSION_MODES_CONST),
         extract_string_sequence(bridge_checker_text, CONF_HELPER_EXPLICIT_OVERRIDE_MODES_CONST),
+        extract_case_mapping_sequence(bridge_checker_text, CONFDATA_CASE_PACKET_CONST),
     )
 
 
@@ -604,6 +571,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         confdata_helper_anchors,
         implicit_omission_modes,
         explicit_override_modes,
+        bridge_checker_confdata_cases,
     ) = load_bridge_checker_anchor_packets(bridge_checker_text)
 
     conf_cases: list[dict[str, object]] = []
@@ -686,28 +654,31 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                     entry_code="INVALID_CONFDATA_CASE_ENTRY",
                 )
                 issues.extend(confdata_case_issues)
+                expected_confdata_case_names = [case.get("name") for case in bridge_checker_confdata_cases]
                 confdata_case_names = [case.get("name") for case in confdata_cases]
-                if confdata_case_names != list(EXPECTED_CONFDATA_CASE_NAMES):
+                if confdata_case_names != expected_confdata_case_names:
                     issues.append(
                         (
                             "CONFDATA_CASE_PACKET_MISMATCH",
-                            f"actual={confdata_case_names!r}:expected={list(EXPECTED_CONFDATA_CASE_NAMES)!r}",
+                            f"actual={confdata_case_names!r}:expected={expected_confdata_case_names!r}",
                         )
                     )
+                expected_confdata_input_packet = [case.get("input") for case in bridge_checker_confdata_cases]
                 confdata_input_packet = [case.get("input") for case in confdata_cases if "input" in case]
-                if confdata_input_packet != list(EXPECTED_CONFDATA_INPUT_PACKET):
+                if confdata_input_packet != expected_confdata_input_packet:
                     issues.append(
                         (
                             "CONFDATA_INPUT_PACKET_MISMATCH",
-                            f"actual={confdata_input_packet!r}:expected={list(EXPECTED_CONFDATA_INPUT_PACKET)!r}",
+                            f"actual={confdata_input_packet!r}:expected={expected_confdata_input_packet!r}",
                         )
                     )
+                expected_confdata_output_packet = [case.get("expected") for case in bridge_checker_confdata_cases]
                 confdata_expected_packet = [case.get("expected") for case in confdata_cases if "expected" in case]
-                if confdata_expected_packet != list(EXPECTED_CONFDATA_EXPECTED_PACKET):
+                if confdata_expected_packet != expected_confdata_output_packet:
                     issues.append(
                         (
                             "CONFDATA_EXPECTED_PACKET_MISMATCH",
-                            f"actual={confdata_expected_packet!r}:expected={list(EXPECTED_CONFDATA_EXPECTED_PACKET)!r}",
+                            f"actual={confdata_expected_packet!r}:expected={expected_confdata_output_packet!r}",
                         )
                     )
                 issues.extend(
@@ -779,12 +750,16 @@ def render_bridge_checker_stub(
     confdata_helper_anchors: tuple[str, ...] = VALID_CONFDATA_HELPER_ANCHORS,
     implicit_omission_modes: tuple[str, ...] = VALID_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
     explicit_override_modes: tuple[str, ...] = VALID_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
+    confdata_cases: list[dict[str, object]] | None = None,
 ) -> str:
+    if confdata_cases is None:
+        confdata_cases = VALID_CASES_PAYLOAD["confdata_cases"]
     return (
         f"{CONF_HELPER_ANCHOR_CONST} = {conf_helper_anchors!r}\n"
         f"{CONFDATA_HELPER_ANCHOR_CONST} = {confdata_helper_anchors!r}\n"
         f"{CONF_HELPER_IMPLICIT_OMISSION_MODES_CONST} = {implicit_omission_modes!r}\n"
-        f"{CONF_HELPER_EXPLICIT_OVERRIDE_MODES_CONST} = {explicit_override_modes!r}\n\n"
+        f"{CONF_HELPER_EXPLICIT_OVERRIDE_MODES_CONST} = {explicit_override_modes!r}\n"
+        f"{CONFDATA_CASE_PACKET_CONST} = {confdata_cases!r}\n\n"
         "def marker_packet(case, cmd, group_name):\n"
         '    if group_name == "conf_cases" and "silent" in case and not isinstance(case["silent"], bool):\n'
         "        return None\n"
@@ -1030,6 +1005,14 @@ def run_self_test() -> int:
         payload["confdata_cases"][0]["expected"] = "drifted_expected.json"
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert any(code == "CONFDATA_EXPECTED_PACKET_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        drifted_confdata_cases = [dict(case) for case in VALID_CASES_PAYLOAD["confdata_cases"]]
+        drifted_confdata_cases[0]["input"] = "bridge_checker_drift.config"
+        path.write_text(render_bridge_checker_stub(confdata_cases=drifted_confdata_cases), encoding="utf-8")
+        assert any(code == "CONFDATA_INPUT_PACKET_MISMATCH" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
