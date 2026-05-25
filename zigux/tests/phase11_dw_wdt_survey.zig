@@ -14,6 +14,7 @@ const SurveySummary = struct {
     dw_wdt_survey_note_present: bool,
     dw_wdt_pm_helper_present: bool,
     dw_wdt_restart_helper_present: bool,
+    dw_wdt_verify_helper_present: bool,
 };
 
 const Gap = struct {
@@ -74,15 +75,16 @@ test "phase11 dw_wdt manifest records the current P11-L10 packet truth" {
     try std.testing.expect(!manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_gpio_lane_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_bcm2835_lane_present);
-    try std.testing.expect(manifest.survey_summary.dw_wdt_zig_present);
-    try std.testing.expect(manifest.survey_summary.dw_wdt_test_present);
+    try std.testing.expect(!manifest.survey_summary.dw_wdt_zig_present);
+    try std.testing.expect(!manifest.survey_summary.dw_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_registration_scaffold_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_registration_order_present);
-    try std.testing.expect(manifest.survey_summary.dw_wdt_slice_note_present);
+    try std.testing.expect(!manifest.survey_summary.dw_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_pm_helper_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_restart_helper_present);
+    try std.testing.expect(manifest.survey_summary.dw_wdt_verify_helper_present);
     try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
@@ -92,6 +94,7 @@ test "phase11 dw_wdt manifest records the current P11-L10 packet truth" {
     var saw_build_gate = false;
     var saw_platform_scaffold = false;
     var saw_pm_helper = false;
+    var saw_verify_helper = false;
     var saw_mmio_ready_next = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -118,6 +121,11 @@ test "phase11 dw_wdt manifest records the current P11-L10 packet truth" {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-teardown-parity")) {
+            saw_verify_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt_verify.zig", gap.zigux_destination);
+        }
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-live-platform-pm")) {
             saw_pm_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -140,6 +148,7 @@ test "phase11 dw_wdt manifest records the current P11-L10 packet truth" {
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_platform_scaffold);
     try std.testing.expect(saw_pm_helper);
+    try std.testing.expect(saw_verify_helper);
     try std.testing.expect(saw_mmio_ready_next);
 }
 
@@ -165,6 +174,7 @@ test "phase11 dw_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared current-head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "hardware-backed MMIO validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/dw_wdt_pm.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/watchdog/dw_wdt_verify.zig") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L10`") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`P11-L05`") == null);
