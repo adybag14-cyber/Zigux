@@ -63,11 +63,15 @@ test "phase 8 cpu mask build shards keep the focused replay wired" {
     try expectContains(focused_build, "phase8_cpu_mask.zig");
     try expectContains(focused_build, "phase8_cpu_mask_packet_sync.zig");
     try expectContains(focused_build, "../../tools/lib/bpf/zigux_segments/cpu_mask.zig");
+    try expectContains(focused_build, "../../tools/lib/bpf/zigux_segments/cpu_mask_verify.zig");
+    try expectContains(focused_build, "phase8-cpu-mask-verify-tests");
     try expectContains(focused_build, "Run focused Phase 8 cpu-mask tests");
 
     const local_build = try loadRepoText(allocator, local_build_path);
     try expectContains(local_build, "phase8_cpu_mask.zig");
     try expectContains(local_build, "phase8_cpu_mask_packet_sync.zig");
     try expectContains(local_build, "../../tools/lib/bpf/zigux_segments/cpu_mask.zig");
+    try expectContains(local_build, "../../tools/lib/bpf/zigux_segments/cpu_mask_verify.zig");
+    try expectContains(local_build, "phase8-cpu-mask-verify-tests");
     try expectContains(local_build, "Run focused Phase 8 cpu-mask build");
 }
