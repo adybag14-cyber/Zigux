@@ -33,8 +33,10 @@ instead of returned fallback evidence.
 The returned HVC validation matrix, focused-direct-build replay checker, and
 build-inventory checker stay explicit inside that smaller current-head packet.
 The standalone targetless-unregister witness likewise stays directly readable
-as a separate failure-mode replay, while the dedicated modem-control proof pair
-and the targetless-unregister witness build routes stay jointly fail-closed by
+through `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` and
+`zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` as a separate failure-mode replay,
+while the dedicated modem-control proof pair and the targetless-unregister
+witness build routes stay jointly fail-closed by
 `scripts/zigux/check-phase11-focused-direct-build-replays.py` without
 promoting either pair into the shared three-entry build inventory, and the
 smaller proof-backed HVC continuity packet remains reviewable through the
