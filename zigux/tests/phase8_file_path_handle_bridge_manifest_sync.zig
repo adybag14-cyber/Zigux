@@ -16,7 +16,7 @@ fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usiz
     );
 }
 
-test "phase 8 file-path handle bridge manifest keeps the landed helper wording explicit" {
+test "phase 8 file-path-handle bridge manifest keeps the landed helper wording explicit" {
     const manifest = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/zigux_segments/manifest.json",
@@ -74,7 +74,7 @@ test "phase 8 file-path handle bridge manifest keeps the landed helper wording e
     );
 }
 
-test "phase 8 file-path handle bridge slice keeps the landed helper rationale aligned with the manifest" {
+test "phase 8 file-path-handle bridge slice keeps the landed helper rationale aligned with the manifest" {
     const note = try readWorkspaceFile(
         std.testing.allocator,
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
