@@ -20,8 +20,12 @@ MMIO_PATH = Path("zigux/helpers/mmio.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 POLICY_STARTER_PACKET_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
+POLICY_STARTER_PACKET_BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
+POLICY_STARTER_PACKET_MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
 POLICY_DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
+POLICY_DUMP_BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")
 POLICY_DUMP_EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
+LOW_LEVEL_WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 
 BLOB_FIELDS = {
     "PHASE3_LAYOUT_ASSERT_BLOB_SHA": LAYOUT_ASSERT_PATH,
@@ -113,16 +117,47 @@ REQUIRED_FILE_MARKERS = {
         'test "policy starter packet keeps unsafe require gates explicit on shared records" {',
         'test "policy starter packet keeps unsafe boundary and audit semantics explicit" {',
     ),
+    POLICY_STARTER_PACKET_BUILD_PATH: (
+        '.root_source_file = b.path("../helpers/layout_assert.zig"),',
+        '.root_source_file = b.path("../unsafe/narrow.zig"),',
+        '.root_source_file = b.path("phase3_policy_starter_packet.zig"),',
+        'root_module.addImport("layout_assert", layout_assert);',
+        'root_module.addImport("narrow_surface", narrow_surface);',
+        '"phase3-policy-starter-packet-test"',
+    ),
+    POLICY_STARTER_PACKET_MANIFEST_PATH: (
+        '"phase": "Phase 3"',
+        '"slug": "phase3-policy-starter-packet"',
+        '"zigux/tests/phase3_policy_starter_packet_build.zig"',
+        '"zigux/tests/phase3_policy_dump_build.zig"',
+        '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
+        '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
+    ),
     POLICY_DUMP_PATH: (
         "const RawBridgeReplay = struct {",
         "fn rawBridgeReplay(policy: abi.InteropPolicy) RawBridgeReplay {",
         "const bridge_replay = rawBridgeReplay(policy);",
         '"bridge_read_ok={any}|bridge_write_ok={any}|narrow={s}|narrow_boundary={s}|narrow_surface={s}\\n",',
     ),
+    POLICY_DUMP_BUILD_PATH: (
+        '.root_source_file = b.path("../unsafe/narrow.zig"),',
+        '.root_source_file = b.path("phase3_policy_dump.zig"),',
+        'root_module.addImport("unsafe_policy", unsafe_policy);',
+        'root_module.addImport("narrow_surface", narrow_surface);',
+        '.name = "phase3-policy-dump",',
+        '"Dump the focused Phase 3 policy and unsafe substrate replay surface"',
+    ),
     POLICY_DUMP_EXPECTED_PATH: (
         "safe-default|panic=abort|allocator=caller_provided|init_flow=caller_prepared|explicit_caller=true|owned_state=false|reset_on_init=false|unsafe=none|boundary=typed_safe|surface=safe_only|typed_only=true|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|bridge_read_ok=false|bridge_write_ok=false|narrow=none|narrow_boundary=typed_safe|narrow_surface=safe_only",
         "raw-bridge-warn|panic=warn|allocator=arena|init_flow=helper_owned_with_reset|explicit_caller=false|owned_state=true|reset_on_init=true|unsafe=raw_pointer_bridge|boundary=raw_pointer_bridge|surface=raw_pointer_bridge_only|typed_only=false|global_fallback=true|warn_only=true|mmio=false|raw_bridge=true|audit=true|bridge_read_ok=true|bridge_write_ok=true|narrow=raw_pointer_bridge|narrow_boundary=raw_pointer_bridge|narrow_surface=raw_pointer_bridge_only",
         "reserved-invalid|panic=invalid|allocator=invalid|init_flow=invalid|explicit_caller=false|owned_state=false|reset_on_init=false|unsafe=invalid|boundary=invalid|surface=invalid|typed_only=false|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|bridge_read_ok=false|bridge_write_ok=false|narrow=invalid|narrow_boundary=invalid|narrow_surface=invalid",
+    ),
+    LOW_LEVEL_WRAPPER_BUILD_PATH: (
+        '.root_source_file = b.path("../helpers/unsafe_policy.zig"),',
+        '.root_source_file = b.path("phase3_low_level_wrappers.zig"),',
+        'root_module.addImport("unsafe_policy", unsafe_policy);',
+        'root_module.addImport("narrow", narrow);',
+        '"phase3-low-level-wrappers-test"',
     ),
 }
 
@@ -160,6 +195,18 @@ SELF_TEST_CASES = (
         "marker",
     ),
     (
+        "starter packet build companion drift",
+        POLICY_STARTER_PACKET_BUILD_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_BUILD_PATH][5],
+        "marker",
+    ),
+    (
+        "starter packet manifest drift",
+        POLICY_STARTER_PACKET_MANIFEST_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH][5],
+        "marker",
+    ),
+    (
         "mmio exchange interop-policy marker drift",
         MMIO_PATH,
         REQUIRED_FILE_MARKERS[MMIO_PATH][2],
@@ -179,9 +226,21 @@ SELF_TEST_CASES = (
         "marker",
     ),
     (
+        "policy dump build companion drift",
+        POLICY_DUMP_BUILD_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_DUMP_BUILD_PATH][4],
+        "marker",
+    ),
+    (
         "missing policy dump expected raw-bridge line",
         POLICY_DUMP_EXPECTED_PATH,
         REQUIRED_FILE_MARKERS[POLICY_DUMP_EXPECTED_PATH][1],
+        "marker",
+    ),
+    (
+        "low-level wrapper build companion drift",
+        LOW_LEVEL_WRAPPER_BUILD_PATH,
+        REQUIRED_FILE_MARKERS[LOW_LEVEL_WRAPPER_BUILD_PATH][4],
         "marker",
     ),
     (
@@ -203,8 +262,12 @@ SAMPLE_FILE_TEXT = {
     NARROW_PATH: "\n".join(REQUIRED_FILE_MARKERS[NARROW_PATH]) + "\n",
     MAKEFILE_PATH: "\n".join(REQUIRED_FILE_MARKERS[MAKEFILE_PATH]) + "\n",
     POLICY_STARTER_PACKET_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_PATH]) + "\n",
+    POLICY_STARTER_PACKET_BUILD_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_BUILD_PATH]) + "\n",
+    POLICY_STARTER_PACKET_MANIFEST_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH]) + "\n",
     POLICY_DUMP_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH]) + "\n",
+    POLICY_DUMP_BUILD_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_DUMP_BUILD_PATH]) + "\n",
     POLICY_DUMP_EXPECTED_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_DUMP_EXPECTED_PATH]) + "\n",
+    LOW_LEVEL_WRAPPER_BUILD_PATH: "\n".join(REQUIRED_FILE_MARKERS[LOW_LEVEL_WRAPPER_BUILD_PATH]) + "\n",
 }
 
 
