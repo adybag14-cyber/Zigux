@@ -181,18 +181,19 @@ route:
   `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
   `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
   `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
+  `Documentation/zigux/phase11-dw-wdt-survey.md`,
   `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
   `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
   `zigux/tests/phase11_dw_wdt_manifest.json`,
   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
+  `zigux/tests/phase11_dw_wdt_survey.zig`,
+  `drivers/watchdog/dw_wdt_restart.zig`,
   `drivers/watchdog/dw_wdt_pm.zig`, and
-  `drivers/watchdog/dw_wdt_pm_scaffold.zig`, while
-  `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and
-  `zigux/tests/phase11_dw_wdt.zig` stay explicit as repo-reality gaps until a
-  fresh authenticated reread proves they returned; keep that narrower bounded
-  DesignWare packet explicit beside the shared route while platform-backed
-  registration, PM execution, IRQ execution, and MMIO follow-through remain the
-  next same-lane work
+  `drivers/watchdog/dw_wdt_pm_scaffold.zig`; keep that returned smaller
+  DesignWare packet explicit beside the shared route while the broader direct
+  driver, verify-helper, replay-backed stack, platform-backed registration, PM
+  execution, IRQ execution, and MMIO follow-through remain parked as the next
+  same-lane work
 - the shared header-boundary packet stays bounded to
   `Documentation/zigux/phase11-uapi-header-parity-survey.md`,
   `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`,
