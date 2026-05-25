@@ -105,7 +105,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -277,6 +277,18 @@ def run_self_test() -> None:
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker(
             "manifest_next_bounded_step_truthfulness_guard",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest_marker = "\"parseOptionStr\""
+        manifest["covered_helpers"].remove("parseOptionStr")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_covered_helper_guard",
             tmp_root,
             f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
         )
