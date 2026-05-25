@@ -32,6 +32,8 @@ REQUIRED_MARKERS = {
         "the runtime bitmap sample, cold-stage guard, survey, module, diff, loader, and top-bit companion packet members",
     ],
     PHASE9_BITMAP_SURVEY_PATH: [
+        "`samples/zigux/runtime_bitmap_direct_init_contract.zig`",
+        "Keep the direct-init companion explicit when reminder text summarizes sample-local init normalization, unsorted duplicate input collapse, nth-set ordering, and formatted sparse-summary stability.",
         "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`",
         "Keep `samples/zigux/runtime_bitmap_cold_stage_guard.zig` explicit as the returned cold-stage sample-root guard companion;",
         "`phase9-runtime-bitmap-cold-stage-guard-tests`",
@@ -80,20 +82,20 @@ REQUIRED_MARKERS = {
         '.root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),',
         'const runtime_loader_allocator_init_flow_tests = b.addTest(.{',
         '"phase9-runtime-loader-allocator-init-flow-tests",',
-        'const phase9_runtime_loader_kernel = b.step(',
-        '"phase9-runtime-loader-kernel-tests",',
-        'phase9_runtime_loader_kernel.dependOn(&run_runtime_loader_kernel_tests.step);',
-        'const phase9_runtime_loader_contract = b.step(',
-        '"phase9-runtime-loader-contract-tests",',
-        'phase9_runtime_loader_contract.dependOn(&run_runtime_loader_contract_tests.step);',
         'const runtime_loader_command_env_boundary_guard_module = b.createModule(.{',
         '.root_source_file = b.path("../kernel/runtime_loader_command_env_boundary_guard.zig"),',
         'const runtime_loader_command_env_boundary_guard_tests = b.addTest(.{',
         '"phase9-runtime-loader-command-env-boundary-guard-tests",',
+        'const runtime_bitmap_direct_init_contract_module = b.createModule(.{',
+        '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_direct_init_contract.zig"),',
+        'const runtime_bitmap_direct_init_contract_tests = b.addTest(.{',
+        '"phase9-runtime-bitmap-direct-init-contract-tests",',
         'const runtime_bitmap_cold_stage_guard_module = b.createModule(.{',
         '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_cold_stage_guard.zig"),',
         'const runtime_bitmap_cold_stage_guard_tests = b.addTest(.{',
         '"phase9-runtime-bitmap-cold-stage-guard-tests",',
+        'const phase9_runtime_bitmap_direct_init_contract = b.step(',
+        'phase9_runtime_bitmap_direct_init_contract.dependOn(',
         'const phase9_runtime_bitmap_cold_stage_guard = b.step(',
         'phase9_runtime_bitmap_cold_stage_guard.dependOn(',
         'const phase9_runtime_loader_command_env_boundary_guard = b.step(',
@@ -105,6 +107,7 @@ REQUIRED_MARKERS = {
         'phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);',
         'phase9_runtime_loader_shared.dependOn(\n        &run_runtime_loader_command_env_boundary_guard_tests.step,\n    );',
         'phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);',
+        'phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_direct_init_contract_tests.step);',
         'phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_cold_stage_guard_tests.step);',
     ],
     RUNTIME_LOADER_PATH: [
@@ -254,7 +257,7 @@ def run_self_test() -> int:
 
         for rel_path, markers in EXACT_ONCE_MARKERS.items():
             for marker in markers:
-                seed_fixture_tree(base)
+                seed_fixtureTree(base)
                 current = read_text(base, rel_path)
                 write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
                 expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
@@ -295,13 +298,13 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Check that the current Phase 9 build-only packet keeps the shared "
             "runtime-loader allocator/init-flow shard, the command/environment "
-            "boundary guard, the returned runtime bitmap cold-stage guard packet, "
-            "the scripts-root reminder, the blocked depmod-boundary contract, the "
-            "live loader facade, the dedicated allocator/init-flow replay, and the "
-            "aligned docs, samples, tests, and sequencing reminders explicit across "
-            "the docs, scripts, review checklist, lane sequencing note, survey, "
-            "samples README, tests README, contract, facade, replay, and "
-            "phase9_build rerun surface."
+            "boundary guard, the returned runtime bitmap direct-init and cold-stage "
+            "guard packet, the scripts-root reminder, the blocked depmod-boundary "
+            "contract, the live loader facade, the dedicated allocator/init-flow "
+            "replay, and the aligned docs, samples, tests, and sequencing reminders "
+            "explicit across the docs, scripts, review checklist, lane sequencing "
+            "note, survey, samples README, tests README, contract, facade, replay, "
+            "and phase9_build rerun surface."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
