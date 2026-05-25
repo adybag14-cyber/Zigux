@@ -101,6 +101,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(slice_note, "`PHASE7_LANE_KEY=P7-L08`");
     try expectContains(slice_note, "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.");
     try expectContains(slice_note, "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.");
+    try expectContains(slice_note, "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs");
 
     try expectContains(sequencing_note, "  - `Documentation/zigux/phase7-cmdline-slice.md`");
     try expectContains(sequencing_note, "  - `samples/zigux/README.md`");
