@@ -30,6 +30,7 @@ DIRECT_PACKET_PATHS = (
     "samples/zigux/kobject_example.zig",
     "samples/zigux/kobject_example_attr_group_contract.zig",
     "samples/zigux/kretprobe_example.zig",
+    "samples/zigux/kretprobe_example_probe_spec.zig",
     "samples/zigux/trace_events_callback_focus_contract.zig",
     "samples/zigux/trace_events_string_formatting_sample.zig",
     "scripts/zigux/README.md",
@@ -41,6 +42,7 @@ DIRECT_PACKET_PATHS = (
     "zigux/tests/phase5_kobject_example.zig",
     "zigux/tests/phase5_kretprobe_example.zig",
     "zigux/tests/phase5_kretprobe_example_manifest.json",
+    "zigux/tests/phase5_kretprobe_example_probe_spec.zig",
     "zigux/tests/phase5_kretprobe_example_survey.zig",
     "zigux/tests/phase5_build.zig",
 )
@@ -71,6 +73,7 @@ MARKERS = {
         "Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.",
         "`zig test samples/zigux/kobject_example_attr_group_contract.zig` stays the companion-only validation route for the attr-group contract while `zigux/tests/phase5_build.zig` remains the directly readable shared build-route companion for this packet",
         "`samples/zigux/trace_events_callback_focus_contract.zig` keeps the shared `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` `checked_focus` order plus the callback-registration recovery cues explicit at the sample root without turning that companion into a fifth Phase 5 sample.",
+        "`samples/zigux/kretprobe_example_probe_spec.zig` plus `zigux/tests/phase5_kretprobe_example_probe_spec.zig` keep the direct Linux anchor path, default symbol, one-word private-data width, default `maxactive`, replay return and duration summary, missed-instance cue, and the pre-init-only symbol-selection and maxactive-tuning rules explicit beside the main replay packet instead of leaving that probe-spec reviewability trapped in the dedicated survey note alone",
     ),
     DOCS_ROOT_PATH: (
         "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.",
@@ -255,7 +258,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 43
+    expected_case_count = 44
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -330,6 +333,11 @@ def run_self_test() -> int:
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][7], ""))
         expect_exact("missing guide trace callback marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][7]}"])
+        checks_run += 1
+        mutated = root / "missing_guide_kretprobe_probe_spec_marker"
+        seed(mutated)
+        write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][8], ""))
+        expect_exact("missing guide kretprobe probe-spec marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][8]}"])
         checks_run += 1
         mutated = root / "missing_sample_root_trace_callback_marker"
         seed(mutated)
