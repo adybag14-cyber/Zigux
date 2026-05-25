@@ -84,6 +84,18 @@ FIXTURE_KEY_REQUIREMENTS = {
     "slab": ["zero_after_kmalloc"],
     "string": ["replace_char_cstr_bytes", "memchr_inv_index"],
 }
+REPLAY_BLOCKER_EVIDENCE = {
+    "id": "phase1_helpers_zig_slab_zero_after_kmalloc",
+    "kind": "fixture_mismatch",
+    "path": "tools/lib/slab.zig",
+    "field": "slab.zero_after_kmalloc",
+    "expected": True,
+    "actual": False,
+}
+C_HARNESS_BLOCKER_ID = "phase1_helpers_c_harness_missing_c_sources"
+C_HARNESS_REASON_MARKER = (
+    "current master no longer ships beside the Phase 1 `.zig` ports."
+)
 SELF_TEST_CASES = [
     "sample_root_pass",
     "sample_root_writer",
@@ -94,6 +106,8 @@ SELF_TEST_CASES = [
     "blocker_helper_mismatch",
     "blocker_state_drift",
     "blocker_anti_overlap_rule_drift",
+    "replay_blocker_evidence_drift",
+    "c_harness_reason_drift",
     "fixture_section_missing",
     "fixture_key_missing",
     "readme_gap_missing",
@@ -199,6 +213,24 @@ def check_replay_blockers(root: Path, manifest: dict[str, object]) -> None:
     ensure(isinstance(replay, dict), "phase1 replay blocker replay stanza missing")
     ensure(replay.get("path") == "zigux/tests/phase1_helpers.zig", "phase1 replay path drifted")
     ensure(replay.get("state") == "blocked", "phase1 replay state drifted")
+    replay_blockers = replay.get("blockers")
+    ensure(
+        isinstance(replay_blockers, list) and len(replay_blockers) == 1,
+        "phase1 replay blocker evidence roster drifted",
+    )
+    evidence = replay_blockers[0]
+    ensure(isinstance(evidence, dict), "phase1 replay blocker evidence entry missing")
+    for key, expected_value in REPLAY_BLOCKER_EVIDENCE.items():
+        ensure(
+            evidence.get(key) == expected_value,
+            f"phase1 replay blocker evidence drifted at {key}",
+        )
+    evidence_text = str(evidence.get("evidence", ""))
+    ensure(
+        "committed fixture expects `true` while `tools/lib/slab.zig` still produced `false`"
+        in evidence_text,
+        "phase1 replay blocker evidence summary drifted",
+    )
 
     c_harness = blockers.get("c_harness")
     ensure(isinstance(c_harness, dict), "phase1 replay blocker c_harness stanza missing")
@@ -209,6 +241,14 @@ def check_replay_blockers(root: Path, manifest: dict[str, object]) -> None:
     ensure(c_harness.get("state") == "blocked", "phase1 c_harness state drifted")
     ensure(c_harness.get("helper_count") == len(HELPER_PATHS), "phase1 c_harness count drifted")
     ensure(c_harness.get("helpers") == manifest.get("helpers"), "phase1 c_harness roster drifted")
+    ensure(
+        c_harness.get("blocker_id") == C_HARNESS_BLOCKER_ID,
+        "phase1 c_harness blocker id drifted",
+    )
+    ensure(
+        C_HARNESS_REASON_MARKER in str(c_harness.get("reason", "")),
+        "phase1 c_harness blocker reason drifted",
+    )
 
 
 def check_fixture(root: Path, manifest: dict[str, object]) -> None:
@@ -262,6 +302,7 @@ def check_root(root: Path) -> dict[str, int]:
         "helper_count": len(HELPER_PATHS),
         "present_file_count": 6,
         "readme_gap_count": len(README_REQUIRED_GAPS),
+        "replay_blocker_count": 1,
         "shared_helper_count": len(SHARED_HELPERS),
     }
 
@@ -299,12 +340,28 @@ def sample_replay_blockers() -> dict[str, object]:
         "replay": {
             "path": "zigux/tests/phase1_helpers.zig",
             "state": "blocked",
+            "blockers": [
+                {
+                    **REPLAY_BLOCKER_EVIDENCE,
+                    "evidence": (
+                        "Focused 2026-05-17 scratch replay of `zig build test --build-file "
+                        "zigux/tests/build.zig --summary all` failed because the committed "
+                        "fixture expects `true` while `tools/lib/slab.zig` still produced "
+                        "`false`."
+                    ),
+                }
+            ],
         },
         "c_harness": {
             "path": "zigux/tests/fixtures/phase1_helpers_c_harness.c",
             "state": "blocked",
+            "reason": (
+                "The old host-side parity route still depends on helper `tools/lib/*.c` inputs "
+                "that current master no longer ships beside the Phase 1 `.zig` ports."
+            ),
             "helper_count": len(HELPER_PATHS),
             "helpers": HELPER_PATHS,
+            "blocker_id": C_HARNESS_BLOCKER_ID,
         },
     }
 
@@ -503,6 +560,28 @@ def run_self_test() -> int:
             json.dumps(blockers, indent=2) + "\n",
         )
         covered.append("blocker_anti_overlap_rule_drift")
+
+        blockers = json.loads(old_blockers)
+        blockers["replay"]["blockers"][0]["actual"] = True
+        expect_failure(
+            "replay_blocker_evidence_drift",
+            root,
+            blockers_path,
+            old_blockers,
+            json.dumps(blockers, indent=2) + "\n",
+        )
+        covered.append("replay_blocker_evidence_drift")
+
+        blockers = json.loads(old_blockers)
+        blockers["c_harness"]["reason"] = "drifted"
+        expect_failure(
+            "c_harness_reason_drift",
+            root,
+            blockers_path,
+            old_blockers,
+            json.dumps(blockers, indent=2) + "\n",
+        )
+        covered.append("c_harness_reason_drift")
 
         fixture_path = root / "zigux/tests/fixtures/phase1_helpers.json"
         old_fixture = read_text(fixture_path)
