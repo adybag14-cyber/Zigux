@@ -48,8 +48,14 @@ GENKSYMS_EXPECTED = (
 
 SURFACE_PATHS = (
     "scripts/zigux/check-zig-toolchain.py",
-    "scripts/zigux/install-zig.py",
+    "scripts/zigux/zig-toolchain-policy.json",
+    "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "scripts/zigux/check-lane05-local-archive-readme.py",
+    "scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "scripts/zigux/stage-pinned-zig-archive.py",
+    "scripts/zigux/check-lane05-stage-helper-contract.py",
+    "scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "scripts/zigux/install-zig.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
