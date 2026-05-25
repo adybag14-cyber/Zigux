@@ -284,6 +284,18 @@ pub fn renderCommandSections(
     return output.toOwnedSlice(allocator);
 }
 
+test "computePrettyLayout falls back to the default width and one-column floor" {
+    const fallback = computePrettyLayout(5, "buildid-cache".len, 0);
+    try std.testing.expectEqual(@as(usize, 5), fallback.cols);
+    try std.testing.expectEqual(@as(usize, 1), fallback.rows);
+    try std.testing.expectEqual(@as(usize, 14), fallback.space);
+
+    const narrow = computePrettyLayout(3, "buildid-cache".len, 4);
+    try std.testing.expectEqual(@as(usize, 1), narrow.cols);
+    try std.testing.expectEqual(@as(usize, 3), narrow.rows);
+    try std.testing.expectEqual(@as(usize, 14), narrow.space);
+}
+
 test "trimCommandPrefix strips the prefix and optional exe suffix" {
     try std.testing.expectEqualStrings("annotate", trimCommandPrefix("perf-annotate", default_command_prefix).?);
     try std.testing.expectEqualStrings("script", trimCommandPrefix("perf-script.exe", default_command_prefix).?);
