@@ -88,11 +88,13 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
 ]
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
+EXPECTED_BASE64_ZIG_PERF_ROUTE = "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig"
+EXPECTED_BSEARCH_ZIG_PERF_ROUTE = "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
 EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 
-SELF_TEST_CASE_COUNT = 45
+SELF_TEST_CASE_COUNT = 49
 
 
 class ValidationError(RuntimeError):
@@ -203,6 +205,11 @@ def validate_evidence_manifest(path: Path) -> None:
     require_route(
         base64_perf.get("linux_style_rerun_routes"),
         "base64 evidence",
+        EXPECTED_BASE64_ZIG_PERF_ROUTE,
+    )
+    require_route(
+        base64_perf.get("linux_style_rerun_routes"),
+        "base64 evidence",
         "make -C zigux phase6-base64-perf",
     )
     require_route(
@@ -225,6 +232,11 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError("bsearch evidence query count drifted")
     if bsearch_perf.get("budget_formula") != EXPECTED_BSEARCH_BUDGET_FORMULA:
         raise ValidationError("bsearch evidence budget formula drifted")
+    require_route(
+        bsearch_perf.get("linux_style_rerun_routes"),
+        "bsearch evidence",
+        EXPECTED_BSEARCH_ZIG_PERF_ROUTE,
+    )
     require_route(
         bsearch_perf.get("linux_style_rerun_routes"),
         "bsearch evidence",
@@ -277,6 +289,7 @@ def validate_parity_manifest(path: Path) -> None:
     if base64_perf.get("max_decode_slowdown_pct") != 325:
         raise ValidationError("base64 decode threshold drifted")
     base64_routes = base64_perf.get("linux_style_rerun_routes")
+    require_route(base64_routes, "base64", EXPECTED_BASE64_ZIG_PERF_ROUTE)
     require_route(base64_routes, "base64", "make -C zigux phase6-base64-perf")
     require_route(base64_routes, "base64", EXPECTED_SHARED_PERF_WRAPPER)
 
@@ -295,6 +308,7 @@ def validate_parity_manifest(path: Path) -> None:
         EXPECTED_BSEARCH_C_ABI_REPLAYS,
     )
     bsearch_routes = bsearch_perf.get("linux_style_rerun_routes")
+    require_route(bsearch_routes, "bsearch", EXPECTED_BSEARCH_ZIG_PERF_ROUTE)
     require_route(bsearch_routes, "bsearch", "make -C zigux phase6-bsearch-perf")
     require_route(bsearch_routes, "bsearch", EXPECTED_SHARED_PERF_WRAPPER)
 
@@ -340,6 +354,7 @@ def scaffold_repo(root: Path) -> None:
                             "max_encode_slowdown_pct": 150,
                             "max_decode_slowdown_pct": 325,
                             "linux_style_rerun_routes": [
+                                EXPECTED_BASE64_ZIG_PERF_ROUTE,
                                 "make -C zigux phase6-base64-perf",
                                 "make -C zigux phase6-perf",
                             ],
@@ -355,6 +370,7 @@ def scaffold_repo(root: Path) -> None:
                             "query_count": 16,
                             "budget_formula": EXPECTED_BSEARCH_BUDGET_FORMULA,
                             "linux_style_rerun_routes": [
+                                EXPECTED_BSEARCH_ZIG_PERF_ROUTE,
                                 "make -C zigux phase6-bsearch-perf",
                                 "make -C zigux phase6-perf",
                             ],
@@ -385,6 +401,7 @@ def scaffold_repo(root: Path) -> None:
                             "max_encode_slowdown_pct": 150,
                             "max_decode_slowdown_pct": 325,
                             "linux_style_rerun_routes": [
+                                EXPECTED_BASE64_ZIG_PERF_ROUTE,
                                 "make -C zigux phase6-base64-perf",
                                 "make -C zigux phase6-perf",
                             ],
@@ -400,6 +417,7 @@ def scaffold_repo(root: Path) -> None:
                             "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
                             "runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                             "linux_style_rerun_routes": [
+                                EXPECTED_BSEARCH_ZIG_PERF_ROUTE,
                                 "make -C zigux phase6-bsearch-perf",
                                 "make -C zigux phase6-perf",
                             ],
@@ -767,6 +785,30 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                f'"{EXPECTED_BASE64_ZIG_PERF_ROUTE}"',
+                '"zig build phase6-base64-bench --build-file zigux/tests/phase6_build.zig"',
+            ),
+            "base64 evidence rerun route missing",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
+                f'"{EXPECTED_BSEARCH_ZIG_PERF_ROUTE}"',
+                '"zig build phase6-bsearch-bench --build-file zigux/tests/phase6_build.zig"',
+            ),
+            "bsearch evidence rerun route missing",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 '"make -C zigux phase6-base64-perf"',
                 '"make -C zigux phase6-base64-benchmark"',
             ),
@@ -887,6 +929,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
+                f'"{EXPECTED_BASE64_ZIG_PERF_ROUTE}"',
+                '"zig build phase6-base64-bench --build-file zigux/tests/phase6_build.zig"',
+            ),
+            "base64 rerun route missing",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
                 '"max_decode_slowdown_pct": 325',
                 '"max_decode_slowdown_pct": 400',
             ),
@@ -903,6 +957,18 @@ def run_self_test() -> None:
                 "scripts/zigux/check-phase6-bsearch-review.py",
             ),
             "bsearch checker surface drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                f'"{EXPECTED_BSEARCH_ZIG_PERF_ROUTE}"',
+                '"zig build phase6-bsearch-bench --build-file zigux/tests/phase6_build.zig"',
+            ),
+            "bsearch rerun route missing",
         )
         cases_run += 1
         scaffold_repo(root)
