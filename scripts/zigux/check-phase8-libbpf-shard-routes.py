@@ -116,6 +116,7 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.",
+        "`zigux/tests/phase8_libbpf_segments.zig` plus `zigux/tests/phase8_libbpf_segments_only_build.zig` now keep the shared stable-output verifier, mixed-source bridge, focused verify-routing, and no-timer poll-boundary packet explicit from the tests root beside that same helper-first shard packet.",
         "Current authenticated helper readback in this runtime now serves only the narrow bridge-side reminder packet directly: the helper set above stays the exact authenticated helper anchor, while the same contents path now returns `tools/lib/bpf/zigux_segments/manifest.json`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` on current `master`.",
         "The broader bridge helper and focused build-route companions, including `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, remain public-tree-backed reminder vocabulary until the same authenticated contents path serves them directly again.",
         "`zigux/tests/phase8_verify_routing_gap.zig` plus `zigux/tests/phase8_verify_routing_gap_only_build.zig`",
