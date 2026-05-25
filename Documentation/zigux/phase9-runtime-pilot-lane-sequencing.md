@@ -1,6 +1,6 @@
 # Phase 9 Runtime Pilot Lane Sequencing
 
-This note keeps the roadmap-backed Phase 9 runtime pilot lane honest when current `master` carries one shipped trace-events runtime packet, one narrower returned shared runtime-loader reminder surface with a dedicated command/environment boundary guard, and one bounded runtime bitmap reminder packet.
+This note keeps the roadmap-backed Phase 9 runtime pilot lane honest when current `master` carries one shipped trace-events runtime packet, one narrower returned shared runtime-loader reminder surface with a dedicated command/environment boundary guard, one bounded runtime bitmap reminder packet, and one returned runtime kretprobe pilot packet that shared reminder surfaces still undercount.
 
 ## Roadmap anchor
 
@@ -23,7 +23,7 @@ That roadmap boundary still matters, but repo reality matters more than stale re
 
 ## Live repo reality on current master
 
-Trusted mixed rereads on 2026-05-21 confirm three distinct current-master Phase 9 postures.
+Trusted mixed rereads on 2026-05-25 confirm four distinct current-master Phase 9 postures.
 
 ### 1. Trace-events remains the direct shipped runtime sample family
 
@@ -38,59 +38,62 @@ Trusted mixed rereads on 2026-05-21 confirm three distinct current-master Phase 
 - surviving runtime-module evidence inside that direct sample: `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking
 - balanced registration re-entry replay in `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` across both the initialized and selftest_complete stages remains part of the still-shipped narrow packet
 
-### 2. The shared runtime-loader allocator/init-flow and command/environment boundary packet now survives as a narrower direct-readback shared-owner surface
+### 2. The shared runtime-loader allocator/init-flow and command/environment boundary packet survives as a narrower shared-owner surface
 
-Trusted GitHub rereads on 2026-05-21 directly recover the still-live shared loader packet through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the still-returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, and the bounded `zigux/tests/phase9_build.zig` shard.
+Trusted GitHub rereads on 2026-05-25 directly recover the still-live shared loader packet through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the still-returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, and the bounded `zigux/tests/phase9_build.zig` shard.
 
-- The shared runtime-loader allocator/init-flow packet remains mixed-source shared-owner evidence, and the dedicated command/environment boundary guard now travels with that narrower direct-readback shard instead of widening it into family-local trace-events proof.
-- `zigux/kernel/runtime_loader_contract.zig` now keeps the initcall and registration boundary literal inside the surviving shared packet: staged entry and exit symbol names remain metadata in `LoadPlan`, readiness still depends on counted `.initialized` or `.selftest_complete` handoff state, and the shared contract still does not expose any live runtime init, exit, or executable registration path
-- the newer shared-loader reminder packet also keeps metadata-only registration posture explicit instead of executable runtime registration: current Phase 9 review surfaces can point at staged registration labels and handoff-state evidence, but they must not claim that runtime registration callbacks or module-loading control paths have landed
-- the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` references no longer materialize on the trusted direct-read path, so keep them as historical wider-family vocabulary instead of current shared-owner proof
-- `zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-shared-tests`, `phase9-runtime-trace-events-loader-substrate-drift-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`
-- `zigux/tests/phase9_build.zig` also still exposes `phase9-runtime-trace-events-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-unregistered-gate-tests`, `phase9-runtime-trace-events-exit-rollback-guard-tests`, and `phase9-runtime-trace-events-registration-reentry-gate-tests`, keeping current compile-side evidence explicit for the shipped trace-events sample's load, selftest, and lifecycle guards without turning that family-local packet into shared-loader proof
-- that build bundle is still bounded rerun vocabulary rather than proof that blocked publication, install-root, or module-metadata surfaces are solved
-- the surviving `phase9-runtime-loader-shared-tests` route still names the older trace-events loader leg indirectly through its shared loader shard, so route survival alone is not proof that `samples/zigux/runtime_trace_events_loader.zig` returned on the trusted direct path
-- `zigux/tests/phase9_build.zig` now also names `phase9-runtime-loader-command-env-boundary-guard-tests`, which keeps the shared request-contract boundary tied to the same loader shard instead of drifting into the trace-events family-local packet
-- `zigux/tests/phase9_build.zig` now also names `phase9-runtime-trace-events-loader-substrate-drift-tests`, which keeps prepared-plan substrate drift fail-closed on the shared trace-events loader handoff without treating that bounded replay leg as proof that the older loader-gap packet has returned
+- the shared runtime-loader allocator/init-flow packet remains mixed-source shared-owner evidence, and the dedicated command/environment boundary guard travels with that narrower direct-readback shard instead of widening it into family-local proof
+- `zigux/kernel/runtime_loader_contract.zig` keeps the initcall and registration boundary literal inside the surviving shared packet: staged entry and exit symbol names remain metadata in `LoadPlan`, readiness still depends on counted `.initialized` or `.selftest_complete` handoff state, and the shared contract still does not expose any live runtime init, exit, or executable registration path
+- the shared-loader reminder packet keeps metadata-only registration posture explicit instead of executable runtime registration: current Phase 9 review surfaces can point at staged registration labels and handoff-state evidence, but they must not claim that runtime registration callbacks or module-loading control paths have landed
+- the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` references do not materialize on the trusted direct-read path, so keep them as historical wider-family vocabulary instead of current shared-owner proof
+- `zigux/tests/phase9_build.zig` still exposes `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-shared-tests`, `phase9-runtime-loader-command-env-boundary-guard-tests`, and `phase9-runtime-trace-events-loader-substrate-drift-tests`
+- the surviving loader route names are bounded rerun vocabulary rather than proof that blocked publication, install-root, or module-metadata surfaces are solved
 - `zigux/kernel/runtime_loader_command_env_boundary_guard.zig` keeps the command/environment guard reviewable on current `master` by fail-closing when argv or environment control markers bleed into `zigux/kernel/runtime_loader.zig` or `zigux/kernel/runtime_loader_contract.zig`
-- the review-first shared packet still stays neighboring shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded loader shard, and the direct command/environment boundary guard
 - keep the Phase 8 command and environment ownership boundary explicit: deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` cues stay with `tools/lib/subcmd/exec-cmd.zig`, while `LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`
 - current Phase 9 material still does not prove shipped runtime command or environment activation control; it proves only that the shared runtime-loader packet keeps those Phase 8 control surfaces out of the loader contract
 
-### 3. The runtime bitmap side now returns a broader direct packet without promoting the broader shared runtime-loader boundaries
+### 3. The runtime bitmap side returns a broader direct packet without promoting the broader shared runtime-loader boundaries
 
-- the current reminder surfaces now keep the bounded runtime bitmap packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_direct_init_contract.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`
-- `samples/zigux/runtime_bitmap_loader.zig` stays a returned companion on the trusted path, but it now sits adjacent to the narrower shared loader packet above rather than proving that the older broader loader-gap packet returned
-- `samples/zigux/runtime_bitmap_cold_stage_guard.zig` now also returns on the trusted path as sample-root-only cold-stage selftest, exit, mutation, and source-lifecycle guard proof for the same runtime bitmap starter, and `zigux/tests/phase9_build.zig` now keeps that returned guard inside the shared rerun bundle through the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route plus the aggregate `phase9-runtime-bitmap-tests` handle.
-- `zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` now return on the trusted path as the module-side descriptor and lifecycle packet plus the bounded diff-side summary replay packet, but that broader bitmap-side visibility still must not be used to imply that the broader shared runtime-loader or blocked publication boundaries returned
-- current `master` therefore still supports a bounded runtime bitmap reminder packet, and that returned bitmap visibility must not be used to imply that the broader bitmap family or blocked publication boundaries returned
+- the current reminder surfaces keep the bounded runtime bitmap packet visible through `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_direct_init_contract.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `samples/zigux/runtime_bitmap_cold_stage_guard.zig`
+- `samples/zigux/runtime_bitmap_loader.zig` stays a returned companion on the trusted path, but it sits adjacent to the narrower shared loader packet above rather than proving that the older broader loader-gap packet returned
+- `zigux/tests/phase9_build.zig` keeps the returned bitmap packet inside the shared rerun bundle through `phase9-runtime-bitmap-tests` plus the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route
+- that broader bitmap-side visibility still must not be used to imply that the broader shared runtime-loader or blocked publication boundaries returned
+
+### 4. The runtime kretprobe side returns a family-local pilot packet, but shared reminder surfaces still lag it
+
+Trusted GitHub rereads on 2026-05-25 directly recover `samples/zigux/runtime_kretprobe.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_first_loadable_parity_behavior.zig`, and the live `zigux/tests/phase9_build.zig` routes that now wire them.
+
+- `samples/zigux/runtime_kretprobe.zig` is a returned family-local runtime sample rooted in the Phase 9 `samples/kprobes/kretprobe_example.c` anchor, with selftest-hook and lifecycle-parity proof kept inside that pilot packet
+- `zigux/tests/runtime_kretprobe_module.zig` is the returned module-side lifecycle companion for that same pilot family
+- `zigux/tests/runtime_first_loadable_parity_behavior.zig` now includes the kretprobe pilot beside the atomic64 and bitmap pilots, so current `master` no longer supports treating kretprobe as absent from the cross-family parity surface
+- `zigux/tests/phase9_build.zig` now exposes `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-tests`, and `phase9-first-loadable-runtime-module-parity-behavior-tests`
+- those returned kretprobe routes and files are still family-local pilot evidence, not proof that broader shared loader, publication, or install-root boundaries returned
+- shared reminder surfaces outside this sequencing note still undercount that returned kretprobe packet, so the current shared-lane task is sequencing truthfulness, not family-local behavior work
 
 ## Current shared-owner state
 
-The shared Phase 9 reminder family should now be read as three distinct truths:
+The shared Phase 9 reminder family should now be read as four distinct truths:
 
 1. the trace-events runtime packet is still the shipped direct current-`master` proof for selftest-hook and lifecycle-parity reviewability
 2. the returned shared runtime-loader allocator/init-flow kernel-and-test surface plus the dedicated command/environment boundary guard stay neighboring shared-owner evidence, while the older loader-gap survey and manifest paths stay historical vocabulary until trusted rereads return them
-3. the bitmap side now keeps a broader direct packet on trusted rereads, so current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet, not proof that the broader bitmap family returned
+3. the bitmap side keeps a broader direct packet on trusted rereads, so current `master` supports a bounded runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet, not proof that the broader bitmap family returned
+4. the kretprobe side now keeps a returned family-local pilot packet on trusted rereads, but shared reminder surfaces beyond this owner note still need one-surface-at-a-time follow-through before later scheduled runs should treat that packet as fully propagated reminder state
 
-The broader shared reminder packet now keeps the narrower shared-owner split aligned on current `master`:
+The broader shared reminder packet is therefore only partly aligned on current `master`:
 
-- `Documentation/zigux/README.md` and `zigux/tests/README.md` now frame the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` references as historical wider-family vocabulary rather than current direct evidence
-- trusted current-`master` rereads for this survey still only recover the narrower shared loader surfaces `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` shard, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` companion on the same trusted path
-- treat any future docs-root or tests-root drift as shared reminder debt to repair one surface at a time instead of widening it into runtime behavior claims or a broader checklist rewrite inside this lane
-- a fresh 2026-05-23 reread confirms `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all keep `scripts/zigux/check-phase9-trace-events-runtime-packet.py` explicit inside the shared Phase 9 packet, so same-lane follow-through can stay parked unless one of those reminder surfaces drifts again
+- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still keep the shared Phase 9 packet narrower than the live kretprobe return described here
+- `Documentation/zigux/README.md` and `zigux/tests/README.md` still correctly frame the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` references as historical wider-family vocabulary rather than current direct evidence
+- treat any future docs-root, checklist, scripts-root, or tests-root drift as shared reminder debt to repair one surface at a time instead of widening it into runtime behavior claims or broader checklist churn inside this lane
 
-This means the shared owner packet should keep the narrow trace-events family explicit, keep the returned shared loader packet explicit, keep the direct command/environment boundary guard explicit, keep the bounded runtime bitmap reminder packet explicit, keep the broader docs-root and tests-root reminders aligned with that narrower split, and avoid promoting any of them into a claim that deeper publication, install-root, or loadable-runtime-complete substrate work is finished.
+This means the shared owner packet should keep the narrow trace-events family explicit, keep the returned shared loader packet explicit, keep the direct command/environment boundary guard explicit, keep the bounded runtime bitmap reminder packet explicit, keep the returned kretprobe pilot explicit as returned family-local evidence, and avoid promoting any of them into claims that deeper publication, install-root, or loadable-runtime-complete substrate work is finished.
 
-- `zigux/tests/phase9_build.zig` still records the bounded atomic64, bitmap, loader-shared, trace-events loader-substrate-drift, command/environment boundary, and cross-family parity-survey route names, but that surviving build bundle is not proof that blocked publication boundaries or install-root surfaces are complete
-- `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/README.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_direct_init_contract.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` remain the current reminder surfaces for the bounded runtime bitmap packet
-- the direct-init companion, returned bitmap module gate, and diff gate now stay inside that same bounded packet, and the returned cold-stage guard now stays there too because `zigux/tests/phase9_build.zig` names both the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route and the aggregate `phase9-runtime-bitmap-tests` handle directly
-- no shared reminder surface should present the bounded runtime bitmap packet as equal to the shipped trace-events packet or as proof that every broader runtime boundary returned
+- `zigux/tests/phase9_build.zig` still records bounded atomic64 diff, bitmap, loader-shared, trace-events loader-substrate-drift, kretprobe, command/environment boundary, parity-survey, and parity-behavior route names, but that surviving build bundle is not proof that blocked publication boundaries or install-root surfaces are complete
+- no shared reminder surface should present the bounded runtime bitmap packet or the returned kretprobe packet as equal to the shipped trace-events packet or as proof that every broader runtime boundary returned
 - keep the older non-owner boundary anchors explicit too: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence
 
 ## Historical boundaries
 
-- the older wider-family loader reminder vocabulary that no longer returns on the trusted direct path now includes `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig`
+- the older wider-family loader reminder vocabulary that no longer returns on the trusted direct path includes `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig`
 - still preserve blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and depmod-publication vocabulary
 - keep `modules.order`, `modules.builtin`, `Module.symvers`, and module install-root wording framed as blocked wider-family vocabulary too
 - keep blocked depmod script, depmod manifest, and depmod alias-output wording framed as historical wider-family vocabulary too until trusted direct rereads return a current shared owner surface for that publication packet
@@ -100,19 +103,21 @@ This means the shared owner packet should keep the narrow trace-events family ex
 This lane may:
 
 - refresh this note when trusted repo reality changes
-- tighten one stale shared reminder surface at a time when it undercounts or overclaims the trace-events packet, the returned shared loader packet, the direct command/environment boundary guard, the bounded runtime bitmap packet, or build-route maturity
+- tighten one stale shared reminder surface at a time when it undercounts or overclaims the trace-events packet, the returned shared loader packet, the direct command/environment boundary guard, the bounded runtime bitmap packet, the returned kretprobe packet, or build-route maturity
 - keep the narrow trace-events packet explicit as the current shipped runtime-pilot proof
 - keep the returned shared loader packet explicit without overstating blocked publication or install-root completion
 - keep the direct command/environment boundary guard explicit without treating it as proof of shipped runtime command or environment activation control
 - keep the bounded runtime bitmap reminder packet explicit without overstating what has actually returned
+- keep the returned kretprobe pilot explicit as family-local proof without treating it as a shared-owner or publication-complete packet
 - keep the bounded `zigux/tests/phase9_build.zig` shard explicit as route vocabulary without treating it as proof that blocked publication boundaries or install-root surfaces are complete
 
 This lane should not reopen:
 
 - new runtime behavior based only on stale reminder wording
 - checker growth when the active problem is a stale shared summary
-- backlog promotion of the bounded runtime bitmap reminder packet into proof that every broader runtime boundary returned
+- backlog promotion of the bounded runtime bitmap reminder packet or the returned kretprobe packet into proof that every broader runtime boundary returned
 - blocked publication or install-root completion claims that the surviving route names still do not prove
+- family-local runtime kretprobe behavior work that belongs in the returned pilot packet itself rather than in this shared sequencing note
 
 Treat stale shared-owner undercount or overclaim as the active blocker before reopening checker-local or runtime-behavior work.
 
@@ -122,11 +127,12 @@ Treat stale shared-owner undercount or overclaim as the active blocker before re
 
 ## Recommended next-step order
 
-1. Start with `Documentation/zigux/README.md` if a fresh reread still omits `scripts/zigux/check-phase9-trace-events-runtime-packet.py` from the shared Phase 9 packet or otherwise drifts from the narrower shared-owner split confirmed here on current `master`.
-2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the bounded runtime bitmap packet confirmed here on current `master`.
+1. Start with `Documentation/zigux/README.md` if a fresh reread still omits the returned kretprobe pilot packet or otherwise drifts from the shared-owner split confirmed here on current `master`.
+2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces still treats the returned kretprobe packet as absent or drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the bounded runtime bitmap packet confirmed here on current `master`.
 3. If the broader shared runtime-loader family changes again, widen this note only after an exact reread proves the specific returned file family or blocked-boundary vocabulary moved.
 4. If the runtime bitmap packet changes again, widen the bitmap-side reminder packet only after the trusted direct read path proves the specific returned file set changed.
+5. If the kretprobe packet changes again, keep the next follow-through inside one shared reminder surface only unless the live family-local sample or module packet itself drifts first.
 
 ## Anti-overlap rule
 
-If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not treat the bounded runtime bitmap reminder packet as full sample-family return, do not treat `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-pilot expansion evidence, and do not treat the surviving loader route names or the direct command/environment boundary guard as proof that blocked publication, install-root, or module-metadata work is complete.
+If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not treat the bounded runtime bitmap reminder packet as full sample-family return, do not treat the returned kretprobe pilot packet as a reason to reopen family-local behavior work from the shared lane, do not treat `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-pilot expansion evidence, and do not treat the surviving loader route names or the direct command/environment boundary guard as proof that blocked publication, install-root, or module-metadata work is complete.
