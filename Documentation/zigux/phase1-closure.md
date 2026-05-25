@@ -8,7 +8,7 @@ This note restores the missing Lane 15 closure record in a current-master-safe f
 - `PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`
 - `PHASE1_HELPER_COUNT=13`
 - manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- current authority: the committed helper manifest, this closure note, the narrow closure validator, the shipped bench checker, the shipped shared reminder checker, the live owner-map reminders, and the shared tests-root smoke route remain the trustworthy current-master sources for the closed helper tranche, while the route-summary checker stays an adjacent workflow and Makefile guard.
+- current authority: the committed helper manifest, this closure note, the narrow closure validator, the direct-anchor manifest gate, the shipped bench checker, the shipped shared reminder checker, the live owner-map reminders, and the shared tests-root smoke route remain the trustworthy current-master sources for the closed helper tranche, while the route-summary checker stays an adjacent workflow and Makefile guard.
 
 The bounded Phase 1 helper tranche is still the same thirteen helper ports named in the committed manifest, but the broader closure-side validator and replay stack is only partially promoted into the narrow current reminder packet on current `master`.
 
@@ -23,6 +23,7 @@ The currently reviewable Phase 1 reminder packet is:
 - `scripts/zigux/README.md`
 - `scripts/zigux/check-phase1-string-review-packet.py`
 - `scripts/zigux/check-phase1-direct-owner-markers.py`
+- `scripts/zigux/check-phase1-direct-anchor-manifest-gate.py`
 - `scripts/zigux/check-phase1-bench.py`
 - `scripts/zigux/check-phase1-shared-reminder-packet.py`
 - `scripts/zigux/validate-phase1-closure.py`
@@ -32,7 +33,7 @@ The currently reviewable Phase 1 reminder packet is:
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`
+- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`
 
 ## Broader Closure Companions
 
@@ -59,7 +60,7 @@ The current shared tests-root closure route is narrow on purpose:
 
 That route keeps a minimal shared import-and-wire smoke check alive for the current helper packet while the dedicated closure validator keeps the restored closure note aligned with the committed helper manifest and the shipped reminder packet on current `master`.
 
-The current bootstrap workflow also keeps the adjacent Phase 1 route-summary guard wired beside that same live reminder packet: `.github/workflows/zigux-bootstrap.yml` self-tests the directly readable Phase 1 direct-owner, string-review, route-summary, bench, shared-reminder, and closure-validator checks, replays the route-summary, direct-owner, string-review, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`, and currently keeps the bench checker at self-test coverage only.
+The current bootstrap workflow also keeps the adjacent Phase 1 route-summary guard wired beside that same live reminder packet: `.github/workflows/zigux-bootstrap.yml` self-tests the directly readable Phase 1 direct-owner, direct-anchor manifest, string-review, route-summary, bench, shared-reminder, and closure-validator checks, replays the direct-anchor manifest gate, route-summary, direct-owner, string-review, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`, and currently keeps the bench checker at self-test coverage only.
 
 Even with that self-test-only posture, the surviving `find_bit` bench guard is still explicit on current `master`: `scripts/zigux/check-phase1-bench.py` hard-codes `PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000` and `PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000`, and it still requires the paired exact checksum keys `PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM` and `PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM` whenever the broader expectations packet returns.
 
@@ -69,10 +70,13 @@ Current `master` also ships `scripts/zigux/check-phase1-find-bit-bench-anchors.p
 
 Current `master` also ships `scripts/zigux/check-phase1-find-bit-review-packet.py` as the helper-local review-packet guard: it exact-checks `tools/lib/find_bit.zig`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/phase1-closure.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zigux/tests/fixtures/phase1_helpers.json` so the same-word start-mask, inclusive-boundary, `clump8`, `getValue8()`, `findLastBit()`, alias, and committed tail-clamped plus tail-inclusive-boundary replay packet stay aligned on current `master`.
 
+Current `master` also ships `scripts/zigux/check-phase1-direct-anchor-manifest-gate.py` as the current direct-anchor parity gate: it exact-checks the committed Phase 1 direct-anchor helper manifest packet for bitmap, find_bit, rbtree, and string, and then chains the dedicated rbtree direct-anchor checker so the manifest-backed owner map cannot silently drift away from the helper-local anchor packet.
+
 - `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`
 - `PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns`
 - `PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`
 - `PHASE1_FIND_BIT_REVIEW_GUARD=python3 scripts/zigux/check-phase1-find-bit-review-packet.py exact-checks helper-local find_bit anchors plus the committed tail-clamped and tail-inclusive-boundary replay packet across the helper, closure note, lane note, manifest, and fixture`
+- `PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py exact-checks the current direct-anchor helper manifest packet for bitmap, find_bit, rbtree, and string and then reruns the dedicated rbtree direct-anchor checker`
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
 - `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`
 - `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
