@@ -215,13 +215,16 @@ test "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compa
         \\value_size: 16
         \\max_entries: 1024
         \\map_flags: 0x20
+        \\map_extra: 0X2A
     );
     const summary = file_path_handle_bridge.summarizeFdinfoMapInfo(parsed);
 
     try std.testing.expectEqual(@as(?u32, 5), parsed.map_type);
     try std.testing.expectEqual(@as(?u32, 0x20), parsed.map_flags);
-    try std.testing.expectEqual(@as(usize, 5), summary.parsed_field_count);
+    try std.testing.expectEqual(@as(?u64, 42), parsed.map_extra);
+    try std.testing.expectEqual(@as(usize, 6), summary.parsed_field_count);
     try std.testing.expect(summary.has_complete_legacy_fields);
+    try std.testing.expect(summary.has_map_extra);
 }
 
 test "phase 8 file-path handle bridge helper keeps malformed fdinfo values explicit" {
