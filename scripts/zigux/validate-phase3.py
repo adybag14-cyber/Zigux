@@ -556,6 +556,11 @@ def run_self_test() -> int:
             ),
             (
                 RUNNER_PATH,
+                'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+            ),
+            (
+                RUNNER_PATH,
                 '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass"\n',
                 'missing scripts/zigux/run-phase3-checks.py marker: "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass"',
             ),
