@@ -179,6 +179,7 @@ REQUIRED_MANIFEST_FIELDS = {
 REQUIRED_MANIFEST_PACKET_FILES = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
@@ -606,6 +607,7 @@ def run_self_test() -> int:
             _write(repo_root / rel_path, current)
 
         packet_file_checks = (
+            ("Documentation/zigux/phase3-abi-h-boundary-next-step.md", "expected abi-h boundary note packet-file drift was not reported"),
             ("scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected manifest replay-checker packet-file drift was not reported"),
             ("scripts/zigux/check-phase3-dev-t-starter-packet.py", "expected dev-t starter checker packet-file drift was not reported"),
             ("zigux/tests/phase3_dev_t_starter_packet.zig", "expected dev-t starter packet zig drift was not reported"),
