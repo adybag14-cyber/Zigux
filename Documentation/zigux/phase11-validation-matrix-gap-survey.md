@@ -43,6 +43,8 @@ Phase 11 simple-driver packet on `master`.
 - `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+- `zigux/tests/phase11_dw_wdt_restart_build.zig`
+- `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
 
 Authenticated GitHub contents rereads in this run rematerialize the bcm2835,
 gpio watchdog, HVC console, and DesignWare driver-local Phase 11 matrix notes
@@ -105,6 +107,12 @@ and `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`,
 together with 2 focused direct build replays through
 `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and
 `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.
+The shared current-head packet also now keeps
+`zigux/tests/phase11_dw_wdt_restart_build.zig` and
+`zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` directly
+readable beside the returned driver-local matrices, so the watchdog teardown-or-
+failure-mode proof pair stays explicit even while the narrower shared inventory
+remains HVC-centered.
 The shared `phase11-validate` route also now carries
 `zigux/tests/phase11_hvc_modem_control_proof_build.zig` as a focused HVC
 teardown-or-failure-mode proof outside the narrower three-entry build
