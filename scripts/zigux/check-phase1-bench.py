@@ -581,6 +581,16 @@ def run_self_test() -> None:
     assert_case(kind == "pass", "output pass", (kind, payload))
     case_count += 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-self-test-json-") as tmpdir:
+        invalid_expectations_path = Path(tmpdir) / "phase1-bench-expectations.json"
+        invalid_expectations_path.write_text("{", encoding="utf-8")
+        kind, payload = load_runtime_expectations(invalid_expectations_path)
+        assert kind == "expectations_json_error"
+        assert isinstance(payload, json.JSONDecodeError)
+        assert payload.lineno == 1
+        assert payload.colno == 2
+    case_count += 1
+
     missing_rbtree_iteration_output = "\n".join(
         line for line in ok_output.splitlines() if line != "PHASE1_BENCH_RBTREE_ITERATIONS=4000"
     )
@@ -626,6 +636,7 @@ def main() -> int:
         exc = payload
         assert isinstance(exc, json.JSONDecodeError)
         print("PHASE1_BENCH_CHECK=fail")
+        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
         print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")
         print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")
         print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")
