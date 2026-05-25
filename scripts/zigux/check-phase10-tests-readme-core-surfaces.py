@@ -384,6 +384,18 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
     else:
         raise AssertionError("expected missing mmio companion marker failure")
 
+    missing_mmio_manifest_companion = good_companion.replace(
+        "`zigux/tests/phase10_virtio_mmio_manifest.json`",
+        "`zigux/tests/phase10_virtio_mmio_manifest_missing.json`",
+        1,
+    )
+    try:
+        check_companion_text(missing_mmio_manifest_companion)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing mmio manifest marker failure")
+
     bad_guide_companion = good_companion.replace(
         "`Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, ",
         "",
@@ -528,7 +540,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing ring publish-readiness scripts-root marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
