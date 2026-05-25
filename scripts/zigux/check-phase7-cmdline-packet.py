@@ -133,6 +133,8 @@ REQUIRED_MARKERS = {
         "MISSING_PHASE7_CMDLINE_FILES_END",
         "MISSING_PHASE7_CMDLINE_MARKERS_START",
         "MISSING_PHASE7_CMDLINE_MARKERS_END",
+        "MISMATCHED_PHASE7_CMDLINE_COUNTS_START",
+        "MISMATCHED_PHASE7_CMDLINE_COUNTS_END",
         "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",",
         "\\\"lib/cmdline.zig\\\",",
         'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"',
@@ -149,7 +151,13 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 46
+COUNTED_MARKERS = {
+    "samples/zigux/README.md": [
+        ("* `*cmdline*`", 1),
+    ],
+}
+
+SELF_TEST_CASE_COUNT = 48
 
 
 def read_text(path: Path) -> str:
@@ -168,6 +176,17 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
     return missing
+
+
+def collect_mismatched_counts(root: Path) -> list[str]:
+    mismatches: list[str] = []
+    for rel, markers in COUNTED_MARKERS.items():
+        text = read_text(root / rel)
+        for marker, expected in markers:
+            actual = text.count(marker)
+            if actual != expected:
+                mismatches.append(f"{rel}: expected {expected} occurrence(s) of {marker!r}, found {actual}")
+    return mismatches
 
 
 def collect_missing_manifest_entries(manifest: dict[str, object]) -> list[str]:
@@ -201,26 +220,26 @@ def collect_missing_manifest_entries(manifest: dict[str, object]) -> list[str]:
     return missing
 
 
-def validate(root: Path) -> tuple[list[str], list[str]]:
+def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
-        return missing_files, []
+        return missing_files, [], []
 
     manifest = json.loads(read_text(root / "zigux/tests/phase7_cmdline_manifest.json"))
     if manifest.get("lane_key") != EXPECTED_MANIFEST_LANE_KEY:
-        return [], ["zigux/tests/phase7_cmdline_manifest.json: lane_key"]
+        return [], ["zigux/tests/phase7_cmdline_manifest.json: lane_key"], []
     if manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
-        return [], ["zigux/tests/phase7_cmdline_manifest.json: phase"]
+        return [], ["zigux/tests/phase7_cmdline_manifest.json: phase"], []
     if manifest.get("anchor") != EXPECTED_MANIFEST_ANCHOR:
-        return [], ["zigux/tests/phase7_cmdline_manifest.json: anchor"]
+        return [], ["zigux/tests/phase7_cmdline_manifest.json: anchor"], []
     if manifest.get("current_master_state") != EXPECTED_MANIFEST_STATE:
-        return [], ["zigux/tests/phase7_cmdline_manifest.json: current_master_state"]
+        return [], ["zigux/tests/phase7_cmdline_manifest.json: current_master_state"], []
 
     missing_manifest_entries = collect_missing_manifest_entries(manifest)
     if missing_manifest_entries:
-        return [], missing_manifest_entries
+        return [], missing_manifest_entries, []
 
-    return [], collect_missing_markers(root)
+    return [], collect_missing_markers(root), collect_mismatched_counts(root)
 
 
 def write(path: Path, content: str) -> None:
@@ -254,22 +273,31 @@ def write_fixture_root(tmp_root: Path) -> None:
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, mismatched_counts = validate(tmp_root)
     assert missing_markers == [], case
+    assert mismatched_counts == [], case
     assert missing_files == [rel], case
 
 
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
+    missing_files, missing_markers, mismatched_counts = validate(tmp_root)
     assert missing_files == [], case
+    assert mismatched_counts == [], case
     assert missing_markers == [marker], case
+
+
+def expect_mismatched_count(case: str, tmp_root: Path, mismatch: str) -> None:
+    missing_files, missing_markers, mismatched_counts = validate(tmp_root)
+    assert missing_files == [], case
+    assert missing_markers == [], case
+    assert mismatched_counts == [mismatch], case
 
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_cmdline_packet_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
-        assert validate(tmp_root) == ([], [])
+        assert validate(tmp_root) == ([], [], [])
         cases_run = 0
 
         checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-cmdline-packet.py"
@@ -283,17 +311,16 @@ def run_self_test() -> None:
             ("Documentation/zigux/phase7-cmdline-slice.md", "`scripts/zigux/check-phase7-cmdline-packet.py`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs", ""),
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
-            ("lib/cmdline.zig", "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {", ""),
-            ("lib/cmdline.zig", "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {", ""),
-            ("lib/cmdline.zig", "test \\\"memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable\\\" {", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\\\" {", ""),
-            ("zigux/tests/phase7_cmdline.zig", "try std.testing.expectEqualStrings(\\\"2,9\\\", descending_rest);", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays get_option alias cursor parity\\\" {", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\\\"helper_slice_test_survey_manifest_checker_anchor\\\", manifest.current_master_state);", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \\\"PHASE7_CMDLINE_PACKET=pass\\\");", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(slice_note, \\\"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\\\");", ""),
+            ("lib/cmdline.zig", "test \"nextArg keeps leading equals tokens as bare parameters\" {", ""),
+            ("lib/cmdline.zig", "test \"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\" {", ""),
+            ("lib/cmdline.zig", "test \"memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "try std.testing.expectEqualStrings(\"2,9\", descending_rest);", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays get_option alias cursor parity\" {", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_checker_anchor\", manifest.current_master_state);", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \"PHASE7_CMDLINE_PACKET=pass\");", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(slice_note, \"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\");", ""),
             ("samples/zigux/README.md", "Current `master` still ships no standalone Phase 5 sample-root files here for:", ""),
-            ("samples/zigux/README.md", "* `*cmdline*`", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Documentation/zigux/phase7-cmdline-slice.md", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "samples/zigux/README.md", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`", ""),
@@ -305,10 +332,12 @@ def run_self_test() -> None:
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_FILES_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_MARKERS_START", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_MARKERS_END", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "MISMATCHED_PHASE7_CMDLINE_COUNTS_START", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "MISMATCHED_PHASE7_CMDLINE_COUNTS_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"lib/cmdline.zig\\\",", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays leading-plus fallback boundaries\\\" {", ""),
-            ("lib/cmdline.zig", "test \\\"memparse saturates signed overflow instead of trapping\\\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays leading-plus fallback boundaries\" {", ""),
+            ("lib/cmdline.zig", "test \"memparse saturates signed overflow instead of trapping\" {", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"', 'EXPECTED_MANIFEST_LANE_KEY = "P7-L07"'),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = "Phase 7"', 'EXPECTED_MANIFEST_PHASE = "Phase 8"'),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"', 'EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"'),
@@ -435,6 +464,17 @@ def run_self_test() -> None:
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker("manifest_state_guard", tmp_root, "zigux/tests/phase7_cmdline_manifest.json: current_master_state")
         cases_run += 1
+        write_fixture_root(tmp_root)
+
+        samples_path = tmp_root / "samples/zigux/README.md"
+        samples_path.write_text(read_text(samples_path) + "* `*cmdline*`\n", encoding="utf-8")
+        expect_mismatched_count(
+            "duplicate_samples_cmdline_boundary",
+            tmp_root,
+            "samples/zigux/README.md: expected 1 occurrence(s) of '* `*cmdline*`', found 2",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
 
         assert cases_run == SELF_TEST_CASE_COUNT, cases_run
         print("PHASE7_CMDLINE_PACKET_SELF_TEST=pass")
@@ -463,7 +503,7 @@ def main() -> int:
         run_self_test()
         return 0
 
-    missing_files, missing_markers = validate(args.repo_root)
+    missing_files, missing_markers, mismatched_counts = validate(args.repo_root)
     if missing_files:
         print("PHASE7_CMDLINE_PACKET=fail")
         print("MISSING_PHASE7_CMDLINE_FILES_START")
@@ -478,6 +518,14 @@ def main() -> int:
         for item in missing_markers:
             print(item)
         print("MISSING_PHASE7_CMDLINE_MARKERS_END")
+        return 1
+
+    if mismatched_counts:
+        print("PHASE7_CMDLINE_PACKET=fail")
+        print("MISMATCHED_PHASE7_CMDLINE_COUNTS_START")
+        for item in mismatched_counts:
+            print(item)
+        print("MISMATCHED_PHASE7_CMDLINE_COUNTS_END")
         return 1
 
     print("PHASE7_CMDLINE_PACKET=pass")
