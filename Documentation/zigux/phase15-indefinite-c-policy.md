@@ -35,11 +35,13 @@ When an anchor is recorded under this policy, the reviewable record must keep al
 
 Those ownership, validation, and rollback fields stay coupled to `Documentation/zigux/phase15-architecture-council-decision-record-template.md` so the stay-in-C closeout record reuses the same reviewable ownership vocabulary as the broader Phase 15 governance packet.
 
+The recorded stay-in-C packet also keeps its supporting-context pair explicit so parked deep-core outcomes still name the governance lane sequencing link or explicit scope note and the study-only anchor accounting link or explicit freeze-map-anchor confirmation expected by the current Architecture Council review packet.
+
 - the Linux anchor path, roadmap phase, current status bucket, and requested decision bucket
 - the decision record ID, lane owner, required approver set, and rollback owner
 - the validation gate summary, benchmark-notes status, replay command, latest blocker disposition, and evidence archive path
 - the automatic return-to-blocked trigger, retained `retired_from_active_discussion` state, reopen triggers, and trigger-specific evidence refresh
-- the parity scorecard link or blocker record, explicit non-goals, and written rationale for why the anchor remains in C
+- the governance lane sequencing link or explicit scope note, the study-only anchor accounting link or explicit freeze-map-anchor confirmation, parity scorecard link or blocker record, explicit non-goals, and written rationale for why the anchor remains in C
 
 ## Allowed work after an indefinite-C outcome
 
