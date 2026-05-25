@@ -26,6 +26,10 @@ That packet stays smaller than live procfs reads, live bpffs opens, token materi
 
 Within that bounded packet, the already-landed planning helpers still keep `resolveReusePinnedMapAttempt()` and `planTokenPreparation()` explicit as side-effect-free bridge intent summaries: they describe pinned-map reuse and token-readiness decisions without claiming direct procfs reads, bpffs opens, token materialization, or descriptor ownership behavior.
 
+The landed `fdinfo-map-info-helpers` slice therefore still mirrors the manifest rationale exactly: The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.
+
+The sibling `map-reuse-compatibility` slice likewise still mirrors the manifest rationale exactly: The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.
+
 ## Helper-local online-CPU routing evidence
 Current `master` also keeps bounded helper-local online-CPU routing evidence explicit through `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` and the focused review witnesses that read it.
 
