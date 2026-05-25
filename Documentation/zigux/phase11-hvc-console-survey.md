@@ -15,9 +15,10 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
   packet reviewable through the direct starter, current survey, current-head
   companion, verify-helper boundary note, validation matrix, the returned
   `phase11-validate` validator surfaces, build-inventory checker,
-  cleanup-current-head checker, targetless-unregister witness checker, shared
-  build inventory, the proof-backed adjunct stack, the dedicated modem-control
-  proof pair, and the standalone targetless-unregister witness pair
+  focused-direct-build replay checker, cleanup-current-head checker,
+  targetless-unregister witness checker, shared build inventory, the
+  proof-backed adjunct stack, the dedicated modem-control proof pair, and the
+  standalone targetless-unregister witness pair
 - current authenticated contents readback still does not rematerialize
   `drivers/tty/hvc/hvc_console_verify.zig`,
   `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
@@ -42,6 +43,7 @@ Treat the current bounded HVC packet on `master` as:
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
@@ -58,18 +60,19 @@ Treat the current bounded HVC packet on `master` as:
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
-The shared build-inventory checker plus shared build inventory still record
-three proof-backed build tests, the coupled `exact_current_checks` list, and
-the `workflow_phase11_steps` entry that routes this packet through
-`make -C zigux phase11-validate`. `scripts/zigux/validate-phase11.py`,
-`zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` keep that
+The shared build-inventory checker, focused-direct-build replay checker, and
+shared build inventory still record the three proof-backed build tests while
+keeping the dedicated modem-control and standalone targetless-unregister build
+routes explicit as direct-readback checks instead of promoting either pair into
+that shared three-entry inventory. `scripts/zigux/validate-phase11.py`,
+`zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` keep the same
 validator-backed route directly readable on current `master` too. Keep the
-dedicated survey route absent until `zigux/Makefile` grows it explicitly. The
-dedicated modem-control proof pair likewise stays directly readable as a focused
-adjunct route without promoting itself into the shared three-entry build
-inventory, and the standalone targetless-unregister witness pair likewise stays
-directly readable as a separate failure-mode replay without promoting itself
-into the shared three-entry build inventory.
+ dedicated survey route absent until `zigux/Makefile` grows it explicitly. The
+ dedicated modem-control proof pair likewise stays directly readable as a
+ focused adjunct route without promoting itself into the shared three-entry
+ build inventory, and the standalone targetless-unregister witness pair likewise
+ stays directly readable as a separate failure-mode replay without promoting
+ itself into the shared three-entry build inventory.
 
 ## Still-Bounded Gaps
 
@@ -94,9 +97,9 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the current companion stack,
 the verify-boundary reminder surface, the shared inventory-backed proof routes,
-the validator-backed `make -C zigux phase11-validate` route, the dedicated
-modem-control proof pair, and the standalone targetless-unregister
-witness pair.
+the focused-direct-build replay checker, the validator-backed
+`make -C zigux phase11-validate` route, the dedicated modem-control proof pair,
+and the standalone targetless-unregister witness pair.
 
 It does not claim that the currently missing verify helper, sysrq helper,
 focused survey replay, manifest, teardown note, or dedicated survey checker
