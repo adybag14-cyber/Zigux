@@ -213,6 +213,15 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_trace_events_sample_module,
     });
 
+    const runtime_trace_events_survey_tests = b.addTest(.{
+        .name = "phase9-runtime-trace-events-survey-tests",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("runtime_trace_events_survey.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
     const runtime_kretprobe_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_kretprobe.zig"),
         .target = target,
@@ -356,6 +365,9 @@ pub fn build(b: *std.Build) void {
     const run_runtime_trace_events_sample_tests = b.addRunArtifact(
         runtime_trace_events_sample_tests,
     );
+    const run_runtime_trace_events_survey_tests = b.addRunArtifact(
+        runtime_trace_events_survey_tests,
+    );
     const run_runtime_kretprobe_sample_tests = b.addRunArtifact(
         runtime_kretprobe_sample_tests,
     );
@@ -494,9 +506,10 @@ pub fn build(b: *std.Build) void {
 
     const phase9_runtime_trace_events = b.step(
         "phase9-runtime-trace-events-tests",
-        "Run the Phase 9 trace-events runtime sample, module, and lifecycle companion tests.",
+        "Run the Phase 9 trace-events runtime sample, survey, module, and lifecycle companion tests.",
     );
     phase9_runtime_trace_events.dependOn(&run_runtime_trace_events_sample_tests.step);
+    phase9_runtime_trace_events.dependOn(&run_runtime_trace_events_survey_tests.step);
     phase9_runtime_trace_events.dependOn(&run_runtime_trace_events_module_tests.step);
     phase9_runtime_trace_events.dependOn(
         &run_runtime_trace_events_unregistered_gate_tests.step,
