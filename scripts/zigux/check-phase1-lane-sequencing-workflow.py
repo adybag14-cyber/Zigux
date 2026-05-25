@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""Guard the Lane 17 Phase 1 workflow step pair against drift."""
+
+from __future__ import annotations
+
+import argparse
+import tempfile
+from pathlib import Path
+
+
+HERE = Path(__file__).resolve()
+DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
+
+WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
+CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-packet.py")
+
+SELF_TEST_STEP = "      - name: Self-test current Phase 1 lane sequencing packet checker"
+SELF_TEST_RUN = (
+    "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py --self-test"
+)
+CHECK_STEP = "      - name: Check current Phase 1 lane sequencing packet"
+CHECK_RUN = "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py"
+
+BEFORE_STEP = "      - name: Check current Phase 1 shared reminder packet"
+AFTER_STEP = "      - name: Self-test current Phase 1 closure validator"
+
+REQUIRED_LINES = (
+    SELF_TEST_STEP,
+    SELF_TEST_RUN,
+    CHECK_STEP,
+    CHECK_RUN,
+)
+
+
+def repo_root(root: str | None) -> Path:
+    return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
+
+
+def load_text(root: Path, relative_path: Path) -> str:
+    return (root / relative_path).read_text(encoding="utf-8")
+
+
+def require_exact_line(text: str, label: str, line: str) -> list[str]:
+    count = sum(1 for current in text.splitlines() if current == line)
+    return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
+
+
+def collect_failures(root: Path) -> list[str]:
+    failures: list[str] = []
+
+    if not (root / WORKFLOW_REL).is_file():
+        failures.append(f"missing_file:{WORKFLOW_REL.as_posix()}")
+        return failures
+    if not (root / CHECKER_REL).is_file():
+        failures.append(f"missing_file:{CHECKER_REL.as_posix()}")
+        return failures
+
+    workflow_text = load_text(root, WORKFLOW_REL)
+    for index, line in enumerate(REQUIRED_LINES):
+        failures.extend(
+            require_exact_line(workflow_text, f"{WORKFLOW_REL.as_posix()}:line_{index}", line)
+        )
+    if failures:
+        return failures
+
+    workflow_lines = workflow_text.splitlines()
+    positions = {line: workflow_lines.index(line) for line in (BEFORE_STEP, *REQUIRED_LINES, AFTER_STEP)}
+    if not (
+        positions[BEFORE_STEP]
+        < positions[SELF_TEST_STEP]
+        < positions[SELF_TEST_RUN]
+        < positions[CHECK_STEP]
+        < positions[CHECK_RUN]
+        < positions[AFTER_STEP]
+    ):
+        failures.append(
+            f"{WORKFLOW_REL.as_posix()}:lane17_phase1_packet_order_invalid"
+        )
+    if positions[CHECK_STEP] != positions[SELF_TEST_RUN] + 1:
+        failures.append(
+            f"{WORKFLOW_REL.as_posix()}:check_step_not_adjacent_to_selftest_run"
+        )
+    if positions[CHECK_RUN] != positions[CHECK_STEP] + 1:
+        failures.append(
+            f"{WORKFLOW_REL.as_posix()}:check_run_not_adjacent_to_check_step"
+        )
+    return failures
+
+
+def write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def sample_workflow() -> str:
+    return "\n".join(
+        (
+            "name: zigux-bootstrap",
+            "jobs:",
+            "  bootstrap:",
+            "    steps:",
+            "      - name: Self-test current Phase 1 shared reminder checker",
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
+            BEFORE_STEP,
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
+            SELF_TEST_STEP,
+            SELF_TEST_RUN,
+            CHECK_STEP,
+            CHECK_RUN,
+            AFTER_STEP,
+            "        run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
+        )
+    ) + "\n"
+
+
+def build_sample_repo(root: Path) -> None:
+    write_text(root / WORKFLOW_REL, sample_workflow())
+    write_text(root / CHECKER_REL, "#!/usr/bin/env python3\nprint('stub')\n")
+
+
+def mutate_remove_line(root: Path, target_line: str) -> None:
+    workflow_path = root / WORKFLOW_REL
+    lines = workflow_path.read_text(encoding="utf-8").splitlines()
+    for index, line in enumerate(lines):
+        if line == target_line:
+            del lines[index]
+            workflow_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            return
+
+
+def mutate_duplicate_line(root: Path, target_line: str) -> None:
+    workflow_path = root / WORKFLOW_REL
+    lines = workflow_path.read_text(encoding="utf-8").splitlines()
+    for index, line in enumerate(lines):
+        if line == target_line:
+            lines.insert(index + 1, line)
+            workflow_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            return
+
+
+def mutate_replace_line(root: Path, old: str, new: str) -> None:
+    workflow_path = root / WORKFLOW_REL
+    workflow_path.write_text(
+        workflow_path.read_text(encoding="utf-8").replace(old, new, 1),
+        encoding="utf-8",
+    )
+
+
+def mutate_swap_step_order(root: Path) -> None:
+    mutate_replace_line(
+        root,
+        "\n".join((SELF_TEST_STEP, SELF_TEST_RUN, CHECK_STEP, CHECK_RUN)),
+        "\n".join((CHECK_STEP, CHECK_RUN, SELF_TEST_STEP, SELF_TEST_RUN)),
+    )
+
+
+def run_self_test() -> int:
+    cases: list[tuple[str, str, str | tuple[str, str] | None]] = [
+        ("success", "noop", None),
+        ("missing_checker", "remove_file", CHECKER_REL.as_posix()),
+        ("missing_self_test_step", "remove_line", SELF_TEST_STEP),
+        ("duplicate_self_test_step", "duplicate_line", SELF_TEST_STEP),
+        ("missing_self_test_run", "remove_line", SELF_TEST_RUN),
+        ("stale_self_test_run", "replace_line", (SELF_TEST_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py")),
+        ("missing_check_step", "remove_line", CHECK_STEP),
+        ("duplicate_check_step", "duplicate_line", CHECK_STEP),
+        ("missing_check_run", "remove_line", CHECK_RUN),
+        ("stale_check_run", "replace_line", (CHECK_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py --self-test")),
+        ("swapped_order", "swap_order", None),
+    ]
+
+    for name, mode, payload in cases:
+        with tempfile.TemporaryDirectory(prefix="lane17-phase1-workflow-") as tmpdir:
+            root = Path(tmpdir)
+            build_sample_repo(root)
+
+            if mode == "remove_file" and isinstance(payload, str):
+                (root / payload).unlink()
+            elif mode == "remove_line" and isinstance(payload, str):
+                mutate_remove_line(root, payload)
+            elif mode == "duplicate_line" and isinstance(payload, str):
+                mutate_duplicate_line(root, payload)
+            elif mode == "replace_line" and isinstance(payload, tuple):
+                old, new = payload
+                mutate_replace_line(root, old, new)
+            elif mode == "swap_order":
+                mutate_swap_step_order(root)
+
+            failures = collect_failures(root)
+            if name == "success":
+                if failures:
+                    print("self-test:success:unexpected_failures")
+                    for failure in failures:
+                        print(failure)
+                    return 1
+            elif not failures:
+                print(f"self-test:{name}:expected_failure")
+                return 1
+
+    print("PHASE1_LANE_SEQUENCING_WORKFLOW_SELF_TEST=pass")
+    print(f"PHASE1_LANE_SEQUENCING_WORKFLOW_SELF_TEST_CASE_COUNT={len(cases)}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", help="override repository root")
+    parser.add_argument("--self-test", action="store_true", help="run checker self-tests")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    failures = collect_failures(repo_root(args.root))
+    if failures:
+        print("PHASE1_LANE_SEQUENCING_WORKFLOW=fail")
+        for failure in failures:
+            print(failure)
+        return 1
+
+    print("PHASE1_LANE_SEQUENCING_WORKFLOW=pass")
+    print("PHASE1_LANE_SEQUENCING_WORKFLOW_REQUIRED_STEP_PAIR_COUNT=2")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
