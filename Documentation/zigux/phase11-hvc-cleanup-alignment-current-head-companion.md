@@ -15,9 +15,9 @@ cleanup-alignment packet.
 
 Current `master` keeps the bounded HVC continuity packet reviewable through the
 direct starter, current survey note, current companion, verify-helper boundary
-note, validation matrix, build-inventory checker, cleanup-current-head checker,
-targetless-unregister witness checker, shared build inventory, and the current
-proof-backed adjunct stack.
+note, validation matrix, build-inventory checker, focused-direct-build replay
+checker, cleanup-current-head checker, targetless-unregister witness checker,
+shared build inventory, and the current proof-backed adjunct stack.
 
 Current authenticated contents readback still does not rematerialize
 `drivers/tty/hvc/hvc_console_verify.zig`,
@@ -30,16 +30,15 @@ Current authenticated contents readback still does not rematerialize
 replay, manifest, note, and checker anchors framed as repo-reality gaps or archival vocabulary
 instead of returned fallback evidence.
 
-The returned HVC validation matrix and build-inventory checker stay explicit
-inside that smaller current-head packet. The standalone targetless-unregister
-witness likewise stays directly readable as a separate failure-mode replay, the
-dedicated modem-control proof pair through
-`zigux/tests/phase11_hvc_modem_control_proof.zig` and
-`zigux/tests/phase11_hvc_modem_control_proof_build.zig` likewise stays directly
-readable as a focused teardown-adjacent proof route without promoting itself
-into the shared three-entry build inventory, and the smaller proof-backed HVC
-continuity packet remains reviewable through the shared inventory-backed proof
-routes.
+The returned HVC validation matrix, focused-direct-build replay checker, and
+build-inventory checker stay explicit inside that smaller current-head packet.
+The standalone targetless-unregister witness likewise stays directly readable
+as a separate failure-mode replay, while the dedicated modem-control proof pair
+and the targetless-unregister witness build routes stay jointly fail-closed by
+`scripts/zigux/check-phase11-focused-direct-build-replays.py` without
+promoting either pair into the shared three-entry build inventory, and the
+smaller proof-backed HVC continuity packet remains reviewable through the
+shared inventory-backed proof routes.
 
 ## Drift Kept Explicit
 
@@ -65,6 +64,7 @@ This companion does not claim:
 
 It only records that current `master` keeps the direct starter, the verify
 boundary reminder, the standalone targetless-unregister witness pair, the
-dedicated modem-control proof pair, and the smaller proof-backed continuity
-packet reviewable while the older helper, survey-replay, manifest,
+focused-direct-build replay checker, the dedicated modem-control proof pair,
+and the smaller proof-backed continuity packet reviewable while the older
+helper, survey-replay, manifest,
 teardown-note, and survey-checker anchors remain absent on current head.
