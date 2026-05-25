@@ -60,7 +60,7 @@ The adjacent shared loader-facing reminder packet keeps the current cross-family
 
 - `Documentation/zigux/freeze-map.md` still keeps `kernel/workqueue.c` in the study-only bucket, so this slice stays review-only beside that workqueue-facing boundary instead of claiming scheduler or workqueue parity.
 - No parity scorecard entry or Architecture Council status-change request is attached to this slice on current `master`.
-- Any future freeze-map status change for this family must route through `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-freeze-map-governance.md` instead of being inferred from this family-local packet.
+- Any future freeze-map status change for this family must route through `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, and it must keep `Documentation/zigux/phase15-study-only-anchor-accounting.md` explicit while `kernel/workqueue.c` remains a study-only boundary, instead of being inferred from this family-local packet.
 
 ## Minimum Freeze-Map Review Record
 
@@ -68,7 +68,7 @@ The adjacent shared loader-facing reminder packet keeps the current cross-family
 - phase: `Phase 9`
 - status bucket: review-only direct starter packet plus the returned allocator/init-flow loader packet, dedicated command/environment boundary guard, and returned bitmap-loader companion beside the study-only `kernel/workqueue.c` boundary
 - validation gate summary: `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_atomic64_manifest.json`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, and `samples/zigux/runtime_bitmap_loader.zig` keep this packet reviewable without claiming live loader parity
-- rollback owner: `lib/atomic64_test.c` remains the product source of truth while any future status change still routes through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and `Documentation/zigux/phase15-freeze-map-governance.md`
+- rollback owner: `lib/atomic64_test.c` remains the product source of truth while any future status change still routes through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, with `Documentation/zigux/phase15-study-only-anchor-accounting.md` kept explicit while the `kernel/workqueue.c` boundary stays study-only
 
 ## Non-goals
 
