@@ -14,6 +14,7 @@ INSTALLER = ROOT / "scripts" / "zigux" / "install-zig.py"
 TESTS_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 CROSS_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
+WORKFLOW_ACTION_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-workflow-action-path.py"
 PINNING_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py"
 PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 CROSS_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
@@ -23,6 +24,7 @@ REQUIRED_FILES = (
     TESTS_ALIGNMENT_CHECKER,
     CROSS_CHECKER,
     CROSS_ALIGNMENT_CHECKER,
+    WORKFLOW_ACTION_CHECKER,
     PINNING_CHECKER,
     PIN_SCOPE_CHECKER,
     CROSS_FIXTURE,
@@ -34,6 +36,8 @@ EXACT_WORKFLOW_RUN_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross.py",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-workflow-action-path.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-workflow-action-path.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -49,13 +53,15 @@ ORDERED_STEP_MARKERS = (
     "- name: Check current Phase 2 direct cross-route packet",
     "- name: Self-test current Phase 2 cross selftest alignment checker",
     "- name: Check current Phase 2 cross alignment packet",
+    "- name: Self-test current Phase 2 workflow action-path checker",
+    "- name: Check current Phase 2 workflow action-path packet",
     "- name: Self-test current Phase 2 toolchain pinning checker",
     "- name: Check current Phase 2 toolchain pinning packet",
     "- name: Self-test current Phase 2 toolchain pin-scope checker",
     "- name: Check current Phase 2 toolchain pin-scope packet",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(path: Path) -> str:
@@ -214,6 +220,10 @@ def build_sample_root(root: Path) -> None:
                 "        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
                 "      - name: Check current Phase 2 cross alignment packet",
                 "        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+                "      - name: Self-test current Phase 2 workflow action-path checker",
+                "        run: python3 scripts/zigux/check-phase2-workflow-action-path.py --self-test",
+                "      - name: Check current Phase 2 workflow action-path packet",
+                "        run: python3 scripts/zigux/check-phase2-workflow-action-path.py",
                 "      - name: Self-test current Phase 2 toolchain pinning checker",
                 "        run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
                 "      - name: Check current Phase 2 toolchain pinning packet",
@@ -263,8 +273,29 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_sample_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            replace_exact_line(
+                workflow_path.read_text(encoding="utf-8"),
+                EXACT_WORKFLOW_RUN_LINES[5],
+                "        run: true",
+            ),
+            encoding="utf-8",
+        )
+        assert ("MISSING_WORKFLOW_RUN_LINE", EXACT_WORKFLOW_RUN_LINES[5]) in collect_issues(root)
+        checks_run += 1
+
+        build_sample_root(root)
         resolve_path(root, INSTALLER).unlink()
         assert ("MISSING_REQUIRED_FILE", "scripts/zigux/install-zig.py") in collect_issues(root)
+        checks_run += 1
+
+        build_sample_root(root)
+        resolve_path(root, WORKFLOW_ACTION_CHECKER).unlink()
+        assert (
+            "MISSING_REQUIRED_FILE",
+            "scripts/zigux/check-phase2-workflow-action-path.py",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_sample_root(root)
@@ -328,6 +359,38 @@ def run_self_test() -> int:
         assert (
             "STEP_ORDER",
             f"{ORDERED_STEP_MARKERS[7]} -> {ORDERED_STEP_MARKERS[8]}",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_sample_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_step_markers(
+                workflow_path.read_text(encoding="utf-8"),
+                ORDERED_STEP_MARKERS[8],
+                ORDERED_STEP_MARKERS[9],
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "STEP_ORDER",
+            f"{ORDERED_STEP_MARKERS[8]} -> {ORDERED_STEP_MARKERS[9]}",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_sample_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_step_markers(
+                workflow_path.read_text(encoding="utf-8"),
+                ORDERED_STEP_MARKERS[9],
+                ORDERED_STEP_MARKERS[10],
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "STEP_ORDER",
+            f"{ORDERED_STEP_MARKERS[9]} -> {ORDERED_STEP_MARKERS[10]}",
         ) in collect_issues(root)
         checks_run += 1
 
