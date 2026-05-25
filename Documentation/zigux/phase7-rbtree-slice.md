@@ -53,7 +53,8 @@ The current helper-local packet on `master` covers:
 - ordered insertion through `add()`, `findAdd()`, and cached aliases
 - ordered and reverse traversal through `first()`, `next()`, `last()`, `prev()`, and duplicate-match helpers
 - postorder traversal and detached-node null-stop handling through `firstPostorder()` and `nextPostorder()`
-- cached-leftmost insertion, cached replacement, and cached erase-init helpers
+- cached-leftmost insertion, cached replacement, cached non-leftmost erase, singleton cached erase, and cached erase-init helpers
+- plain erase-init reset and reseed boundaries after root removal
 - dedicated replay, survey, manifest, direct-anchor note, slice note, parity checker, JSON fixture, and C harness reviewability
 
 The current helper-local replay keeps these proofs explicit:
@@ -62,7 +63,7 @@ The current helper-local replay keeps these proofs explicit:
 - reverse traversal aliases and detached-node null-stop handling stay reviewable through the dedicated replay rooted at `zigux/tests/phase7_rbtree.zig`
 - postorder aliases stay reviewable through `firstPostorder()`, `nextPostorder()`, and the dedicated replay's detached-node guards
 - duplicate-range matching stays reviewable through `findFirst()`, `nextMatch()`, and `matchIterator()`
-- cached-leftmost promotion and erase-init ownership boundaries stay reviewable through the dedicated replay, the parity checker, the returned JSON fixture, and the returned C harness
+- cached-leftmost promotion, non-leftmost cached erase, singleton cached erase, and plain erase-init reseed ownership boundaries stay reviewable through the dedicated replay, the parity checker, the returned JSON fixture, and the returned C harness
 - same-lane truthfulness stays rooted at the returned runtime-root helper, the returned notes, the returned survey, the returned manifest, the returned parity checker, the returned JSON fixture, and the returned C harness
 
 The current helper-local replay also keeps these ownership and boundary rules explicit:
@@ -84,4 +85,4 @@ This helper-local Phase 7 rbtree slice does not yet claim:
 
 ## Next Bounded Step
 
-Keep same-lane follow-through inside this slice-backed direct-helper packet by leaving `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` reviewable as returned parity evidence and narrowing the next follow-up to whether dedicated `phase7-rbtree-test:` or `phase7-rbtree-survey:` wrapper markers rematerialize on current `master`. Do not widen into workflow-recovery or broader shared-control lanes unless those dedicated wrapper surfaces actually return.
+Keep same-lane follow-through inside this slice-backed direct-helper packet by leaving `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` reviewable as returned parity evidence, including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases, and narrowing the next follow-up to whether dedicated `phase7-rbtree-test:` or `phase7-rbtree-survey:` wrapper markers rematerialize on current `master`. Do not widen into workflow-recovery or broader shared-control lanes unless those dedicated wrapper surfaces actually return.
