@@ -36,6 +36,7 @@ PERF_BUFFER_READY_WINDOW_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_ready_
 PIN_PATH_PATH = "tools/lib/bpf/zigux_segments/pin_path.zig"
 PIN_PATH_VERIFY_PATH = "tools/lib/bpf/zigux_segments/pin_path_verify.zig"
 READY_BUFFER_ATTEMPT_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig"
+READY_BUFFER_FD_LOOKUP_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig"
 READY_BUFFER_FD_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig"
 READY_BUFFER_WINDOW_VERIFY_PATH = "tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig"
 TYPE_NAMES_PATH = "tools/lib/bpf/zigux_segments/type_names.zig"
@@ -70,6 +71,7 @@ REQUIRED_FILES = (
     PIN_PATH_PATH,
     PIN_PATH_VERIFY_PATH,
     READY_BUFFER_ATTEMPT_VERIFY_PATH,
+    READY_BUFFER_FD_LOOKUP_PATH,
     READY_BUFFER_FD_VERIFY_PATH,
     READY_BUFFER_WINDOW_VERIFY_PATH,
     TYPE_NAMES_PATH,
@@ -342,7 +344,14 @@ REQUIRED_MARKERS = {
         "resolveReadyBufferAttemptLookupReturn",
         'test "phase8 ready-buffer attempt helpers keep errno-shaped outputs stable" {',
     ),
+    READY_BUFFER_FD_LOOKUP_PATH: (
+        "pub fn summarizeReadyBufferFdLookupAtAttempt(",
+        "pub fn resolveReadyBufferFdAtAttempt(",
+        "pub fn resolveReadyBufferFdLookupReturnAtAttempt(",
+        'test "phase8 ready-buffer fd lookup helper keeps errno-shaped outputs stable" {',
+    ),
     READY_BUFFER_FD_VERIFY_PATH: (
+        'const ready_buffer_fd_lookup = @import("ready_buffer_fd_lookup.zig");',
         'test "phase8 ready-buffer fd helper entrypoints stay explicit" {',
         "resolveReadyBufferFdAtAttempt",
         "resolveReadyBufferFdLookupReturnAtAttempt",
