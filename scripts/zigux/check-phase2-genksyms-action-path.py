@@ -44,7 +44,7 @@ REQUIRED_WORKFLOW_LINES = (
 )
 
 REQUIRED_MAKEFILE_LINES = (
-    "phase2-genksyms:",
+    "phase2-genksyms: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
