@@ -82,7 +82,7 @@
     "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
   ],
   "shared_replay_markers": [],
-  "deterministic_tooling_lane": "P11-L07",
+  "deterministic_tooling_lane": "P11-L11",
   "deterministic_fixture_surfaces": [
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
@@ -94,5 +94,5 @@
     "zigux/tests/phase11_dw_wdt_restart_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"
   ],
-  "deterministic_golden_output_gap": "phase11-validate still lacks a dedicated golden-output fixture roster, refresh helper route, and artifact-diff-style deterministic output guard"
+  "deterministic_golden_output_gap": "phase11-validate now carries the dedicated golden-output fixture roster `zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed `scripts/zigux/check-phase11-validate-check-roster.py` and `scripts/zigux/check-phase11-validate-route-alignment.py` guards; keep future deterministic output drift inside that validator packet"
 }
