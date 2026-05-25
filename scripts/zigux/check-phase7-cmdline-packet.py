@@ -40,6 +40,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase7-cmdline-packet.py`",
         "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.",
         "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.",
+        "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs",
     ],
     "lib/cmdline.zig": [
         "pub fn parseOptionStr",
@@ -84,7 +85,8 @@ REQUIRED_MARKERS = {
         "try expectContains(checker, \"PHASE7_CMDLINE_PACKET=pass\");",
         "try expectContains(checker, \"PHASE7_CMDLINE_PACKET_SELF_TEST=pass\");",
         "try expectContains(slice_note, \"`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`\");",
-        "try expectContains(helper, \"test \\\\\\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\\\\\" {\");",
+        "try expectContains(slice_note, \"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\");",
+        "try expectContains(helper, \"test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {\");",
         "try expectContains(helper_companion, \"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\");",
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
@@ -112,7 +114,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 35
+SELF_TEST_CASE_COUNT = 37
 
 
 def read_text(path: Path) -> str:
@@ -234,6 +236,7 @@ def run_self_test() -> None:
         mutations = [
             ("Documentation/zigux/phase7-cmdline-slice.md", "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "`scripts/zigux/check-phase7-cmdline-packet.py`", ""),
+            ("Documentation/zigux/phase7-cmdline-slice.md", "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs", ""),
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
             ("lib/cmdline.zig", "test \"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\" {", ""),
             ("lib/cmdline.zig", "test \"memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable\" {", ""),
@@ -241,6 +244,7 @@ def run_self_test() -> None:
             ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays get_option alias cursor parity\" {", ""),
             ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_checker_anchor\", manifest.current_master_state);", ""),
             ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \"PHASE7_CMDLINE_PACKET=pass\");", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(slice_note, \"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\");", ""),
             ("samples/zigux/README.md", "Current `master` still ships no standalone Phase 5 sample-root files here for:", ""),
             ("samples/zigux/README.md", "* `*cmdline*`", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Documentation/zigux/phase7-cmdline-slice.md", ""),
