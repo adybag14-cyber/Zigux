@@ -88,3 +88,9 @@ test "phase4 perf baseline survey keeps evidence kinds explicit for both gates a
     try requireMarkerCount("\"kind\": \"acceptable_limit\"", 2);
     try requireMarkerCount("\"kind\": \"threshold_replay\"", 2);
 }
+
+test "phase4 perf baseline survey keeps the bitmap legacy replay alias exact" {
+    try requireMarker("\"id\": \"phase4-perf-baseline-bitmap-command\"");
+    try requireMarker("\"kind\": \"legacy_threshold_replay_alias\"");
+    try requireMarker("\"target_id\": \"phase4-perf-baseline-bitmap-command-evidence\"");
+}
