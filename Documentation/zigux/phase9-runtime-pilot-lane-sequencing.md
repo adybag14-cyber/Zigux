@@ -27,7 +27,7 @@ Trusted mixed rereads on 2026-05-21 confirm three distinct current-master Phase 
 
 ### 1. Trace-events remains the direct shipped runtime sample family
 
-- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `scripts/zigux/check-phase9-trace-events-direct-summary.py`, `scripts/zigux/check-phase9-trace-events-summary-preservation.py`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/README.md`
+- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `scripts/zigux/check-phase9-trace-events-direct-summary.py`, `scripts/zigux/check-phase9-trace-events-summary-preservation.py`, `scripts/zigux/check-phase9-trace-events-runtime-substrate-boundary.py`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/README.md`
 - surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`
 - surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - surviving exit-rollback runtime companion: `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
@@ -77,6 +77,7 @@ The broader shared reminder packet now keeps the narrower shared-owner split ali
 - trusted current-`master` rereads for this survey still only recover the narrower shared loader surfaces `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` shard, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` companion on the same trusted path
 - treat any future docs-root or tests-root drift as shared reminder debt to repair one surface at a time instead of widening it into runtime behavior claims or a broader checklist rewrite inside this lane
 - a fresh 2026-05-23 reread confirms `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all keep `scripts/zigux/check-phase9-trace-events-runtime-packet.py` explicit inside the shared Phase 9 packet, so same-lane follow-through can stay parked unless one of those reminder surfaces drifts again
+- the new dedicated `scripts/zigux/check-phase9-trace-events-runtime-substrate-boundary.py` guard now keeps the scheduler-adjacent blocked boundary explicit across the shared sequencing note plus the two trace-events packet notes instead of leaving that wording to prose alone
 
 This means the shared owner packet should keep the narrow trace-events family explicit, keep the returned shared loader packet explicit, keep the direct command/environment boundary guard explicit, keep the bounded runtime bitmap reminder packet explicit, keep the broader docs-root and tests-root reminders aligned with that narrower split, and avoid promoting any of them into a claim that deeper publication, install-root, or loadable-runtime-complete substrate work is finished.
 
@@ -90,6 +91,7 @@ This means the shared owner packet should keep the narrow trace-events family ex
 
 - the older wider-family loader reminder vocabulary that no longer returns on the trusted direct path now includes `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig`
 - still preserve blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and depmod-publication vocabulary
+- keep blocked runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior framed as still-missing shared runtime-substrate vocabulary too until a real loader or scheduler-facing runtime step lands
 - keep `modules.order`, `modules.builtin`, `Module.symvers`, and module install-root wording framed as blocked wider-family vocabulary too
 - keep blocked depmod script, depmod manifest, and depmod alias-output wording framed as historical wider-family vocabulary too until trusted direct rereads return a current shared owner surface for that publication packet
 
@@ -102,6 +104,7 @@ This lane may:
 - keep the narrow trace-events packet explicit as the current shipped runtime-pilot proof
 - keep the returned shared loader packet explicit without overstating blocked publication or install-root completion
 - keep the direct command/environment boundary guard explicit without treating it as proof of shipped runtime command or environment activation control
+- keep the blocked runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior explicit until a real runtime-substrate step lands
 - keep the bounded runtime bitmap reminder packet explicit without overstating what has actually returned
 - keep the bounded `zigux/tests/phase9_build.zig` shard explicit as route vocabulary without treating it as proof that blocked publication boundaries or install-root surfaces are complete
 
@@ -121,10 +124,10 @@ Treat stale shared-owner undercount or overclaim as the active blocker before re
 ## Recommended next-step order
 
 1. Start with `Documentation/zigux/README.md` if a fresh reread still omits `scripts/zigux/check-phase9-trace-events-runtime-packet.py` from the shared Phase 9 packet or otherwise drifts from the narrower shared-owner split confirmed here on current `master`.
-2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces drifts away from the returned loader core surfaces, the direct command/environment boundary guard, or the bounded runtime bitmap packet confirmed here on current `master`.
+2. Re-read `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` only if one of those reminder surfaces drifts away from the returned loader core surfaces, the direct command/environment boundary guard, the blocked runtime task ownership and polling or event-loop substrate wording, or the bounded runtime bitmap packet confirmed here on current `master`.
 3. If the broader shared runtime-loader family changes again, widen this note only after an exact reread proves the specific returned file family or blocked-boundary vocabulary moved.
 4. If the runtime bitmap packet changes again, widen the bitmap-side reminder packet only after the trusted direct read path proves the specific returned file set changed.
 
 ## Anti-overlap rule
 
-If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not treat the bounded runtime bitmap reminder packet as full sample-family return, do not treat `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-pilot expansion evidence, and do not treat the surviving loader route names or the direct command/environment boundary guard as proof that blocked publication, install-root, or module-metadata work is complete.
+If a scheduled run is assigned shared Phase 9 backlog or governance work, keep the run inside repo-reality rereads and one-file reminder repair. Do not treat the bounded runtime bitmap reminder packet as full sample-family return, do not treat `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` as runtime-pilot expansion evidence, and do not treat the surviving loader route names, the direct command/environment boundary guard, or the new blocked runtime-substrate boundary checker as proof that blocked publication, install-root, scheduler-facing runtime ownership, or module-metadata work is complete.
