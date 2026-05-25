@@ -136,8 +136,13 @@ def validate(repo_root: Path) -> list[str]:
     for entry in string_entries:
         if entry not in EXPECTED_CHECKERS:
             issues.append(f"unexpected checkers entry: {entry}")
-        elif not (repo_root / entry).exists():
+            continue
+
+        checker_path = repo_root / entry
+        if not checker_path.exists():
             issues.append(f"missing checkers path: {entry}")
+        elif not checker_path.is_file():
+            issues.append(f"non-file checkers path: {entry}")
 
     return issues
 
@@ -293,8 +298,24 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / MANIFEST_PATH, _sample_manifest())
+        non_file_path = root / EXPECTED_CHECKERS[-1]
+        non_file_path.unlink()
+        non_file_path.mkdir()
+        issues = validate(root)
+        non_file_issue = "non-file checkers path: scripts/zigux/check-fixdep-diff.py"
+        if non_file_issue not in issues:
+            print("PHASE2_CHECKERS_SURFACE_SELF_TEST=fail")
+            print("expected non-file checkers path was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MANIFEST_PATH, _sample_manifest())
         missing_path = root / EXPECTED_CHECKERS[-1]
-        missing_path.unlink()
+        if missing_path.exists():
+            if missing_path.is_dir():
+                missing_path.rmdir()
+            else:
+                missing_path.unlink()
         issues = validate(root)
         missing_path_issue = "missing checkers path: scripts/zigux/check-fixdep-diff.py"
         if missing_path_issue not in issues:
