@@ -59,7 +59,13 @@ fail-closed without promoting either pair into the shared three-entry build
 inventory. Keep the modem-control proof pair directly readable through its
 focused build route without promoting it into the shared build inventory yet,
 and keep the targetless-unregister witness explicitly separate from the smaller
-proof-backed continuity packet.
+proof-backed continuity packet. Keep the cleanup-prerequisite trigger split
+just as explicit: current-head teardown evidence should keep
+`error.CleanupRequiresFinalCloseOrHangup`, `CleanupTrigger.final_close_only`,
+`CleanupTrigger.hangup_only`, and `CleanupTrigger.final_close_and_hangup`
+visible through the starter Zig module, the verify-boundary reminder, and the
+proof-backed cleanup packet rather than implying unconditional `hvc_cleanup()`
+execution.
 
 ## Failure-Mode Evidence
 
@@ -74,6 +80,11 @@ proof-backed continuity packet.
   cleanup-prerequisite trigger split, targetless notifier, `hvc_kick()` wakeup
   cue, notifier-irq, and modem-control helper summaries reviewable on current
   `master`.
+- the same packet keeps `error.CleanupRequiresFinalCloseOrHangup` together with
+  `CleanupTrigger.final_close_only`, `CleanupTrigger.hangup_only`, and
+  `CleanupTrigger.final_close_and_hangup` explicit as teardown-gate evidence,
+  so the current-head matrix stays tied to prerequisite parity instead of
+  drifting into unconditional cleanup claims.
 - `drivers/tty/hvc/hvc_console.h` keeps the exported `struct hvc_struct`
   forward declaration, `struct hv_ops` callback-table tag, `struct winsize`
   layout, and helper declarations directly readable for the focused exported
