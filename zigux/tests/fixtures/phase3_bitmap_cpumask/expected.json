@@ -1,0 +1,39 @@
+{
+  "word_bits": 64,
+  "cases": [
+    {
+      "name": "bitmap_full_range",
+      "capacity": 67,
+      "set_count": 67,
+      "first_set_bit": 0,
+      "first_clear_bit": null
+    },
+    {
+      "name": "bitmap_sparse",
+      "capacity": 16,
+      "is_set_2": true,
+      "is_set_3": false,
+      "set_count": 2,
+      "first_set_bit": 2,
+      "first_clear_bit": 0
+    },
+    {
+      "name": "cpumask_presence",
+      "capacity": 8,
+      "has_cpu_0": true,
+      "has_cpu_1": false,
+      "has_cpu_7": true,
+      "present_count": 3,
+      "first_cpu": 0,
+      "first_missing_cpu": 1
+    },
+    {
+      "name": "cpumask_subset_overlap",
+      "capacity": 8,
+      "base_subset_of_superset": true,
+      "superset_subset_of_base": false,
+      "base_intersects_superset": true,
+      "base_intersects_disjoint": false
+    }
+  ]
+}
