@@ -16,7 +16,10 @@
   "review_checklist_entry_prompt_required_markers": [
     "required approver set",
     "rollback owner",
-    "evidence archive path"
+    "evidence archive path",
+    "retained blocker posture",
+    "trigger-specific evidence refresh",
+    "return-to-blocked wording"
   ],
   "review_process_required_metadata_markers": [
     "`PHASE15_PACKET_OWNER=Architecture Council`",
