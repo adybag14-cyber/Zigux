@@ -312,6 +312,14 @@ pub const BytestreamFifoSample = struct {
         return copied;
     }
 
+    pub fn dequeueByte(self: *BytestreamFifoSample) ?u8 {
+        if (self.isEmpty()) return null;
+        const value = self.buf[self.head];
+        self.head = (self.head + 1) % capacity;
+        self.len -= 1;
+        return value;
+    }
+
     pub fn drain(self: *BytestreamFifoSample, out: []u8) usize {
         return self.dequeueSlice(out);
     }
@@ -322,11 +330,7 @@ pub const BytestreamFifoSample = struct {
     }
 
     pub fn skipByte(self: *BytestreamFifoSample) ?u8 {
-        if (self.isEmpty()) return null;
-        const value = self.buf[self.head];
-        self.head = (self.head + 1) % capacity;
-        self.len -= 1;
-        return value;
+        return self.dequeueByte();
     }
 
     pub fn visibleSlices(self: *const BytestreamFifoSample) VisibleSlices {
@@ -896,6 +900,7 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expect(!sample.hasCapacityFor(fifo_capacity + 1));
     try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
     try std.testing.expectEqual(@as(?u8, null), sample.skipByte());
+    try std.testing.expectEqual(@as(?u8, null), sample.dequeueByte());
     try std.testing.expectEqual(@as(usize, 0), sample.enqueueSlice(&.{}));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPartialEnqueueBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
@@ -970,7 +975,7 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expectEqual(SampleStage.initialized, partial_enqueue.stage_before_replay);
     try std.testing.expectEqual(SampleStage.initialized, partial_enqueue.stage_after_replay);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
-    try std.testing.expectEqual(@as(usize, 30), partial_enqueue.queue_len_before_extra);
+    try std.testing.expectEqual(@as(usize, 30), partial_enqueue.queue_lenBeforeExtra);
     try std.testing.expectEqual(@as(usize, 2), partial_enqueue.available_before_extra);
     try std.testing.expectEqual(@as(usize, 4), partial_enqueue.requested_extra_len);
     try std.testing.expectEqual(@as(usize, 2), partial_enqueue.copied_extra_len);
@@ -1022,14 +1027,13 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expectEqual(@as(usize, short_drain.len), sample.drain(short_drain[0..]));
     try std.testing.expectEqualSlices(u8, "hel", short_drain[0..]);
     try std.testing.expectEqual(@as(?u8, 'l'), sample.peekByte());
-    try std.testing.expect(sample.hasCapacityFor(fifo_capacity - 2));
-    try std.testing.expect(!sample.hasCapacityFor(fifo_capacity - 1));
-    try std.testing.expect(!sample.isEmpty());
+    try std.testing.expectEqual(@as(?u8, 'l'), sample.dequeueByte());
+    try std.testing.expectEqual(@as(?u8, 'o'), sample.dequeueByte());
+    try std.testing.expectEqual(@as(?u8, null), sample.dequeueByte());
+    try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
-
-    var remainder: [2]u8 = undefined;
-    try std.testing.expectEqual(@as(usize, remainder.len), sample.dequeueSlice(remainder[0..]));
-    try std.testing.expectEqualSlices(u8, "lo", remainder[0..]);
+    try std.testing.expect(sample.hasCapacityFor(fifo_capacity));
+    try std.testing.expect(!sample.hasCapacityFor(fifo_capacity + 1));
     try std.testing.expectEqual(@as(usize, 0), sample.drain(short_drain[0..]));
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
