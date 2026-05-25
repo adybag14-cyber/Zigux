@@ -114,20 +114,21 @@ test "runtime trace-events sample keeps lifecycle summary replay explicit at the
     try std.testing.expectEqualStrings("event-sample-fn", initialized_summary.function_thread_label orelse return error.ExpectedFunctionPayload);
 
     _ = try module.runSelftest();
-    const selftest_summary = module.summary();
-    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, selftest_summary.stage);
-    try std.testing.expectEqual(@as(usize, 1), selftest_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), selftest_summary.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), selftest_summary.registration_depth);
+    const before_exit_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, before_exit_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_exit_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exit_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit_summary.registration_depth);
+    try std.testing.expectEqualStrings("Some times print", before_exit_summary.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("prints other times", before_exit_summary.last_main_template_cond_message orelse return error.ExpectedMainPayload);
 
     try module.exit();
     const exited_summary = module.summary();
-    try std.testing.expectEqual(sample.ModuleStage.exited, exited_summary.stage);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), exited_summary.registration_depth);
+    var expected_after_exit = before_exit_summary;
+    expected_after_exit.stage = sample.ModuleStage.exited;
+    expected_after_exit.exit_runs += 1;
+    try expectSummaryStable(expected_after_exit, exited_summary);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(3));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
@@ -177,7 +178,6 @@ test "runtime trace-events sample keeps rejected re-init rollback explicit at th
     try std.testing.expectEqual(@as(usize, 0), before_initialized_reinit.registration_depth);
     try std.testing.expectEqualStrings("event-sample", before_initialized_reinit.main_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("event-sample-fn", before_initialized_reinit.function_thread_label orelse return error.ExpectedFunctionPayload);
-
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_module.init());
 
     const after_initialized_reinit = initialized_module.summary();
