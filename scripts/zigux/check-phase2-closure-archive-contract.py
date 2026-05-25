@@ -20,16 +20,16 @@ REQUIRED_CLOSURE_MARKERS = (
     "`python3 scripts/zigux/check-phase2-archive-contract-packet.py`",
     "`python3 scripts/zigux/check-phase2-closure-archive-contract.py --self-test`",
     "`python3 scripts/zigux/check-phase2-closure-archive-contract.py`",
-    "The closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
+    "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `scripts/zigux/check-phase2-closure-archive-contract.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
     f"`PHASE2_CURRENT_GAP_PACKET={PAYLOAD}`",
 )
 
 REQUIRED_VALIDATE_CLOSURE_MARKERS = (
-    'ARCHIVE_CONTRACT_PACKET_REL = Path("scripts/zigux/check-phase2-archive-contract-packet.py")',
-    "ARCHIVE_CONTRACT_PACKET_REL,",
-    '"`scripts/zigux/check-phase2-archive-contract-packet.py`",',
-    '"`python3 scripts/zigux/check-phase2-archive-contract-packet.py --self-test`",',
-    '"`python3 scripts/zigux/check-phase2-archive-contract-packet.py`",',
+    'CLOSURE_ARCHIVE_CONTRACT_REL = Path("scripts/zigux/check-phase2-closure-archive-contract.py")',
+    "CLOSURE_ARCHIVE_CONTRACT_REL,",
+    '"`scripts/zigux/check-phase2-closure-archive-contract.py`",',
+    '"`python3 scripts/zigux/check-phase2-closure-archive-contract.py --self-test`",',
+    '"`python3 scripts/zigux/check-phase2-closure-archive-contract.py`",',
 )
 
 
@@ -78,7 +78,7 @@ def build_self_test_root(root: Path) -> None:
                 "- `scripts/zigux/check-phase2-archive-contract-packet.py`",
                 "- `scripts/zigux/check-phase2-closure-archive-contract.py`",
                 "",
-                "The closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
+                "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `scripts/zigux/check-phase2-closure-archive-contract.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
                 "",
                 "- `PHASE2_CURRENT_GAP_PACKET=third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
                 "",
@@ -95,14 +95,14 @@ def build_self_test_root(root: Path) -> None:
         VALIDATE_PHASE2_CLOSURE,
         "\n".join(
             (
-                'ARCHIVE_CONTRACT_PACKET_REL = Path("scripts/zigux/check-phase2-archive-contract-packet.py")',
+                'CLOSURE_ARCHIVE_CONTRACT_REL = Path("scripts/zigux/check-phase2-closure-archive-contract.py")',
                 "REQUIRED_FILES = (",
-                "    ARCHIVE_CONTRACT_PACKET_REL,",
+                "    CLOSURE_ARCHIVE_CONTRACT_REL,",
                 ")",
                 "REQUIRED_CLOSURE_MARKERS = (",
-                '    "`scripts/zigux/check-phase2-archive-contract-packet.py`",',
-                '    "`python3 scripts/zigux/check-phase2-archive-contract-packet.py --self-test`",',
-                '    "`python3 scripts/zigux/check-phase2-archive-contract-packet.py`",',
+                '    "`scripts/zigux/check-phase2-closure-archive-contract.py`",',
+                '    "`python3 scripts/zigux/check-phase2-closure-archive-contract.py --self-test`",',
+                '    "`python3 scripts/zigux/check-phase2-closure-archive-contract.py`",',
                 ")",
             )
         )
