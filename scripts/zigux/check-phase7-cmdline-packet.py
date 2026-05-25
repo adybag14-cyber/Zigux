@@ -11,6 +11,11 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
+EXPECTED_MANIFEST_LANE_KEY = "P7-L08"
+EXPECTED_MANIFEST_PHASE = "Phase 7"
+EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"
+EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"
+
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-cmdline-slice.md",
@@ -106,7 +111,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 31
+SELF_TEST_CASE_COUNT = 34
 
 
 def read_text(path: Path) -> str:
@@ -133,7 +138,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         return missing_files, []
 
     manifest = json.loads(read_text(root / "zigux/tests/phase7_cmdline_manifest.json"))
-    if manifest.get("current_master_state") != "helper_slice_test_survey_manifest_checker_anchor":
+    if manifest.get("lane_key") != EXPECTED_MANIFEST_LANE_KEY:
+        return [], ["zigux/tests/phase7_cmdline_manifest.json: lane_key"]
+    if manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
+        return [], ["zigux/tests/phase7_cmdline_manifest.json: phase"]
+    if manifest.get("anchor") != EXPECTED_MANIFEST_ANCHOR:
+        return [], ["zigux/tests/phase7_cmdline_manifest.json: anchor"]
+    if manifest.get("current_master_state") != EXPECTED_MANIFEST_STATE:
         return [], ["zigux/tests/phase7_cmdline_manifest.json: current_master_state"]
 
     return [], collect_missing_markers(root)
@@ -152,11 +163,11 @@ def write_fixture_root(tmp_root: Path) -> None:
         tmp_root / "zigux/tests/phase7_cmdline_manifest.json",
         json.dumps(
             {
-                "lane_key": "P7-L08",
-                "phase": "Phase 7",
+                "lane_key": EXPECTED_MANIFEST_LANE_KEY,
+                "phase": EXPECTED_MANIFEST_PHASE,
                 "verified_on_utc": "2026-05-24T17:30:01Z",
-                "anchor": "lib/cmdline.c",
-                "current_master_state": "helper_slice_test_survey_manifest_checker_anchor",
+                "anchor": EXPECTED_MANIFEST_ANCHOR,
+                "current_master_state": EXPECTED_MANIFEST_STATE,
                 "review_surfaces": [
                     "Documentation/zigux/phase7-helper-lane-sequencing.md",
                     "Documentation/zigux/phase7-cmdline-slice.md",
@@ -258,20 +269,19 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux/tests/phase7_cmdline_manifest.json"
-        manifest_marker = "\"scripts/zigux/check-phase7-cmdline-packet.py\""
+
         manifest = json.loads(read_text(manifest_path))
         manifest["review_surfaces"].remove("scripts/zigux/check-phase7-cmdline-packet.py")
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker(
             "manifest_checker_path_guard",
             tmp_root,
-            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+            'zigux/tests/phase7_cmdline_manifest.json: "scripts/zigux/check-phase7-cmdline-packet.py"',
         )
         cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest_marker = "helper-local survey-manifest-checker truthfulness packet"
         manifest["next_bounded_step"] = (
             "Keep same-lane follow-through limited to one bounded parsing replay proof "
             "while shared-control routes stay parked outside this helper-local lane."
@@ -280,32 +290,51 @@ def run_self_test() -> None:
         expect_missing_marker(
             "manifest_next_bounded_step_truthfulness_guard",
             tmp_root,
-            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+            "zigux/tests/phase7_cmdline_manifest.json: helper-local survey-manifest-checker truthfulness packet",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest_marker = "\"parseOptionStr\""
         manifest["covered_helpers"].remove("parseOptionStr")
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker(
             "manifest_covered_helper_guard",
             tmp_root,
-            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+            'zigux/tests/phase7_cmdline_manifest.json: "parseOptionStr"',
         )
         cases_run += 1
         write_fixture_root(tmp_root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest_marker = "\"memparse\""
         manifest["covered_helpers"].remove("memparse")
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker(
             "manifest_memparse_helper_guard",
             tmp_root,
-            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+            'zigux/tests/phase7_cmdline_manifest.json: "memparse"',
         )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["lane_key"] = "P7-L07"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("manifest_lane_key_guard", tmp_root, "zigux/tests/phase7_cmdline_manifest.json: lane_key")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["phase"] = "Phase 8"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("manifest_phase_guard", tmp_root, "zigux/tests/phase7_cmdline_manifest.json: phase")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["anchor"] = "lib/string_helpers.c"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("manifest_anchor_guard", tmp_root, "zigux/tests/phase7_cmdline_manifest.json: anchor")
         cases_run += 1
         write_fixture_root(tmp_root)
 
