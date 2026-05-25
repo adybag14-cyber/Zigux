@@ -1,4 +1,5 @@
 const std = @import("std");
+const hvc_console = @import("hvc_console");
 
 fn readCandidateAlloc(
     allocator: std.mem.Allocator,
@@ -139,6 +140,88 @@ test "phase11 hvc cleanup packet proof keeps close teardown carryover details ti
     try expectContains(driver, "close_wait_ownership: bool,");
     try expectContains(driver, "port_initialized_cleared: bool,");
     try expectContains(driver, "pub fn summarizeCloseTeardown(request: CloseTeardownRequest) CloseTeardownSummary {");
+}
+
+test "phase11 hvc cleanup packet proof executes install and console setup summaries" {
+    const matrix_doc = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(matrix_doc);
+
+    try expectContains(matrix_doc, "`hvc_install()` ownership");
+    try expectContains(matrix_doc, "`hvc_alloc()` slot");
+    try expectContains(matrix_doc, "early console setup and device selection");
+
+    const install = hvc_console.summarizeInstallOwnership(.{
+        .index_lookup_found = true,
+        .kref_acquired_from_lookup = true,
+        .driver_data_bound = true,
+        .tty_port_install_succeeded = true,
+        .failure_put_releases_port_ref = true,
+    });
+    const slot = hvc_console.summarizeAllocSlotHandoff(.{
+        .matched_registered_console = false,
+        .empty_console_slot_available = true,
+        .hvc_struct_list_linked = true,
+        .rechecks_kernel_console = true,
+    });
+    const setup = hvc_console.summarizeConsoleSetup(.{
+        .console_index = @as(c_int, @intCast(hvc_console.MAX_NR_HVC_CONSOLES)),
+        .adapter_present = true,
+    });
+    const device = hvc_console.summarizeConsoleDeviceSelection(.{
+        .console_index = 3,
+        .adapter_present = true,
+        .tty_driver_registered = false,
+    });
+
+    try std.testing.expect(install.install_reference_retained);
+    try std.testing.expect(!install.tty_port_put_on_failure);
+    try std.testing.expectEqual(hvc_console.AllocSlotSelection.empty_console_slot, slot.selection);
+    try std.testing.expect(slot.claims_console_slot);
+    try std.testing.expect(setup.returns_enodev);
+    try std.testing.expect(!setup.setup_allowed);
+    try std.testing.expectEqual(@as(?c_int, 3), device.selected_console_index);
+    try std.testing.expect(device.returns_null_driver);
+}
+
+test "phase11 hvc cleanup packet proof executes resize handoff summaries" {
+    const matrix_doc = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(matrix_doc);
+
+    try expectContains(matrix_doc, "`__hvc_resize()`");
+
+    const visible = hvc_console.summarizeResizeHandoff(.{
+        .tty_present = true,
+        .winsize = .{
+            .ws_row = 24,
+            .ws_col = 80,
+            .ws_xpixel = 640,
+            .ws_ypixel = 480,
+        },
+    });
+    const zeroed = hvc_console.summarizeResizeHandoff(.{
+        .tty_present = false,
+        .winsize = .{
+            .ws_row = 0,
+            .ws_col = 0,
+            .ws_xpixel = 0,
+            .ws_ypixel = 0,
+        },
+    });
+
+    try std.testing.expect(visible.tty_present);
+    try std.testing.expect(visible.geometry_visible);
+    try std.testing.expect(visible.keeps_live_resize_execution_out_of_scope);
+    try std.testing.expect(!zeroed.tty_present);
+    try std.testing.expect(!zeroed.geometry_visible);
+    try std.testing.expect(zeroed.keeps_live_resize_execution_out_of_scope);
 }
 
 test "phase11 hvc cleanup packet proof keeps newer failure-mode helpers tied to matrix evidence" {
