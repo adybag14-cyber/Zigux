@@ -123,7 +123,7 @@ PHASE4_TESTS_README_PACKET_SELF_TEST_CASES = (
     "stale_phase4_perf_reference,"
     "stale_phase4_perf_make_route,"
     "stale_phase4_gate_evidence_checker_reference,"
-    "stale_phase4_reversible_delivery_checker_reference,"
+    "stale_phase4-reversible_delivery_checker_reference,"
     "stale_phase4_perf_checker_reference,"
     "stale_phase4_bitmap_reference,"
     "stale_phase4_tests_readme_checker_reference"
@@ -209,7 +209,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-gate-evidence": (("phase4 gate evidence check passed", "phase4 gate evidence check passed"),),
     "phase4-perf-baseline-packet-self-test": (
         ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass"),
-        ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=34"),
+        ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=38"),
     ),
     "phase4-perf-baseline-packet": (("PHASE4_PERF_BASELINE_PACKET_CHECK", "PHASE4_PERF_BASELINE_PACKET_CHECK=pass"),),
     "phase4-remaining-gap-matrix-self-test": (
@@ -546,7 +546,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
         ),
     )
     build_stub_script(root / "scripts/zigux/check-phase4-gate-evidence.py", self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",), live_stdout_lines=("phase4 gate evidence check passed",))
-    build_stub_script(root / "scripts/zigux/check-phase4-perf-baseline-packet.py", self_test_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=34"), live_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_CHECK=pass",))
+    build_stub_script(root / "scripts/zigux/check-phase4-perf-baseline-packet.py", self_test_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=38"), live_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_CHECK=pass",))
     build_stub_script(root / "scripts/zigux/check-phase4-remaining-gap-matrix.py", self_test_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=35"), live_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX=pass", "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6"))
     configure_workflow_route_stub(root)
 
