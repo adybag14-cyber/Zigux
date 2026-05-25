@@ -11,6 +11,7 @@ const present_bitmap_family_files = [_][]const u8{
     "zigux/tests/runtime_bitmap_diff.zig",
     "zigux/tests/phase9_build.zig",
     "samples/zigux/runtime_bitmap.zig",
+    "samples/zigux/runtime_bitmap_direct_init_contract.zig",
     "samples/zigux/runtime_bitmap_cold_stage_guard.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_bitmap_top_bit_contract.zig",
@@ -95,6 +96,12 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     );
     defer std.testing.allocator.free(loader_file);
 
+    const direct_init_file = try readRepoFileAlloc(
+        "samples/zigux/runtime_bitmap_direct_init_contract.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(direct_init_file);
+
     const module_file = try readRepoFileAlloc(
         "zigux/tests/runtime_bitmap_module.zig",
         32 * 1024,
@@ -116,8 +123,9 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(survey_note, "`PHASE9_STATUS=active`");
     try expectContains(survey_note, "`PHASE9_LANE_KEY=P9-L08`");
     try expectContains(survey_note, "`PHASE9_SURVEYED_COMMIT=2026-05-22-runtime-bitmap-diff-returned`");
-    try expectContains(survey_note, "scope: partial reminder packet, direct sample proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, and no broader runtime-loader parity claim");
+    try expectContains(survey_note, "scope: partial reminder packet, direct sample proof, direct direct-init companion proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, and no broader runtime-loader parity claim");
     try expectContains(survey_note, "trusted current-tree contents reads on 2026-05-22 do materialize");
+    try expectContains(survey_note, "trusted current-tree contents reads on 2026-05-25 also materialize `samples/zigux/runtime_bitmap_direct_init_contract.zig` as a bounded direct-init normalization companion for the same Phase 9 packet");
     try expectContains(survey_note, "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_bitmap_diff.zig`");
@@ -125,19 +133,22 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(survey_note, "manifest-backed ownership packet");
     try expectContains(survey_note, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
     try expectContains(survey_note, "Keep the direct sample zero-length and rejected range-mutation replay explicit when reminder text summarizes sample-local range, summary, and parse stability.");
+    try expectContains(survey_note, "Keep the direct-init companion explicit when reminder text summarizes sample-local init normalization, unsorted duplicate input collapse, nth-set ordering, and formatted sparse-summary stability.");
     try expectContains(survey_note, "Keep `samples/zigux/runtime_bitmap_cold_stage_guard.zig` explicit as the returned cold-stage sample-root guard companion; it is visible on the trusted path and the shared `zigux/tests/phase9_build.zig` bundle now reruns it through the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route plus the aggregate `phase9-runtime-bitmap-tests` handle.");
     try expectNotContains(survey_note, "returns missing for `zigux/tests/runtime_bitmap_diff.zig`");
 
     try expectContains(module_slice_note, "`PHASE9_SLICE=runtime-bitmap-partial-slice`");
     try expectContains(module_slice_note, "`PHASE9_SURVEYED_COMMIT=2026-05-22-runtime-bitmap-diff-returned`");
-    try expectContains(module_slice_note, "scope: partial runtime bitmap reminder packet, direct sample proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, bounded build-bundle vocabulary, and no broader shared runtime-loader claim");
+    try expectContains(module_slice_note, "scope: partial runtime bitmap reminder packet, direct sample proof, direct direct-init companion proof, direct cold-stage guard proof, direct loader proof, direct module proof, direct diff proof, manifest-backed ownership packet, top-bit companion proof, bounded build-bundle vocabulary, and no broader shared runtime-loader claim");
     try expectContains(module_slice_note, "## Current visible slice");
+    try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap_direct_init_contract.zig`");
     try expectContains(module_slice_note, "`samples/zigux/runtime_bitmap_cold_stage_guard.zig`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_manifest.json`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(module_slice_note, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(module_slice_note, "none on the trusted current-tree read path");
-    try expectContains(module_slice_note, "The shared `zigux/tests/phase9_build.zig` bundle reruns the direct sample, cold-stage guard, loader, module, survey, diff gate, and top-bit companion through the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` and `phase9-runtime-bitmap-top-bit-tests` routes plus the aggregate `phase9-runtime-bitmap-tests` handle.");
+    try expectContains(module_slice_note, "`phase9-runtime-bitmap-direct-init-contract-tests`");
+    try expectContains(module_slice_note, "The shared `zigux/tests/phase9_build.zig` bundle reruns the direct sample, direct-init companion, cold-stage guard, loader, module, survey, diff gate, and top-bit companion through the dedicated `phase9-runtime-bitmap-direct-init-contract-tests`, `phase9-runtime-bitmap-cold-stage-guard-tests`, and `phase9-runtime-bitmap-top-bit-tests` routes plus the aggregate `phase9-runtime-bitmap-tests` handle.");
 
     try expectContains(lane_sequencing_note, "### 3. The runtime bitmap side now returns a broader direct packet without promoting the broader shared runtime-loader boundaries");
     try expectContains(lane_sequencing_note, "`zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` now return on the trusted path as the module-side descriptor and lifecycle packet plus the bounded diff-side summary replay packet");
@@ -194,6 +205,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
 
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-loader-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-bitmap-direct-init-contract-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-module-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-diff-tests\"");
@@ -223,6 +235,9 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(loader_file, "runtime bitmap loader rejects re-init after exit without disturbing the exited summary");
     try expectContains(loader_file, "runtime bitmap loader keeps initialized loaded summary stable across direct exit without selftest");
     try expectContains(loader_file, "runtime bitmap loader rejects malformed loader payloads without leaving initialized state");
+
+    try expectContains(direct_init_file, "test \"runtime bitmap sample normalizes unsorted duplicate direct init bits without inflating summaries\"");
+    try expectContains(direct_init_file, "try std.testing.expectEqualStrings(\"0,5,64,70\", formatted);");
 
     try expectContains(module_file, "test \"runtime bitmap sample advertises the bounded pilot-module contract\"");
     try expectContains(module_file, "test \"runtime bitmap sample keeps selftest summary replay explicit at the module boundary\"");
