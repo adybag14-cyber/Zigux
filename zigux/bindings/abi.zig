@@ -354,6 +354,23 @@ pub fn statusIsOk(status: ExportStatus) bool {
     return (status.flags & STATUS_FLAG_ERROR) == 0;
 }
 
+pub fn facilityFromInt(facility: u16) ?Facility {
+    return switch (facility) {
+        FACILITY_KERNEL => .kernel,
+        FACILITY_HELPERS => .helpers,
+        FACILITY_DRIVERS => .drivers,
+        else => null,
+    };
+}
+
+pub fn facilityIsKnown(facility: u16) bool {
+    return facilityFromInt(facility) != null;
+}
+
+pub fn statusHasKnownFacility(status: ExportStatus) bool {
+    return facilityIsKnown(status.facility);
+}
+
 test "abi binding exports direct layout constants for published structs" {
     try std.testing.expectEqual(@as(usize, 8), boundary_header_size);
     try std.testing.expectEqual(@as(usize, 4), boundary_header_align);
@@ -536,28 +553,46 @@ test "abi binding status helper mirrors the exported status flag contract" {
         .facility = FACILITY_DRIVERS,
         .flags = STATUS_FLAG_ERROR,
     };
+    const unknown_facility = ExportStatus{
+        .code = 0,
+        .facility = 9,
+        .flags = 0,
+    };
 
     try std.testing.expect(statusIsOk(ok));
+    try std.testing.expect(statusHasKnownFacility(ok));
     try std.testing.expectEqual(@as(i32, 0), ok.code);
     try std.testing.expectEqual(@as(u16, FACILITY_HELPERS), ok.facility);
     try std.testing.expectEqual(@as(u16, 0), ok.flags);
 
     try std.testing.expect(!statusIsOk(negative));
+    try std.testing.expect(statusHasKnownFacility(negative));
     try std.testing.expectEqual(@as(i32, -22), negative.code);
     try std.testing.expectEqual(@as(u16, FACILITY_KERNEL), negative.facility);
     try std.testing.expectEqual(@as(u16, STATUS_FLAG_ERROR), negative.flags);
 
     try std.testing.expect(statusIsOk(positive));
+    try std.testing.expect(statusHasKnownFacility(positive));
     try std.testing.expectEqual(@as(i32, 7), positive.code);
     try std.testing.expectEqual(@as(u16, FACILITY_DRIVERS), positive.facility);
     try std.testing.expectEqual(@as(u16, 0), positive.flags);
     try std.testing.expect(!statusIsOk(flagged_positive));
+    try std.testing.expect(statusHasKnownFacility(flagged_positive));
+    try std.testing.expect(!statusHasKnownFacility(unknown_facility));
 }
 
 test "abi binding enums stay aligned with exported constants" {
     try std.testing.expectEqual(@as(u16, FACILITY_KERNEL), @intFromEnum(Facility.kernel));
     try std.testing.expectEqual(@as(u16, FACILITY_HELPERS), @intFromEnum(Facility.helpers));
     try std.testing.expectEqual(@as(u16, FACILITY_DRIVERS), @intFromEnum(Facility.drivers));
+    try std.testing.expectEqual(@as(?Facility, .kernel), facilityFromInt(FACILITY_KERNEL));
+    try std.testing.expectEqual(@as(?Facility, .helpers), facilityFromInt(FACILITY_HELPERS));
+    try std.testing.expectEqual(@as(?Facility, .drivers), facilityFromInt(FACILITY_DRIVERS));
+    try std.testing.expectEqual(@as(?Facility, null), facilityFromInt(9));
+    try std.testing.expect(facilityIsKnown(FACILITY_KERNEL));
+    try std.testing.expect(facilityIsKnown(FACILITY_HELPERS));
+    try std.testing.expect(facilityIsKnown(FACILITY_DRIVERS));
+    try std.testing.expect(!facilityIsKnown(9));
 
     try std.testing.expectEqual(@as(u8, PANIC_ABORT), @intFromEnum(PanicMode.abort));
     try std.testing.expectEqual(@as(u8, PANIC_BUG), @intFromEnum(PanicMode.bug));
