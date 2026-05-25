@@ -13,10 +13,13 @@ SCATTERLIST_HELPER_PATH = Path("lib/devres_scatterlist.zig")
 DMA_NOTE_PATH = Path("Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md")
 DMA_MANIFEST_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json")
 DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig")
+DMA_REPLAY_BUILD_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig")
 DMA_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py")
+DMA_BOUNDARY_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-dma-boundary.py")
 SCATTERLIST_NOTE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-planner.md")
 SCATTERLIST_MANIFEST_PATH = Path("zigux/tests/phase13_devres_scatterlist_planner_manifest.json")
 SCATTERLIST_REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist.zig")
+SCATTERLIST_BUILD_PATH = Path("zigux/tests/phase13_devres_scatterlist_build.zig")
 SCATTERLIST_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-scatterlist-planner.py")
 IOUNMAP_NOTE_PATH = Path("Documentation/zigux/phase13-devres-iounmap-planner.md")
 IOUNMAP_MANIFEST_PATH = Path("zigux/tests/phase13_devres_iounmap_planner_manifest.json")
@@ -36,10 +39,13 @@ REQUIRED_FILES = [
     DMA_NOTE_PATH,
     DMA_MANIFEST_PATH,
     DMA_REPLAY_PATH,
+    DMA_REPLAY_BUILD_PATH,
     DMA_CHECKER_PATH,
+    DMA_BOUNDARY_CHECKER_PATH,
     SCATTERLIST_NOTE_PATH,
     SCATTERLIST_MANIFEST_PATH,
     SCATTERLIST_REPLAY_PATH,
+    SCATTERLIST_BUILD_PATH,
     SCATTERLIST_CHECKER_PATH,
     IOUNMAP_NOTE_PATH,
     IOUNMAP_MANIFEST_PATH,
@@ -121,9 +127,21 @@ PATH_MARKERS = {
         "phase13 devres descriptor records helper-first dmam_alloc_coherent planning",
         "phase13 devres dmam_alloc_coherent checker stays packet-local",
     ],
+    DMA_REPLAY_BUILD_PATH: [
+        "phase13-devres-dmam-alloc-zero-size-replay",
+        "Run the Phase 13 devres zero-size replay",
+        "../../lib/devres.zig",
+        "phase13_devres_dmam_alloc_zero_size_replay.zig",
+    ],
     DMA_CHECKER_PATH: [
         "PHASE13_DEVRES_DMAM_ALLOC_COHERENT_PLANNER_SELF_TEST=pass",
         "PHASE13_DEVRES_DMAM_ALLOC_COHERENT_PLANNER=pass",
+    ],
+    DMA_BOUNDARY_CHECKER_PATH: [
+        "PHASE13_DEVRES_DMA_BOUNDARY_SELF_TEST=pass",
+        "PHASE13_DEVRES_DMA_BOUNDARY=pass",
+        "DMA_REPLAY_BUILD_PATH = Path(\"zigux/tests/phase13_devres_dmam_alloc_zero_size_replay_build.zig\")",
+        "SCATTERLIST_BUILD_PATH = Path(\"zigux/tests/phase13_devres_scatterlist_build.zig\")",
     ],
     SCATTERLIST_NOTE_PATH: [
         "pure scatterlist lifetime planning surface",
@@ -136,6 +154,12 @@ PATH_MARKERS = {
     SCATTERLIST_REPLAY_PATH: [
         "phase13 devres descriptor records helper-first scatterlist planning",
         "phase13 devres scatterlist planner checker stays packet-local",
+    ],
+    SCATTERLIST_BUILD_PATH: [
+        "phase13-devres-scatterlist-tests",
+        "Run Phase 13 devres scatterlist helper tests",
+        "../../lib/devres_scatterlist.zig",
+        "phase13_devres_scatterlist.zig",
     ],
     SCATTERLIST_CHECKER_PATH: [
         "PHASE13_DEVRES_SCATTERLIST_PLANNER_SELF_TEST=pass",
@@ -274,6 +298,34 @@ def run_self_test() -> int:
             validate(root),
             [f"{DMA_CHECKER_PATH.as_posix()}:missing_marker:PHASE13_DEVRES_DMAM_ALLOC_COHERENT_PLANNER=pass"],
             "missing_dma_checker_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / DMA_BOUNDARY_CHECKER_PATH,
+            "\n".join(
+                marker
+                for marker in PATH_MARKERS[DMA_BOUNDARY_CHECKER_PATH]
+                if marker != "SCATTERLIST_BUILD_PATH = Path(\"zigux/tests/phase13_devres_scatterlist_build.zig\")"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                f"{DMA_BOUNDARY_CHECKER_PATH.as_posix()}:missing_marker:SCATTERLIST_BUILD_PATH = Path(\"zigux/tests/phase13_devres_scatterlist_build.zig\")"
+            ],
+            "missing_dma_boundary_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        (root / SCATTERLIST_BUILD_PATH).unlink()
+        assert_only(
+            validate(root),
+            [f"missing_file:{SCATTERLIST_BUILD_PATH.as_posix()}"],
+            "missing_scatterlist_build_failed",
         )
         case_count += 1
 
