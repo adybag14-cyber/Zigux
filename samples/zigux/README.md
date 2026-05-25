@@ -8,6 +8,7 @@ Fresh mixed readback on 2026-05-23 confirmed these current sample-root files on 
 
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
+* `samples/zigux/bytestream_fifo_window_contract.zig`
 * `samples/zigux/kobject_example.zig`
 * `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
@@ -35,7 +36,7 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
-Current `master` also keeps the direct non-runtime bytestream packet visible as current sample-root proof through directly readable paired evidence for `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`, while `zigux/tests/phase5_build.zig` stays current directly readable shared build-route companion evidence in this runtime.
+Current `master` also keeps the direct non-runtime bytestream packet visible as current sample-root proof through directly readable paired evidence for `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `samples/zigux/bytestream_fifo_window_contract.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`, while `zigux/tests/phase5_build.zig` stays current directly readable shared build-route companion evidence in this runtime.
 
 Keep that bytestream packet framed as the approved in-memory FIFO idiom for the Phase 5 anchor:
 
@@ -43,7 +44,8 @@ Keep that bytestream packet framed as the approved in-memory FIFO idiom for the 
 * the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle keeps queue ownership and lifetime reviewable without implying runtime-owned registration
 * `runPreviewBoundaryReplay()` plus `runWrappedPreviewReplay()` keep non-destructive preview truncation and the wrapped `{ 28, 4 }` visible-span split explicit at the sample root
 * `runRemainingCapacityReplay()` plus `runPartialEnqueueBoundaryReplay()` keep `available()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()` queue-shape cues, the short-drain `"hel"` / `"lo"` helper boundary, and partial `enqueueSlice()` truncation explicit
-* `zig test samples/zigux/bytestream_fifo.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay explicit as the sample-owned self-check, focused replay, and survey guard routes, while `zigux/tests/phase5_build.zig` remains current directly readable shared build-route companion evidence only
+* `samples/zigux/bytestream_fifo_window_contract.zig` keeps the stable two-window visible-span and writable-span reference pattern explicit through `referencePattern()`, `visible_windows`, `writable_windows`, and the non-destructive preview or rollover booleans instead of leaving those queue-window anchors implied by the broader sample alone
+* `zig test samples/zigux/bytestream_fifo.zig`, `zig test samples/zigux/bytestream_fifo_window_contract.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay explicit as the sample-owned self-check, queue-window companion, focused replay, and survey guard routes, while `zigux/tests/phase5_build.zig` remains current directly readable shared build-route companion evidence that reruns the sample-owned self-checks, the queue-window companion, the focused replay packet, and the survey guard together
 * keep procfs, user-copy, locking, and loadable module registration parity out of scope
 
 Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those two routes directly again.
