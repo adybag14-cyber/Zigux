@@ -37,8 +37,6 @@ REQUIRED_MARKERS = {
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
         'Path("Documentation/zigux/phase3-abi-slice.md")',
         'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
-        'Path("Documentation/zigux/phase3-errptr-xarray-slice.md")',
-        'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
         'Path("Documentation/zigux/phase3-policy-slice.md")',
         'Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")',
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
@@ -47,88 +45,44 @@ REQUIRED_MARKERS = {
         'Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md")',
         'Path("Documentation/zigux/phase3-validator-support-surface.md")',
         'Path("Documentation/zigux/phase3-shared-reminder-gap.md")',
+        'Path("zigux/kernel/export_shim.zig")',
+        'Path("zigux/helpers/layout_assert.zig")',
+        'Path("zigux/helpers/mmio.zig")',
+        'Path("zigux/unsafe/narrow.zig")',
         'Path("scripts/zigux/check-phase3-abi.py")',
+        'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
         'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
-        'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
-        'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
-        'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
-        'Path("scripts/zigux/check-phase3-xarray-slot.py")',
-        'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
         'Path("scripts/zigux/check-phase3-selftest-surface.py")',
-        'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
+        'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-policy-dump.py")',
         'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+        'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
+        'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
         'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
-        'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
         'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
+        'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
         'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
         'Path("scripts/zigux/validate_phase3_selftest.py")',
         'Path("scripts/zigux/run-phase3-checks.py")',
-        'Path("zigux/helpers/err_ptr.zig")',
-        'Path("zigux/helpers/xa_value.zig")',
-        'Path("zigux/helpers/xarray_slot_view.zig")',
-        'Path("zigux/helpers/layout_assert.zig")',
         'Path("zigux/tests/phase3_abi.zig")',
-        'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
-        'Path("zigux/tests/phase3_dev_t_starter_packet.zig")',
-        'Path("zigux/tests/phase3_dev_t_starter_packet_build.zig")',
-        'Path("zigux/tests/phase3_dev_t_starter_packet_manifest.json")',
-        'Path("zigux/tests/phase3_errptr_xarray_starter_packet.zig")',
-        'Path("zigux/tests/phase3_errptr_xarray_starter_packet_build.zig")',
-        'Path("zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json")',
-        'Path("zigux/tests/phase3_errptr_xarray_dump.zig")',
-        'Path("zigux/tests/phase3_errptr_xarray_dump_build.zig")',
-        'Path("zigux/tests/fixtures/phase3_errptr_xarray_manifest.json")',
-        'Path("zigux/tests/phase3_xarray_slot_starter_packet.zig")',
-        'Path("zigux/tests/phase3_xarray_slot_starter_packet_build.zig")',
-        'Path("zigux/tests/phase3_xarray_slot_dump.zig")',
-        'Path("zigux/tests/phase3_xarray_slot_dump_build.zig")',
-        'Path("zigux/tests/fixtures/phase3_xarray_slot_manifest.json")',
-        'Path("zigux/tests/phase3_policy_dump.zig")',
-        'Path("zigux/tests/phase3_policy_dump_build.zig")',
-        'Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")',
+        'Path("zigux/tests/phase3_abi_dump_current.zig")',
+        'Path("zigux/tests/phase3_export_uapi_layout.zig")',
         'Path("zigux/tests/phase3_export_shim_build.zig")',
-        'Path("zigux/bindings/header_family.zig")',
+        'Path("zigux/tests/phase3_policy_dump.zig")',
+        'Path("zigux/tests/phase3_low_level_wrappers.zig")',
+        'Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         'Path("zigux/Makefile")',
         '"python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-catalog-selftest.py"',
-        '"python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-dev-t-starter-packet.py"',
-        '"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"',
-        '"python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --repo-root ."',
-        '"python3 scripts/zigux/check-phase3-xarray-slot.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc"',
-        '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-abi.py"',
-        '"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
-        '"python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-shared-tests-routes.py"',
         '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-selftest-surface.py"',
-        '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
-        '"python3 scripts/zigux/check-phase3-policy-dump.py"',
-        '"python3 scripts/zigux/validate-phase3-validator-support-surface.py --self-test"',
-        '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"',
-        '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
-        '"python3 scripts/zigux/validate_phase3_selftest.py"',
-        '"python3 scripts/zigux/run-phase3-checks.py"',
-        '"zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig"',
-        '"zig build phase3-errptr-xarray-starter-packet-test --build-file zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"',
-        '"zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig"',
-        '"zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig"',
-        '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
-        '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
+        '"python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
+        '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
         '"make -C zigux phase3-export-shim-test"',
-        '"make -C zigux phase3-export-uapi-layout"',
-        '"make -C zigux phase3-export-uapi-layout-test"',
-        '"zig build phase3-test --build-file zigux/tests/build.zig"',
+        '"make -C zigux phase3"',
         '"make -C zigux phase3-low-level-wrappers-test"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
@@ -164,6 +118,32 @@ REQUIRED_MARKERS = {
     ),
 }
 
+FORBIDDEN_CATALOG_MARKERS = (
+    "phase3-errptr-xarray-slice.md",
+    "phase3-xarray-slot-slice.md",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/helpers/xarray_slot_view.zig",
+    "check-phase3-errptr-xarray-starter-packet.py",
+    "check-phase3-xarray-slot-starter-packet.py",
+    "check-phase3-xarray-slot.py",
+    "phase3_errptr_xarray_starter_packet.zig",
+    "phase3_errptr_xarray_starter_packet_build.zig",
+    "phase3_errptr_xarray_starter_packet_manifest.json",
+    "phase3_errptr_xarray_dump.zig",
+    "phase3_errptr_xarray_dump_build.zig",
+    "phase3_xarray_slot_starter_packet.zig",
+    "phase3_xarray_slot_starter_packet_build.zig",
+    "phase3_xarray_slot_dump.zig",
+    "phase3_xarray_slot_dump_build.zig",
+    "phase3_xarray_slot_manifest.json",
+    "check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-errptr-xarray-starter-packet-test --build-file zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
+    "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
+    "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig",
+    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -186,6 +166,16 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+
+    catalog_path = repo_root / CATALOG_PATH
+    if catalog_path.is_file():
+        catalog_text = _read(catalog_path)
+        for marker in FORBIDDEN_CATALOG_MARKERS:
+            if marker in catalog_text:
+                issues.append(
+                    f"forbidden {CATALOG_PATH.as_posix()} marker: {marker}"
+                )
+
     return issues
 
 
@@ -194,13 +184,8 @@ def _populate_repo(root: Path) -> None:
         _write(root / relative_path, "\n".join(markers) + "\n")
 
 
-def _expect_missing_marker(
-    root: Path, relative_path: Path, marker: str, message: str
-) -> int:
-    path = root / relative_path
-    path.write_text(_read(path).replace(marker, "", 1), encoding="utf-8")
+def _expect_issue(root: Path, expected: str, message: str) -> int:
     issues = validate_repo(root)
-    expected = f"missing {relative_path.as_posix()} marker: {marker}"
     if expected not in issues:
         print("PHASE3_CATALOG_SELFTEST_CHECK_SELF_TEST=fail")
         print(message)
@@ -209,64 +194,6 @@ def _expect_missing_marker(
 
 
 def run_self_test() -> int:
-    marker_cases = (
-        (
-            CATALOG_PATH,
-            'Path("Documentation/zigux/phase3-errptr-xarray-slice.md")',
-            "expected missing catalog errptr-xarray slice marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            'Path("Documentation/zigux/phase3-xarray-slot-slice.md")',
-            "expected missing catalog xarray-slot slice marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
-            "expected missing catalog xarray-slot starter checker marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            'Path("scripts/zigux/check-phase3-xarray-slot.py")',
-            "expected missing catalog xarray-slot dump checker marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            'Path("zigux/tests/phase3_xarray_slot_starter_packet_build.zig")',
-            "expected missing catalog xarray-slot starter build marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            'Path("zigux/tests/fixtures/phase3_xarray_slot_manifest.json")',
-            "expected missing catalog xarray-slot manifest marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            '"python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc"',
-            "expected missing catalog xarray-slot dump route marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
-            "expected missing catalog xarray-slot dump build route marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
-            "expected missing export-uapi survey guard marker was not reported",
-        ),
-        (
-            HEADER_FAMILY_VALIDATOR_PATH,
-            'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
-            "expected missing header-family validator guard marker was not reported",
-        ),
-        (
-            LINUX_ZIGUX_HEADER_GOVERNANCE_VALIDATOR_PATH,
-            'HEADER_PATH = Path("include/linux/zigux.h")',
-            "expected missing linux-zigux governance header-path marker was not reported",
-        ),
-    )
-
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_catalog_selftest_") as temp_dir:
         root = Path(temp_dir)
         _populate_repo(root)
@@ -277,15 +204,67 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
-        for relative_path, marker, message in marker_cases:
+        required_cases = (
+            (
+                CATALOG_PATH,
+                'PHASE3_CATALOG_SCOPE = "abi-runtime"',
+                'missing scripts/zigux/phase3_catalog.py marker: PHASE3_CATALOG_SCOPE = "abi-runtime"',
+                "expected missing catalog scope marker was not reported",
+            ),
+            (
+                SURVEY_PATH,
+                "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+                "missing Documentation/zigux/phase3-export-uapi-boundary-survey.md marker: PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+                "expected missing export-uapi survey guard marker was not reported",
+            ),
+            (
+                HEADER_FAMILY_VALIDATOR_PATH,
+                'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+                'missing scripts/zigux/validate-phase3-abi-header-family-survey.py marker: CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+                "expected missing header-family validator guard marker was not reported",
+            ),
+            (
+                LINUX_ZIGUX_HEADER_GOVERNANCE_VALIDATOR_PATH,
+                'HEADER_PATH = Path("include/linux/zigux.h")',
+                'missing scripts/zigux/validate-phase3-linux-zigux-header-governance.py marker: HEADER_PATH = Path("include/linux/zigux.h")',
+                "expected missing linux-zigux governance header-path marker was not reported",
+            ),
+        )
+
+        forbidden_cases = (
+            (
+                "phase3-errptr-xarray-slice.md",
+                "expected forbidden xarray survey marker was not reported",
+            ),
+            (
+                "zigux/helpers/xarray_slot_view.zig",
+                "expected forbidden xarray helper marker was not reported",
+            ),
+            (
+                "check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc",
+                "expected forbidden xarray replay route marker was not reported",
+            ),
+        )
+
+        for relative_path, marker, expected, message in required_cases:
             _populate_repo(root)
-            if _expect_missing_marker(root, relative_path, marker, message) != 0:
+            path = root / relative_path
+            _write(path, _read(path).replace(marker, "", 1))
+            if _expect_issue(root, expected, message) != 0:
+                return 1
+
+        for marker, message in forbidden_cases:
+            _populate_repo(root)
+            path = root / CATALOG_PATH
+            _write(path, _read(path) + marker + "\n")
+            expected = f"forbidden {CATALOG_PATH.as_posix()} marker: {marker}"
+            if _expect_issue(root, expected, message) != 0:
                 return 1
 
     print("PHASE3_CATALOG_SELFTEST_CHECK_SELF_TEST=pass")
     print(
         "PHASE3_CATALOG_SELFTEST_CHECK_SELF_TEST_CASE_COUNT="
-        f"{1 + len(marker_cases)}"
+        f"{1 + len(required_cases) + len(forbidden_cases)}"
     )
     return 0
 
