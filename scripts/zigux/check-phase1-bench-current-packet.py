@@ -30,6 +30,8 @@ MARKERS = {
         "- `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py`",
         "- explicit opt-in to Node 24 action execution on GitHub-hosted runners",
         "- `python3 scripts/zigux/install-zig.py --self-test` stays reviewable as the bounded installer-viability replay for that in-repo download step",
+        "- `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
+        "- `PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns`",
     ),
     SCRIPTS_README_REL: (
         "- `validate-phase1-closure.py` confirms the closed Phase 1 packet still matches `Documentation/zigux/phase1-closure.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, the shared helper build wiring, and the bootstrap workflow.",
@@ -61,7 +63,7 @@ EXPECTED_BLOCKS = {
             'PHASE1_BENCH_REL = Path("zigux/tests/phase1_bench.zig")',
         ),
         (
-            'except json.JSONDecodeError as exc:',
+            "except json.JSONDecodeError as exc:",
             'return ("expectations_json_error", exc)',
         ),
         (
@@ -324,6 +326,23 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-find-bit-guard-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / PHASE1_CLOSURE_REL
+        marker = "- `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace(marker, f"{marker}\n{marker}", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        expected_issue = (
+            f"{PHASE1_CLOSURE_REL}:marker_count:{marker}:expected=1:actual=2"
+        )
+        if issues != [expected_issue]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=duplicate_find_bit_bench_guard_marker_fail_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-embedded-marker-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
@@ -365,7 +384,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
