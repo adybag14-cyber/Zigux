@@ -70,6 +70,7 @@
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_ring_publish_readiness.zig",
+        "drivers/virtio/virtio_input_queue_callback_preflight.zig",
         "drivers/virtio/virtio_input_teardown_preflight.zig",
         "drivers/virtio/virtio_input_teardown_observation.zig",
         "drivers/virtio/virtio_input_verify.zig",
