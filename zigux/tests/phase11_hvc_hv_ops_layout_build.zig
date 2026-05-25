@@ -28,6 +28,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    hv_ops_proof_module.addImport("hvc_console", hvc_console_module);
     hv_ops_proof_module.addImport("layout_assert", layout_assert_module);
 
     const hv_ops_proof_tests = b.addTest(.{
