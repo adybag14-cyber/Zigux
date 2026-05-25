@@ -62,7 +62,7 @@ Keep the following facts aligned across the bridge packet, manifest, reviewabili
   * the explicit cancel-path handoff keeps cancellation completion review-only and in C
   * `Documentation/zigux/review-checklist.md` continues to route reviewers back through the same blocked-maintenance workqueue packet instead of implying a live wrapper or execution claim
   * the live blocker remains `phase14-workqueue-live-execution-blocker`
-  * the next same-lane step is still a packet-local reread until the bridge-local blocked-maintenance handoff is aligned again, leaving broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet as shared-packet evidence rather than a bridge-local trust promotion signal
+  * the next same-lane step is still a packet-local reread that keeps the bridge-local blocked-maintenance handoff aligned, leaving broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet as shared-packet evidence rather than a bridge-local trust promotion signal
 
 ## Non-goals
 
@@ -78,4 +78,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the packet in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, and `Documentation/zigux/phase14-workqueue-bridge-survey.md` together until the bridge-local blocked-maintenance handoff is aligned again. Leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet as shared-packet evidence rather than a bridge-local trust promotion signal.
+Keep the packet in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, and `Documentation/zigux/phase14-workqueue-bridge-survey.md` together so the bridge-local blocked-maintenance handoff stays aligned. Leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet as shared-packet evidence rather than a bridge-local trust promotion signal.
