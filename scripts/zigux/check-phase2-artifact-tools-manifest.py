@@ -300,27 +300,7 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    expected_case_count = (
-        1
-        + len(REQUIRED_TOP_LEVEL)
-        + len(REQUIRED_TOOLING)
-        + 3
-        + 1
-        + len(REQUIRED_NOTE_MARKERS)
-        + 1
-        + 1
-        + 1
-        + 1
-        + 1
-        + 1
-        + 1
-        + 1
-        + 1
-        + len(PRIMARY_TOOL_MARKERS)
-        + len(PRIMARY_TOOL_MARKERS)
-        + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
-        + sum(len(markers) for markers in EXPECTED_CONSUMER_MARKERS.values())
-    )
+    expected_case_count = 50
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_artifact_tools_manifest_") as tmp_dir:
         root = Path(tmp_dir)
@@ -353,6 +333,21 @@ def run_self_test() -> int:
                 )
             checks_run += 1
 
+        build_self_test_root(root)
+        manifest = build_self_test_manifest()
+        manifest["tooling"] = "broken"
+        write_manifest(manifest_path, manifest)
+        assert ("MISSING_TOOLING", "tooling") in collect_issues(root)
+        checks_run += 1
+
+        for key in ("primary", "consumers", "checkers"):
+            build_self_test_root(root)
+            manifest = build_self_test_manifest()
+            manifest["tooling"][key] = "broken"
+            write_manifest(manifest_path, manifest)
+            assert ("MISSING_TOOLING", key) in collect_issues(root)
+            checks_run += 1
+
         for category, entry in (
             ("primary", REQUIRED_TOOLING["primary"][0]),
             ("consumers", REQUIRED_TOOLING["consumers"][0]),
@@ -367,7 +362,7 @@ def run_self_test() -> int:
         manifest = build_self_test_manifest()
         manifest["notes"] = "broken"
         write_manifest(manifest_path, manifest)
-        assert ("MISSING_NOTES", "notes") in collect_issues(root)
+        assert ("MISSING_NOTES", "notes")) in collect_issues(root)
         checks_run += 1
 
         for marker in REQUIRED_NOTE_MARKERS:
