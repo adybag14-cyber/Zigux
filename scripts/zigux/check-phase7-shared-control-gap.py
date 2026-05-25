@@ -57,6 +57,7 @@ ABSENT_MAKEFILE_MARKERS = [
     "phase7-string-helpers-test:",
     "phase7-string-helpers-survey:",
     "phase7-string-helpers-sample-boundary:",
+    "phase7-string-helpers-format-boundary:",
     "phase7-cmdline-test:",
     "phase7-cmdline-survey:",
     "phase7-argv-split-test:",
@@ -141,7 +142,7 @@ REQUIRED_MAKEFILE_LINES = [
     "$(PYTHON) scripts/zigux/validate-phase7.py",
 ]
 
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 23
 
 
 class ValidationError(RuntimeError):
@@ -268,6 +269,7 @@ def run_self_test() -> None:
             (WORKFLOW_PATH, "", "run: make -C zigux phase7-test\n"),
             (MAKEFILE_PATH, REQUIRED_MAKEFILE_LINES[0], "phase7:\n"),
             (MAKEFILE_PATH, "", "phase7-test:\n"),
+            (MAKEFILE_PATH, "", "phase7-string-helpers-format-boundary:\n"),
             (SHARED_SURFACE_VALIDATOR_PATH, "make -C zigux phase7-validate", "make -C zigux phase7"),
         ]
         for rel, old, new in cases:
