@@ -34,6 +34,8 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
 
     const sample_file = try readRepoFileAlloc("samples/zigux/runtime_kretprobe.zig", 64 * 1024);
     defer std.testing.allocator.free(sample_file);
+    const loader_file = try readRepoFileAlloc("samples/zigux/runtime_kretprobe_loader.zig", 64 * 1024);
+    defer std.testing.allocator.free(loader_file);
     const module_file = try readRepoFileAlloc("zigux/tests/runtime_kretprobe_module.zig", 64 * 1024);
     defer std.testing.allocator.free(module_file);
     const initialized_guard_file = try readRepoFileAlloc(
@@ -50,6 +52,21 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(sample_file, "selftest_complete");
     try expectContains(sample_file, "pub fn runSelftest");
     try expectContains(sample_file, "pub fn exit");
+
+    try expectContains(loader_file, "pub const LoaderStage = enum(u8)");
+    try expectContains(loader_file, "pub const RuntimeKretprobeLoader = struct");
+    try expectContains(
+        loader_file,
+        "runtime kretprobe loader keeps initialized-stage shared contract plans explicit",
+    );
+    try expectContains(
+        loader_file,
+        "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity",
+    );
+    try expectContains(
+        loader_file,
+        "runtime kretprobe loader keeps selftest-complete shared requests blocked by the current loader family contract",
+    );
 
     try expectContains(
         module_file,
