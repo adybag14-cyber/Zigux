@@ -91,6 +91,7 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`
@@ -309,7 +310,7 @@ Keep the directly readable tests-root Phase 15 governance packet explicit throug
 
 Current `master` does materialize `zigux/tests/phase15_architecture_council_review_process_build.zig`, so keep that focused build-file replay in the directly readable governance packet instead of undercounting the Architecture Council review-process evidence.
 
-Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying it as a broader repo-reality gap.
+Current `master` does materialize `zigux/tests/phase15_handoff_next_steps_manifest.json`, so keep that handoff-specific manifest in the directly readable governance packet instead of carrying the handoff packet as broader repo-reality gap.
 
 Current `master` does materialize `zigux/tests/phase15_handoff_next_steps.zig`, so keep that focused handoff-specific replay in the directly readable governance packet instead of carrying the handoff packet as manifest-only inventory.
 
