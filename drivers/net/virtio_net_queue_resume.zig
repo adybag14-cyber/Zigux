@@ -9,6 +9,11 @@ pub const QueueResumeBlocker = enum {
     probe_snapshot_replay,
 };
 
+pub const QueueSubmissionOwner = enum {
+    recovery,
+    driver,
+};
+
 pub const QueueResumeRequest = struct {
     reset_generation: u32,
     queues_frozen: bool = false,
@@ -33,6 +38,9 @@ pub const QueueResumeSummary = struct {
     blocker: QueueResumeBlocker,
     resumes_receive_submission: bool,
     resumes_transmit_submission: bool,
+    receive_submission_owner: QueueSubmissionOwner,
+    transmit_submission_owner: QueueSubmissionOwner,
+    queues_ready_for_driver_ownership: bool,
     can_resume_queues: bool,
 };
 
@@ -57,6 +65,11 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
     const resumes_receive_submission = resume_prereqs_ready and request.refill_replay_ready;
     const resumes_transmit_submission = resume_prereqs_ready and request.transmit_recycle_ready;
     const can_resume_queues = resumes_receive_submission and resumes_transmit_submission;
+    const receive_submission_owner: QueueSubmissionOwner =
+        if (resumes_receive_submission) .driver else .recovery;
+    const transmit_submission_owner: QueueSubmissionOwner =
+        if (resumes_transmit_submission) .driver else .recovery;
+
     return .{
         .anchor = "drivers/net/virtio_net.c",
         .reset_generation = request.reset_generation,
@@ -70,6 +83,9 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
         .blocker = blocker,
         .resumes_receive_submission = resumes_receive_submission,
         .resumes_transmit_submission = resumes_transmit_submission,
+        .receive_submission_owner = receive_submission_owner,
+        .transmit_submission_owner = transmit_submission_owner,
+        .queues_ready_for_driver_ownership = can_resume_queues,
         .can_resume_queues = can_resume_queues,
     };
 }
@@ -100,6 +116,9 @@ test "queue resume stays blocked while reset is frozen" {
     try std.testing.expect(!summary.can_resume_queues);
     try std.testing.expect(!summary.resumes_receive_submission);
     try std.testing.expect(!summary.resumes_transmit_submission);
+    try std.testing.expectEqual(QueueSubmissionOwner.recovery, summary.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.recovery, summary.transmit_submission_owner);
+    try std.testing.expect(!summary.queues_ready_for_driver_ownership);
 }
 
 test "queue resume requires control queue restore when the packet says the queue is present" {
@@ -129,9 +148,12 @@ test "queue resume skips control queue restore when the packet says no control q
     try std.testing.expectEqual(QueueResumeBlocker.none, summary.blocker);
     try std.testing.expect(!summary.requires_control_queue_restore);
     try std.testing.expect(summary.can_resume_queues);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, summary.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, summary.transmit_submission_owner);
+    try std.testing.expect(summary.queues_ready_for_driver_ownership);
 }
 
-test "queue resume keeps receive and transmit submission readiness distinct while the overall gate stays fail-closed" {
+test "queue resume keeps receive and transmit submission ownership distinct while the overall gate stays fail-closed" {
     const refill = try summarizeQueueResume(.{
         .reset_generation = 3,
         .receive_queue_pairs = 4,
@@ -143,7 +165,10 @@ test "queue resume keeps receive and transmit submission readiness distinct whil
     try std.testing.expectEqual(QueueResumeBlocker.refill_replay, refill.blocker);
     try std.testing.expect(!refill.resumes_receive_submission);
     try std.testing.expect(refill.resumes_transmit_submission);
+    try std.testing.expectEqual(QueueSubmissionOwner.recovery, refill.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, refill.transmit_submission_owner);
     try std.testing.expect(!refill.can_resume_queues);
+    try std.testing.expect(!refill.queues_ready_for_driver_ownership);
 
     const transmit = try summarizeQueueResume(.{
         .reset_generation = 3,
@@ -156,7 +181,10 @@ test "queue resume keeps receive and transmit submission readiness distinct whil
     try std.testing.expectEqual(QueueResumeBlocker.transmit_recycle, transmit.blocker);
     try std.testing.expect(transmit.resumes_receive_submission);
     try std.testing.expect(!transmit.resumes_transmit_submission);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, transmit.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.recovery, transmit.transmit_submission_owner);
     try std.testing.expect(!transmit.can_resume_queues);
+    try std.testing.expect(!transmit.queues_ready_for_driver_ownership);
 }
 
 test "queue resume keeps probe snapshot replay explicit before queue submission resumes" {
@@ -173,6 +201,9 @@ test "queue resume keeps probe snapshot replay explicit before queue submission 
     try std.testing.expect(!summary.can_resume_queues);
     try std.testing.expect(!summary.resumes_receive_submission);
     try std.testing.expect(!summary.resumes_transmit_submission);
+    try std.testing.expectEqual(QueueSubmissionOwner.recovery, summary.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.recovery, summary.transmit_submission_owner);
+    try std.testing.expect(!summary.queues_ready_for_driver_ownership);
 }
 
 test "queue resume clears once the bounded replay cues are ready" {
@@ -194,4 +225,7 @@ test "queue resume clears once the bounded replay cues are ready" {
     try std.testing.expect(summary.can_resume_queues);
     try std.testing.expect(summary.resumes_receive_submission);
     try std.testing.expect(summary.resumes_transmit_submission);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, summary.receive_submission_owner);
+    try std.testing.expectEqual(QueueSubmissionOwner.driver, summary.transmit_submission_owner);
+    try std.testing.expect(summary.queues_ready_for_driver_ownership);
 }
