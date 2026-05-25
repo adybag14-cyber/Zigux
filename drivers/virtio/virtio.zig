@@ -97,6 +97,7 @@ pub const DriverModelSummary = struct {
     features_negotiated: bool,
     queue_selected: bool,
     queue_selected_valid: bool,
+    queue_registration_ready: bool,
     driver_ready: bool,
     needs_reset: bool,
     failed: bool,
@@ -387,6 +388,7 @@ pub const VirtioCoreLab = struct {
             .features_negotiated = guard.features_negotiated,
             .queue_selected = guard.queue_selected,
             .queue_selected_valid = guard.queue_selected_valid,
+            .queue_registration_ready = guard.queue_registration_ready,
             .driver_ready = guard.driver_ready,
             .needs_reset = guard.needs_reset,
             .failed = guard.failed,
@@ -571,6 +573,7 @@ test "phase10 virtio core lifecycle guard summary tracks staged driver progressi
     core.setStatusBits(status_driver_ok);
     summary = core.lifecycleGuardSummary();
     try std.testing.expectEqual(@as(?DriverLifecycleBlocker, null), summary.blocker);
+    try std.testing.expect(summary.queue_registration_ready);
     try std.testing.expect(summary.driver_ready);
 }
 
@@ -582,6 +585,7 @@ test "phase10 virtio core lifecycle guard summary blocks ready state when reset 
     core.setStatusBits(status_driver_ok);
 
     var summary = core.lifecycleGuardSummary();
+    try std.testing.expect(summary.queue_registration_ready);
     try std.testing.expect(summary.driver_ready);
     try std.testing.expectEqual(@as(?DriverLifecycleBlocker, null), summary.blocker);
 
@@ -604,6 +608,7 @@ test "phase10 virtio core driver model summary exposes wrapper stages for staged
     var summary = core.driverModelSummary();
     try std.testing.expectEqual(DriverModelStage.unattached, summary.stage);
     try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .acknowledge_missing), summary.blocker);
+    try std.testing.expect(!summary.queue_registration_ready);
 
     core.setStatusBits(status_acknowledge);
     summary = core.driverModelSummary();
@@ -617,14 +622,17 @@ test "phase10 virtio core driver model summary exposes wrapper stages for staged
     core.noteFeaturesNegotiated();
     summary = core.driverModelSummary();
     try std.testing.expectEqual(DriverModelStage.features_negotiated, summary.stage);
+    try std.testing.expect(!summary.queue_registration_ready);
 
     _ = try core.selectQueue(1);
     summary = core.driverModelSummary();
     try std.testing.expectEqual(DriverModelStage.queue_registration_ready, summary.stage);
+    try std.testing.expect(summary.queue_registration_ready);
 
     core.setStatusBits(status_driver_ok);
     summary = core.driverModelSummary();
     try std.testing.expectEqual(DriverModelStage.driver_ready, summary.stage);
+    try std.testing.expect(summary.queue_registration_ready);
     try std.testing.expect(summary.driver_ready);
 }
 
@@ -637,10 +645,12 @@ test "phase10 virtio core driver model summary lets reset and failed states over
 
     var summary = core.driverModelSummary();
     try std.testing.expectEqual(DriverModelStage.driver_ready, summary.stage);
+    try std.testing.expect(summary.queue_registration_ready);
 
     core.setStatusBits(status_device_needs_reset);
     summary = core.driverModelSummary();
     try std.testing.expectEqual(DriverModelStage.device_needs_reset, summary.stage);
+    try std.testing.expect(!summary.queue_registration_ready);
     try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_needs_reset), summary.blocker);
 
     core.setStatusBits(status_failed);
