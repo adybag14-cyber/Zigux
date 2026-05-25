@@ -21,6 +21,7 @@ WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 SHARED_TESTS_README_PATH = Path("zigux/tests/README.md")
 SHARED_TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+SELFTEST_SURFACE_PATH = Path("scripts/zigux/check-phase3-selftest-surface.py")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_MARKERS = {
@@ -43,11 +44,13 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase3-low-level-wrappers`",
         "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
         "`make -C zigux phase3-low-level-wrappers-test`",
+        "`scripts/zigux/check-phase3-selftest-surface.py`",
         "`scripts/zigux/generate-phase3-check-wrappers.py`",
         "`scripts/zigux/check-phase3-wrapper-templates.py`",
         "Current `master` also keeps `zigux/Makefile`, `make -C zigux phase3-low-level-wrappers`, and `make -C zigux phase3-low-level-wrappers-test` explicit beside the dedicated shared build companion, so the low-level-wrapper packet now has both the direct Zig replay commands and the returned shared Makefile replay gates without widening into broader Phase 3 completion claims.",
         "Current `master` also keeps `.github/workflows/zigux-bootstrap.yml` explicit with the shipped low-level-wrapper self-test, survey check, focused replay, and shared tests-root replay steps, so the bounded reminder packet should treat that bootstrap workflow route as current support evidence rather than leaving the workflow-backed wrapper gate implicit behind the dedicated validator and Makefile route.",
         "That workflow-backed replay step now belongs to the same bounded reminder packet as the dedicated survey validator and the returned shared Makefile replay gates, so later lane-local cleanup should reread those four support surfaces together instead of treating the workflow route as optional background context.",
+        "Current `master` also keeps `scripts/zigux/check-phase3-selftest-surface.py` directly readable as the shared Phase 3 selftest-surface guard for the returned validator-support, shared-tests-route, export/UAPI, catalog, and low-level-wrapper reminder packet. That newer shared guard should stay framed here as adjacent cross-packet support rather than as extra low-level-wrapper-local proof.",
         "Current `master` also keeps `scripts/zigux/generate-phase3-check-wrappers.py` together with `scripts/zigux/check-phase3-wrapper-templates.py` directly readable as the adjacent stale-wrapper cleanup pair for historical shared-runner wrapper retirement, and that churn-control support should stay framed here as adjacent cross-packet evidence rather than as extra low-level-wrapper-local proof.",
         "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, the shared narrow-unsafe decoder plus interop-policy raw-pointer bridge entrypoints, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, two returned shared Makefile replay gates, and two direct replay commands are directly readable, while the separately readable Phase 3 catalog-selftest guard stays adjacent cross-packet support rather than extra low-level-wrapper proof.",
         "Current `master` also keeps `MmioRange`, `rangeScoped()`, `rangeInteropPolicy()`, `rangeInteropPolicyBytes()`, `rangeInteropPolicyByte()`, and the width-specific `read8InteropPolicyBytes()`/`write8InteropPolicyBytes()`/`read16InteropPolicyBytes()`/`write16InteropPolicyBytes()`/`read32InteropPolicyByte()`/`write32InteropPolicyByte()`/`read64InteropPolicyBytes()`/`write64InteropPolicyBytes()` entrypoints directly readable in `zigux/helpers/mmio.zig`, so the bounded low-level-wrapper survey should treat those MMIO range and width-specific wrappers as landed helper-local evidence rather than collapsing MMIO coverage to the generic typed accessors alone.",
@@ -240,6 +243,14 @@ REQUIRED_MARKERS = {
         "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
         "phase3: phase3-validate phase3-export-uapi-layout phase3-low-level-wrappers phase3-test phase3-policy-dump phase3-dump",
     ),
+    SELFTEST_SURFACE_PATH: (
+        'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
+        'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
+        'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
+        'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+        'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+        '"PHASE3_SELFTEST_SURFACE_SELF_TEST=pass"',
+    ),
     WORKFLOW_PATH: (
         "name: Self-test current Phase 3 low-level wrapper survey validator",
         "run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
@@ -423,6 +434,7 @@ def run_self_test() -> int:
         for relative_path, marker in SELF_TEST_CASES:
             _populate_repo(root)
             path = root / relative_path
+            path.writeText = None
             path.write_text(_read(path).replace(marker, ""), encoding="utf-8")
             issues = validate_repo(root)
             expected = f"missing {relative_path.as_posix()} marker: {marker}"
@@ -530,6 +542,7 @@ def run_self_test() -> int:
             print("expected low-level-wrapper repo-gap misclassification was not reported")
             return 1
 
+        _populateRepo = None
         _populate_repo(root)
         manifest = json.loads(_read(manifest_path))
         manifest["repo_reality_gaps"] = ["make -C zigux phase3-low-level-wrappers"]
@@ -594,6 +607,7 @@ def main() -> int:
     print(f"validated {SHARED_TESTS_README_PATH.as_posix()}")
     print(f"validated {SHARED_TESTS_BUILD_PATH.as_posix()}")
     print(f"validated {MAKEFILE_PATH.as_posix()}")
+    print(f"validated {SELFTEST_SURFACE_PATH.as_posix()}")
     print(f"validated {WORKFLOW_PATH.as_posix()}")
     print(f"validated {MANIFEST_PATH.as_posix()}")
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass")
