@@ -15,6 +15,12 @@ REQUIRED_SOURCE_MARKERS = (
     'MAKEFILE = ROOT / "zigux" / "Makefile"',
     'ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-contract.py",',
     'ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-route-policy.py",',
+    '    validate_path = resolve_path(root, VALIDATE)',
+    '    if validate_path.exists():',
+    '    workflow_path = resolve_path(root, WORKFLOW)',
+    '    if workflow_path.exists():',
+    '    makefile_path = resolve_path(root, MAKEFILE)',
+    '    if makefile_path.exists():',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-contract.py --self-test",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py --self-test",',
@@ -26,8 +32,12 @@ REQUIRED_SOURCE_MARKERS = (
 
 REQUIRED_CASE_MARKERS = (
     '        write_text(resolve_path(root, VALIDATE), "CHECKS = ()\\n")',
+    '            + "\\n".join(REQUIRED_VALIDATE_MARKERS + (REQUIRED_VALIDATE_MARKERS[0],))',
     '            + "\\n".join(REQUIRED_WORKFLOW_LINES + (REQUIRED_WORKFLOW_LINES[0],))',
     '            + "\\n".join(f"\\t{line}" for line in REQUIRED_MAKEFILE_LINES + (REQUIRED_MAKEFILE_LINES[0],))',
+    '        resolve_path(root, VALIDATE).unlink()',
+    '        resolve_path(root, WORKFLOW).unlink()',
+    '        resolve_path(root, MAKEFILE).unlink()',
     '        resolve_path(root, REQUIRED_PATHS[3]).unlink()',
 )
 
