@@ -105,6 +105,7 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge keeps only the last state across unset and set transitions",
     "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
     "confdata bridge emits explicit empty assignments distinctly in json output",
+    "confdata bridge escapes parsed string bytes in json output",
     "confdata bridge releases appended entry ownership on index-allocation failure",
     "confdata bridge preserves duplicate unset ownership on allocation failure",
 ]
@@ -730,104 +731,4 @@ def run_self_test() -> int:
         assert any(issue[0] == "CONF_MANIFEST_SYNCCONFIG_ENV_PACKET_MISMATCH" for issue in issues)
         checks_run += 1
 
-        build_self_test_root(root)
-        payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][7].pop("seed")
-        payload["conf_cases"][7].pop("probability")
-        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONF_MANIFEST_RANDCONFIG_ENV_PACKET_MISMATCH" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
-        manifest["allconfig_sentinel_packet"] = ["broken_expected.json"]
-        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONF_MANIFEST_ALLCONFIG_SENTINEL_PACKET_MISMATCH" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        (fixture_root / "helpnewconfig_expected.json").unlink()
-        issues = collect_manifest_issues(root)
-        assert ("CONF_MANIFEST_REFERENCES_MISSING_FIXTURE", "helpnewconfig_expected.json") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
-        manifest["helper_local_anchors"] = REQUIRED_CONFDATA_HELPER_ANCHORS[:-1]
-        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = collect_manifest_issues(root)
-        assert any(issue[0] == "CONFDATA_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for issue in issues)
-        checks_run += 1
-
-        build_self_test_root(root)
-        (fixture_root / "duplicate_malformed_quoted_assignment_expected.json").unlink()
-        issues = collect_manifest_issues(root)
-        assert ("MISSING_CONFDATA_CASE_PATHS", "duplicate_malformed_quoted_assignment:expected:duplicate_malformed_quoted_assignment_expected.json") in issues
-        checks_run += 1
-
-    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
-        print("KCONFIG_BRIDGE_SELF_TEST=fail")
-        print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
-        print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
-        return 1
-
-    print("KCONFIG_BRIDGE_SELF_TEST=pass")
-    print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Check bounded kconfig bridge fixture parity.")
-    parser.add_argument("--zig", help="Explicit zig executable path")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in manifest coverage without compiling the bridge tools.")
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    issues = collect_manifest_issues(ROOT)
-    if issues:
-        emit_manifest_issues(issues)
-
-    zig = find_zig(args.zig)
-    conf_cases, confdata_cases, case_issues = load_case_groups(FIXTURE_DIR)
-    if case_issues:
-        emit_manifest_issues(case_issues)
-
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
-        conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
-        confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
-        compile_tool(zig, CONF_BRIDGE, conf_exe)
-        compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)
-
-        for case in conf_cases:
-            actual = tmp_dir / f"{case['name']}.actual.json"
-            repeat = tmp_dir / f"{case['name']}.repeat.json"
-            cmd = build_conf_command(conf_exe, case)
-            result = run(cmd, cwd=str(ROOT), capture_output=True)
-            actual.write_text(result.stdout, encoding="utf-8", newline="\n")
-            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
-            repeat.write_text(repeat_result.stdout, encoding="utf-8", newline="\n")
-            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
-
-        for case in confdata_cases:
-            actual = tmp_dir / f"{case['name']}.actual.json"
-            repeat = tmp_dir / f"{case['name']}.repeat.json"
-            cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))]
-            result = run(cmd, cwd=str(ROOT), capture_output=True)
-            actual.write_text(result.stdout, encoding="utf-8", newline="\n")
-            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
-            repeat.write_text(repeat_result.stdout, encoding="utf-8", newline="\n")
-            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
-
-    print("KCONFIG_BRIDGE_DETERMINISM=pass")
-    print("KCONFIG_BRIDGE_DIFF=pass")
-    print(f"FIXTURE_DIR={FIXTURE_DIR}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        build_self_test_ROOT(root)
