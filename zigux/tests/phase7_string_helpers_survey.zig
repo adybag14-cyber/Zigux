@@ -23,9 +23,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-string-helpers-slice.md");
     defer allocator.free(slice_note);
     try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
+    try expectContains(slice_note, "`zigux/tests/phase7_string_helpers_format_boundary.zig`");
     try expectContains(slice_note, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test");
     try expectContains(slice_note, "the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
-    try expectContains(slice_note, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectContains(slice_note, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
 
     const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");
     defer allocator.free(checker);
@@ -35,10 +36,15 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(checker, "* `*vsprintf*`");
     try expectContains(checker, "the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContains(checker, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
-    try expectContains(checker, "try expectContains(helper, \"pub fn stringIsTerminated(\");");
-    try expectContains(checker, "try expectContains(helper, \"pub fn string_is_terminated(\");");
-    try expectContains(checker, "try expectContains(helper_tests, \"test \\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\" {\");");
-    try expectContains(checker, "try expectContains(manifest, \"stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix\");");
+    try expectContains(checker, "try expectContains(helper, \\\"pub fn stringIsTerminated(\\\");");
+    try expectContains(checker, "try expectContains(helper, \\\"pub fn string_is_terminated(\\\");");
+    try expectContains(checker, "try expectContains(helper_tests, \\\"test \\\\\\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\\\\\" {\\\");");
+    try expectContains(checker, "try expectContains(manifest, \\\"stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix\\\");");
+
+    const format_boundary_checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py");
+    defer allocator.free(format_boundary_checker);
+    try expectContains(format_boundary_checker, "PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET_SELF_TEST=pass");
+    try expectContains(format_boundary_checker, "\"zigux/tests/phase7_string_helpers_format_boundary.zig\",");
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
@@ -57,10 +63,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
-    try expectContains(helper_tests, "test \"phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators\" {");
-    try expectContains(helper_tests, "test \"phase 7 string helpers starter keeps termination checks bounded by the caller limit\" {");
-    try expectContains(helper_tests, "test \"phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary\" {");
-    try expectContains(helper_tests, "test \"phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly\" {");
+    try expectContains(helper_tests, "test \\\"phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators\\\" {");
+    try expectContains(helper_tests, "test \\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\" {");
+    try expectContains(helper_tests, "test \\\"phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary\\\" {");
+    try expectContains(helper_tests, "test \\\"phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly\\\" {");
     try expectNotContains(helper_tests, "devmKasprintfStrarray");
     try expectNotContains(helper_tests, "devm_kasprintf_strarray");
     try expectNotContains(helper_tests, "parseIntArrayUser");
@@ -69,13 +75,16 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"scripts/zigux/check-phase7-string-helpers-packet.py\"");
+    try expectContains(manifest, "\"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py\"");
+    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_format_boundary.zig\"");
     try expectContains(manifest, "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters");
     try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched");
     try expectContains(manifest, "stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix");
     try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
     try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");
+    try expectContains(manifest, "dedicated format-boundary replay for the trace-events formatting companion and broad-format exclusion");
     try expectContains(manifest, "still-parked `parse_int_array_user()` user-buffer follow-on or the device-managed `devm_kasprintf_strarray()` follow-on");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
     try expectContains(manifest, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test");
     try expectNotContains(manifest, "\"devmKasprintfStrarray\"");
     try expectNotContains(manifest, "\"devm_kasprintf_strarray\"");
@@ -92,4 +101,12 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(sample_boundary, "* `*bitmap*`");
     try expectContains(sample_boundary, "* `*printf*`");
     try expectContains(sample_boundary, "* `*vsprintf*`");
+
+    const format_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_format_boundary.zig");
+    defer allocator.free(format_boundary);
+    try expectContains(format_boundary, "phase 7 string helper format boundary keeps the trace-events formatting companion as the only sample-root exception");
+    try expectContains(format_boundary, "phase 7 string helper format boundary stays on sample-boundary review surfaces only");
+    try expectContains(format_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");
+    try expectContains(format_boundary, "* `*printf*`");
+    try expectContains(format_boundary, "* `*vsprintf*`");
 }
