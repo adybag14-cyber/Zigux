@@ -9,8 +9,10 @@ import tempfile
 from pathlib import Path
 
 MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
+NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+LANE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
-EXPECTED_SELF_TEST_CASES = 7
+EXPECTED_SELF_TEST_CASES = 10
 
 SELF_TEST_MANIFEST = """{
   "atomic64": {
@@ -36,6 +38,28 @@ SELF_TEST_MATRIX = """# Phase 4 Validation Matrix
   * `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 8192` over `4` iterations with `7` monotonic samples
   * `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 12288` over `4` iterations with `7` monotonic samples
 """
+
+SELF_TEST_NOTE = """Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.
+Current direct-readback dedicated local-only perf checkers: `scripts/zigux/check-phase4-perf-baseline-packet.py` and `scripts/zigux/check-phase4-perf-threshold-matrix.py`.
+"""
+
+SELF_TEST_LANE = """- directly readable dedicated local-only perf packet that still stays adjacent to the shared handoff:
+  - `scripts/zigux/check-phase4-perf-baseline-packet.py`
+  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`
+  - `zigux/tests/phase4_perf_baseline_manifest.json`
+  - `zigux/tests/phase4_perf_baseline_survey.zig`
+- `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.
+"""
+
+NOTE_MARKERS = (
+    "`scripts/zigux/check-phase4-perf-threshold-matrix.py`",
+    "Current direct-readback dedicated local-only perf checkers: `scripts/zigux/check-phase4-perf-baseline-packet.py` and `scripts/zigux/check-phase4-perf-threshold-matrix.py`.",
+)
+
+LANE_MARKERS = (
+    "  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`",
+    "`scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -74,12 +98,24 @@ def build_bitmap_line(manifest: dict[str, object]) -> str:
     )
 
 
+def require_markers(text: str, markers: tuple[str, ...], label: str, issues: list[str]) -> None:
+    for marker in markers:
+        if marker not in text:
+            issues.append(f"{label}:{marker}")
+
+
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
     matrix_path = root / MATRIX
+    note_path = root / NOTE
+    lane_path = root / LANE
     manifest_path = root / MANIFEST
     if not matrix_path.is_file():
         issues.append(f"file:{MATRIX.as_posix()}")
+    if not note_path.is_file():
+        issues.append(f"file:{NOTE.as_posix()}")
+    if not lane_path.is_file():
+        issues.append(f"file:{LANE.as_posix()}")
     if not manifest_path.is_file():
         issues.append(f"file:{MANIFEST.as_posix()}")
     if issues:
@@ -97,12 +133,17 @@ def validate_root(root: Path) -> list[str]:
         issues.append(f"matrix_line_missing:{atomic64_line}")
     if bitmap_line not in matrix_text:
         issues.append(f"matrix_line_missing:{bitmap_line}")
+
+    require_markers(read_text(note_path), NOTE_MARKERS, "note_marker", issues)
+    require_markers(read_text(lane_path), LANE_MARKERS, "lane_marker", issues)
     return issues
 
 
 def build_fixture_tree(root: Path) -> None:
     write_text(root / MANIFEST, SELF_TEST_MANIFEST)
     write_text(root / MATRIX, SELF_TEST_MATRIX)
+    write_text(root / NOTE, SELF_TEST_NOTE)
+    write_text(root / LANE, SELF_TEST_LANE)
 
 
 def replace_once(text: str, old: str, new: str) -> str:
@@ -195,6 +236,44 @@ def run_self_test() -> int:
                 print(f"bitmap drift case did not fail closed: {expected_prefix}")
                 return 1
             cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            root / NOTE,
+            replace_once(
+                read_text(root / NOTE),
+                "Current direct-readback dedicated local-only perf checkers: `scripts/zigux/check-phase4-perf-baseline-packet.py` and `scripts/zigux/check-phase4-perf-threshold-matrix.py`.",
+                "Current direct-readback dedicated local-only perf checkers: `scripts/zigux/check-phase4-perf-baseline-packet.py`.",
+            ),
+        )
+        if not expect_failure(root, "note_marker:Current direct-readback dedicated local-only perf checkers:"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("note checker drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            root / LANE,
+            replace_once(
+                read_text(root / LANE),
+                "  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`\n",
+                "",
+            ),
+        )
+        if not expect_failure(root, "lane_marker:  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("lane checker drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        (root / NOTE).unlink()
+        if not expect_failure(root, f"file:{NOTE.as_posix()}"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("missing note file case did not fail closed")
+            return 1
+        cases += 1
 
         if cases != EXPECTED_SELF_TEST_CASES:
             print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
