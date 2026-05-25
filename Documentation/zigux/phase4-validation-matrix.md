@@ -1,4 +1,5 @@
 # Phase 4 Validation Matrix
+
 ## Status
   * `PHASE4_STATUS=differential_validation_matrix_landed`
   * scope: keep the currently shipped Phase 4 rollback-readiness gates, the host-side artifact-diff contract replay, the dedicated artifact-diff determinism checker, the dedicated artifact-diff validator-replay checker, the dedicated exact-readback gate-evidence packet, the dedicated remaining-gap matrix checker, the dedicated workflow-route-count checker, the manifest-backed runtime atomic64 and bitmap rollback survey packets, and the dedicated local perf-baseline posture survey reviewable, name the rollback owners for each bounded gate or survey, and make the current CI and local replay paths explicit
@@ -44,7 +45,9 @@
 
 ## Why this exists
 
-The roadmap says Phase 4 must make future Zigux ports measurable and reversible. The repo already had the shared Phase 4 build entrypoint, validator wiring, and the bounded host-side `artifact_diff.py` contract replay, but it still needed one reviewable record that names:
+The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
+
+The repo already had the shared Phase 4 build entrypoint, validator wiring, and the bounded host-side `artifact_diff.py` contract replay, but it still needed one reviewable record that names:
   * the bounded rollback owner for each live Phase 4 gate
   * the current perf threshold status for those gates
   * the manifest-backed survey packets that keep the atomic64 wrapper-to-runtime handoff and the bitmap rollback packet measurable
@@ -68,3 +71,17 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 ## Lab And CI Matrix
   * lane surface purpose owner rollback owner bootstrap CI replay local lab replay threshold posture
   * `zigux/tests/bitmap_diff.zig` bounded broad bitmap rollback-readiness replay covering exact range and prefix cases, zero-length range and prefix no-op rollback checks, copy-tail and zero-length copy invariants, exact `find_nth_bit`, out-of-bounds rejection, manifest-backed source inventory, and checksum-pinned threshold-replay checkpoints `Shared Subsystems Pod` `Shared Subsystems Pod` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`
+  * `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` dedicated local-only perf-baseline survey keeping the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked without promoting shared CI perf approval `Validation and Perf Team` `Validation and Perf Team` reviewability only; must stay outside the shared `phase4-test` entrypoint until any shared CI perf promotion is intentionally approved `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey` `approved_local_only_for_atomic64_and_bitmap_commands_shared_ci_perf_promotion_pending`
+
+## Local-Only Perf Promotion
+  * local-only benchmark commands and acceptable limits are approved today
+  * the dedicated perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked
+  * must stay outside the shared `phase4-test` entrypoint until any shared CI perf promotion is intentionally approved
+  * any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners
+  * current replay path: `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`
+  * Validation and Perf Team owning that policy decision keeps the threshold posture bounded to current local evidence rather than shared CI approval.
+  * gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
+  * rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
+  * the dedicated local perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked while the shared promotion decision stays parked in `zigux/tests/phase4_perf_baseline_manifest.json`
+  * `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py` keeps this owner, wrapper, and threshold packet fail-closed against the matrix, the review checklist, the reversible-delivery note, and the scripts-root reminder surface
+  * shared CI perf promotion pending remains the correct roadmap-facing posture until a later bounded lane widens this local-only survey packet into broader shared-lab evidence
