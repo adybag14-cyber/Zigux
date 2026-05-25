@@ -277,6 +277,7 @@ REQUIRED_ARTIFACT_DOC_MARKERS = [
     "Current Phase 4 use",
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
     "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
@@ -303,6 +304,10 @@ REQUIRED_ARTIFACT_DOC_MARKERS = [
     "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES",
     "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT",
     "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES",
+    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT",
+    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES",
+    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT",
+    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT",
 ]
 
 REQUIRED_ARTIFACT_MATRIX_MARKERS = ["`MODE=...`", "`EXPECTED_EXISTS=...`", "`ACTUAL_EXISTS=...`"]
@@ -421,7 +426,7 @@ def build_stub_script(
                 f"LIVE_EXIT_CODE = {live_exit}",
                 f"SELF_TEST_STDOUT_LINES = {list(self_test_stdout_lines)!r}",
                 f"LIVE_STDOUT_LINES = {list(live_stdout_lines)!r}",
-                "for line in (SELF_TEST_STDOUT_LINES if args.self_test else LIVE_STDOUT_LINES):",
+                "for line in (SELF_TEST_STDOUT_LINES if args.self-test else LIVE_STDOUT_LINES):",
                 "    print(line)",
                 "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
             ]
