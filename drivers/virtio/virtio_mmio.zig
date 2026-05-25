@@ -40,6 +40,7 @@ pub const ConfigWriteDispositionSummary = struct {
     planned_value: u32,
     config_generation: u32,
     changed_byte_mask: u4,
+    changed_byte_count: u3,
     has_changes: bool,
 };
 
@@ -272,6 +273,7 @@ pub const VirtioMmioLab = struct {
         if (plan.config_generation != self.config_generation) return error.ConfigWritePlanUnavailable;
         const previous_value = try self.readConfigWord(plan.relative_offset);
         const changed_byte_mask = changedByteMask(previous_value, plan.planned_value);
+        const changed_byte_count: u3 = @intCast(@popCount(changed_byte_mask));
         return .{
             .anchor = plan.anchor,
             .relative_offset = plan.relative_offset,
@@ -282,6 +284,7 @@ pub const VirtioMmioLab = struct {
             .planned_value = plan.planned_value,
             .config_generation = plan.config_generation,
             .changed_byte_mask = changed_byte_mask,
+            .changed_byte_count = changed_byte_count,
             .has_changes = changed_byte_mask != 0,
         };
     }
@@ -544,7 +547,9 @@ test "phase10 virtio mmio config-generation bumps keep stale planned config writ
     var device = try VirtioMmioLab.init(72, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0, 1, 2, 3, 4, 5, 6, 7 });
     const plan = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0xaabb_ccdd);
-    try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);
+    const disposition = try device.configWriteDispositionSummary();
+    try std.testing.expect(disposition.has_changes);
+    try std.testing.expectEqual(@as(u3, 4), disposition.changed_byte_count);
 
     device.bumpConfigGeneration();
 
@@ -575,6 +580,7 @@ test "phase10 virtio mmio restaging config bytes clears stale planned config wri
     try std.testing.expectEqual(@as(u32, 0x0506_0708), refreshed.previous_value);
     try std.testing.expectEqual(@as(u32, 0x0506_0709), refreshed.planned_value);
     try std.testing.expectEqual(@as(u4, 0b0001), refreshed.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 1), refreshed.changed_byte_count);
 }
 
 test "phase10 virtio mmio config-write plan freshness keeps staged availability reviewable" {
@@ -801,6 +807,7 @@ test "phase10 virtio mmio disposition reports byte-level deltas without mutating
     try std.testing.expectEqual(@as(u32, 0x0203_0405), one_byte_change.previous_value);
     try std.testing.expectEqual(@as(u32, 0x0203_0407), one_byte_change.planned_value);
     try std.testing.expectEqual(@as(u4, 0b0001), one_byte_change.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 1), one_byte_change.changed_byte_count);
     try std.testing.expect(one_byte_change.has_changes);
     try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
 
@@ -808,6 +815,7 @@ test "phase10 virtio mmio disposition reports byte-level deltas without mutating
     const no_op = try device.configWriteDispositionSummary();
     try std.testing.expectEqual(@as(u32, 0x0203_0405), no_op.previous_value);
     try std.testing.expectEqual(@as(u4, 0), no_op.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 0), no_op.changed_byte_count);
     try std.testing.expect(!no_op.has_changes);
     try std.testing.expectEqualSlices(u8, before[0..8], device.config_bytes[0..8]);
 }
