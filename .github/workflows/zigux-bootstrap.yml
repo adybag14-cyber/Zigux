@@ -426,6 +426,12 @@ jobs:
       - name: Run current Phase 3 ABI dump replay
         run: zig build phase3-dump --build-file zigux/tests/build.zig
 
+      - name: Self-test current Phase 1 host-tools smoke checker
+        run: python3 scripts/zigux/check-phase1-host-tools-smoke-packet.py --self-test
+
+      - name: Check current Phase 1 host-tools smoke packet
+        run: python3 scripts/zigux/check-phase1-host-tools-smoke-packet.py
+
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
 
