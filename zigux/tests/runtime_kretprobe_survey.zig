@@ -1,0 +1,88 @@
+const std = @import("std");
+const sample = @import("runtime_kretprobe_sample");
+
+fn readRepoFileAlloc(path: []const u8, max_bytes: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+    return try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        std.testing.allocator,
+        .limited(max_bytes),
+    );
+}
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and module packet" {
+    const descriptor = sample.RuntimeKretprobeSample.descriptor();
+    try std.testing.expectEqualStrings("runtime_kretprobe", descriptor.name);
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+
+    var runtime_module = sample.RuntimeKretprobeSample{};
+    try runtime_module.init();
+    const selftest_summary = try runtime_module.runSelftest();
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", selftest_summary.anchor);
+    try std.testing.expect(selftest_summary.checked_registration_paths);
+    try std.testing.expect(selftest_summary.checked_return_paths);
+    try std.testing.expect(selftest_summary.checked_lifecycle_guards);
+    try runtime_module.exit();
+
+    const sample_file = try readRepoFileAlloc("samples/zigux/runtime_kretprobe.zig", 64 * 1024);
+    defer std.testing.allocator.free(sample_file);
+    const module_file = try readRepoFileAlloc("zigux/tests/runtime_kretprobe_module.zig", 64 * 1024);
+    defer std.testing.allocator.free(module_file);
+    const initialized_guard_file = try readRepoFileAlloc(
+        "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(initialized_guard_file);
+    const phase9_build = try readRepoFileAlloc("zigux/tests/phase9_build.zig", 64 * 1024);
+    defer std.testing.allocator.free(phase9_build);
+
+    try expectContains(sample_file, ".requires_runtime_substrate = true");
+    try expectContains(sample_file, ".provides_selftest_hook = true");
+    try expectContains(sample_file, "pub const ModuleStage = enum(u8)");
+    try expectContains(sample_file, "selftest_complete");
+    try expectContains(sample_file, "pub fn runSelftest");
+    try expectContains(sample_file, "pub fn exit");
+
+    try expectContains(
+        module_file,
+        "runtime kretprobe sample keeps selftest summary replay explicit at the module boundary",
+    );
+    try expectContains(
+        module_file,
+        "runtime kretprobe sample keeps lifecycle snapshot replay explicit at the module boundary",
+    );
+    try expectContains(
+        module_file,
+        "runtime kretprobe sample keeps initialized-stage exit replay explicit at the module boundary",
+    );
+    try expectContains(
+        module_file,
+        "runtime kretprobe sample keeps rejected re-selftest rollback explicit at the module boundary",
+    );
+    try expectContains(
+        module_file,
+        "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary",
+    );
+
+    try expectContains(
+        initialized_guard_file,
+        "phase9 kretprobe sample keeps captured initialized snapshot replay explicit across later selftest and exit",
+    );
+
+    try expectContains(phase9_build, "\"phase9-runtime-kretprobe-sample-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-kretprobe-survey-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-kretprobe-module-tests\"");
+    try expectContains(phase9_build, "\"phase9-runtime-kretprobe-tests\"");
+    try expectContains(
+        phase9_build,
+        "Run the Phase 9 runtime kretprobe sample, survey, and module lifecycle tests.",
+    );
+}
