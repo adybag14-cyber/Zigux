@@ -67,6 +67,14 @@ test "phase4 perf baseline survey keeps gate owners explicit for both landed rol
     try requireMarker("\"gate_rollback_owner\": \"Shared Subsystems Pod\"");
 }
 
+test "phase4 perf baseline survey keeps gate-surface threshold posture packet explicit" {
+    try requireMarker("\"gate_surfaces\": [");
+    try requireMarker("\"surface\": \"zigux/tests/atomic64_diff.zig\"");
+    try requireMarker("\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"");
+    try requireMarker("\"surface\": \"zigux/tests/bitmap_diff.zig\"");
+    try requireMarker("\"threshold_posture\": \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\"");
+}
+
 test "phase4 perf baseline survey keeps the dedicated packet contract reviewable" {
     try requireMarker("\"id\": \"phase4-perf-baseline-shared-promotion-decision\"");
     try requireMarker("\"status\": \"shared CI perf promotion pending\"");
