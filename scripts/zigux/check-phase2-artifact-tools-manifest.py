@@ -300,7 +300,7 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    expected_case_count = 50
+    expected_case_count = 51
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_artifact_tools_manifest_") as tmp_dir:
         root = Path(tmp_dir)
@@ -434,6 +434,14 @@ def run_self_test() -> int:
         assert (
             "INVALID_PRIMARY_TOOL_SOURCE",
             f"{(root / PRIMARY_TOOL).as_posix()}:MODE_CHOICES:expected_string_sequence",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root / PRIMARY_TOOL, 'def normalize_mode(mode: str) -> str:\n    return mode\n')
+        assert (
+            "INVALID_PRIMARY_TOOL_SOURCE",
+            f"{(root / PRIMARY_TOOL).as_posix()}:missing_MODE_CHOICES",
         ) in collect_issues(root)
         checks_run += 1
 
