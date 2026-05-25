@@ -142,6 +142,16 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strnchrNul returns the first match, NUL, or count boundary"',
 ]
 
+EXPECTED_HELPER_LOCAL_ONLY_ANCHORS = [
+    'test "memcpy_and_pad mirrors memcpyAndPad padding semantics"',
+    'test "memtostr copies a bounded non-NUL source and adds one terminator"',
+    'test "memtostr stops at embedded NUL without padding the tail"',
+    'test "memtostrPad zero-pads the remaining tail after copying"',
+    'test "memtostr helpers keep one-byte destinations terminated"',
+    'test "prefix and suffix Linux-style aliases mirror the primary helpers"',
+    'test "memchrInv keeps non-zero scans stable across the fast-path cutoff"',
+]
+
 EXPECTED_STRING_PACKET = {
     "helper_test_anchors": EXPECTED_HELPER_TEST_ANCHORS,
     "memparse_review_anchors": [
@@ -218,6 +228,7 @@ EXPECTED_STRING_PACKET = {
         "because the shared Phase 1 replay still does not carry dedicated strscpy() or "
         "strscpyPad() fixture keys"
     ),
+
     "strcmp_review_anchors": [
         'test "strcmp mirrors C-string lexical ordering"',
         'test "strcmp stops at embedded NULs and length mismatches"',
@@ -497,7 +508,7 @@ def collect_failures(root: Path) -> list[str]:
         failures.extend(require_exact_occurrence(helper_text, f"string_source:{symbol}", symbol))
 
     seen_helper_anchors = set(EXPECTED_HELPER_TEST_ANCHORS)
-    for anchor in EXPECTED_HELPER_TEST_ANCHORS:
+    for anchor in EXPECTED_HELPER_TEST_ANCHORS + EXPECTED_HELPER_LOCAL_ONLY_ANCHORS:
         failures.extend(require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor))
 
     for key, expected in EXPECTED_STRING_PACKET.items():
@@ -547,7 +558,12 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
 
 
 def sample_helper_source() -> str:
-    return "\n".join(EXPECTED_STRING_SOURCE_SYMBOLS + [""] + EXPECTED_HELPER_TEST_ANCHORS) + "\n"
+    return "\n".join(
+        EXPECTED_STRING_SOURCE_SYMBOLS
+        + [""]
+        + EXPECTED_HELPER_TEST_ANCHORS
+        + EXPECTED_HELPER_LOCAL_ONLY_ANCHORS
+    ) + "\n"
 
 
 def sample_manifest() -> str:
@@ -687,7 +703,7 @@ def run_self_test() -> int:
         if cases[5][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:duplicate_lane_marker")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -707,7 +723,7 @@ def run_self_test() -> int:
         if cases[8][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:manifest_invalid_json")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo(tmp_root)
         fixture_path.write_text("{\n", encoding="utf-8")
         if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:fixture_invalid_json")
