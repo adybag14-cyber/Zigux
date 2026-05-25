@@ -28,7 +28,7 @@
   "architecture_council_reopen_attached": false,
   "survey_summary": {
     "virtio_input_c_lines": 421,
-    "preexisting_phase10_test_files": 7,
+    "preexisting_phase10_test_files": 8,
     "preexisting_phase10_tests_root_review_companion_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_virtio_core_zig_present": true,
@@ -39,6 +39,7 @@
     "preexisting_virtio_input_registration_preflight_present": true,
     "preexisting_virtio_input_registration_preflight_test_present": true,
     "preexisting_virtio_input_teardown_preflight_present": true,
+    "preexisting_virtio_input_teardown_preflight_test_present": true,
     "preexisting_virtio_input_slice_note_present": true,
     "preexisting_virtio_input_module_note_present": true
   },
