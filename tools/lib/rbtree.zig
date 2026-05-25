@@ -225,6 +225,10 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
     insertColor(node, root);
 }
 
+pub fn rb_add(node: *Node, root: *Root, less: LessFn) void {
+    add(node, root, less);
+}
+
 pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     var link = &root.root.node;
     var parent: ?*Node = null;
@@ -842,7 +846,7 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
     var alias_root = Root.init();
     for (&primary_entries, &alias_entries) |*primary_entry, *alias_entry| {
         add(&primary_entry.node, &primary_root, less);
-        add(&alias_entry.node, &alias_root, less);
+        rb_add(&alias_entry.node, &alias_root, less);
     }
 
     try std.testing.expectEqual(@as(?*Node, null), findAdd(&primary_insert_probe.node, &primary_root, cmp));
