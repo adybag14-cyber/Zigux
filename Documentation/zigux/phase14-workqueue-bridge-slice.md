@@ -40,7 +40,7 @@ This slice note exists to keep those files aligned on the same current bounded s
 
 The bridge packet now carries explicit review-only coverage for:
 
-  * queue submission routing through `queue_work_on()` and `__queue_work()`
+  * exactly two `boundary_map_only` bridge areas: queue submission routing through `queue_work_on()` and `__queue_work()`, plus allocation and attribute shaping through `__alloc_workqueue()` and `devm_alloc_workqueue()`
   * delayed-work timer expiry and delayed requeue governance
   * flush and drain color progression
   * cancellation completion handoff through `__cancel_work_sync()`, `disable_work()`, and `__flush_work()`
@@ -49,6 +49,8 @@ The bridge packet now carries explicit review-only coverage for:
   * scheduler-visible worker-state transitions around `wq_worker_running()` and `wq_worker_sleeping()`
 
 That is enough to keep the workqueue anchor reviewable as a bounded boundary-study packet. It is not enough to claim live ownership over worker execution, callback dispatch, flush, drain, or cancellation completion, delayed-work requeue control, runtime `max_active` retuning, scheduler-visible worker-state parity, rescuer execution, or hotplug migration and topology rebinding.
+
+The current roadmap-aligned gap is therefore narrow and explicit: the boundary-map foothold is landed, but it is intentionally small. Every other named workqueue bridge area stays in the stay-in-C audit packet until the freeze-map posture changes or genuinely narrower evidence appears.
 
 ## Reviewability contract
 
