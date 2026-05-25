@@ -32,7 +32,7 @@ REQUIRED_CONF_HELPER_ANCHORS = [
     "conf bridge emits yes2modconfig argv and env",
     "conf bridge emits defconfig mode argument before kconfig",
     "conf bridge emits savedefconfig mode argument before kconfig",
-    "conf bridge escapes low control bytes in JSON strings",
+    "conf bridge escapes low control bytes in json strings",
     "mode argument validation rejects bridge option shaped defconfig payload",
     "mode argument validation accepts defconfig path that only starts with silent",
     "mode argument validation still accepts ordinary path text with equals",
@@ -57,6 +57,7 @@ REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES = [
     "allmodconfig",
     "allnoconfig",
     "allyesconfig",
+    "alldefconfig",
     "randconfig",
 ]
 
@@ -348,10 +349,10 @@ def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf
         "syncconfig_env_packet": expected_syncconfig_env_packet,
         "allconfig_sentinel_packet": expected_allconfig_sentinel_packet,
         "allconfig_override_packet": expected_allconfig_override_packet,
-        "randconfig_env_packet": expected_randconfig_env_packet,
         "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
         "helper_local_allconfig_implicit_omission_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
         "helper_local_allconfig_explicit_override_modes": REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
+        "randconfig_env_packet": expected_randconfig_env_packet,
     }
     for field_name, expected_values in sequence_fields.items():
         if manifest.get(field_name) != expected_values:
@@ -436,7 +437,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     for mode in sorted(manifest_modes - bridge_mode_set):
         issues.append(("UNSUPPORTED_CONF_CASE_MODES", mode))
 
-    manifest_mode_order = [str(case["mode"]) for case in conf_cases]
+    manifest_mode_order = [str(case["mode"] ) for case in conf_cases]
     expected_mode_order = expected_conf_case_order(conf_cases)
     if manifest_mode_order != expected_mode_order:
         issues.append(("CONF_CASE_MODE_ORDER_ACTUAL", ",".join(manifest_mode_order)))
