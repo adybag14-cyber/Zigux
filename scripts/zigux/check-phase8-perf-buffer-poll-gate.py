@@ -22,6 +22,7 @@ BRIDGE_BOUNDARY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-bound
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 PERF_BUFFER_POLL_TEST_PATH = "zigux/tests/phase8_perf_buffer_poll.zig"
+PERF_BUFFER_POLL_BUILD_PATH = "zigux/tests/phase8_perf_buffer_poll_only_build.zig"
 PERF_BUFFER_POLL_HELPER_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
 
 NOTE_REQUIRED_MARKERS = [
@@ -30,6 +31,7 @@ NOTE_REQUIRED_MARKERS = [
     "`PHASE8_SLICE=libbpf-perf-buffer-poll`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
+    "`tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig`",
     "`zigux/tests/phase8_perf_buffer_poll.zig`",
     "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
     "`zigux/tests/phase8_build.zig`",
@@ -91,6 +93,17 @@ TESTS_README_REQUIRED_MARKERS = [
     "current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set",
     "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence",
     "if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`",
+]
+
+PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS = [
+    "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    "phase8-perf-buffer-poll-tests",
+    "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
+    "phase8-ready-buffer-fd-lookup-tests",
+    "../../tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig",
+    "phase8-perf-buffer-poll-verify-tests",
+    "test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);",
+    "test_step.dependOn(&run_perf_buffer_poll_verify_tests.step);",
 ]
 
 PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
@@ -263,6 +276,7 @@ def validate(root: Path) -> list[str]:
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
         PERF_BUFFER_POLL_TEST_PATH,
+        PERF_BUFFER_POLL_BUILD_PATH,
         PERF_BUFFER_POLL_HELPER_PATH,
     )
     for rel_path in required_files:
@@ -277,6 +291,7 @@ def validate(root: Path) -> list[str]:
         (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
         (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
+        (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
     )
     for rel_path, markers in marker_groups:
@@ -294,6 +309,7 @@ def build_fixture_root(root: Path) -> None:
         (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
         (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
+        (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
     )
     for rel_path, markers in marker_groups:
@@ -322,6 +338,7 @@ def run_self_test() -> int:
             (SCRIPTS_README_PATH, SCRIPTS_README_REQUIRED_MARKERS),
             (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
             (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
+            (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
             (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
         )
         for rel_path, markers in marker_groups:
@@ -338,6 +355,7 @@ def run_self_test() -> int:
             SCRIPTS_README_PATH,
             TESTS_README_PATH,
             PERF_BUFFER_POLL_TEST_PATH,
+            PERF_BUFFER_POLL_BUILD_PATH,
             PERF_BUFFER_POLL_HELPER_PATH,
         ):
             path = base / rel_path
@@ -365,6 +383,10 @@ def run_self_test() -> int:
         f"{len(PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS)}"
     )
     print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_BUILD_FILE_MARKER_COUNT="
+        f"{len(PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS)}"
+    )
+    print(
         "PHASE8_PERF_BUFFER_POLL_GATE_HELPER_FILE_MARKER_COUNT="
         f"{len(PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS)}"
     )
@@ -376,7 +398,7 @@ def main() -> int:
         description=(
             "Check that the surviving Phase 8 perf-buffer poll packet stays aligned "
             "across the dedicated poll note, the bridge-boundary reminder, the scripts guide, "
-            "the tests guide, the bounded poll helper test, and the helper source markers."
+            "the tests guide, the focused poll build shard, the bounded poll helper test, and the helper source markers."
         )
     )
     parser.add_argument(
@@ -415,6 +437,10 @@ def main() -> int:
     print(
         "PHASE8_PERF_BUFFER_POLL_GATE_TEST_FILE_MARKER_COUNT="
         f"{len(PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS)}"
+    )
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_BUILD_FILE_MARKER_COUNT="
+        f"{len(PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS)}"
     )
     print(
         "PHASE8_PERF_BUFFER_POLL_GATE_HELPER_FILE_MARKER_COUNT="
