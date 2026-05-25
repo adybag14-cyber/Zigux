@@ -17,10 +17,10 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase11_shared_tooling_manifest.json"
 SURVEY_PATH = Path("Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md")
 
 EXPECTED_MANIFEST = {
-    "lane_key": "P11-L06",
+    "lane_key": "P11-L04",
     "phase": "Phase 11",
     "status": "shared_packet_aggregate_surface_materialized",
-    "scope": "shared Phase 11 codegen and manifest tooling",
+    "scope": "shared Phase 11 codegen and manifest tooling stale aggregate-manifest cleanup",
     "shared_docs": [
         "Documentation/zigux/phase11-shared-replay-contract.md",
         "Documentation/zigux/phase11-driver-lane-sequencing.md",
@@ -29,9 +29,14 @@ EXPECTED_MANIFEST = {
     ],
     "shared_checkers": [
         "scripts/zigux/check-phase11-build-inventory.py",
+        "scripts/zigux/check-phase11-validate-manifest-roster.py",
+        "scripts/zigux/check-phase11-validate-check-roster.py",
+        "scripts/zigux/check-phase11-validate-route-alignment.py",
+        "scripts/zigux/check-phase11-focused-direct-build-replays.py",
         "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
         "scripts/zigux/check-phase11-matrix-gap-survey.py",
         "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
+        "scripts/zigux/check-phase11-header-boundary-packet.py",
         "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
         "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
         "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
@@ -47,9 +52,11 @@ EXPECTED_MANIFEST = {
         "zigux/tests/phase11_dw_wdt_build.zig",
         "zigux/tests/phase11_dw_wdt_restart_build.zig",
         "zigux/tests/phase11_dw_wdt_pm_build.zig",
+        "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig",
         "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
         "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
         "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+        "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
         "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
         "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
         "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
@@ -65,7 +72,7 @@ EXPECTED_MANIFEST = {
     "narrow_inventory_boundary": {
         "inventory_path": "zigux/tests/fixtures/phase11_build_inventory.json",
         "inventory_scope": "HVC current-head continuity packet",
-        "aggregate_scope": "shared phase11-validate proof fan-out",
+        "aggregate_scope": "shared phase11-validate checker stack and proof fan-out",
     },
     "retired_shared_routes": [
         "make -C zigux phase11",
@@ -78,8 +85,8 @@ REQUIRED_SURVEY_MARKERS = (
     "`PHASE11_TOOLING_GAP_STATUS=shared_packet_aggregate_surface_materialized`",
     "`scripts/zigux/check-phase11-shared-tooling-manifest.py`",
     "`zigux/tests/fixtures/phase11_shared_tooling_manifest.json`",
-    "distinguishes the narrower `zigux/tests/fixtures/phase11_build_inventory.json` HVC continuity packet from the broader shared `phase11-validate` proof fan-out",
-    "The next bounded follow-through can stay smaller: wire this checker into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again.",
+    "distinguishes the narrower `zigux/tests/fixtures/phase11_build_inventory.json` HVC continuity packet from the broader shared `phase11-validate` checker stack and proof fan-out",
+    "wire `scripts/zigux/check-phase11-shared-tooling-manifest.py` into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again",
 )
 
 FORBIDDEN_SURVEY_MARKERS = (
@@ -165,8 +172,7 @@ def run_check(root: Path) -> None:
         EXPECTED_MANIFEST["retired_shared_routes"],
     )
 
-    boundary = manifest.get("narrow_inventory_boundary")
-    if boundary != EXPECTED_MANIFEST["narrow_inventory_boundary"]:
+    if manifest.get("narrow_inventory_boundary") != EXPECTED_MANIFEST["narrow_inventory_boundary"]:
         raise CheckError("narrow_inventory_boundary does not match the current Phase 11 shared tooling packet")
 
     require_existing_paths(root, EXPECTED_MANIFEST["shared_docs"], "shared_docs")
@@ -175,9 +181,6 @@ def run_check(root: Path) -> None:
     require_existing_paths(root, EXPECTED_MANIFEST["driver_local_matrices"], "driver_local_matrices")
     if not (root / EXPECTED_MANIFEST["narrow_inventory_boundary"]["inventory_path"]).exists():
         raise CheckError("missing narrow inventory path")
-
-    if "zigux/tests/phase11_build.zig" in EXPECTED_MANIFEST["proof_builds"]:
-        raise CheckError("proof_builds unexpectedly includes retired shared replay route")
 
     require_text_markers("phase11-codegen-manifest-tooling-gap-survey.md", survey_text, REQUIRED_SURVEY_MARKERS)
     forbid_text_markers("phase11-codegen-manifest-tooling-gap-survey.md", survey_text, FORBIDDEN_SURVEY_MARKERS)
@@ -199,8 +202,8 @@ def build_fixture(root: Path) -> None:
                 "- `PHASE11_TOOLING_GAP_STATUS=shared_packet_aggregate_surface_materialized`",
                 "- `scripts/zigux/check-phase11-shared-tooling-manifest.py`",
                 "- `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`",
-                "- distinguishes the narrower `zigux/tests/fixtures/phase11_build_inventory.json` HVC continuity packet from the broader shared `phase11-validate` proof fan-out",
-                "- The next bounded follow-through can stay smaller: wire this checker into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again.",
+                "- distinguishes the narrower `zigux/tests/fixtures/phase11_build_inventory.json` HVC continuity packet from the broader shared `phase11-validate` checker stack and proof fan-out",
+                "- wire `scripts/zigux/check-phase11-shared-tooling-manifest.py` into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again",
             )
         )
         + "\n",
@@ -253,7 +256,7 @@ def run_self_test() -> int:
 
         missing_build = tmpdir / "missing_build"
         shutil.copytree(fixture, missing_build, dirs_exist_ok=True)
-        (missing_build / "zigux/tests/phase11_hvc_modem_control_proof_build.zig").unlink()
+        (missing_build / "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig").unlink()
         expect_failure(missing_build, "missing path from proof_builds")
         case_count += 1
 
