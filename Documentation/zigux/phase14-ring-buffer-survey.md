@@ -34,7 +34,7 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `head-page-reader-handoff`: keep `rb_handle_head_page()`, `rb_set_head_page()`, and `ring_buffer_read_page()` in C because head-page rotation, reader-page extraction, and commit-page adjacency still move together.
 - `remote-reader-metadata`: keep `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()` in C because callback-driven metadata refresh and remote reader-page import rules sit on top of the already-coupled local model.
 - `wakeup-watermark-mmap-boundary`: keep `rb_wake_up_waiters()`, `rb_watermark_hit()`, `ring_buffer_wait()`, `ring_buffer_poll_wait()`, and `rb_update_meta_page()` in C because irq-work wakeups, full-waiter watermarks, and mapped-reader publication still describe one shared reader-visible contract.
-- `tracefs-mapping-limitations`: keep `ring_buffer_map()`, `ring_buffer_resize()`, `ring_buffer_swap_cpu()`, `ring_buffer_map_get_reader()`, and `tracing_buffers_splice_read()` in C because mapped-reader lockouts, snapshot restrictions, and splice fallback remain one shared tracefs-facing policy surface.
+- `tracefs-mapping-limitations`: keep `ring_buffer_map()`, `ring_buffer_resize()`, `ring_buffer_swap_cpu()`, `ring_buffer_map_get_reader()`, `rb_remove_pages()`, and `tracing_buffers_splice_read()` in C because mapped-reader lockouts, snapshot restrictions, teardown lifetime, and splice fallback remain one shared tracefs-facing policy surface.
 - `reader-page-consume-boundary`: keep `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` in C because reader-page swaps, lost-event publication, iterator setup, and reader-side resize pinning still form one shared handoff rather than a wrapper-safe helper seam.
 
 ## Overwrite and lost-event audit
@@ -66,6 +66,8 @@ That limitation is product-visible behavior, not a hidden implementation detail.
 `ring_buffer_swap_cpu()` rejects mapped buffers outright, and `kernel/trace/trace.c` only allocates snapshot buffers for non-mapped instances, which means snapshot support still depends on shared trace-array and mapped-buffer coordination rather than a local wrapper seam.
 - Splice behavior also remains tied to the mapped-reader contract.
 The docs say mapped buffers lose the copyless swap path, and `tracing_buffers_splice_read()` falls back to allocating read pages, calling `ring_buffer_read_page()`, and pushing those pages through `splice_to_pipe()`, so the tracefs read path stays coupled to the same mapped-reader bookkeeping instead of exposing a separate zero-copy bridge candidate.
+- rb_remove_pages() keeps mapped-reader lifetime teardown in the same C-owned boundary.
+Once mapping-side restrictions and reader-page ownership have pinned the buffer layout, page removal and return-to-kernel teardown still have to honor that same mapped-reader contract instead of acting like a detached cleanup helper.
 - `TRACE_MMAP_IOCTL_GET_READER` reinforces that this is still one shared boundary.
 The ioctl waits through `ring_buffer_wait()` when blocking reads are allowed and then delegates to `ring_buffer_map_get_reader()`, so mapped-reader advancement, wakeups, lost-event publication, and the resize or snapshot lockouts all remain coordinated in C.
 
