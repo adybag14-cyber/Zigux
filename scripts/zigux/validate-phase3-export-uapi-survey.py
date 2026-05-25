@@ -12,6 +12,7 @@ VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 EXPORT_SHIM_PATH = Path("zigux/kernel/export_shim.zig")
 BINDING_VERSION_PATH = Path("zigux/bindings/version.zig")
 BINDING_DEV_T_PATH = Path("zigux/bindings/dev_t.zig")
+BINDING_HEADER_FAMILY_PATH = Path("zigux/bindings/header_family.zig")
 UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 LINUX_HEADER_PATH = Path("include/linux/zigux.h")
@@ -36,9 +37,10 @@ REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+        "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
+        "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
-        "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
@@ -73,6 +75,7 @@ REQUIRED_MARKERS = {
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
+        'BINDING_HEADER_FAMILY_PATH = Path("zigux/bindings/header_family.zig")',
         'EXPORT_SHIM_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_shim_build.zig")',
         'LAYOUT_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")',
         'MAKEFILE_PATH = Path("zigux/Makefile")',
@@ -92,6 +95,12 @@ REQUIRED_MARKERS = {
     BINDING_DEV_T_PATH: (
         "pub fn makeDeviceNumber(major: u32, minor: u32) u32 {",
         "pub fn validateRange(start: Fields, end: Fields) bool {",
+    ),
+    BINDING_HEADER_FAMILY_PATH: (
+        "pub const abi_major: u32 = uapi_version.abi_major;",
+        "pub fn validateVersionStatus(version: Version) ExportStatus {",
+        "pub fn boundaryHeaderHasCurrentAbiVersion(abi_version_value: u16) bool {",
+        "pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {",
     ),
     UAPI_VERSION_PATH: (
         "pub fn matchesCurrent(version: Version) bool {",
@@ -259,6 +268,11 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
+            "expected missing export/uapi header-family binding marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_EXPORT_SHIM_BUILD_PATH=zigux/tests/phase3_export_shim_build.zig",
             "expected missing focused export-shim build path marker was not reported",
         ),
@@ -326,6 +340,11 @@ def run_self_test() -> int:
             TESTS_BUILD_PATH,
             'root_module.addImport("header_family_binding", header_family_binding);',
             "expected missing shared tests-root header-family import marker was not reported",
+        ),
+        (
+            BINDING_HEADER_FAMILY_PATH,
+            "pub fn validateVersionStatus(version: Version) ExportStatus {",
+            "expected missing header-family binding status marker was not reported",
         ),
         (
             EXPORT_SHIM_BUILD_HANDOFF_PATH,
