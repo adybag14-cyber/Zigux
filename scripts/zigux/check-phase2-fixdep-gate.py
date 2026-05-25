@@ -154,11 +154,27 @@ CLOSURE_REQUIRED_MARKERS = (
     "fixture-backed artifact",
 )
 
+FIXDEP_CLOSURE_REQUIRED_MARKERS = (
+    "`scripts/zigux/check-phase2-fixdep-gate.py`",
+    "`scripts/zigux/check-fixdep-diff.py`",
+    "`scripts/zigux/fixdep.zig`",
+    "`zigux/tests/fixtures/fixdep/cases.json`",
+    "`make -C zigux phase2-fixdep`",
+)
+
 TESTS_README_REQUIRED_MARKERS = (
     "Phase 2 review packet",
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
     "`make -C zigux phase2`",
+)
+
+FIXDEP_TESTS_README_REQUIRED_MARKERS = (
+    "`scripts/zigux/check-phase2-fixdep-gate.py`",
+    "`scripts/zigux/check-fixdep-diff.py`",
+    "`scripts/zigux/fixdep.zig`",
+    "`zigux/tests/fixtures/fixdep/cases.json`",
+    "`make -C zigux phase2-fixdep`",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -203,7 +219,9 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(REQUIRED_FIXDEP_CASE_NAMES)
     + 9
     + len(CLOSURE_REQUIRED_MARKERS)
+    + len(FIXDEP_CLOSURE_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
+    + len(FIXDEP_TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_MAKEFILE_PHONY_TARGETS)
@@ -398,7 +416,21 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     issues.extend(
         collect_missing_markers(
+            closure_text,
+            FIXDEP_CLOSURE_REQUIRED_MARKERS,
+            "MISSING_FIXDEP_CLOSURE_MARKER",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
             tests_readme_text, TESTS_README_REQUIRED_MARKERS, "MISSING_TESTS_README_MARKER"
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            tests_readme_text,
+            FIXDEP_TESTS_README_REQUIRED_MARKERS,
+            "MISSING_FIXDEP_TESTS_README_MARKER",
         )
     )
     issues.extend(
@@ -604,6 +636,11 @@ def build_self_test_root(root: Path) -> None:
                 "- `Documentation/zigux/phase2-closure.md`",
                 "- `zigux/Makefile`",
                 "- `zigux/tests/README.md`",
+                "- `scripts/zigux/check-phase2-fixdep-gate.py`",
+                "- `scripts/zigux/check-fixdep-diff.py`",
+                "- `scripts/zigux/fixdep.zig`",
+                "- `zigux/tests/fixtures/fixdep/cases.json`",
+                "- `make -C zigux phase2-fixdep`",
                 "The bounded Phase 2 tranche remains the directly readable toolchain, kbuild-route, kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact packet already present on current `master`.",
             )
         )
@@ -618,6 +655,11 @@ def build_self_test_root(root: Path) -> None:
                 "`Documentation/zigux/phase2-closure.md`",
                 "`zigux/Makefile`",
                 "`make -C zigux phase2`",
+                "`scripts/zigux/check-phase2-fixdep-gate.py`",
+                "`scripts/zigux/check-fixdep-diff.py`",
+                "`scripts/zigux/fixdep.zig`",
+                "`zigux/tests/fixtures/fixdep/cases.json`",
+                "`make -C zigux phase2-fixdep`",
             )
         )
         + "\n",
@@ -823,11 +865,25 @@ def run_self_test() -> int:
             assert ("MISSING_CLOSURE_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in FIXDEP_CLOSURE_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            path = resolve(root, PHASE2_CLOSURE_REL)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_FIXDEP_CLOSURE_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
         for marker in TESTS_README_REQUIRED_MARKERS:
             build_self_test_root(root)
             path = resolve(root, TESTS_README_REL)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_TESTS_README_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in FIXDEP_TESTS_README_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            path = resolve(root, TESTS_README_REL)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_FIXDEP_TESTS_README_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in REQUIRED_WORKFLOW_LINES:
