@@ -25,6 +25,11 @@ DIRECT_SUMMARY_CHECKER_PATH = "scripts/zigux/check-phase9-trace-events-direct-su
 SUMMARY_PRESERVATION_CHECKER_PATH = "scripts/zigux/check-phase9-trace-events-summary-preservation.py"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
+PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
+PHASE2_CONFDATA_BRIDGE_MARKER = "`scripts/zigux/kconfig/confdata_bridge.zig`"
+PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
+PHASE3_EXPORT_SHIM_MARKER = "`zigux/kernel/export_shim.zig`"
+
 
 def infer_repo_root() -> Path:
     for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
@@ -88,6 +93,13 @@ FILE_MARKERS: dict[str, list[str]] = {
         "sample-local pilot-module reviewability",
         "broader shared runtime-loader packet",
         "`zigux/tests/phase9_build.zig`",
+        PHASE2_CONF_BRIDGE_MARKER,
+        PHASE2_CONFDATA_BRIDGE_MARKER,
+        PHASE3_EXPORTS_MARKER,
+        PHASE3_EXPORT_SHIM_MARKER,
+        "- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references.",
+        "- `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.",
+        "- Those earlier-phase anchors stay adjacent context for the narrow trace-events packet rather than shared runtime-pilot evidence.",
         "Do not invent `validate-phase9.py`",
     ],
     SAMPLES_README_PATH: [
@@ -238,7 +250,7 @@ FILE_MARKERS: dict[str, list[str]] = {
 FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
     SURVEY_NOTE_PATH: [
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay: `error.OutstandingRegistration` leaves the initialized direct-activity summary unchanged after one main replay plus one function-thread replay, the later unregister stays explicit, and the module can still reach the selftest_complete summary without drift.",
-        'Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one later function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.',
+        'Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.',
     ],
     MODULE_SLICE_PATH: [
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay by proving `error.OutstandingRegistration` leaves one main replay plus one function-thread replay unchanged until unregister and the later `runSelftest()` replay succeeds without drift.",
