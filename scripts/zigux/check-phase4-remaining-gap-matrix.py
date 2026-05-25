@@ -53,7 +53,7 @@ TEST_FSMOUNT_REVERSIBLE_DELIVERY_EVIDENCE = (
 TEST_FSMOUNT_NEXT_BOUNDED_EVIDENCE_STEP = (
     "keep the dedicated parked survey packet adjacent to the shared gate-evidence "
     "note, the shared Phase 4 exact-readback packet, the validation matrix, the "
-    "explicit bootstrap-CI posture, the explicit reviewability-only "
+    "explicit bootstrap-CI posture, the explicit local lab replay marker, the explicit reviewability-only "
     "no-perf-threshold posture, the dedicated local `zig build "
     "phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig` survey "
     "wrapper, and the matching Linux-style `make -C zigux "
@@ -371,7 +371,7 @@ def write_fixture_tree(root: Path) -> None:
                 "phase": "Phase 4",
                 "surveyed_commit": TEST_FSMOUNT_SURVEYED_COMMIT,
                 "c_anchor": "samples/vfs/test-fsmount.c",
-                "roadmap_destinations": ["samples/zigux/test_fsmount.zig"],
+                "roadmap_destinations": ["samples/zigux/test_fsmount.zig"]),
                 "current_linux_replay": "make M=samples/vfs",
                 "local_lab_replay": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
                 "dedicated_local_survey_wrapper": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
