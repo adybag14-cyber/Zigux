@@ -103,6 +103,7 @@ BASE_REQUIRED_PRESENT_SURFACES = {
         "Documentation/zigux/README.md",
         "Documentation/zigux/phase2-closure.md",
         "Documentation/zigux/review-checklist.md",
+        "scripts/zigux/README.md",
         "zigux/tests/README.md",
     ),
     "closure_notes": (
@@ -260,6 +261,7 @@ REQUIRED_NOTE_MARKERS = (
     "Keep the dedicated manifest guards, the primary artifact_diff helper, the helper-local kconfig allconfig guard, and the dedicated genksyms selftest-alignment guard explicit through scripts/zigux/check-phase2-tool-manifest.py, scripts/zigux/check-phase2-artifact-tools-manifest.py, scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py, scripts/zigux/artifact_diff.py, and scripts/zigux/check-phase2-genksyms-selftest-alignment.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
     "Keep the returned install-zig archive verification checker, staged pinned-archive helper, and the stage-helper contract plus selftest packet explicit beside the local-first archive workflow, archive README contract, and installer helper so the shared Phase 2 tool packet matches the live phase2-toolchain and validate-phase2 routes.",
     "Keep the returned installer helper, local-first archive workflow checkers, third_party archive README contract, repo-local pinned archive payload, direct cross-route checker, phase2_cross_targets fixture, the manifest-backed genksyms fixture packet, its restored process-output fixture set, the standalone invalid-long-option and ambiguous-long-option version-side-effect proofs, the full fixdep C-versus-Zig parity fixture packet, and the artifact-support manifest checker plus primary artifact_diff helper explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+    "Keep scripts/zigux/README.md explicit as the shipped scripts-root reminder surface for the same current Phase 2 toolchain, kbuild, installer, cross-route, and make-wrapper packet that the docs-root, tests-root, and checklist surfaces summarize.",
 )
 
 
