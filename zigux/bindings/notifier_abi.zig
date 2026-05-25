@@ -116,6 +116,12 @@ pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?NotifierChainPri
     return null;
 }
 
+pub fn listIsEmpty(head: ?*const ListHead) bool {
+    const sentinel = head orelse return false;
+    const sentinel_ptr = @intFromPtr(sentinel);
+    return sentinel.next == sentinel_ptr and sentinel.prev == sentinel_ptr;
+}
+
 pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {
     const sentinel = head orelse return null;
     var expected_prev = @intFromPtr(sentinel);
@@ -389,6 +395,33 @@ test "notifier priority increase helper reports the first increase" {
     try std.testing.expectEqual(@as(usize, 3), increase.current_index);
     try std.testing.expectEqual(@as(i32, 2), increase.previous_priority);
     try std.testing.expectEqual(@as(i32, 7), increase.current_priority);
+}
+
+test "list emptiness helper accepts a sentinel-only list" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    head.next = @intFromPtr(&head);
+    head.prev = @intFromPtr(&head);
+
+    try std.testing.expect(listIsEmpty(&head));
+}
+
+test "list emptiness helper treats a null head as absent rather than empty" {
+    try std.testing.expect(!listIsEmpty(null));
+}
+
+test "list emptiness helper rejects a list with nodes or a broken sentinel" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var first = ListHead{ .next = 0, .prev = 0 };
+
+    head.next = @intFromPtr(&first);
+    head.prev = @intFromPtr(&first);
+    first.next = @intFromPtr(&head);
+    first.prev = @intFromPtr(&head);
+    try std.testing.expect(!listIsEmpty(&head));
+
+    head.next = @intFromPtr(&head);
+    head.prev = 0;
+    try std.testing.expect(!listIsEmpty(&head));
 }
 
 test "list helper accepts a sentinel-only list" {
