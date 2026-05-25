@@ -55,11 +55,10 @@ EXPECTED_DIRECT_PACKET_PATHS = [
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
 ]
-EXPECTED_MISSING_BROADER_PATHS = [
-    "zigux/tests/phase15_build.zig",
-]
+EXPECTED_MISSING_BROADER_PATHS = []
 EXPECTED_PHASE15_VALIDATE_CHECKERS = [
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
@@ -79,7 +78,7 @@ EXPECTED_REPO_EVIDENCE = {
     "phase15_governance_lane_replay_present": True,
     "phase15_handoff_manifest_present": True,
     "phase15_review_process_build_replay_present": True,
-    "phase15_build_zig_present": False,
+    "phase15_build_zig_present": True,
     "phase15_indefinite_c_lane_owner_alignment_present": True,
     "phase15_makefile_present": True,
     "phase15_validate_target_present": False,
@@ -95,6 +94,7 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
     "the dedicated validator now exists as a directly readable maintenance gate",
+    "the dedicated shared-build companion is now directly readable current-master evidence",
     "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_freeze_map_governance.zig`",
     "`zigux/tests/phase15_build.zig`",
@@ -118,6 +118,18 @@ def _read_text(path: Path) -> str:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def _placeholder_for(rel: str) -> str:
+    if rel.endswith(".py"):
+        return "#!/usr/bin/env python3\n"
+    if rel.endswith(".json"):
+        return "{}\n"
+    if rel.endswith(".md"):
+        return f"# Placeholder for {rel}\n"
+    if rel.endswith(".zig"):
+        return 'const std = @import("std");\n\ntest "placeholder" {\n    try std.testing.expect(true);\n}\n'
+    return "\n"
 
 
 def _makefile_has_target(root: Path, target: str) -> bool:
@@ -166,8 +178,10 @@ def collect_failures(root: Path) -> list[str]:
         if repo_evidence.get(key) != expected:
             failures.append(f"repo_evidence:{key}:{repo_evidence.get(key)!r}")
 
-    if (root / BUILD_PATH).exists():
-        failures.append(f"unexpected_materialized_path:{BUILD_PATH}")
+    for rel in EXPECTED_DIRECT_PACKET_PATHS:
+        if not (root / rel).exists():
+            failures.append(f"missing_direct_packet_path:{rel}")
+
     if _makefile_has_target(root, "phase15-validate"):
         failures.append("unexpected_make_target:phase15-validate")
     if _makefile_has_target(root, "phase15-test"):
@@ -198,12 +212,13 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
-- role: keep the current Phase 15 governance packet honest now that the dedicated validator exists as a directly readable maintenance gate, while the broader build and route companions still remain blocked on current `master`
+- role: keep the current Phase 15 governance packet honest now that the dedicated validator exists as a directly readable maintenance gate, the shared build companion is materialized, and the broader route and workflow companions still remain blocked on current `master`
 
-This survey keeps those two truths together:
+This survey keeps those four truths together:
 - the governance packet is materially landed and reviewable
 - the dedicated validator now exists as a directly readable maintenance gate
-- the broader build and workflow companions still block any claim that the larger Phase 15 replay route is fully ready
+- the dedicated shared-build companion is now directly readable current-master evidence
+- the broader make-wrapper and workflow companions still block any claim that the larger Phase 15 replay route is one-command or shared-CI ready
 
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
@@ -232,11 +247,15 @@ def _sample_manifest() -> str:
 def write_fixture_root(root: Path) -> None:
     _write(root / READINESS_NOTE_PATH, _sample_note())
     _write(root / MANIFEST_PATH, _sample_manifest())
-    _write(root / CHECKER_PATH, "#!/usr/bin/env python3\n")
-    _write(root / SCRIPTS_CHECKER_PATH, "#!/usr/bin/env python3\n")
-    _write(root / VALIDATOR_PATH, "#!/usr/bin/env python3\n")
     _write(root / MAKEFILE_PATH, "phase2-toolchain:\n\t@true\n")
     _write(root / WORKFLOW_PATH, "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-readiness-gate-packet.py\n")
+
+    for rel in EXPECTED_DIRECT_PACKET_PATHS:
+        if rel == str(MANIFEST_PATH):
+            continue
+        _write(root / rel, _placeholder_for(rel))
+    for rel in EXPECTED_PHASE15_VALIDATE_CHECKERS:
+        _write(root / rel, _placeholder_for(rel))
 
 
 def run_self_test() -> int:
@@ -251,9 +270,9 @@ def run_self_test() -> int:
 
         build_root = base / "build"
         write_fixture_root(build_root)
-        _write(build_root / BUILD_PATH, "const std = @import(\"std\");\n")
+        (build_root / BUILD_PATH).unlink()
         failures = collect_failures(build_root)
-        if failures != [f"unexpected_materialized_path:{BUILD_PATH}"]:
+        if failures != [f"missing_direct_packet_path:{BUILD_PATH}"]:
             raise AssertionError(f"unexpected build-path failure: {failures}")
 
         make_root = base / "make"
