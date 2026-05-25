@@ -164,6 +164,43 @@ test "phase 7 rbtree companion replays cached-leftmost promotion and erase-init 
     try std.testing.expectEqual(@as(?*rbtree.Node, null), root.root.node);
 }
 
+test "phase 7 rbtree companion replays non-leftmost cached erase ownership boundaries" {
+    const Entry = struct {
+        key: i32,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 15 };
+    var root = rbtree.RootCached.init();
+
+    _ = rbtree.addCached(&root_entry.node, &root, less);
+    _ = rbtree.addCached(&left_entry.node, &root, less);
+    _ = rbtree.addCached(&right_entry.node, &root, less);
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, &left_entry.node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(rbtree.first(&root.root), rbtree.firstCached(&root));
+
+    try std.testing.expect(rbtree.rb_erase_cached(&root_entry.node, &root) == null);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &left_entry.node), rbtree.firstCached(&root));
+    try std.testing.expectEqual(rbtree.first(&root.root), rbtree.firstCached(&root));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &left_entry.node), rbtree.prev(&right_entry.node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, &right_entry.node), rbtree.next(&left_entry.node));
+    try std.testing.expect(!rbtree.emptyNode(&root_entry.node));
+
+    rbtree.clearNode(&root_entry.node);
+    try std.testing.expect(rbtree.emptyNode(&root_entry.node));
+}
+
 test "phase 7 rbtree companion replays singleton cached erase ownership until clearNode" {
     const Entry = struct {
         key: i32,
