@@ -169,6 +169,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
     try expectContains(survey, "kstrdupQuotableFile");
     try expectContains(survey, "kstrdup_quotable_file");
+    try expectContains(survey, "* `*bitmap*`");
     try expectContains(survey, "* `*printf*`");
     try expectContains(survey, "* `*vsprintf*`");
     try expectContains(survey, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");
@@ -224,6 +225,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContainsCount(samples_readme, "* `*kasprintf*`", 1);
     try expectContains(samples_readme, "* `*strarray*`");
     try expectContainsCount(samples_readme, "* `*strarray*`", 1);
+    try expectContains(samples_readme, "* `*bitmap*`");
+    try expectContainsCount(samples_readme, "* `*bitmap*`", 1);
     try expectContains(samples_readme, "* `*printf*`");
     try expectContainsCount(samples_readme, "* `*printf*`", 1);
     try expectContains(samples_readme, "* `*vsprintf*`");
