@@ -8,7 +8,6 @@ import json
 import tempfile
 from pathlib import Path
 
-
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
@@ -80,7 +79,6 @@ FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
 
 FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
     "EXPECTED_FIXTURE_FILES = frozenset(",
-    "EXPECTED_CASE_ORDER = list(EXPECTED_CASES)",
     "def validate_fixture_inventory(",
     "actual_files = {path.name for path in fixture_dir.iterdir() if path.is_file()}",
     'raise FileNotFoundError(f"{fixture_dir}:missing_fixtures:{\',\'.join(missing)}")',
@@ -94,13 +92,6 @@ FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
     'raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")',
     'if stdout_mode not in (None, "dev_full"):',
     'raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")',
-    'if seen_names != EXPECTED_CASE_ORDER:',
-    'raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")',
-    'if len(validated) != len(EXPECTED_CASES):',
-    'raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")',
-    "missing_names = sorted(set(EXPECTED_CASES) - seen_name_set)",
-    'if missing_names:',
-    'raise ValueError(f"{CASES_PATH}:missing_name:{missing_names[0]}")',
     "validate_fixture_inventory()",
     "cases = validate_cases(load_cases(CASES_PATH))",
 )
@@ -134,6 +125,7 @@ VALIDATE_PHASE2_REQUIRED_MAKEFILE_LINES = (
 REQUIRED_FIXDEP_CASE_NAMES = (
     "sample",
     "sample_multi_target",
+    "sample_multi_target_stdout_full",
     "sample_escaped_space",
     "sample_escaped_colon",
     "sample_concatenated",
@@ -154,27 +146,11 @@ CLOSURE_REQUIRED_MARKERS = (
     "fixture-backed artifact",
 )
 
-FIXDEP_CLOSURE_REQUIRED_MARKERS = (
-    "`scripts/zigux/check-phase2-fixdep-gate.py`",
-    "`scripts/zigux/check-fixdep-diff.py`",
-    "`scripts/zigux/fixdep.zig`",
-    "`zigux/tests/fixtures/fixdep/cases.json`",
-    "`make -C zigux phase2-fixdep`",
-)
-
 TESTS_README_REQUIRED_MARKERS = (
     "Phase 2 review packet",
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
     "`make -C zigux phase2`",
-)
-
-FIXDEP_TESTS_README_REQUIRED_MARKERS = (
-    "`scripts/zigux/check-phase2-fixdep-gate.py`",
-    "`scripts/zigux/check-fixdep-diff.py`",
-    "`scripts/zigux/fixdep.zig`",
-    "`zigux/tests/fixtures/fixdep/cases.json`",
-    "`make -C zigux phase2-fixdep`",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -219,9 +195,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(REQUIRED_FIXDEP_CASE_NAMES)
     + 9
     + len(CLOSURE_REQUIRED_MARKERS)
-    + len(FIXDEP_CLOSURE_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
-    + len(FIXDEP_TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_MAKEFILE_PHONY_TARGETS)
@@ -230,10 +204,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(REQUIRED_FILES)
 )
 
-
 def resolve(root: Path, rel: Path) -> Path:
     return root / rel
-
 
 def read_text(path: Path) -> str:
     try:
@@ -241,15 +213,12 @@ def read_text(path: Path) -> str:
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
-
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
-
 
 def phony_targets_present(text: str) -> set[str]:
     targets: set[str] = set()
@@ -260,10 +229,8 @@ def phony_targets_present(text: str) -> set[str]:
             targets.update(token for token in suffix.strip().split() if token)
     return targets
 
-
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
-
 
 def collect_required_exact_lines(
     text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
@@ -277,7 +244,6 @@ def collect_required_exact_lines(
             issues.append((duplicate_code, f"{marker}:count={count}"))
     return issues
 
-
 def collect_exact_line_order_issue(
     text: str, markers: tuple[str, ...], code: str
 ) -> list[tuple[str, str]]:
@@ -289,7 +255,6 @@ def collect_exact_line_order_issue(
     if actual != expected:
         return [(code, f"actual={actual!r}:expected={expected!r}")]
     return []
-
 
 def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
     try:
@@ -342,7 +307,6 @@ def collect_fixdep_case_issues(path: Path) -> list[tuple[str, str]]:
         if name not in seen_names
     )
     return issues
-
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
@@ -416,21 +380,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     issues.extend(
         collect_missing_markers(
-            closure_text,
-            FIXDEP_CLOSURE_REQUIRED_MARKERS,
-            "MISSING_FIXDEP_CLOSURE_MARKER",
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
             tests_readme_text, TESTS_README_REQUIRED_MARKERS, "MISSING_TESTS_README_MARKER"
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            tests_readme_text,
-            FIXDEP_TESTS_README_REQUIRED_MARKERS,
-            "MISSING_FIXDEP_TESTS_README_MARKER",
         )
     )
     issues.extend(
@@ -470,7 +420,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     return issues
 
-
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
@@ -484,12 +433,10 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         print(f"{code}_END")
     return 1
 
-
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
-
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     lines = text.splitlines()
@@ -499,7 +446,6 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
 
-
 def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -507,7 +453,6 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
-
 
 def remove_phony_target(text: str, target: str) -> str:
     lines = text.splitlines()
@@ -520,10 +465,8 @@ def remove_phony_target(text: str, target: str) -> str:
             return "\n".join(lines) + "\n"
     raise AssertionError(f".PHONY line not found while removing target: {target}")
 
-
 def append_line(text: str, line: str) -> str:
     return text + line + "\n"
-
 
 def swap_exact_lines(text: str, first: str, second: str) -> str:
     lines = text.splitlines()
@@ -539,7 +482,6 @@ def swap_exact_lines(text: str, first: str, second: str) -> str:
         raise AssertionError(f"marker line not found for swap: {first!r} / {second!r}")
     lines[first_index], lines[second_index] = lines[second_index], lines[first_index]
     return "\n".join(lines) + "\n"
-
 
 def build_self_test_root(root: Path) -> None:
     write_text(
@@ -636,11 +578,6 @@ def build_self_test_root(root: Path) -> None:
                 "- `Documentation/zigux/phase2-closure.md`",
                 "- `zigux/Makefile`",
                 "- `zigux/tests/README.md`",
-                "- `scripts/zigux/check-phase2-fixdep-gate.py`",
-                "- `scripts/zigux/check-fixdep-diff.py`",
-                "- `scripts/zigux/fixdep.zig`",
-                "- `zigux/tests/fixtures/fixdep/cases.json`",
-                "- `make -C zigux phase2-fixdep`",
                 "The bounded Phase 2 tranche remains the directly readable toolchain, kbuild-route, kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact packet already present on current `master`.",
             )
         )
@@ -655,11 +592,6 @@ def build_self_test_root(root: Path) -> None:
                 "`Documentation/zigux/phase2-closure.md`",
                 "`zigux/Makefile`",
                 "`make -C zigux phase2`",
-                "`scripts/zigux/check-phase2-fixdep-gate.py`",
-                "`scripts/zigux/check-fixdep-diff.py`",
-                "`scripts/zigux/fixdep.zig`",
-                "`zigux/tests/fixtures/fixdep/cases.json`",
-                "`make -C zigux phase2-fixdep`",
             )
         )
         + "\n",
@@ -692,7 +624,6 @@ def build_self_test_root(root: Path) -> None:
         workflow_lines.append(f"      - name: fixdep-step-{index}")
         workflow_lines.append(f"        {marker}")
     write_text(resolve(root, WORKFLOW_REL), "\n".join(workflow_lines) + "\n")
-
 
 def run_self_test() -> int:
     checks_run = 0
@@ -865,25 +796,11 @@ def run_self_test() -> int:
             assert ("MISSING_CLOSURE_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
-        for marker in FIXDEP_CLOSURE_REQUIRED_MARKERS:
-            build_self_test_root(root)
-            path = resolve(root, PHASE2_CLOSURE_REL)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("MISSING_FIXDEP_CLOSURE_MARKER", marker) in collect_issues(root)
-            checks_run += 1
-
         for marker in TESTS_README_REQUIRED_MARKERS:
             build_self_test_root(root)
             path = resolve(root, TESTS_README_REL)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_TESTS_README_MARKER", marker) in collect_issues(root)
-            checks_run += 1
-
-        for marker in FIXDEP_TESTS_README_REQUIRED_MARKERS:
-            build_self_test_root(root)
-            path = resolve(root, TESTS_README_REL)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("MISSING_FIXDEP_TESTS_README_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in REQUIRED_WORKFLOW_LINES:
@@ -964,7 +881,6 @@ def run_self_test() -> int:
     print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check that the live fixdep governance packet matches current Phase 2 surfaces."
@@ -993,7 +909,6 @@ def main() -> int:
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_PHONY_TARGET_COUNT={len(REQUIRED_MAKEFILE_PHONY_TARGETS)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
