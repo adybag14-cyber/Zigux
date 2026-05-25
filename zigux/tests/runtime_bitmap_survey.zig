@@ -130,6 +130,8 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(survey_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(survey_note, "`zigux/tests/runtime_bitmap_diff.zig`");
     try expectContains(survey_note, "the current runtime bitmap reminder packet is still `partial_packet_with_diff_but_without_broader_runtime_loader_parity`");
+    try expectContains(survey_note, "the Phase 9 roadmap target is still `first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity`");
+    try expectContains(survey_note, "the blocked deliverable remains `loadable Phase 9 runtime bitmap pilot module parity`");
     try expectContains(survey_note, "manifest-backed ownership packet");
     try expectContains(survey_note, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
     try expectContains(survey_note, "Keep the direct sample zero-length and rejected range-mutation replay explicit when reminder text summarizes sample-local range, summary, and parse stability.");
@@ -149,6 +151,8 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(module_slice_note, "none on the trusted current-tree read path");
     try expectContains(module_slice_note, "`phase9-runtime-bitmap-direct-init-contract-tests`");
     try expectContains(module_slice_note, "The shared `zigux/tests/phase9_build.zig` bundle reruns the direct sample, direct-init companion, cold-stage guard, loader, module, survey, diff gate, and top-bit companion through the dedicated `phase9-runtime-bitmap-direct-init-contract-tests`, `phase9-runtime-bitmap-cold-stage-guard-tests`, and `phase9-runtime-bitmap-top-bit-tests` routes plus the aggregate `phase9-runtime-bitmap-tests` handle.");
+    try expectContains(module_slice_note, "the Phase 9 roadmap target is still `first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity`");
+    try expectContains(module_slice_note, "the blocked follow-through remains `broader shared runtime-loader family completion plus loadable runtime bitmap module parity`");
 
     try expectContains(lane_sequencing_note, "### 3. The runtime bitmap side now returns a broader direct packet without promoting the broader shared runtime-loader boundaries");
     try expectContains(lane_sequencing_note, "`zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` now return on the trusted path as the module-side descriptor and lifecycle packet plus the bounded diff-side summary replay packet");
