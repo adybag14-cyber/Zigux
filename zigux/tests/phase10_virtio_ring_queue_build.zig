@@ -63,6 +63,12 @@ pub fn build(b: *std.Build) void {
     });
     phase10_virtio_ring_delayed_callback_budget_module.addImport("virtio_ring", virtio_ring_module);
 
+    const phase10_virtio_ring_queue_build_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_ring_queue_build_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase10_virtio_ring_verify_tests = b.addTest(.{
         .name = "phase10-virtio-ring-verify-tests",
         .root_module = virtio_ring_verify_module,
@@ -125,6 +131,14 @@ pub fn build(b: *std.Build) void {
         phase10_virtio_ring_delayed_callback_budget_tests,
     );
 
+    const phase10_virtio_ring_queue_build_survey_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-queue-build-survey-tests",
+        .root_module = phase10_virtio_ring_queue_build_survey_module,
+    });
+    const run_phase10_virtio_ring_queue_build_survey_tests = b.addRunArtifact(
+        phase10_virtio_ring_queue_build_survey_tests,
+    );
+
     const phase10_virtio_ring_queue_tests = b.step(
         "phase10-virtio-ring-queue-tests",
         "Run the focused Phase 10 virtio ring queue-handling packet tests",
@@ -147,6 +161,9 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_ring_queue_tests.dependOn(
         &run_phase10_virtio_ring_delayed_callback_budget_tests.step,
     );
+    phase10_virtio_ring_queue_tests.dependOn(
+        &run_phase10_virtio_ring_queue_build_survey_tests.step,
+    );
 
     const test_step = b.step(
         "test",
@@ -160,4 +177,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_queue_build_survey_tests.step);
 }
