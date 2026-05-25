@@ -136,6 +136,15 @@ def expect_manifest_state(manifest: dict[str, object]) -> None:
             f"expected {EXPECTED_MANIFEST_PIN}, got {surveyed_commit!r}"
         )
 
+    summary = manifest.get("survey_summary")
+    if not isinstance(summary, dict):
+        raise CheckError("manifest survey_summary must be an object")
+    if summary.get("dw_wdt_pm_helper_present") is not True:
+        raise CheckError(
+            "manifest pm helper survey flag mismatch: "
+            f"expected True, got {summary.get('dw_wdt_pm_helper_present')!r}"
+        )
+
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
         raise CheckError("manifest gaps must be a list")
@@ -226,6 +235,9 @@ def build_fixture(root: Path) -> None:
             {
                 "lane_key": EXPECTED_MANIFEST_LANE,
                 "surveyed_commit": EXPECTED_MANIFEST_PIN,
+                "survey_summary": {
+                    "dw_wdt_pm_helper_present": True,
+                },
                 "gaps": [
                     {
                         "id": VERIFY_GAP_ID,
@@ -278,6 +290,24 @@ def run_self_test() -> None:
         manifest["lane_key"] = "P11-L05"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_failure(bad_lane, "manifest lane_key mismatch")
+        case_count += 1
+
+        missing_survey_summary = root / "missing-survey-summary"
+        shutil.copytree(fixture, missing_survey_summary)
+        manifest_path = missing_survey_summary / FILES["manifest"]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"] = "missing"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(missing_survey_summary, "manifest survey_summary must be an object")
+        case_count += 1
+
+        bad_pm_helper_flag = root / "bad-pm-helper-flag"
+        shutil.copytree(fixture, bad_pm_helper_flag)
+        manifest_path = bad_pm_helper_flag / FILES["manifest"]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"]["dw_wdt_pm_helper_present"] = False
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(bad_pm_helper_flag, "manifest pm helper survey flag mismatch")
         case_count += 1
 
         missing_marker = root / "missing-marker"
