@@ -70,8 +70,12 @@ pub fn resultIsKnown(result: u32) bool {
     return resultFromInt(result) != null;
 }
 
+pub fn resultStopsChainValue(result: u32) bool {
+    return result == @intFromEnum(NotifierResult.stop);
+}
+
 pub fn resultStopsChain(result: NotifierResult) bool {
-    return result == .stop;
+    return resultStopsChainValue(@intFromEnum(result));
 }
 
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
@@ -207,6 +211,10 @@ test "notifier result helper surface stays explicit" {
     try std.testing.expect(resultIsKnown(@intFromEnum(NotifierResult.ok)));
     try std.testing.expect(resultIsKnown(@intFromEnum(NotifierResult.stop)));
     try std.testing.expect(!resultIsKnown(7));
+    try std.testing.expect(!resultStopsChainValue(@intFromEnum(NotifierResult.done)));
+    try std.testing.expect(!resultStopsChainValue(@intFromEnum(NotifierResult.ok)));
+    try std.testing.expect(resultStopsChainValue(@intFromEnum(NotifierResult.stop)));
+    try std.testing.expect(!resultStopsChainValue(7));
     try std.testing.expect(!resultStopsChain(.done));
     try std.testing.expect(!resultStopsChain(.ok));
     try std.testing.expect(resultStopsChain(.stop));
