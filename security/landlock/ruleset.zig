@@ -89,6 +89,7 @@ pub const ModuleDescriptor = struct {
     validates_non_empty_access_masks: bool,
     validates_layer_capacity: bool,
     validates_rule_capacity: bool,
+    validates_matched_layer_order: bool,
 };
 
 pub const RulesetHelperLab = struct {
@@ -102,6 +103,7 @@ pub const RulesetHelperLab = struct {
             .validates_non_empty_access_masks = true,
             .validates_layer_capacity = true,
             .validates_rule_capacity = true,
+            .validates_matched_layer_order = true,
         };
     }
 
@@ -187,7 +189,7 @@ pub const RulesetHelperLab = struct {
 
         if (search_plan.matched_existing_rule) {
             const current_rule = existing_rule orelse return error.MissingExistingRule;
-            if (current_rule.num_layers == 0) {
+            if (current_rule.num_layers == 0 or current_rule.num_layers > max_num_layers) {
                 return error.InvalidExistingRule;
             }
             if (incoming_layers.len != 1) {
@@ -214,9 +216,7 @@ pub const RulesetHelperLab = struct {
                 };
             }
 
-            if (current_rule.layers[0].level == 0) {
-                return error.InvalidExistingRule;
-            }
+            try validateMatchedLayerAppend(current_rule, incoming_layers[0].level);
             if (current_rule.num_layers + incoming_layers.len > max_num_layers) {
                 return error.TooManyLayers;
             }
@@ -253,6 +253,26 @@ pub const RulesetHelperLab = struct {
             .resulting_rule = resulting_rule,
             .resulting_num_rules = search_plan.current_num_rules + 1,
         };
+    }
+
+    fn validateMatchedLayerAppend(rule: RulePlan, incoming_level: u16) !void {
+        if (rule.layers[0].level == 0) {
+            return error.InvalidExistingRule;
+        }
+
+        var previous_level = rule.layers[0].level;
+        var index: usize = 1;
+        while (index < rule.num_layers) : (index += 1) {
+            const current_level = rule.layers[index].level;
+            if (current_level == 0 or current_level <= previous_level) {
+                return error.InvalidExistingRule;
+            }
+            previous_level = current_level;
+        }
+
+        if (incoming_level <= previous_level) {
+            return error.InvalidLayerOrder;
+        }
     }
 
     fn makeRuleFromLayers(layers: []const Layer) RulePlan {
@@ -298,6 +318,7 @@ test "landlock ruleset descriptor stays inside bounded helper scope" {
     try std.testing.expect(descriptor.validates_non_empty_access_masks);
     try std.testing.expect(descriptor.validates_layer_capacity);
     try std.testing.expect(descriptor.validates_rule_capacity);
+    try std.testing.expect(descriptor.validates_matched_layer_order);
 }
 
 test "landlock ruleset creation keeps handled access masks explicit" {
@@ -402,7 +423,7 @@ test "landlock ruleset branch planning extends access for matched level-zero rul
     try std.testing.expectEqual(@as(u32, 2), branch_plan.resulting_num_rules);
 }
 
-test "landlock ruleset branch planning rejects missing layers and invalid matched-rule updates" {
+test "landlock ruleset branch planning rejects missing layers invalid matched-rule updates and non-increasing layer order" {
     const search_plan = try RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{99}, 2);
 
     try std.testing.expectError(error.MissingLayers, RulesetHelperLab.planInsertRuleBranch(search_plan, null, &.{}));
@@ -425,6 +446,34 @@ test "landlock ruleset branch planning rejects missing layers and invalid matche
                 .{ .level = 5, .access = 0x10 },
                 .{ .level = 6, .access = 0x20 },
             },
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidLayerOrder,
+        RulesetHelperLab.planInsertRuleBranch(
+            search_plan,
+            RulePlan{
+                .num_layers = 2,
+                .layers = [_]Layer{
+                    .{ .level = 1, .access = 0x1 },
+                    .{ .level = 3, .access = 0x4 },
+                } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+            },
+            &.{.{ .level = 3, .access = 0x20 }},
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidExistingRule,
+        RulesetHelperLab.planInsertRuleBranch(
+            search_plan,
+            RulePlan{
+                .num_layers = 2,
+                .layers = [_]Layer{
+                    .{ .level = 3, .access = 0x1 },
+                    .{ .level = 2, .access = 0x4 },
+                } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+            },
+            &.{.{ .level = 5, .access = 0x20 }},
         ),
     );
 }
