@@ -97,9 +97,9 @@ pub const blocked_boundaries = [_]BridgeBoundary{
     },
     .{
         .id = "public_wait_and_callback_barrier",
-        .summary = "Keep public wait, polling-cookie, and callback-barrier ownership in C.",
+        .summary = "Keep public wait, polling-cookie visibility, and callback-barrier ownership in C.",
         .anchor_symbols = &.{ "synchronize_rcu", "get_state_synchronize_rcu", "poll_state_synchronize_rcu", "rcu_barrier" },
-        .rationale = "Public waiting and callback-drain guarantees still depend on deep-core Tree RCU sequencing and barrier coordination.",
+        .rationale = "Public wait helpers still couple blocking waits, polling-cookie visibility, and callback-drain guarantees to deep-core Tree RCU sequencing and barrier coordination.",
         .coupling = .public_wait_surface,
     },
     .{
@@ -217,7 +217,9 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expect(contains(poll_cookie.rationale, "workqueue cleanup"));
 
     const public_wait = findBoundaryById("public_wait_and_callback_barrier").?;
+    try std.testing.expect(contains(public_wait.summary, "polling-cookie visibility"));
     try std.testing.expect(contains(public_wait.summary, "callback-barrier"));
+    try std.testing.expect(contains(public_wait.rationale, "polling-cookie visibility"));
     try std.testing.expectEqual(BoundaryCoupling.public_wait_surface, public_wait.coupling);
 
     const hotplug = findBoundaryById("cpu_hotplug_callback_migration").?;
