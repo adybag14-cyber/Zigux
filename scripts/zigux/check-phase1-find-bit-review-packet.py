@@ -381,6 +381,8 @@ def run_self_test() -> int:
         ("manifest_andnot_entrypoints_drift", "manifest:andnot_scan_entrypoints:expected_current_packet"),
         ("missing_or_symbol", "helper_symbol:pub fn findNextOrBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {:expected=1:actual=0"),
         ("fixture_tail_inclusive_boundary_and_drift", "fixture:tail_inclusive_boundary_and:expected_current_packet"),
+        ("manifest_tail_word_set_skip_anchor_drift", "manifest:tail_word_set_skip_anchor:expected_current_packet"),
+        ("manifest_tail_word_skip_anchor_drift", "manifest:tail_word_skip_anchor:expected_current_packet"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
@@ -408,7 +410,8 @@ def run_self_test() -> int:
         if cases[1][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_symbol")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(tmp_root)
         text = helper_path.read_text(encoding="utf-8").replace(
             "pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {\n",
             "",
@@ -558,6 +561,20 @@ def run_self_test() -> int:
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
         if cases[21][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:fixture_tail_inclusive_boundary_and_drift")
+
+        build_sample_repo(tmp_root)
+        manifest = load_json(tmp_root, MANIFEST_REL)
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_set_skip_anchor"] = "drift"
+        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        if cases[22][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:manifest_tail_word_set_skip_anchor_drift")
+
+        build_sample_repo(tmp_root)
+        manifest = load_json(tmp_root, MANIFEST_REL)
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_word_skip_anchor"] = "drift"
+        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        if cases[23][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:manifest_tail_word_skip_anchor_drift")
 
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
