@@ -248,6 +248,16 @@
       ]
     },
     {
+      "name": "phase11-gpio-wdt-verify-helper-build",
+      "command": [
+        "zig",
+        "build",
+        "test",
+        "--build-file",
+        "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig"
+      ]
+    },
+    {
       "name": "phase11-gpio-wdt-preflight-review-build",
       "command": [
         "zig",
