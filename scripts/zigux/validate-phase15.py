@@ -17,7 +17,7 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_LANE_KEY = "P15-L02"
 EXPECTED_PHASE = "Phase 15"
-EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-24"
+EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-25"
 EXPECTED_DIRECT_PACKET_PATHS = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
@@ -197,7 +197,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_LANE_KEY=P15-L02`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-24`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
 - role: keep the current Phase 15 governance packet honest now that the dedicated validator exists as a directly readable maintenance gate, while the broader build and route companions still remain blocked on current `master`
 
 This survey keeps those two truths together:
