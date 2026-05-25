@@ -13,11 +13,12 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
   reviewability should deepen before any live execution claims
 - current authenticated contents readback keeps the bounded HVC current-head
   packet reviewable through the direct starter, current survey, current-head
-  companion, verify-helper boundary note, validation matrix, the returned
-  `phase11-validate` validator surfaces, the shared manifest-roster guard, the
-  validate-check roster guard, the validate-route alignment guard, the
-  dedicated validate-check fixture roster, the build-inventory checker,
-  focused-direct-build replay checker, cleanup-current-head checker,
+  companion, verify-helper boundary note, cleanup-prerequisite parity note,
+  validation matrix, the returned `phase11-validate` validator surfaces, the
+  shared manifest-roster guard, the validate-check roster guard, the
+  validate-route alignment guard, the dedicated validate-check fixture roster,
+  the build-inventory checker, focused-direct-build replay checker,
+  cleanup-current-head checker, cleanup-prerequisite packet checker,
   targetless-unregister witness checker, shared build inventory, the
   proof-backed adjunct stack, the dedicated modem-control proof pair, and the
   standalone targetless-unregister witness pair
@@ -44,6 +45,7 @@ Treat the current bounded HVC packet on `master` as:
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-validate-manifest-roster.py`
@@ -51,6 +53,7 @@ Treat the current bounded HVC packet on `master` as:
 - `scripts/zigux/check-phase11-validate-route-alignment.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
@@ -85,10 +88,13 @@ and `.github/workflows/zigux-bootstrap.yml` keep the same validator-backed
 route directly readable on current `master` too. Keep the dedicated survey
 route absent until `zigux/Makefile` grows it explicitly. The dedicated
 modem-control proof pair likewise stays directly readable as a focused adjunct
-route without promoting itself into the shared three-entry build inventory, and
-the standalone targetless-unregister witness pair likewise stays directly
-readable as a separate failure-mode replay without promoting itself into the
-shared three-entry build inventory.
+route without promoting itself into the shared three-entry build inventory, the
+standalone targetless-unregister witness pair likewise stays directly readable
+as a separate failure-mode replay without promoting itself into the shared
+three-entry build inventory, and the cleanup-prerequisite parity note plus
+checker keep the `summarizeCleanupPrerequisite()` trigger split explicit as a
+helper-local teardown companion without widening the packet into live cleanup
+execution.
 
 ## Exact Current Checks
 
@@ -97,7 +103,7 @@ Keep the live HVC delivery-tooling commands explicit too:
 - shared validator route: `python3 scripts/zigux/validate-phase11.py --self-test`, `python3 scripts/zigux/validate-phase11.py`, and `make -C zigux phase11-validate`
 - HVC adjunct proof builds: `zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 - focused failure-mode builds: `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
-- coupled checker routes: `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`, `python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`, `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`, `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test`, `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`, and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- coupled checker routes: `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`, `python3 scripts/zigux/check-phase11-build-inventory.py`, `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`, `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`, `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test`, `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`, `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`, `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`, and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - the machine-readable command roster stays pinned in `zigux/tests/fixtures/phase11_validate_checks.json`, while `zigux/tests/fixtures/phase11_build_inventory.json` keeps the shared three-entry adjunct build packet separate from the focused modem-control and targetless-unregister failure-mode routes
 - no dedicated `make -C zigux phase11-hvc-survey` wrapper is currently shipped on `master`, so keep that route absent until `zigux/Makefile` grows it explicitly instead of treating the focused adjunct and failure-mode builds as a returned dedicated survey path
 
@@ -123,10 +129,11 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the current companion stack,
-the verify-boundary reminder surface, the shared inventory-backed proof routes,
-the validator-side manifest-roster, validate-check-roster, and
-validate-route-alignment guards, the dedicated validate-check fixture roster,
-the focused-direct-build replay checker, the validator-backed
+the verify-boundary reminder surface, the cleanup-prerequisite parity note, the
+shared inventory-backed proof routes, the validator-side manifest-roster,
+validate-check-roster, and validate-route-alignment guards, the dedicated
+validate-check fixture roster, the focused-direct-build replay checker, the
+cleanup-prerequisite packet checker, the validator-backed
 `make -C zigux phase11-validate` route, the dedicated modem-control proof pair,
 and the standalone targetless-unregister witness pair.
 
