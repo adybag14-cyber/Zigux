@@ -53,6 +53,25 @@ pub fn strlcpy(dest: []u8, src: []const u8) usize {
     return ret;
 }
 
+pub fn strlcat(dest: []u8, src: []const u8) usize {
+    const src_len = cStringLen(src);
+    if (dest.len == 0) {
+        return src_len;
+    }
+
+    const dest_len = strnlen(dest, dest.len);
+    if (dest_len == dest.len) {
+        return dest.len + src_len;
+    }
+
+    const copy_len = @min(src_len, dest.len - dest_len - 1);
+    if (copy_len != 0) {
+        @memcpy(dest[dest_len .. dest_len + copy_len], src[0..copy_len]);
+    }
+    dest[dest_len + copy_len] = 0;
+    return dest_len + src_len;
+}
+
 pub fn strscpy(dest: []u8, src: []const u8) isize {
     if (dest.len == 0) {
         return strscpy_e2big;
@@ -591,6 +610,29 @@ test "strlcpy copies and returns the source length" {
     try std.testing.expectEqual(@as(usize, 5), strlcpy(buf[0..], "hello"));
     try std.testing.expectEqualStrings("hel", buf[0..3]);
     try std.testing.expectEqual(@as(u8, 0), buf[3]);
+}
+
+test "strlcat appends within the destination size and reports the attempted length" {
+    var buf = [_]u8{ 'h', 'i', 0, 'x', 'x', 'x' };
+    try std.testing.expectEqual(@as(usize, 5), strlcat(buf[0..], "all"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 'a', 'l', 'l', 0 }, buf[0..]);
+}
+
+test "strlcat truncates with a terminator and keeps the full attempted length" {
+    var buf = [_]u8{ 'a', 'b', 0, 'x' };
+    try std.testing.expectEqual(@as(usize, 6), strlcat(buf[0..], "cdef"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 'c', 0 }, buf[0..]);
+}
+
+test "strlcat treats an unterminated destination as full" {
+    var buf = [_]u8{ 'a', 'b', 'c' };
+    try std.testing.expectEqual(@as(usize, 6), strlcat(buf[0..], "xyz"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 'c' }, buf[0..]);
+}
+
+test "strlcat handles a zero-length destination buffer" {
+    var empty = [_]u8{};
+    try std.testing.expectEqual(@as(usize, 3), strlcat(empty[0..], "zig"));
 }
 
 test "strscpy keeps NUL termination and reports truncation with -E2BIG" {
