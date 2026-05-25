@@ -186,6 +186,8 @@ TEXT_MARKERS = {
         "IO queue reservation sizing",
         "recovery reservation replay debt",
         "recovery reservation replay preflight",
+        "applied summaries",
+        "queue-numbering restart review",
         "PRP buffer-shape accounting",
         "PRP metadata budgeting",
         "dropped-backlog retirement review",
