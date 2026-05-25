@@ -499,6 +499,16 @@ def run_self_test() -> None:
         write_sample_root(root)
         case_count += 1
 
+        missing_checker_path = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
+        missing_checker_path.unlink()
+        checker_failures = run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker")
+        assert checker_failures == [
+            "rbtree_direct_anchor_checker:exit=2",
+            f"rbtree_direct_anchor_checker:stderr:{sys.executable}: can't open file '{missing_checker_path}': [Errno 2] No such file or directory",
+        ], checker_failures
+        write_sample_root(root)
+        case_count += 1
+
         manifest_path.write_text("{\n", encoding="utf-8")
         try:
             load_manifest(root)
