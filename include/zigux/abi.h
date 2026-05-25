@@ -89,7 +89,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
     uint32_t applied;
     uint32_t skipped;
 };
-typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_DELIVERY_WINDOW_BUDGET_SUMMARY
+typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary;
 
 struct zigux_notifier_block {
