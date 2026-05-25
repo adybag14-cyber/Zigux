@@ -93,6 +93,20 @@
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
       "current_perf_evidence": {
+        "cases": [
+          {
+            "label": "len15",
+            "reps": 4000
+          },
+          {
+            "label": "len64",
+            "reps": 2000
+          },
+          {
+            "label": "len1024",
+            "reps": 250
+          }
+        ],
         "case_labels": [
           "len15",
           "len64",
