@@ -13,6 +13,7 @@ FILES = [
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_input_probe_preflight.zig",
@@ -140,6 +141,24 @@ CLOSURE_NOTE_MARKERS = [
     "drivers/virtio/virtio_input_teardown_preflight.zig",
     "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     "scripts/zigux/check-phase10-input-packet.py",
+]
+
+LANE_SEQUENCING_MARKERS = [
+    "# Phase 10 Virtio Driver Lane Sequencing",
+    "input lane `P10-L22` owns the current input packet through",
+    "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+    "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_status_drain.zig",
+    "drivers/virtio/virtio_input_teardown_preflight.zig",
+    "drivers/virtio/virtio_input_teardown_observation.zig",
+    "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_input_survey.zig",
+    "Documentation/zigux/phase10-virtio-input-slice.md",
+    "Documentation/zigux/phase10-virtio-input-module-slice.md",
+    "Documentation/zigux/phase10-virtio-input-survey.md",
 ]
 
 TESTS_ROOT_COMPANION_MARKERS = [
@@ -338,6 +357,7 @@ CLOSURE_LAB_VALIDATION_EVIDENCE = [
     "scripts/zigux/check-phase10-harness-coverage.py",
 ]
 
+
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
@@ -392,6 +412,18 @@ def check_surveyed_commit_alignment(missing: list[str], survey_note: str, manife
 
     if note_commit != manifest_commit:
         missing.append("survey_note:surveyed_commit_alignment")
+
+
+def check_lane_sequencing_alignment(missing: list[str], lane_sequencing: str, manifest_text: str) -> None:
+    manifest = json.loads(manifest_text)
+    lane_key = manifest.get("lane_key")
+    if not isinstance(lane_key, str) or not lane_key:
+        missing.append('manifest:"lane_key": "')
+        return
+
+    lane_header = f"input lane `{lane_key}` owns the current input packet through"
+    if lane_header not in lane_sequencing:
+        missing.append(f"lane_sequencing:input_lane_header:{lane_key}")
 
 
 def check_closure_manifest_alignment(missing: list[str], root: Path, manifest_text: str) -> None:
@@ -473,6 +505,7 @@ def required_marker_count() -> int:
         + len(SURVEY_NOTE_MARKERS)
         + len(MANIFEST_MARKERS)
         + len(CLOSURE_NOTE_MARKERS)
+        + len(LANE_SEQUENCING_MARKERS)
         + len(TESTS_ROOT_COMPANION_MARKERS)
         + len(INPUT_HELPER_MARKERS)
         + len(PROBE_HELPER_MARKERS)
@@ -485,7 +518,7 @@ def required_marker_count() -> int:
         + len(BUILD_MARKERS)
         + len(SURVEY_GATE_MARKERS)
         + sum(len(markers) for markers in TEST_MARKERS.values())
-        + 4
+        + 5
         + len(CLOSURE_INPUT_HELPER_IDS)
         + (2 * len(CLOSURE_INPUT_REPLAY_FILES))
         + len(CLOSURE_LAB_VALIDATION_EVIDENCE)
@@ -502,6 +535,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     module_note = read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md")
     survey_note = read_text(root, "Documentation/zigux/phase10-virtio-input-survey.md")
     closure_note = read_text(root, "Documentation/zigux/phase10-closure-evidence.md")
+    lane_sequencing = read_text(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md")
     tests_root_companion = read_text(
         root,
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -512,6 +546,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     check_markers(missing_markers, "module_note", module_note, MODULE_MARKERS)
     check_markers(missing_markers, "survey_note", survey_note, SURVEY_NOTE_MARKERS)
     check_markers(missing_markers, "closure_note", closure_note, CLOSURE_NOTE_MARKERS)
+    check_markers(missing_markers, "lane_sequencing", lane_sequencing, LANE_SEQUENCING_MARKERS)
     check_markers(
         missing_markers,
         "tests_root_companion",
@@ -520,6 +555,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     )
     check_markers(missing_markers, "manifest", manifest, MANIFEST_MARKERS)
     check_surveyed_commit_alignment(missing_markers, survey_note, manifest)
+    check_lane_sequencing_alignment(missing_markers, lane_sequencing, manifest)
     check_closure_manifest_alignment(missing_markers, root, manifest)
     check_markers(missing_markers, "input_helper", read_text(root, "drivers/virtio/virtio_input.zig"), INPUT_HELPER_MARKERS)
     check_markers(missing_markers, "probe_helper", read_text(root, "drivers/virtio/virtio_input_probe_preflight.zig"), PROBE_HELPER_MARKERS)
@@ -573,6 +609,7 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-virtio-input-module-slice.md": "\n".join(MODULE_MARKERS + ["queued status completions are only reclaimed in memory"]) + "\n",
         "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join([marker if marker != "PHASE10_SURVEYED_COMMIT=" else f"PHASE10_SURVEYED_COMMIT={manifest_commit}" for marker in SURVEY_NOTE_MARKERS]) + "\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_NOTE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_SEQUENCING_MARKERS) + "\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(TESTS_ROOT_COMPANION_MARKERS) + "\n",
         "drivers/virtio/virtio_input.zig": "\n".join(INPUT_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_probe_preflight.zig": "\n".join(PROBE_HELPER_MARKERS) + "\n",
@@ -687,6 +724,12 @@ def run_self_test() -> int:
                 "drivers/virtio/virtio_input_teardown_preflight.zig",
                 "drivers/virtio/virtio_input_teardown_preflight_missing.zig",
                 "closure_note:drivers/virtio/virtio_input_teardown_preflight.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+                "input lane `P10-L22` owns the current input packet through",
+                "input lane `P10-L99` owns the current input packet through",
+                "lane_sequencing:input_lane_header:P10-L22",
             ),
             (
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -839,6 +882,7 @@ def run_self_test() -> int:
 
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-input-survey.md")
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
+        expect_missing_file(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md")
         expect_missing_file(root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
         expect_missing_file(root, "zigux/tests/phase10_virtio_input_survey.zig")
         expect_missing_file(root, "scripts/zigux/check-phase10-harness-coverage.py")
@@ -847,7 +891,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "drivers/virtio/virtio_input_verify.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=37")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
