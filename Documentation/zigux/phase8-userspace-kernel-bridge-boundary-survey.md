@@ -5,7 +5,7 @@ This note records the current bounded Phase 8 userspace-adjacent bridge boundary
 ## Status
 - `PHASE8_STATUS=parked`
 - `PHASE8_SURVEY=userspace-kernel-bridge-boundary-readback`
-- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-24
+- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-25
 - roadmap anchor: `tools/lib/bpf/libbpf.c`
 - intended Zigux destination family: `tools/lib/bpf/zigux_segments/`
 - scope: helper-local bridge reviewability and deferred interrupt-routing boundary truthfulness only
@@ -31,11 +31,13 @@ The landed `fdinfo-map-info-helpers` slice therefore still mirrors the manifest 
 The sibling `map-reuse-compatibility` slice likewise still mirrors the manifest rationale exactly: The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.
 
 ## Helper-local online-CPU routing evidence
-Current `master` also keeps bounded helper-local online-CPU routing evidence explicit through `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` and the focused review witnesses that read it.
+Current `master` also keeps bounded helper-local online-CPU routing evidence explicit through `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`, `zigux/tests/phase8_verify_routing_gap.zig`, and `zigux/tests/phase8_verify_routing_gap_only_build.zig`.
 
 That helper-local routing packet keeps `advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and `summarizeOnlineCpuRouting()` explicit as reviewable route-summary helpers below the riskier setup-side bridge.
 
 It records route selection, missing buffer-slot detection, missing buffer-fd detection, requested-subset summaries, and no-online-CPU summaries without claiming that the surrounding perf-event setup path is already ported.
+
+The dedicated verifier shard and focused verify-routing witness now also keep typed CPU-index wrappers, errno-shaped CPU-index wrappers, typed buffer-fd wrappers, errno-shaped buffer-fd wrappers, and the hand-built CPU-index overflow fail-closed output explicit without promoting the surrounding perf-event setup path into landed routing delivery.
 
 ## Deferred interrupt-routing boundary
 It also does not claim the deferred `perf-buffer-online-cpu-routing` packet.
@@ -57,6 +59,6 @@ This survey does not yet claim:
 - any direct Zig port of the full `tools/lib/bpf/libbpf.c` bridge-heavy setup path
 
 ## Next bounded step
-Keep this bridge-boundary survey parked unless a future reread finds drift between this note, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, or `zigux/tests/phase8_verify_routing_gap.zig` around the mixed-source bridge packet, the helper-local routing markers, or the deferred setup-side routing boundary.
+Keep this bridge-boundary survey parked unless a future reread finds drift between this note, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_verify_routing_gap.zig`, or `zigux/tests/phase8_verify_routing_gap_only_build.zig` around the mixed-source bridge packet, the helper-local routing markers, or the deferred setup-side routing boundary.
 
-If it reopens, reread those six surfaces together first and keep the next repair note-local or checker-local rather than widening into helper semantics, validator ownership, or setup-side routing delivery.
+If it reopens, reread those eight surfaces together first and keep the next repair note-local or checker-local rather than widening into helper semantics, validator ownership, or setup-side routing delivery.
