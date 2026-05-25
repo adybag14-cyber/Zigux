@@ -1,8 +1,8 @@
 {
-  "lane_key": "P11-L06",
+  "lane_key": "P11-L04",
   "phase": "Phase 11",
   "status": "shared_packet_aggregate_surface_materialized",
-  "scope": "shared Phase 11 codegen and manifest tooling",
+  "scope": "shared Phase 11 codegen and manifest tooling stale aggregate-manifest cleanup",
   "shared_docs": [
     "Documentation/zigux/phase11-shared-replay-contract.md",
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
@@ -11,9 +11,14 @@
   ],
   "shared_checkers": [
     "scripts/zigux/check-phase11-build-inventory.py",
+    "scripts/zigux/check-phase11-validate-manifest-roster.py",
+    "scripts/zigux/check-phase11-validate-check-roster.py",
+    "scripts/zigux/check-phase11-validate-route-alignment.py",
+    "scripts/zigux/check-phase11-focused-direct-build-replays.py",
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
+    "scripts/zigux/check-phase11-header-boundary-packet.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
@@ -29,9 +34,11 @@
     "zigux/tests/phase11_dw_wdt_build.zig",
     "zigux/tests/phase11_dw_wdt_restart_build.zig",
     "zigux/tests/phase11_dw_wdt_pm_build.zig",
+    "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig",
     "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
@@ -47,7 +54,7 @@
   "narrow_inventory_boundary": {
     "inventory_path": "zigux/tests/fixtures/phase11_build_inventory.json",
     "inventory_scope": "HVC current-head continuity packet",
-    "aggregate_scope": "shared phase11-validate proof fan-out"
+    "aggregate_scope": "shared phase11-validate checker stack and proof fan-out"
   },
   "retired_shared_routes": [
     "make -C zigux phase11",
