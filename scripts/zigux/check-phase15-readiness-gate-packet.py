@@ -81,6 +81,14 @@ EXPECTED_MISSING_BROADER_PATHS = [
     "zigux/tests/phase15_build.zig",
 ]
 
+EXPECTED_PHASE15_VALIDATE_CHECKERS = [
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
+]
+
 EXPECTED_REPO_EVIDENCE = {
     "phase15_readiness_packet_checker_present": True,
     "phase15_validator_script_present": True,
@@ -124,6 +132,7 @@ BLOCKED_ROUTE_MARKERS = {
 
 WORKFLOW_BLOCKED_MARKER = "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route"
 WORKFLOW_PHASE15_MARKERS = (
+    "validate-phase15.py",
     "make -C zigux phase15-validate",
     "make -C zigux phase15-test",
     "make -C zigux phase15",
@@ -246,6 +255,8 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("readiness manifest direct_packet_paths drifted from the current full readiness packet")
     if manifest.get("still_missing_broader_paths") != EXPECTED_MISSING_BROADER_PATHS:
         failures.append("readiness manifest still_missing_broader_paths drifted from the current blocked broader packet")
+    if manifest.get("phase15_validate_checkers") != EXPECTED_PHASE15_VALIDATE_CHECKERS:
+        failures.append("readiness manifest phase15_validate_checkers drifted from the current validator support packet")
 
     repo_evidence = manifest.get("repo_evidence")
     if repo_evidence != EXPECTED_REPO_EVIDENCE:
@@ -338,13 +349,7 @@ def _sample_manifest() -> str:
         "direct_packet_paths": EXPECTED_DIRECT_PACKET_PATHS,
         "still_missing_broader_paths": EXPECTED_MISSING_BROADER_PATHS,
         "repo_evidence": EXPECTED_REPO_EVIDENCE,
-        "phase15_validate_checkers": [
-            str(DOCS_CHECKER_PATH),
-            str(SCRIPTS_CHECKER_PATH),
-            str(TESTS_CHECKER_PATH),
-            str(REVIEW_PROCESS_CHECKER_PATH),
-            str(SHARED_SUMMARY_CHECKER_PATH),
-        ],
+        "phase15_validate_checkers": EXPECTED_PHASE15_VALIDATE_CHECKERS,
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -378,7 +383,7 @@ def _seed_repo(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    case_count = 5
+    case_count = 6
     with tempfile.TemporaryDirectory(prefix="zigux_phase15_readiness_gate_") as tmp_dir:
         root = Path(tmp_dir) / "baseline"
         _seed_repo(root)
@@ -428,6 +433,32 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected route failure: {failures}")
+
+        validate_checkers_root = Path(tmp_dir) / "validate_checkers"
+        _seed_repo(validate_checkers_root)
+        _write(
+            validate_checkers_root / MANIFEST_PATH,
+            _sample_manifest().replace(
+                '  "phase15_validate_checkers": [\n'
+                '    "scripts/zigux/check-phase15-docs-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-scripts-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-tests-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-review-process-handoff.py",\n'
+                '    "scripts/zigux/check-phase15-shared-summary-gap.py"\n'
+                "  ]\n",
+                '  "phase15_validate_checkers": [\n'
+                '    "scripts/zigux/check-phase15-scripts-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-tests-readme-alignment.py",\n'
+                '    "scripts/zigux/check-phase15-review-process-handoff.py",\n'
+                '    "scripts/zigux/check-phase15-shared-summary-gap.py"\n'
+                "  ]\n",
+                1,
+            ),
+        )
+        failures = collect_failures(validate_checkers_root)
+        expected = ["readiness manifest phase15_validate_checkers drifted from the current validator support packet"]
+        if failures != expected:
+            raise AssertionError(f"unexpected validate-checkers failure: {failures}")
 
     print("PHASE15_READINESS_GATE_PACKET_SELF_TEST=pass")
     print(f"PHASE15_READINESS_GATE_PACKET_SELF_TEST_CASE_COUNT={case_count}")
