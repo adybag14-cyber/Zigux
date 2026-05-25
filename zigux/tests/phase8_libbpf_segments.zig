@@ -75,6 +75,9 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         std.mem.indexOf(u8, bridge_boundary, "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`") != null,
     );
     try std.testing.expect(
+        std.mem.indexOf(u8, bridge_boundary, "`make -C zigux phase8-perf-buffer-poll-test`") != null,
+    );
+    try std.testing.expect(
         std.mem.indexOf(u8, bridge_boundary, "standalone timer helper behavior") != null,
     );
     try std.testing.expect(
