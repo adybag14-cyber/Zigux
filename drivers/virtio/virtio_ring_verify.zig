@@ -2,6 +2,7 @@ const std = @import("std");
 const virtio_ring = @import("virtio_ring");
 
 pub const QueueShapeSummary = virtio_ring.QueueShapeSummary;
+pub const QueueRegistrationSummary = virtio_ring.QueueRegistrationSummary;
 pub const QueueNotificationSummary = virtio_ring.QueueNotificationSummary;
 pub const NotificationDataSummary = virtio_ring.NotificationDataSummary;
 pub const UsedBufferPollSummary = virtio_ring.UsedBufferPollSummary;
@@ -16,6 +17,13 @@ pub fn summarizeQueueShape(
     queue_index: u16,
 ) !QueueShapeSummary {
     return ring.queueShapeSummary(queue_index);
+}
+
+pub fn summarizeQueueRegistration(
+    ring: *const virtio_ring.VirtioRingLab,
+    queue_index: u16,
+) !QueueRegistrationSummary {
+    return ring.queueRegistrationSummary(queue_index);
 }
 
 pub fn summarizePrepareKick(
@@ -126,6 +134,29 @@ test "phase10 virtio ring verify keeps queue-shape wrapper explicit across split
     try std.testing.expect(summary.uses_indirect_descriptors);
 
     try std.testing.expectError(error.QueueNotDefined, summarizeQueueShape(&ring, 2));
+}
+
+test "phase10 virtio ring verify keeps queue-registration wrapper explicit across noncontiguous queues" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(1, 8, .split, true, false);
+    try ring.defineQueue(6, 32, .packed_ring, false, true);
+
+    var summary = try summarizeQueueRegistration(&ring, 1);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 1), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 8), summary.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.split, summary.layout);
+    try std.testing.expect(summary.uses_event_idx);
+    try std.testing.expect(!summary.uses_indirect_descriptors);
+    try std.testing.expectEqual(@as(usize, 2), summary.registered_queue_count);
+
+    summary = try summarizeQueueRegistration(&ring, 6);
+    try std.testing.expectEqual(@as(u16, 6), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 32), summary.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, summary.layout);
+    try std.testing.expect(!summary.uses_event_idx);
+    try std.testing.expect(summary.uses_indirect_descriptors);
+    try std.testing.expectEqual(@as(usize, 2), summary.registered_queue_count);
 }
 
 test "phase10 virtio ring verify keeps prepare-kick wrapper idempotent and queue-local" {
