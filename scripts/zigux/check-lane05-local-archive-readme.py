@@ -105,6 +105,7 @@ def validate_readme(root: Path) -> tuple[str, int, str]:
         "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "
         f"{expected_path} --archive-target {target}"
     )
+    expected_parts_path = f"{expected_path}.parts"
 
     readme_path = root / README_PATH
     try:
@@ -118,9 +119,17 @@ def validate_readme(root: Path) -> tuple[str, int, str]:
         f"`{target}`",
         f"`{channel}`",
         f"`{expected_path}`",
+        f"`{expected_parts_path}`",
         f"`{expected_sha}`",
         f"`{expected_size}` bytes",
         f"`{validation_command}`",
+        "`community-mirrors.txt`",
+        "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
+        "`scripts/zigux/check-lane05-local-archive-readme.py`",
+        "`scripts/zigux/check-lane05-install-zig-archive-verification.py`",
+        "`scripts/zigux/stage-pinned-zig-archive.py`",
+        "`scripts/zigux/check-lane05-stage-helper-contract.py`",
+        "`scripts/zigux/check-lane05-stage-helper-selftest.py`",
         f"`{duplicate_archive_name(expected_filename)}`",
         f"`{POLICY_PATH}`",
     ]
@@ -196,7 +205,7 @@ def run_self_test() -> int:
         with tempfile.TemporaryDirectory(prefix="lane05_archive_readme_pass_") as tmp_dir:
             root = Path(tmp_dir)
             write_fixture(root, include_archive=include_archive)
-            assert validate_readme(root) == ("x86_64-linux", 10, "present" if include_archive else "missing_allowed")
+            assert validate_readme(root) == ("x86_64-linux", 18, "present" if include_archive else "missing_allowed")
             case_count += 1
 
     def expect_failure(mutator, expected_substring: str) -> None:
