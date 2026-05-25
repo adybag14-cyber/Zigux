@@ -30,6 +30,10 @@ MAKEFILE_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-valida
 MAKEFILE_ORDER_ALIGNMENT = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-makefile-order-selftest-alignment.py"
 )
+VALIDATOR_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-validator-order.py"
+VALIDATOR_ORDER_ALIGNMENT = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-validator-order-selftest-alignment.py"
+)
 
 REQUIRED_PATHS = (
     VALIDATE,
@@ -45,6 +49,8 @@ REQUIRED_PATHS = (
     WORKFLOW_ORDER_ALIGNMENT,
     MAKEFILE_ORDER_CHECKER,
     MAKEFILE_ORDER_ALIGNMENT,
+    VALIDATOR_ORDER_CHECKER,
+    VALIDATOR_ORDER_ALIGNMENT,
 )
 
 REQUIRED_VALIDATE_MARKERS = (
@@ -58,6 +64,8 @@ REQUIRED_VALIDATE_MARKERS = (
     '    "scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py",',
     '    "scripts/zigux/check-phase2-cross-validate-makefile-order.py",',
     '    "scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py",',
+    '    "scripts/zigux/check-phase2-cross-validate-validator-order.py",',
+    '    "scripts/zigux/check-phase2-cross-validate-validator-order-selftest-alignment.py",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-contract.py --self-test",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-contract.py",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-contract-selftest-alignment.py --self-test",',
@@ -78,6 +86,10 @@ REQUIRED_VALIDATE_MARKERS = (
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order.py",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py --self-test",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-validator-order.py --self-test",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-validator-order.py",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-validator-order-selftest-alignment.py --self-test",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-validator-order-selftest-alignment.py",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py --self-test",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract-selftest-alignment.py --self-test",',
@@ -94,6 +106,14 @@ REQUIRED_VALIDATE_MARKERS = (
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-workflow-order.py",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-workflow-order-selftest-alignment.py --self-test",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-workflow-order-selftest-alignment.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py",',
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -117,6 +137,10 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order.py",
     "run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-cross-validate-validator-order.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-validate-validator-order.py",
+    "run: python3 scripts/zigux/check-phase2-cross-validate-validator-order-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-validate-validator-order-selftest-alignment.py",
 )
 
 REQUIRED_MAKEFILE_LINES = (
@@ -136,6 +160,10 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py",
 )
 
 REQUIRED_CROSS_TARGET = "phase2-cross:"
@@ -369,7 +397,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate that the Lane 21 shared validation surfaces wire the full "
-            "cross validate-contract, workflow-order, and makefile-order checker packet."
+            "cross validate-contract, workflow-order, makefile-order, and "
+            "validator-order checker packet."
         )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
