@@ -68,12 +68,12 @@ REQUIRED_MARKERS = {
         "PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts/zigux/check-phase3-dev-t-starter-packet.py",
         "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
         "PHASE3_DEV_T_STARTER_PACKET_RUN=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
-        "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
+        "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, adjacent `abi.h` boundary note, aggregate `phase3-validate` and `phase3` make routes, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
         "`zigux/tests/phase3_export_shim_build.zig` now carries the focused `phase3-export-shim-test` replay handoff",
         "the shared tests-root route in `zigux/tests/build.zig`, where `addPhase3ExportUapiLayout(...)` imports `header_family_binding`",
         "`zigux/tests/phase3_export_uapi_layout_build.zig` now carries the dedicated `phase3-export-uapi-layout-test` replay handoff",
-        "There is no remaining packet-local missing companion, missing focused export-shim replay handoff, or missing dedicated layout-build handoff left to close inside this survey.",
+        "There is no remaining packet-local missing companion, missing focused export-shim replay handoff, missing dedicated layout-build handoff, or missing aggregate replay entrypoint left to close inside this survey.",
         "the focused `zigux/tests/phase3_export_shim_build.zig` replay handoff",
         "the focused `zigux/tests/phase3_export_uapi_layout.zig` replay plus the dedicated `zigux/tests/phase3_export_uapi_layout_build.zig` handoff",
     ),
@@ -216,15 +216,12 @@ REQUIRED_MARKERS = {
     ),
 }
 
-
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
-
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -240,11 +237,9 @@ def validate_repo(repo_root: Path) -> list[str]:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
     return issues
 
-
 def _populate_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
         _write(root / relative_path, "\n".join(markers) + "\n")
-
 
 def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message: str) -> int:
     target = root / relative_path
@@ -256,7 +251,6 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
         print(message)
         return 1
     return 0
-
 
 def run_self_test() -> int:
     marker_cases = (
@@ -352,12 +346,12 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
-            "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
+            "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, adjacent `abi.h` boundary note, aggregate `phase3-validate` and `phase3` make routes, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
             "expected missing focused export-shim replay marker was not reported",
         ),
         (
             SURVEY_PATH,
-            "There is no remaining packet-local missing companion, missing focused export-shim replay handoff, or missing dedicated layout-build handoff left to close inside this survey.",
+            "There is no remaining packet-local missing companion, missing focused export-shim replay handoff, missing dedicated layout-build handoff, or missing aggregate replay entrypoint left to close inside this survey.",
             "expected missing parked export/uapi next-step marker was not reported",
         ),
         (
@@ -475,7 +469,6 @@ def run_self_test() -> int:
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(marker_cases)}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current Phase 3 export/UAPI packet.")
