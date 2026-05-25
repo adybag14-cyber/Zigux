@@ -131,6 +131,7 @@
     "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
     "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
     "`zigux/tests/phase15_governance_lane_sequencing.zig`",
+    "`zigux/tests/phase15_readiness_gate_manifest.json`",
     "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
     "`zigux/tests/phase15_handoff_next_steps.zig`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
