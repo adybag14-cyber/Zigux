@@ -4,11 +4,17 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
+
+EXPECTED_MANIFEST_LANE_KEY = "P7-L09"
+EXPECTED_MANIFEST_PHASE = "Phase 7"
+EXPECTED_MANIFEST_ANCHOR = "lib/argv_split.c"
+EXPECTED_MANIFEST_STATE = "helper_slice_test_fixture_survey_manifest_anchor"
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
@@ -113,7 +119,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 62
+SELF_TEST_CASE_COUNT = 66
 
 
 def read_text(path: Path) -> str:
@@ -138,6 +144,17 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
+
+    manifest = json.loads(read_text(root / "zigux/tests/phase7_argv_split_manifest.json"))
+    if manifest.get("lane_key") != EXPECTED_MANIFEST_LANE_KEY:
+        return [], ["zigux/tests/phase7_argv_split_manifest.json: lane_key"]
+    if manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
+        return [], ["zigux/tests/phase7_argv_split_manifest.json: phase"]
+    if manifest.get("anchor") != EXPECTED_MANIFEST_ANCHOR:
+        return [], ["zigux/tests/phase7_argv_split_manifest.json: anchor"]
+    if manifest.get("current_master_state") != EXPECTED_MANIFEST_STATE:
+        return [], ["zigux/tests/phase7_argv_split_manifest.json: current_master_state"]
+
     return missing_files, collect_missing_markers(root)
 
 
@@ -148,7 +165,57 @@ def write(path: Path, content: str) -> None:
 
 def write_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
+        if rel == "zigux/tests/phase7_argv_split_manifest.json":
+            continue
         write(tmp_root / rel, "\n".join(REQUIRED_MARKERS[rel]) + "\n")
+
+    write(
+        tmp_root / "zigux/tests/phase7_argv_split_manifest.json",
+        json.dumps(
+            {
+                "lane_key": EXPECTED_MANIFEST_LANE_KEY,
+                "phase": EXPECTED_MANIFEST_PHASE,
+                "verified_on_utc": "2026-05-25T13:02:02Z",
+                "anchor": EXPECTED_MANIFEST_ANCHOR,
+                "current_master_state": EXPECTED_MANIFEST_STATE,
+                "review_surfaces": [
+                    "Documentation/zigux/phase7-argv-split-slice.md",
+                    "lib/argv_split.zig",
+                    "zigux/tests/phase7_argv_split.zig",
+                    "zigux/tests/phase7_argv_split_survey.zig",
+                    "zigux/tests/phase7_argv_split_manifest.json",
+                    "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+                    "scripts/zigux/check-phase7-argv-split-packet.py",
+                    "samples/zigux/README.md",
+                ],
+                "covered_helpers": [
+                    "countArgc",
+                    "argvSplit",
+                    "argvSplitWithArgc",
+                    "argvFree",
+                    "ArgvSplitResult.deinit",
+                    "ArgvSplitResult.cArgv",
+                ],
+                "missing_paths": [],
+                "ownership_focus": [
+                    "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage",
+                    "countArgc(), cStringPrefix(), nextArgSpan(), and nextSplitArgSpan() keep token counting and separator zeroing bounded to the exported C-string prefix",
+                    "blank-input results reuse exported empty storage and argv sentinel views without widening beyond the returned packet",
+                    "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL",
+                    "leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins",
+                    "blank, whitespace-only, whitespace-before-first-NUL, and leading-NUL inputs all reuse the same shared empty storage, argv, and cArgv() views across calls so blank-result teardown stays repeatable without hidden allocation churn",
+                    "non-blank sibling results keep owned storage, argv slices, and exported cArgv views isolated across calls",
+                    "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet",
+                    "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership",
+                    "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership",
+                    "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders",
+                ],
+                "next_bounded_step": "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.",
+            },
+            indent=2,
+        )
+        + "\n",
+    )
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -248,38 +315,71 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
-        manifest_text = read_text(manifest_path)
         manifest_marker = "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\""
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].remove("zigux/tests/fixtures/phase7_argv_split_vectors.zig")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker("missing_manifest_fixture_marker", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_text = read_text(manifest_path)
         manifest_marker = "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL"
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(manifest_marker)
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker("missing_manifest_first_nul_blank_focus", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_text = read_text(manifest_path)
         manifest_marker = "leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins"
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(manifest_marker)
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker("missing_manifest_leading_nul_blank_focus", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_text = read_text(manifest_path)
         manifest_marker = "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership"
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(manifest_marker)
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker("missing_manifest_fixture_first_nul_vector_focus", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_text = read_text(manifest_path)
         manifest_marker = "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership"
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(manifest_marker)
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker("missing_manifest_owner_boundary_marker", tmp_root, f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["lane_key"] = "P7-L08"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("argv_split_manifest_lane_key", tmp_root, "zigux/tests/phase7_argv_split_manifest.json: lane_key")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["phase"] = "Phase 8"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("argv_split_manifest_phase", tmp_root, "zigux/tests/phase7_argv_split_manifest.json: phase")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["anchor"] = "lib/cmdline.c"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("argv_split_manifest_anchor", tmp_root, "zigux/tests/phase7_argv_split_manifest.json: anchor")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["current_master_state"] = "helper_slice_test_fixture_survey_manifest_checker_anchor"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("argv_split_manifest_state", tmp_root, "zigux/tests/phase7_argv_split_manifest.json: current_master_state")
         cases_run += 1
         write_fixture_root(tmp_root)
 
