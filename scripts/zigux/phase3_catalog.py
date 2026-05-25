@@ -199,7 +199,6 @@ def build_catalog(repo_root: Path) -> dict[str, object]:
         "tests": _collect_existing(repo_root, TEST_PATHS),
         "commands": list(COMMANDS),
     }
-}
 
 
 def run_self_test() -> int:
