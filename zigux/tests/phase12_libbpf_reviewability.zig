@@ -52,6 +52,7 @@ const DeterminismVerificationEvidence = struct {
 const DeterminismFixture = struct {
     lane_key: []const u8,
     phase: []const u8,
+    surveyed_commit: []const u8,
     tracked_file_count: usize,
     tracked_paths: []const []const u8,
     files: []const SnapshotFile,
@@ -152,6 +153,7 @@ test "phase12 libbpf reviewability gate keeps the helper-local determinism fixtu
 
     try std.testing.expectEqualStrings("P12-L17", fixture.lane_key);
     try std.testing.expectEqualStrings("Phase 12", fixture.phase);
+    try std.testing.expect(isHexSha(fixture.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 1), fixture.tracked_file_count);
     try expectExactPaths(fixture.tracked_paths, &[_][]const u8{expected_path});
     try std.testing.expectEqual(@as(usize, 1), fixture.files.len);
@@ -169,6 +171,14 @@ test "phase12 libbpf reviewability gate keeps the helper-local determinism fixtu
     try std.testing.expectEqual(@as(usize, 29), fixture.verification_evidence.checker.self_test_case_count);
     try std.testing.expectEqualStrings(expected_path, fixture.verification_evidence.current_helper_blob.path);
     try std.testing.expect(isHexSha(fixture.verification_evidence.current_helper_blob.blob_sha));
+    try std.testing.expectEqualStrings(
+        fixture.files[0].path,
+        fixture.verification_evidence.current_helper_blob.path,
+    );
+    try std.testing.expectEqualStrings(
+        fixture.files[0].blob_sha,
+        fixture.verification_evidence.current_helper_blob.blob_sha,
+    );
 }
 
 test "phase12 libbpf reviewability gate keeps the parked replay boundaries and note-owned anchors explicit" {
