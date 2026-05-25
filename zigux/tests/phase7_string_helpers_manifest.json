@@ -9,10 +9,12 @@
   "review_surfaces": [
     "Documentation/zigux/phase7-string-helpers-slice.md",
     "scripts/zigux/check-phase7-string-helpers-packet.py",
+    "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
     "lib/string_helpers.zig",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+    "zigux/tests/phase7_string_helpers_format_boundary.zig",
     "zigux/tests/phase7_string_helpers_manifest.json",
     "samples/zigux/README.md"
   ],
@@ -69,7 +71,7 @@
     "memcpy_and_pad",
     "strreplace"
   ],
-  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, dedicated checker, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, this manifest, and `samples/zigux/README.md` aligned on the any-NP and string-wrapper escape helpers, the bounded string-array ownership pair, the duplicate-and-replace helper, the quotable log-safe duplication pair, the quotable file-path companion, the quotable cmdline companion, the bounded parse-int-array helper pair, the bounded case-conversion pair, and the shared no-extra-sample boundary without overstating the still-parked `parse_int_array_user()` user-buffer follow-on or the device-managed `devm_kasprintf_strarray()` follow-on as landed or reviving a duplicate `lib/string_helpers_parse_int_array.zig` sidecar.",
+  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, dedicated checker, dedicated format-boundary checker, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, dedicated format-boundary replay, this manifest, and `samples/zigux/README.md` aligned on the any-NP and string-wrapper escape helpers, the bounded string-array ownership pair, the duplicate-and-replace helper, the quotable log-safe duplication pair, the quotable file-path companion, the quotable cmdline companion, the bounded parse-int-array helper pair, the bounded case-conversion pair, and the shared no-extra-sample boundary without overstating the still-parked `parse_int_array_user()` user-buffer follow-on or the device-managed `devm_kasprintf_strarray()` follow-on as landed or reviving a duplicate `lib/string_helpers_parse_int_array.zig` sidecar.",
   "starter_packet_focus": [
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
@@ -90,6 +92,7 @@
     "in-place replacement inside the exported C-string prefix",
     "shared no-sample boundary and helper-local reviewability",
     "dedicated helper-local checker-backed packet reviewability",
+    "dedicated format-boundary replay for the trace-events formatting companion and broad-format exclusion",
     "shared sample-root no-extra-sample boundary rooted at `samples/zigux/README.md`"
   ],
   "ownership_focus": [
@@ -110,5 +113,5 @@
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
     "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test"
   ],
-  "next_bounded_step": "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`."
+  "next_bounded_step": "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`."
 }
