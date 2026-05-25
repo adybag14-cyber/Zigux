@@ -26,6 +26,11 @@ DEVM_FOLLOW_ON_MARKER = (
     "on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons"
 )
 
+NEXT_BOUNDED_STEP_MARKER = (
+    "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed "
+    "on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons"
+)
+
 FULL_FAMILY_GAP_MARKER = (
     "the broader full-family packet that still leaves `parse_int_array_user()` and "
     "`devm_kasprintf_strarray()` outside the current `master` helper packet"
@@ -57,6 +62,15 @@ CMDLINE_OWNERSHIP_MARKER = (
     "then applies quotable escaping"
 )
 
+TERMINATION_OWNERSHIP_MARKER = (
+    "stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix"
+)
+
+MANIFEST_LANE_KEY_MARKER = '"lane_key": "helper-local"'
+MANIFEST_PHASE_MARKER = '"phase": "Phase 7"'
+MANIFEST_ANCHOR_MARKER = '"anchor": "lib/string_helpers.c"'
+MANIFEST_STATE_MARKER = '"current_master_state": "expanded_starter_packet"'
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "`PHASE7_STATUS=starter_landed`",
@@ -65,7 +79,7 @@ REQUIRED_MARKERS = {
         "`stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary",
         "quoted cmdline duplication that collapses trailing NULs",
         NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER,
-        DEVM_FOLLOW_ON_MARKER,
+        NEXT_BOUNDED_STEP_MARKER,
     ],
     "scripts/zigux/check-phase7-string-helpers-packet.py": [
         "--self-test",
@@ -79,15 +93,21 @@ REQUIRED_MARKERS = {
         '"pub fn parseIntArrayUser("',
         '"pub fn parse_int_array_user("',
         '"zigux/tests/phase7_string_helpers_manifest.json": [',
-        '"\\\"devmKasprintfStrarray\\\""',
-        '"\\\"devm_kasprintf_strarray\\\""',
-        '"\\\"parseIntArrayUser\\\""',
-        '"\\\"parse_int_array_user\\\""',
+        '"\\\\\\"devmKasprintfStrarray\\\\\\""',
+        '"\\\\\\"devm_kasprintf_strarray\\\\\\""',
+        '"\\\\\\"parseIntArrayUser\\\\\\""',
+        '"\\\\\\"parse_int_array_user\\\\\\""',
         '"* `*printf*`"',
         '"* `*vsprintf*`"',
         FORMAT_BOUNDARY_MARKER,
         FULL_FAMILY_GAP_MARKER,
         DEVM_FOLLOW_ON_MARKER,
+        NEXT_BOUNDED_STEP_MARKER,
+        TERMINATION_OWNERSHIP_MARKER,
+        MANIFEST_LANE_KEY_MARKER,
+        MANIFEST_PHASE_MARKER,
+        MANIFEST_ANCHOR_MARKER,
+        MANIFEST_STATE_MARKER,
         "MISSING_PHASE7_STRING_HELPERS_FILES_START",
         "MISSING_PHASE7_STRING_HELPERS_FILES_END",
         "MISSING_PHASE7_STRING_HELPERS_MARKERS_START",
@@ -107,6 +127,8 @@ REQUIRED_MARKERS = {
         "pub fn kstrdup_quotable_cmdline(",
         "pub fn parseIntArray(",
         "pub fn parse_int_array(",
+        "pub fn stringIsTerminated(",
+        "pub fn string_is_terminated(",
         "pub fn stringUpper(",
         "pub fn string_upper(",
         "pub fn stringLower(",
@@ -116,6 +138,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix" {',
         'test "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit" {',
         'test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {',
+        'test "phase 7 string helpers starter keeps termination checks bounded by the caller limit" {',
         'test "phase 7 string helpers starter reports empty parse-int-array input as no entry" {',
         'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {',
         'test "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup" {',
@@ -133,14 +156,19 @@ REQUIRED_MARKERS = {
         'test "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix" {',
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
+        MANIFEST_LANE_KEY_MARKER,
+        MANIFEST_PHASE_MARKER,
+        MANIFEST_ANCHOR_MARKER,
+        MANIFEST_STATE_MARKER,
         '"scripts/zigux/check-phase7-string-helpers-packet.py"',
         "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings",
         "bounded uppercase and lowercase copies through the exported C-string boundary",
         "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters",
         CMDLINE_OWNERSHIP_MARKER,
+        TERMINATION_OWNERSHIP_MARKER,
         "dedicated helper-local checker-backed packet reviewability",
         NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER,
-        DEVM_FOLLOW_ON_MARKER,
+        NEXT_BOUNDED_STEP_MARKER,
     ],
     "zigux/tests/phase7_string_helpers_survey.zig": [
         'const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");',
@@ -148,11 +176,15 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "* `*printf*`");',
         'try expectContains(checker, "* `*vsprintf*`");',
         'try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");',
-        'try expectContains(manifest, "\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\"");',
+        'try expectContains(manifest, "\\\\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
         'try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping");',
-        'try expectContains(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\"");',
+        'try expectContains(manifest, "\\\\\\"next_bounded_step\\\\\\": \\\\\\\"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\\\\\"");',
         'try expectContains(sample_boundary, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");',
+        'try expectContains(checker, "try expectContains(helper, \\\\\\\"pub fn stringIsTerminated(\\\\\\\");");',
+        'try expectContains(checker, "try expectContains(helper, \\\\\\\"pub fn string_is_terminated(\\\\\\\");");',
+        'try expectContains(checker, "try expectContains(helper_tests, \\\\\\\"test \\\\\\\\\\\\\\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\\\\\\\\\\\\\" {\\\\\\\");");',
+        'try expectContains(checker, "try expectContains(manifest, \\\\\\\"stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix\\\\\\\");");',
         'try expectNotContains(helper, "pub fn devmKasprintfStrarray");',
         'try expectNotContains(helper, "pub fn devm_kasprintf_strarray");',
         'try expectNotContains(helper, "pub fn parseIntArrayUser(");',
@@ -161,10 +193,10 @@ REQUIRED_MARKERS = {
         'try expectNotContains(helper_tests, "devm_kasprintf_strarray");',
         'try expectNotContains(helper_tests, "parseIntArrayUser");',
         'try expectNotContains(helper_tests, "parse_int_array_user");',
-        'try expectNotContains(manifest, "\\\"devmKasprintfStrarray\\\"");',
-        'try expectNotContains(manifest, "\\\"devm_kasprintf_strarray\\\"");',
-        'try expectNotContains(manifest, "\\\"parseIntArrayUser\\\"");',
-        'try expectNotContains(manifest, "\\\"parse_int_array_user\\\"");',
+        'try expectNotContains(manifest, "\\\\\\"devmKasprintfStrarray\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\"devm_kasprintf_strarray\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\"parseIntArrayUser\\\\\\"");',
+        'try expectNotContains(manifest, "\\\\\\"parse_int_array_user\\\\\\"");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local",
@@ -183,11 +215,11 @@ REQUIRED_MARKERS = {
 
 COUNTED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
-        (DEVM_FOLLOW_ON_MARKER, 1),
+        (NEXT_BOUNDED_STEP_MARKER, 1),
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
         (
-            DEVM_FOLLOW_ON_MARKER,
+            NEXT_BOUNDED_STEP_MARKER,
             1,
         ),
     ],
@@ -222,7 +254,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 63
+SELF_TEST_CASE_COUNT = 67
 
 
 def read_text(path: Path) -> str:
@@ -356,8 +388,8 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        remove_once(slice_path, DEVM_FOLLOW_ON_MARKER)
-        expect_missing_marker("missing_slice_devm_follow_on_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {DEVM_FOLLOW_ON_MARKER}")
+        remove_once(slice_path, NEXT_BOUNDED_STEP_MARKER)
+        expect_missing_marker("missing_slice_next_bounded_step_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {NEXT_BOUNDED_STEP_MARKER}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
@@ -549,9 +581,9 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_devm_follow_on_marker = DEVM_FOLLOW_ON_MARKER
-        remove_once(manifest_path, manifest_devm_follow_on_marker)
-        expect_missing_marker("missing_manifest_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_devm_follow_on_marker}")
+        manifest_next_bounded_step_marker = NEXT_BOUNDED_STEP_MARKER
+        remove_once(manifest_path, manifest_next_bounded_step_marker)
+        expect_missing_marker("missing_manifest_next_bounded_step_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_next_bounded_step_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
@@ -561,20 +593,31 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        for manifest_marker, case in [
+            (MANIFEST_LANE_KEY_MARKER, "missing_manifest_lane_key_marker"),
+            (MANIFEST_PHASE_MARKER, "missing_manifest_phase_marker"),
+            (MANIFEST_ANCHOR_MARKER, "missing_manifest_anchor_marker"),
+            (MANIFEST_STATE_MARKER, "missing_manifest_state_marker"),
+        ]:
+            remove_once(manifest_path, manifest_marker)
+            expect_missing_marker(case, tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
+            cases_run += 1
+            write_fixture_root(tmp_root)
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
-        survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][4]
+        survey_marker = 'try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");'
         remove_once(survey_path, survey_marker)
         expect_missing_marker("missing_survey_format_boundary_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][7]
+        survey_marker = 'try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping");'
         remove_once(survey_path, survey_marker)
         expect_missing_marker("missing_survey_cmdline_ownership_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        survey_marker = REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_survey.zig"][8]
+        survey_marker = 'try expectContains(manifest, "\\\\\\"next_bounded_step\\\\\\": \\\\\\\"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons\\\\\\\"");'
         remove_once(survey_path, survey_marker)
         expect_missing_marker("missing_survey_manifest_next_bounded_step_replay", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
         cases_run += 1
