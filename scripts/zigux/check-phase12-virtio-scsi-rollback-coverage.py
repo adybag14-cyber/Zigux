@@ -17,10 +17,10 @@ BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: [
-        "`PHASE12_LANE=P12-L13`",
+        "`PHASE12_LANE=P12-L09`",
         "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`",
         "rollback-only split machine-checkable",
-        "reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, dedicated survey-build route, survey gate, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent",
+        "reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, survey gate, dedicated survey-build route, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent",
         "rollback drill: when this packet moves",
     ],
     FALLBACK_CATALOG_PATH: [
