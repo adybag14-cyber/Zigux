@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
+ROOT = SELF_PATH.parents[2] if len(Path(__file__).resolve().parents) > 2 else SELF_PATH.parent
 
 PHASE10_SCRIPTS_ROOT_PHRASE = (
     "Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root "
@@ -89,6 +89,7 @@ REQUIRED_MARKERS = {
         "drivers/virtio/virtio_input_probe_preflight.zig",
         "drivers/virtio/virtio_input_registration_preflight.zig",
         "drivers/virtio/virtio_input_status_drain.zig",
+        "drivers/virtio/virtio_input_teardown_preflight.zig",
         "drivers/virtio/virtio_input_teardown_observation.zig",
         "drivers/virtio/virtio_input_verify.zig",
         "zigux/tests/phase10_virtio_input.zig",
@@ -96,6 +97,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_registration_preflight.zig",
         "zigux/tests/phase10_virtio_input_status_drain.zig",
+        "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
         "zigux/tests/phase10_virtio_input_survey.zig",
         "zigux/tests/phase10_virtio_input_manifest.json",
@@ -338,9 +340,21 @@ SELF_TEST_MUTATIONS = [
     ),
     (
         "Documentation/zigux/phase10-virtio-input-module-slice.md",
+        "drivers/virtio/virtio_input_teardown_preflight.zig",
+        "drivers/virtio/virtio_input_teardown_preflight_missing.zig",
+        "Documentation/zigux/phase10-virtio-input-module-slice.md:drivers/virtio/virtio_input_teardown_preflight.zig",
+    ),
+    (
+        "Documentation/zigux/phase10-virtio-input-module-slice.md",
         "zigux/tests/phase10_virtio_input_manifest.json",
         "zigux/tests/phase10_virtio_input_manifest_missing.json",
         "Documentation/zigux/phase10-virtio-input-module-slice.md:zigux/tests/phase10_virtio_input_manifest.json",
+    ),
+    (
+        "Documentation/zigux/phase10-virtio-input-module-slice.md",
+        "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
+        "zigux/tests/phase10_virtio_input_teardown_preflight_missing.zig",
+        "Documentation/zigux/phase10-virtio-input-module-slice.md:zigux/tests/phase10_virtio_input_teardown_preflight.zig",
     ),
     (
         "zigux/tests/phase10_build.zig",
