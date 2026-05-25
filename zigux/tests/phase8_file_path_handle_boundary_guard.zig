@@ -58,7 +58,7 @@ test "phase 8 file-path-handle boundary guard keeps landed helper slices distinc
     try expectContains(bridge_slice, "`make -C zigux phase8`");
 
     try expectContains(boundary_survey, "keep the landed helper-local bridge packet");
-    try expectContains(boundary_survey, "Current `master` still keeps the mixed-source bridge packet reviewable, but the readable sources stay split in this runtime.");
+    try expectContains(boundary_survey, "Current `master` still keeps the mixed-source bridge packet reviewable, and authenticated contents readback now reaches the bridge-side helper and witness files directly again in this runtime.");
     try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_boundary_guard.zig`");
     try expectContains(boundary_survey, "`zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`");
     try expectContains(boundary_survey, "live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior");
