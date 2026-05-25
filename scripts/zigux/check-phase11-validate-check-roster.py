@@ -14,6 +14,7 @@ from pathlib import Path
 DEFAULT_ROOT = Path("/workspace/current-like")
 VALIDATE_PATH = Path("scripts/zigux/validate-phase11.py")
 FIXTURE_PATH = Path("zigux/tests/fixtures/phase11_validate_checks.json")
+INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 
 SELF_CHECK_PATH = "scripts/zigux/check-phase11-validate-check-roster.py"
 SELF_FIXTURE_PATH = "zigux/tests/fixtures/phase11_validate_checks.json"
@@ -21,6 +22,25 @@ EXPECTED_VALIDATE_ROUTE = "make -C zigux phase11-validate"
 EXPECTED_VALIDATE_SCRIPT = "scripts/zigux/validate-phase11.py"
 EXPECTED_PHASE = "Phase 11"
 EXPECTED_LANE_KEY = "P11-L15"
+EXPECTED_INVENTORY_DETERMINISTIC_LANE = "P11-L11"
+EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES = [
+    "zigux/tests/fixtures/phase11_build_inventory.json",
+    "zigux/tests/fixtures/phase11_validate_checks.json",
+    "zigux/tests/phase11_dw_wdt_manifest.json",
+]
+EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS = [
+    "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
+    "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
+    "zigux/tests/phase11_dw_wdt_restart_build.zig",
+    "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+]
+EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP = (
+    "phase11-validate now carries the dedicated golden-output fixture roster "
+    "`zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed "
+    "`scripts/zigux/check-phase11-validate-check-roster.py` and "
+    "`scripts/zigux/check-phase11-validate-route-alignment.py` guards; "
+    "keep future deterministic output drift inside that validator packet"
+)
 
 
 class CheckError(RuntimeError):
@@ -114,11 +134,14 @@ def parse_validate_phase11(validate_path: Path) -> tuple[list[str], list[dict[st
 def run_check(root: Path) -> tuple[int, int]:
     required_paths, checks = parse_validate_phase11(root / VALIDATE_PATH)
     fixture = read_json(root / FIXTURE_PATH)
+    inventory = read_json(root / INVENTORY_PATH)
 
     if SELF_CHECK_PATH not in required_paths:
         raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {SELF_CHECK_PATH}")
     if SELF_FIXTURE_PATH not in required_paths:
         raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {SELF_FIXTURE_PATH}")
+    if str(INVENTORY_PATH) not in required_paths:
+        raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {INVENTORY_PATH}")
 
     lane_key = fixture.get("lane_key")
     if lane_key != EXPECTED_LANE_KEY:
@@ -139,6 +162,41 @@ def run_check(root: Path) -> tuple[int, int]:
     if validate_route != EXPECTED_VALIDATE_ROUTE:
         raise CheckError(
             f"validate_route mismatch in {FIXTURE_PATH}: expected {EXPECTED_VALIDATE_ROUTE!r}, found {validate_route!r}"
+        )
+
+    deterministic_lane = inventory.get("deterministic_tooling_lane")
+    if deterministic_lane != EXPECTED_INVENTORY_DETERMINISTIC_LANE:
+        raise CheckError(
+            "deterministic_tooling_lane mismatch in "
+            f"{INVENTORY_PATH}: expected {EXPECTED_INVENTORY_DETERMINISTIC_LANE!r}, "
+            f"found {deterministic_lane!r}"
+        )
+    deterministic_surfaces = expect_string_list(
+        "deterministic_fixture_surfaces",
+        inventory.get("deterministic_fixture_surfaces"),
+    )
+    if deterministic_surfaces != EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES:
+        raise CheckError(
+            "deterministic_fixture_surfaces mismatch in "
+            f"{INVENTORY_PATH}: expected {EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES!r}, "
+            f"found {deterministic_surfaces!r}"
+        )
+    teardown_builds = expect_string_list(
+        "focused_teardown_failure_mode_builds",
+        inventory.get("focused_teardown_failure_mode_builds"),
+    )
+    if teardown_builds != EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS:
+        raise CheckError(
+            "focused_teardown_failure_mode_builds mismatch in "
+            f"{INVENTORY_PATH}: expected {EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS!r}, "
+            f"found {teardown_builds!r}"
+        )
+    deterministic_gap = inventory.get("deterministic_golden_output_gap")
+    if deterministic_gap != EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP:
+        raise CheckError(
+            "deterministic_golden_output_gap mismatch in "
+            f"{INVENTORY_PATH}: expected {EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP!r}, "
+            f"found {deterministic_gap!r}"
         )
 
     exact_checks = fixture.get("exact_checks")
@@ -174,11 +232,19 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def build_fixture(root: Path, *, wrong_fixture_command: bool = False, omit_required_path: bool = False) -> None:
+def build_fixture(
+    root: Path,
+    *,
+    wrong_fixture_command: bool = False,
+    omit_required_path: bool = False,
+    wrong_inventory_lane: bool = False,
+    wrong_inventory_gap: bool = False,
+) -> None:
     required_paths = [
         "scripts/zigux/validate-phase11.py",
         SELF_CHECK_PATH,
         SELF_FIXTURE_PATH,
+        str(INVENTORY_PATH),
     ]
     if omit_required_path:
         required_paths.remove(SELF_FIXTURE_PATH)
@@ -230,6 +296,25 @@ def build_fixture(root: Path, *, wrong_fixture_command: bool = False, omit_requi
         )
         + "\n",
     )
+    write(
+        root / INVENTORY_PATH,
+        json.dumps(
+            {
+                "deterministic_tooling_lane": (
+                    "P11-L07" if wrong_inventory_lane else EXPECTED_INVENTORY_DETERMINISTIC_LANE
+                ),
+                "deterministic_fixture_surfaces": EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES,
+                "focused_teardown_failure_mode_builds": EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS,
+                "deterministic_golden_output_gap": (
+                    "stale deterministic golden-output note"
+                    if wrong_inventory_gap
+                    else EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP
+                ),
+            },
+            indent=2,
+        )
+        + "\n",
+    )
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -271,9 +356,20 @@ def run_self_test() -> int:
         expect_failure(wrong_lane_key, "lane_key mismatch")
         case_count += 1
 
+        wrong_inventory_lane = tmpdir / "wrong_inventory_lane"
+        build_fixture(wrong_inventory_lane, wrong_inventory_lane=True)
+        expect_failure(wrong_inventory_lane, "deterministic_tooling_lane mismatch")
+        case_count += 1
+
+        wrong_inventory_gap = tmpdir / "wrong_inventory_gap"
+        build_fixture(wrong_inventory_gap, wrong_inventory_gap=True)
+        expect_failure(wrong_inventory_gap, "deterministic_golden_output_gap mismatch")
+        case_count += 1
+
         syntax_error = tmpdir / "syntax_error"
         write(syntax_error / VALIDATE_PATH, "CHECKS = (\n")
         write(syntax_error / FIXTURE_PATH, "{}\n")
+        write(syntax_error / INVENTORY_PATH, "{}\n")
         expect_failure(syntax_error, "invalid Python")
         case_count += 1
 
