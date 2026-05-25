@@ -681,6 +681,15 @@ test "memcpyAndPad copies the requested prefix and pads the destination tail" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 'c', '.', '.' }, buf[0..]);
 }
 
+test "memcpy_and_pad mirrors memcpyAndPad padding semantics" {
+    var direct = [_]u8{ 9, 9, 9, 9 };
+    var alias = [_]u8{ 8, 8, 8, 8 };
+    memcpyAndPad(direct[0..], "wxyz", 2, '.');
+    memcpy_and_pad(alias[0..], "wxyz", 2, '.');
+    try std.testing.expectEqualSlices(u8, direct[0..], alias[0..]);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'w', 'x', '.', '.' }, alias[0..]);
+}
+
 test "strtomem copies a C-string prefix without adding a terminator or padding" {
     var buf = [_]u8{ 9, 9, 9, 9 };
     strtomem(buf[0..], &[_]u8{ 'o', 'k', 0, 'x' });
