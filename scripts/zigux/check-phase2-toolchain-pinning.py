@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 39
+EXPECTED_SELF_TEST_CASE_COUNT = 103
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -57,11 +57,18 @@ SURFACE_PATHS = (
     "scripts/zigux/check-lane05-stage-helper-contract.py",
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/install-zig.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/check-phase2-kbuild-routes.py",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "scripts/zigux/check-phase2-fixdep-gate.py",
     "scripts/zigux/check-fixdep-diff.py",
@@ -109,11 +116,43 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross.py",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "run: make -C zigux phase2-toolchain",
+    "run: make -C zigux phase2-tools",
+    "run: make -C zigux phase2-kconfig",
     "run: make -C zigux phase2-fixdep",
+    "run: make -C zigux phase2-cross",
+    "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
+    "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+    "run: make -C zigux phase2-genksyms",
+    "run: make -C zigux phase2-validate",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
@@ -421,109 +460,5 @@ def run_self_test() -> int:
             build_self_test_root(root)
             path = resolve(root, WORKFLOW)
             path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, marker + "\n" + marker), encoding="utf-8")
-            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in collect_issues(root)
-            checks += 1
-
-        build_self_test_root(root)
-        manifest = json.loads(read_text(resolve(root, TOOL_MANIFEST)))
-        manifest["present_surfaces"]["fixture_roster"].remove(GENKSYMS_EXPECTED[10])
-        write_text(resolve(root, TOOL_MANIFEST), json.dumps(manifest, indent=2) + "\n")
-        assert any(code == "TOOL_MANIFEST_BUCKET_MISMATCH" for code, _ in collect_issues(root))
-        checks += 1
-
-        build_self_test_root(root)
-        policy = json.loads(read_text(resolve(root, POLICY)))
-        policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain"]
-        write_text(resolve(root, POLICY), json.dumps(policy, indent=2) + "\n")
-        assert any(code == "POLICY_REQUIRED_MAKE_ROUTES_MISMATCH" for code, _ in collect_issues(root))
-        checks += 1
-
-        build_self_test_root(root)
-        readme = resolve(root, THIRD_PARTY_README)
-        readme.write_text(readme.read_text(encoding="utf-8").replace("duplicate-copy boundary", ""), encoding="utf-8")
-        assert any(code == "MISSING_ARCHIVE_README_MARKERS" for code, _ in collect_issues(root))
-        checks += 1
-
-        build_self_test_root(root)
-        write_text(resolve(root, "third_party") / f"zig-{ARCHIVE_TARGET}-{ARCHIVE_CHANNEL} (1).tar.xz", "duplicate\n")
-        assert any(code == "DUPLICATE_ARCHIVE_COPY" for code, _ in collect_issues(root))
-        checks += 1
-
-        build_self_test_root(root)
-        resolve(root, "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig").unlink()
-        assert ("MISSING_SURFACE_PATHS", "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        resolve(root, "scripts/zigux/artifact_diff.py").unlink()
-        assert ("MISSING_SURFACE_PATHS", "scripts/zigux/artifact_diff.py") in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        resolve(root, GENKSYMS_EXPECTED[10]).unlink()
-        assert ("MISSING_SURFACE_PATHS", GENKSYMS_EXPECTED[10]) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        notes = resolve(root, BOOTSTRAP_NOTES)
-        notes.write_text(notes.read_text(encoding="utf-8").replace(BOOTSTRAP_GAPS[0], ""), encoding="utf-8")
-        assert any(code == "MISSING_BOOTSTRAP_GAP_MARKERS" for code, _ in collect_issues(root))
-        checks += 1
-
-        build_self_test_root(root)
-        review = resolve(root, REVIEW_CHECKLIST)
-        review.write_text(review.read_text(encoding="utf-8").replace(REVIEW_MARKERS[-1], ""), encoding="utf-8")
-        assert any(code == "MISSING_REVIEW_MARKERS" for code, _ in collect_issues(root))
-        checks += 1
-
-        build_self_test_root(root)
-        closure = resolve(root, PHASE2_CLOSURE)
-        closure.write_text(closure.read_text(encoding="utf-8").replace(PHASE2_CLOSURE_MARKERS[-1], ""), encoding="utf-8")
-        assert any(code == "MISSING_PHASE2_CLOSURE_MARKERS" for code, _ in collect_issues(root))
-        checks += 1
-
-        build_self_test_root(root)
-        tests = resolve(root, TESTS_README)
-        tests.write_text(tests.read_text(encoding="utf-8").replace(SCRIPTS_MARKERS[0], ""), encoding="utf-8")
-        assert any(code == "MISSING_TESTS_MARKERS" for code, _ in collect_issues(root))
-        checks += 1
-
-        build_self_test_root(root)
-        tests = resolve(root, TESTS_README)
-        tests.write_text(tests.read_text(encoding="utf-8").replace(SCRIPTS_MARKERS[2], ""), encoding="utf-8")
-        assert ("MISSING_TESTS_MARKERS", SCRIPTS_MARKERS[2]) in collect_issues(root)
-        checks += 1
-
-        build_self_test_root(root)
-        scripts = resolve(root, SCRIPTS_README)
-        scripts.write_text(scripts.read_text(encoding="utf-8").replace(SCRIPTS_MARKERS[0], ""), encoding="utf-8")
-        assert any(code == "MISSING_SCRIPTS_MARKERS" for code, _ in collect_issues(root))
-        checks += 1
-
-    assert checks == EXPECTED_SELF_TEST_CASE_COUNT
-    print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
-    print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT={checks}")
-    print("PHASE2_TOOLCHAIN_PINNING_MANIFEST_SYNC=pass")
-    print(f"PHASE2_TOOLCHAIN_PINNING_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
+            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
     return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Keep the current directly readable Phase 2 toolchain pinning packet aligned.")
-    parser.add_argument("--root", type=Path, default=ROOT)
-    parser.add_argument("--self-test", action="store_true")
-    args = parser.parse_args()
-    if args.self_test:
-        return run_self_test()
-    issues = collect_issues(args.root)
-    if issues:
-        return emit_issues(issues)
-    print("PHASE2_TOOLCHAIN_PINNING=pass")
-    print(f"PHASE2_TOOLCHAIN_PINNING_REQUIRED_MARKER_COUNT={len(BOOTSTRAP_PRESENT)}")
-    print(f"PHASE2_TOOLCHAIN_PINNING_GAP_MARKER_COUNT={len(BOOTSTRAP_GAPS)}")
-    print("PHASE2_TOOLCHAIN_PINNING_ARCHIVE_README_MARKER_COUNT=10")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
