@@ -146,7 +146,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 74
+SELF_TEST_CASE_COUNT = 76
 
 
 class ValidationError(RuntimeError):
@@ -330,6 +330,11 @@ def validate_parity_manifest(path: Path) -> None:
     checksum = get_helper(manifest, "checksum")
     hexdump = get_helper(manifest, "hexdump")
 
+    if checksum.get("dedicated_slowdown_replay") != "zigux/tests/phase6_checksum_perf.zig":
+        raise ValidationError("checksum parity dedicated_slowdown_replay drifted")
+    if hexdump.get("dedicated_slowdown_replay") != "zigux/tests/phase6_hexdump_perf.zig":
+        raise ValidationError("hexdump parity dedicated_slowdown_replay drifted")
+
     checksum_perf = checksum.get("current_perf_evidence")
     hexdump_perf = hexdump.get("current_perf_evidence")
     if not isinstance(checksum_perf, dict):
@@ -400,8 +405,8 @@ def scaffold_repo(root: Path) -> None:
         "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
         "shared_direct_evidence": REQUIRED_SHARED_DIRECT_EVIDENCE,
         "helpers": [
-            {"key": "checksum", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "still_missing_direct_companions": EXPECTED_CHECKSUM_NO_DIRECT_COMPANION_GAPS, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_cases": [{"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100}, {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100}], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS, "linux_style_rerun_routes": ["make -C zigux phase6-checksum-perf-matrix-test", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-perf"]}},
-            {"key": "hexdump", "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES, "still_missing_direct_companions": EXPECTED_HEXDUMP_NO_DIRECT_COMPANION_GAPS, "perf_matrix_preflight": EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT, "current_perf_evidence": {"cases": [{"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175}, {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600}], "linux_style_rerun_routes": ["make -C zigux phase6-hexdump-review", "make -C zigux phase6-hexdump-perf-matrix-test", "make -C zigux phase6-hexdump-perf", "make -C zigux phase6-perf"]}}
+            {"key": "checksum", "dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig", "checker_surfaces": REQUIRED_CHECKSUM_CHECKER_SURFACES, "still_missing_direct_companions": EXPECTED_CHECKSUM_NO_DIRECT_COMPANION_GAPS, "current_perf_evidence": {"cases": [{"label": "64B", "iterations": 200000, "max_slowdown_pct": 150}, {"label": "1501B", "iterations": 12000, "max_slowdown_pct": 150}], "payload_case_labels": ["64B", "1501B"], "ipv4_fast_path_cases": [{"label": "IPV4_20B", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_20B_UPDATED", "iterations": 600000, "max_slowdown_pct": 100}, {"label": "IPV4_24B", "iterations": 500000, "max_slowdown_pct": 100}, {"label": "IPV4_60B", "iterations": 250000, "max_slowdown_pct": 100}], "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_IPV4_FAST_PATH_LABELS, "linux_style_rerun_routes": ["make -C zigux phase6-checksum-perf-matrix-test", "make -C zigux phase6-checksum-perf", "make -C zigux phase6-perf"]}},
+            {"key": "hexdump", "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig", "checker_surfaces": REQUIRED_HEXDUMP_CHECKER_SURFACES, "still_missing_direct_companions": EXPECTED_HEXDUMP_NO_DIRECT_COMPANION_GAPS, "perf_matrix_preflight": EXPECTED_HEXDUMP_PERF_MATRIX_PREFLIGHT, "current_perf_evidence": {"cases": [{"label": "16B-plain-g1", "reps": 40000, "max_slowdown_pct": 175}, {"label": "32B-ascii-g2", "reps": 10000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g4", "reps": 20000, "max_slowdown_pct": 550}, {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600}], "linux_style_rerun_routes": ["make -C zigux phase6-hexdump-review", "make -C zigux phase6-hexdump-perf-matrix-test", "make -C zigux phase6-hexdump-perf", "make -C zigux phase6-perf"]}}
         ],
     }, indent=2) + "\n")
 
@@ -472,13 +477,15 @@ def run_self_test() -> None:
             (PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-perf-threshold-markers.py"', '"scripts/zigux/check-phase6-base64-bsearch-perf-markers.py"', "helper-parity shared_direct_evidence drifted: scripts/zigux/check-phase6-perf-threshold-markers.py"),
             (PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-hexdump-packet.py"', '"scripts/zigux/check-phase6-checksum-c-parity.py"', "helper-parity shared_direct_evidence drifted: scripts/zigux/check-phase6-hexdump-packet.py"),
             (PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-hexdump-route.py"', '"scripts/zigux/check-phase6-hexdump-packet.py"', "helper-parity shared_direct_evidence drifted: scripts/zigux/check-phase6-hexdump-route.py"),
+            (PARITY_MANIFEST_PATH, '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum_perf.zig"', '"dedicated_slowdown_replay": "zigux/tests/phase6_checksum.zig"', "checksum parity dedicated_slowdown_replay drifted"),
+            (PARITY_MANIFEST_PATH, '"dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig"', '"dedicated_slowdown_replay": "zigux/tests/phase6_hexdump.zig"', "hexdump parity dedicated_slowdown_replay drifted"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-checksum-corpus-evidence.py",\n        "scripts/zigux/check-phase6-checksum-c-parity.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"]', "checksum checker surface drifted"),
             (PARITY_MANIFEST_PATH, '"checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ]', '"checker_surfaces": ["scripts/zigux/check-phase6-hexdump-packet.py"]', "hexdump checker surface drifted"),
             (PARITY_MANIFEST_PATH, '"still_missing_direct_companions": []', '"still_missing_direct_companions": ["zigux/tests/phase6_checksum_c_parity.zig"]', "checksum parity still_missing_direct_companions drifted"),
             (
                 PARITY_MANIFEST_PATH,
-                '"key": "hexdump",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": [],',
-                '"key": "hexdump",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": ["zigux/tests/phase6_hexdump_route_refresh.zig"],',
+                '"key": "hexdump",\n      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": [],',
+                '"key": "hexdump",\n      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": ["zigux/tests/phase6_hexdump_route_refresh.zig"],',
                 "hexdump parity still_missing_direct_companions drifted",
             ),
             (PARITY_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-22"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-parity surveyed_head drifted"),
