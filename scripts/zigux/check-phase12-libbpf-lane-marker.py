@@ -11,17 +11,17 @@ from pathlib import Path
 from typing import Iterable
 
 
-MANIFEST_REL_PATH = Path("zigux/tests/phase12_libbpf_manifest.json")
+SNAPSHOT_REL_PATH = Path("zigux/tests/fixtures/phase12_libbpf_snapshot.json")
 SURVEY_NOTE_REL_PATH = Path("Documentation/zigux/phase12-libbpf-segment-survey.md")
 VERIFY_SHARD_NOTE_REL_PATH = Path("Documentation/zigux/phase12-libbpf-verify-shard-note.md")
-SEGMENT_TEST_REL_PATH = Path("zigux/tests/phase12_libbpf_segments.zig")
-SEGMENT_TEST_NOTE_MARKER = '"Documentation/zigux/phase12-libbpf-segment-survey.md"'
+REVIEWABILITY_GATE_REL_PATH = Path("zigux/tests/phase12_libbpf_reviewability.zig")
+REVIEWABILITY_GATE_NOTE_MARKER = '"Documentation/zigux/phase12-libbpf-segment-survey.md"'
 VERIFY_SHARD_NOTE_CHECKER_MARKER = '- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`'
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 
-def load_manifest_packet(root: Path) -> dict[str, str]:
-    payload = json.loads((root / MANIFEST_REL_PATH).read_text(encoding="utf-8"))
+def load_snapshot_packet(root: Path) -> dict[str, str]:
+    payload = json.loads((root / SNAPSHOT_REL_PATH).read_text(encoding="utf-8"))
     lane_key = payload.get("lane_key")
     phase = payload.get("phase")
     surveyed_commit = payload.get("surveyed_commit")
@@ -42,8 +42,8 @@ def expected_lane_marker_text(lane_key: str) -> str:
     return f"PHASE12_LANE_KEY={lane_key}"
 
 
-def expected_segment_assertion_text(lane_key: str) -> str:
-    return f'try std.testing.expectEqualStrings("{lane_key}", manifest.lane_key);'
+def expected_reviewability_assertion_text(lane_key: str) -> str:
+    return f'try std.testing.expectEqualStrings("{lane_key}", fixture.lane_key);'
 
 
 def exact_count_errors(label: str, text: str, marker: str) -> list[str]:
@@ -57,13 +57,15 @@ def exact_count_errors(label: str, text: str, marker: str) -> list[str]:
 
 def collect_missing_markers(root: Path) -> list[str]:
     missing: list[str] = []
-    manifest_path = root / MANIFEST_REL_PATH
-    if not manifest_path.is_file():
-        return [f"missing_file:{MANIFEST_REL_PATH.as_posix()}"]
+    snapshot_path = root / SNAPSHOT_REL_PATH
+    if not snapshot_path.is_file():
+        return [f"missing_file:{SNAPSHOT_REL_PATH.as_posix()}"]
 
-    manifest_packet = load_manifest_packet(root)
-    lane_marker = expected_lane_marker_text(manifest_packet["lane_key"])
-    segment_assertion = expected_segment_assertion_text(manifest_packet["lane_key"])
+    snapshot_packet = load_snapshot_packet(root)
+    lane_marker = expected_lane_marker_text(snapshot_packet["lane_key"])
+    reviewability_assertion = expected_reviewability_assertion_text(
+        snapshot_packet["lane_key"]
+    )
 
     survey_note_path = root / SURVEY_NOTE_REL_PATH
     if not survey_note_path.is_file():
@@ -79,18 +81,29 @@ def collect_missing_markers(root: Path) -> list[str]:
     else:
         verify_note = verify_note_path.read_text(encoding="utf-8")
 
-    segment_test_path = root / SEGMENT_TEST_REL_PATH
-    if not segment_test_path.is_file():
-        missing.append(f"missing_file:{SEGMENT_TEST_REL_PATH.as_posix()}")
-        segment_test = ""
+    reviewability_gate_path = root / REVIEWABILITY_GATE_REL_PATH
+    if not reviewability_gate_path.is_file():
+        missing.append(f"missing_file:{REVIEWABILITY_GATE_REL_PATH.as_posix()}")
+        reviewability_gate = ""
     else:
-        segment_test = segment_test_path.read_text(encoding="utf-8")
+        reviewability_gate = reviewability_gate_path.read_text(encoding="utf-8")
 
     missing.extend(exact_count_errors("survey_note", survey_note, lane_marker))
-    missing.extend(exact_count_errors("verify_shard_note", verify_note, VERIFY_SHARD_NOTE_CHECKER_MARKER))
-    missing.extend(exact_count_errors("segment_test", segment_test, SEGMENT_TEST_NOTE_MARKER))
-    missing.extend(exact_count_errors("segment_test", segment_test, lane_marker))
-    missing.extend(exact_count_errors("segment_test", segment_test, segment_assertion))
+    missing.extend(
+        exact_count_errors(
+            "verify_shard_note", verify_note, VERIFY_SHARD_NOTE_CHECKER_MARKER
+        )
+    )
+    missing.extend(
+        exact_count_errors(
+            "reviewability_gate", reviewability_gate, REVIEWABILITY_GATE_NOTE_MARKER
+        )
+    )
+    missing.extend(
+        exact_count_errors(
+            "reviewability_gate", reviewability_gate, reviewability_assertion
+        )
+    )
     return missing
 
 
@@ -106,12 +119,12 @@ def check_lane_marker(root: Path) -> int:
 
 
 def build_self_test_tree(root: Path) -> None:
-    (root / MANIFEST_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
+    (root / SNAPSHOT_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
     (root / SURVEY_NOTE_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
     (root / VERIFY_SHARD_NOTE_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
-    (root / SEGMENT_TEST_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
+    (root / REVIEWABILITY_GATE_REL_PATH.parent).mkdir(parents=True, exist_ok=True)
 
-    (root / MANIFEST_REL_PATH).write_text(
+    (root / SNAPSHOT_REL_PATH).write_text(
         json.dumps(
             {
                 "lane_key": "P12-L16",
@@ -133,10 +146,10 @@ def build_self_test_tree(root: Path) -> None:
         "- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`\n",
         encoding="utf-8",
     )
-    (root / SEGMENT_TEST_REL_PATH).write_text(
+    (root / REVIEWABILITY_GATE_REL_PATH).write_text(
+        'const fixture_json = try readFileAlloc("zigux/tests/fixtures/phase12_libbpf_snapshot.json", 16 * 1024);\n'
         'const survey_path = "Documentation/zigux/phase12-libbpf-segment-survey.md";\n'
-        'try std.testing.expect(std.mem.containsAtLeast(u8, survey_text, 1, "PHASE12_LANE_KEY=P12-L16"));\n'
-        'try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);\n',
+        'try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);\n',
         encoding="utf-8",
     )
 
@@ -144,11 +157,11 @@ def build_self_test_tree(root: Path) -> None:
 def expect_failure(root: Path, marker: str) -> None:
     missing = collect_missing_markers(root)
     if marker not in missing:
-        raise SystemExit(f"phase12-libbpf-lane-marker:self-test:{marker}")
+        raise SystemExit(f"phase12-libbpf-lane-marker:self-test:{marker}:{missing}")
 
 
 def run_self_test() -> int:
-    cases = 6
+    cases = 8
     with tempfile.TemporaryDirectory(prefix="phase12-libbpf-lane-marker-") as tmp:
         root = Path(tmp)
 
@@ -167,43 +180,70 @@ def run_self_test() -> int:
         expect_failure(root, "verify_shard_note:- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`")
 
         build_self_test_tree(root)
-        segment_path = root / SEGMENT_TEST_REL_PATH
-        segment_path.write_text(
-            segment_path.read_text(encoding="utf-8").replace(SEGMENT_TEST_NOTE_MARKER, "survey.md"),
+        reviewability_path = root / REVIEWABILITY_GATE_REL_PATH
+        reviewability_path.write_text(
+            reviewability_path.read_text(encoding="utf-8").replace(
+                REVIEWABILITY_GATE_NOTE_MARKER, "survey.md"
+            ),
             encoding="utf-8",
         )
-        expect_failure(root, f"segment_test:{SEGMENT_TEST_NOTE_MARKER}")
+        expect_failure(root, f"reviewability_gate:{REVIEWABILITY_GATE_NOTE_MARKER}")
 
         build_self_test_tree(root)
-        segment_path = root / SEGMENT_TEST_REL_PATH
-        segment_path.write_text(
-            segment_path.read_text(encoding="utf-8").replace("PHASE12_LANE_KEY=P12-L16", ""),
-            encoding="utf-8",
-        )
-        expect_failure(root, "segment_test:PHASE12_LANE_KEY=P12-L16")
-
-        build_self_test_tree(root)
-        segment_path = root / SEGMENT_TEST_REL_PATH
-        segment_path.write_text(
-            segment_path.read_text(encoding="utf-8").replace(
-                'try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);\n',
+        reviewability_path = root / REVIEWABILITY_GATE_REL_PATH
+        reviewability_path.write_text(
+            reviewability_path.read_text(encoding="utf-8").replace(
+                'try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);\n',
                 "",
             ),
             encoding="utf-8",
         )
-        expect_failure(root, 'segment_test:try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);')
+        expect_failure(root, 'reviewability_gate:try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);')
 
         build_self_test_tree(root)
-        segment_path = root / SEGMENT_TEST_REL_PATH
-        segment_path.write_text(
-            segment_path.read_text(encoding="utf-8")
-            + 'try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);\n',
+        reviewability_path = root / REVIEWABILITY_GATE_REL_PATH
+        reviewability_path.write_text(
+            reviewability_path.read_text(encoding="utf-8")
+            + 'try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);\n',
             encoding="utf-8",
         )
         expect_failure(
             root,
-            'segment_test_count:try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);:expected=1:actual=2',
+            'reviewability_gate_count:try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);:expected=1:actual=2',
         )
+
+        build_self_test_tree(root)
+        snapshot_path = root / SNAPSHOT_REL_PATH
+        snapshot_path.write_text(
+            snapshot_path.read_text(encoding="utf-8").replace(
+                '"phase": "Phase 12"', '"phase": "Phase 99"'
+            ),
+            encoding="utf-8",
+        )
+        try:
+            collect_missing_markers(root)
+        except SystemExit as exc:
+            if str(exc) != "invalid Phase 12 libbpf phase":
+                raise
+        else:
+            raise SystemExit("phase12-libbpf-lane-marker:self-test:invalid_phase")
+
+        build_self_test_tree(root)
+        snapshot_path = root / SNAPSHOT_REL_PATH
+        snapshot_path.write_text(
+            snapshot_path.read_text(encoding="utf-8").replace(
+                '"surveyed_commit": "c0ae127363e3d4e5feeb36efb665a12ece3392c7"',
+                '"surveyed_commit": "not-a-sha"',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            collect_missing_markers(root)
+        except SystemExit as exc:
+            if str(exc) != "invalid Phase 12 libbpf surveyed_commit":
+                raise
+        else:
+            raise SystemExit("phase12-libbpf-lane-marker:self-test:invalid_surveyed_commit")
 
     print("PHASE12_LIBBPF_LANE_MARKER_SELF_TEST=pass")
     print(f"PHASE12_LIBBPF_LANE_MARKER_SELF_TEST_CASES={cases}")
