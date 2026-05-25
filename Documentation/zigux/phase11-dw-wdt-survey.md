@@ -17,23 +17,23 @@ now keep the bounded DesignWare continuity packet explicit through
 `zigux/tests/phase11_dw_wdt_survey.zig`,
 `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`,
 `drivers/watchdog/dw_wdt_pm_scaffold.zig`,
+`drivers/watchdog/dw_wdt_verify.zig`,
 `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and
 `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`.
 
 Those same authenticated contents rereads do not rematerialize
 `Documentation/zigux/phase11-dw-wdt-slice.md`,
 `Documentation/zigux/phase11-dw-wdt-teardown-note.md`,
-`drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, or
-`zigux/tests/phase11_dw_wdt.zig`, so keep that broader direct-driver,
-verify-helper, and replay stack framed as larger same-lane vocabulary and
-fallback-visible evidence rather than as part of the same direct current-head
-packet.
+`drivers/watchdog/dw_wdt.zig`, or `zigux/tests/phase11_dw_wdt.zig`, so keep
+that broader direct-driver, direct replay, and older reminder stack framed as
+larger same-lane vocabulary and fallback-visible evidence rather than as part of
+the same direct current-head packet.
 
 The returned smaller packet now keeps the platform-registration owner note, the
 current-head gap inventory, the registration scaffold outcomes, the restart
-summary helper, and the bounded PM-helper pair reviewable without claiming live
-platform execution, clock or reset acquisition execution, IRQ delivery, or
-hardware-backed MMIO behavior.
+summary helper, the returned verify helper, and the bounded PM-helper pair
+reviewable without claiming live platform execution, clock or reset acquisition
+execution, IRQ delivery, or hardware-backed MMIO behavior.
 
 The shared `zigux/tests/phase11_build.zig` route remains a shared current-head
 gap rather than landed evidence in this lane. The next bounded same-lane step
