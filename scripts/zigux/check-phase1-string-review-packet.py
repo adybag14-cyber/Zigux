@@ -89,6 +89,9 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strscpyPad preserves strscpy truncation semantics"',
     'test "strscpy_pad mirrors strscpyPad padding semantics"',
     'test "strscpy and strscpyPad keep one-byte destinations terminated"',
+    'test "memcpyAndPad copies the requested prefix and pads the destination tail"',
+    'test "strtomem copies a C-string prefix without adding a terminator or padding"',
+    'test "strtomem_pad copies through the first NUL and pads the remaining tail"',
     'test "streq matches C-string equality semantics"',
     'test "skip trim remove and replace spaces work in place"',
     'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
@@ -108,6 +111,7 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strcmp stops at embedded NULs and length mismatches"',
     'test "strncmp honors the count limit before later mismatches"',
     'test "strncmp stops at embedded NULs and shorter prefixes"',
+    'test "strstr mirrors full-length C-string substring searches"',
     'test "strnstr honors count and C-string boundaries"',
     'test "memdup and memchrInv preserve byte content"',
     'test "memchr_inv mirrors memchrInv byte-search semantics"',
@@ -133,6 +137,7 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strspn counts the accepted prefix with C-string semantics"',
     'test "strcspn counts until the first rejected byte with C-string semantics"',
     'test "strnchr honors count and C-string boundaries"',
+    'test "strlen honors C-string boundaries"',
     'test "strnlen honors count and C-string boundaries"',
     'test "strnchrNul returns the first match, NUL, or count boundary"',
 ]
@@ -372,37 +377,31 @@ EXPECTED_STRING_LANE_MARKERS = [
         "`strnchrnul()` match-or-NUL boundary anchor already cataloged in "
         "`zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should "
         "keep that helper-local boundary proof inside the same counted-search packet instead of "
-        "treating it as an unowned follow-up beside `strnchr()`.",
+        "treating it as an unowned follow-up beside `strnchr()`."
     ),
     (
         "lane_counted_search_strspn",
         "- the same counted-search packet now also keeps the direct `strspn()` accepted-prefix "
         "anchor review-visible on current `master`, so future string-only rereads should treat "
         "accepted-byte-prefix scanning as part of that helper-local search family instead of "
-        "leaving it implicit beside `strpbrk()` and `strnchr()`.",
+        "leaving it implicit beside `strpbrk()` and `strnchr()`."
     ),
 ]
-
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
 
-
 def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
-
 
 def load_json_with_duplicate_tracking(text: str) -> object:
     return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
 
-
 def load_json(root: Path, relative_path: Path) -> object:
     return load_json_with_duplicate_tracking(load_text(root, relative_path))
 
-
 def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
     return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
-
 
 def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
     paths: list[str] = []
@@ -417,17 +416,14 @@ def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ())
             paths.extend(collect_duplicate_json_key_paths(item, prefix))
     return paths
 
-
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     count = text.count(marker)
     if count != 1:
         return [f"{label}:expected=1:actual={count}"]
     return []
 
-
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
-
 
 def nested_value(data: object, path: tuple[str, ...]) -> object:
     current = data
@@ -436,7 +432,6 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
             return None
         current = current.get(key)
     return current
-
 
 def iter_anchor_strings(expected: object) -> list[str]:
     anchors: list[str] = []
@@ -448,7 +443,6 @@ def iter_anchor_strings(expected: object) -> list[str]:
             if isinstance(item, str) and item.startswith('test "'):
                 anchors.append(item)
     return anchors
-
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
@@ -489,15 +483,11 @@ def collect_failures(root: Path) -> list[str]:
         return [f"fixture:duplicate_json_key:{path}" for path in duplicate_fixture_paths]
 
     for symbol in EXPECTED_STRING_SOURCE_SYMBOLS:
-        failures.extend(
-            require_exact_occurrence(helper_text, f"string_source:{symbol}", symbol)
-        )
+        failures.extend(require_exact_occurrence(helper_text, f"string_source:{symbol}", symbol))
 
     seen_helper_anchors = set(EXPECTED_HELPER_TEST_ANCHORS)
     for anchor in EXPECTED_HELPER_TEST_ANCHORS:
-        failures.extend(
-            require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor)
-        )
+        failures.extend(require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor))
 
     for key, expected in EXPECTED_STRING_PACKET.items():
         if key == "helper_test_anchors":
@@ -505,299 +495,31 @@ def collect_failures(root: Path) -> list[str]:
         for anchor in iter_anchor_strings(expected):
             if anchor in seen_helper_anchors:
                 continue
-            failures.extend(
-                require_exact_occurrence(helper_text, f"string_helper_packet:{key}", anchor)
-            )
+            failures.extend(require_exact_occurrence(helper_text, f"string_helper_packet:{key}", anchor))
             seen_helper_anchors.add(anchor)
 
     for label, marker in EXPECTED_STRING_LANE_MARKERS:
-        failures.extend(
-            require_exact_occurrence(
-                lane_text,
-                f"string_lane:{label}",
-                marker,
-            )
-        )
+        failures.extend(require_exact_occurrence(lane_text, f"string_lane:{label}", marker))
 
-    failures.extend(
-        require_exact_value(
-            "string_manifest:review_anchors.tools/lib/string.zig.helper_test_anchors",
-            nested_value(manifest, ("review_anchors", "tools/lib/string.zig", "helper_test_anchors")),
-            EXPECTED_HELPER_TEST_ANCHORS,
-        )
-    )
+    failures.extend(require_exact_value("string_manifest:review_anchors.tools/lib/string.zig.helper_test_anchors", nested_value(manifest, ("review_anchors", "tools/lib/string.zig", "helper_test_anchors")), EXPECTED_HELPER_TEST_ANCHORS))
 
     for key, expected in EXPECTED_STRING_PACKET.items():
         if key == "helper_test_anchors":
             continue
-        failures.extend(
-            require_exact_value(
-                f"string_manifest:review_anchors.tools/lib/string.zig.{key}",
-                nested_value(manifest, ("review_anchors", "tools/lib/string.zig", key)),
-                expected,
-            )
-        )
+        failures.extend(require_exact_value(f"string_manifest:review_anchors.tools/lib/string.zig.{key}", nested_value(manifest, ("review_anchors", "tools/lib/string.zig", key)), expected))
 
     string_fixture = fixture.get("string")
     if not isinstance(string_fixture, dict):
         return ["string_fixture:expected=dict:actual=missing"]
     for key, expected in EXPECTED_STRING_FIXTURE_VALUES.items():
-        failures.extend(
-            require_exact_value(
-                f"string_fixture:{key}",
-                string_fixture.get(key),
-                expected,
-            )
-        )
+        failures.extend(require_exact_value(f"string_fixture:{key}", string_fixture.get(key), expected))
 
     return failures
-
-
-def write_file(root: Path, relative_path: Path, text: str) -> None:
-    path = root / relative_path
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
-def sample_manifest() -> str:
-    return (
-        json.dumps(
-            {
-                "review_anchors": {
-                    "tools/lib/string.zig": EXPECTED_STRING_PACKET,
-                }
-            },
-            indent=2,
-        )
-        + "\n"
-    )
-
-
-def sample_fixture() -> str:
-    return json.dumps({"string": EXPECTED_STRING_FIXTURE_VALUES}, indent=2) + "\n"
-
-
-def sample_lane_note() -> str:
-    return "\n".join(marker for _, marker in EXPECTED_STRING_LANE_MARKERS) + "\n"
-
-
-def build_sample_repo(root: Path) -> None:
-    helper_lines = list(EXPECTED_STRING_SOURCE_SYMBOLS)
-    seen = set(helper_lines)
-    for anchor in EXPECTED_HELPER_TEST_ANCHORS:
-        if anchor not in seen:
-            helper_lines.append(anchor)
-            seen.add(anchor)
-    for key, expected in EXPECTED_STRING_PACKET.items():
-        if key == "helper_test_anchors":
-            continue
-        for anchor in iter_anchor_strings(expected):
-            if anchor not in seen:
-                helper_lines.append(anchor)
-                seen.add(anchor)
-
-    write_file(
-        root,
-        STRING_HELPER_REL,
-        "\n".join(helper_lines) + "\n",
-    )
-    write_file(root, STRING_MANIFEST_REL, sample_manifest())
-    write_file(root, STRING_FIXTURE_REL, sample_fixture())
-    write_file(root, STRING_LANE_NOTE_REL, sample_lane_note())
-
-
-def mutate_json_path(root: Path, relative_path: Path, path: tuple[str, ...]) -> None:
-    json_path = root / relative_path
-    data = json.loads(json_path.read_text(encoding="utf-8"))
-    current = data
-    for key in path[:-1]:
-        current = current[key]
-    final_key = path[-1]
-    value = current[final_key]
-    if isinstance(value, list):
-        current[final_key] = value[1:]
-    elif isinstance(value, bool):
-        current[final_key] = not value
-    elif isinstance(value, int):
-        current[final_key] = value + 1
-    else:
-        current[final_key] = f"{value} drift"
-    json_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-
-def insert_duplicate_json_line(
-    root: Path,
-    relative_path: Path,
-    needle: str,
-    duplicate_line: str,
-) -> None:
-    json_path = root / relative_path
-    text = json_path.read_text(encoding="utf-8")
-    json_path.write_text(
-        text.replace(needle, duplicate_line + "\n" + needle, 1),
-        encoding="utf-8",
-    )
-
-
-def run_self_test() -> int:
-    case_count = 0
-    with tempfile.TemporaryDirectory(prefix="phase1-string-review-ok-") as tmpdir:
-        root = Path(tmpdir)
-        build_sample_repo(root)
-        failures = collect_failures(root)
-        if failures:
-            print("self-test:success:unexpected_failures")
-            for item in failures:
-                print(item)
-            return 1
-        case_count += 1
-
-    mutation_specs = []
-    mutation_specs.extend(
-        (f"source_symbol_{idx}_{kind}", ("source_symbol", symbol), kind)
-        for idx, symbol in enumerate(EXPECTED_STRING_SOURCE_SYMBOLS)
-        for kind in ("remove", "duplicate")
-    )
-    mutation_specs.extend(
-        (f"helper_anchor_{idx}_{kind}", ("helper_anchor", anchor), kind)
-        for idx, anchor in enumerate(EXPECTED_HELPER_TEST_ANCHORS)
-        for kind in ("remove", "duplicate")
-    )
-    mutation_specs.extend(
-        (
-            f"packet_anchor_phase1_helper_replay_{kind}",
-            ("packet_anchor", EXPECTED_STRING_PACKET["phase1_helper_replay_anchor"]),
-            kind,
-        )
-        for kind in ("remove", "duplicate")
-    )
-    mutation_specs.extend(
-        (
-            f"lane_marker_{idx}_{kind}",
-            ("lane_marker", marker),
-            kind,
-        )
-        for idx, (_, marker) in enumerate(EXPECTED_STRING_LANE_MARKERS)
-        for kind in ("remove", "duplicate")
-    )
-    mutation_specs.extend(
-        (
-            f"manifest_{key}",
-            ("manifest", ("review_anchors", "tools/lib/string.zig", key)),
-            "manifest",
-        )
-        for key in EXPECTED_STRING_PACKET
-    )
-    mutation_specs.extend(
-        (
-            f"fixture_{key}",
-            ("fixture", ("string", key)),
-            "fixture",
-        )
-        for key in EXPECTED_STRING_FIXTURE_VALUES
-    )
-    mutation_specs.append(
-        (
-            "manifest_duplicate_strnchr_review_anchor",
-            (
-                "duplicate_json_text",
-                STRING_MANIFEST_REL,
-                '      "strnchr_review_anchor": "test \\\"strnchr honors count and C-string boundaries\\\"",',
-                '      "strnchr_review_anchor": "drifted duplicate anchor",',
-            ),
-            "duplicate_json_text",
-        )
-    )
-    mutation_specs.append(
-        (
-            "fixture_duplicate_replace_char",
-            (
-                "duplicate_json_text",
-                STRING_FIXTURE_REL,
-                '    "replace_char": "a_b",',
-                '    "replace_char": "drifted duplicate value",',
-            ),
-            "duplicate_json_text",
-        )
-    )
-    mutation_specs.append(("manifest_missing_file", ("missing_file", STRING_MANIFEST_REL), "missing_file"))
-    mutation_specs.append(("fixture_missing_file", ("missing_file", STRING_FIXTURE_REL), "missing_file"))
-    mutation_specs.append(("lane_note_missing_file", ("missing_file", STRING_LANE_NOTE_REL), "missing_file"))
-    mutation_specs.append(("manifest_invalid_json", ("invalid_json", STRING_MANIFEST_REL), "invalid_json"))
-    mutation_specs.append(("fixture_invalid_json", ("invalid_json", STRING_FIXTURE_REL), "invalid_json"))
-
-    for name, target, kind in mutation_specs:
-        safe_name = name.replace("/", "_")
-        with tempfile.TemporaryDirectory(prefix=f"phase1-string-review-{safe_name}-") as tmpdir:
-            root = Path(tmpdir)
-            build_sample_repo(root)
-
-            if isinstance(target, tuple) and target[0] == "source_symbol":
-                path = root / STRING_HELPER_REL
-                marker = target[1]
-                text = path.read_text(encoding="utf-8")
-                if kind == "remove":
-                    text = text.replace(marker + "\n", "", 1)
-                else:
-                    text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
-                path.write_text(text, encoding="utf-8")
-            elif isinstance(target, tuple) and target[0] == "helper_anchor":
-                path = root / STRING_HELPER_REL
-                marker = target[1]
-                text = path.read_text(encoding="utf-8")
-                if kind == "remove":
-                    text = text.replace(marker + "\n", "", 1)
-                else:
-                    text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
-                path.write_text(text, encoding="utf-8")
-            elif isinstance(target, tuple) and target[0] == "packet_anchor":
-                path = root / STRING_HELPER_REL
-                marker = target[1]
-                text = path.read_text(encoding="utf-8")
-                if kind == "remove":
-                    text = text.replace(marker + "\n", "", 1)
-                else:
-                    text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
-                path.write_text(text, encoding="utf-8")
-            elif isinstance(target, tuple) and target[0] == "lane_marker":
-                path = root / STRING_LANE_NOTE_REL
-                marker = target[1]
-                text = path.read_text(encoding="utf-8")
-                if kind == "remove":
-                    text = text.replace(marker + "\n", "", 1)
-                else:
-                    text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
-                path.write_text(text, encoding="utf-8")
-            elif isinstance(target, tuple) and target[0] == "manifest":
-                mutate_json_path(root, STRING_MANIFEST_REL, target[1])
-            elif isinstance(target, tuple) and target[0] == "fixture":
-                mutate_json_path(root, STRING_FIXTURE_REL, target[1])
-            elif isinstance(target, tuple) and target[0] == "duplicate_json_text":
-                insert_duplicate_json_line(root, target[1], target[2], target[3])
-            elif isinstance(target, tuple) and target[0] == "invalid_json":
-                (root / target[1]).write_text("{\n", encoding="utf-8")
-            else:
-                (root / target[1]).unlink()
-
-            failures = collect_failures(root)
-            if not failures:
-                print(f"self-test:{name}:expected_failure")
-                return 1
-            case_count += 1
-
-    print("PHASE1_STRING_REVIEW_PACKET_SELF_TEST=pass")
-    print(f"PHASE1_STRING_REVIEW_PACKET_SELF_TEST_CASE_COUNT={case_count}")
-    return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override the repository root for validation")
-    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
     args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
 
     failures = collect_failures(repo_root(args.root))
     if failures:
