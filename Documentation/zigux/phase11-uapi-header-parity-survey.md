@@ -3,7 +3,7 @@
 
 - `PHASE11_HEADER_BOUNDARY_STATUS=adjacent_proof_shard_readback_only`
 - lane: `P11-L02`
-- reviewed against live `master` readback on `2026-05-23`
+- reviewed against live `master` readback on `2026-05-25`
 - scope: keep the Phase 11 public-header evidence truthful around the bounded HVC header boundary and the roadmap-backed watchdog/HVC review surface without widening into tty-core or watchdog-core ownership
 
 ## Current Repo Reality
@@ -29,6 +29,7 @@
   - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
   - `zigux/tests/fixtures/phase11_build_inventory.json`
   - `scripts/zigux/check-phase11-build-inventory.py`
+  - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
   - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
   - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
   - `drivers/tty/hvc/hvc_console.h`
@@ -60,6 +61,7 @@
   - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
   - `zigux/tests/fixtures/phase11_build_inventory.json`
   - `scripts/zigux/check-phase11-build-inventory.py`
+  - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
   - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
   - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
   - `drivers/tty/hvc/hvc_console.h`
@@ -77,6 +79,7 @@
 - Because the older shared header-survey manifest, survey source, and shared build companion are still absent from current `master` even though the shared replay-contract note and the dedicated header-boundary checker have returned, this note is truthful only if it records that the live repo now proves the HVC-side header boundary through focused proof shards, their build files, the adjacent validation matrices, the shared sequencing notes, the returned reminder contract note, the returned `zigux/helpers/layout_assert.zig` substrate, the current `drivers/tty/hvc/hvc_console.zig` module readback, the returned build-inventory checker, the returned header-boundary checker, the adjacent cleanup and targetless-unregister companion packet, and the surviving inventory stack rather than a restored shared replay route.
 - The roadmap's ABI gate still expects explicit layout assertions and bounded proof, so the current packet should name the surviving `layout_assert`-backed HVC checkpoints directly instead of implying that the missing shared replay family already covers them.
 - The current note also needs to keep the newer bounded modem-control callback proof explicit beside cleanup and targetless-unregister continuity, because that focused ABI-facing proof is already landed on current `master` and belongs in the same honest failure-mode packet.
+- The current note also needs to keep the returned `scripts/zigux/check-phase11-focused-direct-build-replays.py` route explicit beside the modem-control and targetless-unregister build pair, because that checker now keeps those ABI-facing proof routes fail-closed at the same current-head reminder layer.
 - The roadmap still keeps watchdog and HVC surfaces in scope, so this note should not imply that the old shared `watchdog_info` replay remains live when the current accessible packet is narrower and HVC-centered.
 - The broader shared ABI replay remains a real gap on current `master`: no directly readable shared survey source, manifest, or shared Phase 11 build route currently rematerializes the older cross-driver packet, and the returned header-boundary checker now only guards the narrower current-head note packet.
 
@@ -87,7 +90,7 @@
 - `phase11-hvc-modem-control-proof`: `zigux/tests/phase11_hvc_modem_control_proof.zig` and `zigux/tests/phase11_hvc_modem_control_proof_build.zig` keep the bounded `tiocmget`, `tiocmset`, `dtr_rts`, and `hupcl` teardown distinction explicit through the current `drivers/tty/hvc/hvc_console.zig` helper summaries without promoting the packet into live modem-control execution.
 - `phase11-hvc-targetless-unregister-witness`: `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`, `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`, and `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` now keep the standalone targetless-unregister witness explicit beside the narrower proof packet, but they remain focused failure-mode evidence rather than cross-driver header replay coverage.
 - `phase11-hvc-console-header-constant-assert`: `drivers/tty/hvc/hvc_console.h` still exposes `MAX_NR_HVC_CONSOLES` and `HVC_ALLOC_TTY_ADAPTERS` beside the `hv_ops` callback table and exported helper declarations.
-- `phase11-build-inventory-adjunct`: `zigux/tests/fixtures/phase11_build_inventory.json` still points at the proof-backed adjunct packet, names `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` as the current adjunct build trio, records the exact `check-phase11-build-inventory.py` and `check-phase11-hvc-cleanup-current-head.py` readback commands, keeps the adjacent `scripts/zigux/check-phase11-build-inventory.py` guard explicit as the current inventory-side review gate, and keeps both dedicated survey replays and shared split replays empty instead of pretending the removed shared `zigux/tests/phase11_build.zig` route is live again. The current exact-check bundle also keeps `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig` explicit beside that adjunct trio without recasting the inventory body itself as a broader shared replay roster.
+- `phase11-build-inventory-adjunct`: `zigux/tests/fixtures/phase11_build_inventory.json` still points at the proof-backed adjunct packet, names `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` as the current adjunct build trio, records the exact `check-phase11-build-inventory.py` and `check-phase11-hvc-cleanup-current-head.py` readback commands, keeps the adjacent `scripts/zigux/check-phase11-build-inventory.py` guard explicit as the current inventory-side review gate, and keeps both dedicated survey replays and shared split replays empty instead of pretending the removed shared `zigux/tests/phase11_build.zig` route is live again. The current exact-check bundle also keeps `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`, `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`, `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`, and `zig build test --build-file zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` explicit beside that adjunct trio without recasting the inventory body itself as a broader shared replay roster.
 - `phase11-shared-replay-contract-reminder`: `Documentation/zigux/phase11-shared-replay-contract.md` now rematerializes as a shared reminder note, but it should be read here only as documentation-level continuity evidence; it does not outweigh the still-missing dedicated survey source, manifest, or shared Phase 11 build route that would be needed to claim a restored cross-driver header-parity replay packet.
 - `phase11-header-boundary-checker`: `scripts/zigux/check-phase11-header-boundary-packet.py` now fail-closes on the survey note and validation matrix through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`, but that returned checker should still be treated as note-side evidence only until a future reread proves the shared manifest, survey source, or build route returned beside it.
 - `phase11-focused-direct-build-checker`: `scripts/zigux/check-phase11-focused-direct-build-replays.py` now keeps the current direct `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` replays fail-closed beside the narrower build-inventory packet, so those focused build routes are machine-checked evidence rather than inventory-only prose.
