@@ -494,7 +494,7 @@ def run_self_test() -> int:
         ("stale_find_bit_next_safe_step_note", lambda root: mutate_bad_review_value(root, "tools/lib/find_bit.zig", "next_safe_step_note")),
         ("missing_rbtree_cached_root_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor")),
         ("stale_rbtree_shared_replay_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "shared_replay_summary")),
-        ("stale_rbtree_cached_root_direct_review_summary", lambda root: mutate_bad_reviewValue(root, "tools/lib/rbtree.zig", "cached_root_direct_review_summary")),
+        ("stale_rbtree_cached_root_direct_review_summary", lambda root: mutate_bad_review_value(root, "tools/lib/rbtree.zig", "cached_root_direct_review_summary")),
         ("missing_bitmap_or_window_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "or_window_anchor")),
         ("missing_bitmap_copy_raw_alias_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "copy_raw_alias_anchor")),
         ("missing_bitmap_final_partial_word_anchor", lambda root: mutate_remove_review_key(root, "tools/lib/bitmap.zig", "final_partial_word_anchor")),
