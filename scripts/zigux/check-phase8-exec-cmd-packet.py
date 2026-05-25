@@ -17,6 +17,7 @@ def _default_root() -> Path:
 ROOT = _default_root()
 DOCS_README = Path("Documentation/zigux/README.md")
 EXEC_CMD_SLICE = Path("Documentation/zigux/phase8-exec-cmd-slice.md")
+EXEC_CMD_SEQUENCING = Path("Documentation/zigux/phase8-tooling-lane-sequencing.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
 TESTS_README = Path("zigux/tests/README.md")
@@ -30,6 +31,7 @@ EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
 REQUIRED_FILES = (
     DOCS_README,
     EXEC_CMD_SLICE,
+    EXEC_CMD_SEQUENCING,
     REVIEW_CHECKLIST,
     SCRIPTS_README,
     TESTS_README,
@@ -64,6 +66,15 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "preserved explicit-empty exec-path sentinel",
         "inherited-empty-`PATH` trailing-`:` shape",
         "root-cwd `//relative` output shape",
+    ),
+    EXEC_CMD_SEQUENCING: (
+        "### 1. Exec-cmd lane",
+        "shared validator-first entrypoint: `python3 scripts/zigux/validate-phase8.py`",
+        "`Documentation/zigux/phase8-exec-cmd-slice.md`",
+        "`tools/lib/subcmd/exec-cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd.zig`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+        "Keep follow-up in this lane limited to truthful survey or reminder-surface repair around the now-readable direct exec-cmd shard.",
     ),
     REVIEW_CHECKLIST: (
         "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
