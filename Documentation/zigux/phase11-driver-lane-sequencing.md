@@ -31,7 +31,7 @@ Keep the current lane split explicit:
 - DesignWare lane `P11-L10` stays separate from the shared sequencing lane, but
   authenticated contents rereads in this run do rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and those same
-  current-head rereads also keep the returned DesignWare docs-owner, checker, driver,
+  current-head rereads also keep the returned DesignWare docs-owner, checker,
   registration-scaffold, the optional APB-clock scaffold outcomes, and adjacent
   PM-helper packet explicit through
   `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
@@ -40,13 +40,13 @@ Keep the current lane split explicit:
   `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
   `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
   `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
-  `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
-  `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
+  `zigux/tests/phase11_dw_wdt_manifest.json`,
   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
   `drivers/watchdog/dw_wdt_pm.zig`, and
-  `drivers/watchdog/dw_wdt_pm_scaffold.zig`, so current shared-note work can
-  keep that returned DesignWare matrix-plus-continuity packet explicit while the
-  wider helper-backed owner packet stays separate-lane and the older
+  `drivers/watchdog/dw_wdt_pm_scaffold.zig`, while
+  `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and
+  `zigux/tests/phase11_dw_wdt.zig` stay framed as repo-reality-gap vocabulary
+  until a fresh reread proves they returned, and the older
   `scripts/zigux/check-phase11-dw-wdt-packet.py` handle stays framed as
   historical vocabulary
 - HVC continuity lane `P11-L16` currently keeps the directly readable
@@ -112,13 +112,10 @@ surfaces that were reread in this run:
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
-- `drivers/watchdog/dw_wdt.zig`
-- `drivers/watchdog/dw_wdt_verify.zig`
 - `drivers/watchdog/dw_wdt_pm.zig`
 - `drivers/watchdog/dw_wdt_pm_scaffold.zig`
 - `zigux/Makefile`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
-- `zigux/tests/phase11_dw_wdt.zig`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
@@ -171,7 +168,7 @@ Keep those broader shared reminders adjacent to this note rather than turning
 that contributor-facing packet into a driver-lane owner surface.
 
 Current rereads in this run also keep the directly readable DesignWare
-platform-registration, provenance, lane-gap, verify-alignment, checker, driver,
+platform-registration, provenance, lane-gap, verify-alignment, checker,
 registration-scaffold, the optional APB-clock scaffold outcomes, and adjacent
 PM-helper packet through
 `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
@@ -180,14 +177,15 @@ PM-helper packet through
 `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
 `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
 `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
-`drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
-`zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
+`zigux/tests/phase11_dw_wdt_manifest.json`,
 `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
 `drivers/watchdog/dw_wdt_pm.zig`, and
 `drivers/watchdog/dw_wdt_pm_scaffold.zig` explicit as same-lane continuity
-evidence beside the returned DesignWare matrix note, without promoting live PM
-execution, live MMIO validation, or broader platform-backed registration into
-the shared packet.
+evidence beside the returned DesignWare matrix note, while
+`drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and
+`zigux/tests/phase11_dw_wdt.zig` stay explicit as repo-reality gaps instead of
+current-head packet members, without promoting live PM execution, live MMIO
+validation, or broader platform-backed registration into the shared packet.
 
 Keep the returned gpio, bcm2835, and DesignWare validation matrices explicit as
 shared matrix-boundary evidence while preserving bcm2835 and DesignWare deeper
@@ -226,11 +224,13 @@ Use this note to keep the bounded work order honest:
    `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
    `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
    `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,
-   `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
-   `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`,
+   `zigux/tests/phase11_dw_wdt_manifest.json`,
    `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
    `drivers/watchdog/dw_wdt_pm.zig`, and
-   `drivers/watchdog/dw_wdt_pm_scaffold.zig`, the returned archival
+   `drivers/watchdog/dw_wdt_pm_scaffold.zig`, while
+   `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, and
+   `zigux/tests/phase11_dw_wdt.zig` remain repo-reality-gap vocabulary in the
+   returned DesignWare lane-gap note and matrix note, the returned archival
    `Documentation/zigux/phase11-shared-replay-contract.md`, and the HVC
    current-head continuity packet with its cleanup companion,
    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
