@@ -381,6 +381,12 @@ jobs:
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
+      - name: Self-test current Phase 1 tests README workflow-gates checker
+        run: python3 scripts/zigux/check-phase1-tests-readme-workflow-gates.py --self-test
+
+      - name: Check current Phase 1 tests README workflow-gates packet
+        run: python3 scripts/zigux/check-phase1-tests-readme-workflow-gates.py
+
       - name: Self-test current Phase 1 closure validator
         run: python3 scripts/zigux/validate-phase1-closure.py --self-test
 
