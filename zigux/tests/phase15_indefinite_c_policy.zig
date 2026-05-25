@@ -78,6 +78,12 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     const parity_scorecard = try readRepoFile("Documentation/zigux/phase15-parity-scorecard.md", 24 * 1024);
     defer std.testing.allocator.free(parity_scorecard);
 
+    const docs_root = try readRepoFile("Documentation/zigux/README.md", 128 * 1024);
+    defer std.testing.allocator.free(docs_root);
+
+    const review_checklist = try readRepoFile("Documentation/zigux/review-checklist.md", 128 * 1024);
+    defer std.testing.allocator.free(review_checklist);
+
     const lane_owner_alignment = try readRepoFile("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig", 12 * 1024);
     defer std.testing.allocator.free(lane_owner_alignment);
 
@@ -144,6 +150,11 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(parity_scorecard, "blocked status-change anchor count: `4`");
     try expectContains(parity_scorecard, "Architecture Council approvals recorded for status change: `0`");
     try expectContains(parity_scorecard, "the indefinite-C policy aligned around the same blocked posture");
+
+    try expectContains(docs_root, "Documentation/zigux/phase15-indefinite-c-policy.md");
+
+    try expectContains(review_checklist, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectContains(review_checklist, "trigger-specific evidence refresh");
 
     try expectContains(lane_owner_alignment, "Documentation/zigux/phase15-indefinite-c-policy.md");
     try expectContains(lane_owner_alignment, "lane owner");
