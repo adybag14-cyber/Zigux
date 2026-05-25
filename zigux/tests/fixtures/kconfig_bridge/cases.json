@@ -59,6 +59,15 @@
       "expected": "alldefconfig_expected.json"
     },
     {
+      "name": "alldefconfig_allconfig",
+      "mode": "alldefconfig",
+      "kconfig": "Kconfig",
+      "config": "build/.config",
+      "arch": "arm64",
+      "allconfig": "mini-all.config",
+      "expected": "alldefconfig_allconfig_expected.json"
+    },
+    {
       "name": "randconfig",
       "mode": "randconfig",
       "kconfig": "Kconfig",
