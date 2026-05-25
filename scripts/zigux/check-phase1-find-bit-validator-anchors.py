@@ -61,6 +61,21 @@ REQUIRED_HELPER_ANCHORS = [
     'test "Linux-style aliases mirror the primary find helpers, including andnot"',
 ]
 
+REQUIRED_BENCH_ANCHOR_LINES = {
+    "boundary_head_test": '    "boundary_head_test": \'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {\',',
+    "boundary_tail_test": '    "boundary_tail_test": \'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start" {\',',
+    "single_word_tail_test": '    "single_word_tail_test": \'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start" {\',',
+    "past_end_no_read_test": '    "past_end_no_read_test": \'test "next scans past nbits return without reading bitmap words" {\',',
+    "clump8_no_read_test": '    "clump8_no_read_test": \'test "clump8 past-end scans return without reading bitmap words" {\',',
+    "last_bit_tail_test": '    "last_bit_tail_test": \'test "find last bit clamps tail words to nbits" {\',',
+}
+
+REQUIRED_BENCH_ANCHOR_SOURCE_LINES = {
+    "find_next_past_end": '    "find_next_past_end": "findNextBit(&empty, 7, 11)",',
+    "find_clump8_past_end": '    "find_clump8_past_end": "findNextClump8(&clump, &empty, 8, 8)",',
+    "find_last_tail_single_word": '    "find_last_tail_single_word": "try std.testing.expectEqual(@as(usize, 4), findLastBit(&single_word, single_word_nbits));",',
+}
+
 REQUIRED_SCRIPTS_README_LINES = {
     "phase1_replay_line": "- `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the shipped bounded Phase 1 reminder checks, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the shipped shared tests-root smoke route",
     "phase1_checker_packet": "- `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner, bench, shared-reminder, and closure-validator packet explicit from the scripts root",
@@ -214,6 +229,12 @@ def collect_failures(root: Path) -> list[str]:
     for anchor in REQUIRED_HELPER_ANCHORS:
         failures.extend(require_exact_occurrence(helper_text, f"helper:{anchor}", anchor))
 
+    bench_anchor_text = load_text(root, FIND_BIT_BENCH_ANCHOR_REL)
+    for key, line in REQUIRED_BENCH_ANCHOR_LINES.items():
+        failures.extend(require_exact_occurrence(bench_anchor_text, f"bench_anchor:{key}", line))
+    for key, line in REQUIRED_BENCH_ANCHOR_SOURCE_LINES.items():
+        failures.extend(require_exact_occurrence(bench_anchor_text, f"bench_anchor_source:{key}", line))
+
     scripts_readme = load_text(root, SCRIPTS_README_REL)
     for key, line in REQUIRED_SCRIPTS_README_LINES.items():
         failures.extend(require_exact_line(scripts_readme, f"scripts_readme:{key}", line))
@@ -292,9 +313,16 @@ def sample_text(lines: dict[str, str]) -> str:
     return "\n".join(lines.values()) + "\n"
 
 
+def sample_bench_anchor_checker() -> str:
+    return "\n".join(
+        list(REQUIRED_BENCH_ANCHOR_LINES.values())
+        + list(REQUIRED_BENCH_ANCHOR_SOURCE_LINES.values())
+    ) + "\n"
+
+
 def build_sample_repo(root: Path) -> None:
     write_file(root, FIND_BIT_HELPER_REL, "\n".join(REQUIRED_HELPER_ANCHORS) + "\n")
-    write_file(root, FIND_BIT_BENCH_ANCHOR_REL, "# sample bench anchor checker\n")
+    write_file(root, FIND_BIT_BENCH_ANCHOR_REL, sample_bench_anchor_checker())
     write_file(root, MANIFEST_REL, sample_manifest())
     write_file(root, FIXTURE_REL, sample_fixture())
     write_file(root, LANE_NOTE_REL, sample_text(REQUIRED_LANE_NOTE_LINES))
@@ -354,6 +382,14 @@ def run_self_test() -> int:
     for anchor in REQUIRED_HELPER_ANCHORS:
         cases.append(("remove_helper_anchor", (FIND_BIT_HELPER_REL, anchor, "remove")))
         cases.append(("duplicate_helper_anchor", (FIND_BIT_HELPER_REL, anchor, "duplicate")))
+
+    for line in REQUIRED_BENCH_ANCHOR_LINES.values():
+        cases.append(("remove_bench_anchor_line", (FIND_BIT_BENCH_ANCHOR_REL, line, "remove")))
+        cases.append(("duplicate_bench_anchor_line", (FIND_BIT_BENCH_ANCHOR_REL, line, "duplicate")))
+
+    for line in REQUIRED_BENCH_ANCHOR_SOURCE_LINES.values():
+        cases.append(("remove_bench_anchor_source_line", (FIND_BIT_BENCH_ANCHOR_REL, line, "remove")))
+        cases.append(("duplicate_bench_anchor_source_line", (FIND_BIT_BENCH_ANCHOR_REL, line, "duplicate")))
 
     for line in REQUIRED_SCRIPTS_README_LINES.values():
         cases.append(("remove_scripts_readme_line", (SCRIPTS_README_REL, line, "remove")))
