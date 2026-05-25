@@ -92,3 +92,30 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers stay monotonic under masking" {
+    const value8: u32 = 0b1110_1101;
+    const masked8: u32 = value8 & 0b1010_0100;
+    try std.testing.expect(swHweight8(masked8) <= swHweight8(value8));
+    try std.testing.expect(__sw_hweight8(masked8) <= __sw_hweight8(value8));
+
+    const value16: u32 = 0xedcb;
+    const masked16: u32 = value16 & 0xa481;
+    try std.testing.expect(swHweight16(masked16) <= swHweight16(value16));
+    try std.testing.expect(__sw_hweight16(masked16) <= __sw_hweight16(value16));
+
+    const value32: u32 = 0xedcb_a987;
+    const masked32: u32 = value32 & 0xa480_2103;
+    try std.testing.expect(swHweight32(masked32) <= swHweight32(value32));
+    try std.testing.expect(__sw_hweight32(masked32) <= __sw_hweight32(value32));
+
+    const value64: u64 = 0xedcb_a987_6543_210f;
+    const masked64: u64 = value64 & 0xa480_2103_2401_0005;
+    try std.testing.expect(swHweight64(masked64) <= swHweight64(value64));
+    try std.testing.expect(__sw_hweight64(masked64) <= __sw_hweight64(value64));
+
+    const value_long: usize = if (@sizeOf(usize) == 4) 0xedcb_a987 else 0xedcb_a987_6543_210f;
+    const masked_long: usize = if (@sizeOf(usize) == 4) 0xa480_2103 else 0xa480_2103_2401_0005;
+    try std.testing.expect(hweightLong(masked_long) <= hweightLong(value_long));
+    try std.testing.expect(hweight_long(masked_long) <= hweight_long(value_long));
+}
