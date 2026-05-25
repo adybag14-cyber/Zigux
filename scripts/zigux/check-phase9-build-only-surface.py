@@ -82,6 +82,12 @@ REQUIRED_MARKERS = {
         '.root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),',
         'const runtime_loader_allocator_init_flow_tests = b.addTest(.{',
         '"phase9-runtime-loader-allocator-init-flow-tests",',
+        'const phase9_runtime_loader_kernel = b.step(',
+        '"phase9-runtime-loader-kernel-tests",',
+        'phase9_runtime_loader_kernel.dependOn(&run_runtime_loader_kernel_tests.step);',
+        'const phase9_runtime_loader_contract = b.step(',
+        '"phase9-runtime-loader-contract-tests",',
+        'phase9_runtime_loader_contract.dependOn(&run_runtime_loader_contract_tests.step);',
         'const runtime_loader_command_env_boundary_guard_module = b.createModule(.{',
         '.root_source_file = b.path("../kernel/runtime_loader_command_env_boundary_guard.zig"),',
         'const runtime_loader_command_env_boundary_guard_tests = b.addTest(.{',
@@ -257,7 +263,7 @@ def run_self_test() -> int:
 
         for rel_path, markers in EXACT_ONCE_MARKERS.items():
             for marker in markers:
-                seed_fixtureTree(base)
+                seed_fixture_tree(base)
                 current = read_text(base, rel_path)
                 write_text(base / rel_path, duplicate_marker_occurrence(current, marker))
                 expect_failure(base, f"expected_exact_once:{rel_path}:{marker}:count=2")
