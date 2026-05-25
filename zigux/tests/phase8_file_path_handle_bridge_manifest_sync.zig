@@ -138,7 +138,15 @@ test "phase 8 bridge boundary survey keeps the mixed-source helper packet and de
     );
     try expectContains(
         note,
-        "The sibling `map-reuse-compatibility` slice likewise still mirrors the manifest rationale exactly: The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.",
+        "The sibling `map-reuse-compatibility` slice likewise still mirrors the manifest rationale exactly: The shared bridge surface now already carries the reused-map-name chooser, truncated-name retention through `resolveReusedMapName()`, devmap readonly-prog flag normalization through `normalizeObservedReuseMapFlags()`, and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.",
+    );
+    try expectContains(
+        note,
+        "resolveReusedMapName()",
+    );
+    try expectContains(
+        note,
+        "normalizeObservedReuseMapFlags()",
     );
     try expectContains(
         note,
