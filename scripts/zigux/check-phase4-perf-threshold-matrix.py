@@ -1,0 +1,164 @@
+#!/usr/bin/env python3
+"""Fail closed on the exact Phase 4 local-only perf-threshold matrix lines."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import tempfile
+from pathlib import Path
+
+MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
+MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
+EXPECTED_SELF_TEST_CASES = 5
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("root", nargs="?", default=".", help="repository root to validate")
+    parser.add_argument("--self-test", action="store_true", help="run the built-in fixture self-test")
+    return parser.parse_args()
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def build_atomic64_line(manifest: dict[str, object]) -> str:
+    atomic64 = manifest["atomic64"]
+    return (
+        f"`{atomic64['benchmark_command']}` approved local-only acceptable limit: "
+        f"`{atomic64['acceptable_limit_metric']} <= {atomic64['acceptable_limit_max_elapsed_ns']}` "
+        f"over `{atomic64['acceptable_limit_iterations']}` iterations with "
+        f"`{atomic64['acceptable_limit_sample_count']}` monotonic samples"
+    )
+
+
+def build_bitmap_line(manifest: dict[str, object]) -> str:
+    bitmap = manifest["bitmap"]
+    return (
+        f"`{bitmap['benchmark_command']}` approved local-only acceptable limit: "
+        f"`{bitmap['acceptable_limit_metric']} <= {bitmap['acceptable_limit_max_elapsed_ns']}` "
+        f"over `{bitmap['acceptable_limit_iterations']}` iterations with "
+        f"`{bitmap['acceptable_limit_sample_count']}` monotonic samples"
+    )
+
+
+def validate_root(root: Path) -> list[str]:
+    issues: list[str] = []
+    matrix_path = root / MATRIX
+    manifest_path = root / MANIFEST
+    if not matrix_path.is_file():
+        issues.append(f"file:{MATRIX.as_posix()}")
+    if not manifest_path.is_file():
+        issues.append(f"file:{MANIFEST.as_posix()}")
+    if issues:
+        return issues
+
+    try:
+        manifest = json.loads(read_text(manifest_path))
+    except json.JSONDecodeError as exc:
+        return [f"manifest_json:decode:{exc.msg}"]
+
+    matrix_text = read_text(matrix_path)
+    atomic64_line = build_atomic64_line(manifest)
+    bitmap_line = build_bitmap_line(manifest)
+    if atomic64_line not in matrix_text:
+        issues.append(f"matrix_line_missing:{atomic64_line}")
+    if bitmap_line not in matrix_text:
+        issues.append(f"matrix_line_missing:{bitmap_line}")
+    return issues
+
+
+def build_fixture_tree(root: Path) -> None:
+    write_text(root / MANIFEST, read_text(Path("/workspace/.scratch/p4_l20_threshold/zigux/tests/phase4_perf_baseline_manifest.json")))
+    write_text(root / MATRIX, read_text(Path("/workspace/.scratch/p4_l20_threshold/Documentation/zigux/phase4-validation-matrix.md")))
+
+
+def replace_once(text: str, old: str, new: str) -> str:
+    if old not in text:
+        raise ValueError(f"missing replacement target: {old!r}")
+    return text.replace(old, new, 1)
+
+
+def expect_failure(root: Path, expected_prefix: str) -> bool:
+    return any(item.startswith(expected_prefix) for item in validate_root(root))
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="phase4-perf-threshold-matrix-") as tmp_dir:
+        root = Path(tmp_dir)
+        build_fixture_tree(root)
+        if validate_root(root):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("baseline fixture did not validate cleanly")
+            return 1
+
+        cases = 1
+        variants = (
+            (
+                MATRIX,
+                "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 8192` over `4` iterations with `7` monotonic samples",
+                "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 9000` over `4` iterations with `7` monotonic samples",
+                "matrix_line_missing:`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 8192` over `4` iterations with `7` monotonic samples",
+            ),
+            (
+                MATRIX,
+                "`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 12288` over `4` iterations with `7` monotonic samples",
+                "`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 13000` over `4` iterations with `7` monotonic samples",
+                "matrix_line_missing:`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 12288` over `4` iterations with `7` monotonic samples",
+            ),
+            (
+                MANIFEST,
+                "\"acceptable_limit_iterations\": 4",
+                "\"acceptable_limit_iterations\": 5",
+                "matrix_line_missing:`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit:",
+            ),
+            (
+                MANIFEST,
+                "\"acceptable_limit_sample_count\": 7",
+                "\"acceptable_limit_sample_count\": 8",
+                "matrix_line_missing:`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit:",
+            ),
+        )
+        for rel, old, new, expected_prefix in variants:
+            build_fixture_tree(root)
+            target = root / rel
+            write_text(target, replace_once(read_text(target), old, new))
+            if not expect_failure(root, expected_prefix):
+                print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+                print(f"drift case did not fail closed: {expected_prefix}")
+                return 1
+            cases += 1
+
+        if cases != EXPECTED_SELF_TEST_CASES:
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print(f"expected {EXPECTED_SELF_TEST_CASES} self-test cases, saw {cases}")
+            return 1
+
+    print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=pass")
+    print(f"PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES={EXPECTED_SELF_TEST_CASES}")
+    return 0
+
+
+def main() -> int:
+    args = parse_args()
+    if args.self_test:
+        return run_self_test()
+    issues = validate_root(Path(args.root).resolve())
+    if issues:
+        print("PHASE4_PERF_THRESHOLD_MATRIX=fail")
+        for issue in issues:
+            print(issue)
+        return 1
+    print("PHASE4_PERF_THRESHOLD_MATRIX=pass")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
