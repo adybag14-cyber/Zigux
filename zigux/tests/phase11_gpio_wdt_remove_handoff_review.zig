@@ -72,15 +72,19 @@ test "phase11 gpio watchdog keeps dedicated remove handoff replay aligned with c
     const guarded_cleanup = guarded.platformCleanupCheckpointSummary(true);
     const guarded_handoff = guarded.summarizeRemoveHandoff(true);
 
+    try std.testing.expectEqualStrings(guarded_cleanup.anchor, guarded_handoff.anchor);
+    try std.testing.expectEqual(guarded_cleanup.hw_algo, guarded_handoff.hw_algo);
+    try std.testing.expectEqual(guarded_cleanup.always_running, guarded_handoff.always_running);
+    try std.testing.expectEqual(guarded_cleanup.nowayout, guarded_handoff.nowayout);
     try std.testing.expectEqual(guarded_cleanup.stop_disposition, guarded_handoff.stop_disposition);
     try std.testing.expectEqualStrings(guarded_cleanup.platform_drvdata_owner_identity, guarded_handoff.platform_drvdata_owner_identity);
     try std.testing.expectEqualStrings(guarded_cleanup.watchdog_drvdata_owner_identity, guarded_handoff.watchdog_drvdata_owner_identity);
     try std.testing.expectEqualStrings(guarded_cleanup.register_device_failure_stage, guarded_handoff.register_device_failure_stage);
-    try std.testing.expect(guarded_handoff.request_stop_reviewable);
-    try std.testing.expect(guarded_handoff.register_device_failure_reviewable);
-    try std.testing.expect(guarded_handoff.reboot_glue_checkpoint_reviewable);
-    try std.testing.expect(guarded_handoff.blocked_on_platform_cleanup_callback);
-    try std.testing.expect(guarded_handoff.blocked_on_platform_driver_remove);
-    try std.testing.expect(guarded_handoff.blocked_on_watchdog_core_unregister);
-    try std.testing.expect(guarded_handoff.blocked_on_host_shutdown_execution);
+    try std.testing.expectEqual(guarded_cleanup.request_stop_reviewable, guarded_handoff.request_stop_reviewable);
+    try std.testing.expectEqual(guarded_cleanup.register_device_failure_reviewable, guarded_handoff.register_device_failure_reviewable);
+    try std.testing.expectEqual(guarded_cleanup.reboot_glue_checkpoint_reviewable, guarded_handoff.reboot_glue_checkpoint_reviewable);
+    try std.testing.expectEqual(guarded_cleanup.blocked_on_platform_cleanup_callback, guarded_handoff.blocked_on_platform_cleanup_callback);
+    try std.testing.expectEqual(guarded_cleanup.blocked_on_platform_driver_remove, guarded_handoff.blocked_on_platform_driver_remove);
+    try std.testing.expectEqual(guarded_cleanup.blocked_on_watchdog_core_unregister, guarded_handoff.blocked_on_watchdog_core_unregister);
+    try std.testing.expectEqual(guarded_cleanup.blocked_on_host_shutdown_execution, guarded_handoff.blocked_on_host_shutdown_execution);
 }
