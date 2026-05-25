@@ -20,12 +20,17 @@ CURRENT_NEXT_SAFE_STEP = (
 REQUIRED_VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"',
     '"scripts/zigux/check-phase3-abi-support-packet.py"',
+    '"scripts/zigux/check-phase3-wrapper-templates.py"',
+    '"scripts/zigux/generate-phase3-check-wrappers.py"',
     '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
     '"python3 scripts/zigux/check-phase3-abi.py"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"',
     '"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"',
     '"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"',
     '"python3 scripts/zigux/check-phase3-abi-support-packet.py"',
+    '"python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"',
+    '"python3 scripts/zigux/check-phase3-wrapper-templates.py"',
+    '"python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test"',
     '"python3 scripts/zigux/validate-phase3.py --self-test"',
     '"python3 scripts/zigux/validate-phase3.py"',
     '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
@@ -136,6 +141,8 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/fixtures/phase3_xarray_slot_manifest.json",
     "zigux/tests/phase3_export_uapi_c_header_smoke.c",
     "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+    "scripts/zigux/check-phase3-wrapper-templates.py",
+    "scripts/zigux/generate-phase3-check-wrappers.py",
     "zigux/tests/phase3_dev_t_starter_packet.zig",
     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
     "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
@@ -158,6 +165,9 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-abi-support-packet.py",
+    "python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test",
+    "python3 scripts/zigux/check-phase3-wrapper-templates.py",
+    "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
     "python3 scripts/zigux/validate-phase3.py --self-test",
     "python3 scripts/zigux/validate-phase3.py",
     "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
@@ -334,12 +344,17 @@ def run_self_test() -> int:
         validator_cases = (
             ('"scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator packet-file marker drift was not reported"),
             ('"scripts/zigux/check-phase3-abi-support-packet.py"', "expected support-packet validator file-marker drift was not reported"),
+            ('"scripts/zigux/check-phase3-wrapper-templates.py"', "expected wrapper-template validator file-marker drift was not reported"),
+            ('"scripts/zigux/generate-phase3-check-wrappers.py"', "expected wrapper-generator validator file-marker drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi.py --self-test"', "expected shared ABI self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi.py"', "expected shared ABI direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test"', "expected validator self-test route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py"', "expected validator direct route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test"', "expected support-packet self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-abi-support-packet.py"', "expected support-packet direct validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"', "expected wrapper-template self-test validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-wrapper-templates.py"', "expected wrapper-template direct validator-route drift was not reported"),
+            ('"python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test"', "expected wrapper-generator self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3.py --self-test"', "expected validate-phase3 self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3.py"', "expected validate-phase3 direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"', "expected selftest-surface self-test validator-route drift was not reported"),
@@ -443,6 +458,8 @@ def run_self_test() -> int:
             ("zigux/tests/fixtures/phase3_xarray_slot_manifest.json", "expected xarray slot manifest packet-file drift was not reported"),
             ("zigux/tests/phase3_export_uapi_c_header_smoke.c", "expected export-uapi c-header smoke packet-file drift was not reported"),
             ("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py", "expected export-uapi c-header smoke checker packet-file drift was not reported"),
+            ("scripts/zigux/check-phase3-wrapper-templates.py", "expected wrapper-template checker packet-file drift was not reported"),
+            ("scripts/zigux/generate-phase3-check-wrappers.py", "expected wrapper-generator packet-file drift was not reported"),
             ("zigux/tests/phase3_dev_t_starter_packet.zig", "expected dev-t starter replay packet-file drift was not reported"),
             ("zigux/tests/phase3_dev_t_starter_packet_build.zig", "expected dev-t starter build packet-file drift was not reported"),
             ("zigux/tests/phase3_dev_t_starter_packet_manifest.json", "expected dev-t starter manifest packet-file drift was not reported"),
@@ -471,6 +488,9 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected checker direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-support-packet.py --self-test", "expected support-packet self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-support-packet.py", "expected support-packet direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test", "expected wrapper-template self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-wrapper-templates.py", "expected wrapper-template direct route drift was not reported"),
+            ("python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test", "expected wrapper-generator self-test route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3.py --self-test", "expected validate-phase3 self-test route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3.py", "expected validate-phase3 direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-selftest-surface.py --self-test", "expected selftest-surface self-test route drift was not reported"),
@@ -594,7 +614,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=178")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=188")
     return 0
 
 def main() -> int:
