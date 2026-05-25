@@ -32,6 +32,7 @@
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-readiness-gate-packet.py",
@@ -56,6 +57,7 @@
     "a direct port-readiness decision for any Phase 15 anchor"
   ],
   "checker_group_markers": [
+    "one focused docs-readme checker",
     "one focused review-process checker",
     "one focused review-checklist study-only checker",
     "one focused readiness-packet checker",
