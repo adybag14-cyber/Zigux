@@ -707,6 +707,37 @@ test "genksyms bridge preserves repeated pure version invocations" {
     }
 }
 
+test "genksyms bridge preserves repeated short version side effects before exact long matches" {
+    var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena_state.deinit();
+
+    const args = [_][]const u8{
+        "-VV",
+        "--dump",
+        "--dump-types",
+        "types.symtypes",
+        "--reference",
+        "foo.symref",
+        "--preserve",
+    };
+    const outcome = try parseArgs(arena_state.allocator(), &args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                try testing.expectEqual(@as(usize, 2), request.version_count);
+                try testing.expect(request.dump_defs);
+                try testing.expect(request.preserve);
+                try testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try testing.expectEqualStrings("types.symtypes", request.dump_types_file.?);
+                try testing.expectEqualSlices([]const u8, &args, request.rendered_args);
+            },
+            else => return error.ExpectedRequestCommand,
+        },
+        else => return error.ExpectedRequestCommand,
+    }
+}
+
 test "genksyms bridge preserves version side effects before later parse failures" {
     const args = [_][]const u8{"-Vx"};
     const outcome = try parseArgs(testing.allocator, &args);
