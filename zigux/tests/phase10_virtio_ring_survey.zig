@@ -90,7 +90,7 @@ test "phase10 virtio ring survey manifest keeps lane identity and freeze-boundar
     try expectContains(manifest, "\"allowed_evidence_kinds\": [");
     try expectContains(manifest, "\"driver_local_lab_slices\"");
     try expectContains(manifest, "\"survey_manifests\"");
-    try expectContains(manifest, "\"preexisting_phase10_test_files\": 7");
+    try expectContains(manifest, "\"preexisting_phase10_test_files\": 8");
     try expectContains(manifest, "\"shared_validation_gates\"");
     try expectContains(manifest, "\"forbidden_transport_claims\": [");
     try expectContains(manifest, "\"queue_setup_reset_paths\"");
