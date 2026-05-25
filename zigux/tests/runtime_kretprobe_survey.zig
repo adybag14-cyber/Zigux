@@ -87,6 +87,6 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-tests\"");
     try expectContains(
         phase9_build,
-        "Run the Phase 9 runtime kretprobe sample, survey, and module lifecycle tests.",
+        "Run the Phase 9 runtime kretprobe sample, initialized-snapshot guard, survey, and module lifecycle tests.",
     );
 }
