@@ -37,8 +37,8 @@ fn expectSliceContains(haystack: []const []const u8, needle: []const u8) !void {
     return error.TestUnexpectedResult;
 }
 
-test "phase 15 handoff manifest records the focused replay and validator as landed packet evidence" {
-    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 24 * 1024);
+test "phase 15 handoff manifest records the focused replay, scripts-root checker, and shared build companion as landed packet evidence" {
+    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(HandoffManifest, std.testing.allocator, manifest_json, .{
@@ -80,11 +80,11 @@ test "phase 15 handoff manifest records the focused replay and validator as land
     try expectSliceContains(manifest.missing_route_markers, "no dedicated shared-CI Phase 15 validate, test, or aggregate route is materialized in `.github/workflows/zigux-bootstrap.yml` on current `master`");
 }
 
-test "phase 15 handoff note treats the focused replay and validator as present while broader route bodies stay blocked" {
-    const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 24 * 1024);
+test "phase 15 handoff note treats the focused replay, scripts-root checker, and shared build companion as present while wrapper and shared-CI routes stay blocked" {
+    const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 32 * 1024);
     defer std.testing.allocator.free(handoff_note);
 
-    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 24 * 1024);
+    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(HandoffManifest, std.testing.allocator, manifest_json, .{
@@ -97,8 +97,8 @@ test "phase 15 handoff note treats the focused replay and validator as present w
     try expectContains(handoff_note, "PHASE15_LANE_KEY=P15-L12");
     try expectContains(handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(handoff_note, manifest.surveyed_commit);
-    try expectContains(handoff_note, "the dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`");
-    try expectContains(handoff_note, "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `zigux/tests/phase15_build.zig` as the handoff-specific source of truth while the broader `phase15*` route bodies and workflow coverage remain gap-tracked.");
+    try expectContains(handoff_note, "The dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`");
+    try expectContains(handoff_note, "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `zigux/tests/phase15_build.zig` as the handoff-specific source of truth while the blocked route bodies and shared-CI route remain gap-tracked.");
     try expectContains(handoff_note, "The dedicated validator `scripts/zigux/validate-phase15.py` and shared build companion `zigux/tests/phase15_build.zig` are directly materialized on current `master`, but they do not by themselves land the broader dedicated `phase15*` wrapper routes or shared-CI route.");
     try expectNotContains(handoff_note, "no dedicated handoff-specific Zig replay is directly materialized on current `master`");
 
