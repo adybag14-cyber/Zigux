@@ -37,6 +37,7 @@ REQUIRED_MARKERS = {
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
         'Path("Documentation/zigux/phase3-abi-slice.md")',
         'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
+        'Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")',
         'Path("Documentation/zigux/phase3-policy-slice.md")',
         'Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")',
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
@@ -210,6 +211,12 @@ def run_self_test() -> int:
                 'PHASE3_CATALOG_SCOPE = "abi-runtime"',
                 'missing scripts/zigux/phase3_catalog.py marker: PHASE3_CATALOG_SCOPE = "abi-runtime"',
                 "expected missing catalog scope marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
+                'Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")',
+                'missing scripts/zigux/phase3_catalog.py marker: Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md")',
+                "expected missing abi.h next-step catalog marker was not reported",
             ),
             (
                 SURVEY_PATH,
