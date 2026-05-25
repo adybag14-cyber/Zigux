@@ -84,6 +84,32 @@ pub fn main(init: std.process.Init) !void {
         );
     }
 
+    const negate_cases = [_]struct {
+        name: []const u8,
+        value: u32,
+    }{
+        .{ .name = "zero", .value = 0x0000_0000 },
+        .{ .name = "unit", .value = 0x0000_0001 },
+        .{ .name = "saturated", .value = 0xffff_ffff },
+        .{ .name = "carry-heavy", .value = 0xdead_bef0 },
+    };
+    for (negate_cases) |case| {
+        try writer.print("negate\t{s}\t0x{x:0>8}\n", .{ case.name, checksum.negate(case.value) });
+    }
+
+    const from64_cases = [_]struct {
+        name: []const u8,
+        value: u64,
+    }{
+        .{ .name = "zero", .value = 0x0000_0000_0000_0000 },
+        .{ .name = "single carry", .value = 0x0000_0001_0000_0000 },
+        .{ .name = "saturated plus one", .value = 0xffff_ffff_0000_0001 },
+        .{ .name = "mixed words", .value = 0x1234_5678_9abc_def0 },
+    };
+    for (from64_cases) |case| {
+        try writer.print("from64to32\t{s}\t0x{x:0>8}\n", .{ case.name, checksum.from64to32(case.value) });
+    }
+
     var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
     const old_partial = checksum.partial(&payload, 0);
     const old_word = (@as(u32, payload[0]) << 8) | payload[1];
