@@ -136,6 +136,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper_companion, "try std.testing.expectEqualStrings(\"2,9\", descending_rest);");
     try expectContains(helper_companion, "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture");
     try expectContains(helper_companion, "phase 7 cmdline companion replays validator-only getOption cursor movement");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays get_option alias cursor parity");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries");
     try expectContains(helper_companion, "phase 7 cmdline companion replays leading-plus fallback boundaries");
     try expectContains(helper_companion, "phase 7 cmdline companion replays memparse signed clamp saturation");
