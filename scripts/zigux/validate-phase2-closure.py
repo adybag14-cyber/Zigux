@@ -21,6 +21,8 @@ ARCHIVE_CONTRACT_PACKET_REL = Path("scripts/zigux/check-phase2-archive-contract-
 CLOSURE_ARCHIVE_CONTRACT_REL = Path("scripts/zigux/check-phase2-closure-archive-contract.py")
 TESTS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-tests-readme-alignment.py")
 TESTS_ROOT_SUMMARY_REL = Path("scripts/zigux/check-phase2-tests-root-summary.py")
+TESTS_ROOT_SUMMARY_ROUTE_GAP_REL = Path("scripts/zigux/check-phase2-tests-root-summary-route-gap.py")
+CLOSURE_VALIDATOR_GAP_REL = Path("scripts/zigux/check-phase2-closure-validator-gap.py")
 TOOL_MANIFEST_CHECKER_REL = Path("scripts/zigux/check-phase2-tool-manifest.py")
 ARCHIVE_README_REL = Path("third_party/README.md")
 ARCHIVE_PAYLOAD_REL = Path("third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")
@@ -39,6 +41,8 @@ REQUIRED_FILES = (
     CLOSURE_ARCHIVE_CONTRACT_REL,
     TESTS_ALIGNMENT_REL,
     TESTS_ROOT_SUMMARY_REL,
+    TESTS_ROOT_SUMMARY_ROUTE_GAP_REL,
+    CLOSURE_VALIDATOR_GAP_REL,
     TOOL_MANIFEST_CHECKER_REL,
     ARCHIVE_README_REL,
     MAKEFILE_REL,
@@ -328,8 +332,13 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        (resolve(root, TESTS_README_REL)).unlink()
-        assert ("MISSING_REQUIRED_FILE", TESTS_README_REL.as_posix()) in collect_issues(root)
+        (resolve(root, TESTS_ROOT_SUMMARY_ROUTE_GAP_REL)).unlink()
+        assert ("MISSING_REQUIRED_FILE", TESTS_ROOT_SUMMARY_ROUTE_GAP_REL.as_posix()) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        (resolve(root, CLOSURE_VALIDATOR_GAP_REL)).unlink()
+        assert ("MISSING_REQUIRED_FILE", CLOSURE_VALIDATOR_GAP_REL.as_posix()) in collect_issues(root)
         checks_run += 1
 
     print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
