@@ -545,7 +545,7 @@ def main() -> int:
             print(failure)
         return 1
 
-    print("PHASE1_FIND_BIT_REVIEW_PACKET=pass")
+    print("phase1-find-bit-review-packet:ok")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_HELPER={HELPER_REL.as_posix()}")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_MANIFEST={MANIFEST_REL.as_posix()}")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_FIXTURE={FIXTURE_REL.as_posix()}")
