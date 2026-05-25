@@ -19,6 +19,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_virtio_net_post_reset_replay.zig",
     "zigux/tests/phase12_virtio_net_throughput_parity.zig",
     "zigux/tests/phase12_virtio_net_survey.zig",
+    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_net_syntax_lab_build.zig",
     "zigux/tests/phase12_virtio_net_manifest.json",
     "zigux/tests/phase12_build.zig",
     "zigux/Makefile",
@@ -28,7 +30,6 @@ REQUIRED_FILES = [
 ABSENT_FILES = [
     "drivers/net/virtio_net.zig",
     "zigux/tests/phase12_virtio_net.zig",
-    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
 ]
 
 SURVEY_MARKERS = (
@@ -38,8 +39,11 @@ SURVEY_MARKERS = (
     "drivers/net/virtio_net_transmit_recycle.zig",
     "drivers/net/virtio_net_post_reset_replay.zig",
     "drivers/net/virtio_net_throughput_parity.zig",
+    "zigux/tests/phase12_virtio_net_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_net_syntax_lab_build.zig",
     "`zigux/tests/phase12_build.zig` plus `zigux/Makefile` now keep the dedicated `virtio_net_queue_resume`, `virtio_net_receive_refill_replay`, `virtio_net_transmit_recycle`, `virtio_net_post_reset_replay`, throughput-parity, and `phase12_virtio_net_survey` gates reachable through the shared Phase 12 validate, smoke, and test routes",
     "current `master` now keeps `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof for that sextet",
+    "the standalone syntax-lab companion remains compile-smoke evidence beside that sextet, but `zigux/tests/phase12_virtio_net_syntax_lab.zig` and `zigux/tests/phase12_virtio_net_syntax_lab_build.zig` are not wired into the shared Phase 12 validate, smoke, or test routes",
     "the packet still does not claim live DMA-safe receive ownership",
 )
 
@@ -47,8 +51,10 @@ SURVEY_GATE_MARKERS = (
     '"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
     '"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete"',
     '"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays"',
-    'try expectContains(build_zig, "phase12_virtio_net_survey.zig");',
-    'try expectContains(build_zig, "phase12-virtio-net-survey-tests");',
+    'try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);',
+    'try expectContains(gap.why_now, "standalone syntax-lab compile-smoke companion");',
+    'try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));',
+    'try expectNotContains(build_zig, "phase12_virtio_net_syntax_lab.zig");',
     'try expectContains(makefile, "phase12: phase12-validate phase12-smoke phase12-test");',
 )
 
@@ -116,13 +122,14 @@ def run_check(root: Path) -> None:
     expected = {
         "lane_key": "P12-L04",
         "phase": "Phase 12",
-        "surveyed_commit": "6791c1229b883d9f0acf9ec70e4159db1c9d1bf6",
-        "verified_on": "2026-05-22",
+        "surveyed_commit": "e0c7303b0874af398d4f02221b97a6c9a1e49d5d",
+        "verified_on": "2026-05-25",
     }
     for key, value in expected.items():
         if manifest.get(key) != value:
             raise CheckError(f"{manifest_path.as_posix()}: {key} drifted from {value!r}")
     for marker in (
+        '"preexisting_phase12_virtio_net_syntax_lab_present": true',
         '"status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
         '"status": "throughput_parity_helper_present_review_only_runtime_completion_missing"',
         '"status": "split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete"',
@@ -135,7 +142,7 @@ def run_check(root: Path) -> None:
 
     require_markers(require_file(root, "Documentation/zigux/phase12-virtio-net-survey.md"), SURVEY_MARKERS)
     build_text = require_markers(require_file(root, "zigux/tests/phase12_build.zig"), BUILD_MARKERS)
-    for stale in ("../../drivers/net/virtio_net.zig", '"phase12_virtio_net_syntax_lab.zig"'):
+    for stale in ("../../drivers/net/virtio_net.zig", '"phase12_virtio_net.zig"', '"phase12_virtio_net_syntax_lab.zig"'):
         if stale in build_text:
             raise CheckError(f"zigux/tests/phase12_build.zig: stale marker {stale!r}")
     require_markers(require_file(root, "zigux/tests/phase12_virtio_net_survey.zig"), SURVEY_GATE_MARKERS)
@@ -156,6 +163,8 @@ def make_fixture_tree(root: Path) -> None:
         "zigux/tests/phase12_virtio_net_transmit_recycle.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_post_reset_replay.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_throughput_parity.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_syntax_lab_build.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_survey.zig": "\n".join(f"// {m}" for m in SURVEY_GATE_MARKERS) + "\n",
         "zigux/tests/phase12_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
@@ -164,12 +173,15 @@ def make_fixture_tree(root: Path) -> None:
             {
                 "lane_key": "P12-L04",
                 "phase": "Phase 12",
-                "surveyed_commit": "6791c1229b883d9f0acf9ec70e4159db1c9d1bf6",
-                "verified_on": "2026-05-22",
+                "surveyed_commit": "e0c7303b0874af398d4f02221b97a6c9a1e49d5d",
+                "verified_on": "2026-05-25",
                 "anchor": "drivers/net/virtio_net.c",
+                "survey_summary": {
+                    "preexisting_phase12_virtio_net_syntax_lab_present": True,
+                },
                 "roadmap_gap_check": {
                     "queueing_correctness": {
-                        "status": "split_queue_resume_receive_refill_transmit_recycle_post_RESET_replay_and_direct_gates_present_shared_smoke_present"
+                        "status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"
                     },
                     "throughput_and_recovery_parity": {
                         "status": "throughput_parity_helper_present_review_only_runtime_completion_missing"
@@ -185,7 +197,7 @@ def make_fixture_tree(root: Path) -> None:
                     },
                     {
                         "id": "phase12-virtio-net-survey-gate",
-                        "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
+                        "why_now": "standalone syntax-lab compile-smoke companion",
                     },
                     {
                         "id": "phase12-virtio-net-runtime-data-path",
@@ -229,7 +241,7 @@ def run_self_test() -> None:
             cases += 1
 
         make_fixture_tree(base)
-        stale = base / "zigux/tests/phase12_virtio_net_syntax_lab.zig"
+        stale = base / "zigux/tests/phase12_virtio_net.zig"
         stale.parent.mkdir(parents=True, exist_ok=True)
         stale.write_text("// stale\n", encoding="utf-8")
         try:
@@ -243,7 +255,7 @@ def run_self_test() -> None:
         make_fixture_tree(base)
         broken_manifest = base / "zigux/tests/phase12_virtio_net_manifest.json"
         payload = json.loads(broken_manifest.read_text(encoding="utf-8"))
-        payload["verified_on"] = "2026-05-21"
+        payload["verified_on"] = "2026-05-24"
         broken_manifest.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         try:
             run_check(base)
@@ -255,7 +267,10 @@ def run_self_test() -> None:
 
         make_fixture_tree(base)
         broken_build = base / "zigux/tests/phase12_build.zig"
-        broken_build.write_text(broken_build.read_text(encoding="utf-8").replace("phase12-virtio-net-survey-tests", ""), encoding="utf-8")
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace("phase12-virtio-net-survey-tests", ""),
+            encoding="utf-8",
+        )
         try:
             run_check(base)
         except CheckError:
