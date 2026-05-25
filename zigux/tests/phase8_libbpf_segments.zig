@@ -208,8 +208,13 @@ test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge
         shared_build,
         "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     );
+    try expectContains(
+        shared_build,
+        "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
+    );
     try expectContains(shared_build, "phase8_file_path_handle_bridge.zig");
     try expectContains(shared_build, "phase8_libbpf_segments.zig");
+    try expectContains(shared_build, "phase8-ready-buffer-fd-lookup-tests");
     try expectContains(shared_build, "phase8_verify_routing_gap.zig");
     try expectContains(shared_build, "Run the shared Phase 8 tooling tests.");
 
@@ -248,6 +253,10 @@ test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier 
     );
     try expectContains(
         survey,
+        "`tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig`",
+    );
+    try expectContains(
+        survey,
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
     );
     try expectContains(
@@ -265,6 +274,10 @@ test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier 
     try expectContains(
         aggregate_verify,
         "const ready_buffer_attempt_verify = @import(\"ready_buffer_attempt_verify.zig\");",
+    );
+    try expectContains(
+        aggregate_verify,
+        "const ready_buffer_fd_lookup = @import(\"ready_buffer_fd_lookup.zig\");",
     );
     try expectContains(
         aggregate_verify,
@@ -311,6 +324,13 @@ test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier 
     try expectContains(
         attempt_verify,
         "phase8 ready-buffer attempt helpers keep errno-shaped outputs stable",
+    );
+
+    const fd_lookup = try readRepoFile("tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig");
+    defer std.testing.allocator.free(fd_lookup);
+    try expectContains(
+        fd_lookup,
+        "phase8 ready-buffer fd lookup helper keeps errno-shaped outputs stable",
     );
 
     const fd_verify = try readRepoFile("tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig");
