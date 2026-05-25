@@ -70,7 +70,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 def read_json(path: Path) -> object:
@@ -408,6 +408,23 @@ def run_self_test() -> int:
         assert (
             "MISSING_PHASE2_VALIDATE_MARKER",
             '"run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",',
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        phase2_validate_path = root / PHASE2_VALIDATE.relative_to(ROOT)
+        write_text(
+            phase2_validate_path,
+            "\n".join(
+                marker
+                for marker in REQUIRED_PHASE2_VALIDATE_MARKERS
+                if marker != '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test",'
+            )
+            + "\n",
+        )
+        assert (
+            "MISSING_PHASE2_VALIDATE_MARKER",
+            '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test",',
         ) in collect_issues(root)
         checks_run += 1
 
