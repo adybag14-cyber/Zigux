@@ -40,6 +40,9 @@ SURVEY_REQUIRED_MARKERS = (
     "adjacent failure-mode continuity rather than a restored shared header-parity replay roster",
     "documentation-level continuity evidence",
     "bounded modem-control callback proof",
+    "`phase11-focused-direct-build-checker`",
+    "`scripts/zigux/check-phase11-focused-direct-build-replays.py`",
+    "machine-checked evidence rather than inventory-only prose",
 )
 
 SURVEY_FORBIDDEN_MARKERS = (
@@ -76,6 +79,11 @@ MATRIX_REQUIRED_MARKERS = (
     "returned `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "keep the returned header-boundary checker framed as note-side evidence only",
     "Keep the adjacent cleanup, modem-control, and targetless-unregister companions explicit as directly readable HVC failure-mode continuity evidence",
+    "`scripts/zigux/check-phase11-focused-direct-build-replays.py`",
+    "`python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`",
+    "`python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`",
+    "`scripts/zigux/validate-phase11.py`",
+    "`zigux/Makefile`",
 )
 
 MATRIX_FORBIDDEN_MARKERS = (
@@ -180,6 +188,7 @@ def run_self_test() -> int:
 - the current note also needs to keep the newer bounded modem-control callback proof explicit beside cleanup and targetless-unregister continuity.
 - the returned `Documentation/zigux/phase11-shared-replay-contract.md` note is documentation-level continuity evidence.
 - `phase11-header-boundary-checker`: `scripts/zigux/check-phase11-header-boundary-packet.py` now fail-closes on the survey note and validation matrix through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`.
+- `phase11-focused-direct-build-checker`: `scripts/zigux/check-phase11-focused-direct-build-replays.py` now keeps the current direct `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` replays fail-closed beside the narrower build-inventory packet, so those focused build routes are machine-checked evidence rather than inventory-only prose.
 """
 
     fixture_matrix = """# Phase 11 UAPI Header Parity Validation Matrix
@@ -220,6 +229,7 @@ def run_self_test() -> int:
   - `zigux/tests/phase11_uapi_header_parity_survey.zig`
   - `zigux/tests/phase11_build.zig`
 - keep the returned header-boundary checker framed as note-side evidence only through `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test` and `python3 scripts/zigux/check-phase11-header-boundary-packet.py`.
+- `scripts/zigux/check-phase11-focused-direct-build-replays.py` keeps `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test`, `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`, `scripts/zigux/validate-phase11.py`, and `zigux/Makefile` explicit beside `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.
 """
 
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_header_boundary_"))
