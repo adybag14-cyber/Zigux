@@ -14,6 +14,7 @@ FILES = {
     "matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
     "platform_plan": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
     "manifest": "zigux/tests/phase11_dw_wdt_manifest.json",
+    "verify": "drivers/watchdog/dw_wdt_verify.zig",
     "pm": "drivers/watchdog/dw_wdt_pm.zig",
 }
 
@@ -41,32 +42,40 @@ NOTE_MARKERS = [
     "- lane family: `P11-L12`",
     "- active current-head continuity note owner: `P11-Y03`",
     "- current authenticated contents now keep the returned validation matrix directly readable through the same bridge that serves the rest of this narrower packet",
-    "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
+    "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_verify.zig`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` now records deeper platform-registration scaffold continuity `P11-L10` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- the active routing split now keeps owner-note truthfulness on `P11-Y03`, survey-only follow-through on `P11-L09`, and deeper platform-registration scaffold follow-through on `P11-L10`; do not reserve `P11-L05` unless the packet collapses back to the older survey-era shape",
-    "- `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, so teardown-parity ownership remains explicit even though the broader verify helper itself does not currently rematerialize through the same authenticated-contents bridge",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` still routes `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`, and the returned verify helper now remains directly readable on the same authenticated bridge, so teardown-parity ownership and evidence both stay explicit without reopening the broader direct-driver packet",
     "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
     "- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` now keeps the returned DesignWare matrix readable on current `master` while still parking hardware-backed MMIO validation as the next bounded same-lane step",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` still keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`, but this note does not itself own that later implementation step",
-    "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
-    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` should keep this narrower current-head packet fail-closed around the returned validation matrix, the manifest-routed teardown-parity ownership, the platform-plan boundary, and the bounded PM helper instead of asserting direct readability for the broader verify-helper stack",
+    "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge even though the verify helper has returned inside the smaller packet",
+    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` should keep this narrower current-head packet fail-closed around the returned validation matrix, the manifest-routed teardown-parity ownership, the returned verify helper, the platform-plan boundary, and the bounded PM helper instead of asserting direct readability for the broader direct-driver stack",
 ]
 
 MATRIX_MARKERS = [
     "- `PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed`",
     "- current surveyed packet pin: `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- active watchdog continuity for this matrix and its coupled survey packet is",
-    "- `drivers/watchdog/dw_wdt_pm.zig` keeps the bounded PM-helper handoff",
+    "- `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_verify.zig`",
     "- The next bounded same-lane follow-up remains the manifest-marked ready-next",
     "hardware-backed MMIO validation around suspend, resume, and",
 ]
 
 PLATFORM_PLAN_MARKERS = [
-    "Current authenticated contents rereads in this run do not rematerialize",
+    "Current authenticated contents rereads on `master` now keep this owner note,",
     "`drivers/watchdog/dw_wdt_verify.zig`,",
     "the broader direct-driver or replay-backed packet this note used to claim",
-    "the two current DesignWare truthfulness checkers",
+    "the returned verify helper `drivers/watchdog/dw_wdt_verify.zig`",
     "- the bounded PM helper pair `drivers/watchdog/dw_wdt_pm.zig` and `drivers/watchdog/dw_wdt_pm_scaffold.zig`",
+]
+
+VERIFY_MARKERS = [
+    'const dw_wdt_pm = @import("dw_wdt_pm.zig");',
+    'const dw_wdt_restart = @import("dw_wdt_restart.zig");',
+    'test "dw_wdt verify keeps restart blockers and register-write readiness aligned" {',
+    'test "dw_wdt verify keeps PM helper ordering and blocker branches explicit" {',
+    'test "dw_wdt verify keeps PM scaffold dispositions aligned with the stronger helper packet" {',
 ]
 
 PM_MARKERS = [
@@ -144,6 +153,11 @@ def expect_manifest_state(manifest: dict[str, object]) -> None:
             "manifest pm helper survey flag mismatch: "
             f"expected True, got {summary.get('dw_wdt_pm_helper_present')!r}"
         )
+    if summary.get("dw_wdt_verify_helper_present") is not True:
+        raise CheckError(
+            "manifest verify helper survey flag mismatch: "
+            f"expected True, got {summary.get('dw_wdt_verify_helper_present')!r}"
+        )
 
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
@@ -210,11 +224,13 @@ def run_check(root: Path) -> None:
     matrix = read_text(root, FILES["matrix"])
     platform_plan = read_text(root, FILES["platform_plan"])
     manifest = read_manifest(root)
+    verify = read_text(root, FILES["verify"])
     pm = read_text(root, FILES["pm"])
 
     expect_markers("note", note, NOTE_MARKERS)
     expect_markers("matrix", matrix, MATRIX_MARKERS)
     expect_markers("platform_plan", platform_plan, PLATFORM_PLAN_MARKERS)
+    expect_markers("verify", verify, VERIFY_MARKERS)
     expect_markers("pm", pm, PM_MARKERS)
     expect_manifest_state(manifest)
 
@@ -228,6 +244,7 @@ def build_fixture(root: Path) -> None:
     write(root / FILES["note"], "\n".join(NOTE_MARKERS) + "\n")
     write(root / FILES["matrix"], "\n".join(MATRIX_MARKERS) + "\n")
     write(root / FILES["platform_plan"], "\n".join(PLATFORM_PLAN_MARKERS) + "\n")
+    write(root / FILES["verify"], "\n".join(VERIFY_MARKERS) + "\n")
     write(root / FILES["pm"], "\n".join(PM_MARKERS) + "\n")
     write(
         root / FILES["manifest"],
@@ -237,6 +254,7 @@ def build_fixture(root: Path) -> None:
                 "surveyed_commit": EXPECTED_MANIFEST_PIN,
                 "survey_summary": {
                     "dw_wdt_pm_helper_present": True,
+                    "dw_wdt_verify_helper_present": True,
                 },
                 "gaps": [
                     {
@@ -310,6 +328,15 @@ def run_self_test() -> None:
         expect_failure(bad_pm_helper_flag, "manifest pm helper survey flag mismatch")
         case_count += 1
 
+        bad_verify_helper_flag = root / "bad-verify-helper-flag"
+        shutil.copytree(fixture, bad_verify_helper_flag)
+        manifest_path = bad_verify_helper_flag / FILES["manifest"]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"]["dw_wdt_verify_helper_present"] = False
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(bad_verify_helper_flag, "manifest verify helper survey flag mismatch")
+        case_count += 1
+
         missing_marker = root / "missing-marker"
         shutil.copytree(fixture, missing_marker)
         note_path = missing_marker / FILES["note"]
@@ -344,6 +371,23 @@ def run_self_test() -> None:
         expect_failure(
             missing_platform_plan_marker,
             f"missing marker in platform_plan: {PLATFORM_PLAN_MARKERS[4]}",
+        )
+        case_count += 1
+
+        missing_verify_marker = root / "missing-verify-marker"
+        shutil.copytree(fixture, missing_verify_marker)
+        verify_path = missing_verify_marker / FILES["verify"]
+        verify_path.write_text(
+            verify_path.read_text(encoding="utf-8").replace(
+                VERIFY_MARKERS[2],
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            missing_verify_marker,
+            f"missing marker in verify: {VERIFY_MARKERS[2]}",
         )
         case_count += 1
 
