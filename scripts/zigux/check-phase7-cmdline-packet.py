@@ -68,6 +68,7 @@ REQUIRED_MARKERS = {
         'try std.testing.expectEqualStrings("2,9", descending_rest);',
         'test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {',
         'test "phase 7 cmdline companion replays validator-only getOption cursor movement" {',
+        'test "phase 7 cmdline companion replays get_option alias cursor parity" {',
         'test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {',
         'test "phase 7 cmdline companion replays leading-plus fallback boundaries" {',
         'test "phase 7 cmdline companion replays memparse signed clamp saturation" {',
@@ -105,7 +106,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
@@ -224,6 +225,7 @@ def run_self_test() -> None:
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
             ("lib/cmdline.zig", 'test "getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior" {', ""),
             ("zigux/tests/phase7_cmdline.zig", 'test "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries" {', ""),
+            ("zigux/tests/phase7_cmdline.zig", 'test "phase 7 cmdline companion replays get_option alias cursor parity" {', ""),
             ("zigux/tests/phase7_cmdline_survey.zig", 'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_checker_anchor", manifest.current_master_state);', ""),
             ("zigux/tests/phase7_cmdline_survey.zig", 'try expectContains(checker, "PHASE7_CMDLINE_PACKET=pass");', ""),
             ("samples/zigux/README.md", "Current `master` still ships no standalone Phase 5 sample-root files here for:", ""),
