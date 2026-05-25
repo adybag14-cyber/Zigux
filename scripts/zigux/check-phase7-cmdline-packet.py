@@ -77,7 +77,7 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_CMDLINE_PACKET=pass");',
         'try expectContains(checker, "PHASE7_CMDLINE_PACKET_SELF_TEST=pass");',
         'try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`");',
-        'try expectContains(helper, "test \\\\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\\\" {");',
+        'try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries");',
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
@@ -105,7 +105,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 27
 
 
 def read_text(path: Path) -> str:
@@ -256,6 +256,18 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux/tests/phase7_cmdline_manifest.json"
+        manifest_marker = "\"scripts/zigux/check-phase7-cmdline-packet.py\""
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].remove("scripts/zigux/check-phase7-cmdline-packet.py")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_checker_path_guard",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         manifest = json.loads(read_text(manifest_path))
         manifest["current_master_state"] = "helper_slice_test_survey_manifest_anchor"
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
