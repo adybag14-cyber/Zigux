@@ -52,6 +52,7 @@ Keep these cues explicit:
 - `runRegisteredBoundaryReplay()` keeps the already-registered duplicate-registration and replay-restart rejection packet explicit while still proving the registered sample can accept a bounded `foo` write/read roundtrip afterward
 - `runInputValidationReplay()` keeps the shared `baz`/`bar` dispatch, invalid-integer rejection, and unknown-attribute rejection explicit while the sample remains in the `registered` stage
 - `ownershipSummary()` and sample-owned `runOwnershipReplay()` still keep the cold, initialized, registered, and exited lifecycle packet explicit
+- `runTeardownReplay()` keeps the registered teardown reset, the post-`exit()` show/store/replay rejection packet, and the `tore_down_registered_attributes` exit disposition explicit instead of leaving the exited-stage packet implied by code alone
 - the exit split stays explicit as `abandoned_before_registration` for the initialized-only exit path and `tore_down_registered_attributes` for the registered teardown path
 - `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` together keep the bounded `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, NULL-terminated attribute-list slot, and shared build-route linkage explicit rather than turning that companion into a fifth Phase 5 sample
 
