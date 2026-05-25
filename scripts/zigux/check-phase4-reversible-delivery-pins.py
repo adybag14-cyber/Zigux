@@ -16,6 +16,7 @@ DOCS_README = Path("Documentation/zigux/README.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 TESTS_README = Path("zigux/tests/README.md")
 SCRIPTS_README = Path("scripts/zigux/README.md")
+VALIDATOR = Path("scripts/zigux/validate-phase4.py")
 PERF_BASELINE_CHECKER = Path("scripts/zigux/check-phase4-perf-baseline-packet.py")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PERF_SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
@@ -35,7 +36,6 @@ STATIC_SHA_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=fda6622c7f1f5e2273740157325db73fc294ca24`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=0ca3d60957fcda306a3d9cf915ecf405ffc82080`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=6842516c1180c53656c8e5599236c4e02689cb7d`",
-    "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_VALIDATOR_BLOB_SHA=10bceedddd3ec9d954eab640050232baf3ecfd75`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=34654c70c864378012494bd0068ccf260678ec0d`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=ffc17180c68e54714ce28a59a6cf3c0757caf9fe`",
@@ -50,6 +50,7 @@ CURRENT_HEAD_BLOB_PINS = (
     ("PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA", TESTS_README),
     ("PHASE4_REVERSIBLE_DELIVERY_DOCS_README_BLOB_SHA", DOCS_README),
     ("PHASE4_REVERSIBLE_DELIVERY_SCRIPTS_README_BLOB_SHA", SCRIPTS_README),
+    ("PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_VALIDATOR_BLOB_SHA", VALIDATOR),
     ("PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA", PERF_BASELINE_CHECKER),
     ("PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA", PERF_MANIFEST),
     ("PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA", PERF_SURVEY),
@@ -83,6 +84,7 @@ NOTE_MARKERS = (
     "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
     "  * `zigux/tests/phase4_perf_baseline_survey.zig`",
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
+    "current-head blob-pin proof for `scripts/zigux/validate-phase4.py` on `master`",
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
 )
 
@@ -207,7 +209,7 @@ def _baseline_note(root: Path) -> str:
         "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
         "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.",
         "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair and its manifest-backed handoff explicit as direct current-head evidence even while the broader Phase 4 companion set remains split between recovered note companions and exact-blob refresh debt.",
-        "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
+        "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff: current-head proof for the docs-root reminder, the scripts-root reminder, the review checklist, the tests-root reminder, the repo-reality warning checker, the tests-readme packet checker, the reversible-delivery pin checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the atomic64 manifest-backed survey pair, and the dedicated local-only perf checker plus companion packet; archival anchor pin only for this note's self-reference; current-head blob-pin proof for `scripts/zigux/validate-phase4.py` on `master`; public-raw current-tree proof that `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for that broader build-and-bitmap trio until exact authenticated blob capture stabilizes.",
         "",
     ]
     return "\n".join(lines) + "\n"
@@ -235,6 +237,7 @@ def _build_baseline_tree(root: Path) -> None:
         CHECKLIST,
         TESTS_README,
         SCRIPTS_README,
+        VALIDATOR,
         PERF_BASELINE_CHECKER,
         PERF_MANIFEST,
         PERF_SURVEY,
@@ -274,12 +277,6 @@ def run_self_test() -> int:
             NOTE,
             STATIC_SHA_LINES[0],
             "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_NOTE_BLOB_SHA=" + ("0" * 40) + "`",
-        )
-        cases += _expect_failure(
-            root,
-            NOTE,
-            STATIC_SHA_LINES[3],
-            "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=" + ("0" * 40) + "`",
         )
         cases += _expect_failure(
             root,
