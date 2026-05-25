@@ -71,7 +71,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 
 def read_json(path: Path) -> object:
@@ -80,6 +80,10 @@ def read_json(path: Path) -> object:
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
 def extract_literal(module_text: str, const_name: str) -> object:
@@ -126,6 +130,23 @@ def collect_marker_issues(path: Path, markers: list[str], issue_code: str) -> li
     for marker in markers:
         if marker not in text:
             issues.append((issue_code, marker))
+    return issues
+
+
+def collect_exact_line_issues(
+    path: Path,
+    markers: list[str],
+    missing_issue_code: str,
+    duplicate_issue_code: str,
+) -> list[tuple[str, str]]:
+    text = read_text(path)
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = count_exact_lines(text, marker)
+        if count == 0:
+            issues.append((missing_issue_code, marker))
+        elif count != 1:
+            issues.append((duplicate_issue_code, f"{marker}:count={count}"))
     return issues
 
 
@@ -182,17 +203,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_CLOSURE_MARKER", marker))
 
     issues.extend(
-        collect_marker_issues(
+        collect_exact_line_issues(
             phase2_validate_path,
             REQUIRED_PHASE2_VALIDATE_MARKERS,
             "MISSING_PHASE2_VALIDATE_MARKER",
+            "DUPLICATE_PHASE2_VALIDATE_MARKER",
         )
     )
     issues.extend(
-        collect_marker_issues(
+        collect_exact_line_issues(
             phase2_closure_validate_path,
             REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS,
             "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
+            "DUPLICATE_PHASE2_CLOSURE_VALIDATE_MARKER",
         )
     )
 
@@ -447,6 +470,18 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        phase2_validate_path = root / PHASE2_VALIDATE.relative_to(ROOT)
+        write_text(
+            phase2_validate_path,
+            "\n".join((REQUIRED_PHASE2_VALIDATE_MARKERS[0], REQUIRED_PHASE2_VALIDATE_MARKERS[0], *REQUIRED_PHASE2_VALIDATE_MARKERS[1:])) + "\n",
+        )
+        assert (
+            "DUPLICATE_PHASE2_VALIDATE_MARKER",
+            REQUIRED_PHASE2_VALIDATE_MARKERS[0] + ":count=2",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
         write_text(phase2_closure_validate_path, REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[1] + "\n")
         assert (
@@ -537,6 +572,18 @@ def run_self_test() -> int:
         assert (
             "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
             'EXPECTED_CONFDATA_MANIFEST = {',
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
+        write_text(
+            phase2_closure_validate_path,
+            "\n".join((REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0], REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0], *REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[1:])) + "\n",
+        )
+        assert (
+            "DUPLICATE_PHASE2_CLOSURE_VALIDATE_MARKER",
+            REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0] + ":count=2",
         ) in collect_issues(root)
         checks_run += 1
 
