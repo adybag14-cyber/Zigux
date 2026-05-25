@@ -174,6 +174,12 @@ test "phase 8 file-path-handle bridge helper source keeps planning-only bridge b
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "openat(") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "openFile") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "readFile") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "fcntl(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "std.posix.dup") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "dup2(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "dup3(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "std.posix.close") == null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_source, "close(") == null);
 }
 
 test "phase 8 file-path-handle bridge proof keeps the current libbpf survey role-only bridge split explicit" {
