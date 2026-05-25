@@ -16,19 +16,19 @@ Lane: `P2-L01`
 - The live `.github/workflows/zigux-bootstrap.yml` still replays the same fixdep packet on current `master` through the dedicated gate self-test and run, the fixdep diff self-test and run, `make -C zigux phase2-fixdep`, and the direct `zig test scripts/zigux/fixdep.zig` step.
 - The shared reminder packet in `Documentation/zigux/phase2-closure.md` and `zigux/tests/README.md` now also treats the fixdep helper, parity checker, fixture roster, and wrapper route as current repo evidence.
 - Current `master` now directly serves `Documentation/zigux/artifact-diff.md`, so the older reminder-side companion gap recorded in this survey is no longer live.
-- Repeated exact-path contents reads still return missing for `scripts/basic/fixdep.c`, so the current repo evidence remains a Zig-helper-plus-fixture-and-route packet rather than a directly readable same-repo C/Zig source pair.
+- Exact-path authenticated contents reads still return missing for `scripts/basic/fixdep.c`, but the public raw GitHub fallback now directly serves that C-side anchor, so the current dual-implementation packet is readable here as a degraded-mode C/Zig source pair rather than a Zig-only source packet.
 
 ## Survey result
 
 - The roadmap-backed Zigux-side fixdep packet is currently present on `master`.
 - The live repo no longer supports the older survey claim that the fixdep fixture packet stops at twelve external cases. The bounded fixdep packet is now thirteen cases wide and already includes the later dependency-continuation, comment-continuation, and double-backslash-comment parity paths.
 - The live repo also no longer supports the older survey claim that `Documentation/zigux/artifact-diff.md` is missing: current authenticated contents readback now returns that reminder-side companion directly on `master`.
-- The honest remaining repo-versus-roadmap gap is narrower than a missing Zigux implementation lane but still real for this survey: the roadmap anchor still names `scripts/basic/fixdep.c`, and exact-path reads for that C-side anchor remain unavailable here, so the current dual-implementation evidence is fixture-backed and route-backed rather than a directly readable same-tree source pair.
+- The honest remaining repo-versus-roadmap gap is no longer a missing dual-implementation anchor. It is narrower and read-path-specific: the roadmap still names `scripts/basic/fixdep.c`, and this runtime can now reread that C-side anchor only through raw GitHub fallback while authenticated exact-path contents reads still miss it.
 - The honest lane result is therefore a survey-note truthfulness refresh and parking pass, not a new fixdep behavior, fixture, or route implementation.
 
 ## Next bounded same-family step
 
 1. Keep `P2-L01` parked unless a fresh current-`master` reread finds new repo-versus-roadmap drift inside the fixdep helper, checker, fixture, or route packet.
-2. If a future current-head reread makes `scripts/basic/fixdep.c` directly readable in this repo, refresh this survey note to record that the remaining C-anchor gap is closed.
+2. If a future current-head reread makes `scripts/basic/fixdep.c` directly readable through the authenticated exact-path contents route again, refresh this survey note to retire the degraded-read gap.
 3. If the fixdep family reopens from reminder drift only, keep the follow-through on the directly coupled non-survey lane that owns it, such as a future checker-anchor truthfulness repair rather than new survey-only churn.
 4. Do not widen from this survey into genksyms, kconfig, parser behavior, or shared Phase 2 reminder maintenance.
