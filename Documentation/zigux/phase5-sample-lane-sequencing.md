@@ -42,7 +42,7 @@ Fresh repo-first inspection in this run confirmed that current `master` still ke
 - `zigux/tests/README.md`
 - `zigux/tests/phase5_build.zig`
 
-The same reread also confirmed that current `master` still keeps the restored direct bytestream packet, the restored direct kretprobe packet, the bounded trace-events formatting companion visible from the sample root, and the roadmap-backed `kobject` anchor in a mixed current-readback packet: authenticated contents readback in this runtime directly returned `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig`, while fresh public current-`master` GitHub file readback still keeps `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` explicit beside that direct packet.
+The same reread also confirmed that current `master` still keeps the restored direct bytestream packet, the restored direct kretprobe packet, the bounded trace-events formatting companion visible from the sample root, and the roadmap-backed `kobject` anchor in a mixed current-readback packet: authenticated contents readback in this runtime directly returned `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig`, while the same-lane survey note and fresh public current-`master` GitHub file readback still keep `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` explicit beside that direct packet.
 
 Keep this shared note truthful about that current packet instead of repeating older missing-sample wording for bytestream, older broader direct-sample wording for trace-events, or collapsing the still-visible kobject packet into repo absence.
 Keep the directly readable `zigux/tests/phase5_build.zig` route explicit too: it is current shared rerun evidence for the restored bytestream and kretprobe reminder packet, but it still should not be described as sample-local proof.
@@ -54,7 +54,6 @@ Fresh authenticated reread in this run still directly proves these current sampl
 
 - `samples/zigux/README.md`
 - `samples/zigux/bytestream_fifo.zig`
-- `samples/zigux/kobject_example.zig`
 - `samples/zigux/kobject_example_attr_group_contract.zig`
 - `samples/zigux/kretprobe_example.zig`
 - `samples/zigux/kretprobe_example_instance_budget_contract.zig`
@@ -68,7 +67,7 @@ Fresh authenticated reread in this run still directly proves these current sampl
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
-So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the restored bytestream port, the direct `kobject` sample-root file plus the bounded attr-group companion, the restored kretprobe port, the bounded kretprobe instance-budget companion, and the bounded trace-events formatting companion.
+So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the restored bytestream port, the bounded kobject attr-group companion, the restored kretprobe port, the bounded kretprobe instance-budget companion, and the bounded trace-events formatting companion.
 Treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proof for its approved anchor.
 Keep the bytestream queue-shape posture explicit too: the current direct replay packet now exact-checks `occupancySummary().queue_len`, `available`, and `wrapped` together with the visible-span and writable-span boundaries, so shared reminders should not collapse that packet back to queue length alone.
 Keep the direct rerun split explicit too: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` carries five focused replay tests, `zigux/tests/phase5_bytestream_fifo_survey.zig` carries five survey-packet checks, and `zigux/tests/phase5_build.zig` is the shared rerun handle that replays those three bytestream surfaces together without turning the shared build route into sample-local proof.
