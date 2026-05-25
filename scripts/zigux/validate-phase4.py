@@ -57,6 +57,8 @@ REQUIRED_PATHS = (
 WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
     "baseline_round_trip,"
     "workflow_order_drift,"
+    "missing_make_phase4_validate_artifact_diff_contract_selftest_command,"
+    "phase4_validate_contract_selftest_order_drift,"
     "missing_make_artifact_diff_contract_selftest_command,"
     "missing_make_route_counts_command,"
     "missing_make_reversible_delivery_selftest_command,"
@@ -67,6 +69,7 @@ WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
     "missing_make_perf_baseline_command,"
     "missing_workflow_validate_route,"
     "missing_workflow_test_route,"
+    "missing_workflow_artifact_diff_contract_make_route,"
     "missing_workflow_artifact_diff_helper_selftest,"
     "missing_workflow_artifact_diff_contract_selftest,"
     "missing_workflow_artifact_diff_contract_check,"
@@ -77,7 +80,6 @@ WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
     "missing_matrix_remaining_gap_marker,"
     "missing_gate_evidence_bitmap_build_route,"
     "missing_gate_evidence_bitmap_wrapper,"
-    "missing_tests_readme_perf_make_route,"
     "missing_build_test_fsmount_route,"
     "missing_build_bitmap_diff_route,"
     "missing_build_bitmap_diff_survey_route,"
@@ -222,7 +224,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     ),
     "phase4-workflow-route-counts-self-test": (
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass"),
-        ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=28"),
+        ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30"),
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES),
         ("PHASE4_WORKFLOW_ROUTE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNT=12"),
         ("PHASE4_WORKFLOW_MARKER_COUNT", "PHASE4_WORKFLOW_MARKER_COUNT=20"),
@@ -419,7 +421,7 @@ def build_stub_script(
                 f"LIVE_EXIT_CODE = {live_exit}",
                 f"SELF_TEST_STDOUT_LINES = {list(self_test_stdout_lines)!r}",
                 f"LIVE_STDOUT_LINES = {list(live_stdout_lines)!r}",
-                "for line in (SELF_TEST_STDOUT_LINES if args.self-test else LIVE_STDOUT_LINES):",
+                "for line in (SELF_TEST_STDOUT_LINES if args.self_test else LIVE_STDOUT_LINES):",
                 "    print(line)",
                 "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
             ]
@@ -472,7 +474,7 @@ def configure_workflow_route_stub(root: Path) -> None:
         root / "scripts/zigux/check-phase4-workflow-route-counts.py",
         self_test_stdout_lines=(
             "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
-            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=28",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30",
             "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES,
             "PHASE4_WORKFLOW_ROUTE_COUNT=12",
             "PHASE4_WORKFLOW_MARKER_COUNT=20",
@@ -704,7 +706,7 @@ def run_self_test() -> int:
             root / "scripts/zigux/check-phase4-workflow-route-counts.py",
             self_test_stdout_lines=(
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
-                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=28",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES,
             ),
             live_stdout_lines=(
