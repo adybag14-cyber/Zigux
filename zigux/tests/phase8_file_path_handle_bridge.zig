@@ -176,7 +176,7 @@ test "phase 8 file-path handle bridge helper source keeps planning-only bridge b
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "readFile") == null);
 }
 
-test "phase 8 file-path handle bridge proof keeps the current libbpf survey reminder-only bridge split explicit" {
+test "phase 8 file-path handle bridge proof keeps the current libbpf survey role-only bridge split explicit" {
     const libbpf_survey = try readWorkspaceFile(
         std.testing.allocator,
         "Documentation/zigux/phase8-libbpf-segment-survey.md",
@@ -186,7 +186,7 @@ test "phase 8 file-path handle bridge proof keeps the current libbpf survey remi
 
     try expectContains(
         libbpf_survey,
-        "Shared reminder surfaces may still name older bridge helper and focused build-shard vocabulary, but this survey should keep those bridge-facing paths separate from the exact authenticated helper set until the same readback mode serves them directly again.",
+        "Current authenticated contents readback now also reaches the bridge helper and focused bridge witness files again, so the narrower split recorded here is packet role only: those bridge-facing files remain reminder and boundary companions instead of joining the exact stable-output helper set.",
     );
     try expectContains(
         libbpf_survey,
