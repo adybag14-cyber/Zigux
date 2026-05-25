@@ -37,7 +37,7 @@ REVERSIBLE_DELIVERY_EVIDENCE = Path("Documentation/zigux/phase4-reversible-deliv
 SELF = Path("scripts/zigux/check-phase4-gate-evidence.py")
 
 EXPECTED_TARGET_COUNT = 19
-EXPECTED_SELF_TEST_CASE_COUNT = 44
+EXPECTED_SELF_TEST_CASE_COUNT = 45
 
 SELF_TEST_CASES = [
     "baseline_round_trip",
@@ -78,6 +78,7 @@ SELF_TEST_CASES = [
     "missing_validator_file",
     "missing_phase4_build_file",
     "missing_artifact_diff_helper_file",
+    "missing_workflow_route_checker_file",
     "missing_atomic64_manifest_file",
     "missing_bitmap_manifest_file",
     "missing_perf_survey_file",
@@ -112,12 +113,12 @@ NOTE_MARKERS = (
     "# Phase 4 Gate Evidence",
     "## Status",
     "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
-    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`",
+    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=45`",
     "`PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
     "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
     "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
     "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`",
-    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`",
+    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=45`",
     "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
     "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
     "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
@@ -149,7 +150,9 @@ MATRIX_MARKERS = (
     "reviewability-only no-perf-threshold posture",
     "validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
     "dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
-    "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod",
+    "survey owner: `Validation and Perf Team`",
+    "rollback owner: `Validation and Perf Team`",
+    "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners",
     "next bounded evidence step: keep the dedicated parked survey packet",
 )
 
@@ -198,6 +201,7 @@ TESTS_README_MARKERS = (
 
 SCRIPTS_README_MARKERS = (
     "`scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, and `scripts/zigux/check-phase4-workflow-route-counts.py` keep the current helper-contract, validator-replay, shared rollback-owner reminder, local-only perf-governance, recovered remaining-gap, and route-inventory packet explicit on current `master`",
+    "`Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/atomic64_diff.zig`, and `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain the current reminder-surface companions for that active Phase 4 rollback-readiness and perf-governance packet",
     "keep the current governance split explicit here too: the direct-readback shared handoff stays narrower than the broader recovered note companions, the Validation and Perf Team remains the decision owner for any broader shared-CI perf promotion, the ABI and Runtime Team plus Shared Subsystems Pod remain the coordination owners for that policy call, and the dedicated perf-baseline survey must stay local-only until a later bounded lane intentionally widens that posture",
 )
 
@@ -212,6 +216,7 @@ MISSING_FILE_CASES = (
     ("missing_validator_file", VALIDATOR),
     ("missing_phase4_build_file", PHASE4_BUILD),
     ("missing_artifact_diff_helper_file", ARTIFACT_DIFF_HELPER),
+    ("missing_workflow_route_checker_file", WORKFLOW_ROUTE_CHECKER),
     ("missing_atomic64_manifest_file", ATOMIC64_MANIFEST),
     ("missing_bitmap_manifest_file", BITMAP_MANIFEST),
     ("missing_perf_survey_file", PERF_SURVEY),
@@ -220,28 +225,34 @@ MISSING_FILE_CASES = (
     ("missing_note_file", NOTE),
 )
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 def replace_once(text: str, old: str, new: str) -> str:
     if old not in text:
         raise ValueError(old)
     return text.replace(old, new, 1)
 
+
 def require_markers(text: str, markers: tuple[str, ...], label: str, missing: list[str]) -> None:
     for marker in markers:
         if marker not in text:
             missing.append(f"{label}:{marker}")
+
 
 def extract_note_values(text: str, marker_label: str) -> list[str]:
     needle = f"`{marker_label}="
@@ -258,6 +269,7 @@ def extract_note_values(text: str, marker_label: str) -> list[str]:
         values.append(text[value_start:value_end])
         start = value_end + 1
 
+
 def require_exact_value(text: str, marker_label: str, expected: int, label: str, missing: list[str]) -> None:
     matches = extract_note_values(text, marker_label)
     if not matches:
@@ -267,10 +279,12 @@ def require_exact_value(text: str, marker_label: str, expected: int, label: str,
     if any(value != expected for value in parsed):
         missing.append(f"{label}:{marker_label}:expected={expected}:actual={matches}")
 
+
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
     header = f"blob {len(data)}\0".encode("utf-8")
     return hashlib.sha1(header + data).hexdigest()
+
 
 def require_blob_pins(root: Path, note_text: str, missing: list[str]) -> None:
     for marker_label, rel in BLOB_TARGETS:
@@ -281,6 +295,7 @@ def require_blob_pins(root: Path, note_text: str, missing: list[str]) -> None:
         actual = git_blob_sha(root / rel)
         if matches[0] != actual:
             missing.append(f"note:{marker_label}:expected={actual}:actual={matches[0]}")
+
 
 def require_bitmap_manifest_alignment(root: Path, missing: list[str]) -> None:
     manifest = json.loads(read_text(root / BITMAP_MANIFEST))
@@ -302,6 +317,7 @@ def require_bitmap_manifest_alignment(root: Path, missing: list[str]) -> None:
             f"expected={expected_note_blob}:actual={manifest.get('gate_evidence_blob_sha')}"
         )
 
+
 def required_files() -> tuple[Path, ...]:
     return (
         NOTE, MATRIX, DOCS_README, SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST,
@@ -312,6 +328,7 @@ def required_files() -> tuple[Path, ...]:
         BITMAP_SURVEY, PERF_SURVEY, KPROBE_MANIFEST, TEST_FSMOUNT_SURVEY,
         PHASE4_BUILD, PHASE9_BUILD, REVERSIBLE_DELIVERY_EVIDENCE, SELF,
     )
+
 
 def build_fixture_tree(root: Path) -> None:
     fixtures = {
@@ -397,6 +414,7 @@ def build_fixture_tree(root: Path) -> None:
     )
     write_text(root / BITMAP_MANIFEST, fixtures[BITMAP_MANIFEST.as_posix()])
 
+
 def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
     for rel in required_files():
@@ -419,8 +437,10 @@ def validate_root(root: Path) -> list[str]:
     require_markers(read_text(root / WORKFLOW), WORKFLOW_MARKERS, "workflow", missing)
     return missing
 
+
 def mutate_file(root: Path, rel: Path) -> None:
     write_text(root / rel, read_text(root / rel) + "drift\n")
+
 
 def run_self_test() -> None:
     cases = 0
@@ -442,12 +462,12 @@ def run_self_test() -> None:
             "doc_readme_blob_pin_drift": lambda r: write_text(r / DOCS_README, replace_once(read_text(r / DOCS_README), DOCS_README_MARKERS[0], "Phase 4 notes - `Documentation/zigux/phase4-legacy-note.md`")),
             "script_readme_blob_pin_drift": lambda r: mutate_file(r, SCRIPTS_README),
             "tests_readme_blob_pin_drift": lambda r: mutate_file(r, TESTS_README),
-            "gate_evidence_self_test_case_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`")),
+            "gate_evidence_self_test_case_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=45`", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`")),
             "gate_evidence_self_test_cases_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), ",".join(SELF_TEST_CASES), ",".join(SELF_TEST_CASES[:-1]))),
             "shared_validator_reruns_gate_evidence_check_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=false`")),
             "shared_validator_reruns_gate_evidence_self_test_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=false`")),
             "shared_validator_expected_target_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=18`")),
-            "shared_validator_expected_self_test_case_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43`")),
+            "shared_validator_expected_self_test_case_count_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=45`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=44`")),
             "runtime_atomic64_survey_packet_presence_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`", "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=false`")),
             "bitmap_manifest_gate_evidence_blob_drift": lambda r: write_text(r / BITMAP_MANIFEST, replace_once(read_text(r / BITMAP_MANIFEST), git_blob_sha(r / NOTE), "0000000000000000000000000000000000000000")),
             "workflow_route_checker_matrix_presence_drift": lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "scripts/zigux/check-phase4-workflow-route-counts.py\n", "")),
@@ -485,6 +505,7 @@ def run_self_test() -> None:
         if cases != EXPECTED_SELF_TEST_CASE_COUNT:
             raise AssertionError(cases)
 
+
 def main() -> int:
     args = parse_args()
     if args.self_test:
@@ -498,6 +519,7 @@ def main() -> int:
         return 1
     print("phase4 gate evidence check passed")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
