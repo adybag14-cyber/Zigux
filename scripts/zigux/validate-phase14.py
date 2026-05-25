@@ -48,6 +48,9 @@ SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH = (
     "scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py"
 )
 SKBUFF_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-skbuff-compile-route.py"
+RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH = (
+    "scripts/zigux/check-phase14-ring-buffer-compile-route.py"
+)
 RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-guardrail.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -84,6 +87,7 @@ REQUIRED_FILES = [
     ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
     SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
     SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+    RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
@@ -160,6 +164,7 @@ REQUIRED_MARKERS = {
         "- focused raw build-file shard: `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig`",
         "- checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
         "- skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`",
+        "- ring-buffer compile-route checker: `scripts/zigux/check-phase14-ring-buffer-compile-route.py`",
     ],
     WORKQUEUE_SLICE_PATH: [
         "  * `PHASE14_LANE_KEY=P14-L04`",
@@ -234,6 +239,12 @@ REQUIRED_MARKERS = {
         "\"phase14-skbuff-bridge-tests\"",
         "\"phase14-skbuff-live-ownership-blocker\"",
     ],
+    RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH: [
+        "PHASE14_CHECK_PACKET=ring_buffer_compile_route",
+        "PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST=pass",
+        "\"phase14-ring-buffer-survey-tests\"",
+        "\"phase14-ring-buffer-zig-port-blocker\"",
+    ],
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
         "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
         "`PHASE14_LANE_KEY=P14-L16`",
@@ -277,6 +288,7 @@ REQUIRED_MARKERS = {
         '"phase14_validate_runs_skbuff_stay_in_c_guardrail": true',
         '"scripts/zigux/check-phase14-skbuff-compile-route.py"',
         '"shared_manifest_records_skbuff_compile_route_checker": true',
+        '"scripts/zigux/check-phase14-ring-buffer-compile-route.py"',
         '"Documentation/zigux/phase14-core-boundary-traceability.md"',
         '"scripts/zigux/check-phase14-release-boundary-exact-counts.py"',
         '"smoke_commands": [',
@@ -398,6 +410,19 @@ def fixture_text(rel_path: str) -> str:
             "else:\n"
             '    print("PHASE14_SKBUFF_COMPILE_ROUTE=pass")\n'
         )
+    if rel_path == RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH:
+        return (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "# PHASE14_CHECK_PACKET=ring_buffer_compile_route\n"
+            "# PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST=pass\n"
+            '# "phase14-ring-buffer-survey-tests"\n'
+            '# "phase14-ring-buffer-zig-port-blocker"\n'
+            'if "--self-test" in sys.argv:\n'
+            '    print("PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST=pass")\n'
+            "else:\n"
+            '    print("PHASE14_RING_BUFFER_COMPILE_ROUTE=pass")\n'
+        )
     if rel_path == RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH:
         return (
             "#!/usr/bin/env python3\n"
@@ -482,6 +507,7 @@ def run_self_test() -> int:
         for rel_path in (
             SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
             SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+            RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
         ):
             checker_failures = run_guardrail_checker(base, rel_path, self_test=True)
@@ -498,6 +524,7 @@ def run_self_test() -> int:
             ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
             SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
             SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+            RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
@@ -524,6 +551,7 @@ def run_self_test() -> int:
             (FREEZE_MAP_PATH, REQUIRED_MARKERS[FREEZE_MAP_PATH][3]),
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
             (COMPILE_SHARD_MATRIX_SURVEY_PATH, REQUIRED_MARKERS[COMPILE_SHARD_MATRIX_SURVEY_PATH][4]),
+            (COMPILE_SHARD_MATRIX_SURVEY_PATH, REQUIRED_MARKERS[COMPILE_SHARD_MATRIX_SURVEY_PATH][5]),
             (RING_BUFFER_SURVEY_PATH, REQUIRED_MARKERS[RING_BUFFER_SURVEY_PATH][2]),
             (
                 RELEASE_BOUNDARY_CHECKER_PATH,
@@ -541,6 +569,10 @@ def run_self_test() -> int:
                 SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
                 REQUIRED_MARKERS[SKBUFF_COMPILE_ROUTE_CHECKER_PATH][3],
             ),
+            (
+                RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+                REQUIRED_MARKERS[RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH][3],
+            ),
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
             (RING_BUFFER_MANIFEST_PATH, REQUIRED_MARKERS[RING_BUFFER_MANIFEST_PATH][0]),
@@ -553,8 +585,9 @@ def run_self_test() -> int:
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][4]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][5]),
             (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][6]),
-            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][9]),
-            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][12]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][7]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][10]),
+            (END_TO_END_SMOKE_MANIFEST_PATH, REQUIRED_MARKERS[END_TO_END_SMOKE_MANIFEST_PATH][13]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
@@ -577,8 +610,9 @@ def main() -> int:
             "the freeze-map study-only inventory, the release-boundary exact-count guard, "
             "the compile-shard matrix survey, the ring-buffer study-only packet, the dedicated "
             "rollback-threshold sequencing checker, the dedicated skbuff stay-in-C "
-            "guardrail, the dedicated skbuff compile-route checker, the dedicated RCU rollback "
-            "guardrail, and the returned workqueue reviewability shard."
+            "guardrail, the dedicated skbuff compile-route checker, the dedicated ring-buffer "
+            "compile-route checker, the dedicated RCU rollback guardrail, and the returned "
+            "workqueue reviewability shard."
         )
     )
     parser.add_argument(
@@ -611,6 +645,14 @@ def main() -> int:
             run_guardrail_checker(
                 args.root,
                 SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+                self_test=False,
+            )
+        )
+    if not failures:
+        failures.extend(
+            run_guardrail_checker(
+                args.root,
+                RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
                 self_test=False,
             )
         )
