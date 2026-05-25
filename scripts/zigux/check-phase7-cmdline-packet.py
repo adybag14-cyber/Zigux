@@ -77,7 +77,7 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_CMDLINE_PACKET=pass");',
         'try expectContains(checker, "PHASE7_CMDLINE_PACKET_SELF_TEST=pass");',
         'try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`");',
-        'try expectContains(helper, "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {");',
+        'try expectContains(helper, "test \\\\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\\\" {");',
         'try expectContains(helper_companion, "phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries");',
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
@@ -105,7 +105,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 23
 
 
 def read_text(path: Path) -> str:
@@ -233,6 +233,8 @@ def run_self_test() -> None:
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET_SELF_TEST=pass", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET=pass", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "PHASE7_CMDLINE_PACKET=fail", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_FILES_START", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_FILES_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_MARKERS_START", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", '"Documentation/zigux/phase7-cmdline-slice.md",', ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", '"lib/cmdline.zig",', ""),
