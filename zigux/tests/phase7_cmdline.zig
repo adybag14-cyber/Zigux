@@ -154,3 +154,26 @@ test "phase 7 cmdline companion replays memparse signed clamp saturation" {
     try std.testing.expectEqual(@as(u64, 0x8000000000000000), negative.value);
     try std.testing.expectEqualStrings("", negative.rest);
 }
+
+test "phase 7 cmdline companion replays borrowed nextArg suffix ownership" {
+    var quoted_value = [_]u8{
+        'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 'v', 'd', 'a', '1', '"', ' ', 'q', 'u', 'i', 'e', 't', 0,
+    };
+    const parsed_quoted_value = cmdline.nextArg(&quoted_value);
+    try std.testing.expectEqualStrings("root", parsed_quoted_value.param);
+    try std.testing.expectEqualStrings("/dev/vda1", parsed_quoted_value.value.?);
+    try std.testing.expectEqualStrings("quiet", parsed_quoted_value.rest);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[0])), @as(usize, @intFromPtr(parsed_quoted_value.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[6])), @as(usize, @intFromPtr(parsed_quoted_value.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_value[17])), @as(usize, @intFromPtr(parsed_quoted_value.rest.ptr)));
+
+    const leading = cmdline.nextArg(" \tconsole=ttyS0");
+    try std.testing.expectEqualStrings("console=ttyS0", leading.rest);
+    try std.testing.expectEqualStrings("console=ttyS0", leading.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(leading.rest.ptr)), @as(usize, @intFromPtr(leading.remaining.ptr)));
+
+    const nul_bounded = cmdline.nextArg("key=val\x00 trailing");
+    try std.testing.expectEqualStrings("", nul_bounded.rest);
+    try std.testing.expectEqualStrings("", nul_bounded.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(nul_bounded.rest.ptr)), @as(usize, @intFromPtr(nul_bounded.remaining.ptr)));
+}
