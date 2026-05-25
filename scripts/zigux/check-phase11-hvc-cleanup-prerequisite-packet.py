@@ -131,6 +131,8 @@ def run_self_test() -> int:
         cases += 1
 
         mutations = (
+            (NOTE_PATH, "`PHASE11_HVC_CLEANUP_PREREQUISITE_STATUS=current_head_trigger_split_reviewable`"),
+            (NOTE_PATH, "`make -C zigux phase11-validate`"),
             (NOTE_PATH, "`summarizeCleanupPrerequisite()`"),
             (NOTE_PATH, "`CleanupTrigger.final_close_only`"),
             (NOTE_PATH, "`CleanupTrigger.hangup_only`"),
