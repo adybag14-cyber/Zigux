@@ -8,12 +8,14 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_LANE_KEY=P15-L02`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-24`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
 - role: keep the current Phase 15 governance packet honest now that the dedicated validator exists as a directly readable maintenance gate, while the broader build and route companions still remain blocked on current `master`
 
 ## Why this note exists
 
 Phase 15 is a governance tranche. The work here is about freeze-map discipline, review boundaries, and honest Architecture Council handoff, not a hidden deep-core delivery push.
+
+Compared against the roadmap's four required governance features and the bootstrap ledger's original docs-root and freeze-map anchor, current `master` still shows the same bounded readiness posture: the required Phase 15 governance packet is landed and reviewable, the dedicated validator is materialized, and the remaining gaps are still the missing broader shared-build companion plus the absent `phase15*` wrapper and workflow routes.
 
 Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the parity-scorecard survey, the Architecture Council review-process note, the Architecture Council decision-record template, the indefinite-C policy note, the deep-core blocker survey, the study-only anchor accounting note, the governance-lane sequencing note, the handoff note plus focused replay, the shared-summary gap note, the review checklist, the focused freeze-map governance replay, the dedicated review-process manifest plus focused replay plus focused build replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the focused parity-scorecard machine-readable companion plus focused replay, the focused review-checklist study-only alignment checker, the focused Phase 15 tests-readme alignment checker, the focused handoff-note checker, the dedicated readiness-packet checker, the focused indefinite-C lane-owner replay, and the newly materialized `scripts/zigux/validate-phase15.py` validator. At the same time, direct reads still return missing for the broader shared-build companion and the Makefile and workflow routes that would make the larger Phase 15 replay packet one-command or shared-CI ready.
 
