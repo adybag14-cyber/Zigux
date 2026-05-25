@@ -5,6 +5,7 @@ This note keeps the current Phase 11 `bcm2835_wdt` lane truthful on `master`. It
 * `PHASE11_BCM2835_WDT_SURVEY_STATUS=survey_gate_landed`
 * roadmap phase: `Phase 11`
 * archival packet identity remains `P11-L08`
+* current scheduled continuity for this archival bcm2835 packet is tracked through `P11-L10`
 * Linux anchor: `drivers/watchdog/bcm2835_wdt.c`
 * current direct `master` readback now materializes `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig`, `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`, `drivers/watchdog/bcm2835_wdt.zig`, `drivers/watchdog/bcm2835_wdt_verify.zig`, and `zigux/tests/phase11_bcm2835_wdt.zig`
 * direct current `master` readback still does not return `Documentation/zigux/phase11-bcm2835-wdt-slice.md`, `Documentation/zigux/phase11-bcm2835-wdt-teardown-note.md`, or `zigux/tests/phase11_bcm2835_wdt_manifest.json`, so this survey keeps the packet narrowed to the live driver, verify-helper, validation-plan, validation-matrix, and focused replay surfaces only
