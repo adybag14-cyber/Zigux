@@ -99,29 +99,35 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not resolved.exists():
             issues.append(("MISSING_REQUIRED_PATH", path.relative_to(ROOT).as_posix()))
 
-    validate_text = read_text(resolve_path(root, VALIDATE))
-    for marker in REQUIRED_VALIDATE_MARKERS:
-        count = count_exact_lines(validate_text, marker)
-        if count == 0:
-            issues.append(("MISSING_VALIDATE_MARKER", marker))
-        elif count != 1:
-            issues.append(("DUPLICATE_VALIDATE_MARKER", f"{marker}:count={count}"))
+    validate_path = resolve_path(root, VALIDATE)
+    if validate_path.exists():
+        validate_text = read_text(validate_path)
+        for marker in REQUIRED_VALIDATE_MARKERS:
+            count = count_exact_lines(validate_text, marker)
+            if count == 0:
+                issues.append(("MISSING_VALIDATE_MARKER", marker))
+            elif count != 1:
+                issues.append(("DUPLICATE_VALIDATE_MARKER", f"{marker}:count={count}"))
 
-    workflow_text = read_text(resolve_path(root, WORKFLOW))
-    for marker in REQUIRED_WORKFLOW_LINES:
-        count = count_exact_lines(workflow_text, marker)
-        if count == 0:
-            issues.append(("MISSING_WORKFLOW_LINE", marker))
-        elif count != 1:
-            issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
+    workflow_path = resolve_path(root, WORKFLOW)
+    if workflow_path.exists():
+        workflow_text = read_text(workflow_path)
+        for marker in REQUIRED_WORKFLOW_LINES:
+            count = count_exact_lines(workflow_text, marker)
+            if count == 0:
+                issues.append(("MISSING_WORKFLOW_LINE", marker))
+            elif count != 1:
+                issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
 
-    makefile_text = read_text(resolve_path(root, MAKEFILE))
-    for marker in REQUIRED_MAKEFILE_LINES:
-        count = count_exact_lines(makefile_text, marker)
-        if count == 0:
-            issues.append(("MISSING_MAKEFILE_LINE", marker))
-        elif count != 1:
-            issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+    makefile_path = resolve_path(root, MAKEFILE)
+    if makefile_path.exists():
+        makefile_text = read_text(makefile_path)
+        for marker in REQUIRED_MAKEFILE_LINES:
+            count = count_exact_lines(makefile_text, marker)
+            if count == 0:
+                issues.append(("MISSING_MAKEFILE_LINE", marker))
+            elif count != 1:
+                issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
 
     return issues
 
@@ -176,6 +182,16 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(
+            resolve_path(root, VALIDATE),
+            "CHECKS = (\n"
+            + "\n".join(REQUIRED_VALIDATE_MARKERS + (REQUIRED_VALIDATE_MARKERS[0],))
+            + "\n)\n",
+        )
+        assert run_check(root) == 1
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
             resolve_path(root, WORKFLOW),
             "name: zigux-bootstrap\n"
             + "\n".join(REQUIRED_WORKFLOW_LINES + (REQUIRED_WORKFLOW_LINES[0],))
@@ -191,6 +207,21 @@ def run_self_test() -> int:
             + "\n".join(f"\t{line}" for line in REQUIRED_MAKEFILE_LINES + (REQUIRED_MAKEFILE_LINES[0],))
             + "\n",
         )
+        assert run_check(root) == 1
+        checks += 1
+
+        build_self_test_root(root)
+        resolve_path(root, VALIDATE).unlink()
+        assert run_check(root) == 1
+        checks += 1
+
+        build_self_test_root(root)
+        resolve_path(root, WORKFLOW).unlink()
+        assert run_check(root) == 1
+        checks += 1
+
+        build_self_test_root(root)
+        resolve_path(root, MAKEFILE).unlink()
         assert run_check(root) == 1
         checks += 1
 
