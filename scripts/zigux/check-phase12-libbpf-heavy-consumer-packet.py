@@ -45,6 +45,7 @@ RELEASE_COORDINATION_MATRIX_PATH = (
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
+LIBBPF_LANE_MARKER_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-lane-marker.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
@@ -68,6 +69,7 @@ REQUIRED_FILES = [
     WORKFLOW_PATH,
     BUILD_ONLY_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
+    LIBBPF_LANE_MARKER_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     VALIDATOR_PATH,
     SCRIPTS_README_PATH,
@@ -81,7 +83,8 @@ REQUIRED_MARKERS = {
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
         "- complex-driver anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
         "- Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` snapshot anchor, and the helper-local `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` determinism companion, while treating the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` as parked note-owned boundaries until they land again on current `master`, while keeping `tools/lib/bpf/zigux_segments/verify.zig` explicit as the directly readable compile-together shard for the current helper footing, and while keeping `tools/lib/bpf/zigux_segments/manifest.json` explicit as the directly readable helper-first packet catalog rather than as proof of a shipped shared replay route.",
-        "- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, so keep `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` explicit here as shipped wrapper evidence and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.",
+        "- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, so keep `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` explicit here as shipped wrapper evidence and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.",
+        "- The shipped lane-marker guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py` keep the parked survey lane-key, manifest, and verify-shard boundary fail-closed beside the snapshot checker and shared validator entrypoint without turning the shared release packet into a focused libbpf replay route.",
         "- The shipped heavy-consumer guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the parked helper-first packet fail-closed beside the snapshot checker and shared validator entrypoint without turning the shared release packet into a focused libbpf replay route.",
         "- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, keep the shipped `make -C zigux phase12-validate` wrapper explicit ahead of the shipped attached-toolchain reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only fallback entrypoint.",
         "- Keep the degraded-workflow support bundle explicit beside that same order too:",
@@ -146,7 +149,9 @@ REQUIRED_MARKERS = {
     ],
     VALIDATOR_PATH: [
         "LIBBPF_SNAPSHOT_CHECKER_PATH,",
+        "LIBBPF_LANE_MARKER_CHECKER_PATH,",
         "HEAVY_CONSUMER_PACKET_CHECKER_PATH,",
+        "\"PHASE12_LIBBPF_LANE_MARKER_SELF_TEST=pass\",",
         "\"PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass\",",
     ],
 }
@@ -156,7 +161,8 @@ EXACT_COUNT_MARKERS = {
         "- verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`": 1,
         "- complex-driver anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`": 1,
         "- Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` snapshot anchor, and the helper-local `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` determinism companion, while treating the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` as parked note-owned boundaries until they land again on current `master`, while keeping `tools/lib/bpf/zigux_segments/verify.zig` explicit as the directly readable compile-together shard for the current helper footing, and while keeping `tools/lib/bpf/zigux_segments/manifest.json` explicit as the directly readable helper-first packet catalog rather than as proof of a shipped shared replay route.": 1,
-        "- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, so keep `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` explicit here as shipped wrapper evidence and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.": 1,
+        "- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, so keep `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` explicit here as shipped wrapper evidence and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.": 1,
+        "- The shipped lane-marker guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py` keep the parked survey lane-key, manifest, and verify-shard boundary fail-closed beside the snapshot checker and shared validator entrypoint without turning the shared release packet into a focused libbpf replay route.": 1,
         "- The shipped heavy-consumer guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the parked helper-first packet fail-closed beside the snapshot checker and shared validator entrypoint without turning the shared release packet into a focused libbpf replay route.": 1,
         "- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, keep the shipped `make -C zigux phase12-validate` wrapper explicit ahead of the shipped attached-toolchain reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only fallback entrypoint.": 1,
         "- Keep the degraded-workflow support bundle explicit beside that same order too:": 1,
@@ -194,7 +200,9 @@ EXACT_COUNT_MARKERS = {
     },
     VALIDATOR_PATH: {
         "LIBBPF_SNAPSHOT_CHECKER_PATH,": 1,
+        "LIBBPF_LANE_MARKER_CHECKER_PATH,": 1,
         "HEAVY_CONSUMER_PACKET_CHECKER_PATH,": 1,
+        "\"PHASE12_LIBBPF_LANE_MARKER_SELF_TEST=pass\",": 1,
         "\"PHASE12_LIBBPF_HEAVY_CONSUMER_PACKET_SELF_TEST=pass\",": 1,
     },
 }
