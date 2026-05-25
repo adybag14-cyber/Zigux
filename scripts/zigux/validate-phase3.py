@@ -380,6 +380,14 @@ def _append_missing_packet_file_issues(
             )
 
 
+def _abi_header_constant_names(text: str) -> set[str]:
+    return set(re.findall(r"^\s*#define\s+ZIGUX_([A-Z0-9_]+)\b", text, flags=re.MULTILINE))
+
+
+def _abi_binding_constant_names(text: str) -> set[str]:
+    return set(re.findall(r"^\s*pub const\s+([A-Z0-9_]+)\s*:", text, flags=re.MULTILINE))
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     texts: dict[Path, str] = {}
@@ -477,6 +485,18 @@ def validate_repo(repo_root: Path) -> list[str]:
             "ABI binding pub fn",
             issues,
         )
+
+    if header_text is not None and bindings_text is not None:
+        missing_binding_constants = sorted(
+            _abi_header_constant_names(header_text).difference(
+                _abi_binding_constant_names(bindings_text)
+            )
+        )
+        for name in missing_binding_constants:
+            issues.append(
+                "missing ABI binding constant for header define: "
+                f"ZIGUX_{name} -> {name}"
+            )
 
     return issues
 
@@ -610,6 +630,22 @@ def run_self_test() -> int:
                 print(f"expected issue was not reported: {expected}")
                 return 1
             _write(repo_root / rel_path, current)
+
+        _populate_repo(repo_root)
+        current_bindings = _read(repo_root / ABI_BINDINGS_PATH)
+        _write(
+            repo_root / ABI_BINDINGS_PATH,
+            current_bindings.replace("pub const ABI_VERSION: u16 = 1;\n", "", 1),
+        )
+        issues = validate_repo(repo_root)
+        expected_missing_binding_constant = (
+            "missing ABI binding constant for header define: "
+            "ZIGUX_ABI_VERSION -> ABI_VERSION"
+        )
+        if expected_missing_binding_constant not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing ABI binding constant was not reported")
+            return 1
 
         packet_file_checks = (
             ("Documentation/zigux/phase3-abi-h-boundary-next-step.md", "expected abi-h boundary note packet-file drift was not reported"),
@@ -761,7 +797,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + len(packet_file_checks) + len(replay_route_checks) + 6}")
+    print(f"PHASE3_VALIDATION_SELF_TEST_CASE_COUNT={len(cases) + len(packet_file_checks) + len(replay_route_checks) + 7}")
     return 0
 
 
