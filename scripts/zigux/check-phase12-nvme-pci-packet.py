@@ -13,24 +13,21 @@ from pathlib import Path
 
 CHECK_NAME = "PHASE12_NVME_PCI_PACKET"
 
-MANIFEST_PATH = Path("zigux/tests/phase12_nvme_pci_manifest.json")
-DIRECT_BUILD_PATH = Path("zigux/tests/phase12_nvme_pci_build.zig")
-DIRECT_REPLAY_PATH = Path("zigux/tests/phase12_nvme_pci.zig")
-VERIFIER_PATH = Path("drivers/nvme/host/pci_verify.zig")
-FALLBACK_MAP_PATH = Path(
-    "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
-)
-SLICE_PATH = Path("Documentation/zigux/phase12-nvme-pci-slice.md")
-SURVEY_NOTE_PATH = Path("Documentation/zigux/phase12-nvme-pci-survey.md")
-REOPEN_GOVERNANCE_PATH = Path(
-    "Documentation/zigux/phase12-nvme-pci-reopen-governance.md"
-)
-SURVEY_GATE_PATH = Path("zigux/tests/phase12_nvme_pci_survey.zig")
+MANIFEST_PATH = "zigux/tests/phase12_nvme_pci_manifest.json"
+DIRECT_BUILD_PATH = "zigux/tests/phase12_nvme_pci_build.zig"
+DIRECT_REPLAY_PATH = "zigux/tests/phase12_nvme_pci.zig"
+VERIFIER_PATH = "drivers/nvme/host/pci_verify.zig"
+FALLBACK_MAP_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
+SLICE_PATH = "Documentation/zigux/phase12-nvme-pci-slice.md"
+SURVEY_NOTE_PATH = "Documentation/zigux/phase12-nvme-pci-survey.md"
+REOPEN_GOVERNANCE_PATH = "Documentation/zigux/phase12-nvme-pci-reopen-governance.md"
+SURVEY_GATE_PATH = "zigux/tests/phase12_nvme_pci_survey.zig"
 
 EXPECTED_LANE_KEY = "P12-L08"
 EXPECTED_PHASE = "Phase 12"
 EXPECTED_ANCHOR = "drivers/nvme/host/pci.c"
 EXPECTED_ROADMAP_DESTINATIONS = ["drivers/nvme/host/pci.zig", "zigux/tests/"]
+EXPECTED_COMMIT = "0123456789abcdef0123456789abcdef01234567"
 
 EXPECTED_SUMMARY_FLAGS = (
     "preexisting_nvme_pci_zig_present",
@@ -105,22 +102,22 @@ EXPECTED_GAPS = {
     "phase12-nvme-fallback-note": {
         "status": "landed_on_master",
         "kind": "documentation",
-        "zigux_destination": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+        "zigux_destination": FALLBACK_MAP_PATH,
     },
     "phase12-nvme-reopen-governance": {
         "status": "landed_on_master",
         "kind": "documentation",
-        "zigux_destination": "Documentation/zigux/phase12-nvme-pci-reopen-governance.md",
+        "zigux_destination": REOPEN_GOVERNANCE_PATH,
     },
     "phase12-nvme-direct-replay": {
         "status": "landed_on_master_dedicated_build_present",
         "kind": "validation",
-        "zigux_destination": "zigux/tests/phase12_nvme_pci.zig",
+        "zigux_destination": DIRECT_REPLAY_PATH,
     },
     "phase12-nvme-manifest-anchor": {
         "status": "landed_on_master",
         "kind": "validation",
-        "zigux_destination": "zigux/tests/phase12_nvme_pci_manifest.json",
+        "zigux_destination": MANIFEST_PATH,
     },
     "phase12-nvme-shared-build-route": {
         "status": "shared_build_absent_dedicated_build_present_survey_gate_standalone",
@@ -130,133 +127,121 @@ EXPECTED_GAPS = {
     "phase12-nvme-slice-note": {
         "status": "landed_on_master",
         "kind": "documentation",
-        "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
+        "zigux_destination": SLICE_PATH,
     },
     "phase12-nvme-survey-note": {
         "status": "survey_present_dedicated_direct_build_only",
         "kind": "documentation",
-        "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
+        "zigux_destination": SURVEY_NOTE_PATH,
     },
     "phase12-nvme-survey-gate": {
         "status": "survey_present_dedicated_route_retained",
         "kind": "validation",
-        "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
+        "zigux_destination": SURVEY_GATE_PATH,
     },
 }
 
 EXTRA_REQUIRED_PATHS = (
     "drivers/nvme/host/pci.zig",
-    str(VERIFIER_PATH),
-    str(DIRECT_BUILD_PATH),
-    str(DIRECT_REPLAY_PATH),
+    VERIFIER_PATH,
+    DIRECT_BUILD_PATH,
+    DIRECT_REPLAY_PATH,
 )
 
-DIRECT_BUILD_MARKERS = (
-    "phase12_nvme_pci.zig",
-    "phase12-nvme-pci-direct-tests",
-    "phase12-nvme-pci-direct-test",
-    "Run the direct Phase 12 NVMe PCI replay in isolation",
-)
+TEXT_MARKERS = {
+    DIRECT_BUILD_PATH: (
+        "phase12_nvme_pci.zig",
+        "phase12-nvme-pci-direct-tests",
+        "phase12-nvme-pci-direct-test",
+        "Run the direct Phase 12 NVMe PCI replay in isolation",
+    ),
+    DIRECT_REPLAY_PATH: (
+        "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit",
+        "phase12 nvme pci direct replay keeps rollback-gate parity explicit through recovery",
+        "phase12 nvme pci direct replay keeps admin replay blocker explicit even after IO counts recover",
+        "phase12 nvme pci direct replay keeps dropped backlog retirement blocked until admin replay completes even after IO parity recovers",
+    ),
+    VERIFIER_PATH: (
+        "nvme pci recovery rollback gate verifier keeps blocker transitions and DMA parity explicit",
+        "nvme pci recovery reservation replay preflight marks stale PRP metadata and planner-limited replay debt",
+        "nvme pci rollback gate keeps admin replay blocked even after queue and DMA parity recover",
+        "nvme pci recovery reservation replay debt summary keeps admin replay blocker ahead of stale descriptor debt",
+    ),
+    FALLBACK_MAP_PATH: (
+        "## Current-Master Raw Path Map",
+        "Base raw URL prefix:",
+        "`https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/`",
+        "- starter shard raw path: `drivers/nvme/host/pci.zig`",
+        "- verifier shard raw path: `drivers/nvme/host/pci_verify.zig`",
+        "- direct replay raw path: `zigux/tests/phase12_nvme_pci.zig`",
+        "- dedicated direct-build raw path: `zigux/tests/phase12_nvme_pci_build.zig`",
+        "- slice note raw path: `Documentation/zigux/phase12-nvme-pci-slice.md`",
+        "- survey note raw path: `Documentation/zigux/phase12-nvme-pci-survey.md`",
+        "- survey gate raw path: `zigux/tests/phase12_nvme_pci_survey.zig`",
+        "- manifest anchor raw path: `zigux/tests/phase12_nvme_pci_manifest.json`",
+        "- reopen-governance raw path: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`",
+    ),
+    SLICE_PATH: (
+        "queue-pair planning",
+        "IO queue reservation sizing",
+        "recovery reservation replay debt",
+        "recovery reservation replay preflight",
+        "PRP buffer-shape accounting",
+        "PRP metadata budgeting",
+        "dropped-backlog retirement review",
+        "rollback-gate review",
+        "frozen queue-restore budgeting",
+        "It stays below live DMA mapping",
+    ),
+    SURVEY_NOTE_PATH: (
+        "PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_dedicated_build_present_shared_build_absent",
+        "lane owner: `P12-L08`",
+        "drivers/nvme/host/pci.zig",
+        "drivers/nvme/host/pci_verify.zig",
+        "zigux/tests/phase12_nvme_pci.zig",
+        "zigux/tests/phase12_nvme_pci_build.zig",
+        "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`",
+        "`zigux/tests/phase12_build.zig` route still stays virtio-net-only",
+        "survey gate still stays packet-local",
+        "IO queue reservation sizing",
+        "recovery reservation replay debt",
+        "PRP metadata budgeting",
+        "live DMA mapping",
+        "transport-backed queue execution",
+    ),
+    REOPEN_GOVERNANCE_PATH: (
+        "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`",
+        "`zigux/tests/phase12_build.zig` still stays virtio_net-only",
+        "must not promote the bounded NVMe starter beyond its current dedicated direct-build claim",
+        "phase12-smoke",
+        "phase12-test",
+        "phase12",
+    ),
+    SURVEY_GATE_PATH: (
+        "phase12 nvme pci survey manifest keeps the bounded starter packet truthful",
+        "phase12 nvme pci survey note keeps the roadmap gap and dedicated-build split explicit",
+        "phase12 nvme pci reopen governance note keeps the dedicated direct replay and packet-local survey split explicit",
+        "phase12 nvme pci slice note keeps the bounded recovery-preflight packet explicit",
+        "phase12 nvme pci survey gate keeps present packet files explicit",
+        "phase12 nvme pci survey gate keeps the dedicated direct route driver-local for NVMe",
+        "phase12 nvme pci survey gate keeps the make wrapper surface explicit",
+        "phase12 nvme pci survey gate keeps the current recovery helper packet explicit",
+    ),
+}
 
-DIRECT_REPLAY_MARKERS = (
-    "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit",
-    "phase12 nvme pci direct replay keeps rollback-gate parity explicit through recovery",
-    "phase12 nvme pci direct replay keeps admin replay blocker explicit even after IO counts recover",
-    "phase12 nvme pci direct replay keeps dropped backlog retirement blocked until admin replay completes even after IO parity recovers",
-)
-
-VERIFIER_MARKERS = (
-    "nvme pci recovery rollback gate verifier keeps blocker transitions and DMA parity explicit",
-    "nvme pci recovery reservation replay preflight marks stale PRP metadata and planner-limited replay debt",
-    "nvme pci rollback gate keeps admin replay blocked even after queue and DMA parity recover",
-    "nvme pci recovery reservation replay debt summary keeps admin replay blocker ahead of stale descriptor debt",
-)
-
-FALLBACK_MAP_MARKERS = (
-    "## Current-Master Raw Path Map",
-    "Base raw URL prefix:",
-    "`https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/`",
-    "- starter shard raw path: `drivers/nvme/host/pci.zig`",
-    "- verifier shard raw path: `drivers/nvme/host/pci_verify.zig`",
-    "- direct replay raw path: `zigux/tests/phase12_nvme_pci.zig`",
-    "- dedicated direct-build raw path: `zigux/tests/phase12_nvme_pci_build.zig`",
-    "- slice note raw path: `Documentation/zigux/phase12-nvme-pci-slice.md`",
-    "- survey note raw path: `Documentation/zigux/phase12-nvme-pci-survey.md`",
-    "- survey gate raw path: `zigux/tests/phase12_nvme_pci_survey.zig`",
-    "- manifest anchor raw path: `zigux/tests/phase12_nvme_pci_manifest.json`",
-    "- reopen-governance raw path: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`",
-    "- keep this current-master raw-path map as a browser-side routing aid only; it does not turn the NVMe gap-note companion into a commit-pinned fallback artifact",
-)
-
-SLICE_MARKERS = (
-    "queue-pair planning",
-    "IO queue reservation sizing",
-    "recovery reservation replay debt",
-    "recovery reservation replay preflight",
-    "PRP buffer-shape accounting",
-    "PRP metadata budgeting",
-    "dropped-backlog retirement review",
-    "rollback-gate review",
-    "frozen queue-restore budgeting",
-    "It stays below live DMA mapping",
-)
-
-SURVEY_NOTE_MARKERS = (
-    "PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_dedicated_build_present_shared_build_absent",
-    "lane owner: `P12-L08`",
-    "drivers/nvme/host/pci.zig",
-    "drivers/nvme/host/pci_verify.zig",
-    "zigux/tests/phase12_nvme_pci.zig",
-    "zigux/tests/phase12_nvme_pci_build.zig",
-    "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`",
-    "`zigux/tests/phase12_build.zig` route still stays virtio-net-only",
-    "survey gate still stays packet-local",
-    "IO queue reservation sizing",
-    "recovery reservation replay debt",
-    "PRP metadata budgeting",
-    "live DMA mapping",
-    "transport-backed queue execution",
-)
-
-SURVEY_NOTE_FORBIDDEN_MARKERS = (
-    "now wires the NVMe direct replay into the shared `phase12-smoke` and `phase12` routes",
-)
-
-REOPEN_GOVERNANCE_MARKERS = (
-    "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`",
-    "`zigux/tests/phase12_build.zig` still stays virtio_net-only",
-    "must not promote the bounded NVMe starter beyond its current dedicated direct-build claim",
-    "phase12-smoke",
-    "phase12-test",
-    "phase12",
-)
-
-REOPEN_GOVERNANCE_FORBIDDEN_MARKERS = (
-    "shares one bounded direct replay through the shared `phase12-smoke` and `phase12` routes",
-    "`zigux/tests/phase12_build.zig` now wires the NVMe direct replay into the smoke-first shared route",
-)
-
-SURVEY_GATE_MARKERS = (
-    "phase12 nvme pci survey manifest keeps the bounded starter packet truthful",
-    "phase12 nvme pci survey note keeps the roadmap gap and dedicated-build split explicit",
-    "phase12 nvme pci reopen governance note keeps the dedicated direct replay and packet-local survey split explicit",
-    "phase12 nvme pci slice note keeps the bounded recovery-preflight packet explicit",
-    "phase12 nvme pci survey gate keeps present packet files explicit",
-    "phase12 nvme pci survey gate keeps the dedicated direct route driver-local for NVMe",
-    "phase12 nvme pci survey gate keeps the make wrapper surface explicit",
-    "phase12 nvme pci survey gate keeps the current recovery helper packet explicit",
-)
+FORBIDDEN_MARKERS = {
+    SURVEY_NOTE_PATH: (
+        "now wires the NVMe direct replay into the shared `phase12-smoke` and `phase12` routes",
+    ),
+    REOPEN_GOVERNANCE_PATH: (
+        "shares one bounded direct replay through the shared `phase12-smoke` and `phase12` routes",
+        "`zigux/tests/phase12_build.zig` now wires the NVMe direct replay into the smoke-first shared route",
+    ),
+}
 
 
 class CheckFailure(RuntimeError):
     pass
-
-
-def read_text(root: Path, relative_path: Path) -> str:
-    try:
-        return (root / relative_path).read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise CheckFailure(f"missing file: {relative_path}") from exc
 
 
 def require(condition: bool, message: str) -> None:
@@ -264,29 +249,24 @@ def require(condition: bool, message: str) -> None:
         raise CheckFailure(message)
 
 
-def require_markers(text: str, markers: tuple[str, ...], message_prefix: str) -> None:
+def read_text(root: Path, relative_path: str) -> str:
+    path = root / relative_path
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise CheckFailure(f"missing file: {relative_path}") from exc
+
+
+def require_markers(text: str, markers: tuple[str, ...], label: str) -> None:
     for marker in markers:
         if marker not in text:
-            raise CheckFailure(f"{message_prefix} missing marker: {marker}")
+            raise CheckFailure(f"{label} missing marker: {marker}")
 
 
-def forbid_markers(text: str, markers: tuple[str, ...], message_prefix: str) -> None:
+def forbid_markers(text: str, markers: tuple[str, ...], label: str) -> None:
     for marker in markers:
         if marker in text:
-            raise CheckFailure(f"{message_prefix} contains forbidden marker: {marker}")
-
-
-def require_existing_path(root: Path, relative_path: str) -> None:
-    if not (root / relative_path).exists():
-        raise CheckFailure(f"missing required packet path: {relative_path}")
-
-
-def require_iso_date(value: object, message: str) -> None:
-    require(isinstance(value, str) and value, message)
-    try:
-        date.fromisoformat(value)
-    except ValueError as exc:
-        raise CheckFailure(f"{message} is not an ISO date") from exc
+            raise CheckFailure(f"{label} contains forbidden marker: {marker}")
 
 
 def check_manifest(root: Path) -> int:
@@ -301,14 +281,13 @@ def check_manifest(root: Path) -> int:
 
     surveyed_commit = manifest.get("surveyed_commit", "")
     require(
-        len(surveyed_commit) == 40
-        and all(ch in "0123456789abcdef" for ch in surveyed_commit),
+        len(surveyed_commit) == 40 and all(ch in "0123456789abcdef" for ch in surveyed_commit),
         "nvme_pci manifest surveyed_commit is not a 40-char lowercase hex sha",
     )
-    require_iso_date(
-        manifest.get("verified_on"),
-        "nvme_pci manifest verified_on",
-    )
+    try:
+        date.fromisoformat(manifest.get("verified_on", ""))
+    except ValueError as exc:
+        raise CheckFailure("nvme_pci manifest verified_on is not an ISO date") from exc
 
     summary = manifest.get("survey_summary")
     require(isinstance(summary, dict), "nvme_pci survey_summary is not a mapping")
@@ -320,185 +299,96 @@ def check_manifest(root: Path) -> int:
     for slug, expected in EXPECTED_ROADMAP_GAP_CHECK.items():
         section = roadmap_gap_check.get(slug)
         require(isinstance(section, dict), f"nvme_pci roadmap gap section missing: {slug}")
-        require(
-            section.get("required_by_roadmap") is True,
-            f"nvme_pci roadmap gap section lost required_by_roadmap: {slug}",
-        )
+        require(section.get("required_by_roadmap") is True, f"nvme_pci roadmap gap section lost required_by_roadmap: {slug}")
         require(section.get("status") == expected["status"], f"nvme_pci roadmap gap status drifted: {slug}")
-        require_markers(
-            section.get("current_surface", ""),
-            expected["current_surface_markers"],
-            f"nvme_pci roadmap current_surface[{slug}]",
-        )
-        require_markers(
-            section.get("blocked_by", ""),
-            expected["blocked_by_markers"],
-            f"nvme_pci roadmap blocked_by[{slug}]",
-        )
+        require_markers(section.get("current_surface", ""), expected["current_surface_markers"], f"nvme_pci roadmap current_surface[{slug}]")
+        require_markers(section.get("blocked_by", ""), expected["blocked_by_markers"], f"nvme_pci roadmap blocked_by[{slug}]")
 
     gaps = manifest.get("gaps")
     require(isinstance(gaps, list), "nvme_pci manifest gaps field is not a list")
-    gap_map = {}
-    for gap in gaps:
-        if isinstance(gap, dict) and isinstance(gap.get("id"), str):
-            gap_map[gap["id"]] = gap
-
+    gap_map = {gap["id"]: gap for gap in gaps if isinstance(gap, dict) and isinstance(gap.get("id"), str)}
     for gap_id, expected in EXPECTED_GAPS.items():
         gap = gap_map.get(gap_id)
         require(gap is not None, f"nvme_pci manifest missing gap: {gap_id}")
         require(gap.get("status") == expected["status"], f"nvme_pci gap status drifted: {gap_id}")
         require(gap.get("kind") == expected["kind"], f"nvme_pci gap kind drifted: {gap_id}")
-        require(
-            gap.get("zigux_destination") == expected["zigux_destination"],
-            f"nvme_pci gap destination drifted: {gap_id}",
-        )
-        require_existing_path(root, expected["zigux_destination"])
+        require(gap.get("zigux_destination") == expected["zigux_destination"], f"nvme_pci gap destination drifted: {gap_id}")
+        require((root / expected["zigux_destination"]).exists(), f"missing required packet path: {expected['zigux_destination']}")
 
     for relative_path in EXTRA_REQUIRED_PATHS:
-        require_existing_path(root, relative_path)
+        require((root / relative_path).exists(), f"missing required packet path: {relative_path}")
 
-    fallback_map_text = read_text(root, FALLBACK_MAP_PATH)
-    require_markers(
-        fallback_map_text,
-        FALLBACK_MAP_MARKERS,
-        "nvme_pci fallback map",
-    )
+    for relative_path, markers in TEXT_MARKERS.items():
+        text = read_text(root, relative_path)
+        require_markers(text, markers, relative_path)
+        if relative_path in FORBIDDEN_MARKERS:
+            forbid_markers(text, FORBIDDEN_MARKERS[relative_path], relative_path)
 
-    direct_build_text = read_text(root, DIRECT_BUILD_PATH)
-    require_markers(direct_build_text, DIRECT_BUILD_MARKERS, "nvme_pci direct build route")
-
-    direct_replay_text = read_text(root, DIRECT_REPLAY_PATH)
-    require_markers(direct_replay_text, DIRECT_REPLAY_MARKERS, "nvme_pci direct replay")
-
-    verifier_text = read_text(root, VERIFIER_PATH)
-    require_markers(verifier_text, VERIFIER_MARKERS, "nvme_pci verifier shard")
-
-    slice_text = read_text(root, SLICE_PATH)
-    require_markers(slice_text, SLICE_MARKERS, "nvme_pci slice note")
-
-    survey_note_text = read_text(root, SURVEY_NOTE_PATH)
-    require_markers(survey_note_text, SURVEY_NOTE_MARKERS, "nvme_pci survey note")
-    forbid_markers(
-        survey_note_text,
-        SURVEY_NOTE_FORBIDDEN_MARKERS,
-        "nvme_pci survey note",
-    )
-    require(
-        surveyed_commit in survey_note_text,
-        "nvme_pci survey note lost the manifest surveyed_commit pin",
-    )
-
-    reopen_governance_text = read_text(root, REOPEN_GOVERNANCE_PATH)
-    require_markers(
-        reopen_governance_text,
-        REOPEN_GOVERNANCE_MARKERS,
-        "nvme_pci reopen governance note",
-    )
-    forbid_markers(
-        reopen_governance_text,
-        REOPEN_GOVERNANCE_FORBIDDEN_MARKERS,
-        "nvme_pci reopen governance note",
-    )
-
-    survey_gate_text = read_text(root, SURVEY_GATE_PATH)
-    require_markers(survey_gate_text, SURVEY_GATE_MARKERS, "nvme_pci survey gate")
-
+    require(surveyed_commit in read_text(root, SURVEY_NOTE_PATH), "nvme_pci survey note lost the manifest surveyed_commit pin")
     return len(gaps)
 
 
 def write_fixture(root: Path) -> None:
-    fixture_files = {
-        MANIFEST_PATH: json.dumps(
+    manifest = {
+        "lane_key": EXPECTED_LANE_KEY,
+        "phase": EXPECTED_PHASE,
+        "surveyed_commit": EXPECTED_COMMIT,
+        "verified_on": "2026-05-22",
+        "anchor": EXPECTED_ANCHOR,
+        "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
+        "survey_summary": {flag: True for flag in EXPECTED_SUMMARY_FLAGS},
+        "roadmap_gap_check": {
+            slug: {
+                "required_by_roadmap": True,
+                "status": expected["status"],
+                "current_surface": " ".join(expected["current_surface_markers"]),
+                "blocked_by": " ".join(expected["blocked_by_markers"]),
+            }
+            for slug, expected in EXPECTED_ROADMAP_GAP_CHECK.items()
+        },
+        "gaps": [
             {
-                "lane_key": EXPECTED_LANE_KEY,
-                "phase": EXPECTED_PHASE,
-                "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
-                "verified_on": "2026-05-22",
-                "anchor": EXPECTED_ANCHOR,
-                "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
-                "survey_summary": {flag: True for flag in EXPECTED_SUMMARY_FLAGS},
-                "roadmap_gap_check": {
-                    slug: {
-                        "required_by_roadmap": True,
-                        "status": expected["status"],
-                        "current_surface": " ".join(expected["current_surface_markers"]),
-                        "blocked_by": " ".join(expected["blocked_by_markers"]),
-                    }
-                    for slug, expected in EXPECTED_ROADMAP_GAP_CHECK.items()
-                },
-                "gaps": [
-                    {
-                        "id": gap_id,
-                        "status": expected["status"],
-                        "kind": expected["kind"],
-                        "zigux_destination": expected["zigux_destination"],
-                    }
-                    for gap_id, expected in EXPECTED_GAPS.items()
-                ],
-            },
-            indent=2,
-        )
-        + "\n",
-        DIRECT_BUILD_PATH: "\n".join(DIRECT_BUILD_MARKERS) + "\n",
-        DIRECT_REPLAY_PATH: "\n".join(DIRECT_REPLAY_MARKERS) + "\n",
-        VERIFIER_PATH: "\n".join(VERIFIER_MARKERS) + "\n",
-        FALLBACK_MAP_PATH: "\n".join(FALLBACK_MAP_MARKERS) + "\n",
-        SLICE_PATH: "\n".join(SLICE_MARKERS) + "\n",
-        SURVEY_NOTE_PATH: "\n".join(
-            (
-                SURVEY_NOTE_MARKERS[0],
-                SURVEY_NOTE_MARKERS[1],
-                SURVEY_NOTE_MARKERS[2],
-                SURVEY_NOTE_MARKERS[3],
-                SURVEY_NOTE_MARKERS[4],
-                SURVEY_NOTE_MARKERS[5],
-                SURVEY_NOTE_MARKERS[6],
-                SURVEY_NOTE_MARKERS[7],
-                SURVEY_NOTE_MARKERS[8],
-                SURVEY_NOTE_MARKERS[9],
-                SURVEY_NOTE_MARKERS[10],
-                SURVEY_NOTE_MARKERS[11],
-                SURVEY_NOTE_MARKERS[12],
-                SURVEY_NOTE_MARKERS[13],
-                "0123456789abcdef0123456789abcdef01234567",
-            )
-        )
-        + "\n",
-        REOPEN_GOVERNANCE_PATH: "\n".join(REOPEN_GOVERNANCE_MARKERS) + "\n",
-        SURVEY_GATE_PATH: "\n".join(SURVEY_GATE_MARKERS) + "\n",
+                "id": gap_id,
+                "status": expected["status"],
+                "kind": expected["kind"],
+                "zigux_destination": expected["zigux_destination"],
+            }
+            for gap_id, expected in EXPECTED_GAPS.items()
+        ],
     }
+
+    fixture_files = {
+        MANIFEST_PATH: json.dumps(manifest, indent=2) + "\n",
+        DIRECT_BUILD_PATH: "\n".join(TEXT_MARKERS[DIRECT_BUILD_PATH]) + "\n",
+        DIRECT_REPLAY_PATH: "\n".join(TEXT_MARKERS[DIRECT_REPLAY_PATH]) + "\n",
+        VERIFIER_PATH: "\n".join(TEXT_MARKERS[VERIFIER_PATH]) + "\n",
+        FALLBACK_MAP_PATH: "\n".join(TEXT_MARKERS[FALLBACK_MAP_PATH]) + "\n",
+        SLICE_PATH: "\n".join(TEXT_MARKERS[SLICE_PATH]) + "\n",
+        SURVEY_NOTE_PATH: "\n".join(TEXT_MARKERS[SURVEY_NOTE_PATH] + (EXPECTED_COMMIT,)) + "\n",
+        REOPEN_GOVERNANCE_PATH: "\n".join(TEXT_MARKERS[REOPEN_GOVERNANCE_PATH]) + "\n",
+        SURVEY_GATE_PATH: "\n".join(TEXT_MARKERS[SURVEY_GATE_PATH]) + "\n",
+        "drivers/nvme/host/pci.zig": "fixture\n",
+        "zigux/tests/phase12_build.zig": "fixture\n",
+    }
+
     for relative_path, text in fixture_files.items():
-        absolute_path = root / relative_path
-        absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        absolute_path.write_text(text, encoding="utf-8")
+        path = root / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
 
-    for expected in EXPECTED_GAPS.values():
-        absolute_path = root / expected["zigux_destination"]
-        absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path in {
-            root / MANIFEST_PATH,
-            root / DIRECT_BUILD_PATH,
-            root / DIRECT_REPLAY_PATH,
-            root / VERIFIER_PATH,
-            root / FALLBACK_MAP_PATH,
-            root / SLICE_PATH,
-            root / SURVEY_NOTE_PATH,
-            root / REOPEN_GOVERNANCE_PATH,
-            root / SURVEY_GATE_PATH,
-        }:
-            continue
-        absolute_path.write_text("fixture\n", encoding="utf-8")
 
-    for relative_path in EXTRA_REQUIRED_PATHS:
-        absolute_path = root / relative_path
-        absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        if absolute_path in {
-            root / DIRECT_BUILD_PATH,
-            root / DIRECT_REPLAY_PATH,
-            root / VERIFIER_PATH,
-        }:
-            continue
-        absolute_path.write_text("fixture\n", encoding="utf-8")
+def rewrite(root: Path, relative_path: str, content: str) -> None:
+    (root / relative_path).write_text(content, encoding="utf-8")
+
+
+def expect_failure(root: Path, token: str) -> None:
+    try:
+        check_manifest(root)
+    except CheckFailure as exc:
+        if token not in str(exc):
+            raise
+    else:
+        raise AssertionError(f"expected {token} drift to fail")
 
 
 def run_self_test() -> int:
@@ -510,231 +400,103 @@ def run_self_test() -> int:
         cases += 1
 
         manifest_path = root / MANIFEST_PATH
+
+        write_fixture(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["lane_key"] = "P12-L02"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "lane_key" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected lane-key drift to fail")
+        rewrite(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "lane_key")
+        cases += 1
 
         write_fixture(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["surveyed_commit"] = "0123456789ABCDEF0123456789abcdef01234567"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "surveyed_commit" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected surveyed_commit drift to fail")
+        rewrite(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "surveyed_commit")
+        cases += 1
 
         write_fixture(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["verified_on"] = "2026/05/22"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "verified_on" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected verified_on drift to fail")
+        rewrite(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "verified_on")
+        cases += 1
 
         write_fixture(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["survey_summary"]["preexisting_phase12_survey_gate_present"] = False
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "preexisting_phase12_survey_gate_present" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected survey-summary drift to fail")
+        rewrite(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "preexisting_phase12_survey_gate_present")
+        cases += 1
 
         write_fixture(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["roadmap_gap_check"]["throughput_and_recovery_parity"]["current_surface"] = (
-            "reset freeze state and frozen queue-restore host-DMA budgeting"
-        )
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "throughput_and_recovery_parity" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected roadmap current-surface drift to fail")
+        manifest["roadmap_gap_check"]["throughput_and_recovery_parity"]["current_surface"] = "reset freeze state only"
+        rewrite(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "throughput_and_recovery_parity")
+        cases += 1
 
         write_fixture(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["gaps"][4]["status"] = "landed_on_master"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "phase12-nvme-shared-build-route" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected shared-build-route drift to fail")
+        rewrite(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "phase12-nvme-shared-build-route")
+        cases += 1
 
         write_fixture(root)
-        (root / FALLBACK_MAP_PATH).write_text(
-            "## Current-Master Raw Path Map\n",
-            encoding="utf-8",
-        )
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "fallback map" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected fallback-map marker drift to fail")
+        rewrite(root, FALLBACK_MAP_PATH, "## Current-Master Raw Path Map\n")
+        expect_failure(root, FALLBACK_MAP_PATH)
+        cases += 1
 
         write_fixture(root)
-        (root / DIRECT_BUILD_PATH).write_text("phase12_nvme_pci.zig\n", encoding="utf-8")
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "direct build route" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected direct-build marker drift to fail")
+        rewrite(root, DIRECT_BUILD_PATH, "phase12_nvme_pci.zig\n")
+        expect_failure(root, DIRECT_BUILD_PATH)
+        cases += 1
 
         write_fixture(root)
-        (root / DIRECT_REPLAY_PATH).writeText = None
-        (root / DIRECT_REPLAY_PATH).write_text(
-            "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit\n",
-            encoding="utf-8",
-        )
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "direct replay" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected direct-replay marker drift to fail")
+        rewrite(root, DIRECT_REPLAY_PATH, "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit\n")
+        expect_failure(root, DIRECT_REPLAY_PATH)
+        cases += 1
 
         write_fixture(root)
-        (root / VERIFIER_PATH).write_text(
-            "nvme pci recovery rollback gate verifier keeps blocker transitions and DMA parity explicit\n",
-            encoding="utf-8",
-        )
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "verifier shard" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected verifier-marker drift to fail")
+        rewrite(root, VERIFIER_PATH, "nvme pci recovery rollback gate verifier keeps blocker transitions and DMA parity explicit\n")
+        expect_failure(root, VERIFIER_PATH)
+        cases += 1
 
         write_fixture(root)
-        (root / SURVEY_NOTE_PATH).write_text(
-            "PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_dedicated_build_present_shared_build_absent\n",
-            encoding="utf-8",
-        )
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "survey note" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected survey-note marker drift to fail")
+        rewrite(root, SURVEY_NOTE_PATH, TEXT_MARKERS[SURVEY_NOTE_PATH][0] + "\n")
+        expect_failure(root, SURVEY_NOTE_PATH)
+        cases += 1
 
         write_fixture(root)
-        (root / SURVEY_NOTE_PATH).write_text(
-            "\n".join(SURVEY_NOTE_MARKERS + SURVEY_NOTE_FORBIDDEN_MARKERS + ("0123456789abcdef0123456789abcdef01234567",))
-            + "\n",
-            encoding="utf-8",
-        )
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "forbidden marker" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected survey-note forbidden drift to fail")
+        rewrite(root, SURVEY_NOTE_PATH, "\n".join(TEXT_MARKERS[SURVEY_NOTE_PATH] + FORBIDDEN_MARKERS[SURVEY_NOTE_PATH] + (EXPECTED_COMMIT,)) + "\n")
+        expect_failure(root, "forbidden marker")
+        cases += 1
 
         write_fixture(root)
-        (root / REOPEN_GOVERNANCE_PATH).write_text(
-            "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`\n",
-            encoding="utf-8",
-        )
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "reopen governance note" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected reopen-governance marker drift to fail")
+        rewrite(root, REOPEN_GOVERNANCE_PATH, TEXT_MARKERS[REOPEN_GOVERNANCE_PATH][0] + "\n")
+        expect_failure(root, REOPEN_GOVERNANCE_PATH)
+        cases += 1
 
         write_fixture(root)
-        (root / REOPEN_GOVERNANCE_PATH).write_text(
-            "\n".join(REOPEN_GOVERNANCE_MARKERS + REOPEN_GOVERNANCE_FORBIDDEN_MARKERS) + "\n",
-            encoding="utf-8",
-        )
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "forbidden marker" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected reopen-governance forbidden drift to fail")
+        rewrite(root, REOPEN_GOVERNANCE_PATH, "\n".join(TEXT_MARKERS[REOPEN_GOVERNANCE_PATH] + FORBIDDEN_MARKERS[REOPEN_GOVERNANCE_PATH]) + "\n")
+        expect_failure(root, "forbidden marker")
+        cases += 1
 
         write_fixture(root)
-        (root / SLICE_PATH).write_text("queue-pair planning\n", encoding="utf-8")
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "slice note" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected slice-note marker drift to fail")
+        rewrite(root, SLICE_PATH, "queue-pair planning\n")
+        expect_failure(root, SLICE_PATH)
+        cases += 1
 
         write_fixture(root)
-        (root / SURVEY_GATE_PATH).write_text(
-            "phase12 nvme pci survey manifest keeps the bounded starter packet truthful\n",
-            encoding="utf-8",
-        )
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "survey gate" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected survey-gate marker drift to fail")
+        rewrite(root, SURVEY_GATE_PATH, TEXT_MARKERS[SURVEY_GATE_PATH][0] + "\n")
+        expect_failure(root, SURVEY_GATE_PATH)
+        cases += 1
 
         write_fixture(root)
         (root / DIRECT_BUILD_PATH).unlink()
-        try:
-            check_manifest(root)
-        except CheckFailure as exc:
-            if "phase12_nvme_pci_build.zig" not in str(exc):
-                raise
-            cases += 1
-        else:
-            raise AssertionError("expected required-path drift to fail")
+        expect_failure(root, "phase12_nvme_pci_build.zig")
+        cases += 1
 
     print(f"{CHECK_NAME}_SELF_TEST=pass")
     print(f"{CHECK_NAME}_SELF_TEST_CASES={cases}")
