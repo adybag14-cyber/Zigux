@@ -132,6 +132,10 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py",
 )
 
 REQUIRED_CROSS_TARGET = "phase2-cross:"
