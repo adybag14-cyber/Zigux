@@ -74,7 +74,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summa
     uint32_t delivered;
 };
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary
-    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_summary;
+    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view {
     uint32_t budget;
