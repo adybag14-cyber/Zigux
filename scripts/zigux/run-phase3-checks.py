@@ -172,6 +172,17 @@ CHECK_COMMANDS = (
             "validated zigux/tests/phase3_bitmap_cpumask_starter_packet.zig",
         ),
     ),
+    (
+        Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py"),
+        (),
+        (
+            "validated zigux/helpers/list_view.zig",
+            "validated zigux/helpers/hlist_view.zig",
+            "validated zigux/tests/phase3_list_hlist_starter_packet.zig",
+            "validated zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+            "validated zigux/tests/fixtures/phase3_list_hlist_manifest.json",
+        ),
+    ),
 )
 
 SELF_TEST_MISSING_CASES = (
@@ -198,6 +209,7 @@ SELF_TEST_MISSING_CASES = (
     (20, "expected selftest-surface script omission was not reported"),
     (21, "expected abi manifest replay-routes script omission was not reported"),
     (22, "expected bitmap-cpumask script omission was not reported"),
+    (23, "expected list-hlist script omission was not reported"),
 )
 
 
@@ -584,10 +596,21 @@ def run_self_test() -> int:
             print("expected missing bitmap-cpumask manifest output marker to fail the runner")
             return 1
 
+        list_hlist_path = root / CHECK_COMMANDS[23][0]
+        populate_repo()
+        _write_synthetic_script(
+            list_hlist_path,
+            ("validated zigux/helpers/list_view.zig",),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing list-hlist output marker to fail the runner")
+            return 1
+
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 21}"
+            f"{len(SELF_TEST_MISSING_CASES) + 22}"
         )
         return 0
 
