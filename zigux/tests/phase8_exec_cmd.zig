@@ -218,8 +218,7 @@ test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {
     try expectContains(slice_note, "buildDeferredExecvCall()");
     try expectContains(slice_note, "make -C zigux phase8-validate");
     try expectContains(slice_note, "queue ownership");
-    try expectContains(slice_note, "kernel/workqueue.c");
-    try expectContains(slice_note, "Phase 14");
+    try expectContains(slice_note, "kernel/workqueue.c remains a Phase 14 boundary-study target");
 }
 
 test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {
@@ -275,8 +274,7 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try expectContains(packet_checker, "buildDeferredExecvCall()");
     try expectContains(packet_checker, "deferred execution");
     try expectContains(packet_checker, "queue ownership");
-    try expectContains(packet_checker, "kernel/workqueue.c");
-    try expectContains(packet_checker, "Phase 14");
+    try expectContains(packet_checker, "kernel/workqueue.c remains a Phase 14 boundary-study target");
 
     const validate_phase8 = try readWorkspaceFile(
         std.testing.allocator,
