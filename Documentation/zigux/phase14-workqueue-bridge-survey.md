@@ -57,7 +57,7 @@ Those directly readable surfaces agree on the same bounded message:
 
 The live workqueue packet currently matches the Phase 14 roadmap and freeze-map guardrails this way:
 
-  * roadmap required feature `boundary maps`: satisfied by `kernel/workqueue_bridge.zig` describing queue submission routing and allocation entrypoints without claiming live worker ownership
+  * roadmap required feature `boundary maps`: satisfied by `kernel/workqueue_bridge.zig` keeping exactly two `boundary_map_only` bridge areas, `submission-routing` and `allocation-and-attrs`, while exposing the rest of the workqueue surface as explicit stay-in-C decisions
   * roadmap required feature `concurrency audits`: satisfied by the bridge-local manager, pending-bit, delayed-work, flush-drain, rescuer, hotplug, and scheduler-visible worker-state audit checkpoints kept in review-only form
   * roadmap required feature `explicit stay-in-C decisions where warranted`: satisfied by the bridge-local blocked-live-execution handoff and the survey's explicit stay-in-C boundaries around callback dispatch, flush, drain, cancellation completion, delayed requeue control, runtime `max_active` retuning, rescuer execution, scheduler-visible worker-state transitions, and topology rebinding
   * roadmap required feature `wrapper-first or study-only posture`: satisfied by keeping `kernel/workqueue.c` in the freeze map's `Study / Boundary Only` bucket and limiting trusted bridge-local reruns to reviewability evidence rather than live execution claims
@@ -68,7 +68,9 @@ That alignment is intentionally narrow. It shows that the packet has a real revi
 
 The remaining roadmap-backed gap is also intentionally narrow:
 
-  * the boundary-map and concurrency-audit foothold is landed, but it is still a review-only packet rather than a deliverable wrapper around live worker execution
+  * the boundary-map foothold is landed, but it is intentionally limited to the two bridge areas `submission-routing` and `allocation-and-attrs`
+  * every other named bridge area still stays in the stay-in-C audit packet, so the current gap is no longer “missing a boundary map” but “keeping the boundary map deliberately small while the freeze map blocks stronger ownership claims”
+  * the packet is still a review-only study surface rather than a deliverable wrapper around live worker execution
   * the freeze map still blocks any ownership claim for callback dispatch, flush or drain completion, delayed-work requeue control, runtime `max_active` retuning, rescuer execution, scheduler-visible worker-state parity, or hotplug-driven topology rebinding
   * the shared Phase 14 route layer still stops at `make -C zigux phase14-validate`; the older `phase14-smoke`, `phase14-test`, and `phase14` wrapper names remain absent from the readable current `zigux/Makefile` body
   * the bridge-local trust surface still stops at `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while broader build-side proof such as directly readable `zigux/tests/phase14_build.zig` remains shared-packet evidence rather than a bridge-local promotion signal
