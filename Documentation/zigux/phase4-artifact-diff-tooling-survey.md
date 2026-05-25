@@ -28,6 +28,7 @@ The directly readable Phase 4 packet therefore stays reviewable in a fully align
   * `scripts/zigux/check-phase4-artifact-diff-determinism.py` now exact-requires the broader `Documentation/zigux/artifact-diff.md` note to keep the refreshed helper, contract, and determinism anchor lines whenever that file is present in the checked tree.
   * `scripts/zigux/validate-phase4.py` is directly readable again on current `master` and keeps the current artifact-diff helper, contract, determinism, and validator-replay checks explicit inside the shared Phase 4 validator packet.
   * `.github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps for `python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-artifact-diff-contract.py --self-test`, `python3 scripts/zigux/check-artifact-diff-contract.py`, `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`, `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`, `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`, and `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py` rather than routing the current artifact-diff packet only through one shared `make -C zigux phase4-validate` step.
+  * `zigux/Makefile` also keeps the narrower `make -C zigux phase4-artifact-diff-contract` route explicit for the helper self-test plus contract self-test and live contract replay packet instead of leaving that replay path discoverable only through workflow step names.
   * `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/check-phase4-repo-reality-warning.py` still keep the broader validator, build, and bitmap authenticated-readback caveat explicit without treating the owner-and-rollback note itself as a missing current-head companion.
 ## Current Exact Helper Checks
 
@@ -68,7 +69,7 @@ No remaining owner-and-rollback note readback caveat is left inside this lane on
   * if the host-side helper, contract checker, or determinism checker changes published artifact-diff catalog lines, refresh this survey and `Documentation/zigux/artifact-diff.md` together before treating the packet as closed again.
 ## Direct Replay Surface
 
-Current directly readable replay and warning surfaces in this run were:
+Current directly readable Python replay and warning surfaces in this run were:
   * `python3 scripts/zigux/artifact_diff.py --self-test`
   * `python3 scripts/zigux/check-artifact-diff-contract.py --self-test`
   * `python3 scripts/zigux/check-artifact-diff-contract.py`
@@ -78,9 +79,11 @@ Current directly readable replay and warning surfaces in this run were:
   * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`
   * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
 
+The dedicated `make -C zigux phase4-artifact-diff-contract` route stays cataloged through `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml`; this lane's exact replay section keeps the directly readable Python command bodies explicit because that make route simply replays the helper self-test, contract self-test, and live contract packet listed below.
+
 ## Exact Replay Output Contract
 
-These are the exact top-level pass markers implied by the current directly readable command bodies in this run. Treat them as the lane-local replay record unless a future run re-verifies the commands against a different current-head packet.
+These are the exact top-level pass markers implied by the current directly readable Python command bodies in this run. Treat them as the lane-local replay record unless a future run re-verifies the commands against a different current-head packet.
 
   * `python3 scripts/zigux/artifact_diff.py --self-test`
     * `ARTIFACT_DIFF_SELF_TEST=pass`
