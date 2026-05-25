@@ -241,6 +241,7 @@ def build_fixture(
     wrong_fixture_command: bool = False,
     omit_required_path: bool = False,
     wrong_inventory_lane: bool = False,
+    wrong_inventory_surfaces: bool = False,
     wrong_inventory_gap: bool = False,
     wrong_teardown_builds: bool = False,
 ) -> None:
@@ -273,7 +274,7 @@ def build_fixture(
             "    command: tuple[str, ...]",
             "",
             "REQUIRED_PATHS = (",
-            *(f'    \"{path}\",' for path in required_paths),
+            *(f'    "{path}",' for path in required_paths),
             ")",
             "",
             "CHECKS = (",
@@ -307,7 +308,11 @@ def build_fixture(
                 "deterministic_tooling_lane": (
                     "P11-L07" if wrong_inventory_lane else EXPECTED_INVENTORY_DETERMINISTIC_LANE
                 ),
-                "deterministic_fixture_surfaces": EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES,
+                "deterministic_fixture_surfaces": (
+                    EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES[:-1]
+                    if wrong_inventory_surfaces
+                    else EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES
+                ),
                 "focused_teardown_failure_mode_builds": (
                     EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS[:-1]
                     if wrong_teardown_builds
@@ -386,9 +391,38 @@ def run_self_test() -> int:
         expect_failure(wrong_lane_key, "lane_key mismatch")
         case_count += 1
 
+        wrong_phase = tmpdir / "wrong_phase"
+        build_fixture(wrong_phase)
+        fixture = read_json(wrong_phase / FIXTURE_PATH)
+        fixture["phase"] = "Phase 12"
+        write(wrong_phase / FIXTURE_PATH, json.dumps(fixture, indent=2) + "\n")
+        expect_failure(wrong_phase, "phase mismatch")
+        case_count += 1
+
+        wrong_validate_script = tmpdir / "wrong_validate_script"
+        build_fixture(wrong_validate_script)
+        fixture = read_json(wrong_validate_script / FIXTURE_PATH)
+        fixture["validate_script"] = "scripts/zigux/validate-phase11-missing.py"
+        write(wrong_validate_script / FIXTURE_PATH, json.dumps(fixture, indent=2) + "\n")
+        expect_failure(wrong_validate_script, "validate_script mismatch")
+        case_count += 1
+
+        wrong_validate_route = tmpdir / "wrong_validate_route"
+        build_fixture(wrong_validate_route)
+        fixture = read_json(wrong_validate_route / FIXTURE_PATH)
+        fixture["validate_route"] = "make -C zigux phase11"
+        write(wrong_validate_route / FIXTURE_PATH, json.dumps(fixture, indent=2) + "\n")
+        expect_failure(wrong_validate_route, "validate_route mismatch")
+        case_count += 1
+
         wrong_inventory_lane = tmpdir / "wrong_inventory_lane"
         build_fixture(wrong_inventory_lane, wrong_inventory_lane=True)
         expect_failure(wrong_inventory_lane, "deterministic_tooling_lane mismatch")
+        case_count += 1
+
+        wrong_inventory_surfaces = tmpdir / "wrong_inventory_surfaces"
+        build_fixture(wrong_inventory_surfaces, wrong_inventory_surfaces=True)
+        expect_failure(wrong_inventory_surfaces, "deterministic_fixture_surfaces mismatch")
         case_count += 1
 
         wrong_teardown_builds = tmpdir / "wrong_teardown_builds"
