@@ -37,14 +37,18 @@ REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+        "PHASE3_EXPORT_UAPI_VALIDATOR_RUN=python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
         "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
+        "PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.py",
         "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
         "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
+        "PHASE3_SHARED_VALIDATE_MAKE_ROUTE=make -C zigux phase3-validate",
+        "PHASE3_SHARED_PHASE_MAKE_ROUTE=make -C zigux phase3",
         "PHASE3_EXPORT_SHIM_BUILD_PATH=zigux/tests/phase3_export_shim_build.zig",
         "PHASE3_EXPORT_SHIM_DEDICATED_GATE=zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
         "PHASE3_EXPORT_SHIM_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-shim-test",
@@ -268,8 +272,28 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_EXPORT_UAPI_VALIDATOR_RUN=python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+            "expected missing export/uapi validator run marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
             "expected missing export/uapi header-family binding marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.py",
+            "expected missing phase3 validate selftest marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_SHARED_VALIDATE_MAKE_ROUTE=make -C zigux phase3-validate",
+            "expected missing phase3 validate make-route marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_SHARED_PHASE_MAKE_ROUTE=make -C zigux phase3",
+            "expected missing phase3 aggregate make-route marker was not reported",
         ),
         (
             SURVEY_PATH,
