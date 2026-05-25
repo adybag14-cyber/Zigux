@@ -505,7 +505,7 @@ def run_self_test() -> int:
         if cases[15][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:fixture_invalid_json")
 
-        build_sampleRepo(tmp_root)
+        build_sample_repo(tmp_root)
         insert_duplicate_json_line(
             tmp_root,
             MANIFEST_REL,
