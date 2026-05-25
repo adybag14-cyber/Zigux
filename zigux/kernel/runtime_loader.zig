@@ -478,6 +478,19 @@ test "PreparedRequest keeps blocked registration-summary surfaces out of the sha
     }
 }
 
+test "PreparedRequest keeps blocked initcall metadata surfaces out of the shared request boundary" {
+    const blocked_initcall_fields = [_][]const u8{
+        "module_init",
+        "module_exit",
+        "initcall",
+        "exitcall",
+    };
+
+    inline for (blocked_initcall_fields) |field| {
+        try std.testing.expect(!@hasField(PreparedRequest, field));
+    }
+}
+
 test "ApprovedPilotFamily keeps blocked publication and depmod surfaces out of the shared family contract" {
     const blocked_publication_fields = [_][]const u8{
         "modinfo",
@@ -507,6 +520,19 @@ test "ApprovedPilotFamily keeps blocked registration-summary surfaces out of the
     };
 
     inline for (blocked_registration_summary_fields) |field| {
+        try std.testing.expect(!@hasField(ApprovedPilotFamily, field));
+    }
+}
+
+test "ApprovedPilotFamily keeps blocked initcall metadata surfaces out of the shared family contract" {
+    const blocked_initcall_fields = [_][]const u8{
+        "module_init",
+        "module_exit",
+        "initcall",
+        "exitcall",
+    };
+
+    inline for (blocked_initcall_fields) |field| {
         try std.testing.expect(!@hasField(ApprovedPilotFamily, field));
     }
 }
