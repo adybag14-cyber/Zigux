@@ -20,6 +20,7 @@ REQUIRED_MARKERS = {
         "This matrix is the compact PMO coordination companion for the active Phase 13 shared-helper packet.",
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "Keep the Makefile-backed route family recorded as repo-reality gaps until current `master` rematerializes the shared build handle.",
+        "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`",
     ],
     "Documentation/zigux/phase13-release-notes-survey.md": [
         "This note keeps the shared Phase 13 release summary honest against the live current-`master` packet.",
@@ -47,17 +48,20 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase13_devres_iomap_planner.zig`",
         "`zigux/tests/phase13_devres_iomap_planner_manifest.json`",
         "Current `master` now materializes `scripts/zigux/validate-phase13-release.py`, so keep that validator explicit as shipped release-discipline support for the shared Phase 13 reminder packet instead of carrying it with the still-missing validator-first checker packet, absent shared build companion, still-missing direct Landlock syscall companions, older direct devres companions, and missing notifier-chain companion.",
+        "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`",
     ],
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "tests-root alignment companion: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`",
         "`landlock/ruleset` keeps the shipped survey, helper starter, direct replay, manifest-backed packet, and dedicated checker explicit through `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `security/landlock/ruleset.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, while `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, the shared `zigux/tests/phase13_build.zig` route, and broader tree plus hierarchy state stay recorded as repo-reality gaps on current `master`",
         "do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13` as shipped evidence",
+        "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`",
     ],
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md": [
         "- `scripts/zigux/check-phase13-tests-readme-alignment.py`",
         "- `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard beside that stable handle",
+        "`scripts/zigux/check-phase13-devres-dmam-alloc-coherent-planner.py`",
     ],
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
         "This note records the closure of the old missing-checker gap.",
