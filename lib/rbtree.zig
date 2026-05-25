@@ -225,6 +225,10 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
     insertColor(node, root);
 }
 
+pub fn rb_add(node: *Node, root: *Root, less: LessFn) void {
+    add(node, root, less);
+}
+
 pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     var link = &root.root.node;
     var parent: ?*Node = null;
@@ -725,6 +729,65 @@ test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged" {
     try std.testing.expectEqual(@as(?*Node, &entries[1].node), firstCached(&root));
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
     try std.testing.expectEqual(@as(?*Node, &replacement.node), last(&root.root));
+}
+
+test "rbtree rb_add mirrors add for ordered traversal" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var primary_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var alias_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var primary_root = Root.init();
+    var alias_root = Root.init();
+
+    for (&primary_entries, &alias_entries) |*primary_entry, *alias_entry| {
+        add(&primary_entry.node, &primary_root, less);
+        rb_add(&alias_entry.node, &alias_root, less);
+    }
+
+    var primary_order: [primary_entries.len]i32 = undefined;
+    var alias_order: [alias_entries.len]i32 = undefined;
+    var primary_count: usize = 0;
+    var alias_count: usize = 0;
+
+    var primary_current = first(&primary_root);
+    while (primary_current) |node| : (primary_current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_order[primary_count] = entry.key;
+        primary_count += 1;
+    }
+
+    var alias_current = first(&alias_root);
+    while (alias_current) |node| : (alias_current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_order[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(primary_count, alias_count);
+    try std.testing.expectEqualSlices(i32, primary_order[0..primary_count], alias_order[0..alias_count]);
+    try std.testing.expectEqual(@as(usize, 4), alias_count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20 }, alias_order[0..alias_count]);
 }
 
 test "rbtree eraseCached returns null for a singleton cached tree" {
