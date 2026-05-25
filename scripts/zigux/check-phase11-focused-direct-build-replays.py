@@ -218,6 +218,38 @@ def run_self_test() -> int:
         expect_failure(wrong_checks, "focused_direct_build_checks does not match")
         case_count += 1
 
+        missing_modem_driver_root_marker = tmpdir / "missing_modem_driver_root_marker"
+        shutil.copytree(fixture, missing_modem_driver_root_marker, dirs_exist_ok=True)
+        write(
+            missing_modem_driver_root_marker / MODEM_BUILD_PATH,
+            read_text(missing_modem_driver_root_marker / MODEM_BUILD_PATH).replace(
+                '.root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),\n',
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_modem_driver_root_marker,
+            '.root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig")',
+        )
+        case_count += 1
+
+        missing_modem_proof_root_marker = tmpdir / "missing_modem_proof_root_marker"
+        shutil.copytree(fixture, missing_modem_proof_root_marker, dirs_exist_ok=True)
+        write(
+            missing_modem_proof_root_marker / MODEM_BUILD_PATH,
+            read_text(missing_modem_proof_root_marker / MODEM_BUILD_PATH).replace(
+                '.root_source_file = b.path("phase11_hvc_modem_control_proof.zig"),\n',
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_modem_proof_root_marker,
+            '.root_source_file = b.path("phase11_hvc_modem_control_proof.zig")',
+        )
+        case_count += 1
+
         missing_modem_marker = tmpdir / "missing_modem_marker"
         shutil.copytree(fixture, missing_modem_marker, dirs_exist_ok=True)
         write(
@@ -244,6 +276,22 @@ def run_self_test() -> int:
         expect_failure(
             missing_modem_step_marker,
             'const test_step = b.step("test", "Run the focused Phase 11 HVC modem-control proof.");',
+        )
+        case_count += 1
+
+        missing_targetless_root_marker = tmpdir / "missing_targetless_root_marker"
+        shutil.copytree(fixture, missing_targetless_root_marker, dirs_exist_ok=True)
+        write(
+            missing_targetless_root_marker / TARGETLESS_BUILD_PATH,
+            read_text(missing_targetless_root_marker / TARGETLESS_BUILD_PATH).replace(
+                '.root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig"),\n',
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_targetless_root_marker,
+            '.root_source_file = b.path("phase11_hvc_targetless_unregister_gap.zig")',
         )
         case_count += 1
 
