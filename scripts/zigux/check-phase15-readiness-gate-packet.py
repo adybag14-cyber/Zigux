@@ -14,12 +14,12 @@ VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 BUILD_ZIG_PATH = Path("zigux/tests/phase15_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
-EXPECTED_LANE_KEY = "P15-L02"
+EXPECTED_LANE_KEY = "P15-L04"
 EXPECTED_PHASE = "Phase 15"
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=readiness_gate_survey_landed",
-    "PHASE15_LANE_KEY=P15-L02",
+    "PHASE15_LANE_KEY=P15-L04",
     "PHASE15_SLICE=validator_first_readiness_packet",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
@@ -189,7 +189,7 @@ def _sample_note() -> str:
     return """# Phase 15 Readiness Gate Survey
 
 - `PHASE15_STATUS=readiness_gate_survey_landed`
-- `PHASE15_LANE_KEY=P15-L02`
+- `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
@@ -304,10 +304,10 @@ def run_self_test() -> int:
         _seed_repo(lane_drift_root)
         _write(
             lane_drift_root / MANIFEST_PATH,
-            _sample_manifest().replace('"lane_key": "P15-L02"', '"lane_key": "P15-L99"', 1),
+            _sample_manifest().replace('"lane_key": "P15-L04"', '"lane_key": "P15-L99"', 1),
         )
         failures = collect_failures(lane_drift_root)
-        expected = ["readiness manifest lane key drifted from P15-L02: P15-L99"]
+        expected = ["readiness manifest lane key drifted from P15-L04: P15-L99"]
         if failures != expected:
             raise AssertionError(f"unexpected lane-drift failure: {failures}")
 
