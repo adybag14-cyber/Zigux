@@ -46,6 +46,18 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     defer std.testing.allocator.free(atomic64_survey_test);
 
+    const kretprobe_sample = try readRepoFileAlloc(
+        "../../samples/zigux/runtime_kretprobe.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(kretprobe_sample);
+
+    const kretprobe_module = try readRepoFileAlloc(
+        "runtime_kretprobe_module.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(kretprobe_module);
+
     const manifest = try readRepoFileAlloc(
         "runtime_bitmap_manifest.json",
         16 * 1024,
@@ -54,13 +66,20 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
 
     const phase9_build = try readRepoFileAlloc(
         "phase9_build.zig",
-        16 * 1024,
+        24 * 1024,
     );
     defer std.testing.allocator.free(phase9_build);
 
     try expectContains(parity_note, "`PHASE9_STATUS=active`");
     try expectContains(parity_note, "`PHASE9_LANE_KEY=P9-L01`");
-    try expectContains(parity_note, "`PHASE9_SURVEYED_COMMIT=2026-05-23-first-loadable-parity-shared-loader-reminder-packet`");
+    try expectContains(
+        parity_note,
+        "`PHASE9_SURVEYED_COMMIT=2026-05-24-first-loadable-parity-kretprobe-direct-packet-readback`",
+    );
+    try expectContains(
+        parity_note,
+        "Trusted current-tree reads on 2026-05-24 now show a four-part Phase 9 pilot picture",
+    );
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`");
     try expectContains(parity_note, "`samples/zigux/runtime_atomic64.zig`");
@@ -71,6 +90,13 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(
         parity_note,
         "Current `master` now directly materializes the atomic64 sample, survey, and manifest packet beside the already readable module, diff, and family-local note surfaces.",
+    );
+    try expectContains(parity_note, "`samples/zigux/runtime_kretprobe.zig`");
+    try expectContains(parity_note, "`zigux/tests/runtime_kretprobe_module.zig`");
+    try expectContains(parity_note, "`zigux/tests/phase9_build.zig`");
+    try expectContains(
+        parity_note,
+        "Current `master` now directly materializes the kretprobe sample and module lifecycle packet beside the shared Phase 9 build shard, but it still does not return a family-local loader scaffold for that direct packet.",
     );
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-survey.md`");
     try expectContains(parity_note, "`Documentation/zigux/phase9-runtime-bitmap-module-slice.md`");
@@ -83,15 +109,20 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(parity_note, "`zigux/tests/phase9_build.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_module.zig`");
     try expectContains(parity_note, "`zigux/tests/runtime_bitmap_diff.zig`");
-    try expectContains(parity_note, "These shared runtime-loader-facing surfaces are directly readable on current `master`:");
+    try expectContains(
+        parity_note,
+        "These shared runtime-loader-facing surfaces are directly readable on current `master`:",
+    );
     try expectContains(parity_note, "`zigux/tests/runtime_loader_allocator_init_flow.zig`");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader.zig`");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader_contract.zig`");
     try expectContains(parity_note, "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`");
-    try expectContains(parity_note, "manifest-backed ownership packet");
     try expectContains(parity_note, "phase9-runtime-atomic64-diff");
     try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-module-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-atomic64-sample-tests` route name");
+    try expectContains(parity_note, "the build-local `phase9-runtime-kretprobe-sample-tests` route name");
+    try expectContains(parity_note, "the build-local `phase9-runtime-kretprobe-module-tests` route name");
+    try expectContains(parity_note, "the aggregate `phase9-runtime-kretprobe-tests` route name");
     try expectContains(parity_note, "the bounded bitmap sample, loader, survey, top-bit, module, and diff routes");
     try expectContains(parity_note, "the build-local `phase9-runtime-loader-allocator-init-flow-tests` route name");
     try expectContains(parity_note, "the build-local `phase9-runtime-loader-command-env-boundary-guard-tests` route name");
@@ -109,7 +140,7 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     );
     try expectContains(
         parity_note,
-        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 direct packet without a returned family-local loader scaffold, and the still-partial bitmap reminder packet with restored cold-stage guard, module, and diff proof but without broader shared runtime-loader parity.",
+        "Leave `P9-L01` parked unless a fresh live reread finds another exact cross-family parity-summary mismatch between this note, the shared survey gate, the shared build shard, the visible atomic64 and kretprobe direct packets without returned family-local loader scaffolds, and the still-partial bitmap reminder packet with restored cold-stage guard, module, and diff proof but without broader shared runtime-loader parity.",
     );
 
     try expectContains(atomic64_survey_note, "`PHASE9_STATUS=active`");
@@ -153,7 +184,10 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
 
     try expectContains(atomic64_manifest, "\"phase\": \"Phase 9\"");
     try expectContains(atomic64_manifest, "\"lane_key\": \"P9-L04\"");
-    try expectContains(atomic64_manifest, "\"surveyed_commit\": \"2026-05-23-runtime-atomic64-shared-loader-reminder-trim\"");
+    try expectContains(
+        atomic64_manifest,
+        "\"surveyed_commit\": \"2026-05-23-runtime-atomic64-shared-loader-reminder-trim\"",
+    );
     try expectContains(
         atomic64_manifest,
         "\"landed_pilot_state\": \"starter_landed_with_visible_shared_loader_packet\"",
@@ -173,18 +207,12 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
         atomic64_survey_test,
         "phase 9 runtime atomic64 survey manifest records the visible shared-loader reminder packet",
     );
-    try expectContains(
-        atomic64_survey_test,
-        "runtime-atomic64-survey-note",
-    );
+    try expectContains(atomic64_survey_test, "runtime-atomic64-survey-note");
     try expectContains(
         atomic64_survey_test,
         "Documentation/zigux/phase9-runtime-atomic64-survey.md",
     );
-    try expectContains(
-        atomic64_survey_test,
-        "runtime-atomic64-module-slice-note",
-    );
+    try expectContains(atomic64_survey_test, "runtime-atomic64-module-slice-note");
     try expectContains(
         atomic64_survey_test,
         "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
@@ -193,15 +221,40 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
         atomic64_survey_test,
         "starter_landed_with_visible_shared_loader_packet",
     );
+    try expectContains(atomic64_survey_test, "runtime-atomic64-live-loader-binding");
+
+    try expectContains(kretprobe_sample, "runtime kretprobe sample advertises the bounded pilot-module contract");
+    try expectContains(kretprobe_sample, ".provides_selftest_hook = true");
     try expectContains(
-        atomic64_survey_test,
-        "runtime-atomic64-live-loader-binding",
+        kretprobe_sample,
+        "runtime kretprobe sample keeps reusable probe replay explicit after selftest",
+    );
+    try expectContains(
+        kretprobe_sample,
+        "runtime kretprobe sample keeps duplicate registration rollback explicit across initialized and selftested stages",
+    );
+
+    try expectContains(kretprobe_module, "runtime kretprobe sample advertises the bounded pilot-module contract");
+    try expectContains(
+        kretprobe_module,
+        "runtime kretprobe sample keeps selftest summary replay explicit at the module boundary",
+    );
+    try expectContains(
+        kretprobe_module,
+        "runtime kretprobe sample keeps lifecycle snapshot replay explicit at the module boundary",
+    );
+    try expectContains(
+        kretprobe_module,
+        "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary",
     );
 
     try expectContains(manifest, "\"phase\": \"Phase 9\"");
     try expectContains(manifest, "\"lane_key\": \"P9-L08\"");
     try expectContains(manifest, "\"status\": \"active\"");
-    try expectContains(manifest, "\"surveyed_commit\": \"e306440f579ded71e8441c1a513af6fd12bbbfdd\"");
+    try expectContains(
+        manifest,
+        "\"surveyed_commit\": \"e306440f579ded71e8441c1a513af6fd12bbbfdd\"",
+    );
     try expectContains(manifest, "\"sample_path\": \"samples/zigux/runtime_bitmap.zig\"");
     try expectContains(manifest, "\"loader_path\": \"samples/zigux/runtime_bitmap_loader.zig\"");
     try expectContains(manifest, "\"module_path\": \"zigux/tests/runtime_bitmap_module.zig\"");
@@ -218,15 +271,25 @@ test "phase9 first-loadable parity note matches the surviving shared packet" {
     try expectContains(phase9_build, "phase9-runtime-bitmap-survey-tests");
     try expectContains(phase9_build, "phase9-runtime-bitmap-diff-tests");
     try expectContains(phase9_build, "phase9-runtime-bitmap-top-bit-tests");
+    try expectContains(phase9_build, "phase9-runtime-kretprobe-sample-tests");
+    try expectContains(phase9_build, "phase9-runtime-kretprobe-module-tests");
+    try expectContains(phase9_build, "phase9-runtime-kretprobe-tests");
     try expectContains(phase9_build, "phase9-runtime-loader-allocator-init-flow-tests");
     try expectContains(phase9_build, "phase9-runtime-loader-command-env-boundary-guard-tests");
     try expectContains(phase9_build, "phase9-runtime-loader-shared-tests");
     try expectContains(phase9_build, "phase9-first-loadable-runtime-module-parity-survey-tests");
     try expectContains(phase9_build, "runtime_first_loadable_parity_survey.zig");
-    try expectContains(phase9_build, "Run the Phase 9 first-loadable runtime-module parity survey tests.");
+    try expectContains(
+        phase9_build,
+        "Run the Phase 9 first-loadable runtime-module parity survey tests.",
+    );
     try expectContains(phase9_build, "phase9-runtime-atomic64-sample-tests");
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-loader-tests") == null);
+    try std.testing.expect(
+        std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-loader-tests") == null,
+    );
     try expectContains(phase9_build, "phase9-runtime-atomic64-module-tests");
-    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-survey-tests") == null);
+    try std.testing.expect(
+        std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-survey-tests") == null,
+    );
     try expectContains(phase9_build, "phase9-runtime-bitmap-module-tests");
 }
