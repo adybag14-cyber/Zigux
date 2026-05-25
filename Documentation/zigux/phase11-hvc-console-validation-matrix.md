@@ -25,10 +25,16 @@ Treat the current matrix packet as:
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-validate-manifest-roster.py`
+- `scripts/zigux/check-phase11-validate-check-roster.py`
+- `scripts/zigux/check-phase11-validate-route-alignment.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `scripts/zigux/validate-phase11.py`
+- `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/fixtures/phase11_validate_checks.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
@@ -42,12 +48,18 @@ Treat the current matrix packet as:
 
 Current contents reads stay aligned with the smaller companion stack, so keep
 route claims bounded to `make -C zigux phase11-validate` until `zigux/Makefile`
-exposes a dedicated `make -C zigux phase11-hvc-survey` step. The witness shard now rereads the live starter and the boundary note together, the focused
-direct-build replay checker keeps the dedicated modem-control and
-targetless-unregister build routes fail-closed without promoting either pair
-into the shared three-entry build inventory, keep the modem-control proof pair
-directly readable through its focused build route without promoting it into the
-shared build inventory yet, and keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet.
+exposes a dedicated `make -C zigux phase11-hvc-survey` step. The validator
+route now keeps the manifest-roster, validate-check-roster, and
+validate-route-alignment guards explicit beside the dedicated
+`zigux/tests/fixtures/phase11_validate_checks.json` roster before the same
+proof-backed build fan-out runs. The witness shard now rereads the live starter
+and the boundary note together, while the focused direct-build replay checker
+keeps the dedicated modem-control and targetless-unregister build routes
+fail-closed without promoting either pair into the shared three-entry build
+inventory. Keep the modem-control proof pair directly readable through its
+focused build route without promoting it into the shared build inventory yet,
+and keep the targetless-unregister witness explicitly separate from the smaller
+proof-backed continuity packet.
 
 ## Failure-Mode Evidence
 
@@ -59,9 +71,9 @@ shared build inventory yet, and keep the targetless-unregister witness explicitl
   khvcd polling-contract, khvcd worker-entry, khvcd sleep-and-reschedule
   handoff, `__hvc_poll` drain-order, `hvc_hangup()` disconnect,
   `hvc_remove()` handoff, `hvc_cleanup()` tty-port release plus
-  cleanup-prerequisite trigger split, targetless notifier, `hvc_kick()`
-  wakeup-cue, notifier-irq, and modem-control helper summaries reviewable on
-  current `master`.
+  cleanup-prerequisite trigger split, targetless notifier, `hvc_kick()` wakeup
+  cue, notifier-irq, and modem-control helper summaries reviewable on current
+  `master`.
 - `drivers/tty/hvc/hvc_console.h` keeps the exported `struct hvc_struct`
   forward declaration, `struct hv_ops` callback-table tag, `struct winsize`
   layout, and helper declarations directly readable for the focused exported
@@ -75,9 +87,16 @@ shared build inventory yet, and keep the targetless-unregister witness explicitl
   `zigux/tests/phase11_hvc_console.zig`,
   `zigux/tests/phase11_hvc_cleanup.zig`,
   `zigux/tests/phase11_hvc_console_survey.zig`, and
-  `scripts/zigux/check-phase11-hvc-survey-packet.py` explicit as repo-reality gaps instead of returned fallback evidence.
+  `scripts/zigux/check-phase11-hvc-survey-packet.py` explicit as repo-reality
+  gaps instead of returned fallback evidence.
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` keeps helper-local
   failure-mode edges reviewable through the verify helper boundary note.
+- `scripts/zigux/check-phase11-validate-manifest-roster.py`,
+  `scripts/zigux/check-phase11-validate-check-roster.py`,
+  `scripts/zigux/check-phase11-validate-route-alignment.py`, and
+  `zigux/tests/fixtures/phase11_validate_checks.json` keep the returned shared
+  validator-side manifest, exact-check, and route fan-out evidence explicit for
+  the current HVC-facing packet without claiming a dedicated HVC-only validator.
 - `zigux/tests/phase11_hvc_modem_control_proof.zig` and
   `zigux/tests/phase11_hvc_modem_control_proof_build.zig` keep the bounded
   `tiocmget`, `tiocmset`, `dtr_rts`, and `hupcl` teardown distinction explicit
@@ -92,6 +111,11 @@ shared build inventory yet, and keep the targetless-unregister witness explicitl
 - keep the dedicated survey route absent until `zigux/Makefile` grows it
 - keep helper-local failure-mode edges reviewable through the verify boundary
   note and the current companion stack
+- keep `scripts/zigux/check-phase11-validate-manifest-roster.py`,
+  `scripts/zigux/check-phase11-validate-check-roster.py`,
+  `scripts/zigux/check-phase11-validate-route-alignment.py`, and
+  `zigux/tests/fixtures/phase11_validate_checks.json` explicit as the shared
+  validator-side golden-output packet
 - keep `scripts/zigux/check-phase11-focused-direct-build-replays.py` explicit as
   the guard for the dedicated modem-control and targetless-unregister build
   routes while those proofs stay outside the shared three-entry build inventory
