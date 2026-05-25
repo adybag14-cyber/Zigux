@@ -19,6 +19,7 @@ MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 SURVEY_PATH = "Documentation/zigux/phase8-libbpf-segment-survey.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 BRIDGE_SLICE_PATH = "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"
+BRIDGE_BOUNDARY_SURVEY_PATH = "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
 VALIDATOR_PATH = "scripts/zigux/validate-phase8.py"
 BUILD_PATH = "zigux/tests/phase8_libbpf_segments_only_build.zig"
 LIBBPF_SEGMENTS_TEST_PATH = "zigux/tests/phase8_libbpf_segments.zig"
@@ -53,6 +54,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     REVIEW_CHECKLIST_PATH,
     BRIDGE_SLICE_PATH,
+    BRIDGE_BOUNDARY_SURVEY_PATH,
     SURVEY_PATH,
     "scripts/zigux/README.md",
     VALIDATOR_PATH,
@@ -78,6 +80,11 @@ SURVEY_MARKERS = [
 BRIDGE_SLICE_MARKERS = [
     "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.",
     "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.",
+]
+BRIDGE_BOUNDARY_SURVEY_MARKERS = [
+    "Current `master` still keeps the mixed-source bridge packet reviewable, and authenticated contents readback now reaches the bridge-side helper and witness files directly again in this runtime.",
+    "That narrower split is therefore packet role rather than fetchability: the bridge helper and witness stay on the boundary side of the Phase 8 packet so this survey does not overclaim delivered procfs, bpffs, token, or fd-ownership behavior.",
+    "The timing-adjacent poll reminder also stays explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and the shared `phase8` routes; that dedicated packet keeps no standalone timer helper behavior, no standalone clockevent helper behavior, and no broader timeout-sensitive routing behavior explicit while the surrounding setup-side bridge remains deferred.",
 ]
 VALIDATOR_MARKERS = [
     'LIBBPF_SEGMENT_GATE_CHECKER = Path("scripts/zigux/check-phase8-libbpf-segment-gate.py")',
@@ -162,6 +169,11 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     for marker in BRIDGE_SLICE_MARKERS:
         if marker not in bridge_slice_text:
             missing_markers.append(f"{BRIDGE_SLICE_PATH}:{marker}")
+
+    bridge_boundary_survey_text = read_text(root, BRIDGE_BOUNDARY_SURVEY_PATH)
+    for marker in BRIDGE_BOUNDARY_SURVEY_MARKERS:
+        if marker not in bridge_boundary_survey_text:
+            missing_markers.append(f"{BRIDGE_BOUNDARY_SURVEY_PATH}:{marker}")
 
     for rel_path, markers in {
         VALIDATOR_PATH: VALIDATOR_MARKERS,
@@ -260,6 +272,20 @@ def fixture_bridge_slice() -> str:
         ]
     )
 
+def fixture_bridge_boundary_survey() -> str:
+    return "\n".join(
+        [
+            "# Phase 8 Userspace-Kernel Bridge Boundary Survey",
+            "",
+            BRIDGE_BOUNDARY_SURVEY_MARKERS[0],
+            "",
+            BRIDGE_BOUNDARY_SURVEY_MARKERS[1],
+            "",
+            BRIDGE_BOUNDARY_SURVEY_MARKERS[2],
+            "",
+        ]
+    )
+
 def write(root: Path, rel_path: str, text: str) -> None:
     path = root / rel_path
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -270,6 +296,7 @@ def clone_fixture(root: Path) -> None:
     write(root, "Documentation/zigux/README.md", "# Zigux Documentation\n- `Documentation/zigux/phase8-libbpf-segment-survey.md`\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n")
     write(root, REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n- `scripts/zigux/check-phase8-libbpf-segment-gate.py`\n- `scripts/zigux/validate-phase8.py`\n")
     write(root, BRIDGE_SLICE_PATH, fixture_bridge_slice())
+    write(root, BRIDGE_BOUNDARY_SURVEY_PATH, fixture_bridge_boundary_survey())
     write(root, "scripts/zigux/README.md", "# scripts/zigux\n- check-phase8-libbpf-segment-gate.py\n- Documentation/zigux/phase8-libbpf-segment-survey.md\n")
     write(
         root,
@@ -380,6 +407,20 @@ def run_self_test() -> int:
         if f"{BRIDGE_SLICE_PATH}:{BRIDGE_SLICE_MARKERS[0]}" not in validate(root)[1]:
             raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_slice_marker")
         bridge_slice_path.write_text(original_bridge_slice, encoding="utf-8")
+
+        bridge_boundary_survey_path = root / BRIDGE_BOUNDARY_SURVEY_PATH
+        original_bridge_boundary_survey = bridge_boundary_survey_path.read_text(encoding="utf-8")
+        bridge_boundary_survey_path.write_text(
+            original_bridge_boundary_survey.replace(
+                "mixed-source bridge packet reviewable",
+                "mixed-source bridge packet inspectable",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if f"{BRIDGE_BOUNDARY_SURVEY_PATH}:{BRIDGE_BOUNDARY_SURVEY_MARKERS[0]}" not in validate(root)[1]:
+            raise SystemExit("phase8-libbpf-segment-gate-self-test:bridge_boundary_survey_marker")
+        bridge_boundary_survey_path.write_text(original_bridge_boundary_survey, encoding="utf-8")
 
         validator_path = root / VALIDATOR_PATH
         original_validator = validator_path.read_text(encoding="utf-8")
@@ -611,7 +652,7 @@ def run_self_test() -> int:
         manifest_path.write_text(fixture_manifest(), encoding="utf-8")
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=25")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=26")
     return 0
 
 def main() -> int:
@@ -646,7 +687,7 @@ def main() -> int:
     print(f"PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE8_LIBBPF_SEGMENT_GATE_REQUIRED_MARKER_COUNT="
-        f"{len(SURVEY_MARKERS) + len(BRIDGE_SLICE_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(LIBBPF_SEGMENTS_TEST_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_BOUNDARY_GUARD_MARKERS) + len(BRIDGE_MANIFEST_SYNC_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
+        f"{len(SURVEY_MARKERS) + len(BRIDGE_SLICE_MARKERS) + len(BRIDGE_BOUNDARY_SURVEY_MARKERS) + len(VALIDATOR_MARKERS) + len(MAKEFILE_MARKERS) + len(BUILD_MARKERS) + len(LIBBPF_SEGMENTS_TEST_MARKERS) + len(VERIFY_MARKERS) + len(BRIDGE_TEST_MARKERS) + len(BRIDGE_BUILD_MARKERS) + len(BRIDGE_BOUNDARY_GUARD_MARKERS) + len(BRIDGE_MANIFEST_SYNC_MARKERS) + len(BRIDGE_HELPER_MARKERS)}"
     )
     return 0
 
