@@ -96,6 +96,29 @@ FIND_BIT_REQUIRED_SOURCE_MARKERS = {
     "tail_first_and_bit": "checksum +%= @intCast(find_bit.findFirstAndBit(&tail_set, &tail_set, tail_nbits));",
     "tail_last_bit": "checksum +%= @intCast(find_bit.findLastBit(&tail_set, tail_nbits));",
 }
+RBTREE_REQUIRED_SOURCE_MARKERS = {
+    "rbtree_bench_fn": "fn rbtreeBench() struct { checksum: u64 } {",
+    "rbtree_postorder_safe_fn": "fn rbtreePostorderSafeBench() struct { checksum: u64 } {",
+    "rbtree_find_add_fn": "fn rbtreeFindAddBench() struct { checksum: u64 } {",
+    "rbtree_duplicate_fn": "fn rbtreeDuplicateBench() struct { checksum: u64 } {",
+    "rbtree_cached_fn": "fn rbtreeCachedBench() struct { checksum: u64 } {",
+    "rbtree_bench_call": "const rbtree_result = rbtreeBench();",
+    "rbtree_postorder_safe_call": "const rbtree_postorder_safe_result = rbtreePostorderSafeBench();",
+    "rbtree_find_add_call": "const rbtree_find_add_result = rbtreeFindAddBench();",
+    "rbtree_duplicate_call": "const rbtree_duplicate_result = rbtreeDuplicateBench();",
+    "rbtree_cached_call": "const rbtree_cached_result = rbtreeCachedBench();",
+    "rbtree_iterations_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_ITERATIONS={d}\\n", .{iterations_rbtree});',
+    "rbtree_checksum_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CHECKSUM={d}\\n", .{rbtree_result.checksum});',
+    "rbtree_postorder_safe_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM={d}\\n", .{rbtree_postorder_safe_result.checksum});',
+    "rbtree_find_add_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM={d}\\n", .{rbtree_find_add_result.checksum});',
+    "rbtree_duplicate_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM={d}\\n", .{rbtree_duplicate_result.checksum});',
+    "rbtree_cached_print": 'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={d}\\n", .{rbtree_cached_result.checksum});',
+    "rbtree_insert": "rbtree.add(&entry.node, &root, less);",
+    "rbtree_postorder": "var node = rbtree.firstPostorder(&root);",
+    "rbtree_find_add": "const existing = rbtree.findAdd(&probe.node, &root, cmp);",
+    "rbtree_duplicate_range": "var iter = rbtree.matchIterator(&duplicate_key, &root, key_cmp);",
+    "rbtree_cached_leftmost": "const promoted_leftmost = rbtree.eraseCached(&entries[1].node, &cached_root);",
+}
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -262,10 +285,13 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
     return ("pass", expectations)
 
 
-def validate_find_bit_bench_source(text: str) -> tuple[str, object]:
+def validate_bench_source(text: str) -> tuple[str, object]:
     missing = [
         label for label, marker in FIND_BIT_REQUIRED_SOURCE_MARKERS.items() if marker not in text
     ]
+    missing.extend(
+        label for label, marker in RBTREE_REQUIRED_SOURCE_MARKERS.items() if marker not in text
+    )
     if missing:
         return ("bench_source_missing_markers", missing)
     return ("pass", text)
@@ -276,7 +302,7 @@ def load_runtime_bench_source(path: Path) -> tuple[str, object]:
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return ("missing_bench_source_file", path)
-    return validate_find_bit_bench_source(text)
+    return validate_bench_source(text)
 
 
 def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, object]:
@@ -390,6 +416,51 @@ def build_find_bit_bench_source(omit_label: str | None = None) -> str:
     return "\n".join(lines) + "\n"
 
 
+def build_rbtree_bench_source(omit_label: str | None = None) -> str:
+    lines = [
+        "fn rbtreeBench() struct { checksum: u64 } {",
+        "    rbtree.add(&entry.node, &root, less);",
+        "}",
+        "fn rbtreePostorderSafeBench() struct { checksum: u64 } {",
+        "    var node = rbtree.firstPostorder(&root);",
+        "}",
+        "fn rbtreeFindAddBench() struct { checksum: u64 } {",
+        "    const existing = rbtree.findAdd(&probe.node, &root, cmp);",
+        "}",
+        "fn rbtreeDuplicateBench() struct { checksum: u64 } {",
+        "    var iter = rbtree.matchIterator(&duplicate_key, &root, key_cmp);",
+        "}",
+        "fn rbtreeCachedBench() struct { checksum: u64 } {",
+        "    const promoted_leftmost = rbtree.eraseCached(&entries[1].node, &cached_root);",
+        "}",
+        "const rbtree_result = rbtreeBench();",
+        "const rbtree_postorder_safe_result = rbtreePostorderSafeBench();",
+        "const rbtree_find_add_result = rbtreeFindAddBench();",
+        "const rbtree_duplicate_result = rbtreeDuplicateBench();",
+        "const rbtree_cached_result = rbtreeCachedBench();",
+        'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_ITERATIONS={d}\\n", .{iterations_rbtree});',
+        'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CHECKSUM={d}\\n", .{rbtree_result.checksum});',
+        'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM={d}\\n", .{rbtree_postorder_safe_result.checksum});',
+        'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM={d}\\n", .{rbtree_find_add_result.checksum});',
+        'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM={d}\\n", .{rbtree_duplicate_result.checksum});',
+        'try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={d}\\n", .{rbtree_cached_result.checksum});',
+    ]
+    if omit_label is not None:
+        marker = RBTREE_REQUIRED_SOURCE_MARKERS[omit_label]
+        lines = [line for line in lines if line != marker]
+    return "\n".join(lines) + "\n"
+
+
+def build_full_bench_source(
+    omit_find_bit_label: str | None = None,
+    omit_rbtree_label: str | None = None,
+) -> str:
+    return (
+        build_find_bit_bench_source(omit_find_bit_label)
+        + build_rbtree_bench_source(omit_rbtree_label)
+    )
+
+
 def make_expectations(*, missing_exact: str | None = None, reordered_checksums: bool = False) -> dict[str, object]:
     exact_checksums = {
         "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
@@ -477,7 +548,7 @@ def run_self_test() -> None:
     assert kind == "pass", (kind, payload)
     case_count += 1
 
-    kind, payload = validate_find_bit_bench_source(build_find_bit_bench_source())
+    kind, payload = validate_bench_source(build_full_bench_source())
     assert kind == "pass", (kind, payload)
     case_count += 1
 
@@ -489,13 +560,13 @@ def run_self_test() -> None:
         case_count += 1
 
         source_path = Path(tmp) / "phase1_bench.zig"
-        source_path.write_text(build_find_bit_bench_source(), encoding="utf-8")
+        source_path.write_text(build_full_bench_source(), encoding="utf-8")
         kind, payload = load_runtime_bench_source(source_path)
         assert kind == "pass", (kind, payload)
         case_count += 1
 
         source_path.write_text(
-            build_find_bit_bench_source("find_edge_checksum_print"),
+            build_full_bench_source(omit_find_bit_label="find_edge_checksum_print"),
             encoding="utf-8",
         )
         kind, payload = load_runtime_bench_source(source_path)
@@ -503,46 +574,55 @@ def run_self_test() -> None:
         assert payload == ["find_edge_checksum_print"]
         case_count += 1
 
+        source_path.write_text(
+            build_full_bench_source(omit_rbtree_label="rbtree_cached_print"),
+            encoding="utf-8",
+        )
+        kind, payload = load_runtime_bench_source(source_path)
+        assert kind == "bench_source_missing_markers"
+        assert payload == ["rbtree_cached_print"]
+        case_count += 1
+
     duplicate_top_level_text = """{
-  \"status\": \"pass\",
-  \"status\": \"fail\",
-  \"iterations\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS\": 20000,
-    \"PHASE1_BENCH_STRING_ITERATIONS\": 40000,
-    \"PHASE1_BENCH_HWEIGHT_ITERATIONS\": 100000,
-    \"PHASE1_BENCH_LIST_SORT_ITERATIONS\": 1000,
-    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000
+  "status": "pass",
+  "status": "fail",
+  "iterations": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
+    "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS": 20000,
+    "PHASE1_BENCH_STRING_ITERATIONS": 40000,
+    "PHASE1_BENCH_HWEIGHT_ITERATIONS": 100000,
+    "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
+    "PHASE1_BENCH_RBTREE_ITERATIONS": 4000
   },
-  \"checksums\": [
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\",
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\",
-    \"PHASE1_BENCH_STRING_CHECKSUM\",
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\",
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\",
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"
+  "checksums": [
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
+    "PHASE1_BENCH_STRING_CHECKSUM",
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM",
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
   ],
-  \"exact_checksums\": {
-    \"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1,
-    \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2,
-    \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3,
-    \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4,
-    \"PHASE1_BENCH_STRING_CHECKSUM\": 5,
-    \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6,
-    \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7,
-    \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8,
-    \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9,
-    \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10,
-    \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11,
-    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12
+  "exact_checksums": {
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 1,
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM": 2,
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM": 3,
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM": 4,
+    "PHASE1_BENCH_STRING_CHECKSUM": 5,
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM": 6,
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
+    "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
+    "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+    "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
+    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12
   }
 }"""
     kind, payload = validate_expectations(load_expectations_text(duplicate_top_level_text))
@@ -551,20 +631,20 @@ def run_self_test() -> None:
     case_count += 1
 
     duplicate_iteration_text = duplicate_top_level_text.replace(
-        '\"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000',
-        '\"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000,\\n    \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4001',
+        '"PHASE1_BENCH_RBTREE_ITERATIONS": 4000',
+        '"PHASE1_BENCH_RBTREE_ITERATIONS": 4000,\n    "PHASE1_BENCH_RBTREE_ITERATIONS": 4001',
         1,
-    ).replace('\"status\": \"fail\",\\n', "", 1)
+    ).replace('"status": "fail",\n', "", 1)
     kind, payload = validate_expectations(load_expectations_text(duplicate_iteration_text))
     assert kind == "expectations_duplicate_iteration_keys"
     assert payload == ["PHASE1_BENCH_RBTREE_ITERATIONS"]
     case_count += 1
 
     duplicate_exact_checksum_text = duplicate_top_level_text.replace(
-        '\"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12',
-        '\"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12,\\n    \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 13',
+        '"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12',
+        '"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,\n    "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 13',
         1,
-    ).replace('\"status\": \"fail\",\\n', "", 1)
+    ).replace('"status": "fail",\n', "", 1)
     kind, payload = validate_expectations(load_expectations_text(duplicate_exact_checksum_text))
     assert kind == "expectations_duplicate_exact_checksum_keys"
     assert payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"]
@@ -717,7 +797,7 @@ def run_self_test() -> None:
         expected_path.write_text(json.dumps(expectations, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         source_path = phase1_bench_path(temp_root)
         source_path.parent.mkdir(parents=True, exist_ok=True)
-        source_path.write_text(build_find_bit_bench_source("find_edge_checksum_print"), encoding="utf-8")
+        source_path.write_text(build_full_bench_source(omit_find_bit_label="find_edge_checksum_print"), encoding="utf-8")
         result = subprocess.run(
             [sys.executable, str(HERE), "--root", temp_dir],
             capture_output=True,
@@ -736,7 +816,7 @@ def run_self_test() -> None:
         expected_path.write_text(json.dumps(expectations, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         source_path = phase1_bench_path(temp_root)
         source_path.parent.mkdir(parents=True, exist_ok=True)
-        source_path.write_text(build_find_bit_bench_source(), encoding="utf-8")
+        source_path.write_text(build_full_bench_source(), encoding="utf-8")
         build_file = build_file_path(temp_root)
         build_file.parent.mkdir(parents=True, exist_ok=True)
         build_file.write_text("// bench build file is not executed by /bin/sh\n", encoding="utf-8")
@@ -760,7 +840,7 @@ def run_self_test() -> None:
         expected_path.write_text(json.dumps(expectations, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         source_path = phase1_bench_path(temp_root)
         source_path.parent.mkdir(parents=True, exist_ok=True)
-        source_path.write_text(build_find_bit_bench_source(), encoding="utf-8")
+        source_path.write_text(build_full_bench_source(), encoding="utf-8")
         build_file = build_file_path(temp_root)
         build_file.parent.mkdir(parents=True, exist_ok=True)
         build_file.write_text("// fake zig ignores this file\n", encoding="utf-8")
