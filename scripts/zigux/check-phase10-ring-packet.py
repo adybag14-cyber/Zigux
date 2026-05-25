@@ -54,6 +54,11 @@ EXPECTED_MANIFEST_FIELDS = {
 EXPECTED_GAP_METADATA = {
     "phase10-build-gate": ("validation", "starter_landed", "zigux/tests/phase10_build.zig"),
     "phase10-virtio-core-lab-starter": ("lab_driver_starter", "starter_landed", "drivers/virtio/virtio.zig"),
+    "phase10-ring-registration-replay": (
+        "validation",
+        "starter_landed",
+        "zigux/tests/phase10_virtio_ring_registration_replay.zig",
+    ),
     "phase10-virtio-ring-survey-gate": ("validation", "starter_landed", "zigux/tests/phase10_virtio_ring_survey.zig"),
     "phase10-virtio-ring-survey-note": ("documentation", "starter_landed", "Documentation/zigux/phase10-virtio-ring-survey.md"),
     "phase10-virtqueue-shape-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
@@ -502,6 +507,22 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def drift_ring_registration_replay_destination(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for gap in data["gaps"]:
+                if gap.get("id") == "phase10-ring-registration-replay":
+                    gap["zigux_destination"] = "zigux/tests/phase10_virtio_ring_registration_gap.zig"
+                    break
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_ring_registration_replay_destination,
+            f"{MANIFEST_PATH}:gap:phase10-ring-registration-replay:zigux_destination:zigux/tests/phase10_virtio_ring_registration_gap.zig",
+        )
+        write_fixture(root)
+
         def remove_empty_queue_test(tmp_root: Path) -> None:
             path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
             text = path.read_text(encoding="utf-8")
@@ -637,7 +658,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=24")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
