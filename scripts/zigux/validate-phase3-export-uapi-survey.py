@@ -38,9 +38,14 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
         "PHASE3_EXPORT_UAPI_VALIDATOR_RUN=python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
         "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
         "PHASE3_ABI_H_BOUNDARY_NOTE=Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+        "PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig",
+        "PHASE3_BINDING_DEV_T_PATH=zigux/bindings/dev_t.zig",
         "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
+        "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
+        "PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
@@ -217,12 +222,15 @@ REQUIRED_MARKERS = {
     ),
 }
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -238,9 +246,11 @@ def validate_repo(repo_root: Path) -> list[str]:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
     return issues
 
+
 def _populate_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
         _write(root / relative_path, "\n".join(markers) + "\n")
+
 
 def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message: str) -> int:
     target = root / relative_path
@@ -253,8 +263,34 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
         return 1
     return 0
 
+
 def run_self_test() -> int:
     marker_cases = (
+        (
+            SURVEY_PATH,
+            "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
+            "expected missing export-shim path marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig",
+            "expected missing binding version path marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_BINDING_DEV_T_PATH=zigux/bindings/dev_t.zig",
+            "expected missing binding dev_t path marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
+            "expected missing uapi version path marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig",
+            "expected missing uapi dev_t path marker was not reported",
+        ),
         (
             SURVEY_PATH,
             "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
@@ -475,6 +511,7 @@ def run_self_test() -> int:
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(marker_cases)}")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the current Phase 3 export/UAPI packet.")
