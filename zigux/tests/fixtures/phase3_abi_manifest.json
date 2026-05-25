@@ -46,6 +46,8 @@
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-shared-tests-routes.py",
+    "scripts/zigux/check-phase3-wrapper-templates.py",
+    "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
