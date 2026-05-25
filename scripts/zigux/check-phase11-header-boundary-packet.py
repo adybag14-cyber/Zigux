@@ -43,6 +43,7 @@ SURVEY_REQUIRED_MARKERS = (
     "`phase11-focused-direct-build-checker`",
     "`scripts/zigux/check-phase11-focused-direct-build-replays.py`",
     "machine-checked evidence rather than inventory-only prose",
+    "`zigux/tests/fixtures/phase11_build_inventory.json`",
 )
 
 SURVEY_FORBIDDEN_MARKERS = (
@@ -84,6 +85,7 @@ MATRIX_REQUIRED_MARKERS = (
     "`python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`",
     "`scripts/zigux/validate-phase11.py`",
     "`zigux/Makefile`",
+    "`zigux/tests/fixtures/phase11_build_inventory.json`",
 )
 
 MATRIX_FORBIDDEN_MARKERS = (
@@ -172,6 +174,7 @@ def run_self_test() -> int:
   - `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+  - `zigux/tests/fixtures/phase11_build_inventory.json`
   - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
   - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
@@ -194,7 +197,7 @@ def run_self_test() -> int:
     fixture_matrix = """# Phase 11 UAPI Header Parity Validation Matrix
 ## Review Rules
 
-- Treat `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, the returned `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, and the returned `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` as returned reminder-only continuity evidence unless the missing shared replay files rematerialize beside them.
+- Treat `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, the returned `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, and the returned `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` as returned reminder-only continuity evidence unless the missing shared replay files rematerialize beside them.
 - Keep the adjacent cleanup, modem-control, and targetless-unregister companions explicit as directly readable HVC failure-mode continuity evidence without promoting them into shared header-parity replay coverage.
 
 ## Status
@@ -219,6 +222,7 @@ def run_self_test() -> int:
   - `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
   - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+  - `zigux/tests/fixtures/phase11_build_inventory.json`
   - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
   - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
@@ -263,6 +267,13 @@ def run_self_test() -> int:
         expect_failure(survey_modem_missing, SURVEY_REQUIRED_MARKERS[17])
         case_count += 1
 
+        survey_inventory_missing = tmpdir / "survey_inventory_missing"
+        shutil.copytree(fixture_root, survey_inventory_missing, dirs_exist_ok=True)
+        path = survey_inventory_missing / SURVEY_PATH
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), SURVEY_REQUIRED_MARKERS[-1]), encoding="utf-8")
+        expect_failure(survey_inventory_missing, SURVEY_REQUIRED_MARKERS[-1])
+        case_count += 1
+
         matrix_missing = tmpdir / "matrix_missing"
         shutil.copytree(fixture_root, matrix_missing, dirs_exist_ok=True)
         path = matrix_missing / MATRIX_PATH
@@ -282,6 +293,13 @@ def run_self_test() -> int:
         path = matrix_modem_missing / MATRIX_PATH
         path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[17]), encoding="utf-8")
         expect_failure(matrix_modem_missing, MATRIX_REQUIRED_MARKERS[17])
+        case_count += 1
+
+        matrix_inventory_missing = tmpdir / "matrix_inventory_missing"
+        shutil.copytree(fixture_root, matrix_inventory_missing, dirs_exist_ok=True)
+        path = matrix_inventory_missing / MATRIX_PATH
+        path.write_text(remove_marker(path.read_text(encoding="utf-8"), MATRIX_REQUIRED_MARKERS[-1]), encoding="utf-8")
+        expect_failure(matrix_inventory_missing, MATRIX_REQUIRED_MARKERS[-1])
         case_count += 1
 
         survey_forbidden = tmpdir / "survey_forbidden"
