@@ -1,7 +1,14 @@
 {
   "lane_key": "P14-L07",
   "phase": "Phase 14",
-  "surveyed_commit": "40f2a065b1c06d7ea621c1c0c388e6202b0b22b7",
+  "surveyed_commit": "aba08e207f1742838c4b96b151b0a12d340b3676",
+  "surveyed_on": "2026-05-25",
+  "verification_evidence": [
+    "Latest visible master commit on 2026-05-25 public GitHub commit readback: aba08e207f1742838c4b96b151b0a12d340b3676 (docs(zigux): restore phase10 validator in closure evidence).",
+    "Current readable zigux/Makefile still exposes make -C zigux phase14-validate but does not expose make -C zigux phase14-smoke, make -C zigux phase14-test, or make -C zigux phase14.",
+    "Current readable .github/workflows/zigux-bootstrap.yml still reruns make -C zigux phase14-validate and does not rerun a dedicated Phase 14 build or smoke-shard workflow step.",
+    "Current readable shared smoke manifest still records zig build phase14-smoke --build-file zigux/tests/phase14_build.zig only as a focused raw build-file shard, not as a Makefile-backed shared smoke route."
+  ],
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
@@ -117,6 +124,9 @@
     }
   ],
   "survey_summary": {
+    "latest_visible_master_commit": "aba08e207f1742838c4b96b151b0a12d340b3676",
+    "latest_visible_master_commit_subject": "docs(zigux): restore phase10 validator in closure evidence",
+    "phase14_surface_changed_in_latest_visible_commit": false,
     "phase14_validate_script_present": true,
     "phase14_validate_entrypoint_present": true,
     "phase14_build_has_shared_smoke_step": true,
