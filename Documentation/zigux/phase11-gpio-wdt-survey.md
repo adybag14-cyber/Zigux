@@ -17,6 +17,7 @@ wording drifted ahead of current contents reads.
 - current authenticated contents readback keeps the bounded gpio watchdog packet
   reviewable through:
   - `drivers/watchdog/gpio_wdt.zig`
+  - `drivers/watchdog/gpio_wdt_verify.zig`
   - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
   - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
   - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
@@ -57,6 +58,7 @@ Treat the current bounded gpio watchdog packet on `master` as the returned
 driver-plus-docs-plus-proof packet below:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `drivers/watchdog/gpio_wdt_verify.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
@@ -71,13 +73,13 @@ driver-plus-docs-plus-proof packet below:
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-The returned driver, focused preflight proof, focused register-device glue
-proof, focused nowayout policy proof, focused remove-handoff proof, dedicated
-bounded replay routes, and companion notes keep the bounded
-`platformDriverIdentitySummary()`, `watchdogMetadataSummary()`, `probeSummary()`,
-`descriptorRequestSummary()`, `descriptorPreflightSummary()`,
-`timeoutPropertyCheckpointSummary()`, `platformDrvdataCheckpointSummary()`,
-`watchdogDrvdataCheckpointSummary()`,
+The returned driver, driver-backed verify helper, focused preflight proof,
+focused register-device glue proof, focused nowayout policy proof, focused
+remove-handoff proof, dedicated bounded replay routes, and companion notes keep
+the bounded `platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
+`probeSummary()`, `descriptorRequestSummary()`,
+`descriptorPreflightSummary()`, `timeoutPropertyCheckpointSummary()`,
+`platformDrvdataCheckpointSummary()`, `watchdogDrvdataCheckpointSummary()`,
 `registrationIntentCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
 `nowayoutPolicySummary()`, `registrationHandoffSummary()`,
 `registrationPlanSummary()`, `registerDeviceCallSummary()`,
@@ -89,6 +91,13 @@ That means the roadmap-facing simple-driver template, bounded teardown parity,
 and bounded failure-mode parity are already reviewable in the returned packet,
 while live execution and hardware-backed validation stay outside the current
 claim.
+
+The driver-backed verify helper keeps `registrationPlanSummary()`,
+`registerDeviceCallSummary()`, `registerDeviceFailureSummary()`,
+`rebootGlueCheckpointSummary()`, `summarizeTeardown()`, and
+`summarizeRemoveHandoff()` directly replayable beside the focused proofs without
+claiming live GPIO, watchdog-core registration, remove-hook execution, or
+shutdown execution.
 
 The direct preflight proof now exercises `descriptorPreflightSummary()`
 alongside the timeout-property and drvdata-ordering checkpoints without
@@ -124,11 +133,11 @@ and hardware-backed validation.
 ## What Landed
 
 Current authenticated contents reads keep a narrower gpio watchdog continuity
-packet directly reviewable on `master` through the returned driver, the focused
-preflight proof, the focused register-device glue proof, the focused nowayout
-policy proof, the focused remove-handoff proof, the dedicated bounded replay
-routes, and the survey note, module slice, teardown note, remove-handoff note,
-and validation matrix.
+packet directly reviewable on `master` through the returned driver, the
+driver-backed verify helper, the focused preflight proof, the focused
+register-device glue proof, the focused nowayout policy proof, the focused
+remove-handoff proof, the dedicated bounded replay routes, and the survey note,
+module slice, teardown note, remove-handoff note, and validation matrix.
 
 That current packet now also keeps the bounded remove-handoff packet explicit
 beside the existing watchdog-drvdata ownership handoff, reboot-glue
