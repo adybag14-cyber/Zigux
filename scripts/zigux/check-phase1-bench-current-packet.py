@@ -418,8 +418,25 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-workflow-bench-duplicate-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / WORKFLOW_REL
+        marker = "run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace(marker, f"{marker}\n{marker}", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        expected_issue = (
+            f"{WORKFLOW_REL}:marker_count:{marker}:expected=1:actual=2"
+        )
+        if issues != [expected_issue]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=duplicate_workflow_bench_run_marker_fail_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=11")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
