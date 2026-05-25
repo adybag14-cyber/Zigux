@@ -89,14 +89,42 @@ def find_zig(explicit: str | None, root: Path) -> str:
     raise SystemExit("zig not found; pass --zig, set ZIG, or extract the attached toolchain")
 
 
-def canonicalize_json(text: str) -> str:
+def validate_case_packet_shape(data: object, label: str) -> None:
+    if not isinstance(data, dict):
+        raise SystemExit(f"{label} invalid shape: top-level value must be an object")
+    if "cases" not in data:
+        raise SystemExit(f"{label} invalid shape: missing 'cases' array")
+    if len(data) != 1:
+        extra_keys = sorted(key for key in data.keys() if key != "cases")
+        raise SystemExit(f"{label} invalid shape: unexpected top-level keys: {extra_keys}")
+    cases = data["cases"]
+    if not isinstance(cases, list):
+        raise SystemExit(f"{label} invalid shape: 'cases' must be a list")
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            raise SystemExit(f"{label} invalid shape: cases[{index}] must be an object")
+        if "input" not in case:
+            raise SystemExit(f"{label} invalid shape: cases[{index}] missing 'input'")
+        if "crc_hex" not in case:
+            raise SystemExit(f"{label} invalid shape: cases[{index}] missing 'crc_hex'")
+        if len(case) != 2:
+            extra_keys = sorted(key for key in case.keys() if key not in {"input", "crc_hex"})
+            raise SystemExit(f"{label} invalid shape: cases[{index}] unexpected keys: {extra_keys}")
+        if not isinstance(case["input"], str):
+            raise SystemExit(f"{label} invalid shape: cases[{index}].input must be a string")
+        if not isinstance(case["crc_hex"], str):
+            raise SystemExit(f"{label} invalid shape: cases[{index}].crc_hex must be a string")
+
+
+def canonicalize_json(text: str, label: str = "json") -> str:
     data = json.loads(text)
+    validate_case_packet_shape(data, label)
     return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
 
 def canonicalize_json_file(path: Path, label: str) -> str:
     try:
-        return canonicalize_json(path.read_text(encoding="utf-8"))
+        return canonicalize_json(path.read_text(encoding="utf-8"), label)
     except json.JSONDecodeError as exc:
         raise SystemExit(f"{label} invalid json: {path}: {exc.msg}") from exc
 
@@ -185,6 +213,31 @@ def run_self_test() -> int:
         raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
     if required_paths(True, *expected_paths) != expected_paths[:-1]:
         raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+
+    expect_system_exit_contains(
+        lambda: canonicalize_json("[]", "selftest-top-level-array"),
+        "selftest-top-level-array invalid shape: top-level value must be an object",
+    )
+    expect_system_exit_contains(
+        lambda: canonicalize_json("{}", "selftest-missing-cases"),
+        "selftest-missing-cases invalid shape: missing 'cases' array",
+    )
+    expect_system_exit_contains(
+        lambda: canonicalize_json('{"cases":{} }', "selftest-cases-not-list"),
+        "selftest-cases-not-list invalid shape: 'cases' must be a list",
+    )
+    expect_system_exit_contains(
+        lambda: canonicalize_json('{"cases":[{"input":"int"}]}', "selftest-missing-crc"),
+        "selftest-missing-crc invalid shape: cases[0] missing 'crc_hex'",
+    )
+    expect_system_exit_contains(
+        lambda: canonicalize_json('{"cases":[{"input":"int","crc_hex":"0x1451dab1","extra":true}]}', "selftest-extra-case-key"),
+        "selftest-extra-case-key invalid shape: cases[0] unexpected keys: ['extra']",
+    )
+    expect_system_exit_contains(
+        lambda: canonicalize_json('{"cases":[{"input":"int","crc_hex":123}]}', "selftest-non-string-crc"),
+        "selftest-non-string-crc invalid shape: cases[0].crc_hex must be a string",
+    )
 
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_required_files_") as required_files_tmp_dir_str:
         required_files_root = Path(required_files_tmp_dir_str) / "repo"
@@ -391,7 +444,7 @@ def run_self_test() -> int:
         )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=33")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
