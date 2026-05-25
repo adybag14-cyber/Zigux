@@ -29,7 +29,7 @@ jobs:
           python-version: '3.x'
 
       - name: Compile current split-helper packet scripts
-        run: python3 -m py_compile scripts/zigux/split-pinned-zig-archive.py scripts/zigux/check-lane05-split-helper-selftest.py
+        run: python3 -m py_compile scripts/zigux/split-pinned-zig-archive.py scripts/zigux/check-lane05-split-helper-selftest.py scripts/zigux/check-lane05-split-helper-workflow.py
 
       - name: Self-test current split pinned Zig archive helper
         run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test
@@ -37,5 +37,8 @@ jobs:
       - name: Self-test current Lane 05 split helper selftest checker
         run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
 
-      - name: Check current Lane 05 split helper selftest packet
-        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
+      - name: Self-test current Lane 05 split-helper workflow checker
+        run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test
+
+      - name: Check current Lane 05 split-helper workflow packet
+        run: python3 scripts/zigux/check-lane05-split-helper-workflow.py
