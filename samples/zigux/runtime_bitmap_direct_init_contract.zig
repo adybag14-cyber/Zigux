@@ -5,14 +5,11 @@ const ModuleStage = runtime_bitmap_sample.ModuleStage;
 const RuntimeBitmapSample = runtime_bitmap_sample.RuntimeBitmapSample;
 const RuntimeBitmapSummary = runtime_bitmap_sample.RuntimeBitmapSummary;
 
-fn expectSummaryStable(before: RuntimeBitmapSummary, after: RuntimeBitmapSummary) !void {
+fn expectBitmapShapeStable(before: RuntimeBitmapSummary, after: RuntimeBitmapSummary) !void {
     try std.testing.expectEqual(before.first_set, after.first_set);
     try std.testing.expectEqual(before.first_zero, after.first_zero);
     try std.testing.expectEqual(before.weight, after.weight);
     try std.testing.expectEqual(before.nbits, after.nbits);
-    try std.testing.expectEqual(before.init_runs, after.init_runs);
-    try std.testing.expectEqual(before.selftest_runs, after.selftest_runs);
-    try std.testing.expectEqual(before.exit_runs, after.exit_runs);
 }
 
 test "runtime bitmap sample normalizes unsorted duplicate direct init bits without inflating summaries" {
@@ -63,7 +60,8 @@ test "runtime bitmap sample keeps direct-init lifecycle summaries stable through
 
     const after_selftest = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
-    try expectSummaryStable(initialized, after_selftest);
+    try expectBitmapShapeStable(initialized, after_selftest);
+    try std.testing.expectEqual(initialized.init_runs, after_selftest.init_runs);
     try std.testing.expectEqual(@as(usize, 1), after_selftest.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), after_selftest.exit_runs);
     try std.testing.expect(module.isSet(0));
@@ -76,7 +74,8 @@ test "runtime bitmap sample keeps direct-init lifecycle summaries stable through
 
     const after_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
-    try expectSummaryStable(initialized, after_exit);
+    try expectBitmapShapeStable(initialized, after_exit);
+    try std.testing.expectEqual(initialized.init_runs, after_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), after_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
     try std.testing.expect(module.isSet(0));
