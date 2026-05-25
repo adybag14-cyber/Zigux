@@ -28,8 +28,10 @@ COMPANION_REQUIRED_MARKERS = (
     "Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` explicit as the directly re-readable broader ring companion.",
     "`Documentation/zigux/phase10-virtio-input-module-slice.md`",
     "`drivers/virtio/virtio_input_queue_callback_preflight.zig`",
+    "`drivers/virtio/virtio_input_teardown_preflight.zig`",
     "`drivers/virtio/virtio_input_verify.zig`",
     "`zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`",
+    "`zigux/tests/phase10_virtio_input_teardown_preflight.zig`",
     "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
     "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`",
     "`zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`",
@@ -139,7 +141,7 @@ def run_self_test() -> int:
 Keep the current bounded virtio closure packet explicit through the shared reminder surfaces, the directly re-readable ring packet anchors, the directly re-readable input packet, the helper-local MMIO packet, the returned shared closure validator, manifest, and count guard, and the shared build gate:
 - shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-shared-freeze-boundary.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/check-phase10-closure-manifest-counts.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml`
 - directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `zigux/tests/phase10_build.zig`
-- directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
+- directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
 - helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`
 - returned shared closure packet anchors: `scripts/zigux/check-phase10-closure-manifest-counts.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_closure_manifest.json`
 - current direct lane readback now rematerializes `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig`
@@ -261,6 +263,30 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         assert "tests-root-readme" in str(exc)
     else:
         raise AssertionError("expected tests-root input packet marker failure")
+
+    missing_companion_input_teardown_preflight_helper = good_companion.replace(
+        "`drivers/virtio/virtio_input_teardown_preflight.zig`, ",
+        "",
+        1,
+    )
+    try:
+        check_companion_text(missing_companion_input_teardown_preflight_helper)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected companion teardown-preflight helper marker failure")
+
+    missing_companion_input_teardown_preflight_replay = good_companion.replace(
+        "`zigux/tests/phase10_virtio_input_teardown_preflight.zig`, ",
+        "",
+        1,
+    )
+    try:
+        check_companion_text(missing_companion_input_teardown_preflight_replay)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected companion teardown-preflight replay marker failure")
 
     missing_tests_root_checker = good_tests_root.replace(
         "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
@@ -502,7 +528,7 @@ Keep the queue-callback-preflight, registration-preflight, status-drain, and tea
         raise AssertionError("expected missing ring publish-readiness scripts-root marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=27")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
