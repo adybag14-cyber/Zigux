@@ -181,6 +181,7 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+
 def build_stub_script(path: Path, *, exit_code: int = 0) -> None:
     write_text(
         path,
@@ -239,6 +240,10 @@ def run_self_test() -> int:
         assert_missing_required_path(
             "drivers/virtio/virtio_ring_publish_readiness.zig",
             "missing_ring_publish_readiness_path",
+        )
+        assert_missing_required_path(
+            "drivers/virtio/virtio_mmio_apply_observation.zig",
+            "missing_mmio_apply_observation_path",
         )
         assert_missing_required_path(
             "zigux/tests/phase10_virtio_mmio_survey.zig",
@@ -349,7 +354,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
