@@ -22,8 +22,8 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 
 ## Survey Result
 - `current master` does not have a remaining roadmap gap at the level of confdata bridge scaffolding or reminder-surface evidence.
-- The bridge, external fixture packet, manifest, and shared reminder surfaces already agree on the bounded current packet.
-- The real gap this run reopened was packet truthfulness: the live bridge source had advanced to `27` helper-local tests, but the shared checker and confdata manifest still named only `25` anchors and therefore stopped enforcing the two already-landed output-local proofs for preserved malformed-quote JSON output and explicit-empty-assignment JSON output. This note now reflects the live `27`-anchor and `15`-case confdata packet plus the current shared checker surfaces.
+- The bridge, external fixture packet, manifest, shared checker surfaces, and shared closure note already agree on the bounded current packet, including the live `27`-anchor helper-local bridge roster.
+- The stale `25`-anchor undercount is no longer a live repo gap. Exact current-`master` readback shows that `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, and `Documentation/zigux/phase2-closure.md` already track the same `27` helper-local confdata anchors and `15` external fixture cases that the bridge source now ships.
 - Future reopening in this lane should stay evidence-first: only revisit this note if a later `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/*`, `scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, or `Documentation/zigux/phase2-closure.md` change lands without matching review evidence.
 
 ## Next Bounded Step
