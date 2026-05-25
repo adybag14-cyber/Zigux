@@ -44,8 +44,6 @@ pub const RestartSummary = struct {
 
 pub const PlatformHandoffInput = struct {
     heartbeat_sec: u32,
-    nowayout: bool,
-    bootloader_running: bool,
     system_power_controller: bool,
     poweroff_handler_present: bool,
     parent_attached: bool,
@@ -121,16 +119,11 @@ pub const Bcm2835WdtLab = struct {
     const Self = @This();
 
     heartbeat_sec: u32,
-    bootloader_running: bool = false,
     registers: RegisterImage = .{},
 
     pub fn init(heartbeat_sec: u32) !Self {
         try validateTimeout(heartbeat_sec);
         return .{ .heartbeat_sec = heartbeat_sec };
-    }
-
-    pub fn importBootloaderRunning(self: *Self) void {
-        self.bootloader_running = true;
     }
 
     pub fn start(self: *Self) void {
