@@ -89,8 +89,10 @@ EXPECTED_BSEARCH_C_ABI_REPLAYS = [
 EXPECTED_BSEARCH_BUDGET_FORMULA = "std.math.log2_int_ceil(len) + 1"
 EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
+EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
+EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 
-SELF_TEST_CASE_COUNT = 43
+SELF_TEST_CASE_COUNT = 45
 
 
 class ValidationError(RuntimeError):
@@ -166,6 +168,8 @@ def validate_evidence_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
     if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
         raise ValidationError("helper-evidence surveyed_head drifted")
+    if manifest.get("lane_scope") != EXPECTED_EVIDENCE_LANE_SCOPE:
+        raise ValidationError("helper-evidence lane_scope drifted")
 
     companions = manifest.get("current_direct_readback_companions")
     if not isinstance(companions, list):
@@ -250,6 +254,8 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError(f"unexpected phase id in {path.as_posix()}")
     if manifest.get("surveyed_head") != EXPECTED_SURVEYED_HEAD:
         raise ValidationError("helper-parity surveyed_head drifted")
+    if manifest.get("lane_scope") != EXPECTED_PARITY_LANE_SCOPE:
+        raise ValidationError("helper-parity lane_scope drifted")
 
     base64 = get_helper(manifest, "base64")
     bsearch = get_helper(manifest, "bsearch")
@@ -321,6 +327,7 @@ def scaffold_repo(root: Path) -> None:
                 "packet": "phase6-helper-evidence",
                 "phase": "Phase 6",
                 "surveyed_head": EXPECTED_SURVEYED_HEAD,
+                "lane_scope": EXPECTED_EVIDENCE_LANE_SCOPE,
                 "current_direct_readback_companions": [REQUIRED_DIRECT_READBACK_COMPANION],
                 "helpers": [
                     {
@@ -367,6 +374,7 @@ def scaffold_repo(root: Path) -> None:
                 "packet": "phase6-helper-parity",
                 "phase": "Phase 6",
                 "surveyed_head": EXPECTED_SURVEYED_HEAD,
+                "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
                 "helpers": [
                     {
                         "key": "base64",
@@ -603,6 +611,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                f'"lane_scope": "{EXPECTED_EVIDENCE_LANE_SCOPE}"',
+                '"lane_scope": "shared helper-evidence rows only"',
+            ),
+            "helper-evidence lane_scope drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 "zigux/tests/phase6_base64_perf.zig",
                 "zigux/tests/phase6_base64.zig",
             ),
@@ -823,6 +843,18 @@ def run_self_test() -> None:
                 '"surveyed_head": "current-master-readback-2026-05-21"',
             ),
             "helper-parity surveyed_head drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                f'"lane_scope": "{EXPECTED_PARITY_LANE_SCOPE}"',
+                '"lane_scope": "shared helper-parity rows only"',
+            ),
+            "helper-parity lane_scope drifted",
         )
         cases_run += 1
         scaffold_repo(root)
