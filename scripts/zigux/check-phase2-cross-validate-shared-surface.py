@@ -90,6 +90,27 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py",
 )
 
+REQUIRED_CROSS_TARGET = "phase2-cross:"
+REQUIRED_VALIDATE_TARGET = (
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep"
+)
+REQUIRED_CROSS_TARGET_COMMANDS = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy-selftest-alignment.py",
+)
+REQUIRED_VALIDATE_TARGET_COMMANDS = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py",
+)
+
 
 def read_text(path: Path) -> str:
     try:
@@ -113,6 +134,26 @@ def resolve_path(root: Path, path: Path) -> Path:
 def count_exact_lines(text: str, marker: str) -> int:
     normalized_marker = marker.strip()
     return sum(1 for line in text.splitlines() if line.strip() == normalized_marker)
+
+
+def collect_makefile_target_commands(text: str, header: str) -> list[str]:
+    lines = text.splitlines()
+    commands: list[str] = []
+    in_target = False
+
+    for line in lines:
+        stripped = line.strip()
+        if not in_target:
+            if stripped == header:
+                in_target = True
+            continue
+
+        if stripped and not line.startswith((" ", "\t")) and ":" in stripped:
+            break
+        if line.startswith("\t"):
+            commands.append(stripped)
+
+    return commands
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -153,6 +194,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             elif count != 1:
                 issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
 
+        cross_commands = collect_makefile_target_commands(makefile_text, REQUIRED_CROSS_TARGET)
+        for marker in REQUIRED_CROSS_TARGET_COMMANDS:
+            if marker not in cross_commands:
+                issues.append(("MISSING_CROSS_TARGET_COMMAND", marker))
+
+        validate_commands = collect_makefile_target_commands(makefile_text, REQUIRED_VALIDATE_TARGET)
+        for marker in REQUIRED_VALIDATE_TARGET_COMMANDS:
+            if marker not in validate_commands:
+                issues.append(("MISSING_VALIDATE_TARGET_COMMAND", marker))
+
     return issues
 
 
@@ -182,8 +233,14 @@ def build_self_test_root(root: Path) -> None:
     workflow_lines.extend(REQUIRED_WORKFLOW_LINES)
     write_text(resolve_path(root, WORKFLOW), "\n".join(workflow_lines) + "\n")
 
-    makefile_lines = ["phase2-cross:"]
-    makefile_lines.extend(f"\t{line}" for line in REQUIRED_MAKEFILE_LINES)
+    makefile_lines = [
+        REQUIRED_CROSS_TARGET,
+        *[f"\t{line}" for line in REQUIRED_CROSS_TARGET_COMMANDS],
+        "phase2-genksyms:",
+        "\t@true",
+        REQUIRED_VALIDATE_TARGET,
+        *[f"\t{line}" for line in REQUIRED_VALIDATE_TARGET_COMMANDS],
+    ]
     write_text(resolve_path(root, MAKEFILE), "\n".join(makefile_lines) + "\n")
 
     for path in REQUIRED_PATHS[3:]:
@@ -227,8 +284,42 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             resolve_path(root, MAKEFILE),
-            "phase2-cross:\n"
+            f"{REQUIRED_CROSS_TARGET}\n"
             + "\n".join(f"\t{line}" for line in REQUIRED_MAKEFILE_LINES + (REQUIRED_MAKEFILE_LINES[0],))
+            + "\n",
+        )
+        assert run_check(root) == 1
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            resolve_path(root, MAKEFILE),
+            f"{REQUIRED_CROSS_TARGET}\n"
+            + "\n".join(f"\t{line}" for line in REQUIRED_CROSS_TARGET_COMMANDS)
+            + "\n"
+            + "phase2-genksyms:\n\t@true\n"
+            + f"{REQUIRED_VALIDATE_TARGET}\n"
+            + "\n".join(
+                f"\t{line}"
+                for line in REQUIRED_VALIDATE_TARGET_COMMANDS[1:]
+            )
+            + "\n",
+        )
+        assert run_check(root) == 1
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            resolve_path(root, MAKEFILE),
+            f"{REQUIRED_CROSS_TARGET}\n"
+            + "\n".join(
+                f"\t{line}"
+                for line in REQUIRED_CROSS_TARGET_COMMANDS[1:]
+            )
+            + "\n"
+            + "phase2-genksyms:\n\t@true\n"
+            + f"{REQUIRED_VALIDATE_TARGET}\n"
+            + "\n".join(f"\t{line}" for line in REQUIRED_VALIDATE_TARGET_COMMANDS)
             + "\n",
         )
         assert run_check(root) == 1
