@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=helper-local`
 - lane-key note: `helper-local` keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate shared-control lanes
 - scope: keep the Phase 7 string-helpers lane limited to the expanded starter packet and the no-sample review boundary
-- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/check-phase7-string-helpers-packet.py`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Current `master` no longer carries a standalone `lib/string_helpers_parse_int_array.zig` sidecar, so keep parse-int-array reviewability anchored to `lib/string_helpers.zig` instead of reviving a duplicate helper-local file. Treat `lib/string_helpers.c` and `include/linux/string_helpers.h` as roadmap provenance only unless a fresh reread proves they are directly readable again on current `master`. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
+- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_string_helpers_format_boundary.zig`, `scripts/zigux/check-phase7-string-helpers-packet.py`, `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Current `master` no longer carries a standalone `lib/string_helpers_parse_int_array.zig` sidecar, so keep parse-int-array reviewability anchored to `lib/string_helpers.zig` instead of reviving a duplicate helper-local file. Treat `lib/string_helpers.c` and `include/linux/string_helpers.h` as roadmap provenance only unless a fresh reread proves they are directly readable again on current `master`. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
 
 ## Why This Slice Exists
 
@@ -17,7 +17,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, bounded quotable file-path duplication, bounded quotable-cmdline, bounded parse-int-array, and bounded case-conversion helpers reviewable while the broader user-buffer and device-managed follow-ons stay deliberately out of scope.
 
-This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper reference-sample lane. Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet, but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion plus the shared `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` reminder under the non-runtime `trace_events` anchor. The dedicated boundary replay should keep that distinction explicit while the expanded starter packet advances through helper-local review surfaces only.
+This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper reference-sample lane. Current `master` still ships no standalone `samples/zigux/*string*` helper sample for this packet, but it does ship the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion plus the shared `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` reminder under the non-runtime `trace_events` anchor. The dedicated sample-boundary and format-boundary replays should keep that distinction explicit while the expanded starter packet advances through helper-local review surfaces only.
 
 ## Gates
 
@@ -25,14 +25,16 @@ This is intentionally not a standalone Phase 5 `samples/zigux/` string-helper re
 - `lib/string_helpers.zig`
 - `zigux/tests/phase7_string_helpers.zig`
 
-2. keep the helper-local survey and checker packet explicit
+2. keep the helper-local survey, checker, and manifest packet explicit
 - `zigux/tests/phase7_string_helpers_survey.zig`
 - `zigux/tests/phase7_string_helpers_manifest.json`
 - `scripts/zigux/check-phase7-string-helpers-packet.py`
+- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`
 
-3. keep the dedicated no-standalone-string-helper-sample boundary guard reviewable
+3. keep the dedicated no-standalone-string-helper-sample and format-boundary guards reviewable
 - `samples/zigux/README.md`
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
+- `zigux/tests/phase7_string_helpers_format_boundary.zig`
 
 4. keep shared-control drift out of this helper-local slice unless it rematerializes on current `master`
 - do not count `scripts/zigux/validate-phase7.py`
@@ -97,7 +99,7 @@ The current starter replay keeps these proofs explicit:
 - uppercase and lowercase copying that stops at the exported C-string boundary and truncates to caller-owned destination storage
 - bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice
 - in-place replacement behavior that stops at the first NUL
-- the dedicated helper-local checker, survey gate, helper-local manifest packet, and no-standalone-string-helper-sample boundary replay
+- the dedicated helper-local checker, dedicated format-boundary checker, survey gate, helper-local manifest packet, dedicated format-boundary replay, and no-standalone-string-helper-sample boundary replay
 
 The current starter replay also keeps these ownership-focused boundaries explicit:
 
@@ -127,5 +129,5 @@ This expanded starter slice does not yet claim:
 
 ## Next Bounded Step
 
-Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`.
+Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`.
 Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes only after a fresh same-family reread proves those broader reminders are directly readable again on current `master`.
