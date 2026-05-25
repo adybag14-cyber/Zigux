@@ -168,11 +168,11 @@ test "phase 8 verify routing witness records the current direct-readback libbpf 
     );
     try expectContains(
         survey,
-        "The remaining repo-reality gap in this note is no longer a helper-local code omission. It is reminder-surface discipline: older bridge, manifest, and focused build names may still appear in shared Phase 8 vocabulary, but this survey should now treat only the manifest plus the two bridge reminder docs as direct-readback companion evidence, while the bridge helper and focused bridge-only build shard stay public-tree-backed companion vocabulary until authenticated contents readback rematerializes them.",
+        "The remaining repo-reality gap in this note is no longer a helper-local code omission. It is reminder-surface discipline: older bridge, manifest, and focused build names may still appear in shared Phase 8 vocabulary, but this survey should now treat the manifest, the two bridge reminder docs, the bridge helper, and the focused bridge witness as direct-readback companion evidence, while the focused bridge-only build shard stays outside the exact stable-output helper set.",
     );
     try expectContains(
         survey,
-        "That older fetchability wording now needs the same mixed-source caution: the bridge-side reminder docs and focused bridge witness stay reviewable on current `master`, but the bridge helper and focused bridge-only build shard still stay outside the exact stable-output helper set because they document the deferred bridge boundary rather than extend helper semantics.",
+        "That older mixed-source wording now needs the same caution: the bridge-side reminder docs, the bridge helper, and the focused bridge witness stay reviewable on current `master`, but the focused bridge-only build shard still stays outside the exact stable-output helper set because it documents the deferred bridge boundary rather than extending helper semantics.",
     );
     try expectContains(
         survey,
