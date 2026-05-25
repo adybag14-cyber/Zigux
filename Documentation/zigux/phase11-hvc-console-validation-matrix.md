@@ -43,12 +43,12 @@ Current contents reads stay aligned with the smaller companion stack, so keep
 route claims bounded to `make -C zigux phase11-validate` until `zigux/Makefile`
 exposes a dedicated `make -C zigux phase11-hvc-survey` step. The witness shard
 now rereads the live starter and the boundary note together, the focused
- direct-build replay checker keeps the dedicated modem-control and
- targetless-unregister build routes fail-closed without promoting either pair
- into the shared three-entry build inventory, keep the modem-control proof pair
- directly readable through its focused build route without promoting it into the
- shared build inventory yet, and keep the targetless-unregister witness
- explicitly separate from the smaller proof-backed continuity packet.
+direct-build replay checker keeps the dedicated modem-control and
+targetless-unregister build routes fail-closed without promoting either pair
+into the shared three-entry build inventory, keep the modem-control proof pair
+directly readable through its focused build route without promoting it into the
+shared build inventory yet, and keep the targetless-unregister witness
+explicitly separate from the smaller proof-backed continuity packet.
 
 ## Failure-Mode Evidence
 
