@@ -214,7 +214,7 @@ test "phase 8 verify routing witness records the current mixed-source bridge rem
     );
     try expectContains(
         manifest,
-        "\\\"why_now\\\": \\\"The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\\\"",
+        "\\\"why_now\\\": \\\"The shared bridge surface now already carries the reused-map-name chooser, truncated-name retention through `resolveReusedMapName()`, devmap readonly-prog flag normalization through `normalizeObservedReuseMapFlags()`, and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\\\"",
     );
     try expectContains(
         manifest,
