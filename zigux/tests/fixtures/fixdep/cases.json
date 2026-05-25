@@ -65,6 +65,16 @@
     "expected_exit_code": 2
   },
   {
+    "name": "sample_double_backslash_comment_stdout_full",
+    "depfile": "sample_double_backslash_comment.d",
+    "target": "sample_double_backslash_comment_stdout_full.o",
+    "cmdline": "rustc --emit dep-info=sample_double_backslash_comment.d",
+    "expected": "sample_output_write_expected.txt",
+    "expected_stderr": "sample_double_backslash_comment_expected.stderr.txt",
+    "expected_exit_code": 2,
+    "stdout_mode": "dev_full"
+  },
+  {
     "name": "sample_comment_only",
     "depfile": "sample_comment_only.d",
     "target": "sample_comment_only.o",
