@@ -25,6 +25,12 @@ fn byteOffsetAddress(base_addr: usize, byte_offset: usize) PolicyError!usize {
     return std.math.add(usize, base_addr, byte_offset) catch error.InvalidInteropPolicy;
 }
 
+fn validateRangeWindow(base_addr: usize, length: u32) PolicyError!void {
+    const byte_len: usize = @intCast(length);
+    if (byte_len == 0) return;
+    _ = try byteOffsetAddress(base_addr, byte_len - 1);
+}
+
 fn offsetConstPointer(comptime T: type, base_addr: usize, byte_offset: usize) PolicyError!*const volatile T {
     if ((byte_offset % @alignOf(T)) != 0) return error.InvalidInteropPolicy;
     return @ptrFromInt(try byteOffsetAddress(base_addr, byte_offset));
@@ -120,6 +126,7 @@ pub fn writeMaskedScoped(
 
 pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) PolicyError!MmioRange {
     try requireVolatileMmioScope(scope);
+    try validateRangeWindow(base_addr, length);
     return .{
         .base_addr = base_addr,
         .length = length,
@@ -129,6 +136,7 @@ pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.Unsafe
 
 pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: abi.InteropPolicy) PolicyError!MmioRange {
     try requireInteropPolicy(policy);
+    try validateRangeWindow(base_addr, length);
     return .{
         .base_addr = base_addr,
         .length = length,
@@ -138,6 +146,7 @@ pub fn rangeInteropPolicy(base_addr: usize, length: u32, stride: u32, policy: ab
 
 pub fn rangeInteropPolicyBytes(base_addr: usize, length: u32, stride: u32, unsafe_scope: u8, reserved: u8) PolicyError!MmioRange {
     try requireInteropPolicyBytes(unsafe_scope, reserved);
+    try validateRangeWindow(base_addr, length);
     return .{
         .base_addr = base_addr,
         .length = length,
@@ -450,6 +459,35 @@ test "phase3 mmio helper keeps helper-local ranges and width aliases explicit" {
     try std.testing.expectEqual(@as(u32, 0xC001_D00D), try read32InteropPolicyByte(base_addr, 4, mmio_scope));
 
     try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base_addr, 8, 0, no_unsafe_scope, 0));
+}
+
+test "phase3 mmio helper rejects overflowing range windows before blessing unsafe access" {
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const mmio_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio);
+    const near_end = std.math.maxInt(usize) - 3;
+
+    const bounded = try rangeScoped(near_end, 4, 1, .volatile_mmio);
+    try std.testing.expectEqual(near_end, bounded.base_addr);
+    try std.testing.expectEqual(@as(u32, 4), bounded.length);
+    try std.testing.expectEqual(@as(u32, 1), bounded.stride);
+
+    try std.testing.expectError(error.InvalidInteropPolicy, rangeScoped(near_end, 5, 1, .volatile_mmio));
+    try std.testing.expectError(error.InvalidInteropPolicy, rangeInteropPolicy(near_end, 5, 1, mmio_policy));
+    try std.testing.expectError(
+        error.InvalidInteropPolicy,
+        rangeInteropPolicyBytes(near_end, 5, 1, mmio_scope, 0),
+    );
+    try std.testing.expectError(error.InvalidInteropPolicy, rangeInteropPolicyByte(near_end, 5, 1, mmio_scope));
+
+    const empty = try rangeInteropPolicyByte(std.math.maxInt(usize), 0, 0, mmio_scope);
+    try std.testing.expectEqual(std.math.maxInt(usize), empty.base_addr);
+    try std.testing.expectEqual(@as(u32, 0), empty.length);
+    try std.testing.expectEqual(@as(u32, 0), empty.stride);
 }
 
 test "phase3 mmio helper keeps 64-bit const reads and masked updates reviewable" {
