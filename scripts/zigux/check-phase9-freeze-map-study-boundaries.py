@@ -61,8 +61,9 @@ FREEZE_MAP_REQUIRED_MARKERS = [
     "`zigux/kernel/runtime_loader_contract.zig`",
     "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`",
     "`samples/zigux/runtime_bitmap_loader.zig`",
+    "`zigux/tests/runtime_kretprobe_manifest.json`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, and the bounded `phase9-runtime-kretprobe-test` route as family-local evidence rather than proof that blocked publication, install-root, or deeper shared runtime-loader boundaries are complete",
     "`samples/zigux/runtime_trace_events_loader.zig`",
-    "`zigux/Makefile` explicit only as a readable non-owner surface whose live body now exposes bounded `phase9-runtime-atomic64-test`, `phase9-runtime-bitmap-test`, `phase9-runtime-loader-shared-test`, `phase9-runtime-trace-events-test`, `phase9-first-loadable-runtime-module-parity-test`, and `phase9-test` routes",
+    "`zigux/Makefile` explicit only as a readable non-owner surface whose live body now exposes bounded `phase9-runtime-atomic64-test`, `phase9-runtime-bitmap-test`, `phase9-runtime-loader-shared-test`, `phase9-runtime-trace-events-test`, `phase9-runtime-kretprobe-test`, `phase9-first-loadable-runtime-module-parity-test`, and `phase9-test` routes",
 ]
 
 STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS = [
@@ -108,7 +109,7 @@ SAMPLES_README_REQUIRED_MARKERS = [
 ]
 
 TESTS_README_REQUIRED_MARKERS = [
-    "Keep the current bounded Phase 9 reminder packet explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`.",
+    "Keep the current bounded Phase 9 reminder packet explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, and `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`.",
     "Keep the current bounded Phase 15 governance reminder explicit through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-parity-scorecard-survey.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.",
     "without implying any Architecture Council approval for a freeze-map status change",
 ]
@@ -131,6 +132,7 @@ CURRENT_PHASE9_MAKE_ROUTES = [
     "phase9-runtime-bitmap-test",
     "phase9-runtime-loader-shared-test",
     "phase9-runtime-trace-events-test",
+    "phase9-runtime-kretprobe-test",
     "phase9-first-loadable-runtime-module-parity-test",
     "phase9-test",
 ]
@@ -319,7 +321,7 @@ def build_freeze_map_fixture_text() -> str:
 
 ## Governance For Freeze-Map Changes
 - shared reminder surfaces that summarize freeze posture must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md`
-- shared Phase 9 runtime-pilot freeze-boundary packet must keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `.github/workflows/zigux-bootstrap.yml`, `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit together, keep `zigux/Makefile` explicit only as a readable non-owner surface whose live body now exposes bounded `phase9-runtime-atomic64-test`, `phase9-runtime-bitmap-test`, `phase9-runtime-loader-shared-test`, `phase9-runtime-trace-events-test`, `phase9-first-loadable-runtime-module-parity-test`, and `phase9-test` routes without treating those wrappers as proof that blocked publication, install-root, or deeper runtime-substrate work is complete, keep the returned shared runtime-loader allocator/init-flow and command/environment boundary packet explicit through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, and must treat `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `samples/zigux/runtime_trace_events_loader.zig`, the broader shared `zigux/tests/runtime_*` replay family beyond the returned trace-events survey witness and allocator/init-flow packet, and blocked publication or install-root loader boundaries as historical blocked-boundary vocabulary unless a fresh repo reread proves they returned, so the surviving narrow trace-events packet, the neighboring returned loader packet, and the separate bounded runtime bitmap packet do not imply that `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` has crossed the study-only boundary into delivery-ready runtime-substrate evidence
+- shared Phase 9 runtime-pilot freeze-boundary packet must keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `.github/workflows/zigux-bootstrap.yml`, `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit together, keep `zigux/Makefile` explicit only as a readable non-owner surface whose live body now exposes bounded `phase9-runtime-atomic64-test`, `phase9-runtime-bitmap-test`, `phase9-runtime-loader-shared-test`, `phase9-runtime-trace-events-test`, `phase9-runtime-kretprobe-test`, `phase9-first-loadable-runtime-module-parity-test`, and `phase9-test` routes without treating those wrappers as proof that blocked publication, install-root, or deeper runtime-substrate work is complete, keep the returned shared runtime-loader allocator/init-flow and command/environment boundary packet explicit through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold, keep the returned runtime-kretprobe pilot packet explicit through `zigux/tests/runtime_kretprobe_manifest.json`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, and the bounded `phase9-runtime-kretprobe-test` route as family-local evidence rather than proof that blocked publication, install-root, or deeper shared runtime-loader boundaries are complete, and must treat `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `samples/zigux/runtime_trace_events_loader.zig`, the broader shared `zigux/tests/runtime_*` replay family beyond the returned trace-events survey witness and allocator/init-flow packet, and blocked publication or install-root loader boundaries as historical blocked-boundary vocabulary unless a fresh repo reread proves they returned, so the surviving narrow trace-events packet, the neighboring returned loader packet, and the separate bounded runtime bitmap packet do not imply that `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` has crossed the study-only boundary into delivery-ready runtime-substrate evidence
 """
 
 
@@ -427,7 +429,7 @@ def build_makefile_fixture_text() -> str:
 ZIG ?= zig
 ZIGUX_ROOT := ..
 
-.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
+.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
 
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
@@ -444,10 +446,13 @@ phase9-runtime-loader-shared-test:
 phase9-runtime-trace-events-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
 
+phase9-runtime-kretprobe-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig --summary all
+
 phase9-first-loadable-runtime-module-parity-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-survey-tests --build-file zigux/tests/phase9_build.zig --summary all
 
-phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-first-loadable-runtime-module-parity-test
+phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
 
 phase10-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
