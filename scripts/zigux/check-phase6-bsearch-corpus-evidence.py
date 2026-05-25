@@ -28,7 +28,8 @@ C_PARITY_RUNNER_PATH = Path("zigux/tests/phase6_bsearch_c_parity.zig")
 C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_bsearch_c_harness.c")
 BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 
-BUDGET_FORMULA = '"std.math.log2_int_ceil(len) + 1"'
+PERF_BUDGET_FORMULA = '"std.math.log2_int_ceil(len) + 1"'
+BOUND_BUDGET_FORMULA = '"len == 0 ? 0 : std.math.log2_int_floor(len) + 1"'
 SLICE_SUMMARY = (
     "- direct helper-local evidence now covers typed and raw representative lookups, "
     "descending-order comparator handling, duplicate-span `equalRange` wrappers, "
@@ -81,6 +82,9 @@ LIB_MUTABLE_BYTE_VIEW = (
     'const mutable_byte_view = duplicate_range.bytesMutable('
     '@ptrCast(mutable_raw_duplicates[0..].ptr), @sizeOf(i32));'
 )
+PERF_BUDGET_LINE = "const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;"
+BOUND_BUDGET_HELPER = "fn maxBinarySearchComparisons(len: usize) usize {"
+BOUND_BUDGET_SHIFT = "while (remaining > 0) : (remaining >>= 1) {"
 
 REQUIRED_SNIPPETS = {
     SLICE_PATH: [
@@ -125,7 +129,7 @@ REQUIRED_SNIPPETS = {
         '"len64"',
         '"len1024"',
         '"query_count": 16',
-        f'"budget_formula": {BUDGET_FORMULA}',
+        f'"budget_formula": {PERF_BUDGET_FORMULA}',
         '"zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig"',
         '"make -C zigux phase6-bsearch-perf"',
     ],
@@ -135,7 +139,8 @@ REQUIRED_SNIPPETS = {
         MANIFEST_POSTURE,
         NO_MISSING_COMPANIONS,
         '"budget_model": "comparison_budget"',
-        f'"bound_budget_formula": {BUDGET_FORMULA}',
+        f'"budget_formula": {PERF_BUDGET_FORMULA}',
+        f'"bound_budget_formula": {BOUND_BUDGET_FORMULA}',
         '"runtime_selected_c_abi_replays": [',
         '"zigux/tests/phase6_bsearch_lower_bound_c_abi.zig"',
         '"zigux/tests/phase6_bsearch_c_abi_budget.zig"',
@@ -177,6 +182,7 @@ REQUIRED_SNIPPETS = {
         "avg_compare_calls",
         "max_compare_calls",
         "max_compare_budget",
+        PERF_BUDGET_LINE,
         "compareCountedDescending",
         "compareCountedOpaqueDescending",
         "populateDescending(descending_values, ascending_values);",
@@ -194,6 +200,8 @@ REQUIRED_SNIPPETS = {
         "try expectRange(descending_duplicates[0..], 20, .{ .lower = 6, .upper = 6 }, compare);",
     ],
     BUDGET_TEST_PATH: [
+        BOUND_BUDGET_HELPER,
+        BOUND_BUDGET_SHIFT,
         'test "phase 6 bsearch raw c abi budgets stay logarithmic for deterministic ascending and descending slices" {',
         'test "phase 6 bsearch typed c abi budgets stay logarithmic for deterministic ascending and descending slices" {',
         'test "phase 6 bsearch raw c abi equal-range budgets stay logarithmic for duplicate spans in both sort orders" {',
@@ -260,15 +268,18 @@ SELF_TEST_CASES = [
     (HELPER_EVIDENCE_MANIFEST_PATH, MANIFEST_POSTURE, '"current_review_posture": "direct-helper-readback-stale"'),
     (HELPER_EVIDENCE_MANIFEST_PATH, NO_MISSING_COMPANIONS, '"still_missing_direct_companions": ["zigux/tests/phase6_bsearch_casegen.zig"]'),
     (HELPER_EVIDENCE_MANIFEST_PATH, '"query_count": 16', '"query_count": 8'),
-    (HELPER_EVIDENCE_MANIFEST_PATH, f'"budget_formula": {BUDGET_FORMULA}', '"budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"'),
+    (HELPER_EVIDENCE_MANIFEST_PATH, f'"budget_formula": {PERF_BUDGET_FORMULA}', '"budget_formula": "std.math.log2_int_floor(len) + 1"'),
     (HELPER_PARITY_MANIFEST_PATH, MANIFEST_POSTURE, '"current_review_posture": "direct-helper-readback-stale"'),
     (HELPER_PARITY_MANIFEST_PATH, NO_MISSING_COMPANIONS, '"still_missing_direct_companions": ["zigux/tests/phase6_bsearch_casegen.zig"]'),
-    (HELPER_PARITY_MANIFEST_PATH, f'"bound_budget_formula": {BUDGET_FORMULA}', '"bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"'),
+    (HELPER_PARITY_MANIFEST_PATH, f'"budget_formula": {PERF_BUDGET_FORMULA}', '"budget_formula": "std.math.log2_int_floor(len) + 1"'),
+    (HELPER_PARITY_MANIFEST_PATH, f'"bound_budget_formula": {BOUND_BUDGET_FORMULA}', '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"'),
+    (BUDGET_TEST_PATH, BOUND_BUDGET_HELPER, "fn maxBinarySearchBudget(len: usize) usize {"),
+    (BUDGET_TEST_PATH, BOUND_BUDGET_SHIFT, "while (remaining > 1) : (remaining >>= 1) {"),
     (LOWER_BOUND_TEST_PATH, "const mutable_lower = bsearch.bsearchLowerBoundMutable(", "const mutable_alias = bsearch.bsearchLowerBoundMutable("),
     (LOWER_BOUND_TEST_PATH, "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[6]), @intFromPtr(typed_missing_lower));", "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[5]), @intFromPtr(typed_missing_lower));"),
-    (BUDGET_TEST_PATH, 'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {', 'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {'),
     (FIXTURES_PATH, "pub const query_count: usize = 16;", "pub const query_count: usize = 15;"),
     (PERF_TEST_PATH, "avg_compare_calls", "avg_probe_calls"),
+    (PERF_TEST_PATH, PERF_BUDGET_LINE, "const max_compare_budget = std.math.log2_int_floor(usize, case.len) + 1;"),
     (PERF_TEST_PATH, "compareCountedDescending", "compareCountedReverse"),
     (PERF_TEST_PATH, "compareCountedOpaqueDescending", "compareCountedOpaqueReverse"),
     (PERF_TEST_PATH, "populateDescending(descending_values, ascending_values);", "populateDescendingPerf(descending_values, ascending_values);"),
