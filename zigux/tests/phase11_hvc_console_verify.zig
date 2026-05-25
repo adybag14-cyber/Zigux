@@ -34,6 +34,13 @@ test "phase11 hvc console verify keeps cleanup trigger selection explicit across
         .cleanup_time_tty_port_ownership = true,
         .port_reference_drop_timing = true,
     });
+    const hangup_only = try hvc_console.summarizeCleanupPrerequisite(.{
+        .final_close_completed = false,
+        .hangup_completed = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
     const combined = try hvc_console.summarizeCleanupPrerequisite(.{
         .final_close_completed = true,
         .hangup_completed = true,
@@ -43,6 +50,7 @@ test "phase11 hvc console verify keeps cleanup trigger selection explicit across
     });
 
     try std.testing.expectEqual(hvc_console.CleanupTrigger.final_close_only, final_close_only.trigger);
+    try std.testing.expectEqual(hvc_console.CleanupTrigger.hangup_only, hangup_only.trigger);
     try std.testing.expectEqual(hvc_console.CleanupTrigger.final_close_and_hangup, combined.trigger);
     try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, hvc_console.summarizeCleanupPrerequisite(.{
         .final_close_completed = false,
