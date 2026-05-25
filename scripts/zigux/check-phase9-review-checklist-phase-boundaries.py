@@ -48,7 +48,8 @@ REVIEW_CHECKLIST_REQUIRED_MARKERS = [
     "`phase9-runtime-loader-command-env-boundary-guard-tests`",
     "the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` stay historical wider-family vocabulary",
     "`zigux/tests/runtime_loader_gap_manifest.json` stays in that same historical wider-family bucket until the same kind of fresh shared-owner reread returns it",
-    "older blocked module-metadata and depmod-publication vocabulary such as `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, `Module.symvers`, module install-root, and depmod script or manifest state stays historical blocked-boundary vocabulary until a fresh repo reread restores a current shared owner surface for that packet",
+    "older blocked module-metadata and depmod-publication vocabulary such as `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, `Module.symvers`, module install-root, and depmod script, manifest, or alias-output state stays historical blocked-boundary vocabulary until a fresh repo reread restores a current shared owner surface for that packet",
+    "`scripts/zigux/check-phase9-build-only-surface.py`, `scripts/zigux/check-phase9-trace-events-direct-summary.py`, `scripts/zigux/check-phase9-trace-events-summary-preservation.py`, and `zigux/Makefile` stay explicit as the current release-discipline companions for the bounded `make -C zigux phase9-runtime-atomic64-test`, `make -C zigux phase9-runtime-bitmap-test`, `make -C zigux phase9-runtime-loader-shared-test`, `make -C zigux phase9-runtime-trace-events-test`, `make -C zigux phase9-first-loadable-runtime-module-parity-test`, and aggregate `make -C zigux phase9-test` routes rather than as proof that older `make -C zigux phase9` or `make -C zigux phase9-validate` wrappers returned",
     "the partial separate runtime bitmap reminder packet stays explicit in `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md`",
     "the shared `zigux/tests/phase9_build.zig` bundle now reruns that partial bitmap packet through `phase9-runtime-bitmap-cold-stage-guard-tests` plus the aggregate `phase9-runtime-bitmap-tests` handle",
     "keep that partial bitmap packet framed as a separate bounded Phase 9 runtime reminder rather than proof that the broader shared runtime-loader packet returned",
@@ -130,6 +131,8 @@ WORKFLOW_REQUIRED_MARKERS = [
     "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
     "python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test",
     "python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py",
+    "python3 scripts/zigux/check-phase9-build-only-surface.py --self-test",
+    "python3 scripts/zigux/check-phase9-build-only-surface.py",
     "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
     "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py",
     "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test",
@@ -289,6 +292,8 @@ jobs:
       - run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
       - run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py --self-test
       - run: python3 scripts/zigux/check-phase9-freeze-map-study-boundaries.py
+      - run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test
+      - run: python3 scripts/zigux/check-phase9-build-only-surface.py
       - run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test
       - run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
       - run: python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test
