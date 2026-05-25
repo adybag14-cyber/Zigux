@@ -66,6 +66,15 @@ The same shared-loader reminder packet also keeps the dedicated `phase9-runtime-
 - No parity scorecard entry or Architecture Council status-change request is attached to this packet on current `master`.
 - Any future freeze-map status change for this family must route through `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-freeze-map-governance.md` instead of being inferred from the landed atomic64 notes, starter packet, or visible shared-loader reminder packet.
 
+## Minimum Freeze-Map Review Record
+
+- owner: the direct atomic64 starter packet owned by `P9-L04`, with this survey carrying the same Phase 9 freeze-boundary review record for `P9-L13`
+- phase: `Phase 9`
+- status bucket: review-only direct starter packet plus the visible shared-loader reminder packet beside the study-only `kernel/workqueue.c` boundary
+- validation gate summary: `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_atomic64_manifest.json`, `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, and `samples/zigux/runtime_bitmap_loader.zig` keep this packet reviewable without claiming live loader parity
+- rollback owner: `lib/atomic64_test.c` remains the product source of truth while any future status change still routes through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- reopen rule: any attempt to treat this packet as runtime-substrate delivery or to move `kernel/workqueue.c` out of study-only posture must reopen through `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` with fresh reviewable evidence
+
 ## Recommended Next Step
 
 Keep the next same-lane move inside one exact atomic64 packet truthfulness repair while the visible shared-loader reminder packet remains review-only evidence and the broader runtime-substrate blocker is still explicit. The best next same-lane target is whichever direct atomic64 note, manifest, survey, or loader-reminder assertion drifts first against the current direct sample leg and visible shared-loader reminder packet.
