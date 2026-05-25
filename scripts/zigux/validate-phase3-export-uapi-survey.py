@@ -39,6 +39,7 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
         "PHASE3_EXPORT_UAPI_VALIDATOR_RUN=python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
         "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
+        "PHASE3_ABI_H_BOUNDARY_NOTE=Documentation/zigux/phase3-abi-h-boundary-next-step.md",
         "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
@@ -258,6 +259,11 @@ def run_self_test() -> int:
             SURVEY_PATH,
             "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
             "expected missing linux zigux header governance note marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_ABI_H_BOUNDARY_NOTE=Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+            "expected missing abi.h boundary-note marker was not reported",
         ),
         (
             SURVEY_PATH,
