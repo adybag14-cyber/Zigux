@@ -7,7 +7,7 @@ import argparse
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
@@ -16,6 +16,16 @@ VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 VALIDATE_PHASE2_CLOSURE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 THIRD_PARTY_README = ROOT / "third_party" / "README.md"
 THIRD_PARTY_ARCHIVE = ROOT / "third_party" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+THIRD_PARTY_ARCHIVE_PARTS_MANIFEST = (
+    ROOT
+    / "third_party"
+    / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz.parts"
+    / "manifest.json"
+)
+ARCHIVE_SURFACE_PATHS = (
+    THIRD_PARTY_ARCHIVE,
+    THIRD_PARTY_ARCHIVE_PARTS_MANIFEST,
+)
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
@@ -54,7 +64,6 @@ SURFACE_PATHS = (
     VALIDATE_PHASE2,
     VALIDATE_PHASE2_CLOSURE,
     THIRD_PARTY_README,
-    THIRD_PARTY_ARCHIVE,
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
@@ -199,6 +208,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_FORBIDDEN_MARKERS)
     + 2
     + (len(SURFACE_PATHS) - 1)
+    + 2
     + len(REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
     + len(DISALLOWED_MAKEFILE_LINES)
@@ -290,6 +300,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not resolve_path(root, path).exists():
             issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
 
+    if not any(resolve_path(root, path).exists() for path in ARCHIVE_SURFACE_PATHS):
+        issues.append(
+            (
+                "MISSING_ARCHIVE_SURFACE_PATHS",
+                " or ".join(path.relative_to(ROOT).as_posix() for path in ARCHIVE_SURFACE_PATHS),
+            )
+        )
+
     return issues
 
 
@@ -339,6 +357,7 @@ def build_self_test_root(root: Path) -> None:
         if path == MAKEFILE:
             continue
         write_text(resolve_path(root, path), "present\n")
+    write_text(resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST), "present\n")
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
@@ -455,6 +474,24 @@ def run_self_test() -> int:
             assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
             checks_run += 1
 
+        build_self_test_root(root)
+        resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST).unlink()
+        write_text(resolve_path(root, THIRD_PARTY_ARCHIVE), "present\n")
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        archive_path = resolve_path(root, THIRD_PARTY_ARCHIVE)
+        if archive_path.exists():
+            archive_path.unlink()
+        resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST).unlink()
+        issues = collect_issues(root)
+        assert (
+            "MISSING_ARCHIVE_SURFACE_PATHS",
+            " or ".join(path.relative_to(ROOT).as_posix() for path in ARCHIVE_SURFACE_PATHS),
+        ) in issues
+        checks_run += 1
+
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             makefile_path = resolve_path(root, MAKEFILE)
@@ -496,7 +533,7 @@ def main() -> int:
     if issues:
         return emit_issues(issues)
     print("PHASE2_KBUILD_ROUTES=pass")
-    print(f"PHASE2_KBUILD_ROUTES_SURFACE_COUNT={len(SURFACE_PATHS)}")
+    print(f"PHASE2_KBUILD_ROUTES_SURFACE_COUNT={len(SURFACE_PATHS) + 1}")
     print(f"PHASE2_KBUILD_ROUTES_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}")
     return 0
 
