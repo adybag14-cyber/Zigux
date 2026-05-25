@@ -71,7 +71,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 22
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def read_json(path: Path) -> object:
@@ -538,6 +538,12 @@ def run_self_test() -> int:
             "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
             'EXPECTED_CONFDATA_MANIFEST = {',
         ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest_path = root / CONF_MANIFEST.relative_to(ROOT)
+        write_text(manifest_path, json.dumps([], indent=2) + "\n")
+        assert collect_issues(root) == [("INVALID_CONF_MANIFEST_PAYLOAD", "list")]
         checks_run += 1
 
         build_self_test_root(root)
