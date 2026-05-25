@@ -24,13 +24,18 @@ test "phase10 virtio input teardown observation keeps identity while resettable 
     try std.testing.expectEqual(@as(usize, 1), sent.queued_status_count);
 
     const summary = teardown_observation.summarize(&device);
-    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
-    try std.testing.expectEqualStrings("Virtio Touch Lab", summary.name);
-    try std.testing.expectEqualStrings("serial-24", summary.serial);
-    try std.testing.expectEqualStrings("virtio3/input0", summary.phys);
-    try std.testing.expect(summary.event_queue_was_configured);
-    try std.testing.expect(summary.status_queue_was_configured);
-    try std.testing.expectEqual(@as(u16, 16), summary.queued_event_buffer_count);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", teardown_observation.anchor(summary));
+    try std.testing.expectEqualStrings("Virtio Touch Lab", teardown_observation.name(summary));
+    try std.testing.expectEqualStrings("serial-24", teardown_observation.serial(summary));
+    try std.testing.expectEqualStrings("virtio3/input0", teardown_observation.phys(summary));
+    const ids = teardown_observation.deviceIds(summary);
+    try std.testing.expectEqual(@as(u16, virtio_input.bus_virtual), ids.bustype);
+    try std.testing.expectEqual(@as(u16, 0x1af4), ids.vendor);
+    try std.testing.expectEqual(@as(u16, 0x1052), ids.product);
+    try std.testing.expectEqual(@as(u16, 7), ids.version);
+    try std.testing.expect(teardown_observation.eventQueueWasConfigured(summary));
+    try std.testing.expect(teardown_observation.statusQueueWasConfigured(summary));
+    try std.testing.expectEqual(@as(u16, 16), teardown_observation.queuedEventBufferCount(summary));
     try std.testing.expectEqual(@as(usize, 1), teardown_observation.queuedStatusCount(summary));
     try std.testing.expectEqual(@as(usize, 0), teardown_observation.suppressedStatusCount(summary));
     try std.testing.expect(teardown_observation.readyBeforeReset(summary));
@@ -79,9 +84,9 @@ test "phase10 virtio input teardown observation reports capability and suppresse
     try std.testing.expectEqual(@as(usize, 1), suppressed.suppressed_status_count);
 
     const summary = teardown_observation.summarize(&device);
-    try std.testing.expect(summary.event_queue_was_configured);
-    try std.testing.expect(summary.status_queue_was_configured);
-    try std.testing.expectEqual(@as(u16, 16), summary.queued_event_buffer_count);
+    try std.testing.expect(teardown_observation.eventQueueWasConfigured(summary));
+    try std.testing.expect(teardown_observation.statusQueueWasConfigured(summary));
+    try std.testing.expectEqual(@as(u16, 16), teardown_observation.queuedEventBufferCount(summary));
     try std.testing.expectEqual(@as(usize, 0), teardown_observation.queuedStatusCount(summary));
     try std.testing.expectEqual(@as(usize, 1), teardown_observation.suppressedStatusCount(summary));
     try std.testing.expect(teardown_observation.readyBeforeReset(summary));
