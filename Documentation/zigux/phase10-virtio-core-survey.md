@@ -8,7 +8,7 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 - `PHASE10_SLICE=virtio-core-survey`
 - lane: `P10-L01`
 - surveyed packet commit recorded by the live core manifest: `c11221dc7a68d7511ae1c69d64b3f08528287ed8`
-- surveyed inspected `master` head: direct connector readback on `2026-05-24` for this note, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `scripts/zigux/check-phase10-core-packet.py`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/build.zig`, `zigux/tests/phase10_build.zig`, and `zigux/tests/phase10_closure_manifest.json`
+- surveyed inspected `master` head: direct connector readback on `2026-05-25` for this note, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `scripts/zigux/check-phase10-core-packet.py`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/build.zig`, `zigux/tests/phase10_build.zig`, and `zigux/tests/phase10_closure_manifest.json`
 - scope: compare the Phase 10 core lane's current repo-visible evidence against the roadmap's lab-driver target and the bootstrap ledger's tranche discipline, then keep this survey aligned with the current core packet without widening into ring, MMIO, input, or transport-facing lifecycle work
 - product boundary:
   - `drivers/virtio/virtio.zig`
@@ -69,7 +69,7 @@ Current `master` keeps one same-lane roadmap gap explicit:
 
 - still-blocked transport-facing bridge: `phase10-core-dual-implementation-bridge` and `phase10-core-probe-remove-lifecycle` remain outside the allowed Phase 10 core packet until a fresh Architecture Council reopen request attaches new evidence
 
-Within this survey packet itself, the current `master` readback is aligned once the driver-model stage progression stays explicit beside the driver-id helper pair, the dedicated core survey gate, the dedicated core-packet checker, the shared validator, the shared tests-root build route, the shared Phase 10 build route, and the roadmap helper parity scoreboard above.
+Within this survey packet itself, the current `master` readback on `2026-05-25` is still aligned: `lifecycleGuardSummary()`, `driverModelSummary()`, and `DriverModelStage` keep the wrapper-discipline evidence explicit beside the driver-id helper pair, the dedicated core survey gate, the dedicated core-packet checker, the shared validator, the shared tests-root build route, the shared Phase 10 build route, and the roadmap helper parity scoreboard above, while transport-backed probe, remove, and reset lifecycle work remains intentionally outside this lane.
 
 ## Non-goals
 
