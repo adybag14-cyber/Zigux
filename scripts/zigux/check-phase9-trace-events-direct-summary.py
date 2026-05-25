@@ -59,7 +59,15 @@ DIRECT_SAMPLE_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(@as(?usize, 0), before_failed_exit.last_main_conditional_event_count);",
     'test "trace-events sample keeps rejected re-selftest rollback explicit" {',
     "try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);",
+    'try std.testing.expectEqualStrings("foo_bar_reg", before_rejected_selftest.last_register_label orelse return error.ExpectedFunctionPayload);',
+    'try std.testing.expectEqualStrings("foo_bar_unreg", before_rejected_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload);',
+    'try std.testing.expectEqualStrings(before_rejected_selftest.last_register_label orelse return error.ExpectedFunctionPayload, after_rejected_selftest.last_register_label orelse return error.ExpectedFunctionPayload);',
+    'try std.testing.expectEqualStrings(before_rejected_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload, after_rejected_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload);',
     "try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);",
+    "try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.register_transitions);",
+    "try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.unregister_transitions);",
+    'try std.testing.expectEqualStrings(before_rejected_exit_selftest.last_register_label orelse return error.ExpectedFunctionPayload, after_rejected_exit_selftest.last_register_label orelse return error.ExpectedFunctionPayload);',
+    'try std.testing.expectEqualStrings(before_rejected_exit_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload, after_rejected_exit_selftest.last_unregister_label orelse return error.ExpectedFunctionPayload);',
     "try std.testing.expectEqual(before_rejected_exit_selftest.last_main_conditional_event_count, after_rejected_exit_selftest.last_main_conditional_event_count);",
 ]
 
