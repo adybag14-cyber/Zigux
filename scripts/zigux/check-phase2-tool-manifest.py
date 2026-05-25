@@ -236,6 +236,7 @@ BASE_REQUIRED_PRESENT_SURFACES = {
         "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
+        "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
         "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
