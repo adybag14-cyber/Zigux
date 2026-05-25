@@ -14,6 +14,9 @@ ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
 NOTIFIER_BINDINGS_PATH = Path("zigux/bindings/notifier_abi.zig")
 RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
 VALIDATE_PHASE3_SELFTEST_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
+README_TOOLING_INVENTORY_PATH = Path(
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py"
+)
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 ABI_TEST_PATH = Path("zigux/tests/phase3_abi.zig")
 ABI_DUMP_PATH = Path("zigux/tests/phase3_abi_dump_current.zig")
@@ -77,6 +80,7 @@ REQUIRED_SOURCE_MARKERS = {
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
         'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
+        'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
         'Path("scripts/zigux/check-phase3-selftest-surface.py")',
         'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
         'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
@@ -103,6 +107,7 @@ REQUIRED_SOURCE_MARKERS = {
         'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
         'Path("scripts/zigux/check-phase3-xarray-slot.py")',
+        'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
         'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
         'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
         'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
@@ -117,6 +122,8 @@ REQUIRED_SOURCE_MARKERS = {
         '"PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST_CASES="',
         '"PHASE3_XARRAY_SLOT_SELF_TEST=pass"',
         '"PHASE3_XARRAY_SLOT_SELF_TEST_CASES="',
+        '"PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass"',
+        '"PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="',
         '"PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass"',
         '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass"',
         '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT="',
@@ -236,11 +243,12 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/check-phase3-abi-manifest-replay-routes.py",
     "scripts/zigux/check-phase3-abi-support-packet.py",
+    "scripts/zigux/check-phase3-catalog-selftest.py",
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
     "scripts/zigux/check-phase3-xarray-slot.py",
-    "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "scripts/zigux/check-phase3-policy-dump.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
@@ -317,6 +325,8 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py",
+    "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test",
     "python3 scripts/zigux/check-phase3-wrapper-templates.py",
     "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
@@ -637,6 +647,11 @@ def run_self_test() -> int:
             ),
             (
                 RUNNER_PATH,
+                'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
+            ),
+            (
+                RUNNER_PATH,
                 'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")\n',
                 'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
             ),
@@ -687,6 +702,11 @@ def run_self_test() -> int:
             ),
             (
                 VALIDATE_PHASE3_SELFTEST_PATH,
+                'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
                 'Path("scripts/zigux/check-phase3-wrapper-templates.py")\n',
                 'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-wrapper-templates.py")',
             ),
@@ -709,6 +729,16 @@ def run_self_test() -> int:
                 VALIDATE_PHASE3_SELFTEST_PATH,
                 '"PHASE3_XARRAY_SLOT_SELF_TEST=pass"\n',
                 'missing scripts/zigux/validate_phase3_selftest.py marker: "PHASE3_XARRAY_SLOT_SELF_TEST=pass"',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                '"PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass"\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass"',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                '"PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="',
             ),
             (
                 VALIDATE_PHASE3_SELFTEST_PATH,
@@ -776,6 +806,7 @@ def run_self_test() -> int:
         packet_file_checks = (
             ("Documentation/zigux/phase3-abi-h-boundary-next-step.md", "expected abi-h boundary note packet-file drift was not reported"),
             ("scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected manifest replay-checker packet-file drift was not reported"),
+            ("scripts/zigux/check-phase3-readme-tooling-inventory.py", "expected readme-tooling checker packet-file drift was not reported"),
             ("scripts/zigux/check-phase3-dev-t-starter-packet.py", "expected dev-t starter checker packet-file drift was not reported"),
             ("Documentation/zigux/phase3-errptr-xarray-slice.md", "expected err-ptr xarray slice packet-file drift was not reported"),
             ("zigux/helpers/err_ptr.zig", "expected err-ptr helper packet-file drift was not reported"),
@@ -809,6 +840,8 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-dev-t-starter-packet.py", "expected dev-t starter direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py --self-test", "expected manifest replay-checker self-test drift was not reported"),
             ("python3 scripts/zigux/check-phase3-abi-manifest-replay-routes.py", "expected manifest replay-checker direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test", "expected readme-tooling self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-readme-tooling-inventory.py", "expected readme-tooling direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test", "expected err-ptr xarray starter self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py", "expected err-ptr xarray starter direct route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test", "expected xarray-slot starter self-test route drift was not reported"),
