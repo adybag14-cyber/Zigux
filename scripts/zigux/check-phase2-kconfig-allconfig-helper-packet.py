@@ -58,10 +58,10 @@ REQUIRED_PHASE2_VALIDATE_MARKERS = [
 REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS = [
     '"`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",',
     'KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")',
-    'EXPECTED_CONF_CASE_DETAILS = [',
-    'EXPECTED_CONF_MANIFEST = {',
-    'EXPECTED_CONFDATA_CASE_DETAILS = [',
-    'EXPECTED_CONFDATA_MANIFEST = {',
+    "EXPECTED_CONF_CASE_DETAILS = [",
+    "EXPECTED_CONF_MANIFEST = {",
+    "EXPECTED_CONFDATA_CASE_DETAILS = [",
+    "EXPECTED_CONFDATA_MANIFEST = {",
 ]
 
 REQUIRED_TOOL_MANIFEST_CHECKERS = [
@@ -71,7 +71,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 
 def read_json(path: Path) -> object:
@@ -122,15 +122,6 @@ def load_tool_manifest_checkers(path: Path) -> list[str]:
     if not isinstance(checkers, list) or not all(isinstance(entry, str) for entry in checkers):
         raise SystemExit(f"invalid tool manifest checker list in {path}")
     return list(checkers)
-
-
-def collect_marker_issues(path: Path, markers: list[str], issue_code: str) -> list[tuple[str, str]]:
-    text = read_text(path)
-    issues: list[tuple[str, str]] = []
-    for marker in markers:
-        if marker not in text:
-            issues.append((issue_code, marker))
-    return issues
 
 
 def collect_exact_line_issues(
@@ -279,7 +270,7 @@ def build_self_test_root(root: Path) -> None:
         root / CONF_BRIDGE.relative_to(ROOT),
         "\n".join(
             [
-                *(f'test "{anchor}" {{}}' for anchor in REQUIRED_HELPER_ANCHORS),
+                *(f'test \"{anchor}\" {{}}' for anchor in REQUIRED_HELPER_ANCHORS),
                 *REQUIRED_BRIDGE_SOURCE_MARKERS,
             ]
         )
@@ -408,7 +399,7 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_VALIDATE_MARKERS
-                if marker != '"run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test",'
+                if marker != '\"run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py --self-test\",'
             )
             + "\n",
         )
@@ -425,7 +416,7 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_VALIDATE_MARKERS
-                if marker != '"run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",'
+                if marker != '\"run: python3 scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py\",'
             )
             + "\n",
         )
@@ -442,7 +433,7 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_VALIDATE_MARKERS
-                if marker != '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test",'
+                if marker != '\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py --self-test\",'
             )
             + "\n",
         )
@@ -459,7 +450,7 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_VALIDATE_MARKERS
-                if marker != '"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py",'
+                if marker != '\"$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-allconfig-helper-packet.py\",'
             )
             + "\n",
         )
@@ -497,7 +488,7 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
-                if marker != 'KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")'
+                if marker != 'KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path(\"scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py\")'
             )
             + "\n",
         )
@@ -514,13 +505,13 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
-                if marker != 'EXPECTED_CONF_CASE_DETAILS = ['
+                if marker != "EXPECTED_CONF_CASE_DETAILS = ["
             )
             + "\n",
         )
         assert (
             "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
-            'EXPECTED_CONF_CASE_DETAILS = [',
+            "EXPECTED_CONF_CASE_DETAILS = [",
         ) in collect_issues(root)
         checks_run += 1
 
@@ -531,13 +522,13 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
-                if marker != 'EXPECTED_CONF_MANIFEST = {'
+                if marker != "EXPECTED_CONF_MANIFEST = {"
             )
             + "\n",
         )
         assert (
             "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
-            'EXPECTED_CONF_MANIFEST = {',
+            "EXPECTED_CONF_MANIFEST = {",
         ) in collect_issues(root)
         checks_run += 1
 
@@ -548,13 +539,13 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
-                if marker != 'EXPECTED_CONFDATA_CASE_DETAILS = ['
+                if marker != "EXPECTED_CONFDATA_CASE_DETAILS = ["
             )
             + "\n",
         )
         assert (
             "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
-            'EXPECTED_CONFDATA_CASE_DETAILS = [',
+            "EXPECTED_CONFDATA_CASE_DETAILS = [",
         ) in collect_issues(root)
         checks_run += 1
 
@@ -565,13 +556,13 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
-                if marker != 'EXPECTED_CONFDATA_MANIFEST = {'
+                if marker != "EXPECTED_CONFDATA_MANIFEST = {"
             )
             + "\n",
         )
         assert (
             "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
-            'EXPECTED_CONFDATA_MANIFEST = {',
+            "EXPECTED_CONFDATA_MANIFEST = {",
         ) in collect_issues(root)
         checks_run += 1
 
@@ -592,6 +583,45 @@ def run_self_test() -> int:
         write_text(manifest_path, json.dumps([], indent=2) + "\n")
         assert collect_issues(root) == [("INVALID_CONF_MANIFEST_PAYLOAD", "list")]
         checks_run += 1
+
+        build_self_test_root(root)
+        tool_manifest_path = root / PHASE2_TOOL_MANIFEST.relative_to(ROOT)
+        write_text(tool_manifest_path, json.dumps([], indent=2) + "\n")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid tool manifest payload" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid tool manifest payload did not abort")
+
+        build_self_test_root(root)
+        tool_manifest_path = root / PHASE2_TOOL_MANIFEST.relative_to(ROOT)
+        write_text(
+            tool_manifest_path,
+            json.dumps({"present_surfaces": []}, indent=2) + "\n",
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid tool manifest present_surfaces" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid tool manifest present_surfaces did not abort")
+
+        build_self_test_root(root)
+        tool_manifest_path = root / PHASE2_TOOL_MANIFEST.relative_to(ROOT)
+        write_text(
+            tool_manifest_path,
+            json.dumps({"present_surfaces": {"checkers": [1]}}, indent=2) + "\n",
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid tool manifest checker list" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid tool manifest checker list did not abort")
 
         build_self_test_root(root)
         tool_manifest_path = root / PHASE2_TOOL_MANIFEST.relative_to(ROOT)
