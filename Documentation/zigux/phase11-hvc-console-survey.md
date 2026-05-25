@@ -14,7 +14,9 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
 - current authenticated contents readback keeps the bounded HVC current-head
   packet reviewable through the direct starter, current survey, current-head
   companion, verify-helper boundary note, validation matrix, the returned
-  `phase11-validate` validator surfaces, build-inventory checker,
+  `phase11-validate` validator surfaces, the shared manifest-roster guard, the
+  validate-check roster guard, the validate-route alignment guard, the
+  dedicated validate-check fixture roster, the build-inventory checker,
   focused-direct-build replay checker, cleanup-current-head checker,
   targetless-unregister witness checker, shared build inventory, the
   proof-backed adjunct stack, the dedicated modem-control proof pair, and the
@@ -44,12 +46,16 @@ Treat the current bounded HVC packet on `master` as:
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-validate-manifest-roster.py`
+- `scripts/zigux/check-phase11-validate-check-roster.py`
+- `scripts/zigux/check-phase11-validate-route-alignment.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/fixtures/phase11_validate_checks.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
 - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
@@ -61,11 +67,16 @@ Treat the current bounded HVC packet on `master` as:
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
-The shared build-inventory checker, focused-direct-build replay checker, and
-shared build inventory still record the three proof-backed build tests while
-keeping the dedicated modem-control and standalone targetless-unregister build
-routes explicit as direct-readback checks instead of promoting either pair into
-that shared three-entry inventory. `drivers/tty/hvc/hvc_console.h` now stays
+The shared validator route now rereads the dedicated
+`zigux/tests/fixtures/phase11_validate_checks.json` roster through the
+manifest-roster, validate-check-roster, and validate-route-alignment guards
+before the same proof-backed build fan-out runs, so keep those validator-side
+surfaces explicit beside the HVC starter and companion packet. The shared
+build-inventory checker, focused-direct-build replay checker, and shared build
+inventory still record the three proof-backed build tests while keeping the
+dedicated modem-control and standalone targetless-unregister build routes
+explicit as direct-readback checks instead of promoting either pair into that
+shared three-entry inventory. `drivers/tty/hvc/hvc_console.h` now stays
 explicit in the current packet too, keeping the exported `struct hvc_struct`
 forward declaration, `struct hv_ops` tag, `struct winsize` layout, and helper
 prototypes directly readable beside the starter Zig module and the focused
@@ -102,6 +113,8 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the current companion stack,
 the verify-boundary reminder surface, the shared inventory-backed proof routes,
+the validator-side manifest-roster, validate-check-roster, and
+validate-route-alignment guards, the dedicated validate-check fixture roster,
 the focused-direct-build replay checker, the validator-backed
 `make -C zigux phase11-validate` route, the dedicated modem-control proof pair,
 and the standalone targetless-unregister witness pair.
