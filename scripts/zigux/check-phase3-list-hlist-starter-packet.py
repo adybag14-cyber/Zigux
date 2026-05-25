@@ -113,6 +113,19 @@ SELF_TEST_CASES = (
     (MANIFEST_PATH, '"scripts/zigux/check-phase3-list-hlist-starter-packet.py"'),
 )
 
+SELF_TEST_FIELD_CASES = (
+    ("phase", "Phase 4"),
+    ("lane", "helper-runtime"),
+    ("slug", "phase3-list-hlist-mislabel"),
+    ("status", "helper_local_list_hlist_slice_missing"),
+    ("scope", "scope drift"),
+    ("next_safe_step", "outdated next step"),
+)
+
+SELF_TEST_REPLAY_ROUTE_CASES = REQUIRED_REPLAY_ROUTES
+
+SELF_TEST_REPO_REALITY_GAP_CASES = REQUIRED_REPO_REALITY_GAPS
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -239,6 +252,14 @@ def _remove_marker(repo_root: Path, relative_path: Path, marker: str) -> None:
     _write(path, text.replace(marker, "", 1))
 
 
+def _load_manifest(repo_root: Path) -> dict[str, object]:
+    return json.loads(_read(repo_root / MANIFEST_PATH))
+
+
+def _write_manifest(repo_root: Path, manifest: dict[str, object]) -> None:
+    _write(repo_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_list_hlist_packet_") as temp_dir:
         repo_root = Path(temp_dir)
@@ -260,10 +281,66 @@ def run_self_test() -> int:
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
+        for field, bad_value in SELF_TEST_FIELD_CASES:
+            _populate_repo(repo_root)
+            manifest = _load_manifest(repo_root)
+            manifest[field] = bad_value
+            _write_manifest(repo_root, manifest)
+            issues = validate_repo(repo_root)
+            expected = (
+                f"phase3_list_hlist_manifest.json wrong {field}: "
+                f"{bad_value!r} != {EXPECTED_MANIFEST_FIELDS[field]!r}"
+            )
+            if expected not in issues:
+                print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
+                print(f"expected manifest field drift was not reported: {expected}")
+                return 1
+
+        for route in SELF_TEST_REPLAY_ROUTE_CASES:
+            _populate_repo(repo_root)
+            manifest = _load_manifest(repo_root)
+            replay_routes = manifest["replay_routes"]
+            assert isinstance(replay_routes, list)
+            replay_routes.remove(route)
+            _write_manifest(repo_root, manifest)
+            issues = validate_repo(repo_root)
+            expected = f"phase3_list_hlist_manifest.json missing replay route: {route}"
+            if expected not in issues:
+                print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
+                print(f"expected replay-route drift was not reported: {expected}")
+                return 1
+
+        for gap in SELF_TEST_REPO_REALITY_GAP_CASES:
+            _populate_repo(repo_root)
+            manifest = _load_manifest(repo_root)
+            repo_reality_gaps = manifest["repo_reality_gaps"]
+            assert isinstance(repo_reality_gaps, list)
+            repo_reality_gaps.remove(gap)
+            _write_manifest(repo_root, manifest)
+            issues = validate_repo(repo_root)
+            expected = f"phase3_list_hlist_manifest.json missing repo_reality_gaps entry: {gap}"
+            if expected not in issues:
+                print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
+                print(f"expected repo-reality-gap drift was not reported: {expected}")
+                return 1
+
+        _populate_repo(repo_root)
+        present_gap = REQUIRED_REPO_REALITY_GAPS[0]
+        _write(repo_root / present_gap, "// unexpected gap file\n")
+        issues = validate_repo(repo_root)
+        expected = (
+            "phase3_list_hlist_manifest.json repo_reality_gaps entry is present on disk: "
+            f"{present_gap}"
+        )
+        if expected not in issues:
+            print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
+            print(f"expected present-on-disk repo gap issue was not reported: {expected}")
+            return 1
+
     print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=pass")
     print(
         "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT="
-        f"{1 + len(SELF_TEST_CASES)}"
+        f"{1 + len(SELF_TEST_CASES) + len(SELF_TEST_FIELD_CASES) + len(SELF_TEST_REPLAY_ROUTE_CASES) + len(SELF_TEST_REPO_REALITY_GAP_CASES) + 1}"
     )
     return 0
 
