@@ -16,39 +16,18 @@ const BenchResult = struct {
 };
 
 fn validatePerfMatrix() !void {
-    if (fixtures.perf_cases.len == 0) {
-        return error.Base64PerfMatrixMismatch;
-    }
-    if (fixtures.perf_payload.len == 0) {
-        return error.Base64PerfMatrixMismatch;
-    }
+    try fixtures.validatePerfPacket();
+
     if (fixtures.perf_payload.len != fixtures.perf_payload_buf_size) {
         return error.Base64PerfMatrixMismatch;
     }
 
     for (fixtures.perf_cases, 0..) |case, idx| {
-        if (case.label.len == 0 or case.payload.len == 0 or case.iterations == 0) {
-            return error.Base64PerfMatrixMismatch;
-        }
-        if (case.max_encode_slowdown_pct == 0 or case.max_decode_slowdown_pct == 0) {
-            return error.Base64PerfMatrixMismatch;
-        }
-        if (!std.mem.eql(u8, fixtures.perf_payload, case.payload)) {
-            return error.Base64PerfMatrixMismatch;
-        }
+        _ = idx;
         if (fixtures.perf_encoded_buf_size < base64.chars(case.payload.len, case.padding)) {
             return error.Base64PerfMatrixMismatch;
         }
         _ = try resolveCodec(case);
-
-        for (fixtures.perf_cases[idx + 1 ..]) |other| {
-            if (std.mem.eql(u8, case.label, other.label)) {
-                return error.Base64PerfMatrixMismatch;
-            }
-            if (case.padding == other.padding and std.mem.eql(u8, case.variant_name, other.variant_name)) {
-                return error.Base64PerfMatrixMismatch;
-            }
-        }
     }
 }
 
