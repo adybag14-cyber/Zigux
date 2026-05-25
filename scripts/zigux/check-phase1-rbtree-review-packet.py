@@ -104,8 +104,32 @@ EXPECTED_CLOSURE_PARAGRAPH = (
     "into the same reopen step."
 )
 
+EXPECTED_PARITY_FIXTURE_KEYS = [
+    "empty_root",
+    "insert_order",
+    "reverse_order",
+    "replace_order",
+    "erase_init_order",
+    "postorder_count",
+    "erase_init_node_empty",
+    "cleared_node_empty",
+    "find_found_key",
+    "find_missing",
+    "find_first_serial",
+    "next_match_serials",
+    "match_iterator_serials",
+    "next_match_terminal_null",
+]
+
+EXPECTED_DUPLICATE_SEARCH_ANCHORS = [
+    'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+    'test "rbtree nextMatch walks the duplicate range in order"',
+    'test "rbtree matchIterator walks the duplicate range in order"',
+]
+
 EXPECTED_MANIFEST_PACKET = {
     "phase1_helper_replay_anchor": 'test "phase1 host-tools smoke exercises live helper behavior"',
+    "parity_fixture_keys": EXPECTED_PARITY_FIXTURE_KEYS,
     "shared_replay_summary": "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools smoke replay now rechecks duplicate-range iteration plus the exact `cached_leftmost_return_serials` cached-root leftmost-return sequence on current master",
     "traversal_replay_keys": [
         "empty_root",
@@ -129,6 +153,7 @@ EXPECTED_MANIFEST_PACKET = {
     "cached_root_direct_review_summary": "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors, while the exact `cached_leftmost_return_serials` witness now stays aligned across the helper-local tests, the shared host-tools smoke replay, and the committed fixture",
     "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
     "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
+    "duplicate_search_anchors": EXPECTED_DUPLICATE_SEARCH_ANCHORS,
     "cached_root_followup_anchors": [
         'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
         'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
@@ -163,9 +188,9 @@ EXPECTED_FIXTURE_VALUES = {
 }
 
 EXPECTED_SMOKE_MARKERS = [
-    "const rbtree = @import(\"rbtree\");",
-    "try std.testing.expect(@hasDecl(rbtree, \"find\"));",
-    "try std.testing.expect(@hasDecl(rbtree, \"matchIterator\"));",
+    'const rbtree = @import("rbtree");',
+    'try std.testing.expect(@hasDecl(rbtree, "find"));',
+    'try std.testing.expect(@hasDecl(rbtree, "matchIterator"));',
     "const found_duplicate = rbtree.find(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;",
     "const first_duplicate = rbtree.findFirst(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;",
     "const second_duplicate = rbtree.nextMatch(&duplicate_key, first_duplicate, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;",
