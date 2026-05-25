@@ -48,7 +48,7 @@ The adjacent shared loader-facing reminder packet keeps the current cross-family
 1. `zigux/tests/runtime_atomic64_module.zig` remains the dedicated lifecycle gate for the direct packet.
 2. `zigux/tests/runtime_atomic64_diff.zig` remains the narrow differential gate against `lib/atomic64_test.c`.
 3. `zigux/tests/runtime_atomic64_survey.zig` and `zigux/tests/runtime_atomic64_manifest.json` remain the packet-local survey and manifest gates for the direct starter packet and the visible shared-loader reminder packet.
-4. `zigux/tests/phase9_build.zig` keeps `phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-tests`, and `phase9-runtime-loader-shared-tests` explicit beside the shared-loader reminder packet.
+4. `zigux/tests/phase9_build.zig` keeps `phase9-runtime-atomic64-diff`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-tests`, `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-command-env-boundary-guard-tests`, and `phase9-runtime-loader-shared-tests` explicit beside the shared-loader reminder packet.
 5. The visible shared-loader reminder packet keeps the narrower allocator/init-flow replay, command/environment boundary guard, and returned bitmap-loader companion explicit instead of being treated as proof that the missing runtime substrate has already landed.
 
 ## Review Surface
