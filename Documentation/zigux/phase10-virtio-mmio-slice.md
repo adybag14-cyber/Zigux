@@ -1,6 +1,6 @@
 # Phase 10 Virtio MMIO Slice
 
-This note records the current shared Phase 10 virtio MMIO packet around `drivers/virtio/virtio_mmio.c` and the bounded review surface guarded by `scripts/zigux/check-phase10-mmio-packet.py` plus `scripts/zigux/check-phase10-mmio-freeze-boundary.py`.
+This note records the current shared Phase 10 virtio MMIO packet around `drivers/virtio/virtio_mmio.c` and the bounded review surface guarded by `scripts/zigux/check-phase10-mmio-packet.py`.
 
 ## Packet Surface
 
@@ -19,4 +19,4 @@ The same packet keeps the MMIO wrapper ladder explicit without widening into tra
 
 ## Review Reminder
 
-When this packet is reread, keep `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, and `zigux/tests/phase10_build.zig` explicit in the same bounded Phase 10 story.
+When this packet is reread, keep `scripts/zigux/check-phase10-mmio-packet.py`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, and `zigux/tests/phase10_build.zig` explicit in the same bounded Phase 10 story.
