@@ -134,7 +134,7 @@ PHASE4_TESTS_README_PACKET_SELF_TEST_CASES = (
 REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-repo-reality-warning-self-test": (
         ("PHASE4_REPO_REALITY_WARNING_SELF_TEST", "PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass"),
-        ("PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES", "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30"),
+        ("PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES", "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31"),
     ),
     "phase4-repo-reality-warning": (("PHASE4_REPO_REALITY_WARNING", "PHASE4_REPO_REALITY_WARNING=pass"),),
     "phase4-reversible-delivery-pins-self-test": (
@@ -500,7 +500,7 @@ def configure_workflow_route_stub(root: Path) -> None:
 def configure_phase4_output_stubs(root: Path) -> None:
     build_stub_script(
         root / "scripts/zigux/check-phase4-repo-reality-warning.py",
-        self_test_stdout_lines=("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass", "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30"),
+        self_test_stdout_lines=("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass", "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31"),
         live_stdout_lines=("PHASE4_REPO_REALITY_WARNING=pass",),
     )
     build_stub_script(
