@@ -596,7 +596,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-remaining-gap-matrix.py",
-        self_test_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=35"),
+        self_test_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=38"),
         live_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX=pass", "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6"),
     )
     configure_workflow_route_stub(root)
@@ -794,7 +794,7 @@ def main() -> int:
         return run_self_test()
 
     try:
-        return run_check(args.root.resolve(), skip_zig_builds=args.skip_zig_builds)
+        return run_check(args.root.resolve(), skip_zig_builds=args.skip_zig-builds)
     except Exception as exc:  # pragma: no cover
         print(f"PHASE4_VALIDATION=fail: {exc}")
         return 1
