@@ -323,6 +323,18 @@ def main() -> int:
     print("PHASE9_BUILD_ONLY_SURFACE=pass")
     print(f"PHASE9_BUILD_ONLY_SURFACE_ROOT={args.repo_root}")
     print(f"PHASE9_BUILD_ONLY_SURFACE_FILES_CHECKED={len(REQUIRED_MARKERS)}")
+    print(
+        "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_BUILD_ONLY_SURFACE_EXACT_ONCE_MARKER_COUNT="
+        f"{sum(len(markers) for markers in EXACT_ONCE_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_BUILD_ONLY_SURFACE_FORBIDDEN_MARKER_COUNT="
+        f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
+    )
     return 0
 
 
