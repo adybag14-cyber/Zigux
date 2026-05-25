@@ -42,12 +42,11 @@ Treat the focused `zig test` routes for the broader sample-local packet as curre
 ## Shared reminder posture
 The directly coupled trace-events packet is currently strongest in the bounded formatting companion, the bounded callback-focus companion, and the shared reminder surfaces that keep their limits explicit.
 
-Fully aligned reminder surfaces in this run:
+Fully aligned reminder surfaces for the direct formatting-and-callback-focus packet in this run:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
-- `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `scripts/zigux/check-phase5-review-guide-surface.py`
 
@@ -55,6 +54,8 @@ Those surfaces already keep the landed trace-events packet explicit, keep the se
 They also should keep the broader non-runtime trace-events companions framed as current public-tree-backed companion or shared reminder vocabulary until the contents route actually returns those files again.
 `Documentation/zigux/README.md` now keeps this directly readable survey note explicit inside the shared Phase 5 packet, so the docs-root reminder is aligned on current `master` rather than still carrying the older omission.
 The same current reminder packet also stays checker-backed in this run: `scripts/zigux/check-phase5-review-guide-surface.py` still guards the direct-proof, public-tree-backed-companion, and no-extra-sample wording across `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` instead of leaving the approved formatting story as guide-only prose.
+
+`Documentation/zigux/review-checklist.md` is narrower than that fully aligned callback-focus packet in this run. The checklist still keeps the bounded formatting companion, the broader sample-local split, the kobject split, the shared build-route handle, and the no-extra-sample boundary explicit, but it does not yet name `samples/zigux/trace_events_callback_focus_contract.zig`, so this survey should not overstate that checklist surface as already carrying the full direct callback-focus reminder.
 
 A fresh 2026-05-20 sample-root reread in this run confirms the shared sample-root reminder is still aligned on the narrow direct packet:
 - `samples/zigux/README.md` keeps the bounded formatting companion and bounded callback-focus companion as the direct authenticated proof and keeps the broader non-runtime trace-events companions framed as shared-reminder, historical-support, or current public-tree-backed companion surfaces until a fresh reread proves they returned directly on current `master`
@@ -91,7 +92,7 @@ The more accurate same-lane state on 2026-05-22 is:
 - the shared `zigux/tests/phase5_build.zig` route now returns directly again and should stay explicit as the shared rerun handle for the broader Phase 5 sample bundle instead of companion-only evidence
 - the focused survey gate `zigux/tests/phase5_trace_events_sample_survey.zig` now exact-checks both the shared checklist-owned packet cues and the approved-idiom owner note, so the selected-string plus `iter=%d` reminder, the `runStringFormattingCycleReplay()` cue, and the callback-focus reviewability cue stay tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` without dropping the broader checklist-backed packet inventory
 - same-lane documentation should therefore keep the broader sample-local packet framed as current public-tree-backed companion or historical-support references instead of calling it repo absence or directly readable proof, while keeping the returned shared build route classified separately from that still-missing authenticated sample-local set
-- the scripts-root reminder is already aligned on current `master`, so future same-lane follow-through should look for a different one-file reminder, checklist, or survey-note truthfulness gap rather than replaying the cleared scripts-root omission
+- `Documentation/zigux/review-checklist.md` still undercounts the direct trace-events packet by omitting `samples/zigux/trace_events_callback_focus_contract.zig`, so the honest next same-lane follow-through is a shared checklist truthfulness repair rather than replaying a cleared scripts-root omission
 
 So the honest follow-through is to keep this survey note anchored to the narrow direct packet that current reread actually proved, while leaving the broader sample-local replay family parked in current public-tree-backed companion status until a future reread returns those files directly again, while keeping the approved-idiom-owner wording aligned with the shipped survey gate, and while naming the remaining shared-reminder posture precisely instead of replaying a cleared scripts-root undercount.
 
@@ -109,4 +110,4 @@ The older next-step pointer is no longer accurate on current `master`: the dedic
 
 The older docs-root omission pointer is also no longer accurate on current `master`: `Documentation/zigux/README.md` now lists this directly readable survey note beside the rest of the shared Phase 5 packet.
 
-If this packet reopens soon, compare `Documentation/zigux/phase5-trace-events-sample-survey.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` together first, and only repair the next shared reminder surface that still undercounts this directly readable survey note, the bounded callback-focus companion, or the returned shared build-route split on current `master`. Leave broader shared guide work, the formatting-only companion lane, and the separate Phase 9 runtime trace-events family out of scope.
+If this packet reopens soon, compare `Documentation/zigux/phase5-trace-events-sample-survey.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` together first, and only repair the next shared reminder surface that still undercounts this directly readable survey note, the bounded callback-focus companion, or the returned shared build-route split on current `master`. Leave broader shared guide work, the formatting-only companion lane, and the separate Phase 9 runtime trace-events family out of scope.
