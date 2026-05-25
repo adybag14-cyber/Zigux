@@ -338,7 +338,7 @@ test "excludeSorted removes commands already present in the primary list" {
 
     try std.testing.expectEqual(@as(usize, 2), other_cmds.count());
     try std.testing.expectEqualStrings("bench", other_cmds.names.items[0].name);
-    try std.testing.expectEqualStrings("script", other_cmds.names.items[1].name);
+    try std.testing.expectEqualStrings("script", other_cmds.cnames.items[1].name);
 }
 
 test "renderPrettyStringList keeps the same row-major pretty layout as help.c" {
@@ -358,6 +358,16 @@ test "renderPrettyStringList keeps the same row-major pretty layout as help.c" {
             " buildid-cache\n",
         rendered,
     );
+}
+
+test "renderPrettyStringList returns an empty packet for no commands" {
+    var cmds = CommandNames.init(std.testing.allocator);
+    defer cmds.deinit();
+
+    const rendered = try renderPrettyStringList(std.testing.allocator, &cmds, 80);
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings("", rendered);
 }
 
 test "renderCommandSections keeps stable headers for main and fallback command groups" {
@@ -382,7 +392,7 @@ test "renderCommandSections keeps stable headers for main and fallback command g
 
     try std.testing.expectEqualStrings(
         "available subcommands in '/usr/libexec/perf-core'\n" ++
-            "-------------------------------------------------\n" ++
+            "--------------------------------------------------\n" ++
             " annotate bench\n" ++
             "\n" ++
             "subcommands available from elsewhere on your $PATH\n" ++
@@ -416,7 +426,7 @@ test "renderCommandSections shares longest width across main and fallback groups
 
     try std.testing.expectEqualStrings(
         "available subcommands in '/usr/libexec/perf-core'\n" ++
-            "-------------------------------------------------\n" ++
+            "--------------------------------------------------\n" ++
             " annotate\n" ++
             " bench\n" ++
             " diff\n" ++
@@ -482,4 +492,24 @@ test "renderCommandSections omits an empty quoted exec path when none is availab
             "\n",
         rendered,
     );
+}
+
+test "renderCommandSections returns an empty packet when both command groups are empty" {
+    var main_cmds = CommandNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+
+    var other_cmds = CommandNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    const rendered = try renderCommandSections(
+        std.testing.allocator,
+        "subcommands",
+        null,
+        &main_cmds,
+        &other_cmds,
+        80,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings("", rendered);
 }
