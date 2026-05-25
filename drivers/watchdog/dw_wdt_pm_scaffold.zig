@@ -52,18 +52,18 @@ pub const ResumeSummary = struct {
 };
 
 pub fn suspendSummary(request: PmTransitionRequest) SuspendSummary {
-    const blocked_on_live_mmio = request.watchdog_running and !request.mmio_window_available;
     const keep_running = request.watchdog_running and request.nowayout and !request.reset_control_available;
+    const blocked_on_live_mmio = request.watchdog_running and !keep_running and !request.mmio_window_available;
     const can_quiesce = request.watchdog_running and !keep_running and request.mmio_window_available;
 
     return .{
         .anchor = anchor_path,
         .disposition = if (!request.watchdog_running)
             .idle_noop
-        else if (blocked_on_live_mmio)
-            .blocked_on_live_mmio
         else if (keep_running)
             .keep_running_across_suspend
+        else if (blocked_on_live_mmio)
+            .blocked_on_live_mmio
         else
             .quiesce_before_suspend,
         .suspend_requested = true,
@@ -78,18 +78,18 @@ pub fn suspendSummary(request: PmTransitionRequest) SuspendSummary {
 }
 
 pub fn resumeSummary(request: PmTransitionRequest) ResumeSummary {
-    const blocked_on_live_mmio = request.watchdog_running and !request.mmio_window_available;
     const keep_running = request.watchdog_running and request.nowayout and !request.reset_control_available;
+    const blocked_on_live_mmio = request.watchdog_running and !keep_running and !request.mmio_window_available;
     const can_restore = request.watchdog_running and request.mmio_window_available and request.state_snapshot_available and !keep_running;
 
     return .{
         .anchor = anchor_path,
         .disposition = if (!request.watchdog_running)
             .idle_noop
-        else if (blocked_on_live_mmio)
-            .blocked_on_live_mmio
         else if (keep_running)
             .keep_running_without_restore
+        else if (blocked_on_live_mmio)
+            .blocked_on_live_mmio
         else
             .restore_then_restart,
         .resume_requested = true,
@@ -197,6 +197,35 @@ test "phase11 dw_wdt pm scaffold keeps no-way-out hardware running across suspen
     try std.testing.expect(!resume_report.register_restore_requested);
     try std.testing.expect(!resume_report.restart_requested);
     try std.testing.expect(!resume_report.pretimeout_restore_requested);
+    try std.testing.expect(resume_report.returns_watchdog_to_running_state);
+    try std.testing.expect(!resume_report.blocked_on_live_mmio);
+    try std.testing.expect(resume_report.preserves_running_hardware_without_restore);
+}
+
+test "phase11 dw_wdt pm scaffold keeps resetless no-way-out hardware running without a fabricated mmio blocker" {
+    const request = PmTransitionRequest{
+        .watchdog_running = true,
+        .nowayout = true,
+        .reset_control_available = false,
+        .state_snapshot_available = false,
+        .mmio_window_available = false,
+        .pretimeout_irq_present = false,
+    };
+
+    const suspend_report = suspendSummary(request);
+    try std.testing.expectEqual(SuspendDisposition.keep_running_across_suspend, suspend_report.disposition);
+    try std.testing.expect(!suspend_report.stop_requested);
+    try std.testing.expect(!suspend_report.reset_assert_requested);
+    try std.testing.expect(!suspend_report.register_snapshot_requested);
+    try std.testing.expect(suspend_report.enters_low_power_ready_state);
+    try std.testing.expect(suspend_report.keeps_hardware_running);
+    try std.testing.expect(!suspend_report.blocked_on_live_mmio);
+
+    const resume_report = resumeSummary(request);
+    try std.testing.expectEqual(ResumeDisposition.keep_running_without_restore, resume_report.disposition);
+    try std.testing.expect(resume_report.clock_enable_requested);
+    try std.testing.expect(!resume_report.register_restore_requested);
+    try std.testing.expect(!resume_report.restart_requested);
     try std.testing.expect(resume_report.returns_watchdog_to_running_state);
     try std.testing.expect(!resume_report.blocked_on_live_mmio);
     try std.testing.expect(resume_report.preserves_running_hardware_without_restore);
