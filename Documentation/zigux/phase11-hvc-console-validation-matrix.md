@@ -23,6 +23,7 @@ Treat the current matrix packet as:
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-validate-manifest-roster.py`
@@ -30,6 +31,7 @@ Treat the current matrix packet as:
 - `scripts/zigux/check-phase11-validate-route-alignment.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
@@ -58,8 +60,10 @@ keeps the dedicated modem-control and targetless-unregister build routes
 fail-closed without promoting either pair into the shared three-entry build
 inventory. Keep the modem-control proof pair directly readable through its
 focused build route without promoting it into the shared build inventory yet,
-and keep the targetless-unregister witness explicitly separate from the smaller
-proof-backed continuity packet.
+keep the targetless-unregister witness explicitly separate from the smaller
+proof-backed continuity packet, and keep the cleanup-prerequisite parity note
+plus checker explicit as a helper-local teardown reminder rather than a claim
+that live cleanup execution has returned.
 
 ## Failure-Mode Evidence
 
@@ -91,6 +95,12 @@ proof-backed continuity packet.
   gaps instead of returned fallback evidence.
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` keeps helper-local
   failure-mode edges reviewable through the verify helper boundary note.
+- `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md` and
+  `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py` keep
+  `summarizeCleanupPrerequisite()`, its trigger split, and
+  `error.CleanupRequiresFinalCloseOrHangup` explicit as teardown-parity reminder
+  surfaces without claiming that the missing teardown note or live cleanup
+  replay have returned.
 - `scripts/zigux/check-phase11-validate-manifest-roster.py`,
   `scripts/zigux/check-phase11-validate-check-roster.py`,
   `scripts/zigux/check-phase11-validate-route-alignment.py`, and
@@ -110,7 +120,7 @@ proof-backed continuity packet.
 - keep `make -C zigux phase11-validate` as the returned shared route
 - keep the dedicated survey route absent until `zigux/Makefile` grows it
 - keep helper-local failure-mode edges reviewable through the verify boundary
-  note and the current companion stack
+  note, the cleanup-prerequisite parity note, and the current companion stack
 - keep `scripts/zigux/check-phase11-validate-manifest-roster.py`,
   `scripts/zigux/check-phase11-validate-check-roster.py`,
   `scripts/zigux/check-phase11-validate-route-alignment.py`, and
@@ -119,6 +129,9 @@ proof-backed continuity packet.
 - keep `scripts/zigux/check-phase11-focused-direct-build-replays.py` explicit as
   the guard for the dedicated modem-control and targetless-unregister build
   routes while those proofs stay outside the shared three-entry build inventory
+- keep `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`
+  and `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
+  explicit as the dedicated teardown-prerequisite reminder guard
 - keep `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   explicit as a focused direct-readback proof route outside the shared
   inventory-backed replay contract for now
