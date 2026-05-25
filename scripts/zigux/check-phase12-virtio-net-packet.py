@@ -6,6 +6,8 @@ import json
 import tempfile
 from pathlib import Path
 
+VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
+
 REQUIRED_FILES = [
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "drivers/net/virtio_net_queue_resume.zig",
@@ -22,6 +24,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase12_virtio_net_syntax_lab.zig",
     "zigux/tests/phase12_virtio_net_syntax_lab_build.zig",
     "zigux/tests/phase12_virtio_net_manifest.json",
+    VALIDATOR_PATH,
     "zigux/tests/phase12_build.zig",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
@@ -56,6 +59,13 @@ SURVEY_GATE_MARKERS = (
     'try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));',
     'try expectNotContains(build_zig, "phase12_virtio_net_syntax_lab.zig");',
     'try expectContains(makefile, "phase12: phase12-validate phase12-smoke phase12-test");',
+)
+
+VALIDATOR_MARKERS = (
+    "scripts/zigux/check-phase12-virtio-net-packet.py",
+    "scripts/zigux/check-phase12-virtio-scsi-packet.py",
+    "PHASE12_VALIDATOR_SELF_TEST=pass",
+    "make -C zigux phase12-validate",
 )
 
 BUILD_MARKERS = (
@@ -141,6 +151,7 @@ def run_check(root: Path) -> None:
             raise CheckError(f"{manifest_path.as_posix()}: missing marker {marker!r}")
 
     require_markers(require_file(root, "Documentation/zigux/phase12-virtio-net-survey.md"), SURVEY_MARKERS)
+    require_markers(require_file(root, VALIDATOR_PATH), VALIDATOR_MARKERS)
     build_text = require_markers(require_file(root, "zigux/tests/phase12_build.zig"), BUILD_MARKERS)
     for stale in ("../../drivers/net/virtio_net.zig", '"phase12_virtio_net.zig"', '"phase12_virtio_net_syntax_lab.zig"'):
         if stale in build_text:
@@ -166,6 +177,7 @@ def make_fixture_tree(root: Path) -> None:
         "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_syntax_lab_build.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_survey.zig": "\n".join(f"// {m}" for m in SURVEY_GATE_MARKERS) + "\n",
+        "scripts/zigux/validate-phase12.py": "\n".join(VALIDATOR_MARKERS) + "\n",
         "zigux/tests/phase12_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
@@ -225,6 +237,7 @@ def run_self_test() -> None:
         for rel in (
             "Documentation/zigux/phase12-virtio-net-survey.md",
             "zigux/tests/phase12_virtio_net_manifest.json",
+            "scripts/zigux/validate-phase12.py",
             "zigux/tests/phase12_build.zig",
             "zigux/tests/phase12_virtio_net_survey.zig",
             "zigux/Makefile",
