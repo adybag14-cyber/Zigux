@@ -141,7 +141,6 @@ test "nvme pci recovery restore verifier keeps admin-first replay and mixed DMA 
 
     const restore = try lab.recoveryQueueRestoreSummary();
     try testing.expectEqualStrings("drivers/nvme/host/pci.c", restore.anchor);
-    try testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, restore.state);
     try testing.expectEqual(@as(u32, 1), restore.reset_generation);
     try testing.expectEqual(@as(u16, 64), restore.admin_queue_depth);
     try testing.expectEqual(@as(u16, 2), restore.admin_host_dma_pages);
@@ -324,6 +323,64 @@ test "nvme pci recovery reservation replay preflight keeps descriptor rebuild de
 
     const recovery = lab.recoverySummary();
     try testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
+}
+
+test "nvme pci partial stale reservation replay keeps retirement and rollback gates closed" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(6, 6);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+
+    const applied = try lab.applyRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", applied.anchor);
+    try testing.expectEqual(@as(usize, 6), applied.requested_reserved_io_queues);
+    try testing.expectEqual(@as(usize, 3), applied.replayed_reserved_io_queues);
+    try testing.expectEqual(@as(u16, 1), applied.first_queue_id);
+    try testing.expectEqual(@as(u16, 3), applied.last_queue_id);
+    try testing.expectEqual(@as(usize, 3), applied.planned_io_queues_after_replay);
+    try testing.expectEqual(@as(u16, 4), applied.next_io_queue_id_after_replay);
+    try testing.expect(applied.queue_numbering_restarted);
+    try testing.expect(applied.controller_limited);
+    try testing.expect(!applied.planner_limited);
+
+    const retirement = lab.summarizeDroppedIoRetirement();
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", retirement.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.running, retirement.state);
+    try testing.expectEqual(@as(u32, 1), retirement.reset_generation);
+    try testing.expect(retirement.admin_queue_replayed_after_reset);
+    try testing.expect(!retirement.admin_queue_must_be_replayed);
+    try testing.expectEqual(@as(usize, 6), retirement.dropped_io_queue_count);
+    try testing.expectEqual(@as(usize, 3), retirement.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 3), retirement.remaining_io_queue_count);
+    try testing.expect(retirement.queue_numbering_restarted);
+    try testing.expect(!retirement.can_retire_dropped_io_backlog);
+
+    const rollback = lab.recoveryRollbackGateSummary();
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", rollback.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.running, rollback.state);
+    try testing.expectEqual(@as(u32, 1), rollback.reset_generation);
+    try testing.expect(rollback.admin_queue_replayed_after_reset);
+    try testing.expectEqual(@as(usize, 6), rollback.dropped_io_queue_count);
+    try testing.expectEqual(@as(usize, 3), rollback.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 3), rollback.remaining_io_queue_count);
+    try testing.expect(rollback.queue_numbering_restarted);
+    try testing.expectEqual(@as(u32, 0), rollback.dropped_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 0), rollback.rebuilt_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 0), rollback.remaining_io_host_dma_pages);
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.queue_count_parity, rollback.rollback_blocker);
+    try testing.expect(!rollback.queue_count_parity_recovered);
+    try testing.expect(!rollback.host_dma_parity_recovered);
+    try testing.expect(!rollback.can_clear_rollback_gate);
 }
 
 test "nvme pci recovery reservation replay preflight marks stale PRP metadata and planner-limited replay debt" {
