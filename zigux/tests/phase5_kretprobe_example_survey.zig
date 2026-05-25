@@ -234,7 +234,7 @@ test "phase 5 kretprobe note and shared reminder packet stay aligned with the ma
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "current public-tree-backed companion evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "current directly readable shared build-route companion evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "runtime_kretprobe") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "Documentation/zigux/phase5-kretprobe-sample-survey.md") != null);
@@ -251,7 +251,7 @@ test "phase 5 kretprobe note and shared reminder packet stay aligned with the ma
     try std.testing.expect(std.mem.indexOf(u8, guide, "zig test samples/zigux/kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, guide, "zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, guide, "zig test zigux/tests/phase5_kretprobe_example_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, guide, "current public-tree-backed companion evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, guide, "current directly readable shared build-route companion evidence") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, manifest.sample_path) != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "zigux/tests/phase5_kretprobe_example.zig") != null);
