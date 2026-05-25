@@ -20,10 +20,18 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "scripts/zigux/check-lane05-local-first-archive-workflow.py",
     "scripts/zigux/check-lane05-local-archive-readme.py",
-    "scripts/zigux/check-phase1-route-summary-counts.py",
+    "scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "scripts/zigux/install-zig.py",
+    "scripts/zigux/stage-pinned-zig-archive.py",
+    "scripts/zigux/check-lane05-stage-helper-contract.py",
+    "scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "scripts/zigux/check-phase1-route-summary-counts.py",
+    "scripts/zigux/check-phase2-toolchain-pinning.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
+    "third_party/README.md",
     "zigux/tests/README.md",
     WORKFLOW,
 )
@@ -64,6 +72,10 @@ SCRIPTS_README_MARKERS = (
     "This directory holds shipped Zigux validation helpers and compact reminder surfaces.",
     "scripts/zigux/check-zig-toolchain.py",
     "scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+    "third_party/README.md",
+    "scripts/zigux/stage-pinned-zig-archive.py",
+    "scripts/zigux/check-phase2-toolchain-pinning.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -74,9 +86,21 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
     "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "run: python3 scripts/zigux/install-zig.py --self-test",
+    "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "run: make -C zigux phase2-toolchain",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
     "run: make -C zigux phase6-validate",
@@ -270,6 +294,10 @@ def build_self_test_root(root: Path) -> None:
                 "",
                 "- `scripts/zigux/check-zig-toolchain.py`",
                 "- `scripts/zigux/check-lane01-bootstrap-charter-alignment.py`",
+                "- `third_party/README.md`",
+                "- `scripts/zigux/stage-pinned-zig-archive.py`",
+                "- `scripts/zigux/check-phase2-toolchain-pinning.py`",
+                "- `scripts/zigux/check-phase2-toolchain-pin-scope.py`",
             )
         )
         + "\n",
@@ -278,10 +306,18 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/check-lane01-bootstrap-charter-alignment.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-local-first-archive-workflow.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
-    write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-install-zig-archive-verification.py", "present\n")
     write_text(root, "scripts/zigux/install-zig.py", "present\n")
+    write_text(root, "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-stage-helper-contract.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-stage-helper-selftest.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-toolchain-pinning.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-toolchain-pin-scope.py", "present\n")
+    write_text(root, "scripts/zigux/check-phase2-required-make-routes.py", "present\n")
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
     write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
+    write_text(root, "third_party/README.md", "present\n")
     write_text(root, "zigux/tests/README.md", "present\n")
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
 
@@ -333,16 +369,25 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root,
+            "scripts/zigux/README.md",
+            read_text(root, "scripts/zigux/README.md").replace("- `scripts/zigux/stage-pinned-zig-archive.py`\n", "", 1),
+        )
+        assert ("MISSING_SCRIPTS_README_MARKER", "scripts/zigux/stage-pinned-zig-archive.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
-                "run: python3 scripts/zigux/install-zig.py --self-test",
+                "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
                 "run: python3 scripts/zigux/other.py",
             ),
         )
         assert (
             "MISSING_WORKFLOW_LINE",
-            "run: python3 scripts/zigux/install-zig.py --self-test",
+            "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
         ) in collect_issues(root)
         checks += 1
 
@@ -369,6 +414,21 @@ def run_self_test() -> int:
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/install-zig.py") in collect_issues(root)
         checks += 1
 
+        build_self_test_root(root)
+        (root / "scripts/zigux/stage-pinned-zig-archive.py").unlink()
+        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/stage-pinned-zig-archive.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-toolchain-pinning.py").unlink()
+        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-phase2-toolchain-pinning.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "third_party/README.md").unlink()
+        assert ("MISSING_REQUIRED_PATH", "third_party/README.md") in collect_issues(root)
+        checks += 1
+
     print("BOOTSTRAP_VALIDATION_SELF_TEST=pass")
     print(f"BOOTSTRAP_VALIDATION_SELF_TEST_CASE_COUNT={checks}")
     return 0
@@ -376,7 +436,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the current Zigux bootstrap packet still exposes its charter, docs, toolchain, and workflow surfaces."
+        description="Validate that the current Zigux bootstrap packet still exposes its charter, docs, pinned-toolchain, staged-archive, and workflow surfaces."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run built-in contract checks")
