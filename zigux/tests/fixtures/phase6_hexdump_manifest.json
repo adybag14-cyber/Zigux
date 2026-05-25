@@ -1,0 +1,22 @@
+{
+  "phase": "Phase 6",
+  "helper": "lib/hexdump.zig",
+  "status": "pass",
+  "helper_test_anchors": [
+    "test \"hex_to_bin alias stays aligned\"",
+    "test \"hex2bin and bin2hex snake-case aliases stay aligned\"",
+    "test \"bin2hexUpper emits uppercase bulk output and alias stays aligned\"",
+    "test \"hexBytePack helpers chain bytes and preserve destination on bounds errors\"",
+    "test \"hexDumpLineLength mirrors formatter normalization\"",
+    "test \"hexDumpToBuffer follows kernel fixture normalization cases\"",
+    "test \"hexDumpToBuffer reports normalized required length for empty and zero-sized buffers\""
+  ],
+  "alias_exports": [
+    "pub const hex_to_bin = hexToBin;",
+    "pub const hex2Bin = hex2bin;",
+    "pub const bin2Hex = bin2hex;",
+    "pub const bin2HexUpper = bin2hexUpper;"
+  ],
+  "governance_summary": "Phase 6 hexdump ownership stays bounded to alias parity, bulk encoder boundaries, formatter normalization, kernel-style fixture replay, and empty-buffer length reporting.",
+  "next_safe_step_note": "If this lane reopens, keep it on helper-local normalization, alias, or fixture drift inside lib/hexdump.zig before widening into broader Phase 6 batching."
+}
