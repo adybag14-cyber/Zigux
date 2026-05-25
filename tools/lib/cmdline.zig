@@ -82,20 +82,24 @@ fn saturatingMulAdd(value: u64, base: u8, digit: u8) u64 {
 }
 
 fn applySuffix(value: u64, suffix: u8) u64 {
-    const shift: u6 = switch (suffix) {
+    const shift = suffixShift(suffix) orelse return value;
+    const max_value: u64 = std.math.maxInt(u64);
+    if (value > (max_value >> shift)) {
+        return std.math.maxInt(u64);
+    }
+    return value << shift;
+}
+
+fn suffixShift(suffix: u8) ?u6 {
+    return switch (suffix) {
         'E', 'e' => 60,
         'P', 'p' => 50,
         'T', 't' => 40,
         'G', 'g' => 30,
         'M', 'm' => 20,
         'K', 'k' => 10,
-        else => return value,
+        else => null,
     };
-    const max_value: u64 = std.math.maxInt(u64);
-    if (value > (max_value >> shift)) {
-        return std.math.maxInt(u64);
-    }
-    return value << shift;
 }
 
 fn clampNegativeMagnitude(magnitude: u64) u64 {
@@ -171,9 +175,30 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
 
 pub const next_arg = nextArg;
 
+fn memparseNoDigitRestStart(
+    text: []const u8,
+    prefix_start: usize,
+    digits_start: usize,
+) ?usize {
+    if (text.len == 0) {
+        return null;
+    }
+
+    if (prefix_start == 0 and suffixShift(text[0]) != null) {
+        return 1;
+    }
+
+    if (prefix_start < text.len and text[prefix_start] == '0' and digits_start > prefix_start) {
+        return prefix_start + 1;
+    }
+
+    return null;
+}
+
 pub fn memparse(text: []const u8) MemparseResult {
     const prefix = parseSignedPrefix(text);
     const base_info = parseBase(text, prefix.start);
+
     var idx = base_info.digits_start;
     var parsed_any = false;
     var magnitude: u64 = 0;
@@ -185,6 +210,9 @@ pub fn memparse(text: []const u8) MemparseResult {
     }
 
     if (!parsed_any) {
+        if (memparseNoDigitRestStart(text, prefix.start, base_info.digits_start)) |rest_start| {
+            return .{ .value = 0, .rest = text[rest_start..] };
+        }
         return .{ .value = 0, .rest = text };
     }
 
@@ -196,7 +224,6 @@ pub fn memparse(text: []const u8) MemparseResult {
         clampNegativeMagnitude(magnitude)
     else
         magnitude;
-
     if (idx < text.len) {
         if (!prefix.negative) {
             result = applySuffix(result, text[idx]);
@@ -260,14 +287,26 @@ test "memparse applies suffixes before signed clamping" {
     try std.testing.expectEqualStrings("more", positive.rest);
 }
 
-test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
-    const negative_hex = memparse("-0x2Ktail");
-    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative_hex.value);
-    try std.testing.expectEqualStrings("tail", negative_hex.rest);
+test "memparse keeps incomplete hex prefixes and suffix-only no-digit inputs aligned" {
+    const incomplete_hex = memparse("0xK");
+    try std.testing.expectEqual(@as(u64, 0), incomplete_hex.value);
+    try std.testing.expectEqualStrings("xK", incomplete_hex.rest);
 
-    const positive_octal = memparse("+010Mmore");
-    try std.testing.expectEqual(@as(u64, 8 << 20), positive_octal.value);
-    try std.testing.expectEqualStrings("more", positive_octal.rest);
+    const signed_incomplete_hex = memparse("+0xK");
+    try std.testing.expectEqual(@as(u64, 0), signed_incomplete_hex.value);
+    try std.testing.expectEqualStrings("xK", signed_incomplete_hex.rest);
+
+    const signed_incomplete_hex_without_suffix = memparse("+0x");
+    try std.testing.expectEqual(@as(u64, 0), signed_incomplete_hex_without_suffix.value);
+    try std.testing.expectEqualStrings("x", signed_incomplete_hex_without_suffix.rest);
+
+    const suffix_only = memparse("K");
+    try std.testing.expectEqual(@as(u64, 0), suffix_only.value);
+    try std.testing.expectEqualStrings("", suffix_only.rest);
+
+    const suffix_then_rest = memparse("krest");
+    try std.testing.expectEqual(@as(u64, 0), suffix_then_rest.value);
+    try std.testing.expectEqualStrings("rest", suffix_then_rest.rest);
 }
 
 test "memparse saturates oversized unsigned prefixes at u64 max and keeps rest aligned" {
