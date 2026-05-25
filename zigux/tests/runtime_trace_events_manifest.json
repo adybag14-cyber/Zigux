@@ -9,7 +9,7 @@
   ],
   "survey_summary": {
     "direct_runtime_trace_events_test_files": 2,
-    "surviving_sample_family_files": 4,
+    "surviving_sample_family_files": 6,
     "survey_note_present": true,
     "module_slice_present": true
   },
@@ -18,7 +18,9 @@
     "companion_files": [
       "samples/zigux/runtime_trace_events_unregistered_gate.zig",
       "samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
-      "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
+      "samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
+      "samples/zigux/runtime_trace_events_reinit_rollback_guard.zig",
+      "samples/zigux/runtime_trace_events_reinit_reexit_guard.zig"
     ],
     "selftest_hook_marker": ".provides_selftest_hook = true",
     "lifecycle_marker": "initialized, selftest_complete, and exited lifecycle tracking"
