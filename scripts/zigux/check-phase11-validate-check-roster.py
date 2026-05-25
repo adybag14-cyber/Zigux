@@ -242,6 +242,7 @@ def build_fixture(
     omit_required_path: bool = False,
     wrong_inventory_lane: bool = False,
     wrong_inventory_gap: bool = False,
+    wrong_teardown_builds: bool = False,
 ) -> None:
     required_paths = [
         "scripts/zigux/validate-phase11.py",
@@ -272,7 +273,7 @@ def build_fixture(
             "    command: tuple[str, ...]",
             "",
             "REQUIRED_PATHS = (",
-            *(f'    \"{path}\",' for path in required_paths),
+            *(f'    "{path}",' for path in required_paths),
             ")",
             "",
             "CHECKS = (",
@@ -307,7 +308,11 @@ def build_fixture(
                     "P11-L07" if wrong_inventory_lane else EXPECTED_INVENTORY_DETERMINISTIC_LANE
                 ),
                 "deterministic_fixture_surfaces": EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES,
-                "focused_teardown_failure_mode_builds": EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS,
+                "focused_teardown_failure_mode_builds": (
+                    EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS[:-1]
+                    if wrong_teardown_builds
+                    else EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS
+                ),
                 "deterministic_golden_output_gap": (
                     "stale deterministic golden-output note"
                     if wrong_inventory_gap
@@ -384,6 +389,11 @@ def run_self_test() -> int:
         wrong_inventory_lane = tmpdir / "wrong_inventory_lane"
         build_fixture(wrong_inventory_lane, wrong_inventory_lane=True)
         expect_failure(wrong_inventory_lane, "deterministic_tooling_lane mismatch")
+        case_count += 1
+
+        wrong_teardown_builds = tmpdir / "wrong_teardown_builds"
+        build_fixture(wrong_teardown_builds, wrong_teardown_builds=True)
+        expect_failure(wrong_teardown_builds, "focused_teardown_failure_mode_builds mismatch")
         case_count += 1
 
         wrong_inventory_gap = tmpdir / "wrong_inventory_gap"
