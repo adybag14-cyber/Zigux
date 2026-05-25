@@ -384,6 +384,22 @@ def insert_duplicate_manifest_line(root: Path, needle: str, duplicate_line: str)
     manifest_path.write_text(text.replace(needle, duplicate_line + "\n" + needle, 1), encoding="utf-8")
 
 
+def drift_value(value: object) -> object:
+    if isinstance(value, list):
+        return value[1:]
+    if isinstance(value, int):
+        return value + 1
+    return f"{value} drift"
+
+
+def mutate_manifest_path(manifest: dict, path: tuple[str, ...]) -> None:
+    current = manifest
+    for key in path[:-1]:
+        current = current[key]
+    final_key = path[-1]
+    current[final_key] = drift_value(current[final_key])
+
+
 def run_self_test() -> None:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_direct_anchor_manifest_gate_") as tmp_dir:
@@ -396,254 +412,46 @@ def run_self_test() -> None:
         def load_current() -> dict:
             return json.loads(manifest_path.read_text(encoding="utf-8"))
 
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("copy_raw_alias_anchor"),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/bitmap.zig:copy_raw_alias_anchor",
-        )
-        case_count += 1
+        top_level_expectations = {
+            ("phase",): "manifest:phase=Phase 1",
+            ("status",): "manifest:status=closed",
+            ("helper_count",): "manifest:helper_count=13",
+            ("helpers",): "manifest:helpers=expected_phase1_helper_list",
+            ("lane_sequencing", "shared_replay_parked_helpers"): "manifest:lane_sequencing.shared_replay_parked_helpers",
+            ("lane_sequencing", "direct_anchor_followup_helpers"): "manifest:lane_sequencing.direct_anchor_followup_helpers",
+            ("lane_sequencing", "rule_summary"): "manifest:lane_sequencing.rule_summary",
+            ("lane_sequencing", "anti_overlap_rule"): "manifest:lane_sequencing.anti_overlap_rule",
+        }
 
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("or_window_anchor"),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/bitmap.zig:or_window_anchor",
-        )
-        case_count += 1
+        for path, expected_issue in top_level_expectations.items():
+            assert_issue_case(
+                root,
+                lambda path=path: (
+                    lambda manifest: (
+                        mutate_manifest_path(manifest, path),
+                        write_manifest(root, manifest),
+                    )
+                )(load_current()),
+                expected_issue,
+            )
+            case_count += 1
 
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("or_multiword_tail_anchor"),
-                    write_manifest(root, manifest),
+        for helper, expected_fields in EXPECTED_REVIEW_FIELDS.items():
+            for field in expected_fields:
+                assert_issue_case(
+                    root,
+                    lambda helper=helper, field=field: (
+                        lambda manifest: (
+                            manifest["review_anchors"][helper].__setitem__(
+                                field,
+                                drift_value(manifest["review_anchors"][helper][field]),
+                            ),
+                            write_manifest(root, manifest),
+                        )
+                    )(load_current()),
+                    f"manifest:review_anchor_value={helper}:{field}",
                 )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/bitmap.zig:or_multiword_tail_anchor",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("weighted_tail_count_anchor"),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/bitmap.zig:weighted_tail_count_anchor",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/bitmap.zig"].pop("empty_buffer_anchor"),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/bitmap.zig:empty_buffer_anchor",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/bitmap.zig"].__setitem__(
-                        "review_packet_summary",
-                        "drifted bitmap review summary",
-                    ),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/bitmap.zig:review_packet_summary",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/find_bit.zig"]["andnot_scan_entrypoints"].pop(),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/find_bit.zig:andnot_scan_entrypoints",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_clamp_fixture_keys"].pop(),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/find_bit.zig:tail_clamp_fixture_keys",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/find_bit.zig"]["tail_inclusive_boundary_fixture_keys"].pop(),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/find_bit.zig:tail_inclusive_boundary_fixture_keys",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/find_bit.zig"].__setitem__(
-                        "next_safe_step_note",
-                        manifest["review_anchors"]["tools/lib/find_bit.zig"]["next_safe_step_note"] + " drift",
-                    ),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/find_bit.zig:next_safe_step_note",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/rbtree.zig"]["cached_root_followup_anchors"].remove(
-                        'test "rbtree cached-root Linux-style aliases mirror the primary helpers"'
-                    ),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/rbtree.zig:cached_root_followup_anchors",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/rbtree.zig"].pop("cached_root_alias_anchor"),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/rbtree.zig:cached_root_alias_anchor",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/string.zig"]["helper_test_anchors"].remove(
-                        'test "strcmp mirrors C-string lexical ordering"'
-                    ),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/string.zig:helper_test_anchors",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/string.zig"]["counted_search_review_anchors"].remove(
-                        'test "strspn counts the accepted prefix with C-string semantics"'
-                    ),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/string.zig:counted_search_review_anchors",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/string.zig"].__setitem__(
-                        "strcmp_review_summary",
-                        manifest["review_anchors"]["tools/lib/string.zig"]["strcmp_review_summary"] + " drift",
-                    ),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/string.zig:strcmp_review_summary",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["review_anchors"]["tools/lib/string.zig"].__setitem__(
-                        "next_safe_step_note",
-                        manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] + " drift",
-                    ),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:review_anchor_value=tools/lib/string.zig:next_safe_step_note",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest.__setitem__("helper_count", 12),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:helper_count=13",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["lane_sequencing"].__setitem__(
-                        "direct_anchor_followup_helpers",
-                        ["tools/lib/bitmap.zig", "tools/lib/find_bit.zig", "tools/lib/rbtree.zig"],
-                    ),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:lane_sequencing.direct_anchor_followup_helpers",
-        )
-        case_count += 1
-
-        assert_issue_case(
-            root,
-            lambda: (
-                lambda manifest: (
-                    manifest["lane_sequencing"].__setitem__("rule_summary", "drifted rule summary"),
-                    write_manifest(root, manifest),
-                )
-            )(load_current()),
-            "manifest:lane_sequencing.rule_summary",
-        )
-        case_count += 1
+                case_count += 1
 
         insert_duplicate_manifest_line(
             root,
