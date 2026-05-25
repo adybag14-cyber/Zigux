@@ -25,10 +25,12 @@ BEFORE_STEP = "      - name: Check current Phase 1 shared reminder packet"
 AFTER_STEP = "      - name: Self-test current Phase 1 closure validator"
 
 REQUIRED_LINES = (
+    BEFORE_STEP,
     SELF_TEST_STEP,
     SELF_TEST_RUN,
     CHECK_STEP,
     CHECK_RUN,
+    AFTER_STEP,
 )
 
 
@@ -64,7 +66,7 @@ def collect_failures(root: Path) -> list[str]:
         return failures
 
     workflow_lines = workflow_text.splitlines()
-    positions = {line: workflow_lines.index(line) for line in (BEFORE_STEP, *REQUIRED_LINES, AFTER_STEP)}
+    positions = {line: workflow_lines.index(line) for line in REQUIRED_LINES}
     if not (
         positions[BEFORE_STEP]
         < positions[SELF_TEST_STEP]
@@ -76,6 +78,10 @@ def collect_failures(root: Path) -> list[str]:
         failures.append(
             f"{WORKFLOW_REL.as_posix()}:lane17_phase1_packet_order_invalid"
         )
+    if positions[SELF_TEST_STEP] != positions[BEFORE_STEP] + 2:
+        failures.append(
+            f"{WORKFLOW_REL.as_posix()}:selftest_step_not_after_shared_reminder_packet"
+        )
     if positions[CHECK_STEP] != positions[SELF_TEST_RUN] + 1:
         failures.append(
             f"{WORKFLOW_REL.as_posix()}:check_step_not_adjacent_to_selftest_run"
@@ -83,6 +89,10 @@ def collect_failures(root: Path) -> list[str]:
     if positions[CHECK_RUN] != positions[CHECK_STEP] + 1:
         failures.append(
             f"{WORKFLOW_REL.as_posix()}:check_run_not_adjacent_to_check_step"
+        )
+    if positions[AFTER_STEP] != positions[CHECK_RUN] + 1:
+        failures.append(
+            f"{WORKFLOW_REL.as_posix()}:closure_validator_not_after_lane17_packet"
         )
     return failures
 
@@ -154,10 +164,40 @@ def mutate_swap_step_order(root: Path) -> None:
     )
 
 
+def mutate_insert_gap_before_selftest(root: Path) -> None:
+    mutate_replace_line(
+        root,
+        "\n".join((BEFORE_STEP, "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py", SELF_TEST_STEP)),
+        "\n".join((
+            BEFORE_STEP,
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
+            "      - name: Drifted gap step",
+            "        run: echo drift",
+            SELF_TEST_STEP,
+        )),
+    )
+
+
+def mutate_insert_gap_before_closure(root: Path) -> None:
+    mutate_replace_line(
+        root,
+        "\n".join((CHECK_STEP, CHECK_RUN, AFTER_STEP)),
+        "\n".join((
+            CHECK_STEP,
+            CHECK_RUN,
+            "      - name: Drifted gap step",
+            "        run: echo drift",
+            AFTER_STEP,
+        )),
+    )
+
+
 def run_self_test() -> int:
     cases: list[tuple[str, str, str | tuple[str, str] | None]] = [
         ("success", "noop", None),
         ("missing_checker", "remove_file", CHECKER_REL.as_posix()),
+        ("missing_before_step", "remove_line", BEFORE_STEP),
+        ("duplicate_before_step", "duplicate_line", BEFORE_STEP),
         ("missing_self_test_step", "remove_line", SELF_TEST_STEP),
         ("duplicate_self_test_step", "duplicate_line", SELF_TEST_STEP),
         ("missing_self_test_run", "remove_line", SELF_TEST_RUN),
@@ -166,7 +206,11 @@ def run_self_test() -> int:
         ("duplicate_check_step", "duplicate_line", CHECK_STEP),
         ("missing_check_run", "remove_line", CHECK_RUN),
         ("stale_check_run", "replace_line", (CHECK_RUN, "        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py --self-test")),
+        ("missing_after_step", "remove_line", AFTER_STEP),
+        ("duplicate_after_step", "duplicate_line", AFTER_STEP),
         ("swapped_order", "swap_order", None),
+        ("gap_before_selftest", "insert_gap_before_selftest", None),
+        ("gap_before_closure", "insert_gap_before_closure", None),
     ]
 
     for name, mode, payload in cases:
@@ -185,6 +229,10 @@ def run_self_test() -> int:
                 mutate_replace_line(root, old, new)
             elif mode == "swap_order":
                 mutate_swap_step_order(root)
+            elif mode == "insert_gap_before_selftest":
+                mutate_insert_gap_before_selftest(root)
+            elif mode == "insert_gap_before_closure":
+                mutate_insert_gap_before_closure(root)
 
             failures = collect_failures(root)
             if name == "success":
