@@ -9,6 +9,7 @@ import sys
 import tempfile
 
 SURVEY_PATH = Path("Documentation/zigux/phase12-virtio-scsi-survey.md")
+FALLBACK_CATALOG_PATH = Path("Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase12_virtio_scsi_manifest.json")
 FIXTURE_MANIFEST_PATH = Path("zigux/tests/fixtures/phase12_virtio_scsi_manifest.json")
 SURVEY_GATE_PATH = Path("zigux/tests/phase12_virtio_scsi_survey.zig")
@@ -19,8 +20,13 @@ REQUIRED_MARKERS = {
         "`PHASE12_LANE=P12-L13`",
         "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`",
         "rollback-only split machine-checkable",
-        "reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, survey gate, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent",
+        "reversible-delivery evidence: current `master` preserves the survey note, fixture manifest, survey manifest, dedicated survey-build route, survey gate, checker, shared build bundle, and `zigux/Makefile` as rollback evidence while the driver-local starter and replay gates remain absent",
         "rollback drill: when this packet moves",
+    ],
+    FALLBACK_CATALOG_PATH: [
+        "- survey-build replay: `zigux/tests/phase12_virtio_scsi_survey_build.zig`",
+        "- current `master` still carries this fallback catalog, the survey note, the slice note, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`",
+        "- keep the fallback split explicit: this file is archival commit-pinned history only for the historical replay artifact, while the current-master survey note, fixture manifest, survey manifest, survey replay, survey-build replay, survey gate, validator, shared build route, and `zigux/Makefile` are rollback evidence only",
     ],
     MANIFEST_PATH: [
         '"preexisting_phase12_repeated_rollback_gate_present": false',
