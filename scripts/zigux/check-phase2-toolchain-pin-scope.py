@@ -156,7 +156,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_VARIABLE_MARKERS)
-    + 1
+    + len(MAKEFILE_VARIABLE_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + 13
     + 8
@@ -540,17 +540,22 @@ def run_self_test() -> int:
             assert ("MISSING_MAKEFILE_VARIABLE_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, MAKEFILE)
-        path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_VARIABLE_MARKERS[0]),
-            encoding="utf-8",
-        )
-        assert (
-            "DUPLICATE_MAKEFILE_VARIABLE_MARKERS",
-            f"{MAKEFILE_VARIABLE_MARKERS[0]}:count=2",
-        ) in collect_issues(root)
-        checks_run += 1
+        for marker in MAKEFILE_VARIABLE_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                replace_once(
+                    path.read_text(encoding="utf-8"),
+                    marker,
+                    marker + marker,
+                ),
+                encoding="utf-8",
+            )
+            assert (
+                "DUPLICATE_MAKEFILE_VARIABLE_MARKERS",
+                f"{marker}:count=2",
+            ) in collect_issues(root)
+            checks_run += 1
 
         for marker in TOOLCHAIN_CHECKER_MARKERS:
             build_self_test_root(root)
