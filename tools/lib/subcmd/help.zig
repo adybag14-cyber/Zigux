@@ -316,8 +316,7 @@ test "CommandNames sort and uniq keep the stable command set" {
 
     try std.testing.expectEqual(@as(usize, 3), cmds.count());
     try std.testing.expectEqualStrings("annotate", cmds.names.items[0].name);
-    try std.testing.expectEqualStrings("bench", cmds.cnames.items[1].name);
-
+    try std.testing.expectEqualStrings("bench", cmds.names.items[1].name);
     try std.testing.expectEqualStrings("report", cmds.names.items[2].name);
 }
 
@@ -393,7 +392,7 @@ test "renderCommandSections keeps stable headers for main and fallback command g
 
     try std.testing.expectEqualStrings(
         "available subcommands in '/usr/libexec/perf-core'\n" ++
-            "--------------------------------------------------\n" ++
+            "-------------------------------------------------\n" ++
             " annotate bench\n" ++
             "\n" ++
             "subcommands available from elsewhere on your $PATH\n" ++
