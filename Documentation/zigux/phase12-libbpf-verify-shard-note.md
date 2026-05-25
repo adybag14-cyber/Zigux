@@ -17,6 +17,7 @@ It keeps a bounded verify-shard boundary visible without turning the shared rele
 - shared complex-driver anti-overlap companion: `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - snapshot checker: `scripts/zigux/check-phase12-libbpf-snapshot.py`
+- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`
 - snapshot anchor: `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
 
 ## Parked Boundary
@@ -26,7 +27,7 @@ It keeps a bounded verify-shard boundary visible without turning the shared rele
 - the current verify shard keeps the currently readable helper subset explicit through `cpu_mask.zig`, `logging.zig`, `online_cpu_routing.zig`, `perf_buffer_poll.zig`, `pin_path.zig`, and `type_names.zig` together with the directly readable sidecar family `logging_verify.zig`, `online_cpu_routing_verify.zig`, `perf_buffer_ready_window.zig`, `ready_buffer_attempt_verify.zig`, `ready_buffer_fd_verify.zig`, `ready_buffer_window_verify.zig`, and `type_names_verify.zig`
 - `tools/lib/bpf/zigux_segments/manifest.json` remains directly readable on current `master` as the helper-first packet catalog, but it still is not proof that the shared release packet adopted a shipped libbpf replay route
 - the snapshot anchor remains the truthful bounded signal here while those direct replay files stay absent from the shipped checkout
-- the snapshot checker keeps that parked note-owned packet fail-closed around `Documentation/zigux/phase12-libbpf-segment-survey.md`, this verify-shard note, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` without promoting the parked replay files into the shipped smoke-first route
+- the snapshot checker and lane-marker guard keep that parked note-owned packet fail-closed around `Documentation/zigux/phase12-libbpf-segment-survey.md`, this verify-shard note, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` without promoting the parked replay files into the shipped smoke-first route
 - the current validator-first support bundle remains separate: `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and the returned wrapper `make -C zigux phase12-validate` keep the shared release packet fail-closed without turning this parked note into a second direct replay route, while the returned `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` wrappers stay evidence for the broader shared smoke-first packet rather than proof for this parked note by themselves
 
 ## Boundaries
