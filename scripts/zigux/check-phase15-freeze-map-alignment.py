@@ -14,6 +14,7 @@ REQUIRED_MARKERS = (
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
     "`Documentation/zigux/README.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
@@ -39,6 +40,8 @@ REQUIRED_MARKERS = (
     "trigger-specific evidence refresh",
     "parity scorecard link or blocker record",
     "indefinite-C policy link or non-applicability note",
+    "governance lane sequencing link or explicit scope note",
+    "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
     "explicit non-goals",
     "written rationale",
     "shared reminder surfaces that summarize freeze posture",
@@ -71,6 +74,7 @@ def _sample_freeze_map() -> str:
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
@@ -96,6 +100,8 @@ def _sample_freeze_map() -> str:
 - trigger-specific evidence refresh
 - parity scorecard link or blocker record
 - indefinite-C policy link or non-applicability note
+- governance lane sequencing link or explicit scope note
+- study-only anchor accounting link or explicit freeze-map-anchor confirmation
 - explicit non-goals
 - written rationale
 - shared reminder surfaces that summarize freeze posture
@@ -155,6 +161,24 @@ def run_self_test() -> int:
         missing = collect_missing_markers(root)
         if missing != ["freeze_map:indefinite-C policy link or non-applicability note"]:
             raise AssertionError(f"unexpected policy-link failure: {missing}")
+        case_count += 1
+
+        _write(
+            root / FREEZE_MAP_PATH,
+            _sample_freeze_map().replace("- governance lane sequencing link or explicit scope note\n", "", 1),
+        )
+        missing = collect_missing_markers(root)
+        if missing != ["freeze_map:governance lane sequencing link or explicit scope note"]:
+            raise AssertionError(f"unexpected governance-lane-link failure: {missing}")
+        case_count += 1
+
+        _write(
+            root / FREEZE_MAP_PATH,
+            _sample_freeze_map().replace("- study-only anchor accounting link or explicit freeze-map-anchor confirmation\n", "", 1),
+        )
+        missing = collect_missing_markers(root)
+        if missing != ["freeze_map:study-only anchor accounting link or explicit freeze-map-anchor confirmation"]:
+            raise AssertionError(f"unexpected study-only-link failure: {missing}")
         case_count += 1
 
         _write(
