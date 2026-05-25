@@ -611,6 +611,30 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(
+            root / TESTS_ALIGNMENT_CHECKER,
+            _failing_checker(
+                "PHASE8_TESTS_README_ALIGNMENT",
+                "missing-marker:zigux/tests/README.md:`scripts/zigux/validate-phase8.py`",
+            ),
+        )
+        failing_tests_alignment_checker = validate_root(root)
+        tests_alignment_checker_output = failing_tests_alignment_checker.checker_failures.get(
+            TESTS_ALIGNMENT_CHECKER.as_posix()
+        )
+        if (
+            tests_alignment_checker_output is None
+            or "PHASE8_TESTS_README_ALIGNMENT=fail" not in tests_alignment_checker_output
+            or "missing-marker:zigux/tests/README.md:`scripts/zigux/validate-phase8.py`"
+            not in tests_alignment_checker_output
+        ):
+            raise AssertionError("expected failing tests-readme alignment checker output to be reported")
+        case_count += 1
+        _write(
+            root / TESTS_ALIGNMENT_CHECKER,
+            _passing_checker("PHASE8_TESTS_README_ALIGNMENT"),
+        )
+
+        _write(
             root / HELP_KALLSYMS_PACKET_CHECKER,
             _failing_checker(
                 "PHASE8_HELP_KALLSYMS_PACKET",
