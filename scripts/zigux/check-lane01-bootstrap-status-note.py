@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
@@ -32,6 +32,16 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+def _extract_status_packet(roadmap: str) -> tuple[str, ...] | None:
+    start = roadmap.find(ORDERED_HEADINGS[1])
+    end = roadmap.find(ORDERED_HEADINGS[2])
+    if start == -1 or end == -1 or end < start:
+        return None
+
+    packet = roadmap[start:end]
+    return tuple(line for line in packet.splitlines() if line.strip())
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -41,8 +51,11 @@ def validate(root: Path) -> list[str]:
 
     roadmap = _read(roadmap_path)
     for marker in STATUS_NOTE_LINES:
-        if marker not in roadmap:
+        count = roadmap.count(marker)
+        if count == 0:
             issues.append(f"roadmap:missing:{marker}")
+        elif count > 1:
+            issues.append(f"roadmap:duplicate:{marker}")
 
     positions: list[tuple[str, int]] = []
     for heading in ORDERED_HEADINGS:
@@ -50,6 +63,13 @@ def validate(root: Path) -> list[str]:
         if position == -1:
             issues.append(f"roadmap:missing:{heading}")
         positions.append((heading, position))
+
+    if not any(issue == "roadmap:missing:## Bootstrap Status Note" for issue in issues):
+        packet = _extract_status_packet(roadmap)
+        if packet is None:
+            issues.append("roadmap:order:bootstrap_status_note_packet")
+        elif packet != STATUS_NOTE_LINES:
+            issues.append("roadmap:packet:bootstrap_status_note_packet")
 
     if not issues:
         ordered_positions = [position for _, position in positions]
@@ -123,8 +143,21 @@ def run_self_test() -> int:
         _write(path, _read(path).replace(f"{STATUS_NOTE_LINES[1]}\n", "", 1))
         _assert_only(
             validate(root),
-            [f"roadmap:missing:{STATUS_NOTE_LINES[1]}"],
+            [f"roadmap:missing:{STATUS_NOTE_LINES[1]}", "roadmap:packet:bootstrap_status_note_packet"],
             "missing_status_baseline_sentence",
+        )
+        case_count += 1
+
+        _seed(root)
+        path = root / ROADMAP_REL
+        _write(path, _read(path).replace(STATUS_NOTE_LINES[2], f"{STATUS_NOTE_LINES[2]}\n\n{STATUS_NOTE_LINES[2]}", 1))
+        _assert_only(
+            validate(root),
+            [
+                f"roadmap:duplicate:{STATUS_NOTE_LINES[2]}",
+                "roadmap:packet:bootstrap_status_note_packet",
+            ],
+            "duplicate_status_guidance_sentence",
         )
         case_count += 1
 
@@ -142,6 +175,16 @@ def run_self_test() -> int:
             validate(root),
             ["roadmap:order:bootstrap_status_note_packet"],
             "misordered_status_note_heading",
+        )
+        case_count += 1
+
+        _seed(root)
+        path = root / ROADMAP_REL
+        _write(path, _read(path).replace(STATUS_NOTE_LINES[2], STATUS_NOTE_LINES[2] + "\n\n- stray bullet", 1))
+        _assert_only(
+            validate(root),
+            ["roadmap:packet:bootstrap_status_note_packet"],
+            "packet_boundary_escape",
         )
         case_count += 1
 
@@ -172,6 +215,7 @@ def main() -> int:
 
     print("LANE01_BOOTSTRAP_STATUS_NOTE=pass")
     print(f"LANE01_BOOTSTRAP_STATUS_NOTE_REQUIRED_MARKER_COUNT={len(STATUS_NOTE_LINES)}")
+    print("LANE01_BOOTSTRAP_STATUS_NOTE_SECTION_ORDER=Purpose->BootstrapStatusNote->InputsReviewed")
     return 0
 
 
