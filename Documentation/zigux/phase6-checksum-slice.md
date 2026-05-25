@@ -29,7 +29,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 ## Gates
 
 1. run the focused helper replay
-- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, fold, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable
+- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, carry, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable
 
 2. run the external checksum C-vs-Zig review hook when touching helper semantics
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
@@ -43,14 +43,15 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 The current checksum helper surface exercised by this slice covers:
 
-- `add`, `sub`, `shift`, `blockAdd`, and `blockSub`
-- `replace`, `replaceByDiff`, `replace2`, and `replace4`
-- `from32to16`, `fold`, and `compute`
-- `tcpUdpNofold`, `tcpUdpMagic`, `tcpUdpV6Nofold`, `tcpUdpV6Magic`, and `ipFastCsum`
+- `add`, `sub`, `shift`, `blockAdd`, `blockSub`, and `negate`
+- `add16`, `sub16`, `replace`, `replaceByDiff`, `replace2`, and `replace4`
+- `unfold`, `from32to16`, `from64to32`, `fold`, `partial`, `compute`, and `ipComputeCsum`
+- `tcpUdpNofold`, `tcpUdpMagic`, `tcpUdpV6Nofold`, `tcpUdpV6Magic`, `ipFastCsumIhl`, and `ipFastCsum`
 
 The current tests and fixtures check:
 
 - empty, odd-length, even-length, and seeded partial accumulation
+- fixture-backed `add16` and `sub16` carry rows through the committed `carry16_cases` packet in `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - replacement and header-edit parity for payload words, IPv4 length edits, and IPv4 address edits
 - folded and unfolded pseudo-header accumulation parity for IPv4 and IPv6
 - aligned fast-path parity for minimal, updated, and option-bearing IPv4 headers together with the maximum-IHL aligned-header packet
@@ -67,4 +68,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete checksum-local parity, perf-matrix, or direct C parity drift. If this slice reopens soon, keep the next move inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, or `scripts/zigux/check-phase6-checksum-c-parity.py` rather than widening into hexdump re-materialization or broader shared-note churn.
+Leave this helper parked unless fresh repo inspection shows a concrete checksum-local parity, perf-matrix, fixture-governance, or direct C parity drift. If this slice reopens soon, keep the next move inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, or `scripts/zigux/check-phase6-checksum-c-parity.py` rather than widening into hexdump re-materialization or broader shared-note churn.
