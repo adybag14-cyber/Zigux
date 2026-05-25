@@ -7,7 +7,7 @@ from pathlib import Path
 
 GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
-CURRENT_READBACK_MARKER = "current-master-readback-2026-05-23"
+CURRENT_READBACK_MARKER = "current-master-readback-2026-05-25"
 WATCHPOINTS_HEADING = "## Current shared-summary watchpoints"
 
 STATUS_MARKERS = (
@@ -41,6 +41,7 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_build.zig",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
@@ -49,12 +50,13 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "scripts/zigux/validate-phase15.py",
 )
 
-STILL_MISSING_BROADER_PATHS = (
-    "zigux/tests/phase15_build.zig",
+ROUTE_GAP_MARKERS = (
+    "no dedicated `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`",
+    "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route name on current `master`",
 )
 
 VALIDATOR_WORDING_SPLIT_MARKER = (
-    "`scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate explicit while `zigux/tests/phase15_build.zig` remains the only broader dedicated-build companion still absent on current `master`"
+    "`scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate and the directly materialized `zigux/tests/phase15_build.zig` shared build companion explicit while the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes plus the shared-CI route remain the broader route-level gaps on current `master`"
 )
 
 REQUIRED_NOTE_MARKERS = (
@@ -88,8 +90,9 @@ REQUIRED_NOTE_MARKERS = (
     "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
     "`zigux/tests/phase15_handoff_next_steps.zig`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "`zigux/tests/phase15_build.zig`",
     VALIDATOR_WORDING_SPLIT_MARKER,
-    "broader dedicated-build wording around `zigux/tests/phase15_build.zig` and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
+    "broader wrapper-route wording around `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `make -C zigux phase15`, and the dedicated shared-CI Phase 15 route names",
 )
 
 STALE_TEXT_MARKERS = (
@@ -98,6 +101,7 @@ STALE_TEXT_MARKERS = (
     "previously treated as missing",
     "current-master-readback-2026-05-17",
     "current-master-readback-2026-05-21",
+    "current-master-readback-2026-05-23",
 )
 
 HANDOFF_STATUS_MARKER = "PHASE15_STATUS=handoff_next_steps_survey_landed"
@@ -108,6 +112,7 @@ REQUIRED_WATCHPOINT_MARKERS = (
     "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`",
     "`zigux/tests/phase15_governance_lane_sequencing.zig`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
+    "`zigux/tests/phase15_build.zig`",
     "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
     VALIDATOR_WORDING_SPLIT_MARKER,
 )
@@ -121,7 +126,7 @@ def _read_text(path: Path) -> str:
 
 
 def _extract_section(note: str, heading: str) -> str:
-    before, marker, tail = note.partition(f"{heading}\n\n")
+    _, marker, tail = note.partition(f"{heading}\n\n")
     if not marker:
         return ""
     section, _, _ = tail.partition("\n## ")
@@ -150,11 +155,9 @@ def collect_failures(root: Path) -> list[str]:
         if f"`{rel}`" not in gap_note:
             failures.append(f"gap note missing focused-companion marker: `{rel}`")
 
-    for rel in STILL_MISSING_BROADER_PATHS:
-        if f"`{rel}`" not in gap_note:
-            failures.append(f"gap note missing still-missing broader marker: `{rel}`")
-        if (root / rel).exists():
-            failures.append(f"gap note still treats materialized path as missing: `{rel}`")
+    for marker in ROUTE_GAP_MARKERS:
+        if marker not in gap_note:
+            failures.append(f"gap note missing route-gap marker: {marker}")
 
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in gap_note:
@@ -185,7 +188,7 @@ def _write(path: Path, text: str) -> None:
 def _sample_gap_note() -> str:
     materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_GOVERNANCE_PATHS)
     focused = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_FOCUSED_COMPANIONS)
-    missing = "\n".join(f"- `{rel}`" for rel in STILL_MISSING_BROADER_PATHS)
+    route_gaps = "\n".join(f"- {marker}" for marker in ROUTE_GAP_MARKERS)
     required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS[1:])
     status = "\n".join(f"- `{marker}`" for marker in STATUS_MARKERS)
     return f"""# Phase 15 Shared Summary Gap
@@ -201,9 +204,9 @@ def _sample_gap_note() -> str:
 
 {focused}
 
-## Still-missing broader dedicated-build companions on current master
+## Still-missing broader wrapper and shared-CI route companions on current master
 
-{missing}
+{route_gaps}
 
 ## Current shared-summary watchpoints
 
@@ -267,55 +270,30 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected focused-companion failure: {failures}")
 
-        focused_checker_root = root / "focused_checker"
-        _seed_repo(focused_checker_root)
-        (focused_checker_root / MATERIALIZED_FOCUSED_COMPANIONS[-1]).unlink()
-        failures = collect_failures(focused_checker_root)
-        expected = [f"expected materialized focused companion missing: {MATERIALIZED_FOCUSED_COMPANIONS[-1]}"]
+        build_root = root / "build"
+        _seed_repo(build_root)
+        (build_root / "zigux/tests/phase15_build.zig").unlink()
+        failures = collect_failures(build_root)
+        expected = ["expected materialized focused companion missing: zigux/tests/phase15_build.zig"]
         if failures != expected:
-            raise AssertionError(f"unexpected focused-checker failure: {failures}")
+            raise AssertionError(f"unexpected build-companion failure: {failures}")
 
-        study_only_checker_root = root / "study_only_checker"
-        _seed_repo(study_only_checker_root)
-        (study_only_checker_root / "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py").unlink()
-        failures = collect_failures(study_only_checker_root)
+        route_gap_root = root / "route_gap"
+        _seed_repo(route_gap_root)
+        _write(
+            route_gap_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- no dedicated `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(route_gap_root)
         expected = [
-            "expected materialized focused companion missing: scripts/zigux/check-phase15-review-checklist-study-only-alignment.py"
+            "gap note missing route-gap marker: no dedicated `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`"
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected study-only-checker failure: {failures}")
-
-        missing_status_root = root / "missing_status"
-        _seed_repo(missing_status_root)
-        _write(
-            missing_status_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace("- `PHASE15_STATUS=shared_summary_gap_recorded`\n", "", 1),
-        )
-        failures = collect_failures(missing_status_root)
-        expected = ["gap note missing status marker: PHASE15_STATUS=shared_summary_gap_recorded"]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-status failure: {failures}")
-
-        missing_provenance_mode_root = root / "missing_provenance_mode"
-        _seed_repo(missing_provenance_mode_root)
-        _write(
-            missing_provenance_mode_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace("- `PHASE15_PROVENANCE_MODE=dated_master_readback`\n", "", 1),
-        )
-        failures = collect_failures(missing_provenance_mode_root)
-        expected = ["gap note missing status marker: PHASE15_PROVENANCE_MODE=dated_master_readback"]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-provenance-mode failure: {failures}")
-
-        rematerialized_root = root / "rematerialized"
-        _seed_repo(rematerialized_root)
-        _write(rematerialized_root / STILL_MISSING_BROADER_PATHS[0], "present\n")
-        failures = collect_failures(rematerialized_root)
-        expected = [
-            f"gap note still treats materialized path as missing: `{STILL_MISSING_BROADER_PATHS[0]}`"
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected rematerialized-path failure: {failures}")
+            raise AssertionError(f"unexpected route-gap failure: {failures}")
 
         stale_root = root / "stale"
         _seed_repo(stale_root)
