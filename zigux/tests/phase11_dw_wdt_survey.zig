@@ -183,3 +183,19 @@ test "phase11 dw_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drivers/watchdog/dw_wdt_verify.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drivers/watchdog/dw_wdt_pm.zig") != null);
 }
+
+test "phase11 dw_wdt clock acquisition plan stays aligned with the returned packet" {
+    const allocator = std.testing.allocator;
+
+    const clock_plan = try loadFile(
+        allocator,
+        "Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md",
+        16 * 1024,
+    );
+    defer allocator.free(clock_plan);
+
+    try std.testing.expect(std.mem.indexOf(u8, clock_plan, "drivers/watchdog/dw_wdt_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, clock_plan, "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, clock_plan, "optional reset-control absence can still remain a ready-to-register scaffold branch") != null);
+    try std.testing.expect(std.mem.indexOf(u8, clock_plan, "broader direct driver, driver-test, slice, and teardown-note stack stays outside this direct contents bridge") != null);
+}
