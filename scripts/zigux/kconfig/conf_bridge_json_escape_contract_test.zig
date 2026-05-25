@@ -44,7 +44,7 @@ test "conf bridge escapes syncconfig request fields in end-to-end json output" {
     );
 }
 
-test "conf bridge escapes randconfig override fields without adding syncconfig env" {
+test "conf bridge escapes randconfig override fields including seed without adding syncconfig env" {
     var capture = try Capture.init(std.testing.allocator, 512);
     defer capture.deinit();
 
@@ -55,16 +55,34 @@ test "conf bridge escapes randconfig override fields without adding syncconfig e
         .arch = "x86_64",
         .silent = true,
         .allconfig = "all\"rand\\path",
+        .seed = "seed\"mix\\\n\t\x01",
         .probability = "15:25\t\x01",
     });
 
     try std.testing.expectEqualStrings(
-        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"randconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--randconfig\",\"Kconfig\"],\"env\":{\"ARCH\":\"x86_64\",\"KCONFIG_CONFIG\":\"rand/.config\",\"KCONFIG_ALLCONFIG\":\"all\\\"rand\\\\path\",\"KCONFIG_PROBABILITY\":\"15:25\\t\\u0001\"}}\n",
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"randconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--randconfig\",\"Kconfig\"],\"env\":{\"ARCH\":\"x86_64\",\"KCONFIG_CONFIG\":\"rand/.config\",\"KCONFIG_ALLCONFIG\":\"all\\\"rand\\\\path\",\"KCONFIG_SEED\":\"seed\\\"mix\\\\\\n\\t\\u0001\",\"KCONFIG_PROBABILITY\":\"15:25\\t\\u0001\"}}\n",
         capture.list.items,
     );
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_AUTOCONFIG\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_AUTOHEADER\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_NOSILENTUPDATE\"") == null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\"") == null);
+}
+
+test "conf bridge escapes defconfig mode argument in end-to-end json output" {
+    var capture = try Capture.init(std.testing.allocator, 512);
+    defer capture.deinit();
+
+    try bridge.runConfBridge(&capture, .{
+        .mode = .defconfig,
+        .kconfig = "Kcon\"fig",
+        .config = "out/.config",
+        .arch = "arm64",
+        .mode_arg = "arch/arm64/configs/def\"\\\n\t\x01",
+    });
+
+    try std.testing.expectEqualStrings(
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"defconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--defconfig\",\"arch/arm64/configs/def\\\"\\\\\\n\\t\\u0001\",\"Kcon\\\"fig\"],\"env\":{\"ARCH\":\"arm64\",\"KCONFIG_CONFIG\":\"out/.config\"}}\n",
+        capture.list.items,
+    );
 }
