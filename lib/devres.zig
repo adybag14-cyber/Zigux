@@ -88,6 +88,7 @@ pub const DeviceTreeIomapPlan = struct {
     request_region_denied: bool,
     releases_region_on_remap_failure: bool,
     remap_ready: bool,
+    requires_nonposted_ioremap: bool,
     keeps_nonposted_mapping_type: bool,
 };
 
@@ -96,6 +97,7 @@ pub const DeviceTreeIomapCleanupHandoffPlan = struct {
     index: u32,
     translated_size: u64,
     remap_ready: bool,
+    requires_nonposted_ioremap: bool,
     keeps_nonposted_mapping_type: bool,
     hands_off_to_iounmap_cleanup: bool,
     unmaps_mapping: bool,
@@ -245,6 +247,7 @@ pub const DevresHelperLab = struct {
         const request_region_denied = reaches_managed_ioremap_resource and input.requests_region and !input.request_region_available;
         const remap_ready = reaches_managed_ioremap_resource and !request_region_denied and input.remap_succeeds;
         const releases_region_on_remap_failure = reaches_managed_ioremap_resource and input.requests_region and !request_region_denied and !input.remap_succeeds;
+        const requires_nonposted_ioremap = reaches_managed_ioremap_resource and input.nonposted;
 
         return .{
             .anchor = descriptor().anchor,
@@ -256,7 +259,8 @@ pub const DevresHelperLab = struct {
             .request_region_denied = request_region_denied,
             .releases_region_on_remap_failure = releases_region_on_remap_failure,
             .remap_ready = remap_ready,
-            .keeps_nonposted_mapping_type = reaches_managed_ioremap_resource and input.nonposted,
+            .requires_nonposted_ioremap = requires_nonposted_ioremap,
+            .keeps_nonposted_mapping_type = requires_nonposted_ioremap,
         };
     }
 
@@ -271,6 +275,7 @@ pub const DevresHelperLab = struct {
             .index = iomap_plan.index,
             .translated_size = iomap_plan.translated_size,
             .remap_ready = iomap_plan.remap_ready,
+            .requires_nonposted_ioremap = iomap_plan.requires_nonposted_ioremap,
             .keeps_nonposted_mapping_type = iomap_plan.keeps_nonposted_mapping_type,
             .hands_off_to_iounmap_cleanup = cleanup.generates_cleanup_plan,
             .unmaps_mapping = cleanup.unmaps_mapping,
@@ -502,6 +507,7 @@ test "iomap planning stops before the managed ioremap-resource stage when transl
     try std.testing.expect(!plan.request_region_denied);
     try std.testing.expect(!plan.releases_region_on_remap_failure);
     try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(!plan.requires_nonposted_ioremap);
     try std.testing.expect(!plan.keeps_nonposted_mapping_type);
 }
 
@@ -524,6 +530,7 @@ test "iomap planning preserves translated size and busy denial when the request 
     try std.testing.expect(plan.request_region_denied);
     try std.testing.expect(!plan.releases_region_on_remap_failure);
     try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(plan.requires_nonposted_ioremap);
     try std.testing.expect(plan.keeps_nonposted_mapping_type);
 }
 
@@ -546,6 +553,7 @@ test "iomap planning releases the requested region when remap later fails" {
     try std.testing.expect(!plan.request_region_denied);
     try std.testing.expect(plan.releases_region_on_remap_failure);
     try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(!plan.requires_nonposted_ioremap);
     try std.testing.expect(!plan.keeps_nonposted_mapping_type);
 }
 
@@ -565,6 +573,7 @@ test "iomap cleanup handoff materializes the iounmap cleanup owner after a succe
     try std.testing.expectEqual(@as(u32, 3), handoff.index);
     try std.testing.expectEqual(@as(u64, 16384), handoff.translated_size);
     try std.testing.expect(handoff.remap_ready);
+    try std.testing.expect(handoff.requires_nonposted_ioremap);
     try std.testing.expect(handoff.keeps_nonposted_mapping_type);
     try std.testing.expect(handoff.hands_off_to_iounmap_cleanup);
     try std.testing.expect(handoff.unmaps_mapping);
@@ -586,6 +595,7 @@ test "iomap cleanup handoff keeps missing release records warnable" {
     const handoff = DevresHelperLab.planDeviceTreeIomapCleanupHandoff(iomap_plan, false);
 
     try std.testing.expect(handoff.remap_ready);
+    try std.testing.expect(!handoff.requires_nonposted_ioremap);
     try std.testing.expect(handoff.hands_off_to_iounmap_cleanup);
     try std.testing.expect(handoff.unmaps_mapping);
     try std.testing.expect(!handoff.releases_from_devres);
@@ -606,6 +616,7 @@ test "iomap cleanup handoff stays inert when remap never succeeds" {
     const handoff = DevresHelperLab.planDeviceTreeIomapCleanupHandoff(iomap_plan, true);
 
     try std.testing.expect(!handoff.remap_ready);
+    try std.testing.expect(!handoff.requires_nonposted_ioremap);
     try std.testing.expect(!handoff.hands_off_to_iounmap_cleanup);
     try std.testing.expect(!handoff.unmaps_mapping);
     try std.testing.expect(!handoff.releases_from_devres);
