@@ -279,6 +279,21 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_kretprobe_sample_module,
     });
 
+    const runtime_kretprobe_survey_module = b.createModule(.{
+        .root_source_file = b.path("runtime_kretprobe_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_kretprobe_survey_module.addImport(
+        "runtime_kretprobe_sample",
+        runtime_kretprobe_sample_module,
+    );
+
+    const runtime_kretprobe_survey_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-survey-tests",
+        .root_module = runtime_kretprobe_survey_module,
+    });
+
     const runtime_kretprobe_module_tests_module = b.createModule(.{
         .root_source_file = b.path("runtime_kretprobe_module.zig"),
         .target = target,
@@ -388,6 +403,9 @@ pub fn build(b: *std.Build) void {
     );
     const run_runtime_kretprobe_sample_tests = b.addRunArtifact(
         runtime_kretprobe_sample_tests,
+    );
+    const run_runtime_kretprobe_survey_tests = b.addRunArtifact(
+        runtime_kretprobe_survey_tests,
     );
     const run_runtime_kretprobe_module_tests = b.addRunArtifact(
         runtime_kretprobe_module_tests,
@@ -560,6 +578,12 @@ pub fn build(b: *std.Build) void {
     );
     phase9_runtime_kretprobe_sample.dependOn(&run_runtime_kretprobe_sample_tests.step);
 
+    const phase9_runtime_kretprobe_survey = b.step(
+        "phase9-runtime-kretprobe-survey-tests",
+        "Run the Phase 9 runtime kretprobe survey tests.",
+    );
+    phase9_runtime_kretprobe_survey.dependOn(&run_runtime_kretprobe_survey_tests.step);
+
     const phase9_runtime_kretprobe_module = b.step(
         "phase9-runtime-kretprobe-module-tests",
         "Run the Phase 9 runtime kretprobe module lifecycle tests.",
@@ -568,9 +592,10 @@ pub fn build(b: *std.Build) void {
 
     const phase9_runtime_kretprobe = b.step(
         "phase9-runtime-kretprobe-tests",
-        "Run the Phase 9 runtime kretprobe sample and module lifecycle tests.",
+        "Run the Phase 9 runtime kretprobe sample, survey, and module lifecycle tests.",
     );
     phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_sample_tests.step);
+    phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_survey_tests.step);
     phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_module_tests.step);
 
     const phase9_runtime_trace_events_module = b.step(
