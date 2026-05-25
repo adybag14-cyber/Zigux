@@ -62,6 +62,14 @@ README_REQUIRED_GAPS = [
     "zigux/tests/phase1_helpers.zig",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
 ]
+CLOSURE_REQUIRED_GAPS = [
+    "scripts/zigux/validate-phase1.py",
+    "scripts/zigux/check-phase1-parity.py",
+    "zigux/tests/phase1_helpers.zig",
+    "zigux/tests/phase1_bench.zig",
+    "zigux/tests/fixtures/phase1_bench_expectations.json",
+    "zigux/tests/fixtures/phase1_helpers_c_harness.c",
+]
 FIXTURE_KEY_REQUIREMENTS = {
     "bitmap": ["partial_xor_nbits", "partial_xor_masked_values"],
     "find_bit": ["inclusive_boundary_next", "tail_clamped_last"],
@@ -82,7 +90,13 @@ SELF_TEST_CASES = [
     "fixture_section_missing",
     "fixture_key_missing",
     "readme_gap_missing",
+    "closure_gap_packet_missing",
+    "closure_gap_missing",
 ]
+
+PHASE1_CURRENT_GAP_PACKET_LINE = (
+    "PHASE1_CURRENT_GAP_PACKET=" + ",".join(CLOSURE_REQUIRED_GAPS)
+)
 
 
 class CheckFailure(Exception):
@@ -209,18 +223,34 @@ def check_readme(root: Path) -> None:
     ensure_markers(readme, README_REQUIRED_GAPS, label="phase1 readme gaps")
 
 
+def check_closure_note(root: Path) -> None:
+    closure = read_text(root / "Documentation/zigux/phase1-closure.md")
+    ensure(
+        "The older validator-first and replay-side closure companions remain broader closure-stack references"
+        in closure,
+        "phase1 closure broader-companion summary drifted",
+    )
+    ensure_markers(closure, CLOSURE_REQUIRED_GAPS, label="phase1 closure gaps")
+    ensure(
+        PHASE1_CURRENT_GAP_PACKET_LINE in closure,
+        "phase1 closure gap packet drifted",
+    )
+
+
 def check_root(root: Path) -> dict[str, int]:
     manifest = check_manifest(root)
     check_artifact_diff(root)
     check_replay_blockers(root, manifest)
     check_fixture(root, manifest)
     check_readme(root)
+    check_closure_note(root)
     return {
         "artifact_mode_count": 3,
+        "closure_gap_count": len(CLOSURE_REQUIRED_GAPS),
         "direct_helper_count": len(DIRECT_HELPERS),
         "fixture_section_count": len(FIXTURE_SECTIONS),
         "helper_count": len(HELPER_PATHS),
-        "present_file_count": 5,
+        "present_file_count": 6,
         "readme_gap_count": len(README_REQUIRED_GAPS),
         "shared_helper_count": len(SHARED_HELPERS),
     }
@@ -307,6 +337,26 @@ def sample_readme() -> str:
     )
 
 
+def sample_closure_note() -> str:
+    return "\n".join(
+        [
+            "# Phase 1 Closure",
+            "",
+            "The older validator-first and replay-side closure companions remain broader closure-stack references rather than active current reminder-packet proof.",
+            "",
+            "- scripts/zigux/validate-phase1.py",
+            "- scripts/zigux/check-phase1-parity.py",
+            "- zigux/tests/phase1_helpers.zig",
+            "- zigux/tests/phase1_bench.zig",
+            "- zigux/tests/fixtures/phase1_bench_expectations.json",
+            "- zigux/tests/fixtures/phase1_helpers_c_harness.c",
+            "",
+            f"- {PHASE1_CURRENT_GAP_PACKET_LINE}",
+            "",
+        ]
+    )
+
+
 def sample_artifact_diff() -> str:
     return "\n".join(
         [
@@ -327,7 +377,6 @@ def write_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2, sort_keys=False) + "\n", encoding="utf-8")
 
 
-
 def write_sample_root(root: Path) -> None:
     root.mkdir(parents=True, exist_ok=True)
     write_json(root / "zigux/tests/fixtures/phase1_helper_manifest.json", sample_manifest())
@@ -337,6 +386,9 @@ def write_sample_root(root: Path) -> None:
     artifact_diff.parent.mkdir(parents=True, exist_ok=True)
     artifact_diff.write_text(sample_artifact_diff(), encoding="utf-8")
     (root / "scripts/zigux/README.md").write_text(sample_readme(), encoding="utf-8")
+    closure_note = root / "Documentation/zigux/phase1-closure.md"
+    closure_note.parent.mkdir(parents=True, exist_ok=True)
+    closure_note.write_text(sample_closure_note(), encoding="utf-8")
 
 
 def expect_failure(case: str, root: Path, path: Path, old: str, new: str) -> None:
@@ -470,6 +522,28 @@ def run_self_test() -> int:
             old_readme.replace("scripts/zigux/check-phase1-parity.py, ", "", 1),
         )
         covered.append("readme_gap_missing")
+
+        closure_path = root / "Documentation/zigux/phase1-closure.md"
+        old_closure = read_text(closure_path)
+        expect_failure(
+            "closure_gap_packet_missing",
+            root,
+            closure_path,
+            old_closure,
+            old_closure.replace(PHASE1_CURRENT_GAP_PACKET_LINE, "PHASE1_CURRENT_GAP_PACKET=drifted", 1),
+        )
+        covered.append("closure_gap_packet_missing")
+
+        expect_failure(
+            "closure_gap_missing",
+            root,
+            closure_path,
+            old_closure,
+            old_closure
+            .replace("- zigux/tests/phase1_bench.zig\n", "", 1)
+            .replace("zigux/tests/phase1_bench.zig,", "", 1),
+        )
+        covered.append("closure_gap_missing")
 
     ensure(covered == SELF_TEST_CASES, "self_test_case_order drifted")
     print("PHASE1_PARITY_ARTIFACT_PACKET_SELF_TEST=pass")
