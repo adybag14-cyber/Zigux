@@ -152,6 +152,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     HELP_TEST: (
         'test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit"',
         'test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning"',
+        'test "phase 8 help command-source and terminal layers stay aligned with the current help.c slice"',
+        'test "phase 8 help raw PATH splitting keeps empty segments and exec-path exclusion aligned with help.c"',
+        'test "phase 8 help empty PATH fallback keeps section suppression and output stable"',
         'test "phase 8 help output emission keeps column-major pretty-printing pure and testable"',
         'test "phase 8 help section rendering keeps the stable main and PATH headings reviewable"',
         "help.CmdNames.init(",
