@@ -6,55 +6,43 @@ This document records the bounded Phase 13 survey lane around `fs/libfs.c`.
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=libfs-helper-filesystem-boundary-survey`
-- reviewed against live `master` `master-readback-2026-05-15`
-- scope: the shipped `fs/libfs.zig` helper lab, the direct `zigux/tests/phase13_libfs.zig` and `zigux/tests/phase13_libfs_reviewability.zig` replays, and the manifest-backed survey packet that keeps the filesystem-helper boundary truthful without widening into other shared-helper families
+- reviewed against live `master` `master-readback-2026-05-25`
+- scope: the current docs-side libfs reminder packet only, keeping the helper-family boundary truthful while the direct helper, replay, and build paths remain absent on current `master`
 - product boundary:
-  - `fs/libfs.zig`
   - `Documentation/zigux/phase13-libfs-survey.md`
-  - `zigux/tests/phase13_libfs.zig`
-  - `zigux/tests/phase13_libfs_reviewability.zig`
+  - `Documentation/zigux/phase13-libfs-slice.md`
   - `zigux/tests/phase13_libfs_manifest.json`
-  - `zigux/tests/phase13_build.zig`
 
 ## Why this slice exists
 
 The Phase 13 roadmap explicitly names `fs/libfs.c` as a shared subsystem-helper anchor.
 
-That matters because `fs/libfs.c` contains small VFS-adjacent helpers that can easily be overstated as live filesystem behavior when the honest near-term product boundary is still helper-first planning. Zigux already ships a real `fs/libfs.zig` foothold, so the highest-value bounded work in this lane is to record exactly which helper slices are present and which live filesystem behaviors remain blocked.
+That still matters because `fs/libfs.c` contains small VFS-adjacent helpers that can easily be overstated as live filesystem behavior. The current honest repo boundary is narrower than the older reminder packet claimed: current `master` still carries the libfs survey note, slice note, and manifest fixture, but the direct helper, replay, reviewability, and Phase 13 build files those notes used to describe are not directly readable on current `master`.
 
 ## Survey findings
 
-- `fs/libfs.zig` still models positive-entry classification, simple-directory emptiness planning, negative-dentry lookup shaping, and simple transaction release planning as pure helper surfaces.
-- the helper lab now also ships bounded `simple_offset_add()` planning, keeping the prepopulated-dentry guard, the allocator-busy to `-ENOSPC` remap, and managed-offset recording explicit without claiming live maple-tree mutation or directory ownership.
-- the helper lab now also ships bounded `simple_offset_remove()` planning, keeping the zero-offset no-op, recorded-slot classification, map erase, and recorded-offset clearing explicit without claiming live directory-map teardown or dentry lifetime ownership.
-- the helper lab also ships bounded transaction acquire planning around `simple_transaction_get()`, keeping the page-bounded write limit, zeroed page allocation, one-write-per-open staging, and private-data handoff explicit without claiming live readback or pseudo-filesystem execution.
-- the helper lab also ships bounded transaction publish planning around `simple_transaction_set()`, keeping the response-size limit, required private-data handoff, publish barrier, and published-size bookkeeping explicit without claiming live readback or file-lifecycle execution.
-- the helper lab also ships bounded addressability planning around `generic_check_addressable()`, keeping blocksize-window validation, zero-block short-circuiting, sector-limit checks, and page-index overflow checks explicit without claiming live inode, buffer-head, or page-cache ownership.
-- the helper lab also ships bounded offset-directory seek and readdir planners that keep the real-entry window, emit-dots gate, and end-of-directory sentinel explicit without claiming live iteration side effects.
-- the current helper packet already includes offset-based rename and rename-exchange planners that keep managed slots, missing offsets, reserved dot-window offsets, and end-of-directory sentinels explicit without mutating live directory maps.
-- current `master` ships the direct `zigux/tests/phase13_libfs.zig` replay, the dedicated `zigux/tests/phase13_libfs_reviewability.zig` gate, the manifest-backed survey packet, and the shared `zigux/tests/phase13_build.zig` route, so the helper starter plus its offset-add, transaction acquire, transaction release, transaction publish, and addressability follow-ups are both directly re-readable and wired into the broader Phase 13 shared-helper build packet.
-- exact helper readback on current `master` shows no live dcache entry insertion, no inode lifetime management, no page-cache-backed state changes, and no broader filesystem runtime ownership; the current packet stays at helper-only planning.
+- `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-libfs-slice.md`, and `zigux/tests/phase13_libfs_manifest.json` are directly readable on current `master`.
+- the current public repository tree no longer exposes a top-level `fs/` directory on current `master`, so the previously described `fs/libfs.zig` helper path is not directly readable in the live tree.
+- exact current-`master` GitHub readback also returns missing for `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_build.zig`.
+- because those direct packet paths are absent, the older survey wording that treated the libfs helper, direct replay, dedicated reviewability gate, and shared Phase 13 build route as shipped current-head evidence had become stale.
+- the remaining docs-side packet should therefore be read as a bounded reminder of the intended helper family and its non-goals, not as proof that the direct helper-first libfs implementation and its replay routes are currently shipped on `master`.
 
 ## Recorded gaps
 
 The current lane state is:
 
-- helper-local governance for this packet is tracked under `P13-Y01`, while the separate verification-only replay lane remains parked under `P13-L03`
-- landed `phase13-libfs-helper-starter`
-- landed `phase13-libfs-offset-add-planner`
-- landed `phase13-libfs-offset-remove-planner`
-- landed `phase13-libfs-offset-rename-planner`
-- landed `phase13-libfs-transaction-acquire-helper`
-- landed `phase13-libfs-transaction-release-helper`
-- landed `phase13-libfs-transaction-publish-helper`
-- landed `phase13-libfs-addressability-helper`
-- landed `phase13-libfs-reviewability-gate`
+- helper-local governance for this family remains tracked under `P13-Y01`, while the separate verification-only replay lane remains parked under `P13-L03`
 - landed `phase13-libfs-survey-note`
-- landed `phase13-build-gate`
+- landed `phase13-libfs-slice-note`
+- landed `phase13-libfs-manifest-fixture`
+- blocked `phase13-libfs-direct-helper-path`
+- blocked `phase13-libfs-direct-replay-path`
+- blocked `phase13-libfs-reviewability-gate`
+- blocked `phase13-build-gate`
 - blocked `phase13-libfs-live-dcache-mutation`
 - blocked `phase13-libfs-live-inode-state`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first libfs foothold for reviewable directory, offset-add, offset-remove, lookup, transaction acquire, transaction release, transaction publish, addressability, and offset-based rename planning, and that packet is now also wired through the shared Phase 13 build route without claiming any live dcache or inode state transitions.
+This keeps the lane explicit without overstating progress: current `master` still exposes the libfs reminder notes and manifest fixture, but it does not presently expose the direct helper, replay, reviewability, or shared Phase 13 build packet those reminder surfaces used to describe.
 
 ## Non-goals
 
@@ -65,8 +53,9 @@ This slice does not claim:
 - page-cache-backed filesystem state
 - live directory-map mutation, maple-tree mutation, or rename application
 - broader superblock or filesystem registration behavior
+- current-head proof that `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, or `zigux/tests/phase13_build.zig` are shipped on `master`
 - shared release-surface ownership for unrelated Phase 13 helpers
 
 ## Next bounded step
 
-Leave `P13-Y01` parked unless fresh current-master inspection finds new same-packet drift across `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_libfs_manifest.json`, or `zigux/tests/phase13_build.zig`; if the libfs family reopens for code later, prefer the next equally small offset-map lifecycle helper such as destroy planning, and keep the non-goals explicit before claiming it. Keep verification-only published-tree replays on `P13-L03`.
+If the libfs family reopens, prefer one same-packet truthfulness follow-through: either rematerialize the direct `fs/libfs.zig` helper packet and its coupled replay surfaces on current `master`, or keep the reminder packet parked on the docs-side evidence only without reintroducing stale shipped-path claims. Keep verification-only replay work on `P13-L03`.
