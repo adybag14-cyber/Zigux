@@ -56,6 +56,19 @@ pub fn build(b: *std.Build) void {
         perf_buffer_ready_window_tests,
     );
 
+    const ready_buffer_fd_lookup_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const ready_buffer_fd_lookup_tests = b.addTest(.{
+        .name = "phase8-ready-buffer-fd-lookup-tests",
+        .root_module = ready_buffer_fd_lookup_module,
+    });
+    const run_ready_buffer_fd_lookup_tests = b.addRunArtifact(
+        ready_buffer_fd_lookup_tests,
+    );
+
     const file_path_handle_bridge_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
         .target = target,
@@ -144,6 +157,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_exec_cmd_tests.step);
     test_step.dependOn(&run_perf_buffer_poll_tests.step);
     test_step.dependOn(&run_perf_buffer_ready_window_tests.step);
+    test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);
     test_step.dependOn(&run_file_path_handle_bridge_tests.step);
     test_step.dependOn(&run_file_path_handle_boundary_guard_tests.step);
     test_step.dependOn(&run_file_path_handle_bridge_manifest_sync_tests.step);
