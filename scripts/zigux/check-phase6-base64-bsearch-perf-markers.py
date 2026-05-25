@@ -300,7 +300,7 @@ def validate_parity_manifest(path: Path) -> None:
         raise ValidationError("bsearch perf labels drifted")
     if bsearch_perf.get("query_count") != 16:
         raise ValidationError("bsearch query count drifted")
-    if bsearch_perf.get("bound_budget_formula") != "std.math.log2_int_ceil(len) + 1":
+    if bsearch_perf.get("bound_budget_formula") != "len == 0 ? 0 : std.math.log2_int_floor(len) + 1":
         raise ValidationError("bsearch bound budget formula drifted")
     require_string_list(
         bsearch_perf.get("runtime_selected_c_abi_replays"),
@@ -414,7 +414,7 @@ def scaffold_repo(root: Path) -> None:
                             "budget_model": "comparison_budget",
                             "case_labels": EXPECTED_BSEARCH_LABELS,
                             "query_count": 16,
-                            "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
+                            "bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1",
                             "runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                             "linux_style_rerun_routes": [
                                 EXPECTED_BSEARCH_ZIG_PERF_ROUTE,
@@ -977,7 +977,7 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / PARITY_MANIFEST_PATH,
-                '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"',
+                '"bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"',
                 '"bound_budget_formula": "len"',
             ),
             "bsearch bound budget formula drifted",
@@ -1048,7 +1048,7 @@ def run_self_test() -> None:
             raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
 
     print("PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST=pass")
-    print(f"PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
+    print(f"PHASE6_BASE64_BSEARCH_PERF_MARKERS_SELF_TEST_CASE_COUNT={cases_run})
 
 
 def parse_args() -> argparse.Namespace:
