@@ -170,10 +170,8 @@ SAMPLE_CONFDATA_CASES = [
 
 EXPECTED_SELF_TEST_CASE_COUNT = 18
 
-
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
-
 
 def find_zig(explicit: str | None) -> str:
     if explicit:
@@ -186,17 +184,14 @@ def find_zig(explicit: str | None) -> str:
         return str(fallback)
     raise SystemExit("zig not found; pass --zig or add zig to PATH")
 
-
 def compile_tool(zig: str, source: Path, output: Path) -> None:
     run([zig, "build-exe", str(source), "-femit-bin=" + str(output)], cwd=str(ROOT))
-
 
 def read_json(path: Path, issue_code: str) -> tuple[object | None, tuple[str, str] | None]:
     try:
         return json.loads(path.read_text(encoding="utf-8")), None
     except json.JSONDecodeError:
         return None, (issue_code, path.name)
-
 
 def validate_case_mapping(raw_cases: object, *, group_name: str, required_fields: tuple[str, ...], optional_string_fields: tuple[str, ...] = ()) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
@@ -217,7 +212,6 @@ def validate_case_mapping(raw_cases: object, *, group_name: str, required_fields
         if group_name == "conf_cases" and "silent" in case and not isinstance(case["silent"], bool):
             issues.append(("INVALID_CONF_CASES_FIELD_TYPE", f"{index}:silent:{type(case['silent']).__name__}"))
     return issues
-
 
 def load_case_groups(fixture_dir: Path) -> tuple[list[dict[str, object]], list[dict[str, object]], list[tuple[str, str]]]:
     cases_path = fixture_dir / "cases.json"
@@ -241,7 +235,6 @@ def load_case_groups(fixture_dir: Path) -> tuple[list[dict[str, object]], list[d
         return [], [], issues
     return conf_cases, confdata_cases, []
 
-
 def ordered_conf_modes(conf_bridge_path: Path) -> list[str]:
     source = conf_bridge_path.read_text(encoding="utf-8")
     match = re.search(r"pub const Mode = enum \{(.*?)\n\s*pub fn parse", source, re.S)
@@ -258,18 +251,15 @@ def ordered_conf_modes(conf_bridge_path: Path) -> list[str]:
         raise SystemExit("failed to discover conf bridge modes")
     return modes
 
-
 def ordered_test_anchors(path: Path, error: str) -> list[str]:
     anchors = re.findall(r'^test "([^"]+)" \{$', path.read_text(encoding="utf-8"), re.M)
     if not anchors:
         raise SystemExit(error)
     return anchors
 
-
 def expected_conf_case_order(conf_cases: list[dict[str, object]]) -> list[str]:
     present_modes = {str(case["mode"]) for case in conf_cases}
     return [mode for mode in REQUIRED_CONF_CASE_MODES if mode in present_modes]
-
 
 def build_conf_manifest(conf_cases: list[dict[str, object]]) -> dict[str, object]:
     return {
@@ -292,7 +282,6 @@ def build_conf_manifest(conf_cases: list[dict[str, object]]) -> dict[str, object
         "helper_local_anchors": REQUIRED_CONF_HELPER_ANCHORS,
     }
 
-
 def build_confdata_manifest(confdata_cases: list[dict[str, object]]) -> dict[str, object]:
     return {
         "tool": "scripts/zigux/kconfig/confdata_bridge.zig",
@@ -306,7 +295,6 @@ def build_confdata_manifest(confdata_cases: list[dict[str, object]]) -> dict[str
         "expected_packet": [str(case["expected"]) for case in confdata_cases],
         "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS,
     }
-
 
 def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf_cases: list[dict[str, object]]) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
@@ -329,7 +317,6 @@ def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf
             issues.append(("CONF_MANIFEST_REFERENCES_MISSING_FIXTURE", str(rel_path)))
     return issues
 
-
 def collect_confdata_manifest_issues(fixture_dir: Path, confdata_bridge_path: Path, confdata_cases: list[dict[str, object]]) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     actual_anchors = ordered_test_anchors(confdata_bridge_path, "failed to discover confdata bridge test anchors")
@@ -350,7 +337,6 @@ def collect_confdata_manifest_issues(fixture_dir: Path, confdata_bridge_path: Pa
         if not (fixture_dir / rel_path).exists():
             issues.append(("MISSING_CONFDATA_CASE_PATHS", str(rel_path)))
     return issues
-
 
 def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     fixture_dir = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
@@ -405,7 +391,6 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_confdata_manifest_issues(fixture_dir, confdata_bridge, confdata_cases))
     return issues
 
-
 def emit_manifest_issues(issues: list[tuple[str, str]]) -> None:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
@@ -418,11 +403,9 @@ def emit_manifest_issues(issues: list[tuple[str, str]]) -> None:
         print(f"{code}_END")
     raise SystemExit(1)
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def build_conf_command(conf_exe: Path, case: dict[str, object]) -> list[str]:
     cmd = [str(conf_exe), str(case["mode"]), str(case["kconfig"]), str(case["config"]), str(case["arch"])]
@@ -440,11 +423,9 @@ def build_conf_command(conf_exe: Path, case: dict[str, object]) -> list[str]:
         cmd.append(f"nosilentupdate={case['nosilentupdate']}")
     return cmd
 
-
 def check_repeatable_json_output(expected: Path, actual: Path, repeat: Path) -> None:
     run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(expected), str(actual)], cwd=str(ROOT))
     run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(actual), str(repeat)], cwd=str(ROOT))
-
 
 def render_conf_bridge_self_test_source() -> str:
     blocks = [f'test "{anchor}" {{\n    try std.testing.expect(true);\n}}\n' for anchor in REQUIRED_CONF_HELPER_ANCHORS]
@@ -456,11 +437,9 @@ def render_conf_bridge_self_test_source() -> str:
         + "\n".join(blocks)
     )
 
-
 def render_confdata_bridge_self_test_source() -> str:
     blocks = [f'test "{anchor}" {{\n    try std.testing.expect(true);\n}}\n' for anchor in REQUIRED_CONFDATA_HELPER_ANCHORS]
     return 'const std = @import("std");\n\n' + "\n".join(blocks)
-
 
 def build_self_test_root(root: Path) -> None:
     fixture_root = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge"
@@ -471,7 +450,6 @@ def build_self_test_root(root: Path) -> None:
     write_text(fixture_root / "confdata_manifest.json", json.dumps(build_confdata_manifest(SAMPLE_CONFDATA_CASES), indent=2) + "\n")
     for rel_path in {*(str(case["expected"]) for case in SAMPLE_CONF_CASES), *(str(case["input"]) for case in SAMPLE_CONFDATA_CASES), *(str(case["expected"]) for case in SAMPLE_CONFDATA_CASES)}:
         write_text(fixture_root / rel_path, "{}\n")
-
 
 def run_self_test() -> int:
     checks_run = 0
@@ -575,6 +553,11 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        (fixture_root / "duplicate_assignments.config").unlink()
+        assert any(code == "MISSING_CONFDATA_CASE_PATHS" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
         (fixture_root / "duplicate_malformed_quoted_assignment_expected.json").unlink()
         assert any(code == "MISSING_CONFDATA_CASE_PATHS" for code, _ in collect_manifest_issues(root))
         checks_run += 1
@@ -599,7 +582,6 @@ def run_self_test() -> int:
     print("KCONFIG_BRIDGE_SELF_TEST=pass")
     print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check bounded kconfig bridge fixture parity.")
@@ -643,7 +625,6 @@ def main() -> int:
     print("KCONFIG_BRIDGE_DIFF=pass")
     print(f"FIXTURE_DIR={FIXTURE_DIR}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
