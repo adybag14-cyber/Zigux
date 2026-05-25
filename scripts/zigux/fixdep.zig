@@ -239,20 +239,32 @@ const Processor = struct {
         };
         const expected_size = std.math.cast(usize, file_stat.size) orelse return error.StreamTooLong;
 
-        var file_reader = file.reader(self.io, &.{});
-        const dependency_text = file_reader.interface.allocRemaining(self.arena.allocator(), .limited(expected_size)) catch |err| switch (err) {
+        var file_reader_buffer: [1]u8 = undefined;
+        var file_reader = file.reader(self.io, &file_reader_buffer);
+
+        var dependency_text: std.ArrayList(u8) = .empty;
+        file_reader.interface.appendExact(self.arena.allocator(), &dependency_text, expected_size) catch |err| switch (err) {
             error.ReadFailed => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
                 self.last_file_error = file_reader.err.?;
                 return error.ReadDependencyFile;
             },
-            error.OutOfMemory, error.StreamTooLong => |e| return e,
+            error.EndOfStream => {
+                self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
+                self.last_file_error = err;
+                return error.ReadDependencyFile;
+            },
+            error.OutOfMemory => |e| return e,
         };
-        return expectExactReadSize(dependency_text, expected_size) catch |err| {
-            self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
-            self.last_file_error = err;
-            return error.ReadDependencyFile;
+        _ = file_reader.interface.peekByte() catch |err| switch (err) {
+            error.EndOfStream => return dependency_text.toOwnedSlice(self.arena.allocator()),
+            error.ReadFailed => {
+                self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
+                self.last_file_error = file_reader.err.?;
+                return error.ReadDependencyFile;
+            },
         };
+        return error.StreamTooLong;
     }
 
     fn parseDepFile(self: *Processor, writer: anytype, dep_text_with_tail: []const u8, target: []const u8) !void {
