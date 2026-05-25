@@ -166,7 +166,7 @@ def extract_case_fixtures(module: ast.Module, *, source_path: Path) -> list[dict
 
 def extract_bridge_packets(
     bridge_checker_text: str, *, source_path: Path
-) -> tuple[list[dict[str, object]], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+) -> tuple[list[dict[str, object]], tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     try:
         module = ast.parse(bridge_checker_text, filename=source_path.as_posix())
     except SyntaxError as exc:
@@ -178,6 +178,11 @@ def extract_bridge_packets(
         extract_string_sequence(module, "EXPECTED_PROCESS_OUTPUT_PACKET", source_path=source_path),
         extract_string_sequence(module, "EXPECTED_HELPER_LOCAL_ANCHORS", source_path=source_path),
         extract_string_sequence(module, "REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES", source_path=source_path),
+        extract_string_sequence(
+            module,
+            "REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES",
+            source_path=source_path,
+        ),
     )
 
 
@@ -274,7 +279,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
     try:
-        case_fixtures, process_output_packet, helper_local_anchors, version_side_effect_lines = extract_bridge_packets(
+        (
+            case_fixtures,
+            process_output_packet,
+            helper_local_anchors,
+            version_side_effect_lines,
+            ambiguous_version_side_effect_lines,
+        ) = extract_bridge_packets(
             bridge_checker_text,
             source_path=BRIDGE_CHECKER,
         )
@@ -298,10 +309,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_VERSION_SIDE_EFFECT_TEST_LINE", f"{marker}:count={count}"))
 
-    for marker in (
-        'test "genksyms bridge preserves version side effect before ambiguous long option" {',
-        'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {',
-    ):
+    for marker in ambiguous_version_side_effect_lines:
         count = count_exact_lines(ambiguous_version_side_effect_text, marker)
         if count == 0:
             issues.append(("MISSING_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE", marker))
@@ -380,11 +388,16 @@ def render_bridge_checker_stub() -> str:
         'test "genksyms bridge preserves version side effect before invalid long option" {',
         'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
     )
+    ambiguous_version_lines = (
+        'test "genksyms bridge preserves version side effect before ambiguous long option" {',
+        'test "genksyms bridge preserves abbreviated version side effect before ambiguous long option" {',
+    )
     return (
         f"CASE_FIXTURES = {case_fixtures!r}\n"
         f"EXPECTED_PROCESS_OUTPUT_PACKET = {process_output_packet!r}\n"
         f"EXPECTED_HELPER_LOCAL_ANCHORS = {helper_local_anchors!r}\n"
         f"REQUIRED_VERSION_SIDE_EFFECT_TEST_LINES = {version_lines!r}\n"
+        f"REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES = {ambiguous_version_lines!r}\n"
     )
 
 
@@ -420,7 +433,7 @@ def build_self_test_root(root: Path) -> None:
         '}\n',
     )
     bridge_checker_text = read_text(root / BRIDGE_CHECKER.relative_to(ROOT))
-    case_fixtures, process_output_packet, helper_local_anchors, _ = extract_bridge_packets(
+    case_fixtures, process_output_packet, helper_local_anchors, _, _ = extract_bridge_packets(
         bridge_checker_text,
         source_path=BRIDGE_CHECKER,
     )
@@ -517,6 +530,38 @@ def run_self_test() -> int:
         assert (
             "INVALID_BRIDGE_CHECKER_PACKET",
             "scripts/zigux/check-genksyms-bridge.py:missing constant CASE_FIXTURES",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bridge_path = root / BRIDGE_CHECKER.relative_to(ROOT)
+        bridge_path.write_text(
+            bridge_path.read_text(encoding="utf-8").replace(
+                "REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES = ",
+                "MISSING_REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES = ",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "INVALID_BRIDGE_CHECKER_PACKET",
+            "scripts/zigux/check-genksyms-bridge.py:missing constant REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bridge_path = root / BRIDGE_CHECKER.relative_to(ROOT)
+        bridge_path.write_text(
+            bridge_path.read_text(encoding="utf-8").replace(
+                "REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES = ('test \"genksyms bridge preserves version side effect before ambiguous long option\" {', 'test \"genksyms bridge preserves abbreviated version side effect before ambiguous long option\" {')",
+                "REQUIRED_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINES = ('test \"genksyms bridge preserves drifted ambiguous version side effect\" {', 'test \"genksyms bridge preserves abbreviated version side effect before ambiguous long option\" {')",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "MISSING_AMBIGUOUS_VERSION_SIDE_EFFECT_TEST_LINE",
+            'test "genksyms bridge preserves drifted ambiguous version side effect" {',
         ) in collect_issues(root)
         checks_run += 1
 
@@ -639,7 +684,7 @@ def run_self_test() -> int:
             'test "genksyms bridge preserves version side effect before invalid long option" {',
             'test "genksyms bridge preserves abbreviated version side effect before invalid long option" {',
         ):
-            build_self_test_root(root)
+            build_self_test_ROOT(root)
             version_path = root / VERSION_SIDE_EFFECT_TEST.relative_to(ROOT)
             version_path.write_text(
                 duplicate_exact_line(version_path.read_text(encoding="utf-8"), marker),
@@ -711,7 +756,7 @@ def run_self_test() -> int:
     return 0
 
 
-EXPECTED_SELF_TEST_CASE_COUNT = 52
+EXPECTED_SELF_TEST_CASE_COUNT = 54
 
 
 def main() -> int:
