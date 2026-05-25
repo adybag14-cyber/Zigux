@@ -95,7 +95,7 @@ EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
 EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 
-SELF_TEST_CASE_COUNT = 49
+SELF_TEST_CASE_COUNT = 51
 
 
 class ValidationError(RuntimeError):
@@ -618,6 +618,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                '"phase": "Phase 6"',
+                '"phase": "Phase 5"',
+            ),
+            "unexpected phase id",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 '"surveyed_head": "current-master-readback-2026-05-22"',
                 '"surveyed_head": "current-master-readback-2026-05-21"',
             ),
@@ -874,6 +886,18 @@ def run_self_test() -> None:
                 '"packet": "phase6-helper-evidence"',
             ),
             "unexpected packet id",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                '"phase": "Phase 6"',
+                '"phase": "Phase 5"',
+            ),
+            "unexpected phase id",
         )
         cases_run += 1
         scaffold_repo(root)
