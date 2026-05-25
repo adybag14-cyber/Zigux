@@ -151,6 +151,60 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
         ("ARTIFACT_DIFF_SELF_TEST_CASE_COUNT", "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23"),
         ("ARTIFACT_DIFF_SELF_TEST_CASES", "ARTIFACT_DIFF_SELF_TEST_CASES=" + ARTIFACT_DIFF_HELPER_SELF_TEST_CASES),
     ),
+    "phase4-artifact-diff-contract-self-test": (
+        ("ARTIFACT_DIFF_CONTRACT_SELF_TEST", "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass"),
+        ("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT", "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24"),
+        ("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES", "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES="),
+    ),
+    "phase4-artifact-diff-contract": (
+        ("ARTIFACT_DIFF_CONTRACT", "ARTIFACT_DIFF_CONTRACT=pass"),
+        ("ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT", "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=25"),
+        ("ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT", "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5"),
+        ("ARTIFACT_DIFF_CONTRACT_CASE_COUNT", "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30"),
+    ),
+    "phase4-artifact-diff-determinism-self-test": (
+        ("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST", "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass"),
+        ("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT", "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12"),
+        ("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES", "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES="),
+    ),
+    "phase4-artifact-diff-determinism": (
+        ("PHASE4_ARTIFACT_DIFF_DETERMINISM", "PHASE4_ARTIFACT_DIFF_DETERMINISM=pass"),
+        ("PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS", "PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=11"),
+        (
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=0",
+        ),
+    ),
+    "phase4-artifact-diff-validator-replays-self-test": (
+        ("PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST", "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST=pass"),
+        (
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14",
+        ),
+        (
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES=",
+        ),
+    ),
+    "phase4-artifact-diff-validator-replays": (
+        ("PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS", "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass"),
+        (
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present",
+        ),
+        (
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",
+        ),
+        (
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS=",
+        ),
+        (
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
+        ),
+    ),
     "phase4-gate-evidence-self-test": (("phase4 gate evidence self-test", "phase4 gate evidence self-test: PASS (44 cases)"),),
     "phase4-gate-evidence": (("phase4 gate evidence check passed", "phase4 gate evidence check passed"),),
     "phase4-perf-baseline-packet-self-test": (
@@ -451,18 +505,45 @@ def configure_phase4_output_stubs(root: Path) -> None:
     )
     build_stub_script(
         root / "scripts/zigux/check-artifact-diff-contract.py",
-        self_test_stdout_lines=("ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass", "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=18"),
-        live_stdout_lines=("ARTIFACT_DIFF_CONTRACT=pass",),
+        self_test_stdout_lines=(
+            "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",
+            "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24",
+            "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=",
+        ),
+        live_stdout_lines=(
+            "ARTIFACT_DIFF_CONTRACT=pass",
+            "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=25",
+            "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
+            "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30",
+        ),
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-artifact-diff-determinism.py",
-        self_test_stdout_lines=("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass", "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=26"),
-        live_stdout_lines=("PHASE4_ARTIFACT_DIFF_DETERMINISM=pass",),
+        self_test_stdout_lines=(
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES=",
+        ),
+        live_stdout_lines=(
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM=pass",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=11",
+            "PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=0",
+        ),
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
-        self_test_stdout_lines=("PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST=pass", "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=22"),
-        live_stdout_lines=("PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass",),
+        self_test_stdout_lines=(
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST=pass",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES=",
+        ),
+        live_stdout_lines=(
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS=",
+            "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
+        ),
     )
     build_stub_script(root / "scripts/zigux/check-phase4-gate-evidence.py", self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",), live_stdout_lines=("phase4 gate evidence check passed",))
     build_stub_script(root / "scripts/zigux/check-phase4-perf-baseline-packet.py", self_test_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=34"), live_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_CHECK=pass",))
@@ -555,6 +636,47 @@ def run_self_test() -> int:
         if "output_marker_missing:phase4-perf-baseline-packet-self-test:PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES" not in collect_issues(root):
             print("PHASE4_VALIDATE_SELF_TEST=fail")
             print("perf baseline marker drift was not detected")
+            return 1
+        cases += 1
+
+        reset_fixture()
+        build_stub_script(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            self_test_stdout_lines=(
+                "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass",
+                "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24",
+            ),
+            live_stdout_lines=(
+                "ARTIFACT_DIFF_CONTRACT=pass",
+                "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=25",
+                "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=5",
+                "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30",
+            ),
+        )
+        if "output_marker_missing:phase4-artifact-diff-contract-self-test:ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES" not in collect_issues(root):
+            print("PHASE4_VALIDATE_SELF_TEST=fail")
+            print("artifact-diff contract marker drift was not detected")
+            return 1
+        cases += 1
+
+        reset_fixture()
+        build_stub_script(
+            root / "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+            self_test_stdout_lines=(
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST=pass",
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14",
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASES=",
+            ),
+            live_stdout_lines=(
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass",
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE=validator_present",
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7",
+                "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS=",
+            ),
+        )
+        if "output_marker_missing:phase4-artifact-diff-validator-replays:PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT" not in collect_issues(root):
+            print("PHASE4_VALIDATE_SELF_TEST=fail")
+            print("artifact-diff validator replay marker drift was not detected")
             return 1
         cases += 1
 
