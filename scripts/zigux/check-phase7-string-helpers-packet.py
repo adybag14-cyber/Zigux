@@ -15,6 +15,72 @@ EXPECTED_MANIFEST_LANE_KEY = "helper-local"
 EXPECTED_MANIFEST_PHASE = "Phase 7"
 EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"
 EXPECTED_MANIFEST_STATE = "expanded_starter_packet"
+EXPECTED_DIRECT_REPO_ANCHOR = "lib/string_helpers.zig"
+EXPECTED_REVIEW_SURFACES = [
+    "Documentation/zigux/phase7-string-helpers-slice.md",
+    "scripts/zigux/check-phase7-string-helpers-packet.py",
+    "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
+    "lib/string_helpers.zig",
+    "zigux/tests/phase7_string_helpers.zig",
+    "zigux/tests/phase7_string_helpers_survey.zig",
+    "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+    "zigux/tests/phase7_string_helpers_format_boundary.zig",
+    "zigux/tests/phase7_string_helpers_manifest.json",
+    "samples/zigux/README.md",
+]
+EXPECTED_COVERED_HELPERS = [
+    "skipSpaces",
+    "skip_spaces",
+    "trimSpaces",
+    "strim",
+    "sysfsStreq",
+    "sysfs_streq",
+    "matchString",
+    "match_string",
+    "sysfsMatchString",
+    "__sysfs_match_string",
+    "stringIsTerminated",
+    "string_is_terminated",
+    "stringGetSize",
+    "string_get_size",
+    "stringUnescape",
+    "string_unescape",
+    "stringUnescapeInplace",
+    "string_unescape_inplace",
+    "stringUnescapeAny",
+    "string_unescape_any",
+    "stringUnescapeAnyInplace",
+    "string_unescape_any_inplace",
+    "stringEscapeMem",
+    "string_escape_mem",
+    "stringEscapeMemAnyNp",
+    "string_escape_mem_any_np",
+    "stringEscapeStr",
+    "string_escape_str",
+    "stringEscapeStrAnyNp",
+    "string_escape_str_any_np",
+    "kasprintfStrarray",
+    "kasprintf_strarray",
+    "kfreeStrarray",
+    "kfree_strarray",
+    "kstrdupAndReplace",
+    "kstrdup_and_replace",
+    "kstrdupQuotable",
+    "kstrdup_quotable",
+    "kstrdupQuotableFile",
+    "kstrdup_quotable_file",
+    "kstrdupQuotableCmdline",
+    "kstrdup_quotable_cmdline",
+    "parseIntArray",
+    "parse_int_array",
+    "stringUpper",
+    "string_upper",
+    "stringLower",
+    "string_lower",
+    "memcpyAndPad",
+    "memcpy_and_pad",
+    "strreplace",
+]
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-string-helpers-slice.md",
@@ -78,10 +144,10 @@ TERMINATION_OWNERSHIP_MARKER = (
     "stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix"
 )
 
-MANIFEST_LANE_KEY_MARKER = '"lane_key": "helper-local"'
-MANIFEST_PHASE_MARKER = '"phase": "Phase 7"'
-MANIFEST_ANCHOR_MARKER = '"anchor": "lib/string_helpers.c"'
-MANIFEST_STATE_MARKER = '"current_master_state": "expanded_starter_packet"'
+MANIFEST_LANE_KEY_MARKER = '\"lane_key\": \"helper-local\"'
+MANIFEST_PHASE_MARKER = '\"phase\": \"Phase 7\"'
+MANIFEST_ANCHOR_MARKER = '\"anchor\": \"lib/string_helpers.c\"'
+MANIFEST_STATE_MARKER = '\"current_master_state\": \"expanded_starter_packet\"'
 
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
@@ -288,14 +354,14 @@ FORBIDDEN_MARKERS = {
         "parse_int_array_user",
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
-        '"devmKasprintfStrarray"',
-        '"devm_kasprintf_strarray"',
-        '"parseIntArrayUser"',
-        '"parse_int_array_user"',
+        '\"devmKasprintfStrarray\"',
+        '\"devm_kasprintf_strarray\"',
+        '\"parseIntArrayUser\"',
+        '\"parse_int_array_user\"',
     ],
 }
 
-SELF_TEST_CASE_COUNT = 67
+SELF_TEST_CASE_COUNT = 70
 
 
 def read_text(path: Path) -> str:
@@ -322,19 +388,10 @@ def write_fixture_root(tmp_root: Path) -> None:
         "phase": EXPECTED_MANIFEST_PHASE,
         "verified_on_utc": "2026-05-25T16:43:22Z",
         "anchor": EXPECTED_MANIFEST_ANCHOR,
+        "direct_repo_anchor": EXPECTED_DIRECT_REPO_ANCHOR,
         "current_master_state": EXPECTED_MANIFEST_STATE,
-        "review_surfaces": [
-            "Documentation/zigux/phase7-string-helpers-slice.md",
-            "scripts/zigux/check-phase7-string-helpers-packet.py",
-            "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
-            "lib/string_helpers.zig",
-            "zigux/tests/phase7_string_helpers.zig",
-            "zigux/tests/phase7_string_helpers_manifest.json",
-            "zigux/tests/phase7_string_helpers_survey.zig",
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-            "zigux/tests/phase7_string_helpers_format_boundary.zig",
-            "samples/zigux/README.md",
-        ],
+        "review_surfaces": EXPECTED_REVIEW_SURFACES,
+        "covered_helpers": EXPECTED_COVERED_HELPERS,
         "ownership_focus": [
             "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings",
             "bounded uppercase and lowercase copies through the exported C-string boundary",
@@ -388,6 +445,31 @@ def collect_unexpected_markers(root: Path) -> list[str]:
     return unexpected
 
 
+def collect_missing_manifest_entries(manifest: dict[str, object]) -> list[str]:
+    missing: list[str] = []
+
+    if manifest.get("direct_repo_anchor") != EXPECTED_DIRECT_REPO_ANCHOR:
+        missing.append("zigux/tests/phase7_string_helpers_manifest.json: direct_repo_anchor")
+
+    review_surfaces = manifest.get("review_surfaces")
+    if not isinstance(review_surfaces, list):
+        missing.append("zigux/tests/phase7_string_helpers_manifest.json: review_surfaces")
+    else:
+        for item in EXPECTED_REVIEW_SURFACES:
+            if item not in review_surfaces:
+                missing.append(f"zigux/tests/phase7_string_helpers_manifest.json: review_surfaces: {item}")
+
+    covered_helpers = manifest.get("covered_helpers")
+    if not isinstance(covered_helpers, list):
+        missing.append("zigux/tests/phase7_string_helpers_manifest.json: covered_helpers")
+    else:
+        for item in EXPECTED_COVERED_HELPERS:
+            if item not in covered_helpers:
+                missing.append(f"zigux/tests/phase7_string_helpers_manifest.json: covered_helpers: {item}")
+
+    return missing
+
+
 def validate(root: Path) -> tuple[list[str], list[str], list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
@@ -402,6 +484,10 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str], list[str]]:
         return [], ["zigux/tests/phase7_string_helpers_manifest.json: anchor"], [], []
     if manifest.get("current_master_state") != EXPECTED_MANIFEST_STATE:
         return [], ["zigux/tests/phase7_string_helpers_manifest.json: current_master_state"], [], []
+
+    missing_manifest_entries = collect_missing_manifest_entries(manifest)
+    if missing_manifest_entries:
+        return [], missing_manifest_entries, [], []
 
     return (
         missing_files,
@@ -710,6 +796,35 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        manifest = json.loads(read_text(manifest_path))
+        manifest["direct_repo_anchor"] = "lib/string_helpers.c"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker("missing_manifest_direct_repo_anchor_marker", tmp_root, "zigux/tests/phase7_string_helpers_manifest.json: direct_repo_anchor")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].remove("samples/zigux/README.md")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "missing_manifest_review_surface_marker",
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_manifest.json: review_surfaces: samples/zigux/README.md",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["covered_helpers"].remove("stringEscapeStrAnyNp")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "missing_manifest_covered_helper_marker",
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_manifest.json: covered_helpers: stringEscapeStrAnyNp",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
         survey_marker = 'try expectContains(sample_boundary, "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here.");'
         remove_once(survey_path, survey_marker)
@@ -843,7 +958,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_forbidden_marker = '"devmKasprintfStrarray"'
+        manifest_forbidden_marker = '\"devmKasprintfStrarray\"'
         manifest = json.loads(read_text(manifest_path))
         manifest["review_surfaces"].append("devmKasprintfStrarray")
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
@@ -851,7 +966,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_forbidden_alias_marker = '"devm_kasprintf_strarray"'
+        manifest_forbidden_alias_marker = '\"devm_kasprintf_strarray\"'
         manifest = json.loads(read_text(manifest_path))
         manifest["review_surfaces"].append("devm_kasprintf_strarray")
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
@@ -859,7 +974,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_forbidden_parse_marker = '"parseIntArrayUser"'
+        manifest_forbidden_parse_marker = '\"parseIntArrayUser\"'
         manifest = json.loads(read_text(manifest_path))
         manifest["review_surfaces"].append("parseIntArrayUser")
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
@@ -867,7 +982,7 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
-        manifest_forbidden_parse_alias_marker = '"parse_int_array_user"'
+        manifest_forbidden_parse_alias_marker = '\"parse_int_array_user\"'
         manifest = json.loads(read_text(manifest_path))
         manifest["review_surfaces"].append("parse_int_array_user")
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
