@@ -10,6 +10,7 @@ pub const ModuleDescriptor = struct {
     provides_of_iomap_cleanup_handoff_planning: bool,
     provides_iounmap_cleanup_planning: bool,
     provides_ioport_unmap_call_planning: bool,
+    provides_arch_phys_wc_add_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
     touches_live_mmio: bool,
@@ -124,6 +125,20 @@ pub const ManagedIoportUnmapPlan = struct {
     warns_on_release_miss: bool,
 };
 
+pub const ManagedArchPhysWcAddInput = struct {
+    release_record_allocated: bool,
+    returned_token: ?i32,
+};
+
+pub const ManagedArchPhysWcAddPlan = struct {
+    anchor: []const u8,
+    returned_token: ?i32,
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+    should_release_on_detach: bool,
+};
+
 pub const DevresHelperLab = struct {
     const ReleaseDisposition = struct {
         releases_from_devres: bool,
@@ -189,6 +204,7 @@ pub const DevresHelperLab = struct {
             .provides_of_iomap_cleanup_handoff_planning = true,
             .provides_iounmap_cleanup_planning = true,
             .provides_ioport_unmap_call_planning = true,
+            .provides_arch_phys_wc_add_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
             .touches_live_mmio = false,
@@ -338,6 +354,21 @@ pub const DevresHelperLab = struct {
             .warns_on_release_miss = !release_matches,
         };
     }
+
+    pub fn planManagedArchPhysWcAdd(input: ManagedArchPhysWcAddInput) !ManagedArchPhysWcAddPlan {
+        try requireReleaseRecordAllocated(input.release_record_allocated);
+
+        const lifetime = planManagedReleaseRecordLifetime(input.returned_token != null);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .returned_token = input.returned_token,
+            .added_to_devres = lifetime.added_to_devres,
+            .release_record_retained = lifetime.release_record_retained,
+            .release_record_freed = lifetime.release_record_freed,
+            .should_release_on_detach = lifetime.should_release_on_detach,
+        };
+    }
 };
 
 const std = @import("std");
@@ -356,6 +387,7 @@ test "descriptor stays helper-local" {
     try std.testing.expect(descriptor.provides_of_iomap_cleanup_handoff_planning);
     try std.testing.expect(descriptor.provides_iounmap_cleanup_planning);
     try std.testing.expect(descriptor.provides_ioport_unmap_call_planning);
+    try std.testing.expect(descriptor.provides_arch_phys_wc_add_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
     try std.testing.expect(!descriptor.touches_live_mmio);
@@ -736,4 +768,38 @@ test "ioport unmap planning keeps release misses warnable" {
     try std.testing.expectEqual(@as(usize, 0xf010), plan.candidate_address);
     try std.testing.expect(!plan.release_matches);
     try std.testing.expect(plan.warns_on_release_miss);
+}
+
+test "arch phys wc add planning retains the returned token for detach cleanup" {
+    const plan = try DevresHelperLab.planManagedArchPhysWcAdd(.{
+        .release_record_allocated = true,
+        .returned_token = 7,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+    try std.testing.expectEqual(@as(?i32, 7), plan.returned_token);
+    try std.testing.expect(plan.added_to_devres);
+    try std.testing.expect(plan.release_record_retained);
+    try std.testing.expect(!plan.release_record_freed);
+    try std.testing.expect(plan.should_release_on_detach);
+}
+
+test "arch phys wc add planning frees the release record when no token is returned" {
+    const plan = try DevresHelperLab.planManagedArchPhysWcAdd(.{
+        .release_record_allocated = true,
+        .returned_token = null,
+    });
+
+    try std.testing.expectEqual(@as(?i32, null), plan.returned_token);
+    try std.testing.expect(!plan.added_to_devres);
+    try std.testing.expect(!plan.release_record_retained);
+    try std.testing.expect(plan.release_record_freed);
+    try std.testing.expect(!plan.should_release_on_detach);
+}
+
+test "arch phys wc add planning requires a release record" {
+    try std.testing.expectError(error.OutOfMemory, DevresHelperLab.planManagedArchPhysWcAdd(.{
+        .release_record_allocated = false,
+        .returned_token = 3,
+    }));
 }
