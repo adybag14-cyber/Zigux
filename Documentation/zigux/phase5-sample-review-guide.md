@@ -82,7 +82,7 @@ For the shared tracing and probe lane, ground reviewer guidance in the restored 
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
 
-Keep those shared surfaces honest about the restored direct kretprobe packet, the bounded trace-events formatting companion, the bounded trace-events callback-focus companion, the directly readable trace-events survey note, the broader trace-events sample-local companions that are still visible through public-tree-backed reread but not yet returned as direct authenticated proof in this runtime, and the returned shared-build rerun handle instead of treating the trace-events anchor as either fully absent or fully restored authenticated proof.
+Keep those shared surfaces honest about the restored direct kretprobe packet, the bounded kretprobe instance-budget companion, the bounded trace-events formatting companion, the bounded trace-events callback-focus companion, the directly readable trace-events survey note, the broader trace-events sample-local companions that are still visible through public-tree-backed reread but not yet returned as direct authenticated proof in this runtime, and the returned shared-build rerun handle instead of treating the trace-events anchor as either fully absent or fully restored authenticated proof.
 Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` should stay aligned with those same shared surfaces instead of being treated as an optional companion.
 
 ## Bytestream posture
@@ -116,11 +116,14 @@ Keep the current split explicit too:
 ## Tracing and probe posture
 
 For `kretprobe`, follow the restored direct packet recorded in `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`, while keeping `zigux/tests/phase5_build.zig` framed as current directly readable shared build-route companion evidence.
+Keep `samples/zigux/kretprobe_example_instance_budget_contract.zig` and `zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig` explicit too as the bounded instance-budget companion and focused replay for the same anchor, so the shared guide keeps the Linux `func` parameter, shared `0o644` mode, default `kernel_clone`, one-word private-data shape, and `nmissed` / `maxactive` cue reviewable without leaving those details trapped in the dedicated survey note.
 
 Keep the current kretprobe contributor cues explicit in shared guidance too:
 
 * `samples/zigux/kretprobe_example.zig` keeps `kernel_clone` as the default symbol name while allowing pre-init `retargetSymbol("do_sys_openat2")`
 * `zig test samples/zigux/kretprobe_example.zig`, `zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig`, and `zig test zigux/tests/phase5_kretprobe_example_survey.zig` stay explicit as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays current directly readable shared build-route companion evidence rather than sample-local proof
+* `samples/zigux/kretprobe_example_instance_budget_contract.zig` plus `zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig` keep the bounded `func` parameter, shared `0o644` mode, default `kernel_clone`, one-word private-data shape, and `nmissed` / `maxactive` cue explicit beside the main replay packet instead of leaving that instance-budget reviewability trapped in the dedicated survey note alone
+* `zig test samples/zigux/kretprobe_example_instance_budget_contract.zig` and `zig test --dep kretprobe_example_instance_budget_contract -Mroot=zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig -Mkretprobe_example_instance_budget_contract=samples/zigux/kretprobe_example_instance_budget_contract.zig` stay explicit as the sample-owned companion route and focused replay route, while the shared `zigux/tests/phase5_build.zig` line stays current directly readable shared build-route companion evidence rather than sample-local proof and keeps rerunning both instance-budget checks beside the main kretprobe packet
 * the direct packet keeps the pre-init-only `retargetMaxactive(3)` path, replay `maxactive = 20`, the single `my_data`-style entry timestamp word, the one-missed-instance summary, recovered duration `60`, and post-exit `recordMissedInstance()` rejection visible without implying runtime registration parity
 
 For `trace_events`, follow the current bounded packet through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, `samples/zigux/trace_events_callback_focus_contract.zig`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/phase5-trace-events-sample-survey.md` explicit as the directly readable survey note for that anchor, keep `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` framed as public-tree-backed companion, repo-reality-gap, or historical support references until a fresh authenticated reread proves broader direct sample-local proof again on current `master`, and keep `zigux/tests/phase5_build.zig` explicit as the returned directly readable shared rerun route for that broader packet.
@@ -213,13 +216,14 @@ Do not describe that formatting cue as a fifth Phase 5 sample, a standalone form
 
 ## Review posture
 
-Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with direct formatting and callback-focus companions plus older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in a mixed direct-plus-public-tree-backed split packet, same-lane follow-through should stay inside these bounded categories:
+Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet plus its bounded instance-budget companion, the shared trace-events side in a narrower posture with direct formatting and callback-focus companions plus older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in a mixed direct-plus-public-tree-backed split packet, same-lane follow-through should stay inside these bounded categories:
 
 * one bytestream reminder-surface truthfulness repair at a time
 * one trace-events reminder-surface truthfulness repair at a time
 * one trace-events approved-idiom-gap repair at a time
 * one trace-events survey-note, sample-root, tests-root, manifest, survey-replay, approved-idiom-gap, or shared-build reminder alignment repair at a time
 * one kobject split-evidence reminder repair at a time
+* one kretprobe sample, companion, focused replay, or shared-build reminder truthfulness repair at a time
 
 Avoid:
 
