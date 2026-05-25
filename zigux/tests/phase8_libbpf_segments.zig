@@ -96,6 +96,35 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
     try std.testing.expect(
         std.mem.indexOf(u8, poll_slice, "broader perf-buffer-online-cpu-routing parity") != null,
     );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            poll_slice,
+            "`tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig`",
+        ) != null,
+    );
+
+    const ready_buffer_fd_lookup = try readRepoFile(
+        "tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
+    );
+    defer std.testing.allocator.free(ready_buffer_fd_lookup);
+
+    try expectContains(
+        ready_buffer_fd_lookup,
+        "pub fn summarizeReadyBufferFdLookupAtAttempt(",
+    );
+    try expectContains(
+        ready_buffer_fd_lookup,
+        "pub fn resolveReadyBufferFdLookup(",
+    );
+    try expectContains(
+        ready_buffer_fd_lookup,
+        "pub fn resolveReadyBufferFdLookupReturnAtAttempt(",
+    );
+    try expectContains(
+        ready_buffer_fd_lookup,
+        "phase8 ready-buffer fd lookup helper keeps errno-shaped outputs stable",
+    );
 
     const poll_gate = try readRepoFile("scripts/zigux/check-phase8-perf-buffer-poll-gate.py");
     defer std.testing.allocator.free(poll_gate);
