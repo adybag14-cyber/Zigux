@@ -23,6 +23,7 @@ const SurveySummary = struct {
     preexisting_virtio_net_zig_present: bool,
     preexisting_phase12_virtio_net_zig_present: bool,
     preexisting_phase12_virtio_net_syntax_lab_present: bool,
+    preexisting_phase12_virtio_net_syntax_lab_build_present: bool,
 };
 
 const RoadmapGapStatus = struct {
@@ -107,6 +108,7 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_build_present);
 
     try std.testing.expectEqualStrings(
         "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present",
@@ -118,7 +120,7 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
     );
     try expectContains(
         manifest.roadmap_gap_check.queueing_correctness.current_surface,
-        "standalone syntax-lab compile-smoke companion",
+        "standalone syntax-lab compile-smoke pair",
     );
     try expectContains(
         manifest.roadmap_gap_check.throughput_and_recovery_parity.current_surface,
@@ -146,7 +148,7 @@ test "phase12 virtio net survey manifest tracks the shared-build survey-gate cov
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("survey_present_shared_route_present", gap.status);
             try expectContains(gap.why_now, "`phase12-validate`");
-            try expectContains(gap.why_now, "standalone syntax-lab compile-smoke companion");
+            try expectContains(gap.why_now, "standalone syntax-lab compile-smoke pair");
             try expectContains(gap.why_now, "blocked runtime-data-path boundary");
         }
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
