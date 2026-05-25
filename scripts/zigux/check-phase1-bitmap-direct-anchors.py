@@ -85,6 +85,9 @@ REQUIRED_SOURCE_MARKERS = {
     "bitmap_fill_alias_assert": "bitmap_fill(&alias, nbits);",
     "bitmap_full_alias_assert": "try std.testing.expectEqual(full(&direct, nbits), bitmap_full(&alias, nbits));",
     "bitmap_weight_alias_assert": "try std.testing.expectEqual(weight(&direct, nbits), bitmap_weight(&alias, nbits));",
+    "bitmap_copy_alias_assert": "bitmap_copy(&alias, &lhs, nbits);",
+    "bitmap_or_alias_assert": "bitmap_or(&alias, &lhs, &rhs, nbits);",
+    "bitmap_xor_alias_assert": "bitmap_xor(&alias, &lhs, &rhs, nbits);",
     "bitmap_and_alias_assert": "try std.testing.expectEqual(andBits(&direct, &lhs, &rhs, nbits), bitmap_and(&alias, &lhs, &rhs, nbits));",
     "bitmap_andnot_alias_assert": "try std.testing.expectEqual(andNotBits(&direct, &lhs, &rhs, nbits), bitmap_andnot(&alias, &lhs, &rhs, nbits));",
     "bitmap_equal_alias_assert": "try std.testing.expectEqual(equal(&lhs, &rhs, nbits), bitmap_equal(&lhs, &rhs, nbits));",
@@ -92,6 +95,7 @@ REQUIRED_SOURCE_MARKERS = {
     "bitmap_subset_alias_assert": "try std.testing.expectEqual(subset(&rhs, &lhs, nbits), bitmap_subset(&rhs, &lhs, nbits));",
     "bitmap_set_alias_assert": "bitmap_set(&alias_range, 1, 3);",
     "bitmap_clear_alias_assert": "bitmap_clear(&alias_range, 2, 1);",
+    "bitmap_scnprintf_alias_assert": "const alias_len = bitmap_scnprintf(&alias_range, nbits, &alias_buffer);",
 }
 
 
