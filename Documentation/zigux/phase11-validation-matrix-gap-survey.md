@@ -33,6 +33,7 @@ Phase 11 simple-driver packet on `master`.
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `scripts/zigux/validate-phase11.py`
@@ -84,6 +85,13 @@ keep that modem-control and targetless-unregister failure-mode evidence explicit
 beside the narrower three-proof inventory instead of silently collapsing it into
 the shared proof-backed roster.
 The same narrower continuity packet also keeps the dedicated
+`scripts/zigux/check-phase11-hvc-cleanup-current-head.py` guard explicit
+through
+`python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test`
+and `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, so keep
+that focused cleanup-current-head route explicit beside the narrower HVC proof
+packet instead of treating the cleanup companion evidence as unchecked prose.
+The same narrower continuity packet also keeps the dedicated
 `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard
 explicit through
 `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`
@@ -128,6 +136,8 @@ closure.
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
@@ -162,6 +172,10 @@ closure.
   The standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
   witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
   build shard also stay directly readable beside that smaller proof inventory.
+  The dedicated
+  `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` route also stays
+  directly readable beside that smaller proof inventory and cleanup companion
+  packet.
   The dedicated
   `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` route also
   stays directly readable beside that smaller proof inventory and standalone
