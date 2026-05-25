@@ -297,6 +297,7 @@ def sample_manifest() -> dict:
         },
         "review_anchors": EXPECTED_REVIEW_FIELDS,
     }
+}
 
 
 def write_sample_root(root: Path) -> None:
@@ -504,6 +505,21 @@ def run_self_test() -> None:
                 )
             )(load_current()),
             "manifest:review_anchor_value=tools/lib/find_bit.zig:tail_inclusive_boundary_fixture_keys",
+        )
+        case_count += 1
+
+        assert_issue_case(
+            root,
+            lambda: (
+                lambda manifest: (
+                    manifest["review_anchors"]["tools/lib/find_bit.zig"].__setitem__(
+                        "next_safe_step_note",
+                        manifest["review_anchors"]["tools/lib/find_bit.zig"]["next_safe_step_note"] + " drift",
+                    ),
+                    write_manifest(root, manifest),
+                )
+            )(load_current()),
+            "manifest:review_anchor_value=tools/lib/find_bit.zig:next_safe_step_note",
         )
         case_count += 1
 
