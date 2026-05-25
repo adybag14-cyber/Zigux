@@ -103,7 +103,7 @@
           "len1024"
         ],
         "query_count": 16,
-        "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
+        "budget_formula": "std.math.log2_int_ceil(len) + 1",
         "runtime_selected_c_abi_replays": [
           "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
           "zigux/tests/phase6_bsearch_c_abi_budget.zig"
