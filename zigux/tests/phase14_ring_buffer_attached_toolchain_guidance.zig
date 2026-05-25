@@ -29,6 +29,12 @@ test "phase14 ring-buffer attached toolchain guidance stays packet-local and env
     try std.testing.expect(std.mem.indexOf(u8, note, "`lib_dir`, `std_dir`, `global_cache_dir`, and `local_cache_dir`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "capture that no checkout-capable Zigux tree was present, so no packet-local replay was claimed") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "Keep those notes as run-log facts, not as survey replay evidence.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "Checkout-capable staging rule") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "prefer the staged-toolchain path that current `zigux/Makefile` already checks first") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "repo-local `.zig-toolchain/*/zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`ZIG_PINNED_TOOLCHAIN`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "manual `ZIG=/absolute/path/to/attached-zig/zig ...` override") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "packet-local escape hatch") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`zig test zigux/tests/phase14_ring_buffer_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`zig build test --build-file zigux/tests/phase14_build.zig --summary all`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`make -C zigux phase14-validate`") != null);
