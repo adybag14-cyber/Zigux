@@ -10,21 +10,35 @@ ROOT = Path(__file__).resolve().parents[2]
 VALIDATE = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
+CONTRACT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-contract.py"
+CONTRACT_ALIGNMENT = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-contract-selftest-alignment.py"
+)
+ROUTE_POLICY_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-route-policy.py"
+ROUTE_POLICY_ALIGNMENT = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-route-policy-selftest-alignment.py"
+)
 SHARED_SURFACE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface.py"
 SHARED_SURFACE_ALIGNMENT = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface-selftest-alignment.py"
+)
+WORKFLOW_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order.py"
+WORKFLOW_ORDER_ALIGNMENT = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order-selftest-alignment.py"
 )
 
 REQUIRED_PATHS = (
     VALIDATE,
     WORKFLOW,
     MAKEFILE,
-    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-contract.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-contract-selftest-alignment.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-route-policy.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-route-policy-selftest-alignment.py",
+    CONTRACT_CHECKER,
+    CONTRACT_ALIGNMENT,
+    ROUTE_POLICY_CHECKER,
+    ROUTE_POLICY_ALIGNMENT,
     SHARED_SURFACE_CHECKER,
     SHARED_SURFACE_ALIGNMENT,
+    WORKFLOW_ORDER_CHECKER,
+    WORKFLOW_ORDER_ALIGNMENT,
 )
 
 REQUIRED_VALIDATE_MARKERS = (
@@ -34,6 +48,8 @@ REQUIRED_VALIDATE_MARKERS = (
     '    "scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py",',
     '    "scripts/zigux/check-phase2-cross-validate-shared-surface.py",',
     '    "scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py",',
+    '    "scripts/zigux/check-phase2-cross-validate-workflow-order.py",',
+    '    "scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-contract.py --self-test",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-contract.py",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-contract-selftest-alignment.py --self-test",',
@@ -46,6 +62,10 @@ REQUIRED_VALIDATE_MARKERS = (
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",',
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order.py --self-test",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order.py",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py --self-test",',
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py --self-test",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract-selftest-alignment.py --self-test",',
@@ -58,6 +78,10 @@ REQUIRED_VALIDATE_MARKERS = (
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-workflow-order.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-workflow-order.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-workflow-order-selftest-alignment.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-workflow-order-selftest-alignment.py",',
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -73,6 +97,10 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py",
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order.py",
+    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py",
 )
 
 REQUIRED_MAKEFILE_LINES = (
@@ -94,22 +122,8 @@ REQUIRED_CROSS_TARGET = "phase2-cross:"
 REQUIRED_VALIDATE_TARGET = (
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep"
 )
-REQUIRED_CROSS_TARGET_COMMANDS = (
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract-selftest-alignment.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-contract-selftest-alignment.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy-selftest-alignment.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-route-policy-selftest-alignment.py",
-)
-REQUIRED_VALIDATE_TARGET_COMMANDS = (
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py",
-)
+REQUIRED_CROSS_TARGET_COMMANDS = REQUIRED_MAKEFILE_LINES[:8]
+REQUIRED_VALIDATE_TARGET_COMMANDS = REQUIRED_MAKEFILE_LINES[8:]
 
 
 def read_text(path: Path) -> str:
@@ -137,11 +151,10 @@ def count_exact_lines(text: str, marker: str) -> int:
 
 
 def collect_makefile_target_commands(text: str, header: str) -> list[str]:
-    lines = text.splitlines()
     commands: list[str] = []
     in_target = False
 
-    for line in lines:
+    for line in text.splitlines():
         stripped = line.strip()
         if not in_target:
             if stripped == header:
@@ -229,8 +242,7 @@ def build_self_test_root(root: Path) -> None:
     validate_lines.append(")")
     write_text(resolve_path(root, VALIDATE), "\n".join(validate_lines) + "\n")
 
-    workflow_lines = ["name: zigux-bootstrap"]
-    workflow_lines.extend(REQUIRED_WORKFLOW_LINES)
+    workflow_lines = ["name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES]
     write_text(resolve_path(root, WORKFLOW), "\n".join(workflow_lines) + "\n")
 
     makefile_lines = [
@@ -248,6 +260,7 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    expected_checks = 1 + 1 + 1 + 1 + 1 + 1 + 1 + 3 + (len(REQUIRED_PATHS) - 3)
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_validate_shared_surface_") as tmp_dir:
         root = Path(tmp_dir)
@@ -282,12 +295,9 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
-        write_text(
-            resolve_path(root, MAKEFILE),
-            f"{REQUIRED_CROSS_TARGET}\n"
-            + "\n".join(f"\t{line}" for line in REQUIRED_MAKEFILE_LINES + (REQUIRED_MAKEFILE_LINES[0],))
-            + "\n",
-        )
+        makefile_lines = [REQUIRED_CROSS_TARGET]
+        makefile_lines.extend(f"\t{line}" for line in REQUIRED_MAKEFILE_LINES + (REQUIRED_MAKEFILE_LINES[0],))
+        write_text(resolve_path(root, MAKEFILE), "\n".join(makefile_lines) + "\n")
         assert run_check(root) == 1
         checks += 1
 
@@ -296,13 +306,9 @@ def run_self_test() -> int:
             resolve_path(root, MAKEFILE),
             f"{REQUIRED_CROSS_TARGET}\n"
             + "\n".join(f"\t{line}" for line in REQUIRED_CROSS_TARGET_COMMANDS)
-            + "\n"
-            + "phase2-genksyms:\n\t@true\n"
+            + "\nphase2-genksyms:\n\t@true\n"
             + f"{REQUIRED_VALIDATE_TARGET}\n"
-            + "\n".join(
-                f"\t{line}"
-                for line in REQUIRED_VALIDATE_TARGET_COMMANDS[1:]
-            )
+            + "\n".join(f"\t{line}" for line in REQUIRED_VALIDATE_TARGET_COMMANDS[1:])
             + "\n",
         )
         assert run_check(root) == 1
@@ -312,12 +318,8 @@ def run_self_test() -> int:
         write_text(
             resolve_path(root, MAKEFILE),
             f"{REQUIRED_CROSS_TARGET}\n"
-            + "\n".join(
-                f"\t{line}"
-                for line in REQUIRED_CROSS_TARGET_COMMANDS[1:]
-            )
-            + "\n"
-            + "phase2-genksyms:\n\t@true\n"
+            + "\n".join(f"\t{line}" for line in REQUIRED_CROSS_TARGET_COMMANDS[1:])
+            + "\nphase2-genksyms:\n\t@true\n"
             + f"{REQUIRED_VALIDATE_TARGET}\n"
             + "\n".join(f"\t{line}" for line in REQUIRED_VALIDATE_TARGET_COMMANDS)
             + "\n",
@@ -325,20 +327,11 @@ def run_self_test() -> int:
         assert run_check(root) == 1
         checks += 1
 
-        build_self_test_root(root)
-        resolve_path(root, VALIDATE).unlink()
-        assert run_check(root) == 1
-        checks += 1
-
-        build_self_test_root(root)
-        resolve_path(root, WORKFLOW).unlink()
-        assert run_check(root) == 1
-        checks += 1
-
-        build_self_test_root(root)
-        resolve_path(root, MAKEFILE).unlink()
-        assert run_check(root) == 1
-        checks += 1
+        for path in (VALIDATE, WORKFLOW, MAKEFILE):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            assert run_check(root) == 1
+            checks += 1
 
         for path in REQUIRED_PATHS[3:]:
             build_self_test_root(root)
@@ -346,6 +339,7 @@ def run_self_test() -> int:
             assert run_check(root) == 1
             checks += 1
 
+    assert checks == expected_checks
     print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELF_TEST=pass")
     print(f"PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELF_TEST_CASE_COUNT={checks}")
     return 0
@@ -353,7 +347,10 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the Lane 21 shared validation surfaces wire the full cross validate-contract checker packet."
+        description=(
+            "Validate that the Lane 21 shared validation surfaces wire the full "
+            "cross validate-contract and workflow-order checker packet."
+        )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
