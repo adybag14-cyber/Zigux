@@ -43,7 +43,7 @@ Keep the direct bytestream sample-plus-tests packet explicit while the bounded q
 Fresh 2026-05-20 follow-up reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps five focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.
 Keep the bounded queue-window companion explicit too: `samples/zigux/bytestream_fifo_window_contract.zig` now keeps the stable two-window visible-span and writable-span reference pattern reviewable through `referencePattern()`, `visible_windows`, `writable_windows`, and the non-destructive preview or rollover booleans instead of leaving that queue-shape contract implied by the broader sample alone.
 
-The same 2026-05-19 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:
+The same 2026-05-19 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion and the bounded callback-focus companion, and the shared reminder surfaces below still keep that smaller packet explicit:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`
@@ -52,11 +52,13 @@ The same 2026-05-19 repo-first inspection also confirmed a narrower current non-
 * `samples/zigux/README.md`
 * `scripts/zigux/check-phase5-review-guide-surface.py`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
+* `samples/zigux/trace_events_callback_focus_contract.zig`
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
 
 Keep that narrower packet as the current concrete trace-events evidence in this lane.
 Keep the bounded formatting companion explicit as a sibling cue inside the approved trace-events anchor rather than as a fourth returned direct sample-root port or a fifth sample.
+Keep the bounded callback-focus companion explicit there too: it remains direct sample-root reviewability help for the same anchor rather than a returned full trace-events port or a fifth sample.
 Keep the broader sample-local companion split explicit too:
 
 * `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -80,7 +82,7 @@ For the shared tracing and probe lane, ground reviewer guidance in the restored 
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
 
-Keep those shared surfaces honest about the restored direct kretprobe packet, the bounded trace-events formatting companion, the directly readable trace-events survey note, the broader trace-events sample-local companions that are still visible through public-tree-backed reread but not yet returned as direct authenticated proof in this runtime, and the returned shared-build rerun handle instead of treating the trace-events anchor as either fully absent or fully restored authenticated proof.
+Keep those shared surfaces honest about the restored direct kretprobe packet, the bounded trace-events formatting companion, the bounded trace-events callback-focus companion, the directly readable trace-events survey note, the broader trace-events sample-local companions that are still visible through public-tree-backed reread but not yet returned as direct authenticated proof in this runtime, and the returned shared-build rerun handle instead of treating the trace-events anchor as either fully absent or fully restored authenticated proof.
 Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` should stay aligned with those same shared surfaces instead of being treated as an optional companion.
 
 ## Bytestream posture
@@ -121,12 +123,13 @@ Keep the current kretprobe contributor cues explicit in shared guidance too:
 * `zig test samples/zigux/kretprobe_example.zig`, `zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig`, and `zig test zigux/tests/phase5_kretprobe_example_survey.zig` stay explicit as the sample-owned self-check route, the focused replay route, and the survey-packet guard, while the shared `zigux/tests/phase5_build.zig` line stays current directly readable shared build-route companion evidence rather than sample-local proof
 * the direct packet keeps the pre-init-only `retargetMaxactive(3)` path, replay `maxactive = 20`, the single `my_data`-style entry timestamp word, the one-missed-instance summary, recovered duration `60`, and post-exit `recordMissedInstance()` rejection visible without implying runtime registration parity
 
-For `trace_events`, follow the current bounded packet through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/phase5-trace-events-sample-survey.md` explicit as the directly readable survey note for that anchor, keep `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` framed as public-tree-backed companion, repo-reality-gap, or historical support references until a fresh authenticated reread proves broader direct sample-local proof again on current `master`, and keep `zigux/tests/phase5_build.zig` explicit as the returned directly readable shared rerun route for that broader packet.
+For `trace_events`, follow the current bounded packet through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, `samples/zigux/trace_events_callback_focus_contract.zig`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/phase5-trace-events-sample-survey.md` explicit as the directly readable survey note for that anchor, keep `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` framed as public-tree-backed companion, repo-reality-gap, or historical support references until a fresh authenticated reread proves broader direct sample-local proof again on current `master`, and keep `zigux/tests/phase5_build.zig` explicit as the returned directly readable shared rerun route for that broader packet.
 
 Use the shared docs to preserve these bounded cues:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the selected-string plus `iter=%d` formatting cue bounded to the trace-events packet instead of turning it into a fifth Phase 5 sample
 * `samples/zigux/trace_events_string_formatting_sample.zig` keeps the sibling formatting companion explicit through `selectedStringForIteration(...)`, `runStringFormattingCycleReplay()`, the exact `iter=%d` buffer print, the modulo-selected five-string review cycle, and the non-allocating lifecycle boundary around the bounded replay instead of standing in for the whole trace-events packet
+* `samples/zigux/trace_events_callback_focus_contract.zig` keeps the sibling callback-focus companion explicit through `anchorFocusOrder()`, `callbackBoundaryContract()`, the shared `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` focus order, plus the callback-registration recovery cues instead of turning that companion into a fifth Phase 5 sample
 * `Documentation/zigux/phase5-trace-events-sample-survey.md` stays explicit as the directly readable survey note for that anchor, while `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` stay in repo-reality-gap or historical-support wording until authenticated contents reread stops returning 404 for those four sample-local companion paths, and `zigux/tests/phase5_build.zig` stays separately explicit as the returned directly readable shared rerun route
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep the shared reminder packet explicit about that narrower trace-events posture without widening into runtime claims
 * `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` keep the restored non-runtime kretprobe packet explicit without widening into the Phase 9 runtime family
@@ -210,7 +213,7 @@ Do not describe that formatting cue as a fifth Phase 5 sample, a standalone form
 
 ## Review posture
 
-Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in a mixed direct-plus-public-tree-backed split packet, same-lane follow-through should stay inside these bounded categories:
+Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with direct formatting and callback-focus companions plus older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in a mixed direct-plus-public-tree-backed split packet, same-lane follow-through should stay inside these bounded categories:
 
 * one bytestream reminder-surface truthfulness repair at a time
 * one trace-events reminder-surface truthfulness repair at a time
