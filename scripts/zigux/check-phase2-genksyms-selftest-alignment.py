@@ -611,6 +611,7 @@ def run_self_test() -> int:
             BRIDGE_CHECKER,
             GENKSYMS_ZIG,
             VERSION_SIDE_EFFECT_TEST,
+            AMBIGUOUS_VERSION_SIDE_EFFECT_TEST,
         ):
             build_self_test_root(root)
             missing_path_in_root = root / missing_path.relative_to(ROOT)
@@ -710,7 +711,7 @@ def run_self_test() -> int:
     return 0
 
 
-EXPECTED_SELF_TEST_CASE_COUNT = 51
+EXPECTED_SELF_TEST_CASE_COUNT = 52
 
 
 def main() -> int:
