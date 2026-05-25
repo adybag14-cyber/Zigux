@@ -71,7 +71,7 @@ REQUIRED_TOOL_MANIFEST_CHECKERS = [
 BRIDGE_CHECKER_IMPLICIT_OMISSION_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES"
 BRIDGE_CHECKER_EXPLICIT_OVERRIDE_MODES_CONST = "REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES"
 BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def read_json(path: Path) -> object:
@@ -462,6 +462,23 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
+                if marker != 'KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")'
+            )
+            + "\n",
+        )
+        assert (
+            "MISSING_PHASE2_CLOSURE_VALIDATE_MARKER",
+            'KCONFIG_ALLCONFIG_HELPER_PACKET_REL = Path("scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py")',
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
+        write_text(
+            phase2_closure_validate_path,
+            "\n".join(
+                marker
+                for marker in REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS
                 if marker != 'EXPECTED_CONF_CASE_DETAILS = ['
             )
             + "\n",
@@ -520,22 +537,20 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    root = args.root.resolve()
-    issues = collect_issues(root)
+    issues = collect_issues(args.root.resolve())
     if issues:
         return emit_issues(issues)
 
-    checker_implicit_modes, checker_explicit_modes, _ = load_bridge_checker_contract(
-        root / KCONFIG_BRIDGE_CHECKER.relative_to(ROOT)
-    )
     print("PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET=pass")
+    print(f"PHASE2_KCONFIG_BRIDGE_CONF_HELPER_ANCHOR_COUNT={len(REQUIRED_HELPER_ANCHORS)}")
     print(
-        f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_IMPLICIT_OMISSION_MODE_COUNT={len(checker_implicit_modes)}"
+        "PHASE2_KCONFIG_BRIDGE_CONF_HELPER_IMPLICIT_ALLCONFIG_OMISSION_MODE_COUNT="
+        f"{len(SELF_TEST_IMPLICIT_OMISSION_MODES)}"
     )
     print(
-        f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_EXPLICIT_OVERRIDE_MODE_COUNT={len(checker_explicit_modes)}"
+        "PHASE2_KCONFIG_BRIDGE_CONF_HELPER_EXPLICIT_ALLCONFIG_OVERRIDE_MODE_COUNT="
+        f"{len(SELF_TEST_EXPLICIT_OVERRIDE_MODES)}"
     )
-    print(f"PHASE2_KCONFIG_ALLCONFIG_HELPER_PACKET_HELPER_ANCHOR_COUNT={len(REQUIRED_HELPER_ANCHORS)}")
     return 0
 
 
