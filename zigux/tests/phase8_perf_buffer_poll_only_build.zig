@@ -49,4 +49,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_perf_buffer_poll_tests.step);
     test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);
     test_step.dependOn(&run_perf_buffer_poll_verify_tests.step);
+    b.default_step.dependOn(test_step);
 }
