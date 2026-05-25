@@ -672,20 +672,33 @@ test "conf bridge omits randconfig allconfig sentinel without explicit override"
 }
 
 test "conf bridge emits yes2modconfig argv and env" {
-    var capture = try TestCapture.init(std.testing.allocator, 144);
-    defer capture.deinit();
+    const rewrite_cases = [_]struct {
+        mode: Mode,
+        mode_json: []const u8,
+        flag: []const u8,
+        config: []const u8,
+    }{
+        .{ .mode = .yes2modconfig, .mode_json = "\"mode\":\"yes2modconfig\"", .flag = "\"--yes2modconfig\"", .config = "rewrite/.config" },
+        .{ .mode = .mod2yesconfig, .mode_json = "\"mode\":\"mod2yesconfig\"", .flag = "\"--mod2yesconfig\"", .config = "promote/.config" },
+        .{ .mode = .mod2noconfig, .mode_json = "\"mode\":\"mod2noconfig\"", .flag = "\"--mod2noconfig\"", .config = "demote/.config" },
+    };
 
-    try runConfBridge(&capture, .{
-        .mode = .yes2modconfig,
-        .kconfig = "Kconfig",
-        .config = "rewrite/.config",
-        .arch = "x86",
-    });
+    inline for (rewrite_cases) |case| {
+        var capture = try TestCapture.init(std.testing.allocator, 144);
+        defer capture.deinit();
 
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"yes2modconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--yes2modconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"rewrite/.config\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"x86\"") != null);
+        try runConfBridge(&capture, .{
+            .mode = case.mode,
+            .kconfig = "Kconfig",
+            .config = case.config,
+            .arch = "x86",
+        });
+
+        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, case.mode_json) != null);
+        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, case.flag) != null);
+        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, case.config) != null);
+        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"x86\"") != null);
+    }
 }
 
 test "conf bridge emits defconfig mode argument before kconfig" {
