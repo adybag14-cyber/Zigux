@@ -16,6 +16,8 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase12.py")
+SYNTAX_LAB_PATH = Path("zigux/tests/phase12_virtio_net_syntax_lab.zig")
+SYNTAX_LAB_BUILD_PATH = Path("zigux/tests/phase12_virtio_net_syntax_lab_build.zig")
 
 REQUIRED_FILES = (
     NOTE_PATH,
@@ -24,6 +26,15 @@ REQUIRED_FILES = (
     BUILD_PATH,
     MAKEFILE_PATH,
     VALIDATOR_PATH,
+    SYNTAX_LAB_PATH,
+    SYNTAX_LAB_BUILD_PATH,
+)
+
+SYNTAX_LAB_NOTE_MARKER = (
+    "that same survey note also keeps `zigux/tests/phase12_virtio_net_syntax_lab.zig` "
+    "and `zigux/tests/phase12_virtio_net_syntax_lab_build.zig` explicit as "
+    "surviving standalone compile-smoke companions outside the shared six-file "
+    "`phase12-validate` / `phase12-smoke` / `phase12-test` route"
 )
 
 NOTE_MARKERS = (
@@ -31,6 +42,10 @@ NOTE_MARKERS = (
     "the active shared `virtio_net` compile-smoke packet is the six-file bundle in `zigux/tests/phase12_build.zig`",
     "current `zigux/Makefile` directly exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`",
     "current `.github/workflows/zigux-bootstrap.yml` keeps the same shared packet explicit through the build-only checker, the complex-driver lane checker, the cross-compile smoke checker, the release-readiness checker, `scripts/zigux/validate-phase12.py`, the `phase12-smoke` and `phase12-test` wrappers, the aggregate `phase12` route, and the adjacent throughput-parity anchor",
+    "current `Documentation/zigux/phase12-virtio-net-survey.md` confirms the older monolithic syntax-lab packet has been replaced by the split helper family and the shared survey gate",
+    SYNTAX_LAB_NOTE_MARKER,
+    "current `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` also keeps the older `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` vocabulary out of the live packet on `master`",
+    "substantive same-family lab progress has therefore landed since the earlier cross-note packet: the shared route is now the six-file split-helper smoke-and-test sextet with returned wrapper evidence rather than the older syntax-lab-era shape",
     "the shipped cross-compile checker now keeps that returned wrapper wording fail-closed across this note, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/phase12_build.zig`",
     "leave the next same-lane follow-through note-local and rerun `scripts/zigux/check-phase12-cross-compile-smoke.py` before widening compile-smoke claims again",
 )
@@ -38,6 +53,9 @@ NOTE_MARKERS = (
 SURVEY_MARKERS = (
     "`PHASE12_STATUS=split-helper-packet-present-shared-build-sextet-throughput-review-only`",
     "current `master` now keeps `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof for that sextet",
+    "current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+    "current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab_build.zig`",
+    "the standalone syntax-lab companion remains compile-smoke evidence beside that sextet, but `zigux/tests/phase12_virtio_net_syntax_lab.zig` and `zigux/tests/phase12_virtio_net_syntax_lab_build.zig` are not wired into the shared Phase 12 validate, smoke, or test routes",
 )
 
 WORKFLOW_MARKERS = (
@@ -50,10 +68,15 @@ WORKFLOW_MARKERS = (
 
 BUILD_MARKERS = (
     "phase12_virtio_net_queue_resume.zig",
+    "phase12-virtio-net-queue-resume-tests",
     "phase12_virtio_net_receive_refill_replay.zig",
+    "phase12-virtio-net-receive-refill-replay-tests",
     "phase12_virtio_net_transmit_recycle.zig",
+    "phase12-virtio-net-transmit-recycle-tests",
     "phase12_virtio_net_post_reset_replay.zig",
+    "phase12-virtio-net-post-reset-replay-tests",
     "phase12_virtio_net_throughput_parity.zig",
+    "phase12-virtio-net-throughput-parity-tests",
     "phase12_virtio_net_survey.zig",
     "phase12-virtio-net-survey-tests",
 )
@@ -153,6 +176,8 @@ def write_fixture(root: Path) -> None:
         BUILD_PATH: "\n".join(BUILD_MARKERS) + "\n",
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
         VALIDATOR_PATH: "\n".join(VALIDATOR_MARKERS) + "\n",
+        SYNTAX_LAB_PATH: "// phase12 syntax-lab fixture\n",
+        SYNTAX_LAB_BUILD_PATH: "// phase12 syntax-lab build fixture\n",
     }
     for relative_path, text in files.items():
         path = root / relative_path
@@ -193,6 +218,21 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected note marker failure")
+
+        write_fixture(root)
+        path = root / NOTE_PATH
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(SYNTAX_LAB_NOTE_MARKER, "", 1),
+            encoding="utf-8",
+        )
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "phase12-cross-compile-smoke.md" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected syntax-lab note marker failure")
 
         write_fixture(root)
         (root / VIRTIO_NET_SURVEY_PATH).write_text("broken\n", encoding="utf-8")
