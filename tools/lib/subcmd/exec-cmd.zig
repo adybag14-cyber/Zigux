@@ -138,6 +138,10 @@ pub fn makeNonrelativePath(allocator: std.mem.Allocator, cwd: []const u8, path: 
         return error.MissingCurrentWorkingDirectory;
     }
 
+    if (std.mem.eql(u8, cwd, "/")) {
+        return std.fmt.allocPrint(allocator, "/{s}", .{path});
+    }
+
     return std.fmt.allocPrint(allocator, "{s}/{s}", .{ cwd, path });
 }
 
@@ -464,6 +468,22 @@ test "buildSearchPath rewrites relative entries against the working directory" {
 
     try std.testing.expectEqualStrings(
         "/work/tree/tools/bin:/work/tree/scripts:/usr/bin:/bin",
+        built,
+    );
+}
+
+test "buildSearchPath keeps root cwd outputs free of doubled slashes" {
+    const built = try buildSearchPath(
+        std.testing.allocator,
+        "/",
+        "tools/bin",
+        "scripts",
+        "/usr/bin:/bin",
+    );
+    defer std.testing.allocator.free(built);
+
+    try std.testing.expectEqualStrings(
+        "/tools/bin:/scripts:/usr/bin:/bin",
         built,
     );
 }
