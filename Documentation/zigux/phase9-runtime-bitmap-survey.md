@@ -15,6 +15,7 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 - keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.
 - Keep the direct sample zero-length and rejected range-mutation replay explicit when reminder text summarizes sample-local range, summary, and parse stability.
 - Keep the direct sample whitespace-only bit-list path explicit as an initialized empty bitmap plus direct-exit guard when reminder text summarizes sample-local parse, summary, and lifecycle stability.
+- Keep the direct sample duplicate bit-list normalization, malformed-bit-list cold-state rejection, and re-selftest or re-init summary-stability guards explicit when reminder text summarizes the returned bitmap sample packet, rather than leaving those newer direct-sample checks implied only by the manifest-backed ownership packet.
 - Keep `samples/zigux/runtime_bitmap_cold_stage_guard.zig` explicit as the returned cold-stage sample-root guard companion; it is visible on the trusted path and the shared `zigux/tests/phase9_build.zig` bundle now reruns it through the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route plus the aggregate `phase9-runtime-bitmap-tests` handle.
 
 ## Boundaries
