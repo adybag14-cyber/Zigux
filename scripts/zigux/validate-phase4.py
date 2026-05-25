@@ -123,7 +123,7 @@ PHASE4_TESTS_README_PACKET_SELF_TEST_CASES = (
     "stale_phase4_perf_reference,"
     "stale_phase4_perf_make_route,"
     "stale_phase4_gate_evidence_checker_reference,"
-    "stale_phase4-reversible_delivery_checker_reference,"
+    "stale_phase4_reversible_delivery_checker_reference,"
     "stale_phase4_perf_checker_reference,"
     "stale_phase4_bitmap_reference,"
     "stale_phase4_tests_readme_checker_reference"
