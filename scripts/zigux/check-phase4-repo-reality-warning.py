@@ -305,7 +305,7 @@ def run_self_test() -> int:
         cases += _expect_failure(root, BUILD, None, None)
         cases += _expect_failure(root, BITMAP_DIFF, None, None)
         cases += _expect_failure(root, ATOMIC64_MANIFEST, None, None)
-        cases += _expect_failure(root, ATOMIC64_SURVEY, None, None)
+        cases += _expect_failure(root, BITMAP_HELPER_REPLAY, None, None)
         cases += _expect_failure(
             root,
             SELF,
