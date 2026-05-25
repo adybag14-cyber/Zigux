@@ -121,7 +121,7 @@
       "id": "phase10-mmio-config-write-apply-observation-replay",
       "status": "starter_landed",
       "kind": "validation",
-      "zigux_destination": "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig",
+      "zigux_destination": "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig",
       "why_now": "The dedicated `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig` replay and its standalone build shard keep changed-byte coverage, stale-plan rejection, and no-op planning reviewable beside the broader MMIO lab, verify, and survey gates without widening into transport-backed execution."
     },
     {
