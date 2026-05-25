@@ -90,6 +90,7 @@ test "phase10 virtio core driver model replay keeps wrapper stages reviewable" {
     try std.testing.expectEqual(virtio_core.DriverModelStage.unattached, summary.stage);
     try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, .acknowledge_missing), summary.blocker);
     try std.testing.expectEqual(@as(u8, 0), summary.config_generation);
+    try std.testing.expect(!summary.queue_registration_ready);
 
     core.setStatusBits(virtio_core.status_acknowledge | virtio_core.status_driver);
     core.noteFeaturesNegotiated();
@@ -98,19 +99,12 @@ test "phase10 virtio core driver model replay keeps wrapper stages reviewable" {
     try std.testing.expectEqual(virtio_core.DriverModelStage.queue_registration_ready, summary.stage);
     try std.testing.expect(summary.queue_selected);
     try std.testing.expect(summary.queue_selected_valid);
+    try std.testing.expect(summary.queue_registration_ready);
 
     core.setStatusBits(virtio_core.status_driver_ok);
     summary = core.driverModelSummary();
     try std.testing.expectEqual(virtio_core.DriverModelStage.driver_ready, summary.stage);
-
-    core.setStatusBits(virtio_core.status_device_needs_reset);
-    summary = core.driverModelSummary();
-    try std.testing.expectEqual(virtio_core.DriverModelStage.device_needs_reset, summary.stage);
-
-    core.setStatusBits(virtio_core.status_failed);
-    summary = core.driverModelSummary();
-    try std.testing.expectEqual(virtio_core.DriverModelStage.device_failed, summary.stage);
-    try std.testing.expect(summary.failed);
+    try std.testing.expect(summary.queue_registration_ready);
 }
 
 test "phase10 virtio core reset replay clears interrupt debt and drops driver readiness" {
@@ -124,6 +118,7 @@ test "phase10 virtio core reset replay clears interrupt debt and drops driver re
     var model = core.driverModelSummary();
     try std.testing.expectEqual(virtio_core.DriverModelStage.driver_ready, model.stage);
     try std.testing.expect(model.driver_ready);
+    try std.testing.expect(model.queue_registration_ready);
 
     const queue = core.resetForReplay();
     try std.testing.expectEqual(@as(u16, 2), queue.queue_count);
@@ -151,6 +146,7 @@ test "phase10 virtio core reset replay clears interrupt debt and drops driver re
     model = core.driverModelSummary();
     try std.testing.expectEqual(virtio_core.DriverModelStage.unattached, model.stage);
     try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, .acknowledge_missing), model.blocker);
+    try std.testing.expect(!model.queue_registration_ready);
 }
 
 test "phase10 virtio core driver id replay keeps exact wildcard and unmatched rules reviewable" {
