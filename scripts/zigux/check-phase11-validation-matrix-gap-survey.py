@@ -66,7 +66,8 @@ SURVEY_MARKERS = [
     "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
     "The same narrower inventory also records 3 adjunct build replays through `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`, `zigux/tests/phase11_hvc_export_surface_layout_build.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
     "The same narrower continuity packet also stays `layout_assert`-backed through `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` and `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, so keep those surviving ABI proof shards explicit as adjacent HVC continuity evidence instead of treating the three build routes as prose-only review support.",
-    "The directly readable HVC current-head packet also now includes the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
+    "The directly readable HVC current-head packet also now includes `zigux/tests/phase11_hvc_modem_control_proof.zig`, `zigux/tests/phase11_hvc_modem_control_proof_build.zig`, the standalone `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness, and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard",
+    "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
     "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "The same narrower continuity packet now also records 2 focused direct build checker routes through `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test` and `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`, together with 2 focused direct build replays through `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.",
     "The shared `phase11-validate` route also now carries `zigux/tests/phase11_hvc_modem_control_proof_build.zig` as a focused HVC teardown-or-failure-mode proof outside the narrower three-entry build inventory",
@@ -201,7 +202,7 @@ def run_self_test() -> None:
             path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             expect_failure(case_root, marker)
             case_count += 1
-        for marker in SURVEY_MARKERS[6:13]:
+        for marker in SURVEY_MARKERS[6:14]:
             case_root = tmpdir / f"required_{case_count}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES["matrix_gap_note"]
