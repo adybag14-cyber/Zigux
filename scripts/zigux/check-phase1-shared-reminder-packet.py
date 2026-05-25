@@ -19,6 +19,7 @@ REQUIRED_FILES = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-find-bit-validator-anchors.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/check-phase1-shared-reminder-packet.py",
     "scripts/zigux/check-phase1-string-review-packet.py",
@@ -77,6 +78,13 @@ MARKERS = {
     "scripts/zigux/check-phase1-direct-owner-markers.py": (
         "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
         'print("PHASE1_DIRECT_OWNER_MARKERS=pass")',
+    ),
+    "scripts/zigux/check-phase1-find-bit-validator-anchors.py": (
+        '"""Guard the Phase 1 find_bit helper-local validator packet against drift."""',
+        "REQUIRED_HELPER_ANCHORS = [",
+        "REQUIRED_CLOSURE_LINES = {",
+        'print("PHASE1_FIND_BIT_VALIDATOR_ANCHORS=pass")',
+        'print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_SELF_TEST=pass")',
     ),
     "scripts/zigux/check-phase1-route-summary-counts.py": (
         '"""Guard the current Phase 1 route-summary packet across closure, Makefile, and workflow."""',
