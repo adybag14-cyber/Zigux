@@ -52,7 +52,7 @@ SURVEY_GATE_MARKERS = (
     '"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete"',
     '"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays"',
     'try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);',
-    'try expectContains(gap.why_now, "standalone syntax-lab compile-smoke companion");',
+    'try expectContains(gap.why_now, "standalone syntax-lab compile-smoke pair");',
     'try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));',
     'try expectNotContains(build_zig, "phase12_virtio_net_syntax_lab.zig");',
     'try expectContains(makefile, "phase12: phase12-validate phase12-smoke phase12-test");',
@@ -197,7 +197,7 @@ def make_fixture_tree(root: Path) -> None:
                     },
                     {
                         "id": "phase12-virtio-net-survey-gate",
-                        "why_now": "standalone syntax-lab compile-smoke companion",
+                        "why_now": "standalone syntax-lab compile-smoke pair",
                     },
                     {
                         "id": "phase12-virtio-net-runtime-data-path",
