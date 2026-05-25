@@ -45,6 +45,8 @@ NOTE_REQUIRED_MARKERS = [
 
 BRIDGE_BOUNDARY_REQUIRED_MARKERS = [
     "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`",
+    "authenticated contents readback now reaches the bridge-side helper and witness files directly again in this runtime.",
+    "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge.zig` directly",
     "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
     "no standalone timer helper behavior",
     "no standalone clockevent helper behavior",
