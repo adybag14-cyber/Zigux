@@ -26,6 +26,9 @@ REQUIRED_MARKERS = {
         "zigux_list_is_empty()",
         "firstPprevMatchesHead()",
         "zigux_hlist_first_pprev_matches_head()",
+        "firstBrokenPrevLink()",
+        "zigux_hlist_first_broken_prev_link()",
+        "tailNextIsNull()",
     ),
     "Documentation/zigux/phase13-notifier-summary-gap.md": (
         "`scripts/zigux/check-phase13-notifier-packet.py`",
@@ -62,6 +65,9 @@ REQUIRED_MARKERS = {
         "zigux_list_is_empty()",
         "firstPprevMatchesHead()",
         "zigux_hlist_first_pprev_matches_head()",
+        "firstBrokenPrevLink()",
+        "zigux_hlist_first_broken_prev_link()",
+        "tailNextIsNull()",
     ),
     "zigux/tests/phase13_notifier_list_reviewability.zig": (
         'const manifest_text = @embedFile("phase13_notifier_list_manifest.json");',
@@ -73,6 +79,9 @@ REQUIRED_MARKERS = {
         '"zigux_list_is_empty"',
         '"pub fn firstPprevMatchesHead"',
         '"zigux_hlist_first_pprev_matches_head"',
+        '"pub fn firstBrokenPrevLink"',
+        '"zigux_hlist_first_broken_prev_link"',
+        '"pub fn tailNextIsNull"',
     ),
     "zigux/bindings/notifier_abi.zig": (
         "pub const NotifierBlock = extern struct",
@@ -80,6 +89,7 @@ REQUIRED_MARKERS = {
         "pub fn listIsEmpty",
         "pub fn listHasConsistentBacklinks",
         "pub fn firstPprevMatchesHead",
+        "pub fn firstBrokenPrevLink",
         "pub fn hlistHasConsistentPrevLinks",
     ),
     "zigux/helpers/list_view.zig": (
@@ -92,6 +102,7 @@ REQUIRED_MARKERS = {
         "pub fn firstPprevMatchesHead(self: HListView) bool",
         "pub fn hasConsistentPrevLinks(self: HListView) bool",
         "pub fn firstBrokenPrevLink(self: HListView) ?PrevLinkBreak",
+        "pub fn tailNextIsNull(self: HListView) bool",
     ),
     "include/zigux/abi.h": (
         "struct zigux_notifier_block {",
@@ -101,6 +112,7 @@ REQUIRED_MARKERS = {
         "zigux_list_is_empty",
         "zigux_list_has_consistent_backlinks",
         "zigux_hlist_first_pprev_matches_head",
+        "zigux_hlist_first_broken_prev_link",
         "zigux_hlist_has_consistent_prev_links",
     ),
     "drivers/tty/hvc/hvc_console.h": (
@@ -220,6 +232,23 @@ def run_self_test() -> int:
 
         survey_path = tempdir / "Documentation/zigux/phase13-notifier-list-survey.md"
         survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "tailNextIsNull()\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:tailNextIsNull()"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        survey_path = tempdir / "Documentation/zigux/phase13-notifier-list-survey.md"
+        survey_path.write_text(
             survey_path.read_text(encoding="utf-8")
             + "`zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`\n",
             encoding="utf-8",
@@ -267,7 +296,6 @@ def run_self_test() -> int:
         checks_run += 1
 
         manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
-        manifest_path.writeText = None
         manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8").replace(
                 'listIsEmpty()\n',
@@ -279,6 +307,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:listIsEmpty()'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
+        manifest_path.write_text(
+            manifest_path.read_text(encoding="utf-8").replace(
+                'tailNextIsNull()\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:tailNextIsNull()'
             in issues
         )
         populate_repo(tempdir)
@@ -352,6 +397,23 @@ def run_self_test() -> int:
         populate_repo(tempdir)
         checks_run += 1
 
+        hlist_helper_path = tempdir / "zigux/helpers/hlist_view.zig"
+        hlist_helper_path.write_text(
+            hlist_helper_path.read_text(encoding="utf-8").replace(
+                "pub fn tailNextIsNull(self: HListView) bool\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:zigux/helpers/hlist_view.zig:pub fn tailNextIsNull(self: HListView) bool"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
         binding_path = tempdir / "zigux/bindings/notifier_abi.zig"
         binding_path.write_text(
             binding_path.read_text(encoding="utf-8").replace(
@@ -386,6 +448,23 @@ def run_self_test() -> int:
         populate_repo(tempdir)
         checks_run += 1
 
+        binding_path = tempdir / "zigux/bindings/notifier_abi.zig"
+        binding_path.write_text(
+            binding_path.read_text(encoding="utf-8").replace(
+                "pub fn firstBrokenPrevLink\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:zigux/bindings/notifier_abi.zig:pub fn firstBrokenPrevLink"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
         summary_path = tempdir / "Documentation/zigux/phase13-notifier-summary-gap.md"
         summary_path.write_text(
             summary_path.read_text(encoding="utf-8").replace(
@@ -415,6 +494,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             'missing_marker:zigux/tests/phase13_notifier_list_reviewability.zig:"zigux_list_is_empty"'
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        reviewability_path = tempdir / "zigux/tests/phase13_notifier_list_reviewability.zig"
+        reviewability_path.write_text(
+            reviewability_path.read_text(encoding="utf-8").replace(
+                '"pub fn tailNextIsNull"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_reviewability.zig:"pub fn tailNextIsNull"'
             in issues
         )
         populate_repo(tempdir)
@@ -500,6 +596,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:include/zigux/abi.h:zigux_hlist_first_pprev_matches_head"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        abi_path = tempdir / "include/zigux/abi.h"
+        abi_path.write_text(
+            abi_path.read_text(encoding="utf-8").replace(
+                "zigux_hlist_first_broken_prev_link\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:include/zigux/abi.h:zigux_hlist_first_broken_prev_link"
             in issues
         )
         populate_repo(tempdir)
