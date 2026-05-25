@@ -31,12 +31,12 @@ REQUIRED_TEST_MARKERS = {
     "last_bit_empty_test": 'test "find last bit returns nbits when no set bits remain" {',
 }
 
-REQUIRED_SOURCE_PRESENT_MARKERS = {
-    "find_next_boundary": "findNextBit(&set_map, nbits, boundary)",
-    "find_next_and_boundary": "findNextAndBit(&and_lhs, &and_rhs, nbits, boundary)",
-    "find_next_andnot_boundary": "findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)",
-    "find_next_or_boundary": "findNextOrBit(&or_lhs, &or_rhs, nbits, boundary)",
-    "find_next_zero_boundary": "findNextZeroBit(&zero_map, nbits, boundary)",
+REQUIRED_SOURCE_COUNT_MARKERS = {
+    "find_next_boundary": ("findNextBit(&set_map, nbits, boundary)", 3),
+    "find_next_and_boundary": ("findNextAndBit(&and_lhs, &and_rhs, nbits, boundary)", 1),
+    "find_next_andnot_boundary": ("findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary)", 2),
+    "find_next_or_boundary": ("findNextOrBit(&or_lhs, &or_rhs, nbits, boundary)", 2),
+    "find_next_zero_boundary": ("findNextZeroBit(&zero_map, nbits, boundary)", 1),
 }
 
 REQUIRED_SOURCE_EXACT_MARKERS = {
@@ -92,18 +92,26 @@ def collect_marker_count_failures(
     return failures
 
 
+def collect_expected_count_failures(
+    text: str,
+    markers: dict[str, tuple[str, int]],
+) -> list[str]:
+    failures: list[str] = []
+    for label, (marker, expected_count) in markers.items():
+        count = text.count(marker)
+        if count != expected_count:
+            failures.append(f"{label}:expected={expected_count}:actual={count}")
+    return failures
+
+
 def validate_find_bit_source(text: str) -> tuple[str, object]:
     test_failures = collect_marker_count_failures(text, REQUIRED_TEST_MARKERS)
     if test_failures:
         return ("invalid_test_marker_counts", test_failures)
 
-    source_presence_failures = [
-        label
-        for label, marker in REQUIRED_SOURCE_PRESENT_MARKERS.items()
-        if marker not in text
-    ]
-    if source_presence_failures:
-        return ("missing_source_markers", source_presence_failures)
+    source_count_failures = collect_expected_count_failures(text, REQUIRED_SOURCE_COUNT_MARKERS)
+    if source_count_failures:
+        return ("invalid_source_count_markers", source_count_failures)
 
     source_exact_failures = collect_marker_count_failures(text, REQUIRED_SOURCE_EXACT_MARKERS)
     if source_exact_failures:
@@ -118,6 +126,16 @@ def load_find_bit_source(path: Path) -> tuple[str, object]:
     except FileNotFoundError:
         return ("missing_file", path)
     return validate_find_bit_source(text)
+
+
+def marker_for_label(label: str) -> str:
+    if label in REQUIRED_TEST_MARKERS:
+        return REQUIRED_TEST_MARKERS[label]
+    if label in REQUIRED_SOURCE_COUNT_MARKERS:
+        return REQUIRED_SOURCE_COUNT_MARKERS[label][0]
+    marker = REQUIRED_SOURCE_EXACT_MARKERS.get(label)
+    assert marker is not None
+    return marker
 
 
 def build_sample_source(
@@ -210,24 +228,12 @@ def build_sample_source(
     ]
 
     if omit_label is not None:
-        marker = REQUIRED_TEST_MARKERS.get(
-            omit_label,
-            REQUIRED_SOURCE_PRESENT_MARKERS.get(
-                omit_label,
-                REQUIRED_SOURCE_EXACT_MARKERS.get(omit_label),
-            ),
-        )
+        marker = marker_for_label(omit_label)
         assert marker is not None
         lines = [line for line in lines if marker not in line]
 
     if duplicate_label is not None:
-        marker = REQUIRED_TEST_MARKERS.get(
-            duplicate_label,
-            REQUIRED_SOURCE_PRESENT_MARKERS.get(
-                duplicate_label,
-                REQUIRED_SOURCE_EXACT_MARKERS.get(duplicate_label),
-            ),
-        )
+        marker = marker_for_label(duplicate_label)
         assert marker is not None
         for idx, line in enumerate(lines):
             if marker in line:
@@ -250,10 +256,11 @@ def run_self_test() -> None:
         assert payload == [f"{label}:expected=1:actual=0"], (label, payload)
         case_count += 1
 
-    for label in REQUIRED_SOURCE_PRESENT_MARKERS:
+    for label in REQUIRED_SOURCE_COUNT_MARKERS:
         kind, payload = validate_find_bit_source(build_sample_source(omit_label=label))
-        assert kind == "missing_source_markers", (label, kind, payload)
-        assert payload == [label], (label, payload)
+        assert kind == "invalid_source_count_markers", (label, kind, payload)
+        marker, expected_count = REQUIRED_SOURCE_COUNT_MARKERS[label]
+        assert payload == [f"{label}:expected={expected_count}:actual=0"], (label, payload)
         case_count += 1
 
     for label in REQUIRED_SOURCE_EXACT_MARKERS:
@@ -266,6 +273,13 @@ def run_self_test() -> None:
         kind, payload = validate_find_bit_source(build_sample_source(duplicate_label=label))
         assert kind == "invalid_test_marker_counts", (label, kind, payload)
         assert payload == [f"{label}:expected=1:actual=2"], (label, payload)
+        case_count += 1
+
+    for label in REQUIRED_SOURCE_COUNT_MARKERS:
+        kind, payload = validate_find_bit_source(build_sample_source(duplicate_label=label))
+        assert kind == "invalid_source_count_markers", (label, kind, payload)
+        marker, expected_count = REQUIRED_SOURCE_COUNT_MARKERS[label]
+        assert payload == [f"{label}:expected={expected_count}:actual={expected_count + 1}"], (label, payload)
         case_count += 1
 
     for label in REQUIRED_SOURCE_EXACT_MARKERS:
