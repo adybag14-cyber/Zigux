@@ -13,6 +13,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig"
+EXPECTED_CASE_COUNT = 17
+REQUIRED_OUTPUT_LINES = (
+    "descending-hit\t34\t2",
+    "descending-miss\t20\tnull",
+)
 
 
 def require_tool(name: str, env_name: str) -> str:
@@ -44,30 +49,30 @@ def run_checked(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def build_zig_build_text() -> str:
     return textwrap.dedent(
         f"""
-        const std = @import("std");
+        const std = @import(\"std\");
 
         pub fn build(b: *std.Build) void {{
             const target = b.standardTargetOptions(.{{}});
             const optimize = b.standardOptimizeOption(.{{}});
 
             const bsearch_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{ROOT / 'lib' / 'bsearch.zig'}" }},
+                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'lib' / 'bsearch.zig'}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const root_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = "{ZIG_RUNNER}" }},
+                .root_source_file = .{{ .cwd_relative = \"{ZIG_RUNNER}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
-            root_module.addImport("bsearch", bsearch_module);
+            root_module.addImport(\"bsearch\", bsearch_module);
 
             const exe = b.addExecutable(.{{
-                .name = "phase6-bsearch-c-parity",
+                .name = \"phase6-bsearch-c-parity\",
                 .root_module = root_module,
             }});
             const run = b.addRunArtifact(exe);
-            const step = b.step("run", "Run Phase 6 bsearch C parity spot check");
+            const step = b.step(\"run\", \"Run Phase 6 bsearch C parity spot check\");
             step.dependOn(&run.step);
         }}
         """
@@ -76,6 +81,16 @@ def build_zig_build_text() -> str:
 
 def sorted_lines(stdout: str) -> list[str]:
     return sorted(stdout.strip().splitlines())
+
+
+def require_expected_output(lines: list[str]) -> None:
+    if len(lines) != EXPECTED_CASE_COUNT:
+        raise SystemExit(
+            f"phase6-bsearch-c-parity:expected_case_count:expected={EXPECTED_CASE_COUNT}:actual={len(lines)}"
+        )
+    for marker in REQUIRED_OUTPUT_LINES:
+        if marker not in lines:
+            raise SystemExit(f"phase6-bsearch-c-parity:missing_output_line:{marker}")
 
 
 def assert_equal(label: str, actual, expected) -> None:
@@ -125,8 +140,39 @@ def run_self_test() -> int:
         ["u32-hit\t21\t3", "u32-hit\t3\t0"],
     )
 
+    expected_lines = [
+        "descending-hit\t34\t2",
+        "descending-miss\t20\tnull",
+        "duplicate-hit-begin\t7\tfound",
+        "duplicate-hit-end\t18\tfound",
+        "duplicate-hit-middle\t7\tfound",
+        "empty-miss\t21\tnull",
+        "mutable-hit\t21\t22",
+        "singleton-hit\t21\t0",
+        "singleton-miss\t20\tnull",
+        "sym-hit\tkmalloc\t0x1400",
+        "sym-miss\tvfree\tnull",
+        "u32-hit\t21\t3",
+        "u32-hit\t3\t0",
+        "u32-hit\t89\t6",
+        "u32-miss\t0\tnull",
+        "u32-miss\t15\tnull",
+        "u32-miss\t90\tnull",
+    ]
+    require_expected_output(expected_lines)
+    expect_system_exit(
+        "missing_descending_marker",
+        lambda: require_expected_output(expected_lines[1:]),
+        "phase6-bsearch-c-parity:expected_case_count:expected=17:actual=16",
+    )
+    expect_system_exit(
+        "wrong_case_count",
+        lambda: require_expected_output(expected_lines + ["extra\tcase\t0"]),
+        "phase6-bsearch-c-parity:expected_case_count:expected=17:actual=18",
+    )
+
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
@@ -171,6 +217,9 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
+
+    require_expected_output(c_lines)
+    require_expected_output(zig_lines)
 
     if c_lines != zig_lines:
         print("PHASE6_BSEARCH_C_PARITY=fail")
