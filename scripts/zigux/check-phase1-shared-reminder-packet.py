@@ -19,6 +19,7 @@ REQUIRED_FILES = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-find-bit-bench-anchors.py",
     "scripts/zigux/check-phase1-find-bit-validator-anchors.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/check-phase1-shared-reminder-packet.py",
@@ -78,6 +79,11 @@ MARKERS = {
     "scripts/zigux/check-phase1-direct-owner-markers.py": (
         "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
         'print("PHASE1_DIRECT_OWNER_MARKERS=pass")',
+    ),
+    "scripts/zigux/check-phase1-find-bit-bench-anchors.py": (
+        "description=\"Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot and tail-word next-skip paths.\"",
+        'print("PHASE1_FIND_BIT_BENCH_ANCHORS=pass")',
+        'print("PHASE1_FIND_BIT_BENCH_ANCHORS_SELF_TEST=pass")',
     ),
     "scripts/zigux/check-phase1-find-bit-validator-anchors.py": (
         '"""Guard the Phase 1 find_bit helper-local validator packet against drift."""',
@@ -166,6 +172,8 @@ MARKERS = {
         "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
         "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+        "run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py --self-test",
+        "run: python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
         "run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
