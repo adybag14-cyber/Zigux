@@ -1,7 +1,7 @@
 {
   "packet": "phase7-rbtree-parity-fixture",
   "anchor": "lib/rbtree.c",
-  "current_master_state": "ordered-duplicate-cached-postorder-reverse",
+  "current_master_state": "ordered-duplicate-cached-eraseinit-postorder-reverse",
   "scenarios": [
     {
       "key": "ordered_duplicate_range",
@@ -13,6 +13,25 @@
       "leftmost_before_erase": 5,
       "leftmost_after_erase": 10,
       "leftmost_after_replace": 10
+    },
+    {
+      "key": "non_leftmost_cached_erase",
+      "leftmost_after_erase": 5,
+      "right_predecessor_key": 5,
+      "remaining_left_key": 5,
+      "erased_node_requires_clear": true
+    },
+    {
+      "key": "singleton_cached_erase",
+      "leftmost_after_erase_is_null": true,
+      "root_after_erase_is_null": true,
+      "erased_node_requires_clear": true
+    },
+    {
+      "key": "plain_erase_init_reseed",
+      "inorder_after_root_erase": [5, 15],
+      "leftmost_after_reseed": 12,
+      "last_after_reseed": 12
     },
     {
       "key": "postorder_null_stop",
