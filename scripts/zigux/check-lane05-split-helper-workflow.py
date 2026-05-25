@@ -34,6 +34,14 @@ WORKFLOW_SELFTEST_SELF_TEST_STEP = "- name: Self-test current Lane 05 split help
 WORKFLOW_SELFTEST_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-workflow-selftest.py --self-test"
 WORKFLOW_SELFTEST_CHECK_STEP = "- name: Check current Lane 05 split helper workflow selftest packet"
 WORKFLOW_SELFTEST_CHECK_CMD = "python3 scripts/zigux/check-lane05-split-helper-workflow-selftest.py"
+MANIFEST_SELF_TEST_STEP = "- name: Self-test current Lane 05 split helper manifest packet checker"
+MANIFEST_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-manifest-packet.py --self-test"
+MANIFEST_CHECK_STEP = "- name: Check current Lane 05 split helper manifest packet"
+MANIFEST_CHECK_CMD = "python3 scripts/zigux/check-lane05-split-helper-manifest-packet.py"
+MANIFEST_SELFTEST_SELF_TEST_STEP = "- name: Self-test current Lane 05 split helper manifest selftest checker"
+MANIFEST_SELFTEST_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-manifest-selftest.py --self-test"
+MANIFEST_SELFTEST_CHECK_STEP = "- name: Check current Lane 05 split helper manifest selftest packet"
+MANIFEST_SELFTEST_CHECK_CMD = "python3 scripts/zigux/check-lane05-split-helper-manifest-selftest.py"
 CLI_SELF_TEST_STEP = "- name: Self-test current Lane 05 split helper cli-contract checker"
 CLI_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-cli-contract.py --self-test"
 CLI_CHECK_STEP = "- name: Check current Lane 05 split helper cli-contract packet"
@@ -66,6 +74,10 @@ ORDERED_STEPS = (
     (WORKFLOW_CHECK_STEP, WORKFLOW_CHECK_CMD),
     (WORKFLOW_SELFTEST_SELF_TEST_STEP, WORKFLOW_SELFTEST_SELF_TEST_CMD),
     (WORKFLOW_SELFTEST_CHECK_STEP, WORKFLOW_SELFTEST_CHECK_CMD),
+    (MANIFEST_SELF_TEST_STEP, MANIFEST_SELF_TEST_CMD),
+    (MANIFEST_CHECK_STEP, MANIFEST_CHECK_CMD),
+    (MANIFEST_SELFTEST_SELF_TEST_STEP, MANIFEST_SELFTEST_SELF_TEST_CMD),
+    (MANIFEST_SELFTEST_CHECK_STEP, MANIFEST_SELFTEST_CHECK_CMD),
     (CLI_SELF_TEST_STEP, CLI_SELF_TEST_CMD),
     (CLI_CHECK_STEP, CLI_CHECK_CMD),
     (CLI_SELFTEST_SELF_TEST_STEP, CLI_SELFTEST_SELF_TEST_CMD),
@@ -142,6 +154,8 @@ def run_self_test() -> int:
         (CONTRACT_SELFTEST_SELF_TEST_STEP, "contract selftest step"),
         (SELFTEST_SELF_TEST_STEP, "selftest selftest step"),
         (WORKFLOW_SELFTEST_CHECK_STEP, "workflow selftest check step"),
+        (MANIFEST_SELF_TEST_STEP, "manifest packet step"),
+        (MANIFEST_SELFTEST_CHECK_STEP, "manifest selftest check step"),
         (CLI_SELFTEST_CHECK_STEP, "cli selftest check step"),
     )
     for marker, expected in missing_cases:
