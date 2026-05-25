@@ -156,6 +156,13 @@ test "phase 5 kobject sample keeps shared attribute dispatch and parse failures 
     try std.testing.expect(replay.rejected_unknown_store);
     try std.testing.expect(replay.rejected_unknown_show);
     try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
+
+    const summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.registered, summary.stage);
+    try std.testing.expectEqual(@as(usize, 3), summary.active_attr_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), summary.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
 }
 
 test "phase 5 kobject sample keeps the already-registered boundary explicit through the focused test surface too" {
@@ -281,7 +288,7 @@ test "phase 5 kobject sample registered teardown replay stays explicit through t
     try std.testing.expectEqual(@as(usize, 3), replay.exit_summary.cleared_attr_count);
     try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.register_runs);
-    try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_runs);
     try std.testing.expectEqual(@as(i32, 42), replay.values_before_exit.foo);
     try std.testing.expectEqual(@as(i32, 7), replay.values_before_exit.baz);
     try std.testing.expectEqual(@as(i32, -5), replay.values_before_exit.bar);
