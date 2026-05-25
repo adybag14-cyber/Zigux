@@ -371,7 +371,7 @@ def write_fixture_tree(root: Path) -> None:
                 "phase": "Phase 4",
                 "surveyed_commit": TEST_FSMOUNT_SURVEYED_COMMIT,
                 "c_anchor": "samples/vfs/test-fsmount.c",
-                "roadmap_destinations": ["samples/zigux/test_fsmount.zig"]),
+                "roadmap_destinations": ["samples/zigux/test_fsmount.zig"],
                 "current_linux_replay": "make M=samples/vfs",
                 "local_lab_replay": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
                 "dedicated_local_survey_wrapper": "zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
