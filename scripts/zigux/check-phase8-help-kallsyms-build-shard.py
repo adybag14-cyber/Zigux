@@ -19,6 +19,8 @@ REQUIRED_MARKERS = {
         '"../../tools/lib/symbol/kallsyms.zig"',
         '"phase8-help-tests"',
         '"phase8-kallsyms-tests"',
+        'const run_help_tests = b.addRunArtifact(help_tests);',
+        'const run_kallsyms_tests = b.addRunArtifact(kallsyms_tests);',
         '"Run the focused Phase 8 help and kallsyms shared tests."',
         "test_step.dependOn(&run_help_tests.step);",
         "test_step.dependOn(&run_kallsyms_tests.step);",
