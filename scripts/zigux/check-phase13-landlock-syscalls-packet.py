@@ -22,6 +22,9 @@ REQUIRED_MARKERS = {
         "provides_ruleset_release_planning",
         "ruleset_fops_present",
         "planLandlockCreateRuleset",
+        "pub const CreateRulesetSyscallPlan = struct {",
+        "reuses_ruleset_fd_install_planning: bool",
+        "ruleset_fd_install_plan: ?RulesetFdInstallPlan",
         "planGetRulesetFromFd",
         "planLandlockRestrictSelf",
         "planLandlockAddRule",
@@ -120,6 +123,15 @@ def expect_failure(root: Path, expected: str) -> None:
         raise SystemExit(f"expected failure not found: {expected} actual={failures!r}")
 
 
+def remove_marker_once(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line == marker:
+            del lines[index]
+            return "\n".join(lines) + "\n"
+    raise SystemExit(f"marker not found in fixture text: {marker}")
+
+
 def run_self_test() -> int:
     tempdir = Path(tempfile.mkdtemp(prefix="phase13-landlock-syscalls-packet-"))
     try:
@@ -142,7 +154,7 @@ def run_self_test() -> int:
             populate_fixture(tempdir)
             path = tempdir / relpath
             text = path.read_text(encoding="utf-8")
-            path.write_text(text.replace(marker, "", 1), encoding="utf-8")
+            path.write_text(remove_marker_once(text, marker), encoding="utf-8")
             expect_failure(tempdir, f"missing_marker:{relpath}:{marker}")
 
         forbidden_cases = [
