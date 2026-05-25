@@ -36,6 +36,24 @@ pub const PerfCase = struct {
     max_decode_slowdown_pct: u64,
 };
 
+pub const CParityEncodeCase = struct {
+    variant_name: []const u8,
+    padding: bool,
+    input: []const u8,
+};
+
+pub const CParityDecodeCase = struct {
+    variant_name: []const u8,
+    padding: bool,
+    input: []const u8,
+};
+
+pub const CParityInvalidCase = struct {
+    variant_name: []const u8,
+    padding: bool,
+    input: []const u8,
+};
+
 pub const standard_cases = [_]EncodeCase{
     .{ .input = "", .expected = "", .padding = true },
     .{ .input = "f", .expected = "Zg==", .padding = true },
@@ -153,6 +171,55 @@ pub const variant_decode_cases = [_]DecodeCase{
     .{ .input = ",,A=", .expected = &variant_two_byte_sample, .padding = true, .variant_name = "imap" },
 };
 
+pub const c_parity_encode_cases = [_]CParityEncodeCase{
+    .{ .variant_name = "std", .padding = standard_cases[0].padding, .input = standard_cases[0].input },
+    .{ .variant_name = "std", .padding = standard_cases[1].padding, .input = standard_cases[1].input },
+    .{ .variant_name = "std", .padding = standard_cases[2].padding, .input = standard_cases[2].input },
+    .{ .variant_name = "std", .padding = standard_cases[17].padding, .input = standard_cases[17].input },
+    .{ .variant_name = "std", .padding = standard_cases[7].padding, .input = standard_cases[7].input },
+    .{ .variant_name = variant_cases[2].variant_name, .padding = variant_cases[2].padding, .input = variant_cases[2].input },
+    .{ .variant_name = variant_cases[3].variant_name, .padding = variant_cases[3].padding, .input = variant_cases[3].input },
+    .{ .variant_name = variant_cases[8].variant_name, .padding = variant_cases[8].padding, .input = variant_cases[8].input },
+    .{ .variant_name = variant_cases[9].variant_name, .padding = variant_cases[9].padding, .input = variant_cases[9].input },
+    .{ .variant_name = variant_cases[14].variant_name, .padding = variant_cases[14].padding, .input = variant_cases[14].input },
+    .{ .variant_name = variant_cases[15].variant_name, .padding = variant_cases[15].padding, .input = variant_cases[15].input },
+    .{ .variant_name = variant_cases[4].variant_name, .padding = variant_cases[4].padding, .input = variant_cases[4].input },
+    .{ .variant_name = variant_cases[5].variant_name, .padding = variant_cases[5].padding, .input = variant_cases[5].input },
+    .{ .variant_name = variant_cases[10].variant_name, .padding = variant_cases[10].padding, .input = variant_cases[10].input },
+    .{ .variant_name = variant_cases[11].variant_name, .padding = variant_cases[11].padding, .input = variant_cases[11].input },
+    .{ .variant_name = variant_cases[16].variant_name, .padding = variant_cases[16].padding, .input = variant_cases[16].input },
+    .{ .variant_name = variant_cases[17].variant_name, .padding = variant_cases[17].padding, .input = variant_cases[17].input },
+};
+
+pub const c_parity_decode_cases = [_]CParityDecodeCase{
+    .{ .variant_name = standard_decode_cases[0].variant_name, .padding = standard_decode_cases[0].padding, .input = standard_decode_cases[0].input },
+    .{ .variant_name = standard_decode_cases[1].variant_name, .padding = standard_decode_cases[1].padding, .input = standard_decode_cases[1].input },
+    .{ .variant_name = standard_decode_cases[2].variant_name, .padding = standard_decode_cases[2].padding, .input = standard_decode_cases[2].input },
+    .{ .variant_name = standard_decode_cases[16].variant_name, .padding = standard_decode_cases[16].padding, .input = standard_decode_cases[16].input },
+    .{ .variant_name = standard_decode_cases[7].variant_name, .padding = standard_decode_cases[7].padding, .input = standard_decode_cases[7].input },
+    .{ .variant_name = variant_decode_cases[2].variant_name, .padding = variant_decode_cases[2].padding, .input = variant_decode_cases[2].input },
+    .{ .variant_name = variant_decode_cases[3].variant_name, .padding = variant_decode_cases[3].padding, .input = variant_decode_cases[3].input },
+    .{ .variant_name = variant_decode_cases[8].variant_name, .padding = variant_decode_cases[8].padding, .input = variant_decode_cases[8].input },
+    .{ .variant_name = variant_decode_cases[9].variant_name, .padding = variant_decode_cases[9].padding, .input = variant_decode_cases[9].input },
+    .{ .variant_name = variant_decode_cases[14].variant_name, .padding = variant_decode_cases[14].padding, .input = variant_decode_cases[14].input },
+    .{ .variant_name = variant_decode_cases[15].variant_name, .padding = variant_decode_cases[15].padding, .input = variant_decode_cases[15].input },
+    .{ .variant_name = variant_decode_cases[4].variant_name, .padding = variant_decode_cases[4].padding, .input = variant_decode_cases[4].input },
+    .{ .variant_name = variant_decode_cases[5].variant_name, .padding = variant_decode_cases[5].padding, .input = variant_decode_cases[5].input },
+    .{ .variant_name = variant_decode_cases[10].variant_name, .padding = variant_decode_cases[10].padding, .input = variant_decode_cases[10].input },
+    .{ .variant_name = variant_decode_cases[11].variant_name, .padding = variant_decode_cases[11].padding, .input = variant_decode_cases[11].input },
+    .{ .variant_name = variant_decode_cases[16].variant_name, .padding = variant_decode_cases[16].padding, .input = variant_decode_cases[16].input },
+    .{ .variant_name = variant_decode_cases[17].variant_name, .padding = variant_decode_cases[17].padding, .input = variant_decode_cases[17].input },
+};
+
+pub const c_parity_invalid_cases = [_]CParityInvalidCase{
+    .{ .variant_name = invalid_decode_cases[0].variant_name, .padding = invalid_decode_cases[0].padding, .input = invalid_decode_cases[0].input },
+    .{ .variant_name = invalid_decode_cases[2].variant_name, .padding = invalid_decode_cases[2].padding, .input = invalid_decode_cases[2].input },
+    .{ .variant_name = invalid_decode_cases[11].variant_name, .padding = invalid_decode_cases[11].padding, .input = invalid_decode_cases[11].input },
+    .{ .variant_name = invalid_decode_cases[6].variant_name, .padding = invalid_decode_cases[6].padding, .input = invalid_decode_cases[6].input },
+    .{ .variant_name = invalid_decode_cases[14].variant_name, .padding = invalid_decode_cases[14].padding, .input = invalid_decode_cases[14].input },
+    .{ .variant_name = invalid_decode_cases[15].variant_name, .padding = invalid_decode_cases[15].padding, .input = invalid_decode_cases[15].input },
+};
+
 pub const perf_payload =
     "Phase 6 base64 perf gate payload keeps the helper wired to a real throughput check. " ++
     "This packet stays helper-local, avoids widening into neighboring leaf helpers, and " ++
@@ -242,6 +309,9 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     const expected_payload_fingerprint: u64 = 0xf49a_c027_ffb2_a2e4;
     const expected_suffix = [_]u8{ 0xfb, 0xff, 0xf0 };
     const expected_variant_decode_case_count = 18;
+    const expected_c_parity_encode_case_count = 17;
+    const expected_c_parity_decode_case_count = 17;
+    const expected_c_parity_invalid_case_count = 6;
 
     var saw_std_pad = false;
     var saw_std_no_pad = false;
@@ -253,6 +323,9 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     try validatePerfPacket();
     try std.testing.expectEqual(expected_case_count, perf_cases.len);
     try std.testing.expectEqual(expected_variant_decode_case_count, variant_decode_cases.len);
+    try std.testing.expectEqual(expected_c_parity_encode_case_count, c_parity_encode_cases.len);
+    try std.testing.expectEqual(expected_c_parity_decode_case_count, c_parity_decode_cases.len);
+    try std.testing.expectEqual(expected_c_parity_invalid_case_count, c_parity_invalid_cases.len);
     try std.testing.expectEqual(perf_payload.len, perf_payload_buf_size);
     try std.testing.expectEqual(expected_payload_fingerprint, perfPayloadFingerprint(perf_payload));
     try std.testing.expect(std.mem.endsWith(u8, perf_payload, &expected_suffix));
