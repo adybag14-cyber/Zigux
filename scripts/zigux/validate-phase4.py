@@ -30,6 +30,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "scripts/zigux/check-phase4-perf-threshold-matrix.py",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
@@ -55,80 +56,80 @@ REQUIRED_PATHS = (
 )
 
 WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
-    "baseline_round_trip,"
-    "workflow_order_drift,"
-    "missing_make_phase4_validate_artifact_diff_contract_selftest_command,"
-    "phase4_validate_contract_selftest_order_drift,"
-    "missing_make_artifact_diff_contract_selftest_command,"
-    "missing_make_route_counts_command,"
-    "missing_make_reversible_delivery_selftest_command,"
-    "missing_make_reversible_delivery_command,"
-    "missing_make_remaining_gap_command,"
-    "missing_make_validator_replays_selftest_command,"
-    "missing_make_validator_replays_command,"
-    "missing_make_perf_baseline_command,"
-    "missing_workflow_validate_route,"
-    "missing_workflow_test_route,"
-    "missing_workflow_artifact_diff_contract_make_route,"
-    "missing_workflow_artifact_diff_helper_selftest,"
-    "missing_workflow_artifact_diff_contract_selftest,"
-    "missing_workflow_artifact_diff_contract_check,"
-    "missing_workflow_artifact_diff_determinism_selftest,"
-    "missing_workflow_artifact_diff_determinism_check,"
-    "missing_workflow_artifact_diff_validator_replays_selftest,"
-    "missing_workflow_artifact_diff_validator_replays_check,"
-    "missing_matrix_remaining_gap_marker,"
-    "missing_gate_evidence_bitmap_build_route,"
-    "missing_gate_evidence_bitmap_wrapper,"
-    "missing_build_test_fsmount_route,"
-    "missing_build_bitmap_diff_route,"
-    "missing_build_bitmap_diff_survey_route,"
-    "missing_build_bitmap_live_helper_replay_route,"
-    "forbidden_perf_baseline_dependency"
+    "baseline_round_trip,",
+    "workflow_order_drift,",
+    "missing_make_phase4_validate_artifact_diff_contract_selftest_command,",
+    "phase4_validate_contract_selftest_order_drift,",
+    "missing_make_artifact_diff_contract_selftest_command,",
+    "missing_make_route_counts_command,",
+    "missing_make_reversible_delivery_selftest_command,",
+    "missing_make_reversible_delivery_command,",
+    "missing_make_remaining_gap_command,",
+    "missing_make_validator_replays_selftest_command,",
+    "missing_make_validator_replays_command,",
+    "missing_make_perf_baseline_command,",
+    "missing_workflow_validate_route,",
+    "missing_workflow_test_route,",
+    "missing_workflow_artifact_diff_contract_make_route,",
+    "missing_workflow_artifact_diff_helper_selftest,",
+    "missing_workflow_artifact_diff_contract_selftest,",
+    "missing_workflow_artifact_diff_contract_check,",
+    "missing_workflow_artifact_diff_determinism_selftest,",
+    "missing_workflow_artifact_diff_determinism_check,",
+    "missing_workflow_artifact_diff_validator_replays_selftest,",
+    "missing_workflow_artifact_diff_validator_replays_check,",
+    "missing_matrix_remaining_gap_marker,",
+    "missing_gate_evidence_bitmap_build_route,",
+    "missing_gate_evidence_bitmap_wrapper,",
+    "missing_build_test_fsmount_route,",
+    "missing_build_bitmap_diff_route,",
+    "missing_build_bitmap_diff_survey_route,",
+    "missing_build_bitmap_live_helper_replay_route,",
+    "forbidden_perf_baseline_dependency",
 )
 
 ARTIFACT_DIFF_HELPER_SELF_TEST_CASES = (
-    "text_pass,"
-    "text_mismatch,"
-    "json_pass,"
-    "json_mismatch,"
-    "json_invalid_expected,"
-    "json_invalid_actual,"
-    "json_invalid_both,"
-    "json_missing_expected,"
-    "json_missing_actual,"
-    "json_missing_both,"
-    "bytes_pass,"
-    "bytes_drift,"
-    "text_missing_expected,"
-    "text_missing_actual,"
-    "text_missing_both,"
-    "bytes_missing_expected,"
-    "bytes_missing_actual,"
-    "bytes_missing_both,"
-    "legacy_sha256_alias,"
-    "missing_mode_value_rejected,"
-    "missing_positional_arguments_rejected,"
-    "invalid_mode_rejected,"
-    "extra_positional_rejected"
+    "text_pass,",
+    "text_mismatch,",
+    "json_pass,",
+    "json_mismatch,",
+    "json_invalid_expected,",
+    "json_invalid_actual,",
+    "json_invalid_both,",
+    "json_missing_expected,",
+    "json_missing_actual,",
+    "json_missing_both,",
+    "bytes_pass,",
+    "bytes_drift,",
+    "text_missing_expected,",
+    "text_missing_actual,",
+    "text_missing_both,",
+    "bytes_missing_expected,",
+    "bytes_missing_actual,",
+    "bytes_missing_both,",
+    "legacy_sha256_alias,",
+    "missing_mode_value_rejected,",
+    "missing_positional_arguments_rejected,",
+    "invalid_mode_rejected,",
+    "extra_positional_rejected",
 )
 
 PHASE4_TESTS_README_PACKET_SELF_TEST_CASES = (
-    "baseline_round_trip,"
-    "missing_header,"
-    "missing_phase5_anchor,"
-    "stale_phase4_heading,"
-    "stale_phase4_note_reference,"
-    "stale_phase4_gate_evidence_note_reference,"
-    "stale_phase4_repo_reality_warning_reference,"
-    "stale_phase4_perf_manifest_reference,"
-    "stale_phase4_perf_reference,"
-    "stale_phase4_perf_make_route,"
-    "stale_phase4_gate_evidence_checker_reference,"
-    "stale_phase4_reversible_delivery_checker_reference,"
-    "stale_phase4_perf_checker_reference,"
-    "stale_phase4_bitmap_reference,"
-    "stale_phase4_tests_readme_checker_reference"
+    "baseline_round_trip,",
+    "missing_header,",
+    "missing_phase5_anchor,",
+    "stale_phase4_heading,",
+    "stale_phase4_note_reference,",
+    "stale_phase4_gate_evidence_note_reference,",
+    "stale_phase4_repo_reality_warning_reference,",
+    "stale_phase4_perf_manifest_reference,",
+    "stale_phase4_perf_reference,",
+    "stale_phase4_perf_make_route,",
+    "stale_phase4_gate_evidence_checker_reference,",
+    "stale_phase4_reversible_delivery_checker_reference,",
+    "stale_phase4_perf_checker_reference,",
+    "stale_phase4_bitmap_reference,",
+    "stale_phase4_tests_readme_checker_reference",
 )
 
 REQUIRED_COMMAND_OUTPUT_MARKERS = {
@@ -145,13 +146,13 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-tests-readme-packet-self-test": (
         ("PHASE4_TESTS_README_PACKET_SELF_TEST", "PHASE4_TESTS_README_PACKET_SELF_TEST=pass"),
         ("PHASE4_TESTS_README_PACKET_SELF_TEST_CASES", "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=15"),
-        ("PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES", "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES=" + PHASE4_TESTS_README_PACKET_SELF_TEST_CASES),
+        ("PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES", "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES=" + "".join(PHASE4_TESTS_README_PACKET_SELF_TEST_CASES)),
     ),
     "phase4-tests-readme-packet": (("PHASE4_TESTS_README_PACKET_CHECK", "PHASE4_TESTS_README_PACKET_CHECK=pass"),),
     "phase4-artifact-diff-helper-self-test": (
         ("ARTIFACT_DIFF_SELF_TEST", "ARTIFACT_DIFF_SELF_TEST=pass"),
         ("ARTIFACT_DIFF_SELF_TEST_CASE_COUNT", "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23"),
-        ("ARTIFACT_DIFF_SELF_TEST_CASES", "ARTIFACT_DIFF_SELF_TEST_CASES=" + ARTIFACT_DIFF_HELPER_SELF_TEST_CASES),
+        ("ARTIFACT_DIFF_SELF_TEST_CASES", "ARTIFACT_DIFF_SELF_TEST_CASES=" + "".join(ARTIFACT_DIFF_HELPER_SELF_TEST_CASES)),
     ),
     "phase4-artifact-diff-contract-self-test": (
         ("ARTIFACT_DIFF_CONTRACT_SELF_TEST", "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass"),
@@ -214,6 +215,11 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
         ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=38"),
     ),
     "phase4-perf-baseline-packet": (("PHASE4_PERF_BASELINE_PACKET_CHECK", "PHASE4_PERF_BASELINE_PACKET_CHECK=pass"),),
+    "phase4-perf-threshold-matrix-self-test": (
+        ("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST", "PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=pass"),
+        ("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES", "PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES=5"),
+    ),
+    "phase4-perf-threshold-matrix": (("PHASE4_PERF_THRESHOLD_MATRIX", "PHASE4_PERF_THRESHOLD_MATRIX=pass"),),
     "phase4-remaining-gap-matrix-self-test": (
         ("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass"),
         ("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=35"),
@@ -225,7 +231,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-workflow-route-counts-self-test": (
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass"),
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30"),
-        ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES),
+        ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES)),
         ("PHASE4_WORKFLOW_ROUTE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNT=12"),
         ("PHASE4_WORKFLOW_MARKER_COUNT", "PHASE4_WORKFLOW_MARKER_COUNT=20"),
         ("PHASE4_WORKFLOW_ORDER_MARKER_COUNT", "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10"),
@@ -266,6 +272,8 @@ CHECKS = (
     CheckSpec("phase4-gate-evidence", ("python", "scripts/zigux/check-phase4-gate-evidence.py")),
     CheckSpec("phase4-perf-baseline-packet-self-test", ("python", "scripts/zigux/check-phase4-perf-baseline-packet.py", "--self-test")),
     CheckSpec("phase4-perf-baseline-packet", ("python", "scripts/zigux/check-phase4-perf-baseline-packet.py")),
+    CheckSpec("phase4-perf-threshold-matrix-self-test", ("python", "scripts/zigux/check-phase4-perf-threshold-matrix.py", "--self-test")),
+    CheckSpec("phase4-perf-threshold-matrix", ("python", "scripts/zigux/check-phase4-perf-threshold-matrix.py")),
     CheckSpec("phase4-remaining-gap-matrix-self-test", ("python", "scripts/zigux/check-phase4-remaining-gap-matrix.py", "--self-test")),
     CheckSpec("phase4-remaining-gap-matrix", ("python", "scripts/zigux/check-phase4-remaining-gap-matrix.py")),
     CheckSpec("phase4-workflow-route-counts-self-test", ("python", "scripts/zigux/check-phase4-workflow-route-counts.py", "--self-test")),
@@ -480,7 +488,7 @@ def configure_workflow_route_stub(root: Path) -> None:
         self_test_stdout_lines=(
             "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
             "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30",
-            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES,
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES),
             "PHASE4_WORKFLOW_ROUTE_COUNT=12",
             "PHASE4_WORKFLOW_MARKER_COUNT=20",
             "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10",
@@ -517,7 +525,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
         self_test_stdout_lines=(
             "PHASE4_TESTS_README_PACKET_SELF_TEST=pass",
             "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=15",
-            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES=" + PHASE4_TESTS_README_PACKET_SELF_TEST_CASES,
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES=" + "".join(PHASE4_TESTS_README_PACKET_SELF_TEST_CASES),
         ),
         live_stdout_lines=("PHASE4_TESTS_README_PACKET_CHECK=pass",),
     )
@@ -526,7 +534,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
         self_test_stdout_lines=(
             "ARTIFACT_DIFF_SELF_TEST=pass",
             "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23",
-            "ARTIFACT_DIFF_SELF_TEST_CASES=" + ARTIFACT_DIFF_HELPER_SELF_TEST_CASES,
+            "ARTIFACT_DIFF_SELF_TEST_CASES=" + "".join(ARTIFACT_DIFF_HELPER_SELF_TEST_CASES),
         ),
     )
     build_stub_script(
@@ -571,9 +579,26 @@ def configure_phase4_output_stubs(root: Path) -> None:
             "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14",
         ),
     )
-    build_stub_script(root / "scripts/zigux/check-phase4-gate-evidence.py", self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",), live_stdout_lines=("phase4 gate evidence check passed",))
-    build_stub_script(root / "scripts/zigux/check-phase4-perf-baseline-packet.py", self_test_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=38"), live_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_CHECK=pass",))
-    build_stub_script(root / "scripts/zigux/check-phase4-remaining-gap-matrix.py", self_test_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=35"), live_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX=pass", "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6"))
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-gate-evidence.py",
+        self_test_stdout_lines=("phase4 gate evidence self-test: PASS (44 cases)",),
+        live_stdout_lines=("phase4 gate evidence check passed",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-perf-baseline-packet.py",
+        self_test_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=38"),
+        live_stdout_lines=("PHASE4_PERF_BASELINE_PACKET_CHECK=pass",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-perf-threshold-matrix.py",
+        self_test_stdout_lines=("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=pass", "PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES=5"),
+        live_stdout_lines=("PHASE4_PERF_THRESHOLD_MATRIX=pass",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+        self_test_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=35"),
+        live_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX=pass", "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6"),
+    )
     configure_workflow_route_stub(root)
 
 
@@ -666,6 +691,22 @@ def run_self_test() -> int:
         cases += 1
 
         reset_fixture()
+        build_stub_script(root / "scripts/zigux/check-phase4-perf-threshold-matrix.py", self_test_exit_code=0, live_exit_code=1)
+        if "live_failed:phase4-perf-threshold-matrix:exit=1" not in collect_issues(root):
+            print("PHASE4_VALIDATE_SELF_TEST=fail")
+            print("perf threshold matrix live failure was not detected")
+            return 1
+        cases += 1
+
+        reset_fixture()
+        build_stub_script(root / "scripts/zigux/check-phase4-perf-threshold-matrix.py", self_test_stdout_lines=("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=pass",), live_stdout_lines=("PHASE4_PERF_THRESHOLD_MATRIX=pass",))
+        if "output_marker_missing:phase4-perf-threshold-matrix-self-test:PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES" not in collect_issues(root):
+            print("PHASE4_VALIDATE_SELF_TEST=fail")
+            print("perf threshold matrix marker drift was not detected")
+            return 1
+        cases += 1
+
+        reset_fixture()
         build_stub_script(
             root / "scripts/zigux/check-artifact-diff-contract.py",
             self_test_stdout_lines=(
@@ -712,7 +753,7 @@ def run_self_test() -> int:
             self_test_stdout_lines=(
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30",
-                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES,
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES),
             ),
             live_stdout_lines=(
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass",
