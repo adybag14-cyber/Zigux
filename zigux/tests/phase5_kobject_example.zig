@@ -288,7 +288,7 @@ test "phase 5 kobject sample registered teardown replay stays explicit through t
     try std.testing.expectEqual(@as(usize, 3), replay.exit_summary.cleared_attr_count);
     try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.register_runs);
-    try std.testing.expectEqual(@as(usize, 1), replay.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.exit_runs);
     try std.testing.expectEqual(@as(i32, 42), replay.values_before_exit.foo);
     try std.testing.expectEqual(@as(i32, 7), replay.values_before_exit.baz);
     try std.testing.expectEqual(@as(i32, -5), replay.values_before_exit.bar);
