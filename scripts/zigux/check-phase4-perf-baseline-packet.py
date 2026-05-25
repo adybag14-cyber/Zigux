@@ -93,7 +93,7 @@ NOTE_MARKERS = (
     "Current direct-readback dedicated local-only perf companion members:",
     "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
     "  * `zigux/tests/phase4_perf_baseline_survey.zig`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
 )
 
 SCRIPTS_README_MARKERS = (
@@ -443,7 +443,9 @@ def build_fixture_tree(root: Path) -> None:
     write_text(root / MANIFEST, json.dumps(manifest_data, indent=2) + "\n")
     write_text(
         root / SURVEY,
-        """test \"phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit\" {
+        """const baseline_packet = @embedFile(\"phase4_perf_baseline_manifest.json\");
+
+test \"phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit\" {
     try requireMarkerCount(\"\\\"acceptable_limit_iterations\\\": 4\", 2);
     try requireMarkerCount(\"\\\"acceptable_limit_sample_count\\\": 7\", 2);
 }
@@ -489,7 +491,7 @@ Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-
 Current direct-readback dedicated local-only perf companion members:
   * `zigux/tests/phase4_perf_baseline_manifest.json`
   * `zigux/tests/phase4_perf_baseline_survey.zig`
-The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here
+The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here
 """,
     )
     write_text(
@@ -705,7 +707,7 @@ def run_self_test() -> int:
                 NOTE,
                 "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19",
                 "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8",
-                "note_marker:The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
+                "note_marker:The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
             ),
             (
                 NOTE,
