@@ -20,6 +20,7 @@ INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 MODEM_BUILD_PATH = Path("zigux/tests/phase11_hvc_modem_control_proof_build.zig")
 TARGETLESS_BUILD_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
 VALIDATE_PHASE11_PATH = Path("scripts/zigux/validate-phase11.py")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 REQUIRED_FOCUSED_DIRECT_BUILD_REPLAYS = (
     "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
@@ -34,6 +35,13 @@ REQUIRED_FOCUSED_DIRECT_BUILD_CHECKS = (
 REQUIRED_VALIDATE_PHASE11_MARKERS = (
     '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test")',
     '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py")',
+    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig")',
+    '("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig")',
+)
+
+REQUIRED_MAKEFILE_MARKERS = (
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
 )
 
 REQUIRED_MODEM_BUILD_MARKERS = (
@@ -105,6 +113,7 @@ def run_check(root: Path) -> None:
     require_text_markers(root / MODEM_BUILD_PATH, REQUIRED_MODEM_BUILD_MARKERS)
     require_text_markers(root / TARGETLESS_BUILD_PATH, REQUIRED_TARGETLESS_BUILD_MARKERS)
     require_text_markers(root / VALIDATE_PHASE11_PATH, REQUIRED_VALIDATE_PHASE11_MARKERS)
+    require_text_markers(root / MAKEFILE_PATH, REQUIRED_MAKEFILE_MARKERS)
 
 
 def write(path: Path, text: str) -> None:
@@ -173,7 +182,14 @@ pub fn build(b: *std.Build) void {
 FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
     ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),
     ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig"),
+    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"),
 )
+"""
+
+FIXTURE_MAKEFILE_TEXT = """phase11-validate:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig
 """
 
 
@@ -182,6 +198,7 @@ def build_fixture(root: Path) -> None:
     write(root / MODEM_BUILD_PATH, FIXTURE_MODEM_BUILD_TEXT)
     write(root / TARGETLESS_BUILD_PATH, FIXTURE_TARGETLESS_BUILD_TEXT)
     write(root / VALIDATE_PHASE11_PATH, FIXTURE_VALIDATE_PHASE11_TEXT)
+    write(root / MAKEFILE_PATH, FIXTURE_MAKEFILE_TEXT)
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -351,6 +368,70 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_validate_marker, '("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py")')
+        case_count += 1
+
+        missing_validate_dw_restart_marker = tmpdir / "missing_validate_dw_restart_marker"
+        shutil.copytree(fixture, missing_validate_dw_restart_marker, dirs_exist_ok=True)
+        write(
+            missing_validate_dw_restart_marker / VALIDATE_PHASE11_PATH,
+            read_text(missing_validate_dw_restart_marker / VALIDATE_PHASE11_PATH).replace(
+                '    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig"),\n',
+                '',
+                1,
+            ),
+        )
+        expect_failure(
+            missing_validate_dw_restart_marker,
+            '("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig")',
+        )
+        case_count += 1
+
+        missing_validate_gpio_marker = tmpdir / "missing_validate_gpio_marker"
+        shutil.copytree(fixture, missing_validate_gpio_marker, dirs_exist_ok=True)
+        write(
+            missing_validate_gpio_marker / VALIDATE_PHASE11_PATH,
+            read_text(missing_validate_gpio_marker / VALIDATE_PHASE11_PATH).replace(
+                '    ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"),\n',
+                '',
+                1,
+            ),
+        )
+        expect_failure(
+            missing_validate_gpio_marker,
+            '("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig")',
+        )
+        case_count += 1
+
+        missing_makefile_dw_restart_marker = tmpdir / "missing_makefile_dw_restart_marker"
+        shutil.copytree(fixture, missing_makefile_dw_restart_marker, dirs_exist_ok=True)
+        write(
+            missing_makefile_dw_restart_marker / MAKEFILE_PATH,
+            read_text(missing_makefile_dw_restart_marker / MAKEFILE_PATH).replace(
+                "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_makefile_dw_restart_marker,
+            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_dw_wdt_restart_build.zig",
+        )
+        case_count += 1
+
+        missing_makefile_gpio_marker = tmpdir / "missing_makefile_gpio_marker"
+        shutil.copytree(fixture, missing_makefile_gpio_marker, dirs_exist_ok=True)
+        write(
+            missing_makefile_gpio_marker / MAKEFILE_PATH,
+            read_text(missing_makefile_gpio_marker / MAKEFILE_PATH).replace(
+                "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_makefile_gpio_marker,
+            "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+        )
         case_count += 1
 
         print("PHASE11_FOCUSED_DIRECT_BUILD_REPLAYS_SELF_TEST=pass")
