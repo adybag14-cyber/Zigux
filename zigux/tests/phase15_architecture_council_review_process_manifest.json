@@ -140,6 +140,7 @@
     "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
     "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
+    "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`scripts/zigux/validate-phase15.py`",
     "one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker"
   ],
@@ -154,6 +155,7 @@
     "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
     "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
+    "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`zigux/tests/phase15_freeze_map_governance.zig`",
     "`zigux/tests/phase15_parity_scorecard.json`",
     "`zigux/tests/phase15_parity_scorecard.zig`",
