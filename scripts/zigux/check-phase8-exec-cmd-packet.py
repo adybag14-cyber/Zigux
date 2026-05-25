@@ -61,6 +61,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "queue ownership",
         "kernel/workqueue.c",
         "Phase 14",
+        "preserved explicit-empty exec-path sentinel",
+        "inherited-empty-`PATH` trailing-`:` shape",
+        "root-cwd `//relative` output shape",
     ),
     REVIEW_CHECKLIST: (
         "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
@@ -121,6 +124,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'try std.testing.expectEqualStrings("/repo/tools/bin:/tmp:/usr/bin", directory_only_search_path);',
         'const root_only_search_path = try exec_cmd.buildSearchPath(',
         'try expectNotContains(validate_phase8, "expectMissingPath(\\"tools/lib/subcmd/exec-cmd.zig\\")");',
+        'const explicit_empty = try exec_cmd.getArgvExecPath(',
+        'try std.testing.expectEqualStrings("", explicit_empty);',
+        'const root_empty_path = try exec_cmd.setupPath(',
+        'try std.testing.expectEqualStrings("//tools:", root_empty_path);',
     ),
     EXEC_CMD_BUILD: (
         "phase8_exec_cmd.zig",
