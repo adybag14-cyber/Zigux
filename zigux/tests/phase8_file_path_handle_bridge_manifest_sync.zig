@@ -72,6 +72,14 @@ test "phase 8 file-path-handle bridge manifest keeps the landed helper wording e
         manifest,
         "\"why_now\": \"The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects.\"",
     );
+    try expectContains(
+        manifest,
+        "direct procfs reads and descriptor ownership flow",
+    );
+    try expectContains(
+        manifest,
+        "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
+    );
 }
 
 test "phase 8 file-path-handle bridge slice keeps the landed helper rationale aligned with the manifest" {
