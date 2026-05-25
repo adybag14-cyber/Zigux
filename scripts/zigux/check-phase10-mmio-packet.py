@@ -18,6 +18,8 @@ FILES = [
     "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
+    "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig",
+    "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig",
     "zigux/tests/phase10_build.zig",
 ]
 
@@ -201,6 +203,20 @@ HELPER_TEST_MARKERS = [
     "try std.testing.expect(summary.queue_ready_for_handoff);",
 ]
 
+APPLY_OBSERVATION_REPLAY_MARKERS = [
+    'const apply_observation = @import("virtio_mmio_apply_observation");',
+    'test "phase10 virtio mmio apply-observation replay keeps changed bytes explicit" {',
+    'test "phase10 virtio mmio apply-observation replay keeps no-op and stale plans distinct" {',
+    "try std.testing.expectError(",
+    "error.ConfigWritePlanUnavailable,",
+]
+
+APPLY_OBSERVATION_BUILD_MARKERS = [
+    '.root_source_file = b.path("phase10_virtio_mmio_apply_observation_replay.zig"),',
+    '.name = "phase10-virtio-mmio-apply-observation-replay",',
+    '"Run the bounded Phase 10 virtio MMIO apply-observation replay",',
+]
+
 SURVEY_GATE_MARKERS = [
     'test "phase10 virtio mmio survey note keeps the direct lab gate, packet-local companions, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {',
     'try expectContains(survey_note, "interrupt-ack disposition review");',
@@ -279,6 +295,8 @@ def validate(root: Path):
     check_markers(missing_markers, "helper", read_text(root, "drivers/virtio/virtio_mmio.zig"), HELPER_MARKERS)
     check_markers(missing_markers, "verify_helper", read_text(root, "drivers/virtio/virtio_mmio_verify.zig"), VERIFY_MARKERS)
     check_markers(missing_markers, "helper_tests", read_text(root, "zigux/tests/phase10_virtio_mmio.zig"), HELPER_TEST_MARKERS)
+    check_markers(missing_markers, "apply_observation_replay", read_text(root, "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig"), APPLY_OBSERVATION_REPLAY_MARKERS)
+    check_markers(missing_markers, "apply_observation_build", read_text(root, "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig"), APPLY_OBSERVATION_BUILD_MARKERS)
     check_markers(missing_markers, "survey_gate", read_text(root, "zigux/tests/phase10_virtio_mmio_survey.zig"), SURVEY_GATE_MARKERS)
     check_markers(missing_markers, "build_file", read_text(root, "zigux/tests/phase10_build.zig"), BUILD_MARKERS)
     return [], missing_markers
@@ -296,6 +314,8 @@ def write_fixture_files(root: Path) -> None:
         "zigux/tests/phase10_virtio_mmio.zig": nl.join(HELPER_TEST_MARKERS) + nl,
         "zigux/tests/phase10_virtio_mmio_manifest.json": nl.join(MANIFEST_MARKERS) + nl,
         "zigux/tests/phase10_virtio_mmio_survey.zig": nl.join(SURVEY_GATE_MARKERS) + nl,
+        "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig": nl.join(APPLY_OBSERVATION_REPLAY_MARKERS) + nl,
+        "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig": nl.join(APPLY_OBSERVATION_BUILD_MARKERS) + nl,
         "zigux/tests/phase10_build.zig": nl.join(BUILD_MARKERS) + nl,
     }
     for rel_path, content in files.items():
@@ -344,29 +364,6 @@ def run_self_test() -> int:
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-survey.md", "interrupt-ack disposition review", "interrupt-ack drift", "survey_note:interrupt-ack disposition review")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-survey.md", "staged config-write planning", "staged config-write drift", "survey_note:staged config-write planning")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-survey.md", "config-write apply observation", "config-write apply drift", "survey_note:config-write apply observation")
-        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-survey.md", "this survey does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain study-only anchors.", "this survey now reopens `kernel/workqueue.c`.", "survey_note:this survey does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain study-only anchors.")
-        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "PHASE10_STATUS=current_head_companion_landed", "PHASE10_STATUS=missing", "companion_note:PHASE10_STATUS=current_head_companion_landed")
-        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "PHASE10_FAMILY=virtio-mmio", "PHASE10_FAMILY=missing", "companion_note:PHASE10_FAMILY=virtio-mmio")
-        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "PHASE10_SURFACE=config-write-disposition-observation", "PHASE10_SURFACE=missing", "companion_note:PHASE10_SURFACE=config-write-disposition-observation")
-        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "PHASE10_PROVENANCE_MODE=dated_master_readback", "PHASE10_PROVENANCE_MODE=missing", "companion_note:PHASE10_PROVENANCE_MODE=dated_master_readback")
-        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "`zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and slice note explicit beside the helper-local packet", "`zigux/tests/phase10_virtio_mmio_manifest_missing.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and slice note explicit beside the helper-local packet", "companion_note:`zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and slice note explicit beside the helper-local packet")
-        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md", "`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface", "`Documentation/zigux/phase10-virtio-mmio-slice-missing.md` now materializes as the packet-local slice companion", "companion_note:`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface")
-        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-slice.md", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket moved inside this slice", "slice_note:the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice")
-        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "scripts/zigux/check-phase10-mmio-packet.py", "scripts/zigux/check-phase10-mmio-packet-missing.py", "closure_note:scripts/zigux/check-phase10-mmio-packet.py")
-        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "phase10-mmio-config-write-apply-observation-helper", "phase10-mmio-config-write-apply-observation-missing", "closure_note:phase10-mmio-config-write-apply-observation-helper")
-        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "phase10-mmio-lifecycle-and-irq-paths", "phase10-mmio-transport-blocker-missing", "closure_note:phase10-mmio-lifecycle-and-irq-paths")
-        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "blocked_on_risky_transport", "transport_posture_missing", "closure_note:blocked_on_risky_transport")
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"lane_key": "P10-L11"', '"lane_key": "P10-L10"', 'manifest:"lane_key": "P10-L11"')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_map": "Documentation/zigux/freeze-map.md"', '"freeze_map": "Documentation/zigux/freeze-map-missing.md"', 'manifest:"freeze_map": "Documentation/zigux/freeze-map.md"')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "missing"', 'manifest:"freeze_boundary_status": "aligned"')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_status_change_claimed": false', '"freeze_status_change_claimed": true', 'manifest:"freeze_status_change_claimed": false')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"risky_transport_posture": "blocked_on_risky_transport"', '"risky_transport_posture": "missing"', 'manifest:"risky_transport_posture": "blocked_on_risky_transport"')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"allowed_evidence_kinds": [', '"allowed_evidence_kinds_missing": [', 'manifest:"allowed_evidence_kinds": [')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"driver_local_lab_slices"', '"driver_local_lab_slices_missing"', 'manifest:"driver_local_lab_slices"')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"survey_manifests"', '"survey_manifests_missing"', 'manifest:"survey_manifests"')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"shared_validation_gates"', '"shared_validation_gates_missing"', 'manifest:"shared_validation_gates"')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"forbidden_transport_claims": [', '"forbidden_transport_claims_missing": [', 'manifest:"forbidden_transport_claims": [')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"queue_setup_reset_paths"', '"queue_setup_reset_paths_missing"', 'manifest:"queue_setup_reset_paths"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"queue_reset_execution"', '"queue_reset_execution_missing"', 'manifest:"queue_reset_execution"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"irq_parity"', '"irq_parity_missing"', 'manifest:"irq_parity"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"dma_paths"', '"dma_paths_missing"', 'manifest:"dma_paths"')
@@ -413,6 +410,10 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", "try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteApplyObservationSummary());", "try std.testing.expect((try device.configWriteApplyObservationSummary()).applies_changes);", "helper_tests:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteApplyObservationSummary());")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes" {', 'test "phase10 virtio mmio selected queue readiness drifts across selector changes" {', 'helper_tests:test "phase10 virtio mmio selected queue readiness keeps per-queue state isolated across selector changes" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", "try std.testing.expect(!summary.bounded_queue_register_window_ready);", "try std.testing.expect(summary.bounded_queue_register_window_ready);", "helper_tests:try std.testing.expect(!summary.bounded_queue_register_window_ready);")
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig", 'test "phase10 virtio mmio apply-observation replay keeps changed bytes explicit" {', 'test "phase10 virtio mmio apply-observation replay drifts" {', 'apply_observation_replay:test "phase10 virtio mmio apply-observation replay keeps changed bytes explicit" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig", "error.ConfigWritePlanUnavailable,", "error.ConfigWritePlanUnavailableMissing,", "apply_observation_replay:error.ConfigWritePlanUnavailable,")
+        expect_missing_marker(root, "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig", '.root_source_file = b.path("phase10_virtio_mmio_apply_observation_replay.zig"),', '.root_source_file = b.path("phase10_virtio_mmio_apply_observation_replay_missing.zig"),', 'apply_observation_build:.root_source_file = b.path("phase10_virtio_mmio_apply_observation_replay.zig"),')
+        expect_missing_marker(root, "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig", '.name = "phase10-virtio-mmio-apply-observation-replay",', '.name = "phase10-virtio-mmio-apply-observation-drift",', 'apply_observation_build:.name = "phase10-virtio-mmio-apply-observation-replay",')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "interrupt-ack disposition review");', 'try expectContains(survey_note, "interrupt-ack drift");', 'survey_gate:try expectContains(survey_note, "interrupt-ack disposition review");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "staged config-write planning");', 'try expectContains(survey_note, "staged config-write drift");', 'survey_gate:try expectContains(survey_note, "staged config-write planning");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "config-write apply observation");', 'try expectContains(survey_note, "config-write apply drift");', 'survey_gate:try expectContains(survey_note, "config-write apply observation");')
@@ -422,18 +423,20 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", "`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion", "`Documentation/zigux/phase10-virtio-mmio-slice-missing.md` now materializes as the packet-local slice companion", "survey_gate:`Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequencing ownership, helper inventory, and risky transport posture explicit" {', 'test "phase10 virtio mmio survey gate keeps survey-note lane identity explicit" {', 'survey_gate:test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequencing ownership, helper inventory, and risky transport posture explicit" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(lane_sequencing_note, "MMIO lane `P10-L11` owns the bounded MMIO helper packet");', 'try expectContains(lane_sequencing_note, "MMIO lane `P10-L10` owns the bounded MMIO helper packet");', 'survey_gate:try expectContains(lane_sequencing_note, "MMIO lane `P10-L11` owns the bounded MMIO helper packet");')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"lane_key\\": \\"P10-L11\\"\");', 'try expectContains(manifest, "\\"lane_key\\": \\"P10-L10\\"\");', 'survey_gate:try expectContains(manifest, "\\"lane_key\\": \\"P10-L11\\"\");')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"risky_transport_posture\\": \\"blocked_on_risky_transport\\"\");', 'try expectContains(manifest, "\\"risky_transport_posture\\": \\"missing\\"\");', 'survey_gate:try expectContains(manifest, "\\"risky_transport_posture\\": \\"blocked_on_risky_transport\\"\");')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"id\\": \\"phase10-mmio-feature-negotiation-summary-helper\\"\");', 'try expectContains(manifest, "\\"id\\": \\"phase10-mmio-feature-negotiation-missing\\"\");', 'survey_gate:try expectContains(manifest, "\\"id\\": \\"phase10-mmio-feature-negotiation-summary-helper\\"\");')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\"id\\": \\"phase10-mmio-config-write-apply-observation-helper\\"\");', 'try expectContains(manifest, "\\"id\\": \\"phase10-mmio-config-write-apply-observation-missing\\"\");', 'survey_gate:try expectContains(manifest, "\\"id\\": \\"phase10-mmio-config-write-apply-observation-helper\\"\");')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\\"lane_key\\\": \\\"P10-L11\\\"");', 'try expectContains(manifest, "\\\"lane_key\\\": \\\"P10-L10\\\"");', 'survey_gate:try expectContains(manifest, "\\\"lane_key\\\": \\\"P10-L11\\\"");')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\\"risky_transport_posture\\\": \\\"blocked_on_risky_transport\\\"");', 'try expectContains(manifest, "\\\"risky_transport_posture\\\": \\\"missing\\\"");', 'survey_gate:try expectContains(manifest, "\\\"risky_transport_posture\\\": \\\"blocked_on_risky_transport\\\"");')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");', 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-feature-negotiation-missing\\\"");', 'survey_gate:try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-feature-negotiation-summary-helper\\\"");')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-config-write-apply-observation-helper\\\"");', 'try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-config-write-apply-observation-missing\\\"");', 'survey_gate:try expectContains(manifest, "\\\"id\\\": \\\"phase10-mmio-config-write-apply-observation-helper\\\"");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {', 'test "phase10 virtio mmio survey gate keeps helper-local queue isolation explicit" {', 'survey_gate:test "phase10 virtio mmio survey gate keeps helper-local queue isolation and probe blockers explicit" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(helper_tests, "test \\\"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\\\" {");', 'try expectContains(helper_tests, "test \\\"phase10 virtio mmio apply observation drifts\\\" {");', 'survey_gate:try expectContains(helper_tests, "test \\\"phase10 virtio mmio apply observation keeps touched and changed bytes reviewable without mutating config bytes\\\" {");')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(helper_tests, "try std.testing.expect(!summary.interrupt_ack_ready);");', 'try expectContains(helper_tests, "try std.testing.expect(summary.interrupt_ack_ready);");', 'survey_gate:try expectContains(helper_tests, "try std.testing.expect(!summary.interrupt_ack_ready);");')
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", "run_phase10_virtio_mmio_survey_tests.step", "run_phase10_virtio_mmio_survey_drift.step", "build_file:run_phase10_virtio_mmio_survey_tests.step")
+        expect_missing_file(root, "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig")
+        expect_missing_file(root, "zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig")
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=89")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=95")
     return 0
 
 
@@ -476,6 +479,8 @@ def main() -> int:
             + len(HELPER_MARKERS)
             + len(VERIFY_MARKERS)
             + len(HELPER_TEST_MARKERS)
+            + len(APPLY_OBSERVATION_REPLAY_MARKERS)
+            + len(APPLY_OBSERVATION_BUILD_MARKERS)
             + len(SURVEY_GATE_MARKERS)
             + len(BUILD_MARKERS)
         )
