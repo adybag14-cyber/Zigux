@@ -147,7 +147,7 @@ def extract_literal_from_module(module: ast.Module, const_name: str, *, source_p
 
 
 def extract_string_sequence(module: ast.Module, const_name: str, *, source_path: Path) -> tuple[str, ...]:
-    value = extract_literal_fromModule = extract_literal_from_module(module, const_name, source_path=source_path)
+    value = extract_literal_from_module(module, const_name, source_path=source_path)
     if not isinstance(value, (list, tuple)) or not all(isinstance(item, str) for item in value):
         raise ValueError(
             f"{source_path.relative_to(ROOT).as_posix()}:{const_name}:expected_string_sequence"
