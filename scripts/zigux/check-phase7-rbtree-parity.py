@@ -71,6 +71,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "Fresh authenticated GitHub reread in this slot directly returned:",
+        "`Documentation/zigux/phase7-rbtree-direct-anchor-note.md`",
         "Fresh current-master reread in this slot also directly returned these shared, legacy, or roadmap-adjacent non-owner surfaces:",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
         DIRECT_BUILD_READBACK_MARKER,
@@ -150,7 +151,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 36
+SELF_TEST_CASE_COUNT = 37
 
 
 def read_text(path: Path) -> str:
@@ -280,6 +281,17 @@ def run_self_test() -> None:
         write_fixture_root(root)
         direct_anchor_path = root / "Documentation/zigux/phase7-rbtree-direct-anchor-note.md"
         direct_anchor_marker = "Fresh authenticated GitHub reread in this slot directly returned:"
+        direct_anchor_path.write_text(
+            read_text(direct_anchor_path).replace(direct_anchor_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        assert validate(root) == (
+            [],
+            [f"Documentation/zigux/phase7-rbtree-direct-anchor-note.md: {direct_anchor_marker}"],
+        )
+
+        write_fixture_root(root)
+        direct_anchor_marker = "`Documentation/zigux/phase7-rbtree-direct-anchor-note.md`"
         direct_anchor_path.write_text(
             read_text(direct_anchor_path).replace(direct_anchor_marker + "\n", "", 1),
             encoding="utf-8",
