@@ -100,6 +100,8 @@ REQUIRED_MARKERS = {
         'phase9_runtime_loader_command_env_boundary_guard.dependOn(\n        &run_runtime_loader_command_env_boundary_guard_tests.step,\n    );',
         'const phase9_runtime_loader_shared = b.step(',
         '"phase9-runtime-loader-shared-tests",',
+        'phase9_runtime_loader_shared.dependOn(&run_runtime_loader_kernel_tests.step);',
+        'phase9_runtime_loader_shared.dependOn(&run_runtime_loader_contract_tests.step);',
         'phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);',
         'phase9_runtime_loader_shared.dependOn(\n        &run_runtime_loader_command_env_boundary_guard_tests.step,\n    );',
         'phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);',
@@ -318,19 +320,9 @@ def main() -> int:
             print(f"PHASE9_BUILD_ONLY_SURFACE_ERROR={failure}")
         return 1
 
-    print(f"PHASE9_BUILD_ONLY_SURFACE_FILE_COUNT={len(REQUIRED_MARKERS)}")
-    print(
-        "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
-    )
-    print(
-        "PHASE9_BUILD_ONLY_SURFACE_EXACT_ONCE_MARKER_COUNT="
-        f"{sum(len(markers) for markers in EXACT_ONCE_MARKERS.values())}"
-    )
-    print(
-        "PHASE9_BUILD_ONLY_SURFACE_FORBIDDEN_MARKER_COUNT="
-        f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
-    )
+    print("PHASE9_BUILD_ONLY_SURFACE=pass")
+    print(f"PHASE9_BUILD_ONLY_SURFACE_ROOT={args.repo_root}")
+    print(f"PHASE9_BUILD_ONLY_SURFACE_FILES_CHECKED={len(REQUIRED_MARKERS)}")
     return 0
 
 
