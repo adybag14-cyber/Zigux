@@ -34,6 +34,7 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/validate-phase3-validator-support-surface.py"',
     '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
     '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+    '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test"',
     '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
     '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"',
     '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
@@ -138,6 +139,7 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/validate-phase3-validator-support-surface.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test",
     "python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -320,6 +322,7 @@ def run_self_test() -> int:
             ('"python3 scripts/zigux/validate-phase3-validator-support-surface.py"', "expected validator-support direct validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"', "expected export-uapi survey self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"', "expected export-uapi survey direct validator-route drift was not reported"),
+            ('"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test"', "expected export-uapi c-header smoke self-test validator-route drift was not reported"),
             ('"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"', "expected export-uapi c-header smoke validator-route drift was not reported"),
             ('"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"', "expected shared ABI core build validator-route drift was not reported"),
             ('"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"', "expected policy-starter build validator-route drift was not reported"),
@@ -423,9 +426,10 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/validate-phase3-validator-support-surface.py", "expected validator-support direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test", "expected export-uapi survey self-test route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-export-uapi-survey.py", "expected export-uapi survey direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test", "expected export-uapi c-header smoke self-test route drift was not reported"),
             ("python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py", "expected export-uapi c-header smoke route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test", "expected policy-unsafe self-test route drift was not reported"),
-            ('"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"', "expected policy-unsafe direct route drift was not reported"),
+            ("python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py", "expected policy-unsafe direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test", "expected low-level-wrapper self-test route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "expected low-level-wrapper direct route drift was not reported"),
             ("python3 scripts/zigux/validate-phase3-linux-zigux-header-governance.py --self-test", "expected header-governance self-test route drift was not reported"),
@@ -529,7 +533,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass")
-    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=149")
+    print("PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST_CASE_COUNT=151")
     return 0
 
 
