@@ -12,13 +12,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
-REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
-TESTS_README = ROOT / "zigux" / "tests" / "README.md"
-BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
-WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
-MAKEFILE = ROOT / "zigux" / "Makefile"
-TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
-TOOLCHAIN_CHECKER = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux/review-checklist.md"
+TESTS_README = ROOT / "zigux/tests/README.md"
+BOOTSTRAP_NOTES = ROOT / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+WORKFLOW = ROOT / ".github/workflows/zigux-bootstrap.yml"
+MAKEFILE = ROOT / "zigux/Makefile"
+TOOLCHAIN_POLICY = ROOT / "scripts/zigux/zig-toolchain-policy.json"
+TOOLCHAIN_CHECKER = ROOT / "scripts/zigux/check-zig-toolchain.py"
 
 DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
@@ -130,7 +130,15 @@ TOOLCHAIN_CHECKER_MARKERS = (
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
-EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate", "phase2-cross"]
+EXPECTED_REQUIRED_ROUTES = [
+    "phase2-toolchain",
+    "phase2-tools",
+    "phase2-kconfig",
+    "phase2-cross",
+    "phase2-genksyms",
+    "phase2-fixdep",
+    "phase2-validate",
+]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
