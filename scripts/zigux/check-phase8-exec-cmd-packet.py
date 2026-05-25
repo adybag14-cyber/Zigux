@@ -27,6 +27,7 @@ WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 EXEC_CMD_HELPER = Path("tools/lib/subcmd/exec-cmd.zig")
 EXEC_CMD_TEST = Path("zigux/tests/phase8_exec_cmd.zig")
 EXEC_CMD_BUILD = Path("zigux/tests/phase8_exec_cmd_only_build.zig")
+EXEC_CMD_SHARED_BUILD = Path("zigux/tests/phase8_build.zig")
 
 REQUIRED_FILES = (
     DOCS_README,
@@ -41,6 +42,7 @@ REQUIRED_FILES = (
     EXEC_CMD_HELPER,
     EXEC_CMD_TEST,
     EXEC_CMD_BUILD,
+    EXEC_CMD_SHARED_BUILD,
 )
 
 FILE_MARKERS: dict[Path, tuple[str, ...]] = {
@@ -144,6 +146,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8_exec_cmd.zig",
         "phase8-exec-cmd-tests",
         "Run focused Phase 8 exec-cmd tests",
+    ),
+    EXEC_CMD_SHARED_BUILD: (
+        '../../tools/lib/subcmd/exec-cmd.zig',
+        'phase8_exec_cmd.zig',
+        '"phase8-exec-cmd-shared-tests"',
+        'test_step.dependOn(&run_exec_cmd_tests.step);',
     ),
 }
 
