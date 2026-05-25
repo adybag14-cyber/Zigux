@@ -180,6 +180,19 @@ EXPECTED_STRING_PACKET = {
         "strtomem_pad() fixture keys, so prefix-copy, first-NUL stop, and caller-selected pad "
         "behavior remain review-visible at the helper surface"
     ),
+    "memtostr_review_anchors": [
+        'test "memtostr copies a bounded non-NUL source and adds one terminator"',
+        'test "memtostr stops at embedded NUL without padding the tail"',
+        'test "memtostrPad zero-pads the remaining tail after copying"',
+        'test "memtostr helpers keep one-byte destinations terminated"',
+    ],
+    "memtostr_review_summary": (
+        "helper-local memtostr boundary and tail-padding anchors stay explicit through the direct "
+        "string tests because the shared Phase 1 replay still does not carry dedicated memtostr(), "
+        "memtostrPad(), or memtostr_pad() fixture keys, so bounded source copies, embedded-NUL "
+        "stops, terminator insertion, and zero-padded destination tails remain review-visible at the "
+        "helper surface"
+    ),
     "prefix_suffix_review_anchors": [
         'test "strHasPrefix returns the matched prefix length with C-string semantics"',
         'test "strHasSuffix returns the matched suffix length with C-string semantics"',
@@ -507,7 +520,7 @@ def collect_failures(root: Path) -> list[str]:
     for symbol in EXPECTED_STRING_SOURCE_SYMBOLS:
         failures.extend(require_exact_occurrence(helper_text, f"string_source:{symbol}", symbol))
 
-    seen_helper_anchors = set(EXPECTED_HELPER_TEST_ANCHORS)
+    seen_helper_anchors = set(EXPECTED_HELPER_TEST_ANCHORS + EXPECTED_HELPER_LOCAL_ONLY_ANCHORS)
     for anchor in EXPECTED_HELPER_TEST_ANCHORS + EXPECTED_HELPER_LOCAL_ONLY_ANCHORS:
         failures.extend(require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor))
 
