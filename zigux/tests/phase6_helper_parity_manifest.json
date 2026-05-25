@@ -175,6 +175,12 @@
             "max_slowdown_pct": 100
           }
         ],
+        "ipv4_fast_path_case_labels": [
+          "IPV4_20B",
+          "IPV4_20B_UPDATED",
+          "IPV4_24B",
+          "IPV4_60B"
+        ],
         "linux_style_rerun_routes": [
           "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
           "make -C zigux phase6-checksum-perf-matrix-test",
