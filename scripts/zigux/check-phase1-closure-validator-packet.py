@@ -43,6 +43,14 @@ EXPECTED_CLOSURE_MARKERS = (
     "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific next_safe_step_note entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.`",
 )
 
+OPTIONAL_RBTREE_DIRECT_ANCHOR_CLOSURE_MARKER = (
+    "`PHASE1_RBTREE_DIRECT_ANCHOR_GUARD=python3 "
+    "scripts/zigux/check-phase1-rbtree-direct-anchors.py exact-checks ordered Linux-style alias, "
+    "low-level alias, and cached-root insert-miss, leftmost-sync, alias, replacement, "
+    "singleton-erase, detach, reseed, and direct entry-point anchors directly in "
+    "tools/lib/rbtree.zig`"
+)
+
 EXPECTED_VALIDATOR_MARKERS = (
     'PHASE1_CLOSURE_REL = Path("Documentation/zigux/phase1-closure.md")',
     'PHASE1_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")',
@@ -78,6 +86,12 @@ EXPECTED_VALIDATOR_MARKERS = (
     '(FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),',
     '(BITMAP_DIRECT_ANCHOR_CHECKER_REL, "phase1-bitmap-direct-anchors"),',
     '(SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),',
+)
+
+OPTIONAL_RBTREE_DIRECT_ANCHOR_VALIDATOR_MARKERS = (
+    'RBTREE_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-direct-anchors.py")',
+    '"rbtree_direct_anchor_guard": "`PHASE1_RBTREE_DIRECT_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-rbtree-direct-anchors.py exact-checks ordered Linux-style alias, low-level alias, and cached-root insert-miss, leftmost-sync, alias, replacement, singleton-erase, detach, reseed, and direct entry-point anchors directly in tools/lib/rbtree.zig`",',
+    '(RBTREE_DIRECT_ANCHOR_CHECKER_REL, "phase1-rbtree-direct-anchors"),',
 )
 
 EXPECTED_README_MARKERS = (
@@ -142,6 +156,54 @@ def require_absent(text: str, label: str, needle: str) -> list[str]:
     return [] if count == 0 else [f"{label}:forbidden_marker:actual_count={count}:{needle}"]
 
 
+def optional_marker_state(text: str, label: str, needle: str) -> tuple[bool, list[str]]:
+    count = text.count(needle)
+    if count > 1:
+        return False, [f"{label}:expected_at_most_once:actual_count={count}:{needle}"]
+    return count == 1, []
+
+
+def require_optional_packet_coherence(
+    closure_text: str,
+    validator_text: str,
+) -> list[str]:
+    failures: list[str] = []
+
+    closure_present, closure_failures = optional_marker_state(
+        closure_text,
+        PHASE1_CLOSURE_REL.as_posix(),
+        OPTIONAL_RBTREE_DIRECT_ANCHOR_CLOSURE_MARKER,
+    )
+    failures.extend(closure_failures)
+
+    validator_present = True
+    for marker in OPTIONAL_RBTREE_DIRECT_ANCHOR_VALIDATOR_MARKERS:
+        present, marker_failures = optional_marker_state(
+            validator_text,
+            VALIDATOR_REL.as_posix(),
+            marker,
+        )
+        failures.extend(marker_failures)
+        validator_present = validator_present and present
+
+    validator_any_present = any(
+        validator_text.count(marker) == 1 for marker in OPTIONAL_RBTREE_DIRECT_ANCHOR_VALIDATOR_MARKERS
+    )
+
+    if validator_any_present and not validator_present:
+        failures.append(
+            f"{VALIDATOR_REL.as_posix()}:optional_rbtree_direct_anchor_packet:partial_validator_packet"
+        )
+
+    if closure_present != validator_present:
+        failures.append(
+            "phase1-closure-validator-packet:optional_rbtree_direct_anchor_packet:"
+            f"closure_present={closure_present}:validator_present={validator_present}"
+        )
+
+    return failures
+
+
 def collect_failures(root: Path) -> list[str]:
     failures = [f"missing_file:{path.as_posix()}" for path in REQUIRED_FILES if not (root / path).is_file()]
     if failures:
@@ -157,6 +219,7 @@ def collect_failures(root: Path) -> list[str]:
         failures.extend(require_once(closure_text, PHASE1_CLOSURE_REL.as_posix(), marker))
     for marker in EXPECTED_VALIDATOR_MARKERS:
         failures.extend(require_once(validator_text, VALIDATOR_REL.as_posix(), marker))
+    failures.extend(require_optional_packet_coherence(closure_text, validator_text))
     for marker in EXPECTED_README_MARKERS:
         failures.extend(require_once(readme_text, SCRIPTS_README_REL.as_posix(), marker))
     for marker in EXPECTED_WORKFLOW_MARKERS:
@@ -176,9 +239,15 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def write_sample_root(root: Path) -> None:
-    write_text(root / PHASE1_CLOSURE_REL, "# Phase 1 Closure\n\n" + "\n".join(EXPECTED_CLOSURE_MARKERS) + "\n")
-    write_text(root / VALIDATOR_REL, "\n".join(EXPECTED_VALIDATOR_MARKERS) + "\n")
+def write_sample_root(root: Path, include_optional_rbtree_direct_anchor: bool = False) -> None:
+    closure_markers = list(EXPECTED_CLOSURE_MARKERS)
+    validator_markers = list(EXPECTED_VALIDATOR_MARKERS)
+    if include_optional_rbtree_direct_anchor:
+        closure_markers.insert(9, OPTIONAL_RBTREE_DIRECT_ANCHOR_CLOSURE_MARKER)
+        validator_markers.extend(OPTIONAL_RBTREE_DIRECT_ANCHOR_VALIDATOR_MARKERS)
+
+    write_text(root / PHASE1_CLOSURE_REL, "# Phase 1 Closure\n\n" + "\n".join(closure_markers) + "\n")
+    write_text(root / VALIDATOR_REL, "\n".join(validator_markers) + "\n")
     write_text(root / SCRIPTS_README_REL, "# scripts/zigux\n\n## Phase 1\n\n" + "\n".join(EXPECTED_README_MARKERS) + "\n")
     write_text(root / WORKFLOW_REL, "jobs:\n  bootstrap:\n    steps:\n" + "\n".join(f"      {marker}" for marker in EXPECTED_WORKFLOW_MARKERS) + "\n")
     write_text(root / PHASE1_LANE_NOTE_REL, "# Phase 1 Host-Helper Lane Sequencing\n\n" + "\n".join(EXPECTED_LANE_NOTE_MARKERS) + "\n")
@@ -188,9 +257,13 @@ def write_sample_root(root: Path) -> None:
 def run_self_test() -> int:
     cases: list[tuple[str, object | None]] = [
         ("baseline", None),
+        ("expanded_rbtree_direct_anchor_packet", lambda root: write_sample_root(root, include_optional_rbtree_direct_anchor=True)),
         ("missing_closure_status", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS[0] + "\n", "", 1))),
         ("missing_find_bit_review_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS[2] + "\n", "", 1))),
         ("missing_bitmap_direct_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS[10] + "\n", "", 1))),
+        ("closure_only_optional_rbtree_direct_anchor", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL) + OPTIONAL_RBTREE_DIRECT_ANCHOR_CLOSURE_MARKER + "\n")),
+        ("validator_only_optional_rbtree_direct_anchor", lambda root: write_text(root / VALIDATOR_REL, load_text(root, VALIDATOR_REL) + "\n".join(OPTIONAL_RBTREE_DIRECT_ANCHOR_VALIDATOR_MARKERS) + "\n")),
+        ("partial_validator_optional_rbtree_direct_anchor", lambda root: write_text(root / VALIDATOR_REL, load_text(root, VALIDATOR_REL) + OPTIONAL_RBTREE_DIRECT_ANCHOR_VALIDATOR_MARKERS[0] + "\n")),
         ("missing_validator_delegate", lambda root: write_text(root / VALIDATOR_REL, load_text(root, VALIDATOR_REL).replace(EXPECTED_VALIDATOR_MARKERS[26] + "\n", "", 1))),
         ("missing_validator_next_step", lambda root: write_text(root / VALIDATOR_REL, load_text(root, VALIDATOR_REL).replace(EXPECTED_VALIDATOR_MARKERS[24] + "\n", "", 1))),
         ("missing_readme_validator_line", lambda root: write_text(root / SCRIPTS_README_REL, load_text(root, SCRIPTS_README_REL).replace(EXPECTED_README_MARKERS[1] + "\n", "", 1))),
@@ -211,7 +284,7 @@ def run_self_test() -> int:
             if mutate is not None:
                 mutate(root)
             failures = collect_failures(root)
-            if name == "baseline":
+            if name in {"baseline", "expanded_rbtree_direct_anchor_packet"}:
                 if failures:
                     print(f"phase1-closure-validator-packet-self-test:{name}:unexpected={failures}")
                     return 1
