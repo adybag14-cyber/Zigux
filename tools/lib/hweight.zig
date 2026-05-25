@@ -92,3 +92,30 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers stay invariant under width-preserving bit reversal" {
+    const sample8: u8 = 0b1001_0110;
+    const reversed8: u8 = @bitReverse(sample8);
+    try std.testing.expectEqual(swHweight8(sample8), swHweight8(reversed8));
+    try std.testing.expectEqual(__sw_hweight8(sample8), __sw_hweight8(reversed8));
+
+    const sample16: u16 = 0x196a;
+    const reversed16: u16 = @bitReverse(sample16);
+    try std.testing.expectEqual(swHweight16(sample16), swHweight16(reversed16));
+    try std.testing.expectEqual(__sw_hweight16(sample16), __sw_hweight16(reversed16));
+
+    const sample32: u32 = 0x1234_5678;
+    const reversed32: u32 = @bitReverse(sample32);
+    try std.testing.expectEqual(swHweight32(sample32), swHweight32(reversed32));
+    try std.testing.expectEqual(__sw_hweight32(sample32), __sw_hweight32(reversed32));
+
+    const sample64: u64 = 0x0123_4567_89ab_cdef;
+    const reversed64: u64 = @bitReverse(sample64);
+    try std.testing.expectEqual(swHweight64(sample64), swHweight64(reversed64));
+    try std.testing.expectEqual(__sw_hweight64(sample64), __sw_hweight64(reversed64));
+
+    const sample_long: usize = if (@sizeOf(usize) == 4) 0x1234_56e1 else 0x0123_4567_89ab_cde1;
+    const reversed_long: usize = @bitReverse(sample_long);
+    try std.testing.expectEqual(hweightLong(sample_long), hweightLong(reversed_long));
+    try std.testing.expectEqual(hweight_long(sample_long), hweight_long(reversed_long));
+}
