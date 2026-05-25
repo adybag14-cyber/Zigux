@@ -388,20 +388,26 @@ EXPECTED_STRING_LANE_MARKERS = [
     ),
 ]
 
+
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
+
 
 def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
+
 def load_json_with_duplicate_tracking(text: str) -> object:
     return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
 
 def load_json(root: Path, relative_path: Path) -> object:
     return load_json_with_duplicate_tracking(load_text(root, relative_path))
 
+
 def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
     return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
+
 
 def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
     paths: list[str] = []
@@ -416,14 +422,17 @@ def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ())
             paths.extend(collect_duplicate_json_key_paths(item, prefix))
     return paths
 
+
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     count = text.count(marker)
     if count != 1:
         return [f"{label}:expected=1:actual={count}"]
     return []
 
+
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
+
 
 def nested_value(data: object, path: tuple[str, ...]) -> object:
     current = data
@@ -432,6 +441,7 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
             return None
         current = current.get(key)
     return current
+
 
 def iter_anchor_strings(expected: object) -> list[str]:
     anchors: list[str] = []
@@ -443,6 +453,7 @@ def iter_anchor_strings(expected: object) -> list[str]:
             if isinstance(item, str) and item.startswith('test "'):
                 anchors.append(item)
     return anchors
+
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
@@ -501,12 +512,24 @@ def collect_failures(root: Path) -> list[str]:
     for label, marker in EXPECTED_STRING_LANE_MARKERS:
         failures.extend(require_exact_occurrence(lane_text, f"string_lane:{label}", marker))
 
-    failures.extend(require_exact_value("string_manifest:review_anchors.tools/lib/string.zig.helper_test_anchors", nested_value(manifest, ("review_anchors", "tools/lib/string.zig", "helper_test_anchors")), EXPECTED_HELPER_TEST_ANCHORS))
+    failures.extend(
+        require_exact_value(
+            "string_manifest:review_anchors.tools/lib.string.zig.helper_test_anchors",
+            nested_value(manifest, ("review_anchors", "tools/lib/string.zig", "helper_test_anchors")),
+            EXPECTED_HELPER_TEST_ANCHORS,
+        )
+    )
 
     for key, expected in EXPECTED_STRING_PACKET.items():
         if key == "helper_test_anchors":
             continue
-        failures.extend(require_exact_value(f"string_manifest:review_anchors.tools/lib/string.zig.{key}", nested_value(manifest, ("review_anchors", "tools/lib/string.zig", key)), expected))
+        failures.extend(
+            require_exact_value(
+                f"string_manifest:review_anchors.tools/lib/string.zig.{key}",
+                nested_value(manifest, ("review_anchors", "tools/lib/string.zig", key)),
+                expected,
+            )
+        )
 
     string_fixture = fixture.get("string")
     if not isinstance(string_fixture, dict):
@@ -516,10 +539,212 @@ def collect_failures(root: Path) -> list[str]:
 
     return failures
 
+
+def write_file(root: Path, relative_path: Path, text: str) -> None:
+    destination = root / relative_path
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(text, encoding="utf-8")
+
+
+def sample_helper_source() -> str:
+    return "\n".join(EXPECTED_STRING_SOURCE_SYMBOLS + [""] + EXPECTED_HELPER_TEST_ANCHORS) + "\n"
+
+
+def sample_manifest() -> str:
+    return (
+        json.dumps(
+            {"review_anchors": {"tools/lib/string.zig": EXPECTED_STRING_PACKET}},
+            indent=2,
+        )
+        + "\n"
+    )
+
+
+def sample_fixture() -> str:
+    return json.dumps({"string": EXPECTED_STRING_FIXTURE_VALUES}, indent=2) + "\n"
+
+
+def sample_lane_note() -> str:
+    return "# sample\n\n" + "\n".join(marker for _, marker in EXPECTED_STRING_LANE_MARKERS) + "\n"
+
+
+def build_sample_repo(root: Path) -> None:
+    write_file(root, STRING_HELPER_REL, sample_helper_source())
+    write_file(root, STRING_MANIFEST_REL, sample_manifest())
+    write_file(root, STRING_FIXTURE_REL, sample_fixture())
+    write_file(root, STRING_LANE_NOTE_REL, sample_lane_note())
+
+
+def insert_duplicate_json_line(root: Path, relative_path: Path, needle: str, duplicate_line: str) -> None:
+    json_path = root / relative_path
+    text = json_path.read_text(encoding="utf-8")
+    json_path.write_text(text.replace(needle, duplicate_line + "\n" + needle, 1), encoding="utf-8")
+
+
+def run_self_test() -> int:
+    cases = [
+        ("missing_helper_file", "missing_file:tools/lib/string.zig"),
+        (
+            "missing_source_symbol",
+            "string_source:pub fn memparse(text: []const u8) MemparseResult {:expected=1:actual=0",
+        ),
+        (
+            "missing_helper_anchor",
+            'string_helper:test "sysfsMatchString finds newline-aware matches and preserves first-match order":expected=1:actual=0',
+        ),
+        (
+            "duplicate_helper_anchor",
+            'string_helper:test "strspn counts the accepted prefix with C-string semantics":expected=1:actual=2',
+        ),
+        (
+            "missing_lane_marker",
+            "string_lane:lane_direct_owner:expected=1:actual=0",
+        ),
+        (
+            "duplicate_lane_marker",
+            "string_lane:lane_counted_search_strspn:expected=1:actual=2",
+        ),
+        (
+            "manifest_drift",
+            "string_manifest:review_anchors.tools/lib/string.zig.next_safe_step_note:expected=",
+        ),
+        (
+            "fixture_drift",
+            "string_fixture:replace_char_cstr_end:expected=2:actual=0",
+        ),
+        (
+            "manifest_invalid_json",
+            "manifest:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1",
+        ),
+        (
+            "fixture_invalid_json",
+            "fixture:invalid_json:Expecting property name enclosed in double quotes:line=2:column=1",
+        ),
+        (
+            "manifest_duplicate_json_key",
+            "manifest:duplicate_json_key:review_anchors.tools/lib/string.zig.counted_search_review_anchors",
+        ),
+        (
+            "fixture_duplicate_json_key",
+            "fixture:duplicate_json_key:string.replace_char",
+        ),
+    ]
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase1_string_review_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+
+        if cases[0][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:missing_helper_file")
+
+        build_sample_repo(tmp_root)
+        if collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:baseline")
+
+        helper_path = tmp_root / STRING_HELPER_REL
+        lane_path = tmp_root / STRING_LANE_NOTE_REL
+        manifest_path = tmp_root / STRING_MANIFEST_REL
+        fixture_path = tmp_root / STRING_FIXTURE_REL
+
+        text = helper_path.read_text(encoding="utf-8").replace(
+            "pub fn memparse(text: []const u8) MemparseResult {\n", "", 1
+        )
+        helper_path.write_text(text, encoding="utf-8")
+        if cases[1][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:missing_source_symbol")
+
+        build_sample_repo(tmp_root)
+        text = helper_path.read_text(encoding="utf-8").replace(
+            'test "sysfsMatchString finds newline-aware matches and preserves first-match order"\n',
+            "",
+            1,
+        )
+        helper_path.write_text(text, encoding="utf-8")
+        if cases[2][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:missing_helper_anchor")
+
+        build_sample_repo(tmp_root)
+        duplicated = 'test "strspn counts the accepted prefix with C-string semantics"'
+        text = helper_path.read_text(encoding="utf-8").replace(
+            duplicated + "\n",
+            duplicated + "\n" + duplicated + "\n",
+            1,
+        )
+        helper_path.write_text(text, encoding="utf-8")
+        if cases[3][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:duplicate_helper_anchor")
+
+        build_sample_repo(tmp_root)
+        line = EXPECTED_STRING_LANE_MARKERS[0][1]
+        text = lane_path.read_text(encoding="utf-8").replace(line + "\n", "", 1)
+        lane_path.write_text(text, encoding="utf-8")
+        if cases[4][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:missing_lane_marker")
+
+        build_sampleRepo(tmp_root)
+        line = EXPECTED_STRING_LANE_MARKERS[3][1]
+        text = lane_path.read_text(encoding="utf-8").replace(line + "\n", line + "\n" + line + "\n", 1)
+        lane_path.write_text(text, encoding="utf-8")
+        if cases[5][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:duplicate_lane_marker")
+
+        build_sample_repo(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] = "drift"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        manifest_failures = collect_failures(tmp_root)
+        if not any(item.startswith(cases[6][1]) for item in manifest_failures):
+            raise SystemExit("phase1-string-review:self-test:manifest_drift")
+
+        build_sample_repo(tmp_root)
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["string"]["replace_char_cstr_end"] = 0
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        if cases[7][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:fixture_drift")
+
+        build_sample_repo(tmp_root)
+        manifest_path.write_text("{\n", encoding="utf-8")
+        if cases[8][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:manifest_invalid_json")
+
+        build_sample_repo(tmp_root)
+        fixture_path.write_text("{\n", encoding="utf-8")
+        if cases[9][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:fixture_invalid_json")
+
+        build_sample_repo(tmp_root)
+        insert_duplicate_json_line(
+            tmp_root,
+            STRING_MANIFEST_REL,
+            '      "counted_search_review_anchors": [',
+            '      "counted_search_review_anchors": [],',
+        )
+        if cases[10][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:manifest_duplicate_json_key")
+
+        build_sample_repo(tmp_root)
+        insert_duplicate_json_line(
+            tmp_root,
+            STRING_FIXTURE_REL,
+            '    "replace_char": "a_b",',
+            '    "replace_char": "drift",',
+        )
+        if cases[11][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:fixture_duplicate_json_key")
+
+    print("PHASE1_STRING_REVIEW_PACKET_SELF_TEST=pass")
+    print(f"PHASE1_STRING_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override the repository root for validation")
+    parser.add_argument("--self-test", action="store_true", help="run checker self-tests")
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     failures = collect_failures(repo_root(args.root))
     if failures:
