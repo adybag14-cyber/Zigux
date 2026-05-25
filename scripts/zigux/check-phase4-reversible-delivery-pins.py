@@ -22,7 +22,7 @@ PERF_SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 30
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 31
 EXPECTED_PIN_SELF_TEST_CASES = 19
 PERF_BASELINE_CHECKER_LINE = (
     "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`."
@@ -56,7 +56,7 @@ CURRENT_HEAD_BLOB_PINS = (
 )
 EXPECTED_STATUS_LINES = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30`",
+    "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31`",
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`",
 )
 EXPECTED_PACKET_MEMBER_LINES = (
@@ -82,12 +82,12 @@ NOTE_MARKERS = (
     "Current direct-readback dedicated local-only perf companion members:",
     "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
     "  * `zigux/tests/phase4_perf_baseline_survey.zig`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here",
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
 )
 
 WARNING_MARKERS = (
-    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 30",
+    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 31",
     "EXPECTED_PIN_SELF_TEST_CASES = 19",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
@@ -181,7 +181,7 @@ def _baseline_note(root: Path) -> str:
         *STATIC_SHA_LINES,
         *(current_head_blob_pin_line(root, label, rel) for label, rel in CURRENT_HEAD_BLOB_PINS),
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-        "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30`",
+        "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19`",
         "",
         "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
@@ -202,7 +202,7 @@ def _baseline_note(root: Path) -> str:
         "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
         "  * `zigux/tests/phase4_perf_baseline_survey.zig`",
         "",
-        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here.",
+        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19` here.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state. In this runtime authenticated contents reads now return `scripts/zigux/validate-phase4.py` directly, while the broader build and bitmap replay companions still remain unreadable on that same route.",
         "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
         "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.",
@@ -217,7 +217,7 @@ def _baseline_warning() -> str:
     return "\n".join(
         [
             "#!/usr/bin/env python3",
-            "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 30",
+            "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 31",
             "EXPECTED_PIN_SELF_TEST_CASES = 19",
             "scripts/zigux/check-phase4-reversible-delivery-pins.py",
             "scripts/zigux/check-phase4-perf-baseline-packet.py",
@@ -284,7 +284,7 @@ def run_self_test() -> int:
         cases += _expect_failure(
             root,
             NOTE,
-            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=30`",
+            "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=31`",
             "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=29`",
         )
         cases += _expect_failure(
