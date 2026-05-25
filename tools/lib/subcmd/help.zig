@@ -246,11 +246,14 @@ pub fn renderCommandSections(
 
     if (main_cmds.count() != 0) {
         const main_header = if (exec_path) |main_exec_path|
-            try std.fmt.allocPrint(
-                allocator,
-                "available {s} in '{s}'\n",
-                .{ title, main_exec_path },
-            )
+            if (main_exec_path.len != 0)
+                try std.fmt.allocPrint(
+                    allocator,
+                    "available {s} in '{s}'\n",
+                    .{ title, main_exec_path },
+                )
+            else
+                try std.fmt.allocPrint(allocator, "available {s}\n", .{title})
         else
             try std.fmt.allocPrint(allocator, "available {s}\n", .{title});
         defer allocator.free(main_header);
@@ -479,6 +482,33 @@ test "renderCommandSections omits an empty quoted exec path when none is availab
         std.testing.allocator,
         "subcommands",
         null,
+        &main_cmds,
+        &other_cmds,
+        80,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "available subcommands\n" ++
+            "---------------------\n" ++
+            " annotate\n" ++
+            "\n",
+        rendered,
+    );
+}
+
+test "renderCommandSections treats an empty exec path like a missing one" {
+    var main_cmds = CommandNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.add("annotate");
+
+    var other_cmds = CommandNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    const rendered = try renderCommandSections(
+        std.testing.allocator,
+        "subcommands",
+        "",
         &main_cmds,
         &other_cmds,
         80,
