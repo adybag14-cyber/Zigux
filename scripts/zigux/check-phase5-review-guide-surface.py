@@ -130,7 +130,7 @@ MARKERS = {
         "Keep `samples/zigux/kretprobe_example_instance_budget_contract.zig` and `zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig` explicit too as the current direct sample-root companion and focused replay for the bounded kretprobe instance-budget packet, so the shared lane note reflects that shipped reviewability surface already on `master`.",
     ),
     SAMPLE_ROOT_PATH: (
-        "Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those three routes directly again.",
+        "Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract_survey.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are the current direct reminder or replay surfaces, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed owner-plus-companion evidence until a fresh authenticated reread returns that owner-side trio directly again.",
         "Current `master` also ships `samples/zigux/kobject_example_attr_group_contract.zig` as a bounded kobject companion. Keep that file framed as reviewability help for the current `foo`/`baz`/`bar` attribute-group contract, `0664` modes, unnamed-group cue, and NULL-terminated attribute-list slot rather than as a fifth Phase 5 sample family.",
         "Current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample. Keep the returned runtime bitmap files framed only as separate Phase 9 runtime-pilot evidence.",
         "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here. Keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and the bounded `samples/zigux/trace_events_string_formatting_sample.zig` companion.",
@@ -151,19 +151,16 @@ FORBIDDEN_SAMPLE_ROOT_TEXT = (
     "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those three routes directly.",
 )
 
-
 def read_text(root: Path, path: Path) -> str:
     try:
         return (root / path).read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
 
-
 def write_text(root: Path, path: Path, text: str) -> None:
     full = root / path
     full.parent.mkdir(parents=True, exist_ok=True)
     full.write_text(text, encoding="utf-8")
-
 
 def placeholder(path: Path) -> str:
     lines = [f"# {path.name}"]
@@ -191,13 +188,11 @@ def placeholder(path: Path) -> str:
         )
     return "\n\n".join(lines) + "\n"
 
-
 def strip_standalone_path(text: str, rel: str) -> str:
     standalone = f"\n\n`{rel}`"
     if standalone in text:
         return text.replace(standalone, "", 1)
     return text
-
 
 def seed(root: Path) -> None:
     tracked = set(MARKERS)
@@ -211,17 +206,14 @@ def seed(root: Path) -> None:
             continue
         write_text(root, rel_path, "present\n")
 
-
 def collect_failures(root: Path) -> list[str]:
     texts = {path: read_text(root, path) for path in MARKERS}
     failures: list[str] = []
-
     for path, required in MARKERS.items():
         text = texts[path]
         for marker in required:
             if marker not in text:
                 failures.append(f"{path}:missing_text:{marker}")
-
     guide = texts[GUIDE_PATH]
     approved = texts[APPROVED_IDIOM_PATH]
     kobject_survey = texts[KOBJECT_SURVEY_PATH]
@@ -231,19 +223,16 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(f"guide:missing_path:{rel}")
         if not (root / rel).exists():
             failures.append(f"repo:missing_path:{rel}")
-
     for rel in PUBLIC_TREE_COMPANION_PATHS:
         if all(token not in approved and token not in guide for token in (f"`{rel}`", rel)):
             failures.append(f"packet:missing_companion_path:{rel}")
         if not (root / rel).exists():
             failures.append(f"repo:missing_companion_path:{rel}")
-
     for rel in KOBJECT_DIRECT_PACKET_PATHS:
         if f"`{rel}`" not in kobject_survey and rel not in kobject_survey:
             failures.append(f"kobject_survey:missing_path:{rel}")
         if not (root / rel).exists():
             failures.append(f"repo:missing_path:{rel}")
-
     for rel in (
         "samples/trace_events/trace-events-sample.c",
         "samples/zigux/trace_events_string_formatting_sample.zig",
@@ -252,22 +241,17 @@ def collect_failures(root: Path) -> list[str]:
     ):
         if all(token not in approved for token in (f"`{rel}`", rel)):
             failures.append(f"approved_idiom:missing_path:{rel}")
-
     for forbidden in FORBIDDEN_GUIDE_TEXT:
         if forbidden in guide:
             failures.append(f"guide:forbidden_text:{forbidden}")
-
     for forbidden in FORBIDDEN_SAMPLE_ROOT_TEXT:
         if forbidden in sample_root:
             failures.append(f"sample_root:forbidden_text:{forbidden}")
-
     return failures
-
 
 def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
     if failures != expected:
         raise AssertionError(f"{label}: expected {expected}, got {failures}")
-
 
 def run_self_test() -> int:
     checks_run = 0
@@ -275,510 +259,248 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
-
         expect_exact("baseline", collect_failures(root), [])
         checks_run += 1
-
         mutated = root / "missing_guide_validation_marker"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][3], ""))
-        expect_exact(
-            "missing guide validation marker",
-            collect_failures(mutated),
-            [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][3]}"],
-        )
+        expect_exact("missing guide validation marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][3]}"])
         checks_run += 1
-
         mutated = root / "missing_docs_root_marker"
         seed(mutated)
         write_text(mutated, DOCS_ROOT_PATH, placeholder(DOCS_ROOT_PATH).replace(MARKERS[DOCS_ROOT_PATH][1], ""))
-        expect_exact(
-            "missing docs-root marker",
-            collect_failures(mutated),
-            [f"{DOCS_ROOT_PATH}:missing_text:{MARKERS[DOCS_ROOT_PATH][1]}"],
-        )
+        expect_exact("missing docs-root marker", collect_failures(mutated), [f"{DOCS_ROOT_PATH}:missing_text:{MARKERS[DOCS_ROOT_PATH][1]}"])
         checks_run += 1
-
         mutated = root / "missing_approved_idiom_marker"
         seed(mutated)
         write_text(mutated, APPROVED_IDIOM_PATH, placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][2], ""))
-        expect_exact(
-            "missing approved idiom marker",
-            collect_failures(mutated),
-            [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][2]}"],
-        )
+        expect_exact("missing approved idiom marker", collect_failures(mutated), [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][2]}"])
         checks_run += 1
-
         mutated = root / "missing_approved_selected_iteration_marker"
         seed(mutated)
         write_text(mutated, APPROVED_IDIOM_PATH, placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][5], ""))
-        expect_exact(
-            "missing approved selected iteration marker",
-            collect_failures(mutated),
-            [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][5]}"],
-        )
+        expect_exact("missing approved selected iteration marker", collect_failures(mutated), [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][5]}"])
         checks_run += 1
-
         mutated = root / "missing_approved_callback_focus_marker"
         seed(mutated)
         write_text(mutated, APPROVED_IDIOM_PATH, placeholder(APPROVED_IDIOM_PATH).replace(MARKERS[APPROVED_IDIOM_PATH][6], ""))
-        expect_exact(
-            "missing approved callback-focus marker",
-            collect_failures(mutated),
-            [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][6]}"],
-        )
+        expect_exact("missing approved callback-focus marker", collect_failures(mutated), [f"{APPROVED_IDIOM_PATH}:missing_text:{MARKERS[APPROVED_IDIOM_PATH][6]}"])
         checks_run += 1
-
         mutated = root / "missing_kobject_survey_marker"
         seed(mutated)
         write_text(mutated, KOBJECT_SURVEY_PATH, placeholder(KOBJECT_SURVEY_PATH).replace(MARKERS[KOBJECT_SURVEY_PATH][1], ""))
-        expect_exact(
-            "missing kobject survey marker",
-            collect_failures(mutated),
-            [f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][1]}"],
-        )
+        expect_exact("missing kobject survey marker", collect_failures(mutated), [f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][1]}"])
         checks_run += 1
-
         mutated = root / "missing_review_checklist_marker"
         seed(mutated)
         write_text(mutated, REVIEW_CHECKLIST_PATH, placeholder(REVIEW_CHECKLIST_PATH).replace(MARKERS[REVIEW_CHECKLIST_PATH][2], ""))
-        expect_exact(
-            "missing review checklist marker",
-            collect_failures(mutated),
-            [f"{REVIEW_CHECKLIST_PATH}:missing_text:{MARKERS[REVIEW_CHECKLIST_PATH][2]}"],
-        )
+        expect_exact("missing review checklist marker", collect_failures(mutated), [f"{REVIEW_CHECKLIST_PATH}:missing_text:{MARKERS[REVIEW_CHECKLIST_PATH][2]}"])
         checks_run += 1
-
         mutated = root / "missing_review_checklist_trace_events_marker"
         seed(mutated)
         write_text(mutated, REVIEW_CHECKLIST_PATH, placeholder(REVIEW_CHECKLIST_PATH).replace(MARKERS[REVIEW_CHECKLIST_PATH][1], ""))
-        expect_exact(
-            "missing review checklist trace-events marker",
-            collect_failures(mutated),
-            [f"{REVIEW_CHECKLIST_PATH}:missing_text:{MARKERS[REVIEW_CHECKLIST_PATH][1]}"],
-        )
+        expect_exact("missing review checklist trace-events marker", collect_failures(mutated), [f"{REVIEW_CHECKLIST_PATH}:missing_text:{MARKERS[REVIEW_CHECKLIST_PATH][1]}"])
         checks_run += 1
-
         mutated = root / "missing_scripts_root_marker"
         seed(mutated)
         write_text(mutated, SCRIPTS_ROOT_PATH, placeholder(SCRIPTS_ROOT_PATH).replace(MARKERS[SCRIPTS_ROOT_PATH][3], ""))
-        expect_exact(
-            "missing scripts-root marker",
-            collect_failures(mutated),
-            [f"{SCRIPTS_ROOT_PATH}:missing_text:{MARKERS[SCRIPTS_ROOT_PATH][3]}"],
-        )
+        expect_exact("missing scripts-root marker", collect_failures(mutated), [f"{SCRIPTS_ROOT_PATH}:missing_text:{MARKERS[SCRIPTS_ROOT_PATH][3]}"])
         checks_run += 1
-
         mutated = root / "missing_tests_root_marker"
         seed(mutated)
         write_text(mutated, TESTS_ROOT_PATH, placeholder(TESTS_ROOT_PATH).replace(MARKERS[TESTS_ROOT_PATH][4], ""))
-        expect_exact(
-            "missing tests-root marker",
-            collect_failures(mutated),
-            [f"{TESTS_ROOT_PATH}:missing_text:{MARKERS[TESTS_ROOT_PATH][4]}"],
-        )
+        expect_exact("missing tests-root marker", collect_failures(mutated), [f"{TESTS_ROOT_PATH}:missing_text:{MARKERS[TESTS_ROOT_PATH][4]}"])
         checks_run += 1
-
         mutated = root / "missing_lane_sequencing_marker"
         seed(mutated)
         write_text(mutated, LANE_SEQUENCING_PATH, placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][5], ""))
-        expect_exact(
-            "missing lane sequencing marker",
-            collect_failures(mutated),
-            [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][5]}"],
-        )
+        expect_exact("missing lane sequencing marker", collect_failures(mutated), [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][5]}"])
         checks_run += 1
-
         mutated = root / "missing_lane_sequencing_kretprobe_companion_marker"
         seed(mutated)
         write_text(mutated, LANE_SEQUENCING_PATH, placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][6], ""))
-        expect_exact(
-            "missing lane sequencing kretprobe companion marker",
-            collect_failures(mutated),
-            [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][6]}"],
-        )
+        expect_exact("missing lane sequencing kretprobe companion marker", collect_failures(mutated), [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][6]}"])
         checks_run += 1
-
         mutated = root / "missing_sample_root_marker"
         seed(mutated)
         write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][6], ""))
-        expect_exact(
-            "missing sample-root marker",
-            collect_failures(mutated),
-            [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][6]}"],
-        )
+        expect_exact("missing sample-root marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][6]}"])
         checks_run += 1
-
         mutated = root / "missing_guide_trace_callback_marker"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][7], ""))
-        expect_exact(
-            "missing guide trace callback marker",
-            collect_failures(mutated),
-            [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][7]}"],
-        )
+        expect_exact("missing guide trace callback marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][7]}"])
         checks_run += 1
-
         mutated = root / "missing_sample_root_trace_callback_marker"
         seed(mutated)
         write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][4], ""))
-        expect_exact(
-            "missing sample-root trace callback marker",
-            collect_failures(mutated),
-            [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][4]}"],
-        )
+        expect_exact("missing sample-root trace callback marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][4]}"])
         checks_run += 1
-
         mutated = root / "missing_direct_packet_path"
         seed(mutated)
-        write_text(
-            mutated,
-            GUIDE_PATH,
-            strip_standalone_path(
-                placeholder(GUIDE_PATH),
-                "Documentation/zigux/phase5-kfifo-sample-survey.md",
-            ),
-        )
-        expect_exact(
-            "missing direct packet path",
-            collect_failures(mutated),
-            ["guide:missing_path:Documentation/zigux/phase5-kfifo-sample-survey.md"],
-        )
+        write_text(mutated, GUIDE_PATH, strip_standalone_path(placeholder(GUIDE_PATH), "Documentation/zigux/phase5-kfifo-sample-survey.md"))
+        expect_exact("missing direct packet path", collect_failures(mutated), ["guide:missing_path:Documentation/zigux/phase5-kfifo-sample-survey.md"])
         checks_run += 1
-
         mutated = root / "missing_companion_path"
         seed(mutated)
-        approved_text = strip_standalone_path(
-            placeholder(APPROVED_IDIOM_PATH),
-            "samples/zigux/trace_events_sample.zig",
-        )
-        guide_text = strip_standalone_path(
-            placeholder(GUIDE_PATH),
-            "samples/zigux/trace_events_sample.zig",
-        )
+        approved_text = strip_standalone_path(placeholder(APPROVED_IDIOM_PATH), "samples/zigux/trace_events_sample.zig")
+        guide_text = strip_standalone_path(placeholder(GUIDE_PATH), "samples/zigux/trace_events_sample.zig")
         write_text(mutated, APPROVED_IDIOM_PATH, approved_text)
         write_text(mutated, GUIDE_PATH, guide_text)
-        expect_exact(
-            "missing companion path",
-            collect_failures(mutated),
-            ["packet:missing_companion_path:samples/zigux/trace_events_sample.zig"],
-        )
+        expect_exact("missing companion path", collect_failures(mutated), ["packet:missing_companion_path:samples/zigux/trace_events_sample.zig"])
         checks_run += 1
-
         mutated = root / "missing_kobject_direct_path"
         seed(mutated)
-        write_text(
-            mutated,
-            KOBJECT_SURVEY_PATH,
-            placeholder(KOBJECT_SURVEY_PATH).replace(
-                "zigux/tests/phase5_kobject_attr_group_contract_survey.zig",
-                "",
-            ),
-        )
-        expect_exact(
-            "missing kobject direct path",
-            collect_failures(mutated),
-            [
-                f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][0]}",
-                f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}" ,
-                "kobject_survey:missing_path:zigux/tests/phase5_kobject_attr_group_contract_survey.zig",
-            ],
-        )
+        write_text(mutated, KOBJECT_SURVEY_PATH, placeholder(KOBJECT_SURVEY_PATH).replace("zigux/tests/phase5_kobject_attr_group_contract_survey.zig", ""))
+        expect_exact("missing kobject direct path", collect_failures(mutated), [f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][0]}", f"{KOBJECT_SURVEY_PATH}:missing_text:{MARKERS[KOBJECT_SURVEY_PATH][2]}", "kobject_survey:missing_path:zigux/tests/phase5_kobject_attr_group_contract_survey.zig"])
         checks_run += 1
-
         mutated = root / "missing_approved_anchor_path"
         seed(mutated)
         write_text(mutated, APPROVED_IDIOM_PATH, placeholder(APPROVED_IDIOM_PATH).replace("`samples/trace_events/trace-events-sample.c`", ""))
-        expect_exact(
-            "missing approved anchor path",
-            collect_failures(mutated),
-            ["approved_idiom:missing_path:samples/trace_events/trace-events-sample.c"],
-        )
+        expect_exact("missing approved anchor path", collect_failures(mutated), ["approved_idiom:missing_path:samples/trace_events/trace-events-sample.c"])
         checks_run += 1
-
         mutated = root / "missing_direct_repo_path"
         seed(mutated)
         (mutated / "samples/zigux/bytestream_fifo.zig").unlink()
-        expect_exact(
-            "missing direct repo path",
-            collect_failures(mutated),
-            ["repo:missing_path:samples/zigux/bytestream_fifo.zig"],
-        )
+        expect_exact("missing direct repo path", collect_failures(mutated), ["repo:missing_path:samples/zigux/bytestream_fifo.zig"])
         checks_run += 1
-
         mutated = root / "missing_companion_repo_path"
         seed(mutated)
         (mutated / "samples/zigux/trace_events_sample.zig").unlink()
-        expect_exact(
-            "missing companion repo path",
-            collect_failures(mutated),
-            ["repo:missing_companion_path:samples/zigux/trace_events_sample.zig"],
-        )
+        expect_exact("missing companion repo path", collect_failures(mutated), ["repo:missing_companion_path:samples/zigux/trace_events_sample.zig"])
         checks_run += 1
-
         mutated = root / "missing_kobject_repo_path"
         seed(mutated)
         (mutated / "zigux/tests/phase5_kobject_attr_group_contract_survey.zig").unlink()
-        expect_exact(
-            "missing kobject repo path",
-            collect_failures(mutated),
-            ["repo:missing_path:zigux/tests/phase5_kobject_attr_group_contract_survey.zig"],
-        )
+        expect_exact("missing kobject repo path", collect_failures(mutated), ["repo:missing_path:zigux/tests/phase5_kobject_attr_group_contract_survey.zig"])
         checks_run += 1
-
         mutated = root / "forbidden_full_trace_events_claim"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH) + FORBIDDEN_GUIDE_TEXT[0] + "\n")
-        expect_exact(
-            "forbidden full trace-events claim",
-            collect_failures(mutated),
-            [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[0]}"],
-        )
+        expect_exact("forbidden full trace-events claim", collect_failures(mutated), [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[0]}"])
         checks_run += 1
-
         mutated = root / "forbidden_full_kobject_claim"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH) + FORBIDDEN_GUIDE_TEXT[1] + "\n")
-        expect_exact(
-            "forbidden full kobject claim",
-            collect_failures(mutated),
-            [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[1]}"],
-        )
+        expect_exact("forbidden full kobject claim", collect_failures(mutated), [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[1]}"])
         checks_run += 1
-
         mutated = root / "forbidden_runtime_phase5_claim"
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH) + FORBIDDEN_GUIDE_TEXT[2] + "\n")
-        expect_exact(
-            "forbidden runtime-as-phase5 claim",
-            collect_failures(mutated),
-            [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[2]}"],
-        )
+        expect_exact("forbidden runtime-as-phase5 claim", collect_failures(mutated), [f"guide:forbidden_text:{FORBIDDEN_GUIDE_TEXT[2]}"])
         checks_run += 1
-
         mutated = root / "forbidden_sample_root_kobject_inversion"
         seed(mutated)
         write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH) + FORBIDDEN_SAMPLE_ROOT_TEXT[0] + "\n")
-        expect_exact(
-            "forbidden sample-root kobject inversion",
-            collect_failures(mutated),
-            [f"sample_root:forbidden_text:{FORBIDDEN_SAMPLE_ROOT_TEXT[0]}"],
-        )
+        expect_exact("forbidden sample-root kobject inversion", collect_failures(mutated), [f"sample_root:forbidden_text:{FORBIDDEN_SAMPLE_ROOT_TEXT[0]}"])
         checks_run += 1
-
         mutated = root / "guide_allows_public_tree_companion_reference"
         seed(mutated)
         custom = placeholder(GUIDE_PATH).replace("`samples/zigux/trace_events_sample.zig`", "samples/zigux/trace_events_sample.zig")
         write_text(mutated, GUIDE_PATH, custom)
         expect_exact("guide allows plain companion reference", collect_failures(mutated), [])
         checks_run += 1
-
         mutated = root / "approved_allows_plain_anchor_reference"
         seed(mutated)
-        custom = strip_standalone_path(
-            placeholder(APPROVED_IDIOM_PATH),
-            "zigux/tests/phase5_build.zig",
-        ) + "\n\nzigux/tests/phase5_build.zig"
+        custom = strip_standalone_path(placeholder(APPROVED_IDIOM_PATH), "zigux/tests/phase5_build.zig") + "\n\nzigux/tests/phase5_build.zig"
         write_text(mutated, APPROVED_IDIOM_PATH, custom)
         expect_exact("approved allows plain anchor reference", collect_failures(mutated), [])
         checks_run += 1
-
         mutated = root / "kobject_survey_allows_plain_direct_reference"
         seed(mutated)
-        custom = strip_standalone_path(
-            placeholder(KOBJECT_SURVEY_PATH),
-            "zigux/tests/phase5_kobject_attr_group_contract.zig",
-        ) + "\n\nzigux/tests/phase5_kobject_attr_group_contract.zig"
+        custom = strip_standalone_path(placeholder(KOBJECT_SURVEY_PATH), "zigux/tests/phase5_kobject_attr_group_contract.zig") + "\n\nzigux/tests/phase5_kobject_attr_group_contract.zig"
         write_text(mutated, KOBJECT_SURVEY_PATH, custom)
         expect_exact("kobject survey allows plain direct reference", collect_failures(mutated), [])
         checks_run += 1
-
         mutated = root / "missing_phase5_build_in_approved"
         seed(mutated)
-        write_text(
-            mutated,
-            APPROVED_IDIOM_PATH,
-            strip_standalone_path(placeholder(APPROVED_IDIOM_PATH), "zigux/tests/phase5_build.zig"),
-        )
-        expect_exact(
-            "missing phase5 build in approved idiom",
-            collect_failures(mutated),
-            ["approved_idiom:missing_path:zigux/tests/phase5_build.zig"],
-        )
+        write_text(mutated, APPROVED_IDIOM_PATH, strip_standalone_path(placeholder(APPROVED_IDIOM_PATH), "zigux/tests/phase5_build.zig"))
+        expect_exact("missing phase5 build in approved idiom", collect_failures(mutated), ["approved_idiom:missing_path:zigux/tests/phase5_build.zig"])
         checks_run += 1
-
         mutated = root / "missing_trace_formatting_companion_in_approved"
         seed(mutated)
-        write_text(
-            mutated,
-            APPROVED_IDIOM_PATH,
-            strip_standalone_path(
-                placeholder(APPROVED_IDIOM_PATH),
-                "samples/zigux/trace_events_string_formatting_sample.zig",
-            ),
-        )
-        expect_exact(
-            "missing trace formatting companion in approved idiom",
-            collect_failures(mutated),
-            ["approved_idiom:missing_path:samples/zigux/trace_events_string_formatting_sample.zig"],
-        )
+        write_text(mutated, APPROVED_IDIOM_PATH, strip_standalone_path(placeholder(APPROVED_IDIOM_PATH), "samples/zigux/trace_events_string_formatting_sample.zig"))
+        expect_exact("missing trace formatting companion in approved idiom", collect_failures(mutated), ["approved_idiom:missing_path:samples/zigux/trace_events_string_formatting_sample.zig"])
         checks_run += 1
-
         mutated = root / "missing_trace_callback_focus_companion_in_approved"
         seed(mutated)
-        write_text(
-            mutated,
-            APPROVED_IDIOM_PATH,
-            strip_standalone_path(
-                placeholder(APPROVED_IDIOM_PATH),
-                "samples/zigux/trace_events_callback_focus_contract.zig",
-            ),
-        )
-        expect_exact(
-            "missing trace callback-focus companion in approved idiom",
-            collect_failures(mutated),
-            ["approved_idiom:missing_path:samples/zigux/trace_events_callback_focus_contract.zig"],
-        )
+        write_text(mutated, APPROVED_IDIOM_PATH, strip_standalone_path(placeholder(APPROVED_IDIOM_PATH), "samples/zigux/trace_events_callback_focus_contract.zig"))
+        expect_exact("missing trace callback-focus companion in approved idiom", collect_failures(mutated), ["approved_idiom:missing_path:samples/zigux/trace_events_callback_focus_contract.zig"])
         checks_run += 1
-
         mutated = root / "missing_public_tree_companion_repo_path"
         seed(mutated)
         (mutated / "zigux/tests/phase5_kobject_example_manifest.json").unlink()
-        expect_exact(
-            "missing public-tree companion repo path",
-            collect_failures(mutated),
-            ["repo:missing_companion_path:zigux/tests/phase5_kobject_example_manifest.json"],
-        )
+        expect_exact("missing public-tree companion repo path", collect_failures(mutated), ["repo:missing_companion_path:zigux/tests/phase5_kobject_example_manifest.json"])
         checks_run += 1
-
         mutated = root / "missing_direct_docs_path_from_guide"
         seed(mutated)
-        write_text(
-            mutated,
-            GUIDE_PATH,
-            strip_standalone_path(
-                placeholder(GUIDE_PATH),
-                "Documentation/zigux/phase5-kretprobe-sample-survey.md",
-            ),
-        )
-        expect_exact(
-            "missing direct docs path from guide",
-            collect_failures(mutated),
-            ["guide:missing_path:Documentation/zigux/phase5-kretprobe-sample-survey.md"],
-        )
+        write_text(mutated, GUIDE_PATH, strip_standalone_path(placeholder(GUIDE_PATH), "Documentation/zigux/phase5-kretprobe-sample-survey.md"))
+        expect_exact("missing direct docs path from guide", collect_failures(mutated), ["guide:missing_path:Documentation/zigux/phase5-kretprobe-sample-survey.md"])
         checks_run += 1
-
         mutated = root / "missing_kobject_attr_replay_repo_path"
         seed(mutated)
         (mutated / "zigux/tests/phase5_kobject_attr_group_contract.zig").unlink()
-        expect_exact(
-            "missing kobject attr replay repo path",
-            collect_failures(mutated),
-            ["repo:missing_path:zigux/tests/phase5_kobject_attr_group_contract.zig"],
-        )
+        expect_exact("missing kobject attr replay repo path", collect_failures(mutated), ["repo:missing_path:zigux/tests/phase5_kobject_attr_group_contract.zig"])
         checks_run += 1
-
         mutated = root / "missing_trace_companion_manifest_repo_path"
         seed(mutated)
         (mutated / "zigux/tests/phase5_trace_events_sample_manifest.json").unlink()
-        expect_exact(
-            "missing trace companion manifest repo path",
-            collect_failures(mutated),
-            ["repo:missing_companion_path:zigux/tests/phase5_trace_events_sample_manifest.json"],
-        )
+        expect_exact("missing trace companion manifest repo path", collect_failures(mutated), ["repo:missing_companion_path:zigux/tests/phase5_trace_events_sample_manifest.json"])
         checks_run += 1
-
         mutated = root / "docs_root_allows_extra_context_line"
         seed(mutated)
-        write_text(
-            mutated,
-            DOCS_ROOT_PATH,
-            placeholder(DOCS_ROOT_PATH)
-            + "\nSupporting note: keep Phase 5 shared reminder wording aligned with the shipped sample packet.\n",
-        )
+        write_text(mutated, DOCS_ROOT_PATH, placeholder(DOCS_ROOT_PATH) + "\nSupporting note: keep Phase 5 shared reminder wording aligned with the shipped sample packet.\n")
         expect_exact("docs root allows extra context line", collect_failures(mutated), [])
         checks_run += 1
-
         mutated = root / "missing_sample_root_attr_guard_marker"
         seed(mutated)
         write_text(mutated, SAMPLE_ROOT_PATH, placeholder(SAMPLE_ROOT_PATH).replace(MARKERS[SAMPLE_ROOT_PATH][5], ""))
-        expect_exact(
-            "missing sample root attr guard marker",
-            collect_failures(mutated),
-            [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][5]}"],
-        )
+        expect_exact("missing sample root attr guard marker", collect_failures(mutated), [f"{SAMPLE_ROOT_PATH}:missing_text:{MARKERS[SAMPLE_ROOT_PATH][5]}"])
         checks_run += 1
-
         mutated = root / "missing_tests_root_kobject_split_marker"
         seed(mutated)
         write_text(mutated, TESTS_ROOT_PATH, placeholder(TESTS_ROOT_PATH).replace(MARKERS[TESTS_ROOT_PATH][3], ""))
-        expect_exact(
-            "missing tests root kobject split marker",
-            collect_failures(mutated),
-            [f"{TESTS_ROOT_PATH}:missing_text:{MARKERS[TESTS_ROOT_PATH][3]}"],
-        )
+        expect_exact("missing tests root kobject split marker", collect_failures(mutated), [f"{TESTS_ROOT_PATH}:missing_text:{MARKERS[TESTS_ROOT_PATH][3]}"])
         checks_run += 1
-
         mutated = root / "missing_scripts_root_kobject_split_marker"
         seed(mutated)
         write_text(mutated, SCRIPTS_ROOT_PATH, placeholder(SCRIPTS_ROOT_PATH).replace(MARKERS[SCRIPTS_ROOT_PATH][1], ""))
-        expect_exact(
-            "missing scripts root kobject split marker",
-            collect_failures(mutated),
-            [f"{SCRIPTS_ROOT_PATH}:missing_text:{MARKERS[SCRIPTS_ROOT_PATH][1]}"],
-        )
+        expect_exact("missing scripts root kobject split marker", collect_failures(mutated), [f"{SCRIPTS_ROOT_PATH}:missing_text:{MARKERS[SCRIPTS_ROOT_PATH][1]}"])
         checks_run += 1
-
         mutated = root / "missing_review_checklist_kobject_marker"
         seed(mutated)
         write_text(mutated, REVIEW_CHECKLIST_PATH, placeholder(REVIEW_CHECKLIST_PATH).replace(MARKERS[REVIEW_CHECKLIST_PATH][3], ""))
-        expect_exact(
-            "missing review checklist kobject marker",
-            collect_failures(mutated),
-            [f"{REVIEW_CHECKLIST_PATH}:missing_text:{MARKERS[REVIEW_CHECKLIST_PATH][3]}"],
-        )
+        expect_exact("missing review checklist kobject marker", collect_failures(mutated), [f"{REVIEW_CHECKLIST_PATH}:missing_text:{MARKERS[REVIEW_CHECKLIST_PATH][3]}"])
         checks_run += 1
-
         mutated = root / "missing_lane_sequencing_kobject_attr_marker"
         seed(mutated)
         write_text(mutated, LANE_SEQUENCING_PATH, placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][2], ""))
-        expect_exact(
-            "missing lane sequencing kobject attr marker",
-            collect_failures(mutated),
-            [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][2]}"],
-        )
+        expect_exact("missing lane sequencing kobject attr marker", collect_failures(mutated), [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][2]}"])
         checks_run += 1
-
     if checks_run != expected_case_count:
         raise AssertionError(f"expected {expected_case_count} self-test cases, ran {checks_run}")
-
     print("PHASE5_REVIEW_GUIDE_SURFACE_SELF_TEST=pass")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_SELF_TEST_CASES={checks_run}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT.parent.parent, help="repository root to validate")
     parser.add_argument("--self-test", action="store_true", help="run built-in self-tests")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
     failures = collect_failures(args.root)
     if failures:
         print("PHASE5_REVIEW_GUIDE_SURFACE=fail")
         for failure in failures:
             print(failure)
         return 1
-
     print("PHASE5_REVIEW_GUIDE_SURFACE=pass")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DIRECT_PATH_COUNT={len(DIRECT_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_COMPANION_PATH_COUNT={len(PUBLIC_TREE_COMPANION_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_KOBJECT_DIRECT_PATH_COUNT={len(KOBJECT_DIRECT_PACKET_PATHS)}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
