@@ -145,6 +145,8 @@ def read_json(path: Path) -> dict[str, object]:
 def expect_string_list(label: str, value: object) -> list[str]:
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
         raise CheckError(f"expected string list for {label}")
+    if len(value) != len(set(value)):
+        raise CheckError(f"duplicate entry in {label}")
     return list(value)
 
 
@@ -288,6 +290,14 @@ def run_self_test() -> int:
         build_fixture(fixture)
         run_check(fixture)
         case_count = 1
+
+        duplicate_build_names = tmpdir / "duplicate_build_names"
+        shutil.copytree(fixture, duplicate_build_names, dirs_exist_ok=True)
+        inventory = read_json(duplicate_build_names / INVENTORY_PATH)
+        inventory["build_test_names"] = ["a", "a", "c"]
+        write(duplicate_build_names / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(duplicate_build_names, "duplicate entry in build_test_names")
+        case_count += 1
 
         wrong_contract = tmpdir / "wrong_contract"
         shutil.copytree(fixture, wrong_contract, dirs_exist_ok=True)
