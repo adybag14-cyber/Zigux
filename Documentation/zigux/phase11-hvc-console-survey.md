@@ -88,7 +88,12 @@ modem-control proof pair likewise stays directly readable as a focused adjunct
 route without promoting itself into the shared three-entry build inventory, and
 the standalone targetless-unregister witness pair likewise stays directly
 readable as a separate failure-mode replay without promoting itself into the
-shared three-entry build inventory.
+shared three-entry build inventory. The same bounded current-head packet now
+also keeps the cleanup-prerequisite trigger split explicit through
+`error.CleanupRequiresFinalCloseOrHangup`, `CleanupTrigger.final_close_only`,
+`CleanupTrigger.hangup_only`, and `CleanupTrigger.final_close_and_hangup`, so
+teardown parity evidence remains tied to reviewable preconditions instead of
+implying unconditional cleanup execution.
 
 ## Still-Bounded Gaps
 
