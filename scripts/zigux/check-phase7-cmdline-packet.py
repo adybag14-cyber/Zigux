@@ -15,6 +15,34 @@ EXPECTED_MANIFEST_LANE_KEY = "P7-L08"
 EXPECTED_MANIFEST_PHASE = "Phase 7"
 EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"
 EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"
+EXPECTED_REVIEW_SURFACES = [
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
+    "Documentation/zigux/phase7-cmdline-slice.md",
+    "lib/cmdline.zig",
+    "zigux/tests/phase7_cmdline.zig",
+    "zigux/tests/phase7_cmdline_survey.zig",
+    "zigux/tests/phase7_cmdline_manifest.json",
+    "scripts/zigux/check-phase7-cmdline-packet.py",
+    "samples/zigux/README.md",
+]
+EXPECTED_COVERED_HELPERS = [
+    "parseOptionStr",
+    "parse_option_str",
+    "getOption",
+    "get_option",
+    "getOptions",
+    "get_options",
+    "nextArg",
+    "next_arg",
+    "memparse",
+]
+EXPECTED_OWNERSHIP_FOCUS = [
+    "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix",
+    "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior",
+    "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
+    "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
+    "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders",
+]
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
@@ -105,12 +133,15 @@ REQUIRED_MARKERS = {
         "MISSING_PHASE7_CMDLINE_FILES_END",
         "MISSING_PHASE7_CMDLINE_MARKERS_START",
         "MISSING_PHASE7_CMDLINE_MARKERS_END",
-        "\"Documentation/zigux/phase7-cmdline-slice.md\",",
-        "\"lib/cmdline.zig\",",
+        "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",",
+        "\\\"lib/cmdline.zig\\\",",
         'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"',
         'EXPECTED_MANIFEST_PHASE = "Phase 7"',
         'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"',
         'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"',
+        "EXPECTED_REVIEW_SURFACES = [",
+        "EXPECTED_COVERED_HELPERS = [",
+        "EXPECTED_OWNERSHIP_FOCUS = [",
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -118,7 +149,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 42
+SELF_TEST_CASE_COUNT = 45
 
 
 def read_text(path: Path) -> str:
@@ -139,6 +170,37 @@ def collect_missing_markers(root: Path) -> list[str]:
     return missing
 
 
+def collect_missing_manifest_entries(manifest: dict[str, object]) -> list[str]:
+    missing: list[str] = []
+
+    review_surfaces = manifest.get("review_surfaces")
+    if not isinstance(review_surfaces, list):
+        return ["zigux/tests/phase7_cmdline_manifest.json: review_surfaces"]
+    for item in EXPECTED_REVIEW_SURFACES:
+        if item not in review_surfaces:
+            missing.append(f"zigux/tests/phase7_cmdline_manifest.json: review_surfaces: {item}")
+
+    covered_helpers = manifest.get("covered_helpers")
+    if not isinstance(covered_helpers, list):
+        return ["zigux/tests/phase7_cmdline_manifest.json: covered_helpers"]
+    for item in EXPECTED_COVERED_HELPERS:
+        if item not in covered_helpers:
+            missing.append(f"zigux/tests/phase7_cmdline_manifest.json: covered_helpers: {item}")
+
+    ownership_focus = manifest.get("ownership_focus")
+    if not isinstance(ownership_focus, list):
+        return ["zigux/tests/phase7_cmdline_manifest.json: ownership_focus"]
+    for item in EXPECTED_OWNERSHIP_FOCUS:
+        if item not in ownership_focus:
+            missing.append(f"zigux/tests/phase7_cmdline_manifest.json: ownership_focus: {item}")
+
+    missing_paths = manifest.get("missing_paths")
+    if missing_paths != []:
+        missing.append("zigux/tests/phase7_cmdline_manifest.json: missing_paths")
+
+    return missing
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
@@ -153,6 +215,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         return [], ["zigux/tests/phase7_cmdline_manifest.json: anchor"]
     if manifest.get("current_master_state") != EXPECTED_MANIFEST_STATE:
         return [], ["zigux/tests/phase7_cmdline_manifest.json: current_master_state"]
+
+    missing_manifest_entries = collect_missing_manifest_entries(manifest)
+    if missing_manifest_entries:
+        return [], missing_manifest_entries
 
     return [], collect_missing_markers(root)
 
@@ -175,35 +241,10 @@ def write_fixture_root(tmp_root: Path) -> None:
                 "verified_on_utc": "2026-05-24T17:30:01Z",
                 "anchor": EXPECTED_MANIFEST_ANCHOR,
                 "current_master_state": EXPECTED_MANIFEST_STATE,
-                "review_surfaces": [
-                    "Documentation/zigux/phase7-helper-lane-sequencing.md",
-                    "Documentation/zigux/phase7-cmdline-slice.md",
-                    "lib/cmdline.zig",
-                    "zigux/tests/phase7_cmdline.zig",
-                    "zigux/tests/phase7_cmdline_survey.zig",
-                    "zigux/tests/phase7_cmdline_manifest.json",
-                    "scripts/zigux/check-phase7-cmdline-packet.py",
-                    "samples/zigux/README.md",
-                ],
-                "covered_helpers": [
-                    "parseOptionStr",
-                    "parse_option_str",
-                    "getOption",
-                    "get_option",
-                    "getOptions",
-                    "get_options",
-                    "nextArg",
-                    "next_arg",
-                    "memparse",
-                ],
+                "review_surfaces": EXPECTED_REVIEW_SURFACES,
+                "covered_helpers": EXPECTED_COVERED_HELPERS,
                 "missing_paths": [],
-                "ownership_focus": [
-                    "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix",
-                    "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior",
-                    "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
-                    "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
-                    "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders",
-                ],
+                "ownership_focus": EXPECTED_OWNERSHIP_FOCUS,
                 "next_bounded_step": "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof while shared-control routes stay parked outside this helper-local lane.",
             },
             indent=2,
@@ -242,14 +283,14 @@ def run_self_test() -> None:
             ("Documentation/zigux/phase7-cmdline-slice.md", "`scripts/zigux/check-phase7-cmdline-packet.py`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs", ""),
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
-            ("lib/cmdline.zig", "test \"nextArg keeps leading equals tokens as bare parameters\" {", ""),
-            ("lib/cmdline.zig", "test \"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\" {", ""),
-            ("lib/cmdline.zig", "test \"memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable\" {", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\" {", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays get_option alias cursor parity\" {", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_checker_anchor\", manifest.current_master_state);", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \"PHASE7_CMDLINE_PACKET=pass\");", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(slice_note, \"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\");", ""),
+            ("lib/cmdline.zig", "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {", ""),
+            ("lib/cmdline.zig", "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {", ""),
+            ("lib/cmdline.zig", "test \\\"memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable\\\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\\\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays get_option alias cursor parity\\\" {", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\\\"helper_slice_test_survey_manifest_checker_anchor\\\", manifest.current_master_state);", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \\\"PHASE7_CMDLINE_PACKET=pass\\\");", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(slice_note, \\\"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\\\");", ""),
             ("samples/zigux/README.md", "Current `master` still ships no standalone Phase 5 sample-root files here for:", ""),
             ("samples/zigux/README.md", "* `*cmdline*`", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Documentation/zigux/phase7-cmdline-slice.md", ""),
@@ -263,10 +304,10 @@ def run_self_test() -> None:
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_FILES_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_MARKERS_START", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISSING_PHASE7_CMDLINE_MARKERS_END", ""),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", "\"Documentation/zigux/phase7-cmdline-slice.md\",", ""),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", "\"lib/cmdline.zig\",", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays leading-plus fallback boundaries\" {", ""),
-            ("lib/cmdline.zig", "test \"memparse saturates signed overflow instead of trapping\" {", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"lib/cmdline.zig\\\",", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays leading-plus fallback boundaries\\\" {", ""),
+            ("lib/cmdline.zig", "test \\\"memparse saturates signed overflow instead of trapping\\\" {", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"', 'EXPECTED_MANIFEST_LANE_KEY = "P7-L07"'),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = "Phase 7"', 'EXPECTED_MANIFEST_PHASE = "Phase 8"'),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"', 'EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"'),
@@ -291,7 +332,42 @@ def run_self_test() -> None:
         expect_missing_marker(
             "manifest_checker_path_guard",
             tmp_root,
-            'zigux/tests/phase7_cmdline_manifest.json: "scripts/zigux/check-phase7-cmdline-packet.py"',
+            "zigux/tests/phase7_cmdline_manifest.json: review_surfaces: scripts/zigux/check-phase7-cmdline-packet.py",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].remove("samples/zigux/README.md")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_samples_readme_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: review_surfaces: samples/zigux/README.md",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(
+            "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders"
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_no_sample_boundary_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["missing_paths"] = ["samples/zigux/cmdline_example.zig"]
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_missing_paths_must_stay_empty",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: missing_paths",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
@@ -316,7 +392,7 @@ def run_self_test() -> None:
         expect_missing_marker(
             "manifest_covered_helper_guard",
             tmp_root,
-            'zigux/tests/phase7_cmdline_manifest.json: "parseOptionStr"',
+            "zigux/tests/phase7_cmdline_manifest.json: covered_helpers: parseOptionStr",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
@@ -327,7 +403,7 @@ def run_self_test() -> None:
         expect_missing_marker(
             "manifest_memparse_helper_guard",
             tmp_root,
-            'zigux/tests/phase7_cmdline_manifest.json: "memparse"',
+            "zigux/tests/phase7_cmdline_manifest.json: covered_helpers: memparse",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
@@ -404,11 +480,6 @@ def main() -> int:
         return 1
 
     print("PHASE7_CMDLINE_PACKET=pass")
-    print(f"PHASE7_CMDLINE_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE7_CMDLINE_PACKET_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
-    )
     return 0
 
 
