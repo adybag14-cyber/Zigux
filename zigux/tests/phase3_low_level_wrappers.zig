@@ -494,6 +494,11 @@ test "phase3 low-level wrappers keep MMIO range helpers and width aliases explic
     try std.testing.expectEqual(scoped_range.length, policy_range.length);
     try std.testing.expectEqual(scoped_range.stride, policy_range.stride);
 
+    const bytes_range = try mmio.rangeInteropPolicyBytes(base_addr, 16, 4, mmio_scope, 0);
+    try std.testing.expectEqual(policy_range.base_addr, bytes_range.base_addr);
+    try std.testing.expectEqual(policy_range.length, bytes_range.length);
+    try std.testing.expectEqual(policy_range.stride, bytes_range.stride);
+
     const byte_range = try mmio.rangeInteropPolicyByte(base_addr, 16, 4, mmio_scope);
     try std.testing.expectEqual(policy_range.base_addr, byte_range.base_addr);
     try std.testing.expectEqual(policy_range.length, byte_range.length);
@@ -501,6 +506,10 @@ test "phase3 low-level wrappers keep MMIO range helpers and width aliases explic
 
     try mmio.write8InteropPolicyBytes(base_addr, 1, 0x44, mmio_scope, 0);
     try std.testing.expectEqual(@as(u8, 0x44), try mmio.read8InteropPolicyBytes(base_addr, 1, mmio_scope, 0));
+
+    try mmio.write16InteropPolicyBytes(base_addr, 2, 0xBEEF, mmio_scope, 0);
+    try std.testing.expectEqual(@as(u16, 0xBEEF), try mmio.read16InteropPolicyBytes(base_addr, 2, mmio_scope, 0));
+    try std.testing.expectError(error.InvalidInteropPolicy, mmio.read16InteropPolicyBytes(base_addr, 3, mmio_scope, 0));
 
     try mmio.write32InteropPolicyByte(base_addr, 4, 0xCAFE_BABE, mmio_scope);
     barrier.release();
@@ -513,6 +522,7 @@ test "phase3 low-level wrappers keep MMIO range helpers and width aliases explic
         try mmio.read64InteropPolicyBytes(base_addr, 8, mmio_scope, 0),
     );
 
+    try std.testing.expectEqual(@as(u16, 0xBEEF), (try narrow.constPointerAtByte(u16, base_addr + 2, raw_scope)).*);
     try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), (try narrow.constPointerAtByte(u32, base_addr + 4, raw_scope)).*);
     try std.testing.expectEqual(
         @as(u64, 0x0123_4567_89AB_CDEF),
