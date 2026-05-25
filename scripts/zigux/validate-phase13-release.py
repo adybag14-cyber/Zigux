@@ -51,6 +51,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "tests-root alignment companion: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`",
+        "`landlock/ruleset` keeps the shipped survey, helper starter, direct replay, manifest-backed packet, and dedicated checker explicit through `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `security/landlock/ruleset.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, while `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, the shared `zigux/tests/phase13_build.zig` route, and broader tree plus hierarchy state stay recorded as repo-reality gaps on current `master`",
         "do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13` as shipped evidence",
     ],
     "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md": [
