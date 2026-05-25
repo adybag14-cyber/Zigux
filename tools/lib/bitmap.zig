@@ -151,6 +151,10 @@ pub fn bitmap_weight(src: []const Word, nbits: usize) usize {
 }
 
 pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
+    if (nbits == 0) {
+        return;
+    }
+
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
     std.debug.assert(src1.len >= nwords);
@@ -169,6 +173,10 @@ pub fn bitmap_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usi
 }
 
 pub fn weightedOr(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    if (nbits == 0) {
+        return 0;
+    }
+
     orBits(dst, src1, src2, nbits);
     return weight(dst, nbits);
 }
@@ -178,6 +186,10 @@ pub fn bitmap_weighted_or(dst: []Word, src1: []const Word, src2: []const Word, n
 }
 
 pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
+    if (nbits == 0) {
+        return;
+    }
+
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
     std.debug.assert(src1.len >= nwords);
@@ -196,6 +208,10 @@ pub fn bitmap_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: us
 }
 
 pub fn weightedXor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    if (nbits == 0) {
+        return 0;
+    }
+
     xorBits(dst, src1, src2, nbits);
     return weight(dst, nbits);
 }
@@ -688,6 +704,34 @@ test "bitmap zero-bit logical helpers stay explicit" {
 
     try std.testing.expect(!andNotBits(andnot_dst[0..0], lhs[0..0], rhs[0..0], 0));
     try std.testing.expectEqual(@as(Word, 0xaa55), andnot_dst[0]);
+
+    var or_dst = [_]Word{0x0f0f};
+    var or_alias_dst = [_]Word{0x0f0f};
+    orBits(or_dst[0..0], lhs[0..0], rhs[0..0], 0);
+    bitmap_or(or_alias_dst[0..0], lhs[0..0], rhs[0..0], 0);
+    try std.testing.expectEqual(@as(Word, 0x0f0f), or_dst[0]);
+    try std.testing.expectEqual(@as(Word, 0x0f0f), or_alias_dst[0]);
+
+    var xor_dst = [_]Word{0xf0f0};
+    var xor_alias_dst = [_]Word{0xf0f0};
+    xorBits(xor_dst[0..0], lhs[0..0], rhs[0..0], 0);
+    bitmap_xor(xor_alias_dst[0..0], lhs[0..0], rhs[0..0], 0);
+    try std.testing.expectEqual(@as(Word, 0xf0f0), xor_dst[0]);
+    try std.testing.expectEqual(@as(Word, 0xf0f0), xor_alias_dst[0]);
+
+    var weighted_or_dst = [_]Word{0x1357};
+    var weighted_or_alias_dst = [_]Word{0x1357};
+    try std.testing.expectEqual(@as(usize, 0), weightedOr(weighted_or_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weighted_or(weighted_or_alias_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(Word, 0x1357), weighted_or_dst[0]);
+    try std.testing.expectEqual(@as(Word, 0x1357), weighted_or_alias_dst[0]);
+
+    var weighted_xor_dst = [_]Word{0x2468};
+    var weighted_xor_alias_dst = [_]Word{0x2468};
+    try std.testing.expectEqual(@as(usize, 0), weightedXor(weighted_xor_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weighted_xor(weighted_xor_alias_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(Word, 0x2468), weighted_xor_dst[0]);
+    try std.testing.expectEqual(@as(Word, 0x2468), weighted_xor_alias_dst[0]);
 
     try std.testing.expect(empty(lhs[0..0], 0));
     try std.testing.expect(full(lhs[0..0], 0));
