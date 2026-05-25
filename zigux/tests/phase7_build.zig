@@ -77,6 +77,12 @@ pub fn build(b: *std.Build) void {
         optimize,
         "phase7_string_helpers_sample_boundary.zig",
     );
+    const string_helpers_format_boundary_root_module = createStandaloneTestRoot(
+        b,
+        target,
+        optimize,
+        "phase7_string_helpers_format_boundary.zig",
+    );
     const cmdline_root_module = createImportedTestRoot(
         b,
         target,
@@ -138,6 +144,12 @@ pub fn build(b: *std.Build) void {
         string_helpers_sample_boundary_root_module,
         repo_root,
     );
+    const run_string_helpers_format_boundary_tests = addTestRun(
+        b,
+        "phase7-string-helpers-format-boundary-tests",
+        string_helpers_format_boundary_root_module,
+        repo_root,
+    );
     const run_cmdline_tests = addTestRun(
         b,
         "phase7-cmdline-tests",
@@ -193,6 +205,12 @@ pub fn build(b: *std.Build) void {
     );
     string_helpers_sample_boundary_step.dependOn(&run_string_helpers_sample_boundary_tests.step);
 
+    const string_helpers_format_boundary_step = b.step(
+        "phase7-string-helpers-format-boundary",
+        "Run the Phase 7 string_helpers format-boundary replay",
+    );
+    string_helpers_format_boundary_step.dependOn(&run_string_helpers_format_boundary_tests.step);
+
     const cmdline_step = b.step(
         "phase7-cmdline-test",
         "Run the Phase 7 cmdline helper replay",
@@ -233,6 +251,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_string_helpers_tests.step);
     test_step.dependOn(&run_string_helpers_survey_tests.step);
     test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);
+    test_step.dependOn(&run_string_helpers_format_boundary_tests.step);
     test_step.dependOn(&run_cmdline_tests.step);
     test_step.dependOn(&run_cmdline_survey_tests.step);
     test_step.dependOn(&run_argv_split_tests.step);
