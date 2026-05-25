@@ -1,0 +1,41 @@
+name: zigux-bootstrap-split-helper
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    paths:
+      - 'scripts/zigux/**'
+      - 'third_party/**'
+      - '.github/workflows/zigux-bootstrap-split-helper.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  split-helper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.x'
+
+      - name: Compile current split-helper packet scripts
+        run: python3 -m py_compile scripts/zigux/split-pinned-zig-archive.py scripts/zigux/check-lane05-split-helper-selftest.py
+
+      - name: Self-test current split pinned Zig archive helper
+        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test
+
+      - name: Self-test current Lane 05 split helper selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
+
+      - name: Check current Lane 05 split helper selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
