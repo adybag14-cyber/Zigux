@@ -82,6 +82,24 @@ REQUIRED_CONTRACT_MARKERS = (
     "`make -C zigux phase11-validate` wrapper now cover thirteen focused proof builds through",
 )
 
+REQUIRED_DESIGNWARE_CURRENT_HEAD_MARKERS = (
+    "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,",
+    "`Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,",
+    "`Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,",
+    "`Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,",
+    "`Documentation/zigux/phase11-dw-wdt-survey.md`,",
+    "`scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,",
+    "`scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`,",
+    "`zigux/tests/phase11_dw_wdt_manifest.json`,",
+    "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,",
+    "`zigux/tests/phase11_dw_wdt_survey.zig`,",
+    "`drivers/watchdog/dw_wdt_restart.zig`,",
+    "`drivers/watchdog/dw_wdt_pm.zig`, and",
+    "`drivers/watchdog/dw_wdt_pm_scaffold.zig`; keep that returned smaller",
+    "broader direct driver, verify-helper, replay-backed stack, platform-backed registration, PM",
+    "execution, IRQ execution, and MMIO follow-through remain parked as the next",
+)
+
 REQUIRED_WORKFLOW_MARKERS = (
     "run: make -C zigux phase11-validate",
 )
@@ -163,6 +181,7 @@ def run_check(root: Path) -> None:
         raise CheckError("focused_direct_build_replays does not match the current-head Phase 11 packet")
 
     require_markers(str(CONTRACT_PATH), contract, REQUIRED_CONTRACT_MARKERS)
+    require_markers(str(CONTRACT_PATH), contract, REQUIRED_DESIGNWARE_CURRENT_HEAD_MARKERS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_EXACT_CURRENT_CHECKS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS)
     require_markers(str(CONTRACT_PATH), contract, EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS)
@@ -207,6 +226,7 @@ def build_fixture(root: Path) -> None:
                 "2 focused direct build replays",
                 "11 HVC current-head exact command markers",
                 "`make -C zigux phase11-validate` wrapper now cover thirteen focused proof builds through",
+                *REQUIRED_DESIGNWARE_CURRENT_HEAD_MARKERS,
                 *EXPECTED_EXACT_CURRENT_CHECKS,
                 *EXPECTED_FOCUSED_DIRECT_BUILD_CHECKS,
                 *EXPECTED_FOCUSED_DIRECT_BUILD_REPLAYS,
@@ -271,6 +291,22 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(wrong_contract, "11 HVC current-head exact command markers")
+        case_count += 1
+
+        missing_designware_current_head_marker = tmpdir / "missing_designware_current_head_marker"
+        shutil.copytree(fixture, missing_designware_current_head_marker, dirs_exist_ok=True)
+        write(
+            missing_designware_current_head_marker / CONTRACT_PATH,
+            read_text(missing_designware_current_head_marker / CONTRACT_PATH).replace(
+                "`Documentation/zigux/phase11-dw-wdt-survey.md`,",
+                "",
+                1,
+            ),
+        )
+        expect_failure(
+            missing_designware_current_head_marker,
+            "`Documentation/zigux/phase11-dw-wdt-survey.md`,",
+        )
         case_count += 1
 
         missing_contract_check = tmpdir / "missing_contract_check"
