@@ -4,11 +4,17 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
+
+EXPECTED_MANIFEST_LANE_KEY = "P7-L13"
+EXPECTED_MANIFEST_PHASE = "Phase 7"
+EXPECTED_MANIFEST_ANCHOR = "lib/rbtree.c"
+EXPECTED_MANIFEST_STATE = "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase7-rbtree-slice.md",
@@ -70,6 +76,11 @@ REQUIRED_MARKERS = {
         DIRECT_BUILD_READBACK_MARKER,
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
+        "import json",
+        "EXPECTED_MANIFEST_LANE_KEY = \"P7-L13\"",
+        "EXPECTED_MANIFEST_PHASE = \"Phase 7\"",
+        "EXPECTED_MANIFEST_ANCHOR = \"lib/rbtree.c\"",
+        "EXPECTED_MANIFEST_STATE = \"direct_helper_slice_checker_test_note_survey_manifest_fixture_harness\"",
         "PHASE7_RBTREE_PARITY=pass",
         "PHASE7_RBTREE_PARITY=fail",
         "PHASE7_RBTREE_PARITY_SELF_TEST=pass",
@@ -77,8 +88,8 @@ REQUIRED_MARKERS = {
         "MISSING_PHASE7_RBTREE_FILES_END",
         "MISSING_PHASE7_RBTREE_MARKERS_START",
         "MISSING_PHASE7_RBTREE_MARKERS_END",
-        '"zigux/tests/fixtures/phase7_rbtree.json": [',
-        '"zigux/tests/fixtures/phase7_rbtree_c_harness.c": [',
+        '\"zigux/tests/fixtures/phase7_rbtree.json\": [',
+        '\"zigux/tests/fixtures/phase7_rbtree_c_harness.c\": [',
         "NEXT_STEP_WRAPPER_MARKER = (",
         "DIRECT_BUILD_READBACK_MARKER = (",
         "SLICE_AUTHENTICATED_BUILD_MARKER = (",
@@ -108,24 +119,24 @@ REQUIRED_MARKERS = {
         'try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");',
         'try expectContains(makefile, "phase7-validate:");',
         'try expectContains(slice_note, "public-fallback provenance stays explicit through the now-empty `public_fallback_non_owner_paths` field");',
-        'try expectContains(fixture, "\\"packet\\": \\"phase7-rbtree-parity-fixture\\"");',
+        'try expectContains(fixture, "\\"packet\\": \\\"phase7-rbtree-parity-fixture\\\"");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
-        '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"',
-        '"public_fallback_non_owner_paths": []',
-        '"zigux/tests/fixtures/phase7_rbtree.json"',
-        '"zigux/tests/fixtures/phase7_rbtree_c_harness.c"',
+        '\"current_direct_readback_state\": \"direct_helper_slice_checker_test_note_survey_manifest_fixture_harness\"',
+        '\"public_fallback_non_owner_paths\": []',
+        '\"zigux/tests/fixtures/phase7_rbtree.json\"',
+        '\"zigux/tests/fixtures/phase7_rbtree_c_harness.c\"',
         "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence",
         MANIFEST_BUILD_PROVENANCE_MARKER,
         MANIFEST_EMPTY_FALLBACK_MARKER,
         NEXT_STEP_WRAPPER_MARKER,
     ],
     "zigux/tests/fixtures/phase7_rbtree.json": [
-        '"packet": "phase7-rbtree-parity-fixture"',
-        '"ordered_duplicate_range"',
-        '"cached_leftmost_promotion"',
-        '"postorder_null_stop"',
-        '"reverse_alias_detached"',
+        '\"packet\": \"phase7-rbtree-parity-fixture\"',
+        '\"ordered_duplicate_range\"',
+        '\"cached_leftmost_promotion\"',
+        '\"postorder_null_stop\"',
+        '\"reverse_alias_detached\"',
     ],
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c": [
         "struct phase7_rbtree_c_harness {",
@@ -139,7 +150,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 32
+SELF_TEST_CASE_COUNT = 36
 
 
 def read_text(path: Path) -> str:
@@ -150,6 +161,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
     if missing_files:
         return missing_files, []
+
+    manifest = json.loads(read_text(root / "zigux/tests/phase7_rbtree_manifest.json"))
+    if manifest.get("lane_key") != EXPECTED_MANIFEST_LANE_KEY:
+        return [], ["zigux/tests/phase7_rbtree_manifest.json: lane_key"]
+    if manifest.get("phase") != EXPECTED_MANIFEST_PHASE:
+        return [], ["zigux/tests/phase7_rbtree_manifest.json: phase"]
+    if manifest.get("anchor") != EXPECTED_MANIFEST_ANCHOR:
+        return [], ["zigux/tests/phase7_rbtree_manifest.json: anchor"]
+    if manifest.get("current_direct_readback_state") != EXPECTED_MANIFEST_STATE:
+        return [], ["zigux/tests/phase7_rbtree_manifest.json: current_direct_readback_state"]
 
     missing_markers: list[str] = []
     for rel, markers in REQUIRED_MARKERS.items():
@@ -167,7 +188,72 @@ def write(path: Path, content: str) -> None:
 
 def write_fixture_root(root: Path) -> None:
     for rel, markers in REQUIRED_MARKERS.items():
+        if rel == "zigux/tests/phase7_rbtree_manifest.json":
+            continue
         write(root / rel, "\n".join(markers) + "\n")
+
+    write(
+        root / "zigux/tests/phase7_rbtree_manifest.json",
+        json.dumps(
+            {
+                "lane_key": EXPECTED_MANIFEST_LANE_KEY,
+                "phase": EXPECTED_MANIFEST_PHASE,
+                "verified_on_utc": "2026-05-25T10:30:01Z",
+                "anchor": EXPECTED_MANIFEST_ANCHOR,
+                "roadmap_destinations": [
+                    "lib/rbtree.zig",
+                ],
+                "current_direct_readback_state": EXPECTED_MANIFEST_STATE,
+                "visible_paths": [
+                    "Documentation/zigux/phase7-rbtree-slice.md",
+                    "Documentation/zigux/phase7-rbtree-direct-anchor-note.md",
+                    "scripts/zigux/check-phase7-rbtree-parity.py",
+                    "lib/rbtree.zig",
+                    "zigux/tests/phase7_rbtree.zig",
+                    "zigux/tests/phase7_rbtree_survey.zig",
+                    "zigux/tests/phase7_rbtree_manifest.json",
+                    "zigux/tests/fixtures/phase7_rbtree.json",
+                    "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
+                ],
+                "readable_non_owner_paths": [
+                    "tools/lib/rbtree.zig",
+                    "scripts/zigux/check-phase7-build-wiring.py",
+                    "scripts/zigux/validate-phase7.py",
+                    "zigux/tests/phase7_build.zig",
+                    "zigux/Makefile",
+                    ".github/workflows/zigux-bootstrap.yml",
+                ],
+                "readable_makefile_markers": [
+                    "phase7-validate:",
+                ],
+                "public_fallback_non_owner_paths": [],
+                "missing_paths": [],
+                "absent_makefile_markers": [
+                    "phase7-rbtree-test:",
+                    "phase7-rbtree-survey:",
+                    "phase7-test:",
+                    "phase7:",
+                ],
+                "absent_workflow_markers": [
+                    "Validate Phase 7 runtime helper gates",
+                    "Run Phase 7 runtime helper tests",
+                    "make -C zigux phase7-test",
+                ],
+                "ownership_focus": [
+                    "the currently readable same-lane rbtree packet now includes the direct helper at `lib/rbtree.zig`, the dedicated slice note at `Documentation/zigux/phase7-rbtree-slice.md`, the direct-anchor note, the dedicated parity checker at `scripts/zigux/check-phase7-rbtree-parity.py`, the dedicated replay at `zigux/tests/phase7_rbtree.zig`, the returned survey and manifest, the returned `zigux/tests/fixtures/phase7_rbtree.json` parity companion, and the returned `zigux/tests/fixtures/phase7_rbtree_c_harness.c` companion, so same-lane truthfulness must keep those returned surfaces explicit",
+                    "path truthfulness must keep the currently returned helper rooted at `lib/rbtree.zig` explicit while `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence rather than helper-local ownership on current master",
+                    "build-graph truthfulness must keep the split non-owner evidence explicit: `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` are readable",
+                    "positive shared build-route truthfulness must stay explicit too: `zigux/Makefile` now returns shared `phase7-validate`, so the machine-readable same-lane packet should name that returned shared marker while still keeping `phase7-rbtree-test:`, `phase7-rbtree-survey:`, `phase7-test:`, and `phase7:` listed under `absent_makefile_markers` until dedicated wrappers really materialize",
+                    MANIFEST_BUILD_PROVENANCE_MARKER,
+                    MANIFEST_EMPTY_FALLBACK_MARKER,
+                    "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence",
+                ],
+                "next_bounded_step": "Stay in the same `kernel-leaf-libraries` lane and keep `zigux/tests/fixtures/phase7_rbtree.json` plus `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity companions while narrowing the next same-lane follow-up to whether dedicated `phase7-rbtree-test:` or `phase7-rbtree-survey:` wrappers materialize on current `master`, so helper path, shared `phase7-validate` route, and legacy companion framing stay aligned without widening beyond the rbtree packet.",
+            },
+            indent=2,
+        )
+        + "\n",
+    )
 
 
 def run_self_test() -> None:
@@ -321,15 +407,15 @@ def run_self_test() -> None:
 
         write_fixture_root(root)
         fixture_path = root / "zigux/tests/fixtures/phase7_rbtree.json"
-        fixture_marker = '"packet": "phase7-rbtree-parity-fixture"'
+        fixture_marker = '\"packet\": \"phase7-rbtree-parity-fixture\"'
         fixture_path.write_text(read_text(fixture_path).replace(fixture_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree.json: {fixture_marker}"])
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree.json: {fixture_marker}"])
 
         write_fixture_root(root)
         harness_path = root / "zigux/tests/fixtures/phase7_rbtree_c_harness.c"
         harness_marker = ".reverse_alias_detached = {"
         harness_path.write_text(read_text(harness_path).replace(harness_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree_c_harness.c: {harness_marker}"])
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_c_harness.c: {harness_marker}"])
 
         write_fixture_root(root)
         makefile_path = root / "zigux/Makefile"
@@ -339,28 +425,36 @@ def run_self_test() -> None:
 
         write_fixture_root(root)
         manifest_path = root / "zigux/tests/phase7_rbtree_manifest.json"
-        manifest_path.write_text(read_text(manifest_path).replace(NEXT_STEP_WRAPPER_MARKER + "\n", "", 1), encoding="utf-8")
+        manifest_path.write_text(read_text(manifest_path).replace(NEXT_STEP_WRAPPER_MARKER, "", 1), encoding="utf-8")
         assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {NEXT_STEP_WRAPPER_MARKER}"])
 
         write_fixture_root(root)
-        manifest_marker = '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"'
-        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
+        manifest = json.loads(read_text(manifest_path))
+        manifest["current_direct_readback_state"] = "fixture_only"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert validate(root) == ([], ["zigux/tests/phase7_rbtree_manifest.json: current_direct_readback_state"])
 
         write_fixture_root(root)
-        manifest_marker = '"public_fallback_non_owner_paths": []'
-        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
+        manifest_path.write_text(read_text(manifest_path).replace(MANIFEST_EMPTY_FALLBACK_MARKER, "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {MANIFEST_EMPTY_FALLBACK_MARKER}"])
 
         write_fixture_root(root)
-        manifest_marker = MANIFEST_BUILD_PROVENANCE_MARKER
-        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
+        manifest = json.loads(read_text(manifest_path))
+        manifest["lane_key"] = "P7-L12"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert validate(root) == ([], ["zigux/tests/phase7_rbtree_manifest.json: lane_key"])
 
         write_fixture_root(root)
-        manifest_marker = MANIFEST_EMPTY_FALLBACK_MARKER
-        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}"])
+        manifest = json.loads(read_text(manifest_path))
+        manifest["phase"] = "Phase 8"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert validate(root) == ([], ["zigux/tests/phase7_rbtree_manifest.json: phase"])
+
+        write_fixture_root(root)
+        manifest = json.loads(read_text(manifest_path))
+        manifest["anchor"] = "tools/lib/rbtree.c"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert validate(root) == ([], ["zigux/tests/phase7_rbtree_manifest.json: anchor"])
 
     print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")
     print(f"PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
