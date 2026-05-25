@@ -22,6 +22,8 @@ REQUIRED_MARKERS = {
         "`make -C zigux phase13-validate`",
         "focused checker",
         "repo-reality gaps",
+        "listIsEmpty()",
+        "zigux_list_is_empty()",
         "firstPprevMatchesHead()",
         "zigux_hlist_first_pprev_matches_head()",
     ),
@@ -56,6 +58,8 @@ REQUIRED_MARKERS = {
         "\"id\": \"phase13-notifier-priority-signal-gap\"",
         "\"id\": \"phase13-notifier-chain-helper-gap\"",
         "\"id\": \"phase13-build-route-gap\"",
+        "listIsEmpty()",
+        "zigux_list_is_empty()",
         "firstPprevMatchesHead()",
         "zigux_hlist_first_pprev_matches_head()",
     ),
@@ -65,12 +69,15 @@ REQUIRED_MARKERS = {
         'readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-notifier-packet.py")',
         '"phase13-notifier-focused-packet-checker"',
         '"PHASE13_NOTIFIER_PACKET=pass"',
+        '"pub fn listIsEmpty"',
+        '"zigux_list_is_empty"',
         '"pub fn firstPprevMatchesHead"',
         '"zigux_hlist_first_pprev_matches_head"',
     ),
     "zigux/bindings/notifier_abi.zig": (
         "pub const NotifierBlock = extern struct",
         "pub fn chainHasNonincreasingPriority",
+        "pub fn listIsEmpty",
         "pub fn listHasConsistentBacklinks",
         "pub fn firstPprevMatchesHead",
         "pub fn hlistHasConsistentPrevLinks",
@@ -91,6 +98,7 @@ REQUIRED_MARKERS = {
         "struct zigux_list_head {",
         "struct zigux_hlist_head {",
         "zigux_notifier_first_chain_priority_increase",
+        "zigux_list_is_empty",
         "zigux_list_has_consistent_backlinks",
         "zigux_hlist_first_pprev_matches_head",
         "zigux_hlist_has_consistent_prev_links",
@@ -259,9 +267,10 @@ def run_self_test() -> int:
         checks_run += 1
 
         manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
+        manifest_path.writeText = None
         manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8").replace(
-                'firstPprevMatchesHead()\n',
+                'listIsEmpty()\n',
                 "",
                 1,
             ),
@@ -269,7 +278,7 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:firstPprevMatchesHead()'
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:listIsEmpty()'
             in issues
         )
         populate_repo(tempdir)
@@ -346,6 +355,23 @@ def run_self_test() -> int:
         binding_path = tempdir / "zigux/bindings/notifier_abi.zig"
         binding_path.write_text(
             binding_path.read_text(encoding="utf-8").replace(
+                "pub fn listIsEmpty\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:zigux/bindings/notifier_abi.zig:pub fn listIsEmpty"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        binding_path = tempdir / "zigux/bindings/notifier_abi.zig"
+        binding_path.write_text(
+            binding_path.read_text(encoding="utf-8").replace(
                 "pub fn firstPprevMatchesHead\n",
                 "",
                 1,
@@ -372,6 +398,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:Documentation/zigux/phase13-notifier-summary-gap.md:`scripts/zigux/validate-phase13-release.py`"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        reviewability_path = tempdir / "zigux/tests/phase13_notifier_list_reviewability.zig"
+        reviewability_path.write_text(
+            reviewability_path.read_text(encoding="utf-8").replace(
+                '"zigux_list_is_empty"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            'missing_marker:zigux/tests/phase13_notifier_list_reviewability.zig:"zigux_list_is_empty"'
             in issues
         )
         populate_repo(tempdir)
@@ -423,6 +466,23 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:scripts/zigux/validate-phase13-release.py:Documentation/zigux/phase13-notifier-summary-gap.md"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        abi_path = tempdir / "include/zigux/abi.h"
+        abi_path.write_text(
+            abi_path.read_text(encoding="utf-8").replace(
+                "zigux_list_is_empty\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:include/zigux/abi.h:zigux_list_is_empty"
             in issues
         )
         populate_repo(tempdir)
