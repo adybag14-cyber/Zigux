@@ -50,6 +50,9 @@ def validate(repo_root: Path) -> list[str]:
     except json.JSONDecodeError as exc:
         return [f"invalid manifest json: {exc.msg}"]
 
+    if not isinstance(manifest, dict):
+        return ["invalid manifest root object"]
+
     surfaces = manifest.get("present_surfaces")
     if not isinstance(surfaces, dict):
         return ["invalid present_surfaces object"]
@@ -124,6 +127,14 @@ def run_self_test() -> int:
         if not any(issue.startswith("invalid manifest json:") for issue in issues):
             print("PHASE2_ARTIFACT_SUPPORT_SURFACE_SELF_TEST=fail")
             print("expected invalid manifest json was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MANIFEST_PATH, "[]\n")
+        issues = validate(root)
+        if "invalid manifest root object" not in issues:
+            print("PHASE2_ARTIFACT_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected invalid manifest root object was not reported")
             return 1
         case_count += 1
 
