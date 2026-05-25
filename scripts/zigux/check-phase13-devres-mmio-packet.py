@@ -18,6 +18,7 @@ HELPER_PATH = Path("lib/devres.zig")
 DMA_BOUNDARY_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-dma-boundary.py")
 IOUNMAP_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-iounmap-planner.py")
 IOMAP_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-iomap-planner.py")
+CURRENT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-current-packet.py")
 
 REQUIRED_FILES = [
     SLICE_PATH,
@@ -32,6 +33,7 @@ REQUIRED_FILES = [
     DMA_BOUNDARY_CHECKER_PATH,
     IOUNMAP_CHECKER_PATH,
     IOMAP_CHECKER_PATH,
+    CURRENT_PACKET_CHECKER_PATH,
 ]
 
 DIRECT_PACKET_GAP_PATHS = [
@@ -199,6 +201,12 @@ IOMAP_CHECKER_MARKERS = [
     "PHASE13_DEVRES_IOMAP_PLANNER=pass",
 ]
 
+CURRENT_PACKET_CHECKER_MARKERS = [
+    "MMIO_PACKET_CHECKER_PATH = Path(\"scripts/zigux/check-phase13-devres-mmio-packet.py\")",
+    "PHASE13_DEVRES_CURRENT_PACKET_SELF_TEST=pass",
+    "PHASE13_DEVRES_CURRENT_PACKET=pass",
+]
+
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -241,6 +249,7 @@ def validate(root: Path) -> list[str]:
         (DMA_BOUNDARY_CHECKER_PATH, DMA_BOUNDARY_CHECKER_MARKERS, "dma_boundary_checker"),
         (IOUNMAP_CHECKER_PATH, IOUNMAP_CHECKER_MARKERS, "iounmap_checker"),
         (IOMAP_CHECKER_PATH, IOMAP_CHECKER_MARKERS, "iomap_checker"),
+        (CURRENT_PACKET_CHECKER_PATH, CURRENT_PACKET_CHECKER_MARKERS, "current_packet_checker"),
     ]
     for rel, markers, prefix in checks:
         issues.extend(collect_missing(read_text(root / rel), markers, prefix))
@@ -263,6 +272,7 @@ def seed_fixture_tree(root: Path) -> None:
         DMA_BOUNDARY_CHECKER_PATH: "\n".join(DMA_BOUNDARY_CHECKER_MARKERS) + "\n",
         IOUNMAP_CHECKER_PATH: "\n".join(IOUNMAP_CHECKER_MARKERS) + "\n",
         IOMAP_CHECKER_PATH: "\n".join(IOMAP_CHECKER_MARKERS) + "\n",
+        CURRENT_PACKET_CHECKER_PATH: "\n".join(CURRENT_PACKET_CHECKER_MARKERS) + "\n",
     }
     for rel, text in writes.items():
         write_text(root / rel, text)
@@ -413,6 +423,25 @@ def run_self_test() -> int:
             validate(root),
             [f"missing_file:{IOMAP_MANIFEST_PATH.as_posix()}"],
             "missing_iomap_manifest_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / CURRENT_PACKET_CHECKER_PATH,
+            "\n".join(
+                marker
+                for marker in CURRENT_PACKET_CHECKER_MARKERS
+                if marker != "MMIO_PACKET_CHECKER_PATH = Path(\"scripts/zigux/check-phase13-devres-mmio-packet.py\")"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "current_packet_checker:missing_marker:MMIO_PACKET_CHECKER_PATH = Path(\"scripts/zigux/check-phase13-devres-mmio-packet.py\")",
+            ],
+            "missing_current_packet_mmio_link_failed",
         )
         case_count += 1
 
