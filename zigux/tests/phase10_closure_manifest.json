@@ -5,7 +5,7 @@
   "doc_count": 7,
   "manifest_count": 4,
   "driver_count": 4,
-  "test_count": 29,
+  "test_count": 30,
   "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
@@ -84,6 +84,7 @@
         "zigux/tests/phase10_virtio_input_survey.zig",
         "drivers/virtio/virtio_mmio_verify.zig",
         "zigux/tests/phase10_virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig",
         "zigux/tests/phase10_virtio_mmio_survey.zig",
         "scripts/zigux/check-phase10-bootstrap-route.py",
         "scripts/zigux/check-phase10-core-packet.py",
@@ -270,6 +271,9 @@
     "zigux/tests/phase10_virtio_mmio.zig": [
       "phase10 mmio lab replay"
     ],
+    "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig": [
+      "phase10 mmio apply-observation replay"
+    ],
     "drivers/virtio/virtio_mmio_verify.zig": [
       "phase10 mmio wrapper-facing verify replay"
     ],
@@ -361,6 +365,7 @@
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig",
     "drivers/virtio/virtio_mmio_verify.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "zigux/tests/phase10_build.zig"
