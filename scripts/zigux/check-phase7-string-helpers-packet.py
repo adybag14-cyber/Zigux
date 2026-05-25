@@ -220,7 +220,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 59
+SELF_TEST_CASE_COUNT = 61
 
 
 def read_text(path: Path) -> str:
@@ -570,6 +570,18 @@ def run_self_test() -> None:
         sample_boundary_marker = FULL_FAMILY_GAP_MARKER
         remove_once(sample_boundary_path, sample_boundary_marker)
         expect_missing_marker("missing_sample_boundary_non_goal_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        sample_boundary_printf_marker = "* `*printf*`"
+        remove_once(sample_boundary_path, sample_boundary_printf_marker)
+        expect_missing_marker("missing_sample_boundary_printf_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_printf_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        sample_boundary_vsprintf_marker = "* `*vsprintf*`"
+        remove_once(sample_boundary_path, sample_boundary_vsprintf_marker)
+        expect_missing_marker("missing_sample_boundary_vsprintf_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_vsprintf_marker}")
         cases_run += 1
         write_fixture_root(tmp_root)
 
