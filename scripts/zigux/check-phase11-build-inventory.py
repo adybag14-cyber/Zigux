@@ -57,6 +57,7 @@ SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
 VALIDATE_PHASE11_PATH = Path("scripts/zigux/validate-phase11.py")
+VALIDATE_CHECKS_FIXTURE_PATH = Path("zigux/tests/fixtures/phase11_validate_checks.json")
 HV_OPS_BUILD_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_build.zig")
 EXPORT_BUILD_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_build.zig")
 TARGETLESS_BUILD_PATH = Path("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
@@ -257,7 +258,6 @@ def expect_string_list(label: str, value: object) -> list[str]:
         raise CheckError(f"duplicate entry in {label}")
     return list(value)
 
-
 def expect_object_list(label: str, value: object) -> list[dict[str, object]]:
     if not isinstance(value, list) or any(not isinstance(item, dict) for item in value):
         raise CheckError(f"expected object list for {label}")
@@ -292,6 +292,30 @@ def workflow_steps_from_entries(
             raise CheckError(f"invalid entry in {label}")
         steps.append((name, run))
     return steps
+
+
+def validate_check_commands_from_entries(entries: object, label: str) -> list[str]:
+    commands: list[str] = []
+    for entry in expect_object_list(label, entries):
+        command = entry.get("command")
+        if not isinstance(command, list) or any(not isinstance(part, str) for part in command):
+            raise CheckError(f"invalid command entry in {label}")
+        commands.append(" ".join(command))
+    return commands
+
+
+def require_validate_check_commands(
+    validate_commands: list[str],
+    required_commands: tuple[str, ...],
+    *,
+    label: str,
+) -> None:
+    for command in required_commands:
+        count = validate_commands.count(command)
+        if count != 1:
+            raise CheckError(
+                f"{label} command mismatch in {VALIDATE_CHECKS_FIXTURE_PATH}: {command} (expected once, found {count})"
+            )
 
 
 def expect_exact_string(label: str, actual: object, expected: str) -> str:
@@ -355,6 +379,11 @@ def build_route_markers_from_inventory(inventory: dict[str, object]) -> tuple[st
 
 def run_check(root: Path) -> None:
     inventory = read_json(root / INVENTORY_PATH)
+    validate_checks_fixture = read_json(root / VALIDATE_CHECKS_FIXTURE_PATH)
+    validate_commands = validate_check_commands_from_entries(
+        validate_checks_fixture.get("exact_checks"),
+        "exact_checks",
+    )
     build_text = read_text(root / BUILD_FILE_PATH)
     workflow_text = read_text(root / WORKFLOW_PATH)
     makefile_text = read_text(root / MAKEFILE_PATH)
@@ -411,6 +440,16 @@ def run_check(root: Path) -> None:
         "focused_direct_build_checks",
         inventory.get("focused_direct_build_checks"),
         FOCUSED_DIRECT_BUILD_CHECKS,
+    )
+    require_validate_check_commands(
+        validate_commands,
+        EXACT_CURRENT_CHECKS,
+        label="exact_current_checks",
+    )
+    require_validate_check_commands(
+        validate_commands,
+        FOCUSED_DIRECT_BUILD_CHECKS,
+        label="focused_direct_build_checks",
     )
     workflow_steps = workflow_steps_from_entries(
         inventory.get("workflow_phase11_steps"),
@@ -477,6 +516,23 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def fixture_validate_checks() -> dict[str, object]:
+    command_rows = [
+        {"name": f"fixture-check-{index:02d}", "command": command.split()}
+        for index, command in enumerate(
+            EXACT_CURRENT_CHECKS + FOCUSED_DIRECT_BUILD_CHECKS,
+            start=1,
+        )
+    ]
+    command_rows.append(
+        {
+            "name": "fixture-extra-shared-check",
+            "command": ["python", "scripts/zigux/check-phase11-shared-replay-contract-counts.py"],
+        }
+    )
+    return {"exact_checks": command_rows}
+
+
 def fixture_inventory() -> dict[str, object]:
     return {
         **REQUIRED_PROOF_ROUTE,
@@ -517,7 +573,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
     const proof_tests = b.addTest(.{
         .name = \"phase11-hvc-cleanup-packet-proof\",
         .root_module = proof_module,
@@ -648,6 +703,8 @@ FIXTURE_SCRIPTS_README_TEXT = """# scripts/zigux
 FIXTURE_VALIDATE_PHASE11_TEXT = """CHECKS = (
     (\"python\", \"scripts/zigux/check-phase11-build-inventory.py\", \"--self-test\"),
     (\"python\", \"scripts/zigux/check-phase11-build-inventory.py\"),
+    (\"python\", \"scripts/zigux/check-phase11-focused-direct-build-replays.py\", \"--self-test\"),
+    (\"python\", \"scripts/zigux/check-phase11-focused-direct-build-replays.py\"),
     (\"python\", \"scripts/zigux/check-phase11-matrix-gap-survey.py\", \"--self-test\"),
     (\"python\", \"scripts/zigux/check-phase11-matrix-gap-survey.py\"),
     (\"python\", \"scripts/zigux/check-phase11-validation-matrix-gap-survey.py\", \"--self-test\"),
@@ -711,6 +768,7 @@ def build_fixture(root: Path) -> None:
     write(root / EXPORT_BUILD_PATH, FIXTURE_EXPORT_BUILD_TEXT)
     write(root / TARGETLESS_BUILD_PATH, FIXTURE_TARGETLESS_BUILD_TEXT)
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
+    write(root / VALIDATE_CHECKS_FIXTURE_PATH, json.dumps(fixture_validate_checks(), indent=2) + "\n")
     write(root / HVC_VALIDATION_MATRIX_PATH, FIXTURE_HVC_VALIDATION_MATRIX_TEXT)
     write(root / SHARED_REPLAY_CONTRACT_PATH, FIXTURE_SHARED_REPLAY_CONTRACT_TEXT)
     write(root / UAPI_SURVEY_PATH, FIXTURE_UAPI_SURVEY_TEXT)
@@ -819,6 +877,39 @@ def run_self_test() -> int:
         inventory["focused_direct_build_checks"] = inventory["focused_direct_build_checks"][:-1]
         write(wrong_focused_direct_checks / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_focused_direct_checks, "focused_direct_build_checks does not match")
+        case_count += 1
+
+        missing_validate_fixture_exact_command = tmpdir / "missing_validate_fixture_exact_command"
+        shutil.copytree(fixture, missing_validate_fixture_exact_command, dirs_exist_ok=True)
+        validate_fixture = read_json(missing_validate_fixture_exact_command / VALIDATE_CHECKS_FIXTURE_PATH)
+        validate_fixture["exact_checks"] = validate_fixture["exact_checks"][1:]
+        write(
+            missing_validate_fixture_exact_command / VALIDATE_CHECKS_FIXTURE_PATH,
+            json.dumps(validate_fixture, indent=2) + "\n",
+        )
+        expect_failure(
+            missing_validate_fixture_exact_command,
+            f"exact_current_checks command mismatch in {VALIDATE_CHECKS_FIXTURE_PATH}: python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+        )
+        case_count += 1
+
+        duplicate_validate_fixture_focused_command = tmpdir / "duplicate_validate_fixture_focused_command"
+        shutil.copytree(fixture, duplicate_validate_fixture_focused_command, dirs_exist_ok=True)
+        validate_fixture = read_json(duplicate_validate_fixture_focused_command / VALIDATE_CHECKS_FIXTURE_PATH)
+        validate_fixture["exact_checks"].append(
+            {
+                "name": "duplicate-focused-direct-check",
+                "command": ["python3", "scripts/zigux/check-phase11-focused-direct-build-replays.py"],
+            }
+        )
+        write(
+            duplicate_validate_fixture_focused_command / VALIDATE_CHECKS_FIXTURE_PATH,
+            json.dumps(validate_fixture, indent=2) + "\n",
+        )
+        expect_failure(
+            duplicate_validate_fixture_focused_command,
+            f"focused_direct_build_checks command mismatch in {VALIDATE_CHECKS_FIXTURE_PATH}: python3 scripts/zigux/check-phase11-focused-direct-build-replays.py",
+        )
         case_count += 1
 
         wrong_workflow_steps = tmpdir / "wrong_workflow_steps"
