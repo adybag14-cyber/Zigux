@@ -46,6 +46,14 @@ SELFTEST_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/check-phase3-xarray-slot.py"),
+        ("--self-test",),
+        (
+            "PHASE3_XARRAY_SLOT_SELF_TEST=pass",
+            "PHASE3_XARRAY_SLOT_SELF_TEST_CASES=",
+        ),
+    ),
+    (
         Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
         ("--self-test",),
         (
@@ -376,8 +384,16 @@ def _populate_repo(root: Path) -> None:
     _write_synthetic_manifest(root)
 
 
-def _expect_missing(root: Path, index: int, message: str) -> int:
+def _command_index(script_name: str) -> int:
+    for index, (rel_path, _args, _markers) in enumerate(SELFTEST_COMMANDS):
+        if rel_path.name == script_name:
+            return index
+    raise AssertionError(f"missing selftest command for {script_name}")
+
+
+def _expect_missing(root: Path, script_name: str, message: str) -> int:
     _populate_repo(root)
+    index = _command_index(script_name)
     missing_path = SELFTEST_COMMANDS[index][0]
     (root / missing_path).unlink()
     missing = validate_script_list(root)
@@ -411,33 +427,34 @@ def run_self_test() -> int:
             return 1
 
         missing_cases = (
-            (0, "expected missing leading script was not reported"),
-            (1, "expected errptr-xarray starter script omission was not reported"),
-            (2, "expected xarray-slot script omission was not reported"),
-            (3, "expected policy starter script omission was not reported"),
-            (4, "expected policy dump script omission was not reported"),
-            (5, "expected shared ABI validator omission was not reported"),
-            (6, "expected shared ABI checker omission was not reported"),
-            (7, "expected shared ABI support-packet omission was not reported"),
-            (8, "expected abi manifest replay-routes omission was not reported"),
-            (9, "expected shared-routes script omission was not reported"),
-            (10, "expected readme-tooling script omission was not reported"),
-            (11, "expected wrapper-template script omission was not reported"),
-            (12, "expected catalog-selftest script omission was not reported"),
-            (13, "expected runner omission was not reported"),
-            (14, "expected validator-support script omission was not reported"),
-            (15, "expected export-uapi survey script omission was not reported"),
-            (16, "expected export-uapi c-header smoke script omission was not reported"),
-            (17, "expected abi-header-family survey script omission was not reported"),
-            (18, "expected policy-unsafe survey script omission was not reported"),
-            (19, "expected low-level-wrapper script omission was not reported"),
-            (20, "expected linux-zigux header governance validator omission was not reported"),
-            (21, "expected wrapper-generator script omission was not reported"),
-            (22, "expected selftest-surface script omission was not reported"),
-            (23, "expected bitmap-cpumask script omission was not reported"),
+            ("check-phase3-dev-t-starter-packet.py", "expected missing leading script was not reported"),
+            ("check-phase3-errptr-xarray-starter-packet.py", "expected errptr-xarray starter script omission was not reported"),
+            ("check-phase3-xarray-slot-starter-packet.py", "expected xarray-slot starter script omission was not reported"),
+            ("check-phase3-xarray-slot.py", "expected xarray-slot checker omission was not reported"),
+            ("check-phase3-policy-starter-packet.py", "expected policy starter script omission was not reported"),
+            ("check-phase3-policy-dump.py", "expected policy dump script omission was not reported"),
+            ("validate-phase3.py", "expected shared ABI validator omission was not reported"),
+            ("check-phase3-abi.py", "expected shared ABI checker omission was not reported"),
+            ("check-phase3-abi-support-packet.py", "expected shared ABI support-packet omission was not reported"),
+            ("check-phase3-abi-manifest-replay-routes.py", "expected abi manifest replay-routes omission was not reported"),
+            ("check-phase3-shared-tests-routes.py", "expected shared-routes script omission was not reported"),
+            ("check-phase3-readme-tooling-inventory.py", "expected readme-tooling script omission was not reported"),
+            ("check-phase3-wrapper-templates.py", "expected wrapper-template script omission was not reported"),
+            ("check-phase3-catalog-selftest.py", "expected catalog-selftest script omission was not reported"),
+            ("run-phase3-checks.py", "expected runner omission was not reported"),
+            ("validate-phase3-validator-support-surface.py", "expected validator-support script omission was not reported"),
+            ("validate-phase3-export-uapi-survey.py", "expected export-uapi survey script omission was not reported"),
+            ("check-phase3-export-uapi-c-header-smoke.py", "expected export-uapi c-header smoke script omission was not reported"),
+            ("validate-phase3-abi-header-family-survey.py", "expected abi-header-family survey script omission was not reported"),
+            ("validate-phase3-policy-unsafe-survey.py", "expected policy-unsafe survey script omission was not reported"),
+            ("validate-phase3-low-level-wrapper-survey.py", "expected low-level-wrapper script omission was not reported"),
+            ("validate-phase3-linux-zigux-header-governance.py", "expected linux-zigux header governance validator omission was not reported"),
+            ("generate-phase3-check-wrappers.py", "expected wrapper-generator script omission was not reported"),
+            ("check-phase3-selftest-surface.py", "expected selftest-surface script omission was not reported"),
+            ("check-phase3-bitmap-cpumask.py", "expected bitmap-cpumask script omission was not reported"),
         )
-        for index, message in missing_cases:
-            if _expect_missing(root, index, message) != 0:
+        for script_name, message in missing_cases:
+            if _expect_missing(root, script_name, message) != 0:
                 return 1
 
         _populate_repo(root)
@@ -469,7 +486,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        failing_path = root / SELFTEST_COMMANDS[19][0]
+        failing_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-low-level-wrapper-survey.py")][0]
         _write_synthetic_script(
             failing_path,
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
@@ -482,7 +499,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_pass_path = root / SELFTEST_COMMANDS[13][0]
+        missing_pass_path = root / SELFTEST_COMMANDS[_command_index("run-phase3-checks.py")][0]
         _write_synthetic_script(
             missing_pass_path,
             None,
@@ -494,7 +511,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_wrapper_count_path = root / SELFTEST_COMMANDS[11][0]
+        missing_wrapper_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-wrapper-templates.py")][0]
         _write_synthetic_script(
             missing_wrapper_count_path,
             "PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST=pass",
@@ -506,7 +523,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_generator_pass_path = root / SELFTEST_COMMANDS[21][0]
+        missing_generator_pass_path = root / SELFTEST_COMMANDS[_command_index("generate-phase3-check-wrappers.py")][0]
         _write_synthetic_script(
             missing_generator_pass_path,
             None,
@@ -518,7 +535,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_generator_count_path = root / SELFTEST_COMMANDS[21][0]
+        missing_generator_count_path = root / SELFTEST_COMMANDS[_command_index("generate-phase3-check-wrappers.py")][0]
         _write_synthetic_script(
             missing_generator_count_path,
             "PHASE3_WRAPPER_SELF_TEST=pass",
@@ -530,7 +547,31 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_policy_dump_pass_path = root / SELFTEST_COMMANDS[4][0]
+        missing_xarray_slot_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-xarray-slot.py")][0]
+        _write_synthetic_script(
+            missing_xarray_slot_pass_path,
+            None,
+            "PHASE3_XARRAY_SLOT_SELF_TEST_CASES=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing xarray-slot pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_xarray_slot_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-xarray-slot.py")][0]
+        _write_synthetic_script(
+            missing_xarray_slot_count_path,
+            "PHASE3_XARRAY_SLOT_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing xarray-slot count marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_policy_dump_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-policy-dump.py")][0]
         _write_synthetic_script(
             missing_policy_dump_pass_path,
             None,
@@ -542,7 +583,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_policy_dump_count_path = root / SELFTEST_COMMANDS[4][0]
+        missing_policy_dump_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-policy-dump.py")][0]
         _write_synthetic_script(
             missing_policy_dump_count_path,
             "PHASE3_POLICY_DUMP_SELF_TEST=pass",
@@ -554,7 +595,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_count_path = root / SELFTEST_COMMANDS[5][0]
+        missing_count_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3.py")][0]
         _write_synthetic_script(
             missing_count_path,
             "PHASE3_VALIDATION_SELF_TEST=pass",
@@ -566,7 +607,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_manifest_replay_pass_path = root / SELFTEST_COMMANDS[8][0]
+        missing_manifest_replay_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-abi-manifest-replay-routes.py")][0]
         _write_synthetic_script(
             missing_manifest_replay_pass_path,
             None,
@@ -578,7 +619,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_manifest_replay_count_path = root / SELFTEST_COMMANDS[8][0]
+        missing_manifest_replay_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-abi-manifest-replay-routes.py")][0]
         _write_synthetic_script(
             missing_manifest_replay_count_path,
             "PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass",
@@ -590,7 +631,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_support_packet_pass_path = root / SELFTEST_COMMANDS[7][0]
+        missing_support_packet_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-abi-support-packet.py")][0]
         _write_synthetic_script(
             missing_support_packet_pass_path,
             None,
@@ -602,7 +643,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_support_packet_count_path = root / SELFTEST_COMMANDS[7][0]
+        missing_support_packet_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-abi-support-packet.py")][0]
         _write_synthetic_script(
             missing_support_packet_count_path,
             "PHASE3_ABI_SUPPORT_PACKET_SELF_TEST=pass",
@@ -614,7 +655,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_export_uapi_pass_path = root / SELFTEST_COMMANDS[15][0]
+        missing_export_uapi_pass_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-export-uapi-survey.py")][0]
         _write_synthetic_script(
             missing_export_uapi_pass_path,
             None,
@@ -626,7 +667,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_export_uapi_count_path = root / SELFTEST_COMMANDS[15][0]
+        missing_export_uapi_count_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-export-uapi-survey.py")][0]
         _write_synthetic_script(
             missing_export_uapi_count_path,
             "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
@@ -638,7 +679,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_export_uapi_c_header_smoke_pass_path = root / SELFTEST_COMMANDS[16][0]
+        missing_export_uapi_c_header_smoke_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-export-uapi-c-header-smoke.py")][0]
         _write_synthetic_script(
             missing_export_uapi_c_header_smoke_pass_path,
             None,
@@ -650,7 +691,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_export_uapi_c_header_smoke_count_path = root / SELFTEST_COMMANDS[16][0]
+        missing_export_uapi_c_header_smoke_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-export-uapi-c-header-smoke.py")][0]
         _write_synthetic_script(
             missing_export_uapi_c_header_smoke_count_path,
             "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass",
@@ -662,7 +703,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_header_family_pass_path = root / SELFTEST_COMMANDS[17][0]
+        missing_header_family_pass_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-abi-header-family-survey.py")][0]
         _write_synthetic_script(
             missing_header_family_pass_path,
             None,
@@ -674,7 +715,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_header_family_count_path = root / SELFTEST_COMMANDS[17][0]
+        missing_header_family_count_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-abi-header-family-survey.py")][0]
         _write_synthetic_script(
             missing_header_family_count_path,
             "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
@@ -686,7 +727,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_policy_unsafe_pass_path = root / SELFTEST_COMMANDS[18][0]
+        missing_policy_unsafe_pass_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-policy-unsafe-survey.py")][0]
         _write_synthetic_script(
             missing_policy_unsafe_pass_path,
             None,
@@ -698,7 +739,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_policy_unsafe_count_path = root / SELFTEST_COMMANDS[18][0]
+        missing_policy_unsafe_count_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-policy-unsafe-survey.py")][0]
         _write_synthetic_script(
             missing_policy_unsafe_count_path,
             "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
@@ -710,7 +751,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_governance_pass_path = root / SELFTEST_COMMANDS[20][0]
+        missing_governance_pass_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-linux-zigux-header-governance.py")][0]
         _write_synthetic_script(
             missing_governance_pass_path,
             None,
@@ -722,7 +763,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_bitmap_cpumask_pass_path = root / SELFTEST_COMMANDS[23][0]
+        missing_bitmap_cpumask_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-bitmap-cpumask.py")][0]
         _write_synthetic_script(
             missing_bitmap_cpumask_pass_path,
             None,
@@ -734,7 +775,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_bitmap_cpumask_count_path = root / SELFTEST_COMMANDS[23][0]
+        missing_bitmap_cpumask_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-bitmap-cpumask.py")][0]
         _write_synthetic_script(
             missing_bitmap_cpumask_count_path,
             "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST=pass",
@@ -748,7 +789,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 26}"
+        f"{len(missing_cases) + 28}"
     )
     return 0
 
