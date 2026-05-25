@@ -38,6 +38,8 @@ Phase 11 simple-driver packet on `master`.
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/phase11_hvc_modem_control_proof.zig`
+- `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
 
@@ -73,12 +75,14 @@ The same narrower continuity packet also stays `layout_assert`-backed through
 `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, so keep those
 surviving ABI proof shards explicit as adjacent HVC continuity evidence instead
 of treating the three build routes as prose-only review support.
-The directly readable HVC current-head packet also now includes the standalone
-`zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness and
+The directly readable HVC current-head packet also now includes
+`zigux/tests/phase11_hvc_modem_control_proof.zig`,
+`zigux/tests/phase11_hvc_modem_control_proof_build.zig`, the standalone
+`zigux/tests/phase11_hvc_targetless_unregister_gap.zig` witness, and
 `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` build shard, so
-keep that targetless-unregister failure-mode evidence explicit beside the
-narrower three-proof inventory instead of silently collapsing it into the shared
-proof-backed roster.
+keep that modem-control and targetless-unregister failure-mode evidence explicit
+beside the narrower three-proof inventory instead of silently collapsing it into
+the shared proof-backed roster.
 The same narrower continuity packet also keeps the dedicated
 `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard
 explicit through
