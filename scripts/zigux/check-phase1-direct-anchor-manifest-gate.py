@@ -72,6 +72,27 @@ EXPECTED_ANTI_OVERLAP_RULE = (
     "reopen only for their existing helper-local anchors or already-committed shared fixture keys."
 )
 
+EXPECTED_RBTREE_HELPER_TEST_ANCHORS = [
+    'test "rbtree inserts and traverses in sorted order"',
+    'test "rbtree erase and replace keep traversal consistent"',
+    'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
+    'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
+    'test "rbtree eraseInit detaches erased node"',
+    'test "rbtree eraseInit clears singleton roots before reseed"',
+    'test "rbtree postorder and empty node helpers behave"',
+    'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+    'test "rbtree nextMatch walks the duplicate range in order"',
+    'test "rbtree matchIterator walks the duplicate range in order"',
+    'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+    'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
+    'test "rbtree cached root keeps the leftmost pointer in sync"',
+    'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+    'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+    'test "rbtree eraseCached returns null for a singleton cached tree"',
+    'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+    'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+]
+
 EXPECTED_REVIEW_FIELDS = {
     "tools/lib/bitmap.zig": {
         "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
@@ -150,6 +171,7 @@ EXPECTED_REVIEW_FIELDS = {
         ),
     },
     "tools/lib/rbtree.zig": {
+        "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
         "cached_root_followup_anchors": [
             'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
             'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
