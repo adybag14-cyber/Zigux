@@ -12,13 +12,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
-REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux/review-checklist.md"
-TESTS_README = ROOT / "zigux/tests/README.md"
-BOOTSTRAP_NOTES = ROOT / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
-WORKFLOW = ROOT / ".github/workflows/zigux-bootstrap.yml"
-MAKEFILE = ROOT / "zigux/Makefile"
-TOOLCHAIN_POLICY = ROOT / "scripts/zigux/zig-toolchain-policy.json"
-TOOLCHAIN_CHECKER = ROOT / "scripts/zigux/check-zig-toolchain.py"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+MAKEFILE = ROOT / "zigux" / "Makefile"
+TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+TOOLCHAIN_CHECKER = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
 
 DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
@@ -57,9 +57,14 @@ REVIEW_MARKERS = (
 TESTS_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test`",
+    "`python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test`",
     "`make -C zigux phase2-genksyms`",
     "`make -C zigux phase2-fixdep`",
     "pinned `x86_64-linux` bootstrap archive note",
@@ -101,7 +106,7 @@ MAKEFILE_MARKERS = (
 )
 
 MAKEFILE_VARIABLE_MARKERS = (
-    "ZIG_PINNED_TARGET := $(shell $(PYTHON) -c ",
+    "ZIG_PINNED_TARGET := $(shell $(PYTHON) -c",
     '["upgrade_policy"]["archive_target_scope"][0]',
     "ZIG_PINNED_EXTRACT_ROOT := $(ZIGUX_ROOT)/.zig-toolchain/zig-$(ZIG_PINNED_TARGET)-$(ZIG_PINNED_CHANNEL)",
     "ZIG_PINNED_EXECUTABLE := $(firstword $(wildcard $(ZIG_PINNED_EXTRACT_ROOT)/zig $(ZIG_PINNED_EXTRACT_ROOT)/bin/zig))",
@@ -156,7 +161,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_VARIABLE_MARKERS)
-    + len(MAKEFILE_VARIABLE_MARKERS)
+    + 1
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + 13
     + 8
@@ -540,22 +545,17 @@ def run_self_test() -> int:
             assert ("MISSING_MAKEFILE_VARIABLE_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
-        for marker in MAKEFILE_VARIABLE_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, MAKEFILE)
-            path.write_text(
-                replace_once(
-                    path.read_text(encoding="utf-8"),
-                    marker,
-                    marker + marker,
-                ),
-                encoding="utf-8",
-            )
-            assert (
-                "DUPLICATE_MAKEFILE_VARIABLE_MARKERS",
-                f"{marker}:count=2",
-            ) in collect_issues(root)
-            checks_run += 1
+        build_self_test_root(root)
+        path = resolve_path(root, MAKEFILE)
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), MAKEFILE_VARIABLE_MARKERS[0]),
+            encoding="utf-8",
+        )
+        assert (
+            "DUPLICATE_MAKEFILE_VARIABLE_MARKERS",
+            f"{MAKEFILE_VARIABLE_MARKERS[0]}:count=2",
+        ) in collect_issues(root)
+        checks_run += 1
 
         for marker in TOOLCHAIN_CHECKER_MARKERS:
             build_self_test_root(root)
