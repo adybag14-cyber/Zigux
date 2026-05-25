@@ -338,7 +338,6 @@ CLOSURE_LAB_VALIDATION_EVIDENCE = [
     "scripts/zigux/check-phase10-harness-coverage.py",
 ]
 
-
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
@@ -825,6 +824,18 @@ def run_self_test() -> int:
             lambda data: {**data, "roadmap_parity_scoreboard": {"lab_only_driver_validation": {"evidence": [item for item in data["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] if item != "drivers/virtio/virtio_input_teardown_preflight.zig"]}}},
             "closure_manifest:lab_only_driver_validation:drivers/virtio/virtio_input_teardown_preflight.zig",
         )
+        expect_json_missing_marker(
+            root,
+            CLOSURE_MANIFEST_PATH,
+            lambda data: {**data, "roadmap_parity_scoreboard": {"lab_only_driver_validation": {"evidence": [item for item in data["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] if item != "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig"]}}},
+            "closure_manifest:lab_only_driver_validation:zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+        )
+        expect_json_missing_marker(
+            root,
+            CLOSURE_MANIFEST_PATH,
+            lambda data: {**data, "roadmap_parity_scoreboard": {"lab_only_driver_validation": {"evidence": [item for item in data["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] if item != "zigux/tests/phase10_virtio_input_status_drain.zig"]}}},
+            "closure_manifest:lab_only_driver_validation:zigux/tests/phase10_virtio_input_status_drain.zig",
+        )
 
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-input-survey.md")
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
@@ -836,7 +847,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "drivers/virtio/virtio_input_verify.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=35")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
