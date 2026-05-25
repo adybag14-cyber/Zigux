@@ -16,8 +16,9 @@ KPROBE_SURVEY = Path("zigux/tests/phase4_kprobe_example_survey.zig")
 TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
 TEST_FSMOUNT_SURVEY = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
+PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 35
+EXPECTED_SELF_TEST_CASE_COUNT = 38
 
 KPROBE_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
 TEST_FSMOUNT_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
@@ -113,6 +114,15 @@ TEST_FSMOUNT_NOTE_MARKERS = (
     "PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team",
     f"PHASE4_REVERSIBLE_DELIVERY_EVIDENCE={TEST_FSMOUNT_REVERSIBLE_DELIVERY_EVIDENCE.split('=', 1)[1]}",
     "Current `master` still does not ship `samples/zigux/test_fsmount.zig`.",
+)
+
+PHASE4_BUILD_MARKERS = (
+    "phase4_kprobe_example_survey.zig",
+    KPROBE_SHARED_BUILD_REPLAY,
+    "phase4-kprobe-example-survey",
+    "phase4_test_fsmount_survey.zig",
+    TEST_FSMOUNT_SHARED_BUILD_REPLAY,
+    "phase4-test-fsmount-survey",
 )
 
 
@@ -271,6 +281,7 @@ def validate_root(root: Path) -> list[str]:
         TEST_FSMOUNT_MANIFEST,
         TEST_FSMOUNT_SURVEY,
         PERF_MANIFEST,
+        PHASE4_BUILD,
     ):
         if not (root / path).is_file():
             missing.append(f"file:{path.as_posix()}")
@@ -280,6 +291,7 @@ def validate_root(root: Path) -> list[str]:
     require_markers(read_text(root / MATRIX), MATRIX_MARKERS, "matrix_marker", missing)
     require_markers(read_text(root / KPROBE_NOTE), KPROBE_NOTE_MARKERS, "kprobe_note_marker", missing)
     require_markers(read_text(root / TEST_FSMOUNT_NOTE), TEST_FSMOUNT_NOTE_MARKERS, "test_fsmount_note_marker", missing)
+    require_markers(read_text(root / PHASE4_BUILD), PHASE4_BUILD_MARKERS, "phase4_build_marker", missing)
 
     try:
         validate_kprobe_manifest(json.loads(read_text(root / KPROBE_MANIFEST)), missing)
@@ -311,6 +323,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / TEST_FSMOUNT_NOTE, "\n".join(TEST_FSMOUNT_NOTE_MARKERS) + "\n")
     write_text(root / KPROBE_SURVEY, 'test "phase4 kprobe survey fixture" {}\n')
     write_text(root / TEST_FSMOUNT_SURVEY, 'test "phase4 test-fsmount survey fixture" {}\n')
+    write_text(root / PHASE4_BUILD, "\n".join(PHASE4_BUILD_MARKERS) + "\n")
 
     write_text(
         root / KPROBE_MANIFEST,
@@ -463,12 +476,14 @@ def run_self_test() -> int:
             (KPROBE_MANIFEST, f'"surveyed_commit": "{KPROBE_SURVEYED_COMMIT}"', '"surveyed_commit": "INVALID"', "kprobe_manifest:surveyed_commit:invalid_lower_hex_sha:'INVALID'"),
             (KPROBE_MANIFEST, f'"shared_build_replay": "{KPROBE_SHARED_BUILD_REPLAY}"', '"shared_build_replay": "phase4-kprobe-gap-survey-tests"', f"kprobe_manifest:shared_build_replay:expected='{KPROBE_SHARED_BUILD_REPLAY}'"),
             (KPROBE_MANIFEST, '"status": "ready_next"', '"status": "starter_landed"', "kprobe_manifest:gaps.4.status:expected='ready_next'"),
+            (PHASE4_BUILD, KPROBE_SHARED_BUILD_REPLAY, "phase4-kprobe-gap-survey-tests", f"phase4_build_marker:{KPROBE_SHARED_BUILD_REPLAY}"),
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig", "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"),
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig", "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"),
             (TEST_FSMOUNT_MANIFEST, f'"surveyed_commit": "{TEST_FSMOUNT_SURVEYED_COMMIT}"', '"surveyed_commit": "INVALID"', "test_fsmount_manifest:surveyed_commit:invalid_lower_hex_sha:'INVALID'"),
             (TEST_FSMOUNT_MANIFEST, f'"shared_build_replay": "{TEST_FSMOUNT_SHARED_BUILD_REPLAY}"', '"shared_build_replay": "phase4-test-fsmount-gap-survey-tests"', f"test_fsmount_manifest:shared_build_replay:expected='{TEST_FSMOUNT_SHARED_BUILD_REPLAY}'"),
             (TEST_FSMOUNT_MANIFEST, '"tests_readme_present": true', '"tests_readme_present": false', "test_fsmount_manifest:survey_summary.tests_readme_present:expected=True:actual=False"),
             (TEST_FSMOUNT_MANIFEST, '"id": "phase4-test-fsmount-zig-sample",\n      "status": "ready_next"', '"id": "phase4-test-fsmount-zig-sample",\n      "status": "starter_landed"', "test_fsmount_manifest:gaps.4.status:expected='ready_next'"),
+            (PHASE4_BUILD, TEST_FSMOUNT_SHARED_BUILD_REPLAY, "phase4-test-fsmount-gap-survey-tests", f"phase4_build_marker:{TEST_FSMOUNT_SHARED_BUILD_REPLAY}"),
             (PERF_MANIFEST, f'"shared_lab_and_ci_matrix_anchor": "{PERF_MATRIX_ANCHOR}"', '"shared_lab_and_ci_matrix_anchor": "Documentation/zigux/phase4-gate-evidence.md#exact-readback-evidence"', f"perf_manifest:shared_lab_and_ci_matrix_anchor:expected='{PERF_MATRIX_ANCHOR}'"),
             (PERF_MANIFEST, '"shared_ci_perf_promotion_status": "pending"', '"shared_ci_perf_promotion_status": "approved"', "perf_manifest:shared_ci_perf_promotion_status:expected='pending'"),
             (PERF_MANIFEST, '"gate_rollback_owner": "ABI and Runtime Team"', '"gate_rollback_owner": "Validation and Perf Team"', "perf_manifest:atomic64.gate_rollback_owner:expected='ABI and Runtime Team'"),
@@ -485,7 +500,7 @@ def run_self_test() -> int:
                 return 1
             cases += 1
 
-        for rel in (KPROBE_NOTE, KPROBE_SURVEY, TEST_FSMOUNT_SURVEY):
+        for rel in (KPROBE_NOTE, KPROBE_SURVEY, TEST_FSMOUNT_SURVEY, PHASE4_BUILD):
             write_fixture_tree(root)
             (root / rel).unlink()
             if not expect_failure(root, f"file:{rel.as_posix()}"):
