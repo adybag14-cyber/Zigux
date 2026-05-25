@@ -975,7 +975,7 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expectEqual(SampleStage.initialized, partial_enqueue.stage_before_replay);
     try std.testing.expectEqual(SampleStage.initialized, partial_enqueue.stage_after_replay);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
-    try std.testing.expectEqual(@as(usize, 30), partial_enqueue.queue_lenBeforeExtra);
+    try std.testing.expectEqual(@as(usize, 30), partial_enqueue.queue_len_before_extra);
     try std.testing.expectEqual(@as(usize, 2), partial_enqueue.available_before_extra);
     try std.testing.expectEqual(@as(usize, 4), partial_enqueue.requested_extra_len);
     try std.testing.expectEqual(@as(usize, 2), partial_enqueue.copied_extra_len);
