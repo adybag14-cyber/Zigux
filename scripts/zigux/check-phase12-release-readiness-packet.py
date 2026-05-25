@@ -87,6 +87,7 @@ REQUIRED_MARKERS = {
         "That means the PMO release notes can treat `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again",
         "the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, and `.github/workflows/zigux-bootstrap.yml`",
         "`scripts/zigux/check-build-only-phase12-surface.py` remains the bounded build-only contract checker",
+        "`scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` remains the packet-local boundary guard that keeps the rollback-only `virtio_scsi` survey packet distinct from the parked libbpf reviewability packet inside the shared Phase 12 release story.",
     ],
     RELEASE_SEQUENCING_PATH: [
         "Current repo-reality override: the route story on current `master` is now fully returned rather than split. `zigux/Makefile` now exposes shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrappers again",
@@ -168,6 +169,7 @@ EXACT_COUNT_MARKERS = {
         "- exact latest runtime-reality evidence checked on `2026-05-25`: the directly readable `zigux/Makefile` blob `34654c70c864378012494bd0068ccf260678ec0d` still prefers the repo-local `.zig-toolchain` executable through `ZIG_PINNED_EXECUTABLE`, `ZIG_LOCAL_TOOLCHAIN`, `ZIG_PINNED_TOOLCHAIN`, and `ZIG ?= $(if $(ZIG_PINNED_TOOLCHAIN),$(ZIG_PINNED_TOOLCHAIN),zig)`, and the directly readable workflow blob `ffc17180c68e54714ce28a59a6cf3c0757caf9fe` still rebuilds that repo-local fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org` before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`": 1,
     },
 }
+
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
