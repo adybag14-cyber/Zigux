@@ -36,6 +36,17 @@ const OwnershipEntry = struct {
     boundary: []const u8,
 };
 
+const GovernanceRecord = struct {
+    governance_lane: []const u8,
+    packet_owner: []const u8,
+    phase: []const u8,
+    study_boundary_anchor: []const u8,
+    status_bucket: []const u8,
+    validation_gate_summary: []const []const u8,
+    rollback_owner: []const u8,
+    reopen_rule: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -54,6 +65,7 @@ const Manifest = struct {
     roadmap_gap_summary: RoadmapGapSummary,
     delivery_evidence_catalog: []const DeliveryEvidence,
     ownership_map: []const OwnershipEntry,
+    governance_record: GovernanceRecord,
     gaps: []const Gap,
 };
 
@@ -83,6 +95,13 @@ fn hasOwnership(entries: []const OwnershipEntry, surface: []const u8, owner: []c
         if (std.mem.eql(u8, entry.surface, surface) and std.mem.eql(u8, entry.owner, owner)) {
             return true;
         }
+    }
+    return false;
+}
+
+fn hasValidationGate(entries: []const []const u8, path: []const u8) bool {
+    for (entries) |entry| {
+        if (std.mem.eql(u8, entry, path)) return true;
     }
     return false;
 }
@@ -228,6 +247,27 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
         "P9-L11",
     ));
 
+    try std.testing.expectEqualStrings("P9-L13", manifest.governance_record.governance_lane);
+    try std.testing.expectEqualStrings("P9-L04", manifest.governance_record.packet_owner);
+    try std.testing.expectEqualStrings("Phase 9", manifest.governance_record.phase);
+    try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.governance_record.study_boundary_anchor);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.governance_record.status_bucket, "review-only direct starter packet") != null);
+    try std.testing.expectEqual(@as(usize, 7), manifest.governance_record.validation_gate_summary.len);
+    try std.testing.expect(hasValidationGate(manifest.governance_record.validation_gate_summary, "zigux/tests/runtime_atomic64_survey.zig"));
+    try std.testing.expect(hasValidationGate(manifest.governance_record.validation_gate_summary, "zigux/tests/runtime_atomic64_manifest.json"));
+    try std.testing.expect(hasValidationGate(manifest.governance_record.validation_gate_summary, "zigux/tests/runtime_atomic64_module.zig"));
+    try std.testing.expect(hasValidationGate(manifest.governance_record.validation_gate_summary, "zigux/tests/runtime_atomic64_diff.zig"));
+    try std.testing.expect(hasValidationGate(manifest.governance_record.validation_gate_summary, "zigux/tests/phase9_build.zig"));
+    try std.testing.expect(hasValidationGate(manifest.governance_record.validation_gate_summary, "zigux/kernel/runtime_loader_command_env_boundary_guard.zig"));
+    try std.testing.expect(hasValidationGate(manifest.governance_record.validation_gate_summary, "samples/zigux/runtime_bitmap_loader.zig"));
+    try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.governance_record.rollback_owner);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.governance_record.reopen_rule, "kernel/workqueue.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.governance_record.reopen_rule, "phase15-architecture-council-review-process.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.governance_record.reopen_rule, "phase15-freeze-map-governance.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.governance_record.reopen_rule, "phase15-parity-scorecard.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.governance_record.reopen_rule, "phase15-indefinite-c-policy.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.governance_record.reopen_rule, "phase15-architecture-council-decision-record-template.md") != null);
+
     try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -297,6 +337,11 @@ test "phase 9 runtime atomic64 note family records the current shared-loader rem
     try expectContains(survey_note_source, "later selftest activity");
     try expectContains(survey_note_source, "later exit activity");
     try expectContains(survey_note_source, "Freeze-Map Governance Evidence");
+    try expectContains(survey_note_source, "Minimum Freeze-Map Review Record");
+    try expectContains(survey_note_source, "P9-L13");
+    try expectContains(survey_note_source, "rollback owner:");
+    try expectContains(survey_note_source, "reopen rule:");
+    try expectContains(survey_note_source, "phase15-architecture-council-decision-record-template.md");
     try expectContains(survey_note_source, "phase9-runtime-loader-allocator-init-flow-tests");
     try expectContains(survey_note_source, "phase9-runtime-loader-command-env-boundary-guard-tests");
     try expectLacks(survey_note_source, "zigux/tests/runtime_loader_gap_survey.zig");
