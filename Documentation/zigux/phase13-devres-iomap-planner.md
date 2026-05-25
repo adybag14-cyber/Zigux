@@ -9,6 +9,7 @@ The planner stays intentionally narrow:
 - records whether a denied region request blocks remap progress without claiming live mapping state
 - records whether a requested region is released again when remap later fails
 - records whether the requested non-posted mapping type stays attached to the planning surface
+- records whether a translated helper-first remap would require the still-blocked `devm_ioremap_np()` wrapper before any live MMIO mapping state is claimed
 - records whether a successful helper-first remap hands off to `devm_iounmap()` cleanup planning
 - records whether the cleanup handoff consumes the matching release record or still warns when the release record is missing
 - keeps `devm_ioremap_np()`, `devm_iounmap()`, `devm_arch_phys_wc_add()`, and `devm_arch_io_reserve_memtype_wc()` out of scope
@@ -22,7 +23,7 @@ The helper packet now consists of:
 - `scripts/zigux/check-phase13-devres-iomap-planner.py`
 
 Fixture governance stays helper-local:
-- `zigux/tests/phase13_devres_iomap_planner.zig` owns the translation-miss, request-region-denial, remap-failure, cleanup-handoff, and cleanup-release-miss fixture coverage for `planDeviceTreeIomap(...)` and `planDeviceTreeIomapCleanupHandoff(...)`
+- `zigux/tests/phase13_devres_iomap_planner.zig` owns the translation-miss, request-region-denial, non-posted-wrapper, remap-failure, cleanup-handoff, and cleanup-release-miss fixture coverage for `planDeviceTreeIomap(...)` and `planDeviceTreeIomapCleanupHandoff(...)`
 - `zigux/tests/phase13_devres_iomap_planner_manifest.json` is the packet-local owner map for that fixture and should stay aligned with the helper, note, and replay
 - `scripts/zigux/check-phase13-devres-iomap-planner.py` is the packet-local fail-closed checker and should stay aligned with the helper, planner note, manifest, and replay
 - `Documentation/zigux/phase13-devres-survey.md` remains adjacent boundary evidence only and does not own the helper-local iomap fixture packet
