@@ -70,11 +70,13 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
         "zig test zigux/tests/phase14_workqueue_reviewability.zig",
         manifest.maintenance_handoff.replay_before_trusting[0],
     );
+    try std.testing.expect(std.mem.indexOf(u8, manifest_json, "\"preexisting_phase14_build_present\": true") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest_json, "zig build test --build-file zigux/tests/phase14_build.zig --summary all") == null);
     try std.testing.expect(std.mem.indexOf(u8, manifest_json, "make -C zigux phase14") == null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "workqueue-local") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "phase14_build") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "shared-packet evidence rather than a bridge-local trust promotion signal") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -103,6 +105,7 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE14_SLICE=phase14-workqueue-scheduler-visible-worker-state-refinement") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase14_workqueue_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocked maintenance") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "shared-packet evidence rather than a bridge-local trust promotion signal") != null);
     try expectBridgeRereadSurfaces(slice_note, bridge_handoff);
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
@@ -134,6 +137,7 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase14-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared packet-local validation rather than direct bridge-local trust gates") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared-packet evidence rather than a bridge-local trust promotion signal") != null);
     try expectBridgeRereadSurfaces(survey_note, bridge_handoff);
 
     const traceability_note = try std.Io.Dir.cwd().readFileAlloc(
