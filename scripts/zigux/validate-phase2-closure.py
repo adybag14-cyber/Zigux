@@ -49,11 +49,14 @@ REQUIRED_FILES = (
 REQUIRED_CLOSURE_MARKERS = (
     "`scripts/zigux/check-phase2-archive-contract-packet.py`",
     "`scripts/zigux/check-phase2-closure-archive-contract.py`",
+    "`scripts/zigux/check-phase2-tests-root-summary.py`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`python3 scripts/zigux/check-phase2-archive-contract-packet.py --self-test`",
     "`python3 scripts/zigux/check-phase2-archive-contract-packet.py`",
     "`python3 scripts/zigux/check-phase2-closure-archive-contract.py --self-test`",
     "`python3 scripts/zigux/check-phase2-closure-archive-contract.py`",
+    "`python3 scripts/zigux/check-phase2-tests-root-summary.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-tests-root-summary.py`",
     "`PHASE2_CURRENT_GAP_PACKET=third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
     "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `scripts/zigux/check-phase2-closure-archive-contract.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
 )
