@@ -44,30 +44,30 @@ def run_checked(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def build_zig_build_text() -> str:
     return textwrap.dedent(
         f"""
-        const std = @import(\"std\");
+        const std = @import("std");
 
         pub fn build(b: *std.Build) void {{
             const target = b.standardTargetOptions(.{{}});
             const optimize = b.standardOptimizeOption(.{{}});
 
             const bsearch_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'lib' / 'bsearch.zig'}\" }},
+                .root_source_file = .{{ .cwd_relative = "{ROOT / 'lib' / 'bsearch.zig'}" }},
                 .target = target,
                 .optimize = optimize,
             }});
             const root_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ZIG_RUNNER}\" }},
+                .root_source_file = .{{ .cwd_relative = "{ZIG_RUNNER}" }},
                 .target = target,
                 .optimize = optimize,
             }});
-            root_module.addImport(\"bsearch\", bsearch_module);
+            root_module.addImport("bsearch", bsearch_module);
 
             const exe = b.addExecutable(.{{
-                .name = \"phase6-bsearch-c-parity\",
+                .name = "phase6-bsearch-c-parity",
                 .root_module = root_module,
             }});
             const run = b.addRunArtifact(exe);
-            const step = b.step(\"run\", \"Run Phase 6 bsearch C parity spot check\");
+            const step = b.step("run", "Run Phase 6 bsearch C parity spot check");
             step.dependOn(&run.step);
         }}
         """
