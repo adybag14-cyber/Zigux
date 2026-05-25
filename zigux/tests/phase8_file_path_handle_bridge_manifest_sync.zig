@@ -106,6 +106,10 @@ test "phase 8 bridge boundary survey keeps the mixed-source helper packet and de
     );
     try expectContains(
         note,
+        "Current authenticated contents readback now also reaches the bridge helper and witness files directly again, but the narrower split recorded here is packet role only: those files still belong to the bridge-boundary companion packet instead of the exact stable-output helper set.",
+    );
+    try expectContains(
+        note,
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
     );
     try expectContains(
