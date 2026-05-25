@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface.py"
 
 REQUIRED_SOURCE_MARKERS = (
-    'WORKFLOW_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order.py"', 
+    'WORKFLOW_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order.py"',
     'WORKFLOW_ORDER_ALIGNMENT = (',
     '    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order-selftest-alignment.py"',
     'MAKEFILE_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-makefile-order.py"',
@@ -34,6 +34,10 @@ REQUIRED_SOURCE_MARKERS = (
     '    "run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface.py --self-test",',
     '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-shared-surface-selftest-alignment.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order.py",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py --self-test",',
+    '    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-makefile-order-selftest-alignment.py",',
     '        for path in REQUIRED_PATHS[3:]:',
     '    print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE=pass")',
     '    print("PHASE2_CROSS_VALIDATE_SHARED_SURFACE_SELF_TEST=pass")',
