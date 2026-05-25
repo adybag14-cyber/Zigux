@@ -12,6 +12,9 @@ const Gap = struct {
 const MaintenanceHandoff = struct {
     current_lane_posture: []const u8,
     replay_before_trusting: []const []const u8,
+    productization_posture: []const u8,
+    productization_exact_checks: []const []const u8,
+    productization_behavior_note: []const u8,
     reopen_conditions: []const []const u8,
     next_future_target: []const u8,
 };
@@ -23,6 +26,20 @@ const Manifest = struct {
     anchor: []const u8,
     maintenance_handoff: MaintenanceHandoff,
     gaps: []const Gap,
+};
+
+const expected_productization_exact_checks = [_][]const u8{
+    "python3 scripts/zigux/check-phase14-shared-smoke-route.py --self-test",
+    "python3 scripts/zigux/check-phase14-shared-smoke-route.py",
+    "python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test",
+    "python3 scripts/zigux/check-phase14-tests-readme-smoke-summary.py",
+    "python3 scripts/zigux/validate-phase14.py --self-test",
+    "python3 scripts/zigux/validate-phase14.py",
+    "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
+    "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+    "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    "make -C zigux phase14-validate",
 };
 
 fn expectGapStatus(manifest: Manifest, id: []const u8, status: []const u8) !void {
@@ -42,6 +59,19 @@ fn expectBridgeRereadSurfaces(surface: []const u8, handoff: workqueue_bridge.Mai
     }
 }
 
+fn expectExactStringList(actual: []const []const u8, expected: []const []const u8) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (expected, 0..) |item, index| {
+        try std.testing.expectEqualStrings(item, actual[index]);
+    }
+}
+
+fn expectListExcludes(list: []const []const u8, needle: []const u8) !void {
+    for (list) |item| {
+        try std.testing.expect(!std.mem.eql(u8, item, needle));
+    }
+}
+
 test "phase14 workqueue reviewability packet stays wired to the blocked-maintenance packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -54,7 +84,9 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     );
     defer std.testing.allocator.free(manifest_json);
 
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
     defer parsed.deinit();
 
     const manifest = parsed.value;
@@ -70,9 +102,23 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
         "zig test zigux/tests/phase14_workqueue_reviewability.zig",
         manifest.maintenance_handoff.replay_before_trusting[0],
     );
+    try std.testing.expectEqualStrings("shared_packet_local_only", manifest.maintenance_handoff.productization_posture);
+    try expectExactStringList(
+        manifest.maintenance_handoff.productization_exact_checks,
+        expected_productization_exact_checks[0..],
+    );
+    try std.testing.expectEqualStrings(
+        "These checks verify shared packet-local productization behavior around the current phase14-validate route and its reminder surfaces. They do not replace the direct workqueue reviewability replay as the bridge-local trust gate.",
+        manifest.maintenance_handoff.productization_behavior_note,
+    );
+    try expectListExcludes(
+        manifest.maintenance_handoff.productization_exact_checks,
+        manifest.maintenance_handoff.replay_before_trusting[0],
+    );
     try std.testing.expect(std.mem.indexOf(u8, manifest_json, "\"preexisting_phase14_build_present\": true") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest_json, "zig build test --build-file zigux/tests/phase14_build.zig --summary all") == null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest_json, "make -C zigux phase14") == null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest_json, "\"make -C zigux phase14-smoke\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest_json, "\"make -C zigux phase14-test\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "workqueue-local") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "phase14_build") != null);
