@@ -35,6 +35,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(checker, "* `*vsprintf*`");
     try expectContains(checker, "the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContains(checker, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectContains(checker, "try expectContains(helper, \\\"pub fn stringIsTerminated(\\\");");
+    try expectContains(checker, "try expectContains(helper, \\\"pub fn string_is_terminated(\\\");");
+    try expectContains(checker, "try expectContains(helper_tests, \\\"test \\\\\\\"phase 7 string helpers starter keeps termination checks bounded by the caller limit\\\\\\\" {\\\");");
+    try expectContains(checker, "try expectContains(manifest, \\\"stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix\\\");");
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
