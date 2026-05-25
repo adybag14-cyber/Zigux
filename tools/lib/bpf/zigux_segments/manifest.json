@@ -7,6 +7,10 @@
     "libbpf_c_lines": 14771,
     "preexisting_zigux_segments_present": true,
     "preexisting_phase8_libbpf_note_present": true,
+    "repo_reality_notes": [
+      "Current master carries helper-first Zig segments under tools/lib/bpf/zigux_segments.",
+      "Current master does not carry tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig, so landed claims for that destination stay blocked until the file and its bounded validators actually materialize."
+    ],
     "companion_c_files": [
       {
         "path": "tools/lib/bpf/bpf.c",
@@ -91,27 +95,31 @@
     },
     {
       "id": "P8-L13-S05",
-      "slug": "fdinfo-map-info-helpers", "status": "starter_landed",
+      "slug": "fdinfo-map-info-helpers",
+      "status": "blocked_on_materialization",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow."
+      "why_now": "The shared file-path bridge destination is still the right bounded home for procfs-path shaping and fdinfo text parsing, but current master does not yet carry that Zig file or its validators, so this slice must stay explicit as planned rather than landed."
     },
     {
       "id": "P8-L13-S06",
-      "slug": "map-reuse-compatibility", "status": "starter_landed",
+      "slug": "map-reuse-compatibility",
+      "status": "blocked_on_materialization",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
+      "why_now": "The helper-only reused-map compatibility packet remains a valid future bounded slice, but the repo does not currently materialize the shared bridge file it would live in, so the segment cannot be reported as landed on master."
     },
     {
       "id": "P8-L13-S07",
-      "slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary",
+      "slug": "file-path-and-handle-bridge",
+      "status": "deferred_high_risk",
+      "kind": "resource_boundary",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths"
       ],
@@ -179,8 +187,10 @@
   "segmentation_notes": [
     {
       "destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "landed_scope": [
-        "buildProcFdinfoPath() bounded /proc//fdinfo/ pathname shaping",
+      "status": "blocked_on_materialization",
+      "landed_scope": [],
+      "queued_scope": [
+        "buildProcFdinfoPath() bounded /proc/<fd>/fdinfo pathname shaping",
         "parseFdinfoLine() field splitting and trimming",
         "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
         "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
@@ -193,11 +203,11 @@
         "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
         "planTokenPreparation() helper-only token readiness planning from a prepared reuse plan without token materialization"
       ],
-      "queued_scope": [
+      "deferred_scope": [
         "direct procfs reads and descriptor ownership flow",
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
       ],
-      "why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects."
+      "why_now": "Master currently lacks this shared bridge file, so the inventory should describe it as a bounded queued packet and not as landed helper behavior."
     }
   ]
 }
