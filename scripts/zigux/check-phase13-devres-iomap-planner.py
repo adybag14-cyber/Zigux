@@ -15,6 +15,7 @@ REQUIRED_MARKERS = {
     HELPER_PATH: [
         ".provides_of_iomap_planning = true",
         ".touches_live_mmio = false",
+        "requires_nonposted_ioremap",
         "pub fn planDeviceTreeIomap",
         "pub fn planDeviceTreeIomapCleanupHandoff",
     ],
@@ -23,6 +24,7 @@ REQUIRED_MARKERS = {
         "translated size is preserved when a requested region is denied as busy",
         "requested region is released again when remap later fails",
         "requested non-posted mapping type stays attached to the planning surface",
+        "translated helper-first remap would require the still-blocked `devm_ioremap_np()` wrapper",
         "successful helper-first remap hands off to `devm_iounmap()` cleanup planning",
         "cleanup handoff consumes the matching release record or still warns when the release record is missing",
         "devm_ioremap_np()",
@@ -37,10 +39,12 @@ REQUIRED_MARKERS = {
         "\"status\": \"starter_landed\"",
         "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+        "\"nonposted_wrapper_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"remap_failure_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "\"cleanup_release_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
         "planDeviceTreeIomapCleanupHandoff",
+        "requires_nonposted_ioremap",
         "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"",
         "\"id\": \"phase13-devres-missing-devm-arch-phys-wc-add-surface\"",
         "\"id\": \"phase13-devres-missing-devm-arch-io-reserve-memtype-wc-surface\"",
@@ -50,6 +54,7 @@ REQUIRED_MARKERS = {
     ],
     REPLAY_PATH: [
         "phase13 devres descriptor records helper-first iomap planning",
+        "phase13 devres iomap planning keeps the blocked non-posted wrapper requirement explicit",
         "phase13 devres iomap cleanup handoff materializes helper-first iounmap cleanup after successful remap",
         "phase13 devres iomap cleanup handoff keeps missing release records warnable",
         "phase13 devres iomap planner manifest records the landed helper-first mmio scope",
@@ -164,6 +169,25 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[MANIFEST_PATH]
+                if marker != "\"nonposted_wrapper_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "zigux/tests/phase13_devres_iomap_planner_manifest.json:missing_marker:\"nonposted_wrapper_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"",
+            ],
+            "missing_nonposted_owner_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[MANIFEST_PATH]
                 if marker != "\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\""
             )
             + "\n",
@@ -221,16 +245,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[NOTE_PATH]
-                if marker != "cleanup handoff consumes the matching release record or still warns when the release record is missing"
+                if marker != "translated helper-first remap would require the still-blocked `devm_ioremap_np()` wrapper"
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "Documentation/zigux/phase13-devres-iomap-planner.md:missing_marker:cleanup handoff consumes the matching release record or still warns when the release record is missing",
+                "Documentation/zigux/phase13-devres-iomap-planner.md:missing_marker:translated helper-first remap would require the still-blocked `devm_ioremap_np()` wrapper",
             ],
-            "missing_cleanup_handoff_note_marker_failed",
+            "missing_nonposted_note_marker_failed",
         )
         case_count += 1
 
