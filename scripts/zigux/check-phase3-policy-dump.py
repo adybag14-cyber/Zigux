@@ -37,6 +37,12 @@ REQUIRED_DUMP_MARKERS = (
     'unsafe={s}',
     'boundary={s}',
     'surface={s}',
+    'typed_only={any}',
+    'global_fallback={any}',
+    'warn_only={any}',
+    'mmio={any}',
+    'raw_bridge={any}',
+    'audit={any}',
     'bridge_read_ok={any}',
     'bridge_write_ok={any}',
     'narrow={s}',
@@ -154,8 +160,52 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
+        cases = (
+            (
+                DOC_PATH,
+                "python3 scripts/zigux/check-phase3-policy-dump.py --self-test\n",
+                "missing Documentation/zigux/phase3-policy-slice.md marker: python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
+            ),
+            (
+                DUMP_PATH,
+                "typed_only={any}\n",
+                "missing zigux/tests/phase3_policy_dump.zig marker: typed_only={any}",
+            ),
+            (
+                DUMP_PATH,
+                "audit={any}\n",
+                "missing zigux/tests/phase3_policy_dump.zig marker: audit={any}",
+            ),
+            (
+                BUILD_PATH,
+                '"phase3-policy-dump"\n',
+                'missing zigux/tests/phase3_policy_dump_build.zig marker: "phase3-policy-dump"',
+            ),
+        )
+
+        for rel_path, marker, expected in cases:
+            path = root / rel_path
+            original = _read(path)
+            _write(path, original.replace(marker, "", 1))
+            issues = validate_repo(root)
+            if expected not in issues:
+                print("PHASE3_POLICY_DUMP_SELF_TEST=fail")
+                print(f"expected missing marker was not reported: {expected}")
+                return 1
+            _write(path, original)
+
+        expected_path = root / EXPECTED_PATH
+        original_expected = _read(expected_path)
+        _write(expected_path, original_expected.replace("|audit=false", "|audit=maybe", 1))
+        issues = validate_repo(root)
+        expected = "unexpected zigux/tests/fixtures/phase3_policy_dump_expected.txt contents"
+        if expected not in issues:
+            print("PHASE3_POLICY_DUMP_SELF_TEST=fail")
+            print("expected fixture drift was not reported")
+            return 1
+
     print("PHASE3_POLICY_DUMP_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_DUMP_EXPECTED_LINE_COUNT={len(EXPECTED_LINES)}")
+    print(f"PHASE3_POLICY_DUMP_SELF_TEST_CASE_COUNT={len(cases) + 2}")
     return 0
 
 
