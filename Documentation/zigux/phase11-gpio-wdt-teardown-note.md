@@ -21,6 +21,7 @@ The current teardown-facing GPIO packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
 - `drivers/watchdog/gpio_wdt_verify.zig`
+- `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig`
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
@@ -50,6 +51,9 @@ The current host-free teardown review packet keeps these handoffs explicit:
   `summarizeTeardown()`, and `summarizeRemoveHandoff()` replayable beside the
   direct proofs without claiming live GPIO, live watchdog-core registration,
   live remove-hook execution, or reboot-backed shutdown execution
+- `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig` as the dedicated
+  bounded replay route that keeps the driver-backed verify helper on its own
+  `zig build` path instead of leaving teardown-helper validation implicit
 - `zigux/tests/phase11_gpio_wdt_preflight_review.zig` as the direct preflight
   proof surface that keeps `descriptorPreflightSummary()`,
   `timeoutPropertyCheckpointSummary()`, `platformDrvdataCheckpointSummary()`,
@@ -67,9 +71,10 @@ The current host-free teardown review packet keeps these handoffs explicit:
   failure summary, and the teardown-facing stop-policy split tied to the
   reboot-glue boundary without claiming live watchdog-core registration
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
-  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`, and
-  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as the
-  dedicated bounded replay routes for the returned teardown packet
+  `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
+  `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`, and
+  `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig` as the dedicated
+  bounded replay routes for the returned teardown packet
 - `timeoutPropertyCheckpointSummary()` and
   `platformDrvdataCheckpointSummary()` as the ordering anchors that still feed
   the bounded register-device and teardown summaries
