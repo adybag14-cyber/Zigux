@@ -1,26 +1,25 @@
 {
   "phase": "Phase 3",
-  "lane": "abi-runtime",
+  "lane": "helper-interop",
   "slug": "phase3-bitmap-cpumask-starter-packet",
-  "status": "helper_local_bitmap_cpumask_slice_present",
-  "scope": "helper-local bitmap range and cpumask membership/subset replay",
+  "status": "helper_local_bitmap_cpumask_fixture_packet_present",
+  "scope": "helper-local bitmap range and cpumask membership/subset replay plus narrow C fixture parity",
   "packet_files": [
     "Documentation/zigux/phase3-bitmap-cpumask-slice.md",
     "zigux/helpers/bitmap_view.zig",
     "zigux/helpers/cpumask_view.zig",
     "zigux/tests/phase3_bitmap_cpumask_starter_packet.zig",
     "zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json",
     "zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json",
     "scripts/zigux/check-phase3-bitmap-cpumask.py"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-bitmap-cpumask.py --self-test",
-    "python3 scripts/zigux/check-phase3-bitmap-cpumask.py",
+    "python3 scripts/zigux/check-phase3-bitmap-cpumask.py --repo-root . --cc gcc",
     "zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig"
   ],
-  "repo_reality_gaps": [
-    "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c",
-    "zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json"
-  ],
-  "next_safe_step": "if this slice needs parity expansion later, add the narrow C harness and expected fixture without widening beyond helper-local bitmap and cpumask semantics"
+  "repo_reality_gaps": [],
+  "next_safe_step": "keep any future same-lane follow-through narrowed to exported or scheduler-facing bitmap/cpumask behavior only if current helper-local fixture packet drifts on master"
 }
