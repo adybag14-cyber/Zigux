@@ -59,6 +59,7 @@ test "phase1 host-tools smoke imports the live helper modules" {
     try std.testing.expect(@hasDecl(rbtree, "find"));
     try std.testing.expect(@hasDecl(rbtree, "matchIterator"));
     try std.testing.expect(@hasDecl(string, "strtobool"));
+    try std.testing.expect(@hasDecl(string, "strlcat"));
     try std.testing.expect(@hasDecl(string, "matchString"));
     try std.testing.expect(@hasDecl(string, "strnchr"));
     try std.testing.expect(@hasDecl(string, "strnchrNul"));
@@ -219,6 +220,14 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     var padded = [_]u8{0xaa} ** 6;
     try std.testing.expectEqual(@as(isize, 2), string.strscpyPad(&padded, "hi"));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 0, 0, 0 }, &padded);
+
+    var appended = [_]u8{ 'h', 'i', 0, 'x', 'x', 'x' };
+    try std.testing.expectEqual(@as(usize, 5), string.strlcat(appended[0..], "all"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 'a', 'l', 'l', 0 }, appended[0..]);
+
+    var truncated_append = [_]u8{ 'a', 'b', 0, 'x' };
+    try std.testing.expectEqual(@as(usize, 6), string.strlcat(truncated_append[0..], "cdef"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 'c', 0 }, truncated_append[0..]);
 
     const sysfs = [_][]const u8{ "disabled", "auto\n", "manual" };
     try std.testing.expectEqual(@as(?usize, 1), string.sysfsMatchString(&sysfs, "auto"));
