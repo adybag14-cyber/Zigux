@@ -18,6 +18,19 @@ EXPECTED_ARTIFACT_SUPPORT = (
 )
 
 
+class DuplicateKeyError(ValueError):
+    """Raised when a manifest JSON object repeats a key."""
+
+
+def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise DuplicateKeyError(f"duplicate json key: {key}")
+        payload[key] = value
+    return payload
+
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -40,15 +53,27 @@ def count_exact_entries(entries: list[str], marker: str) -> int:
     return sum(1 for entry in entries if entry == marker)
 
 
+def load_manifest(manifest_path: Path) -> dict[str, object]:
+    try:
+        return json.loads(
+            manifest_path.read_text(encoding="utf-8"),
+            object_pairs_hook=_reject_duplicate_keys,
+        )
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid manifest json: {exc.msg}") from exc
+    except DuplicateKeyError as exc:
+        raise ValueError(str(exc)) from exc
+
+
 def validate(repo_root: Path) -> list[str]:
     manifest_path = repo_root / MANIFEST_PATH
     if not manifest_path.is_file():
         return [f"missing manifest file: {MANIFEST_PATH.as_posix()}"]
 
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        return [f"invalid manifest json: {exc.msg}"]
+        manifest = load_manifest(manifest_path)
+    except ValueError as exc:
+        return [str(exc)]
 
     if not isinstance(manifest, dict):
         return ["invalid manifest root object"]
@@ -130,6 +155,14 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        _write(root / MANIFEST_PATH, '{"phase":"Phase 2","phase":"Phase 3"}\n')
+        issues = validate(root)
+        if "duplicate json key: phase" not in issues:
+            print("PHASE2_ARTIFACT_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected duplicate json key was not reported")
+            return 1
+        case_count += 1
+
         _write(root / MANIFEST_PATH, "[]\n")
         issues = validate(root)
         if "invalid manifest root object" not in issues:
@@ -146,6 +179,20 @@ def run_self_test() -> int:
         if "invalid present_surfaces object" not in issues:
             print("PHASE2_ARTIFACT_SUPPORT_SURFACE_SELF_TEST=fail")
             print("expected invalid present_surfaces object was not reported")
+            return 1
+        case_count += 1
+
+        _write(
+            root / MANIFEST_PATH,
+            (
+                '{"phase":"Phase 2","present_surfaces":{"artifact_support":[],"artifact_support":[]}}'
+                "\n"
+            ),
+        )
+        issues = validate(root)
+        if "duplicate json key: artifact_support" not in issues:
+            print("PHASE2_ARTIFACT_SUPPORT_SURFACE_SELF_TEST=fail")
+            print("expected duplicate nested json key was not reported")
             return 1
         case_count += 1
 
