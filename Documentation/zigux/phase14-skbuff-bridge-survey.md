@@ -15,7 +15,7 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 Against the Phase 14 roadmap, `net/core/skbuff.c` still belongs in a bounded `boundary_map_only`, review-first, freeze-in-C posture rather than a live parity claim.
 Current `master` now ships a review-only skbuff bridge packet again, so this note should describe that live packet honestly instead of pretending the helper, manifest, focused gate, or Phase 14 build shard are absent.
 The meaningful current statement is that the packet is present but still blocked on live ownership and packet-lifetime behavior that stays in C.
-That deeper blocker remains the same Phase 14 seam: qdisc-facing publication, queue ownership, shared-info refcount and header-write ownership, checksum state, destructor and frag-list teardown, segmentation metadata, the final sock-owned tail transfer, and the consumer-side list reset inside `validate_xmit_skb_list()` remain in C.
+That deeper blocker remains the same Phase 14 seam: qdisc-facing publication, queue ownership, shared-info refcount and header-write ownership, checksum state, destructor and frag-list teardown, segmentation metadata, the final sock-owned tail transfer, `sock_wfree`, `tail->destructor`, `tail->sk`, tail->next splicing, and the consumer-side `tail = skb->prev` reset inside `validate_xmit_skb_list()` remain in C.
 The live bridge packet therefore remains review-only boundary evidence, not a delivery, parity, or ownership-transfer claim.
 
 ## Compile Evidence
@@ -32,7 +32,7 @@ The live bridge packet therefore remains review-only boundary evidence, not a de
 2. keep the roadmap-facing `boundary_map_only` posture explicit
    - the survey must continue to name the retained live-ownership seam and stay-in-C decision while the bridge, manifest, focused gate, and build shard remain review-only evidence
 3. keep the blocked consumer-tail contract explicit
-   - `validate_xmit_skb_list()`, qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, `tail->next`, `segs->prev`, `skb_mark_not_on_list()`, and the final sock-owned tail transfer must remain named as C-owned review points
+   - `validate_xmit_skb_list()`, qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, `sock_wfree`, `tail->destructor`, `tail->sk`, `tail->next`, `segs->prev`, `skb_mark_not_on_list()`, `tail = skb->prev`, and the final sock-owned tail transfer must remain named as C-owned review points
 4. keep the live bridge-local packet aligned with the manifest and focused gate
    - if the bridge, dedicated test, manifest, or Phase 14 build shard drifts again, fix the directly coupled packet before widening into shared Phase 14 reminder surfaces
 
