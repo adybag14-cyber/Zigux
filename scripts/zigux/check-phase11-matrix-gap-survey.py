@@ -23,6 +23,7 @@ REQUIRED_MARKERS = [
     "The shared `phase11-validate` route also now carries `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as focused watchdog teardown-or-failure-mode proofs outside the narrower three-entry HVC build inventory, so keep those shared watchdog replay routes explicit beside the returned driver-local matrices instead of reducing the shared gate to HVC-only proof coverage.",
     "Current `master` also materializes `scripts/zigux/validate-phase11.py` and `zigux/Makefile`, and the live Makefile exposes `make -C zigux phase11-validate`",
     "`bcm2835_wdt`: authenticated GitHub contents rereads now rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "`gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` is directly readable on current `master`, and it keeps the bounded descriptor, platform-drvdata, teardown, registration-handoff, register-device request, and failure-mode parity review packet explicit without claiming live GPIO descriptor execution or platform registration.",
     "`dw_wdt`: authenticated GitHub contents rereads now rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
 ]
 FORBIDDEN_MARKERS = [
@@ -99,7 +100,7 @@ def run_self_test() -> None:
             path.write_text(path.read_text(encoding="utf-8") + "\n" + marker + "\n", encoding="utf-8")
             expect_failure(case_root, marker)
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=19")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=20")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
