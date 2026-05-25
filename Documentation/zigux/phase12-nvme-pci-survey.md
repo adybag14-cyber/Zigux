@@ -36,7 +36,7 @@ The current bounded packet only proves reviewability for:
 
 - queue-pair planning and IO queue reservation sizing
 - recovery reservation replay debt, preflight, apply, and queue-numbering restart review
-- PRP buffer-shape accounting and PRP metadata budgeting
+- PRP buffer-shape accounting, PRP metadata budgeting, and stale PRP metadata ownership with descriptor-rebuild governance
 - reset freeze summaries and frozen queue-restore host-DMA budgeting
 - dropped-backlog retirement review
 - rollback-gate review
@@ -53,7 +53,7 @@ The current bounded packet still does not prove:
 
 ## Why this survey matters
 
-The manifest already claims that the survey note and dedicated survey gate are present. Keeping the note aligned with the still-dedicated direct replay keeps the packet fail-closed again, so the roadmap gap stays explicit instead of splitting across stale shared-route wording.
+The manifest already claims that the survey note and dedicated survey gate are present. Keeping the note aligned with the still-dedicated direct replay and the live stale-PRP ownership vocabulary keeps the packet fail-closed again, so the roadmap gap stays explicit instead of splitting across stale shared-route wording.
 
 ## Next bounded step
 
