@@ -8,8 +8,10 @@ from pathlib import Path
 
 HELPER_PATH = Path("lib/devres_scatterlist.zig")
 NOTE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-planner.md")
+SLICE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-slice.md")
 MANIFEST_PATH = Path("zigux/tests/phase13_devres_scatterlist_planner_manifest.json")
 REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist.zig")
+BUILD_PATH = Path("zigux/tests/phase13_devres_scatterlist_build.zig")
 
 REQUIRED_MARKERS = {
     HELPER_PATH: [
@@ -22,16 +24,27 @@ REQUIRED_MARKERS = {
     ],
     NOTE_PATH: [
         "pure scatterlist lifetime planning surface",
+        "`Documentation/zigux/phase13-devres-scatterlist-slice.md` keeps the helper-local scope and non-goals aligned with this planner note, the manifest, and the replay",
+        "`zigux/tests/phase13_devres_scatterlist_build.zig` keeps the dedicated build shard aligned with the helper-first scatterlist replay",
         "retains detach-time unmap ownership on success",
         "failed mapping frees the release record",
         "warn-on-release-miss outcome",
         "dma_map_sgtable()",
         "sg_table",
+        "zig build test --build-file zigux/tests/phase13_devres_scatterlist_build.zig",
+    ],
+    SLICE_PATH: [
+        "helper-first scatterlist planner beside the existing `lib/devres.zig` and `lib/devres_dma_coherent.zig` packet",
+        "focused replay: `zigux/tests/phase13_devres_scatterlist.zig`",
+        "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution",
+        "no `struct scatterlist`, `sg_table`, or `sg_*` iteration helpers",
     ],
     MANIFEST_PATH: [
         "\"packet\": \"phase13-devres-scatterlist-planner\"",
         "\"status\": \"starter_landed\"",
         "\"scatterlist_lifetime_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"",
+        "\"slice_note_owner\": \"Documentation/zigux/phase13-devres-scatterlist-slice.md\"",
+        "\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\"",
         "\"validation_guard\": \"scripts/zigux/check-phase13-devres-scatterlist-planner.py\"",
         "\"id\": \"phase13-devres-live-scatterlist-ownership\"",
         "\"id\": \"phase13-devres-live-sg-table-lifecycle\"",
@@ -41,7 +54,14 @@ REQUIRED_MARKERS = {
         "phase13 devres descriptor records helper-first scatterlist planning",
         "phase13 devres scatterlist planner manifest records the dedicated helper-first packet",
         "phase13 devres scatterlist planner note keeps the helper-first scatterlist slice bounded",
+        "phase13 devres scatterlist slice and build shard stay packet-local",
         "phase13 devres scatterlist planner checker stays packet-local",
+    ],
+    BUILD_PATH: [
+        "phase13-devres-scatterlist-tests",
+        "Run Phase 13 devres scatterlist helper tests",
+        "../../lib/devres_scatterlist.zig",
+        "phase13_devres_scatterlist.zig",
     ],
 }
 
@@ -53,6 +73,8 @@ FORBIDDEN_HELPER_MARKERS = [
     "sg_free_table(",
     "sg_dma_address(",
     "sg_dma_len(",
+    "struct scatterlist",
+    "sg_table",
 ]
 
 
@@ -88,10 +110,8 @@ def validate(root: Path) -> list[str]:
 
 
 def seed_fixture_tree(root: Path) -> None:
-    write_text(root / HELPER_PATH, "\n".join(REQUIRED_MARKERS[HELPER_PATH]) + "\n")
-    write_text(root / NOTE_PATH, "\n".join(REQUIRED_MARKERS[NOTE_PATH]) + "\n")
-    write_text(root / MANIFEST_PATH, "\n".join(REQUIRED_MARKERS[MANIFEST_PATH]) + "\n")
-    write_text(root / REPLAY_PATH, "\n".join(REQUIRED_MARKERS[REPLAY_PATH]) + "\n")
+    for rel, markers in REQUIRED_MARKERS.items():
+        write_text(root / rel, "\n".join(markers) + "\n")
 
 
 def assert_only(actual: list[str], expected: list[str], label: str) -> None:
@@ -118,11 +138,58 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
+        (root / BUILD_PATH).unlink()
+        assert_only(
+            validate(root),
+            [f"missing_file:{BUILD_PATH.as_posix()}"],
+            "missing_build_shard_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
         write_text(root / HELPER_PATH, "\n".join(REQUIRED_MARKERS[HELPER_PATH] + ["dma_map_sg("]) + "\n")
         assert_only(
             validate(root),
             ["helper:unexpected_marker:dma_map_sg("],
             "unexpected_live_dma_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[MANIFEST_PATH]
+                if marker != "\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\""
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "zigux/tests/phase13_devres_scatterlist_planner_manifest.json:missing_marker:\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\""
+            ],
+            "missing_build_owner_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / REPLAY_PATH,
+            "\n".join(
+                marker
+                for marker in REQUIRED_MARKERS[REPLAY_PATH]
+                if marker != "phase13 devres scatterlist slice and build shard stay packet-local"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                "zigux/tests/phase13_devres_scatterlist.zig:missing_marker:phase13 devres scatterlist slice and build shard stay packet-local"
+            ],
+            "missing_replay_case_failed",
         )
         case_count += 1
 
