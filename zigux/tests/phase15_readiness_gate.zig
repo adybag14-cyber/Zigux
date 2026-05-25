@@ -62,7 +62,7 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         manifest.readiness_packet_checker,
     );
-    try std.testing.expectEqual(@as(usize, 37), manifest.direct_packet_paths.len);
+    try std.testing.expectEqual(@as(usize, 38), manifest.direct_packet_paths.len);
     try std.testing.expectEqualStrings(
         "scripts/zigux/validate-phase15.py",
         manifest.direct_packet_paths[21],
@@ -72,8 +72,12 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
         manifest.direct_packet_paths[26],
     );
     try std.testing.expectEqualStrings(
-        "zigux/tests/phase15_readiness_gate_manifest.json",
+        "zigux/tests/phase15_build.zig",
         manifest.direct_packet_paths[36],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_readiness_gate_manifest.json",
+        manifest.direct_packet_paths[37],
     );
     try std.testing.expectEqual(@as(usize, 5), manifest.phase15_validate_checkers.len);
     try std.testing.expectEqualStrings(
@@ -84,16 +88,12 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
         "scripts/zigux/check-phase15-shared-summary-gap.py",
         manifest.phase15_validate_checkers[4],
     );
-    try std.testing.expectEqual(@as(usize, 1), manifest.still_missing_broader_paths.len);
-    try std.testing.expectEqualStrings(
-        "zigux/tests/phase15_build.zig",
-        manifest.still_missing_broader_paths[0],
-    );
+    try std.testing.expectEqual(@as(usize, 0), manifest.still_missing_broader_paths.len);
     try std.testing.expect(manifest.repo_evidence.phase15_readiness_packet_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scripts_readme_checker_present);
-    try std.testing.expect(!manifest.repo_evidence.phase15_build_zig_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_build_zig_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_aggregate_target_present);
@@ -110,9 +110,10 @@ test "phase 15 readiness note stays aligned with the validator-first packet" {
     try expectContains(readiness_note, "current-master-readback-2026-05-25");
     try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
     try expectContains(readiness_note, "the dedicated validator now exists as a directly readable maintenance gate");
+    try expectContains(readiness_note, "the dedicated shared-build companion is now directly readable current-master evidence");
     try expectContains(
         readiness_note,
-        "broader build and workflow companions still block any claim that the larger Phase 15 replay route is fully ready",
+        "broader make-wrapper and workflow companions still block any claim that the larger Phase 15 replay route is one-command or shared-CI ready",
     );
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
     try expectContains(readiness_note, "`scripts/zigux/validate-phase15.py`");
@@ -120,5 +121,5 @@ test "phase 15 readiness note stays aligned with the validator-first packet" {
     try expectContains(readiness_note, "`zigux/tests/phase15_build.zig`");
     try expectContains(readiness_note, "`make -C zigux phase15-validate` remains blocked route vocabulary");
     try expectContains(readiness_note, "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route");
-    try expectContains(readiness_note, "ready for maintenance-mode truthfulness refreshes and direct validator-first replay only");
+    try expectContains(readiness_note, "ready for maintenance-mode truthfulness refreshes, direct validator-first replay, and shared-build companion review only");
 }
