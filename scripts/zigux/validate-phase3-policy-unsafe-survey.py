@@ -132,6 +132,7 @@ REQUIRED_FILE_MARKERS = {
         '"zigux/tests/phase3_policy_dump_build.zig"',
         '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
         '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
+        '"make -C zigux phase3-policy-starter-packet-test"',
     ),
     POLICY_DUMP_PATH: (
         "const RawBridgeReplay = struct {",
@@ -204,6 +205,12 @@ SELF_TEST_CASES = (
         "starter packet manifest drift",
         POLICY_STARTER_PACKET_MANIFEST_PATH,
         REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH][5],
+        "marker",
+    ),
+    (
+        "starter packet manifest make-route drift",
+        POLICY_STARTER_PACKET_MANIFEST_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH][6],
         "marker",
     ),
     (
