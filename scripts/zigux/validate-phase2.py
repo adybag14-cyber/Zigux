@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -131,6 +132,12 @@ FIXDEP_FIXTURE_FILES = (
     "zigux/tests/fixtures/fixdep/shared#config.h",
     "zigux/tests/fixtures/fixdep/shared:config.h",
 )
+ARCHIVE_PAYLOAD_PATH = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+ARCHIVE_PARTS_MANIFEST_PATH = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz.parts/manifest.json"
+ARCHIVE_SUPPORT_ALTERNATIVES = (
+    ARCHIVE_PAYLOAD_PATH,
+    ARCHIVE_PARTS_MANIFEST_PATH,
+)
 
 REQUIRED_PATHS = (
     "Documentation/zigux/README.md",
@@ -174,7 +181,6 @@ REQUIRED_PATHS = (
     "scripts/zigux/zig-toolchain-policy.json",
     "scripts/zigux/artifact_diff.py",
     "third_party/README.md",
-    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
@@ -363,6 +369,15 @@ def phony_targets_present(text: str) -> set[str]:
     return targets
 
 
+def collect_archive_support_issues(root: Path) -> list[tuple[str, str]]:
+    if any((root / rel).exists() for rel in ARCHIVE_SUPPORT_ALTERNATIVES):
+        return []
+    return [(
+        "MISSING_REQUIRED_ARCHIVE_SUPPORT",
+        " or ".join(ARCHIVE_SUPPORT_ALTERNATIVES),
+    )]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(root, WORKFLOW)
@@ -394,6 +409,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
 
+    issues.extend(collect_archive_support_issues(root))
+
     return issues
 
 
@@ -412,6 +429,11 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_self_test_root(root: Path) -> None:
+    for child in root.iterdir():
+        if child.is_dir():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
     write_text(
         root,
@@ -432,6 +454,7 @@ def build_self_test_root(root: Path) -> None:
     for rel in REQUIRED_PATHS:
         if rel != MAKEFILE:
             write_text(root, rel, "present\n")
+    write_text(root, ARCHIVE_PAYLOAD_PATH, "archive\n")
 
 
 def expect_issue(root: Path, expected: tuple[str, str]) -> None:
@@ -449,6 +472,7 @@ def run_self_test() -> int:
         + len(REQUIRED_MAKEFILE_LINES)
         + len(REQUIRED_MAKEFILE_LINES)
         + (len(REQUIRED_PATHS) - 1)
+        + 2
         + 2
     )
     checks = 0
@@ -511,6 +535,20 @@ def run_self_test() -> int:
             else:
                 raise AssertionError(f"missing file did not abort: {rel}")
 
+        build_self_test_root(root)
+        (root / ARCHIVE_PAYLOAD_PATH).unlink()
+        write_text(root, ARCHIVE_PARTS_MANIFEST_PATH, "present\n")
+        assert collect_issues(root) == []
+        checks += 1
+
+        build_self_test_root(root)
+        (root / ARCHIVE_PAYLOAD_PATH).unlink()
+        expect_issue(
+            root,
+            ("MISSING_REQUIRED_ARCHIVE_SUPPORT", " or ".join(ARCHIVE_SUPPORT_ALTERNATIVES)),
+        )
+        checks += 1
+
     assert checks == expected_case_count
     print("PHASE2_VALIDATION_SELF_TEST=pass")
     print(f"PHASE2_VALIDATION_SELF_TEST_CASE_COUNT={checks}")
@@ -532,7 +570,7 @@ def main() -> int:
 
     print("PHASE2_VALIDATION=pass")
     print(f"PHASE2_VALIDATION_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
-    print(f"PHASE2_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
+    print(f"PHASE2_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS) + 1}")
     return 0
 
 
