@@ -4,7 +4,7 @@
   "mode": "bounded request-plan bridge",
   "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
   "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
-  "case_count": 16,
+  "case_count": 17,
   "cases": [
     "oldaskconfig",
     "syncconfig",
@@ -13,6 +13,7 @@
     "allyesconfig",
     "allmodconfig",
     "alldefconfig",
+    "alldefconfig_allconfig",
     "randconfig",
     "defconfig",
     "savedefconfig",
@@ -31,6 +32,7 @@
     "allyesconfig_expected.json",
     "allmodconfig_expected.json",
     "alldefconfig_expected.json",
+    "alldefconfig_allconfig_expected.json",
     "randconfig_expected.json",
     "defconfig_expected.json",
     "savedefconfig_expected.json",
@@ -59,6 +61,7 @@
   ],
   "allconfig_override_packet": [
     "allmodconfig_expected.json",
+    "alldefconfig_allconfig_expected.json",
     "randconfig_expected.json"
   ],
   "helper_local_allconfig_implicit_omission_modes": [
