@@ -10,6 +10,7 @@
     * `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
     * `scripts/zigux/check-phase4-gate-evidence.py`
     * `scripts/zigux/check-phase4-remaining-gap-matrix.py`
+    * `scripts/zigux/check-phase4-perf-threshold-matrix.py`
     * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
     * `scripts/zigux/check-phase4-workflow-route-counts.py`
     * `scripts/zigux/check-phase4-perf-baseline-packet.py`
@@ -85,6 +86,9 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
   * Validation and Perf Team owning that policy decision keeps the threshold posture bounded to current local evidence rather than shared CI approval.
   * gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
   * rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
+  * `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 8192` over `4` iterations with `7` monotonic samples
+  * `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit: `median_elapsed_ns <= 12288` over `4` iterations with `7` monotonic samples
+  * `python3 scripts/zigux/check-phase4-perf-threshold-matrix.py --self-test` then `python3 scripts/zigux/check-phase4-perf-threshold-matrix.py` keeps those exact local-only acceptable-limit lines fail-closed against the manifest-backed perf packet
   * the dedicated local perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked while the shared promotion decision stays parked in `zigux/tests/phase4_perf_baseline_manifest.json`
   * `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py` keeps this owner, wrapper, and threshold packet fail-closed against the matrix, the review checklist, the reversible-delivery note, and the scripts-root reminder surface
   * shared CI perf promotion pending remains the correct roadmap-facing posture until a later bounded lane widens this local-only survey packet into broader shared-lab evidence
