@@ -2,7 +2,7 @@
   "lane_key": "P12-L08",
   "phase": "Phase 12",
   "surveyed_commit": "7f9b8703b96d4de67447791a88584023950b1de7",
-  "verified_on": "2026-05-24",
+  "verified_on": "2026-05-25",
   "anchor": "drivers/nvme/host/pci.c",
   "roadmap_destinations": [
     "drivers/nvme/host/pci.zig",
@@ -25,7 +25,7 @@
     "dma_safe_abstractions": {
       "required_by_roadmap": true,
       "status": "starter_planner_present_runtime_dma_blocked",
-      "current_surface": "Current master keeps a bounded NVMe PCI starter around queue-pair planning, PRP buffer-shape accounting, PRP metadata budgeting, recovery reservation replay debt, preflight, and apply summaries, dropped-backlog retirement review, rollback-gate review, and frozen queue-restore host-DMA budgeting, but it still stops before live DMA mapping, PRP or SGL submission, or transport-backed queue execution.",
+      "current_surface": "Current master keeps a bounded NVMe PCI starter around queue-pair planning, PRP buffer-shape accounting, PRP metadata budgeting, stale PRP metadata ownership with descriptor-rebuild governance, recovery reservation replay debt, preflight, and apply summaries, dropped-backlog retirement review, rollback-gate review, and frozen queue-restore host-DMA budgeting, but it still stops before live DMA mapping, PRP or SGL submission, or transport-backed queue execution.",
       "blocked_by": "DMA-safe request ownership, PRP or SGL construction, and runtime queue submission still belong to later driver-local packets beyond the current starter and verifier-backed review surface."
     },
     "queueing_correctness": {
@@ -37,7 +37,7 @@
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
       "status": "recovery_budget_summary_and_survey_gate_present_throughput_gate_missing",
-      "current_surface": "The current starter records reset freeze state, remembered admin depth, recovery reservation replay debt, preflight, and apply summaries, PRP span pressure, dropped-backlog retirement conditions, rollback-gate blockers, and frozen queue-restore host-DMA budgeting through the driver-local helper, verifier, direct replay, and survey gate, without a landed throughput benchmark or transport-backed reset replay.",
+      "current_surface": "The current starter records reset freeze state, remembered admin depth, recovery reservation replay debt, preflight, and apply summaries, PRP span pressure, PRP metadata budgeting, stale PRP metadata ownership with descriptor-rebuild governance, dropped-backlog retirement conditions, rollback-gate blockers, and frozen queue-restore host-DMA budgeting through the driver-local helper, verifier, direct replay, and survey gate, without a landed throughput benchmark or transport-backed reset replay.",
       "blocked_by": "No throughput benchmark and no transport-backed reset replay are landed yet."
     },
     "segmented_rollout": {
@@ -95,7 +95,7 @@
       "status": "survey_present_dedicated_direct_build_only",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The survey note is present on current master and now records that the direct replay remains on the dedicated NVMe build route while the dedicated survey gate stays packet-local."
+      "why_now": "The survey note is present on current master and now records that the direct replay remains on the dedicated NVMe build route while the dedicated survey gate stays packet-local around stale PRP metadata ownership and descriptor-rebuild governance."
     },
     {
       "id": "phase12-nvme-survey-gate",
