@@ -5,6 +5,8 @@ const cpu_mask_verify = @import("cpu_mask_verify.zig");
 const logging = @import("logging.zig");
 const logging_verify = @import("logging_verify.zig");
 const online_cpu_routing = @import("online_cpu_routing.zig");
+const online_cpu_routing_mask_bridge = @import("online_cpu_routing_mask_bridge.zig");
+const online_cpu_routing_mask_bridge_verify = @import("online_cpu_routing_mask_bridge_verify.zig");
 const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const perf_buffer_poll_verify = @import("perf_buffer_poll_verify.zig");
@@ -55,6 +57,8 @@ test "materialized tools/lib/bpf Zigux segments compile together and keep their 
     std.testing.refAllDecls(logging);
     std.testing.refAllDecls(logging_verify);
     std.testing.refAllDecls(online_cpu_routing);
+    std.testing.refAllDecls(online_cpu_routing_mask_bridge);
+    std.testing.refAllDecls(online_cpu_routing_mask_bridge_verify);
     std.testing.refAllDecls(online_cpu_routing_verify);
     std.testing.refAllDecls(perf_buffer_poll);
     std.testing.refAllDecls(perf_buffer_poll_verify);
@@ -114,6 +118,12 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(online_cpu_routing, "resolveNextOnlineCpuRouteBufferFdAtIndex");
     try expectHasDecl(online_cpu_routing, "resolveNextOnlineCpuRouteBufferFdReturn");
     try expectHasDecl(online_cpu_routing, "resolveNextOnlineCpuRouteBufferFdReturnAtIndex");
+
+    try expectHasDecl(online_cpu_routing_mask_bridge, "ChunkReader");
+    try expectHasDecl(online_cpu_routing_mask_bridge, "ParseCpuMaskError");
+    try expectHasDecl(online_cpu_routing_mask_bridge, "OnlineCpuRoutingSummary");
+    try expectHasDecl(online_cpu_routing_mask_bridge, "summarizeOnlineCpuRoutingFromString");
+    try expectHasDecl(online_cpu_routing_mask_bridge, "summarizeOnlineCpuRoutingFromReader");
 
     try expectHasDecl(perf_buffer_poll, "WaitClass");
     try expectHasDecl(perf_buffer_poll, "PollOutcome");
@@ -315,6 +325,51 @@ test "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd 
             &.{11},
             1,
         ),
+    );
+}
+
+test "materialized tools/lib/bpf Zigux segments keep stable online-CPU mask-bridge wrappers explicit" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const summary = try online_cpu_routing_mask_bridge.summarizeOnlineCpuRoutingFromString(
+        allocator,
+        "0-1,4\n",
+        0,
+        &.{ 11, 17, 21 },
+    );
+    try std.testing.expectEqual(@as(usize, 3), summary.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.selected_cpu_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.routed_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 0), summary.first_routed_cpu_index);
+    try std.testing.expectEqual(@as(?usize, null), summary.next_online_cpu_index);
+    try std.testing.expectEqual(
+        online_cpu_routing.OnlineCpuRoutingDisposition.complete,
+        summary.disposition,
+    );
+
+    var scratch: [2]u8 = undefined;
+    var context = CpuMaskReaderContext{ .input = "1,3-4\n" };
+    const reader = online_cpu_routing_mask_bridge.ChunkReader{
+        .context = &context,
+        .readFn = readCpuMaskChunks,
+    };
+    const reader_summary = try online_cpu_routing_mask_bridge.summarizeOnlineCpuRoutingFromReader(
+        allocator,
+        scratch[0..],
+        reader,
+        2,
+        &.{ 41, 43, 47 },
+    );
+    try std.testing.expectEqual(@as(usize, 3), reader_summary.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), reader_summary.selected_cpu_count);
+    try std.testing.expectEqual(@as(usize, 2), reader_summary.routed_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 1), reader_summary.first_routed_cpu_index);
+    try std.testing.expectEqual(@as(?usize, 4), reader_summary.next_online_cpu_index);
+    try std.testing.expectEqual(
+        online_cpu_routing.OnlineCpuRoutingDisposition.requested_subset,
+        reader_summary.disposition,
     );
 }
 
