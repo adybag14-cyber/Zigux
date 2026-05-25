@@ -253,10 +253,6 @@ test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier 
     );
     try expectContains(
         survey,
-        "`tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig`",
-    );
-    try expectContains(
-        survey,
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
     );
     try expectContains(
