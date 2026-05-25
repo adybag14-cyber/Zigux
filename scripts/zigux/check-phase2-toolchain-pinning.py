@@ -177,7 +177,15 @@ POLICY_EXPECTED = {
     "phase": "Phase 2",
     "channel_minimum_lockstep": True,
     "archive_target_scope": [ARCHIVE_TARGET],
-    "required_make_routes": ["phase2-toolchain", "phase2-validate", "phase2-cross"],
+    "required_make_routes": [
+        "phase2-toolchain",
+        "phase2-tools",
+        "phase2-kconfig",
+        "phase2-cross",
+        "phase2-genksyms",
+        "phase2-fixdep",
+        "phase2-validate",
+    ],
 }
 
 
