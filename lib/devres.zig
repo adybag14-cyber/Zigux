@@ -637,6 +637,31 @@ test "iomap cleanup handoff keeps missing release records warnable" {
     try std.testing.expect(handoff.warns_on_release_miss);
 }
 
+test "iomap cleanup handoff stays inert when a denied region request blocks remap" {
+    const iomap_plan = DevresHelperLab.planDeviceTreeIomap(.{
+        .index = 4,
+        .translated_size = 32768,
+        .translation_ready = true,
+        .requests_region = true,
+        .request_region_available = false,
+        .remap_succeeds = true,
+        .nonposted = true,
+    });
+    const handoff = DevresHelperLab.planDeviceTreeIomapCleanupHandoff(iomap_plan, true);
+
+    try std.testing.expectEqualStrings("lib/devres.c", handoff.anchor);
+    try std.testing.expectEqual(@as(u32, 4), handoff.index);
+    try std.testing.expectEqual(@as(u64, 32768), handoff.translated_size);
+    try std.testing.expect(!handoff.remap_ready);
+    try std.testing.expect(handoff.requires_nonposted_ioremap);
+    try std.testing.expect(handoff.keeps_nonposted_mapping_type);
+    try std.testing.expect(!handoff.hands_off_to_iounmap_cleanup);
+    try std.testing.expect(!handoff.unmaps_mapping);
+    try std.testing.expect(!handoff.releases_from_devres);
+    try std.testing.expect(!handoff.release_record_consumed);
+    try std.testing.expect(!handoff.warns_on_release_miss);
+}
+
 test "iomap cleanup handoff stays inert when remap never succeeds" {
     const iomap_plan = DevresHelperLab.planDeviceTreeIomap(.{
         .index = 0,
