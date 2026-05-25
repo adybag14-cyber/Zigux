@@ -43,7 +43,7 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
-test "phase 7 rbtree survey keeps the returned json fixture, C harness, and direct helper packet truthful" {
+test "phase 7 rbtree survey keeps the returned json fixture, C harness, build shard, and direct helper packet truthful" {
     const allocator = std.testing.allocator;
 
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_rbtree_manifest.json");
@@ -60,6 +60,8 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     defer allocator.free(legacy_helper);
     const helper_companion = try readRepoFile(allocator, "zigux/tests/phase7_rbtree.zig");
     defer allocator.free(helper_companion);
+    const build_shard = try readRepoFile(allocator, "zigux/tests/phase7_rbtree_build.zig");
+    defer allocator.free(build_shard);
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
     const makefile = try readRepoFile(allocator, "zigux/Makefile");
@@ -78,31 +80,33 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
-    try std.testing.expectEqualStrings("direct_helper_slice_checker_test_note_survey_manifest_fixture_harness", manifest.current_direct_readback_state);
+    try std.testing.expectEqualStrings("direct_helper_slice_build_checker_test_note_survey_manifest_fixture_harness", manifest.current_direct_readback_state);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
     try std.testing.expect(manifest.verified_on_utc.len != 0);
 
+    try expectSliceContains(manifest.visible_paths, "zigux/tests/phase7_rbtree_build.zig");
     try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree.json");
     try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectSliceContains(manifest.readable_non_owner_paths, "tools/lib/rbtree.zig");
     try expectSliceContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");
     try std.testing.expectEqual(@as(usize, 0), manifest.public_fallback_non_owner_paths.len);
+    try expectSliceNotContains(manifest.missing_paths, "zigux/tests/phase7_rbtree_build.zig");
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree.json");
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");
     try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
-    try expectSliceContains(manifest.ownership_focus, "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence");
-    try expectSliceContains(manifest.ownership_focus, "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig`, `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet all rematerialized through authenticated rereads, so shared non-owner build evidence stays reviewable without public-fallback caveats on current master");
+    try expectSliceContains(manifest.ownership_focus, "helper-local build-surface truthfulness must keep `zigux/tests/phase7_rbtree_build.zig` explicit as the dedicated rbtree replay-and-survey shard while `zigux/tests/phase7_build.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` stay framed as shared non-owner evidence");
+    try expectSliceContains(manifest.ownership_focus, "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_rbtree_build.zig`, `zigux/tests/phase7_build.zig`, `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet all rematerialized through authenticated rereads, so helper-local and shared non-owner build evidence stay reviewable without public-fallback caveats on current master");
     try expectSliceContains(manifest.ownership_focus, "machine-readable fallback provenance should stay empty in this packet while the readable non-owner surfaces all rematerialize through authenticated rereads in this runtime");
-    try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
-    try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");
-    try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");
+    try expectContains(manifest.next_bounded_step, "`zigux/tests/phase7_rbtree_build.zig`");
+    try expectContains(manifest.next_bounded_step, "argv_split");
 
-    try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_harness_anchor`");
-    try expectContains(slice_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
-    try expectContains(slice_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
+    try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_build_test_survey_manifest_checker_fixture_harness_anchor`");
+    try expectContains(slice_note, "`zigux/tests/phase7_rbtree_build.zig`");
+    try expectContains(slice_note, "helper-local build-surface truthfulness keeps the dedicated build shard");
     try expectContains(slice_note, "public-fallback provenance stays explicit");
 
+    try expectContains(direct_anchor_note, "`zigux/tests/phase7_rbtree_build.zig`");
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
     try expectNotContains(direct_anchor_note, "still returned `404` for this dedicated companion surface");
@@ -119,6 +123,10 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectContains(helper_companion, "phase 7 rbtree companion replays ordered traversal and duplicate-range helpers");
     try expectContains(helper_companion, "phase 7 rbtree companion replays cached-leftmost promotion and erase-init ownership boundaries");
     try expectContains(helper_companion, "phase 7 rbtree companion replays reverse traversal aliases and detached null stops");
+    try expectContains(build_shard, "../../lib/rbtree.zig");
+    try expectContains(build_shard, "phase7-rbtree-test");
+    try expectContains(build_shard, "phase7-rbtree-survey");
+    try expectContains(build_shard, "const test_step = b.step(\"test\", \"Run the Phase 7 rbtree helper-local tests\");");
     try expectContains(build_file, "../../lib/rbtree.zig");
 
     try expectContains(makefile, "phase7-validate:");
