@@ -28,7 +28,7 @@ C_PARITY_RUNNER_PATH = Path("zigux/tests/phase6_bsearch_c_parity.zig")
 C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_bsearch_c_harness.c")
 BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 
-BUDGET_FORMULA = '"len == 0 ? 0 : std.math.log2_int_floor(len) + 1"'
+BUDGET_FORMULA = '"std.math.log2_int_ceil(len) + 1"'
 SLICE_SUMMARY = (
     "- direct helper-local evidence now covers typed and raw representative lookups, "
     "descending-order comparator handling, duplicate-span `equalRange` wrappers, "
@@ -260,10 +260,10 @@ SELF_TEST_CASES = [
     (HELPER_EVIDENCE_MANIFEST_PATH, MANIFEST_POSTURE, '"current_review_posture": "direct-helper-readback-stale"'),
     (HELPER_EVIDENCE_MANIFEST_PATH, NO_MISSING_COMPANIONS, '"still_missing_direct_companions": ["zigux/tests/phase6_bsearch_casegen.zig"]'),
     (HELPER_EVIDENCE_MANIFEST_PATH, '"query_count": 16', '"query_count": 8'),
-    (HELPER_EVIDENCE_MANIFEST_PATH, f'"budget_formula": {BUDGET_FORMULA}', '"budget_formula": "std.math.log2_int_ceil(len) + 1"'),
+    (HELPER_EVIDENCE_MANIFEST_PATH, f'"budget_formula": {BUDGET_FORMULA}', '"budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"'),
     (HELPER_PARITY_MANIFEST_PATH, MANIFEST_POSTURE, '"current_review_posture": "direct-helper-readback-stale"'),
     (HELPER_PARITY_MANIFEST_PATH, NO_MISSING_COMPANIONS, '"still_missing_direct_companions": ["zigux/tests/phase6_bsearch_casegen.zig"]'),
-    (HELPER_PARITY_MANIFEST_PATH, f'"bound_budget_formula": {BUDGET_FORMULA}', '"bound_budget_formula": "std.math.log2_int_ceil(len) + 1"'),
+    (HELPER_PARITY_MANIFEST_PATH, f'"bound_budget_formula": {BUDGET_FORMULA}', '"bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1"'),
     (LOWER_BOUND_TEST_PATH, "const mutable_lower = bsearch.bsearchLowerBoundMutable(", "const mutable_alias = bsearch.bsearchLowerBoundMutable("),
     (LOWER_BOUND_TEST_PATH, "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[6]), @intFromPtr(typed_missing_lower));", "try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[5]), @intFromPtr(typed_missing_lower));"),
     (BUDGET_TEST_PATH, 'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {', 'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {'),
