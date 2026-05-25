@@ -7,6 +7,11 @@ pub const InitFlow = enum {
     helper_owned_with_reset,
 };
 
+pub const InitFlowError = error{
+    InvalidInteropPolicy,
+    UnexpectedInitFlow,
+};
+
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.AllocatorMode {
     if (reserved != 0) return null;
     return switch (mode) {
@@ -55,6 +60,27 @@ pub fn initFlowFromInteropPolicy(policy: abi.InteropPolicy) ?InitFlow {
 
 pub fn initFlowFromByte(mode: u8) ?InitFlow {
     return initFlowFromInteropPolicyBytes(mode, 0);
+}
+
+pub fn requireInitFlow(mode: abi.AllocatorMode, expected: InitFlow) InitFlowError!void {
+    if (initFlowFor(mode) != expected) {
+        return error.UnexpectedInitFlow;
+    }
+}
+
+pub fn requireInitFlowPolicyBytes(mode: u8, reserved: u8, expected: InitFlow) InitFlowError!void {
+    const actual = initFlowFromInteropPolicyBytes(mode, reserved) orelse return error.InvalidInteropPolicy;
+    if (actual != expected) {
+        return error.UnexpectedInitFlow;
+    }
+}
+
+pub fn requireInitFlowInteropPolicy(policy: abi.InteropPolicy, expected: InitFlow) InitFlowError!void {
+    try requireInitFlowPolicyBytes(policy.allocator_mode, policy.reserved, expected);
+}
+
+pub fn requireInitFlowByte(mode: u8, expected: InitFlow) InitFlowError!void {
+    try requireInitFlowPolicyBytes(mode, 0, expected);
 }
 
 pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {
@@ -196,6 +222,49 @@ test "phase3 allocator policy ignores unrelated interop-policy bytes when reserv
     try std.testing.expect(!requiresResetOnInitInteropPolicy(caller_policy));
     try std.testing.expect(!requiresResetOnInitInteropPolicy(heap_policy));
     try std.testing.expect(requiresResetOnInitInteropPolicy(arena_policy));
+}
+
+test "phase3 allocator policy keeps init-flow require helpers explicit" {
+    const caller_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+    const heap_policy = abi.InteropPolicy{
+        .panic_mode = 1,
+        .allocator_mode = 1,
+        .unsafe_scope = 1,
+        .reserved = 0,
+    };
+    const arena_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 2,
+        .unsafe_scope = 2,
+        .reserved = 0,
+    };
+
+    try requireInitFlow(.caller_provided, .caller_prepared);
+    try requireInitFlow(.kernel_heap, .helper_owned);
+    try requireInitFlow(.arena, .helper_owned_with_reset);
+    try std.testing.expectError(error.UnexpectedInitFlow, requireInitFlow(.arena, .helper_owned));
+
+    try requireInitFlowByte(0, .caller_prepared);
+    try requireInitFlowByte(1, .helper_owned);
+    try requireInitFlowByte(2, .helper_owned_with_reset);
+    try std.testing.expectError(error.UnexpectedInitFlow, requireInitFlowByte(1, .caller_prepared));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireInitFlowByte(9, .helper_owned));
+
+    try requireInitFlowPolicyBytes(0, 0, .caller_prepared);
+    try requireInitFlowPolicyBytes(1, 0, .helper_owned);
+    try requireInitFlowPolicyBytes(2, 0, .helper_owned_with_reset);
+    try std.testing.expectError(error.UnexpectedInitFlow, requireInitFlowPolicyBytes(2, 0, .helper_owned));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireInitFlowPolicyBytes(2, 1, .helper_owned_with_reset));
+
+    try requireInitFlowInteropPolicy(caller_policy, .caller_prepared);
+    try requireInitFlowInteropPolicy(heap_policy, .helper_owned);
+    try requireInitFlowInteropPolicy(arena_policy, .helper_owned_with_reset);
+    try std.testing.expectError(error.UnexpectedInitFlow, requireInitFlowInteropPolicy(heap_policy, .helper_owned_with_reset));
 }
 
 test "phase3 allocator policy stays explicit" {
