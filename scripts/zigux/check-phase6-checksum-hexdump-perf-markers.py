@@ -14,6 +14,7 @@ SURVEY_PATH = Path("Documentation/zigux/phase6-perf-gate-survey.md")
 EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
+PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 CHECKER_PATH = Path("scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py")
 
 REQUIRED_SCRIPTS_SNIPPETS = [
@@ -52,6 +53,16 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-hexdump-perf-matrix-test:",
     "phase6-hexdump-perf:",
     "phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf",
+]
+
+REQUIRED_BUILD_SNIPPETS = [
+    'const checksum_perf_matrix_test_step = b.step(',
+    '        "phase6-checksum-perf-matrix-test",',
+    'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
+    'const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");',
+    'const hexdump_perf_matrix_test_step = b.step(',
+    '        "phase6-hexdump-perf-matrix-test",',
+    'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");',
 ]
 
 REQUIRED_EVIDENCE_REPLAYS = [
@@ -135,7 +146,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 69
+SELF_TEST_CASE_COUNT = 74
 
 
 class ValidationError(RuntimeError):
@@ -354,6 +365,7 @@ def validate(repo_root: Path) -> None:
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
     require_snippets(repo_root / SURVEY_PATH, REQUIRED_SURVEY_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
+    require_snippets(repo_root / PHASE6_BUILD_PATH, REQUIRED_BUILD_SNIPPETS)
     validate_evidence_manifest(repo_root / EVIDENCE_MANIFEST_PATH)
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
 
@@ -368,6 +380,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
     write(root / SURVEY_PATH, "\n".join(REQUIRED_SURVEY_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
+    write(root / PHASE6_BUILD_PATH, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / EVIDENCE_MANIFEST_PATH, json.dumps({
         "packet": "phase6-helper-evidence",
         "phase": "Phase 6",
@@ -416,6 +429,10 @@ def run_self_test() -> None:
             (SURVEY_PATH, "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 550`", "`32B-ascii-g2` at `reps = 10_000` with `max_slowdown_pct = 575`", "32B-ascii-g2"),
             (MAKEFILE_PATH, "phase6-hexdump-review:", "phase6-hexdump-scan:", "phase6-hexdump-review:"),
             (MAKEFILE_PATH, "phase6-hexdump-perf:", "phase6-hexdump-test:", "phase6-hexdump-perf:"),
+            (PHASE6_BUILD_PATH, 'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");', 'const checksum_perf_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper perf gate");', "phase6-checksum-perf"),
+            (PHASE6_BUILD_PATH, 'const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");', 'const hexdump_review_step = b.step("phase6-hexdump-scan", "Run Phase 6 hexdump perf-matrix review preflight");', "phase6-hexdump-review"),
+            (PHASE6_BUILD_PATH, '        "phase6-hexdump-perf-matrix-test",', '        "phase6-hexdump-perf-test",', "phase6-hexdump-perf-matrix-test"),
+            (PHASE6_BUILD_PATH, 'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");', 'const hexdump_perf_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper perf gate");', "phase6-hexdump-perf"),
             (EVIDENCE_MANIFEST_PATH, '"packet": "phase6-helper-evidence"', '"packet": "phase6-helper-parity"', "unexpected packet id"),
             (EVIDENCE_MANIFEST_PATH, '"phase": "Phase 6"', '"phase": "Phase 5"', "unexpected phase id"),
             (EVIDENCE_MANIFEST_PATH, '"lane_scope": "shared helper-evidence rows and machine-readable manifest only"', '"lane_scope": "shared helper-evidence rows only"', "helper-evidence lane_scope drifted"),
