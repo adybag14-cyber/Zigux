@@ -25,8 +25,8 @@ REQUIRED_FILES = {
 ALIGNMENT_NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
     "- current authenticated contents now keep the returned validation matrix directly readable through the same bridge that serves the rest of this narrower packet",
-    "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
-    "- `zigux/tests/phase11_dw_wdt_manifest.json` still records continuity `P11-L10` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- the directly checkable current-head packet in this environment is `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `drivers/watchdog/dw_wdt_pm.zig`, and this companion note",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` now records deeper platform-registration scaffold continuity `P11-L10` at surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md` still records that the broader direct-driver and replay-backed packet does not currently rematerialize through the same authenticated-contents bridge",
     "- `drivers/watchdog/dw_wdt_pm.zig` still keeps bounded suspend, resume, and shutdown handoff summaries explicit across missing-drvdata blocks, idle suspend without teardown hooks, running-hardware suspend stop intent, missing suspend hook teardown during running stop, imported-running resume recovery, timeout-reprogram blocks, running shutdown stop intent, pretimeout-mask teardown, and idle shutdown cleanup while still keeping live PM execution out of scope",
 ]
