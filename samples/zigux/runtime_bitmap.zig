@@ -496,10 +496,40 @@ test "runtime bitmap sample keeps selftest copy and exit lifecycle explicit" {
     try mirror.initWithSetBits(&.{});
     try mirror.copyFrom(&source);
     const mirrored = mirror.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, mirror.stage());
     try std.testing.expectEqual(before.first_set, mirrored.first_set);
+    try std.testing.expectEqual(before.first_zero, mirrored.first_zero);
     try std.testing.expectEqual(before.weight, mirrored.weight);
+    try std.testing.expectEqual(before.nbits, mirrored.nbits);
+    try std.testing.expectEqual(@as(usize, 1), mirrored.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirrored.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), mirrored.exit_runs);
+
+    var cold_source = RuntimeBitmapSample{};
+    const before_cold_copy = mirror.summary();
+    try std.testing.expectError(error.InvalidSourceLifecycle, mirror.copyFrom(&cold_source));
+    const after_cold_copy = mirror.summary();
+    try expectSummaryStable(before_cold_copy, after_cold_copy);
+    try std.testing.expect(mirror.isSet(0));
+    try std.testing.expect(mirror.isSet(5));
+    try std.testing.expect(mirror.isSet(64));
+    try std.testing.expect(mirror.isSet(70));
+    try std.testing.expectEqual(@as(?u32, 70), mirror.nthSetBit(3));
 
     try source.exit();
+
+    const before_exited_copy = mirror.summary();
+    try std.testing.expectError(error.InvalidSourceLifecycle, mirror.copyFrom(&source));
+    const after_exited_copy = mirror.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, mirror.stage());
+    try expectSummaryStable(before_exited_copy, after_exited_copy);
+    try std.testing.expect(mirror.isSet(0));
+    try std.testing.expect(mirror.isSet(5));
+    try std.testing.expect(mirror.isSet(64));
+    try std.testing.expect(mirror.isSet(70));
+    try std.testing.expectEqual(@as(?u32, null), mirror.nthSetBit(4));
+    try std.testing.expectEqual(@as(u32, 4), try mirror.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits));
+
     const after = source.summary();
     try std.testing.expectEqual(ModuleStage.exited, source.stage());
     try std.testing.expectEqual(@as(usize, 1), after.selftest_runs);
