@@ -15,6 +15,26 @@ struct phase7_rbtree_cached_leftmost_promotion_case {
     int leftmost_after_replace;
 };
 
+struct phase7_rbtree_non_leftmost_cached_erase_case {
+    int leftmost_after_erase;
+    int right_predecessor_key;
+    int remaining_left_key;
+    bool erased_node_requires_clear;
+};
+
+struct phase7_rbtree_singleton_cached_erase_case {
+    bool leftmost_after_erase_is_null;
+    bool root_after_erase_is_null;
+    bool erased_node_requires_clear;
+};
+
+struct phase7_rbtree_plain_erase_init_reseed_case {
+    int inorder_after_root_erase[2];
+    size_t inorder_after_root_erase_count;
+    int leftmost_after_reseed;
+    int last_after_reseed;
+};
+
 struct phase7_rbtree_postorder_null_stop_case {
     int order[3];
     size_t order_count;
@@ -33,6 +53,9 @@ struct phase7_rbtree_c_harness {
     const char *current_master_state;
     struct phase7_rbtree_ordered_duplicate_range_case ordered_duplicate_range;
     struct phase7_rbtree_cached_leftmost_promotion_case cached_leftmost_promotion;
+    struct phase7_rbtree_non_leftmost_cached_erase_case non_leftmost_cached_erase;
+    struct phase7_rbtree_singleton_cached_erase_case singleton_cached_erase;
+    struct phase7_rbtree_plain_erase_init_reseed_case plain_erase_init_reseed;
     struct phase7_rbtree_postorder_null_stop_case postorder_null_stop;
     struct phase7_rbtree_reverse_alias_detached_case reverse_alias_detached;
 };
@@ -40,7 +63,7 @@ struct phase7_rbtree_c_harness {
 const struct phase7_rbtree_c_harness phase7_rbtree_c_harness = {
     .packet = "phase7-rbtree-parity-fixture",
     .anchor = "lib/rbtree.c",
-    .current_master_state = "ordered-duplicate-cached-postorder-reverse-c-harness",
+    .current_master_state = "ordered-duplicate-cached-eraseinit-postorder-reverse-c-harness",
     .ordered_duplicate_range = {
         .inorder_keys = { 5, 10, 10, 10, 15, 20 },
         .inorder_key_count = 6,
@@ -51,6 +74,23 @@ const struct phase7_rbtree_c_harness phase7_rbtree_c_harness = {
         .leftmost_before_erase = 5,
         .leftmost_after_erase = 10,
         .leftmost_after_replace = 10,
+    },
+    .non_leftmost_cached_erase = {
+        .leftmost_after_erase = 5,
+        .right_predecessor_key = 5,
+        .remaining_left_key = 5,
+        .erased_node_requires_clear = true,
+    },
+    .singleton_cached_erase = {
+        .leftmost_after_erase_is_null = true,
+        .root_after_erase_is_null = true,
+        .erased_node_requires_clear = true,
+    },
+    .plain_erase_init_reseed = {
+        .inorder_after_root_erase = { 5, 15 },
+        .inorder_after_root_erase_count = 2,
+        .leftmost_after_reseed = 12,
+        .last_after_reseed = 12,
     },
     .postorder_null_stop = {
         .order = { 1, 3, 2 },
