@@ -20,6 +20,7 @@ REQUIRED_TEST_MARKERS = {
     "zero_sized_scan_test": 'test "zero-sized scans ignore populated backing words" {',
     "past_end_no_read_test": 'test "next scans past nbits return without reading bitmap words" {',
     "tail_mask_shared_test": 'test "tail mask ignores shared bits beyond nbits" {',
+    "tail_word_set_skip_test": 'test "tail-word next set scans skip earlier in-range matches before clamping" {',
     "tail_word_zero_shared_skip_test": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping" {',
     "clump8_untouched_test": 'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
     "clump8_no_read_test": 'test "clump8 past-end scans return without reading bitmap words" {',
@@ -52,6 +53,8 @@ REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_next_andnot_past_end": "findNextAndNotBit(&empty, &empty, 7, 11)",
     "find_next_or_single_word_clamp": "findNextOrBit(&or_lhs, &or_rhs, nbits, 13)",
     "find_next_and_tail_mask": "findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4)",
+    "find_next_tail_skip": "try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextBit(&tail_map, nbits, bits_per_long + 2));",
+    "find_next_tail_skip_stop": "try std.testing.expectEqual(@as(usize, nbits), findNextBit(&tail_map, nbits, bits_per_long + 5));",
     "find_next_andnot_single_word_window": "try std.testing.expectEqual(@as(usize, 8), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 3));",
     "find_next_andnot_single_word_stop": "try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, 9));",
     "find_next_andnot_word_boundary_follow": "try std.testing.expectEqual(boundary + 5, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));",
@@ -171,6 +174,8 @@ def build_sample_source(
         "    try std.testing.expectEqual(@as(usize, nbits), findNextOrBit(&tail_or_lhs, &tail_or_rhs, nbits, bits_per_long + 5));",
         "}",
         'test "tail-word next set scans skip earlier in-range matches before clamping" {',
+        "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextBit(&tail_map, nbits, bits_per_long + 2));",
+        "    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&tail_map, nbits, bits_per_long + 5));",
         "    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 2));",
         "    try std.testing.expectEqual(@as(usize, nbits), findNextAndNotBit(&tail_andnot_lhs, &tail_andnot_rhs, nbits, bits_per_long + 5));",
         "}",
@@ -287,7 +292,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot skip paths."
+        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot and tail-word next-skip paths."
     )
     parser.add_argument("--self-test", action="store_true", help="Run self-test cases only.")
     args = parser.parse_args()
