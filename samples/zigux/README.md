@@ -42,7 +42,7 @@ Keep that bytestream packet framed as the approved in-memory FIFO idiom for the 
 * `BytestreamFifoSample.descriptor()` keeps the Linux anchor path, `requires_runtime_substrate = false`, `provides_selfcheck = true`, and `StorageBacking.embedded_fixed_buffer` explicit
 * the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle keeps queue ownership and lifetime reviewable without implying runtime-owned registration
 * `runPreviewBoundaryReplay()` plus `runWrappedPreviewReplay()` keep non-destructive preview truncation and the wrapped `{ 28, 4 }` visible-span split explicit at the sample root
-* `runRemainingCapacityReplay()` plus `runPartialEnqueueBoundaryReplay()` keep `available()`, occupancy and writable-span cues, the short-drain `"hel"` / `"lo"` helper boundary, and partial `enqueueSlice()` truncation explicit
+* `runRemainingCapacityReplay()` plus `runPartialEnqueueBoundaryReplay()` keep `available()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()` queue-shape cues, the short-drain `"hel"` / `"lo"` helper boundary, and partial `enqueueSlice()` truncation explicit
 * `zig test samples/zigux/bytestream_fifo.zig`, `zig test --dep bytestream_fifo_sample -Mroot=zigux/tests/phase5_bytestream_fifo.zig -Mbytestream_fifo_sample=samples/zigux/bytestream_fifo.zig`, and `zig test zigux/tests/phase5_bytestream_fifo_survey.zig` stay explicit as the sample-owned self-check, focused replay, and survey guard routes, while `zigux/tests/phase5_build.zig` remains current directly readable shared build-route companion evidence only
 * keep procfs, user-copy, locking, and loadable module registration parity out of scope
 
