@@ -1,15 +1,17 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-22",
+  "surveyed_commit": "master-readback-2026-05-25",
   "anchor": "lib/devres.c",
   "packet": "phase13-devres-scatterlist-planner",
   "status": "starter_landed",
   "owned_surfaces": [
     "lib/devres_scatterlist.zig",
     "Documentation/zigux/phase13-devres-scatterlist-planner.md",
+    "Documentation/zigux/phase13-devres-scatterlist-slice.md",
     "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
     "zigux/tests/phase13_devres_scatterlist.zig",
+    "zigux/tests/phase13_devres_scatterlist_build.zig",
     "scripts/zigux/check-phase13-devres-scatterlist-planner.py"
   ],
   "fixture_governance": {
@@ -17,20 +19,22 @@
     "release_match_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "overmapped_request_owner": "zigux/tests/phase13_devres_scatterlist.zig",
     "warn_on_release_miss_owner": "zigux/tests/phase13_devres_scatterlist.zig",
+    "slice_note_owner": "Documentation/zigux/phase13-devres-scatterlist-slice.md",
+    "build_shard_owner": "zigux/tests/phase13_devres_scatterlist_build.zig",
     "validation_guard": "scripts/zigux/check-phase13-devres-scatterlist-planner.py",
     "owner_map": "zigux/tests/phase13_devres_scatterlist_planner_manifest.json",
     "adjacent_boundary_evidence_only": [
-      "zigux/tests/phase13_devres_dma_coherent.zig"
+      "zigux/tests/phase13_devres_dma_coherent.zig",
+      "Documentation/zigux/phase13-devres-survey.md"
     ]
   },
   "adjacent_evidence": [
-    "lib/devres_scatterlist.zig",
-    "Documentation/zigux/phase13-devres-scatterlist-planner.md",
-    "zigux/tests/phase13_devres_scatterlist.zig",
+    "Documentation/zigux/phase13-devres-survey.md",
     "zigux/tests/phase13_devres_dma_coherent.zig"
   ],
   "required_markers": [
     "pure scatterlist lifetime planning surface",
+    "helper-first scatterlist planner beside the existing `lib/devres.zig` and `lib/devres_dma_coherent.zig` packet",
     "planManagedScatterlistMap",
     "scatterlistReleaseMatches",
     "planManagedScatterlistUnmap",
@@ -39,6 +43,7 @@
     "impossible over-mapped scatterlist results free the release record",
     "exact original-entry and mapped-entry matching",
     "warn-on-release-miss outcome",
+    "phase13-devres-scatterlist-tests",
     "sg_alloc_table()",
     "sg_free_table()",
     "sg_dma_address()",
