@@ -64,12 +64,32 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     );
     try std.testing.expectEqual(@as(usize, 38), manifest.direct_packet_paths.len);
     try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+        manifest.direct_packet_paths[17],
+    );
+    try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase15-readiness-gate-packet.py",
+        manifest.direct_packet_paths[20],
+    );
+    try std.testing.expectEqualStrings(
         "scripts/zigux/validate-phase15.py",
         manifest.direct_packet_paths[21],
     );
     try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_architecture_council_review_process_build.zig",
+        manifest.direct_packet_paths[25],
+    );
+    try std.testing.expectEqualStrings(
         "zigux/tests/phase15_freeze_map_governance.zig",
         manifest.direct_packet_paths[26],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_handoff_next_steps_manifest.json",
+        manifest.direct_packet_paths[33],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+        manifest.direct_packet_paths[35],
     );
     try std.testing.expectEqualStrings(
         "zigux/tests/phase15_build.zig",
@@ -93,7 +113,16 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     try std.testing.expect(manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scripts_readme_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_tests_readme_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_review_checklist_study_only_alignment_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_handoff_note_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_governance_lane_manifest_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_governance_lane_replay_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_handoff_manifest_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_review_process_build_replay_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_zig_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_indefinite_c_lane_owner_alignment_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_makefile_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_aggregate_target_present);
@@ -115,9 +144,14 @@ test "phase 15 readiness note stays aligned with the validator-first packet" {
         readiness_note,
         "broader make-wrapper and workflow companions still block any claim that the larger Phase 15 replay route is one-command or shared-CI ready",
     );
+    try expectContains(readiness_note, "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`");
+    try expectContains(readiness_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
     try expectContains(readiness_note, "`scripts/zigux/validate-phase15.py`");
+    try expectContains(readiness_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_freeze_map_governance.zig`");
+    try expectContains(readiness_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
+    try expectContains(readiness_note, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_build.zig`");
     try expectContains(readiness_note, "`make -C zigux phase15-validate` remains blocked route vocabulary");
     try expectContains(readiness_note, "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route");
