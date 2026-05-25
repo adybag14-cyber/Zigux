@@ -8,11 +8,12 @@ the current repo exposes a dedicated `phase14-validate` Makefile route, that
 the Makefile keeps the staged-toolchain fallback chain explicit, that the route
 reruns the shared smoke route checker plus the current tests-root
 smoke-summary checker, validator, rollback-threshold sequencing checker,
-dedicated skbuff stay-in-C guardrail, dedicated RCU rollback guardrail, and
-release-boundary checker packets, and that the shared smoke manifest records
-the same single-route Makefile split plus the focused raw build-file smoke
-shard as reminder vocabulary without claiming that the missing
-`phase14-smoke`, `phase14-test`, or full bundle wrappers have returned.
+dedicated skbuff stay-in-C guardrail, validator-side skbuff compile-route
+checker, dedicated RCU rollback guardrail, and release-boundary checker
+packets, and that the shared smoke manifest records the same single-route
+Makefile split plus the focused raw build-file smoke shard as reminder
+vocabulary without claiming that the missing `phase14-smoke`, `phase14-test`,
+or full bundle wrappers have returned.
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ MARKER = "PHASE14_CHECK_PACKET=shared_smoke_route"
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
+VALIDATOR_PATH = Path("scripts/zigux/validate-phase14.py")
 
 MAKEFILE_MARKERS = [
     ".PHONY:",
@@ -71,6 +73,11 @@ FORBIDDEN_WORKFLOW_MARKERS = [
     "run: make -C zigux phase14-test",
 ]
 
+VALIDATOR_MARKERS = [
+    'SKBUFF_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-skbuff-compile-route.py"',
+    "run_guardrail_checker(\n                args.root,\n                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,",
+]
+
 REQUIRED_MANIFEST_VALUES = {
     ("productization", "validation_gate"): "make -C zigux phase14-validate",
     ("smoke_commands",): ["make -C zigux phase14-validate"],
@@ -82,6 +89,7 @@ REQUIRED_MANIFEST_VALUES = {
     ("survey_summary", "workflow_runs_phase14_smoke_shard"): False,
     ("survey_summary", "phase14_validate_runs_rollback_threshold_sequencing"): True,
     ("survey_summary", "phase14_validate_runs_skbuff_stay_in_c_guardrail"): True,
+    ("survey_summary", "phase14_validate_runs_skbuff_compile_route_checker"): True,
     ("survey_summary", "phase14_validate_runs_rcu_rollback_guardrail"): True,
     ("survey_summary", "phase14_make_uses_pinned_toolchain_fallback"): True,
     ("survey_summary", "phase14_make_uses_local_toolchain_probe"): True,
@@ -183,7 +191,7 @@ def require_compile_shards(errors: list[str], manifest: object) -> None:
 
 def check(root: Path) -> list[str]:
     errors: list[str] = []
-    for rel in [MAKEFILE_PATH, WORKFLOW_PATH, MANIFEST_PATH]:
+    for rel in [MAKEFILE_PATH, WORKFLOW_PATH, MANIFEST_PATH, VALIDATOR_PATH]:
         if not (root / rel).exists():
             errors.append(f"missing_file:{rel.as_posix()}")
     if errors:
@@ -191,10 +199,12 @@ def check(root: Path) -> list[str]:
 
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
+    validator = read_text(root, VALIDATOR_PATH)
     require_markers(errors, MAKEFILE_PATH, makefile, MAKEFILE_MARKERS)
     require_markers(errors, MAKEFILE_PATH, makefile, MAKEFILE_TOOLCHAIN_MARKERS)
     require_markers(errors, WORKFLOW_PATH, workflow, WORKFLOW_MARKERS)
     require_absent(errors, WORKFLOW_PATH, workflow, FORBIDDEN_WORKFLOW_MARKERS)
+    require_markers(errors, VALIDATOR_PATH, validator, VALIDATOR_MARKERS)
 
     manifest_text = read_text(root, MANIFEST_PATH)
     try:
@@ -277,6 +287,7 @@ def fixture_manifest() -> str:
             "workflow_runs_phase14_smoke_shard": False,
             "phase14_validate_runs_rollback_threshold_sequencing": True,
             "phase14_validate_runs_skbuff_stay_in_c_guardrail": True,
+            "phase14_validate_runs_skbuff_compile_route_checker": True,
             "phase14_validate_runs_rcu_rollback_guardrail": True,
             "phase14_make_uses_pinned_toolchain_fallback": True,
             "phase14_make_uses_local_toolchain_probe": True,
@@ -286,12 +297,29 @@ def fixture_manifest() -> str:
     return json.dumps(payload, indent=2) + "\n"
 
 
+def fixture_validator() -> str:
+    return """#!/usr/bin/env python3
+SKBUFF_COMPILE_ROUTE_CHECKER_PATH = \"scripts/zigux/check-phase14-skbuff-compile-route.py\"
+
+def run_guardrail_checker(root, rel_path, *, self_test):
+    return []
+
+def main(args):
+    run_guardrail_checker(
+                args.root,
+                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+                self_test=False,
+            )
+"""
+
+
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     write_text(root, MAKEFILE_PATH, fixture_makefile())
     write_text(root, WORKFLOW_PATH, fixture_workflow())
     write_text(root, MANIFEST_PATH, fixture_manifest())
+    write_text(root, VALIDATOR_PATH, fixture_validator())
 
 
 def write_fixture_manifest(root: Path, payload: object) -> None:
@@ -381,6 +409,21 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         write_text(
             base,
+            VALIDATOR_PATH,
+            fixture_validator().replace(
+                "run_guardrail_checker(\n                args.root,\n                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,\n            )\n",
+                "",
+                1,
+            ),
+        )
+        if not any("SKBUFF_COMPILE_ROUTE_CHECKER_PATH" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected validator-side skbuff compile-route marker failure")
+            return 1
+
+        write_fixture_tree(base)
+        write_text(
+            base,
             MAKEFILE_PATH,
             fixture_makefile().replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py --self-test\n"
@@ -457,6 +500,15 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_validate_runs_skbuff_compile_route_checker"] = False
+        write_fixture_manifest(base, manifest)
+        if not any("manifest_value_mismatch:survey_summary.phase14_validate_runs_skbuff_compile_route_checker" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected skbuff compile-route manifest drift failure")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
         manifest["survey_summary"]["phase14_validate_runs_rcu_rollback_guardrail"] = False
         write_fixture_manifest(base, manifest)
         if not any("manifest_value_mismatch:survey_summary.phase14_validate_runs_rcu_rollback_guardrail" in error for error in check(base)):
@@ -483,7 +535,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=14")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=16")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -508,7 +560,7 @@ def main() -> int:
         return 1
 
     print("PHASE14_SHARED_SMOKE_ROUTE=pass")
-    print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(MAKEFILE_TOOLCHAIN_MARKERS) + len(WORKFLOW_MARKERS)}")
+    print(f"PHASE14_SHARED_SMOKE_ROUTE_REQUIRED_MARKER_COUNT={len(MAKEFILE_MARKERS) + len(MAKEFILE_TOOLCHAIN_MARKERS) + len(WORKFLOW_MARKERS) + len(VALIDATOR_MARKERS)}")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_WORKFLOW_MARKERS)}")
     print(f"PHASE14_SHARED_SMOKE_ROUTE_MANIFEST_ASSERTION_COUNT={len(REQUIRED_MANIFEST_VALUES) + 1}")
     return 0
