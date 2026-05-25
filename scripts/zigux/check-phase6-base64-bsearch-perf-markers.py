@@ -540,7 +540,7 @@ def run_self_test() -> None:
             "phase6-perf-gate-survey.md",
         )
         cases_run += 1
-        scaffoldRepo(root)
+        scaffold_repo(root)
 
         expect_failure(
             root,
