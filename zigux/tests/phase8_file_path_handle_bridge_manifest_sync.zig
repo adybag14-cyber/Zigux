@@ -102,11 +102,11 @@ test "phase 8 bridge boundary survey keeps the mixed-source helper packet and de
 
     try expectContains(
         note,
-        "Current `master` still keeps the mixed-source bridge packet reviewable, but the readable sources stay split in this runtime.",
+        "Current `master` still keeps the mixed-source bridge packet reviewable, and authenticated contents readback now reaches the bridge-side helper and witness files directly again in this runtime.",
     );
     try expectContains(
         note,
-        "Current authenticated contents readback now also reaches the bridge helper and witness files directly again, but the narrower split recorded here is packet role only: those files still belong to the bridge-boundary companion packet instead of the exact stable-output helper set.",
+        "Exact authenticated contents readback now serves this survey note, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge.zig` directly, while the focused bridge build and broader replay companions remain reminder evidence through `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_file_path_handle_boundary_guard.zig`, `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/validate-phase8.py`, `zigux/Makefile`, `make -C zigux phase8-file-path-handle-bridge-test`, and `make -C zigux phase8`.",
     );
     try expectContains(
         note,
