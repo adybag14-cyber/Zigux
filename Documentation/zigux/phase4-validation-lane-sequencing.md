@@ -29,6 +29,7 @@ Current `master` still exposes this sequencing note and the narrower shared-vers
   - `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 - directly readable dedicated local-only perf packet that still stays adjacent to the shared handoff:
   - `scripts/zigux/check-phase4-perf-baseline-packet.py`
+  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`
   - `zigux/tests/phase4_perf_baseline_manifest.json`
   - `zigux/tests/phase4_perf_baseline_survey.zig`
   - `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`
@@ -66,7 +67,7 @@ That means current Phase 4 work is no longer about inventing a missing validatio
 
 ### Shared exact-readback lane
 
-Treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, and this sequencing note as the shared side of the current direct-readback owner map for Phase 4 wording that spans more than one validation packet, while `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.
+Treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, and this sequencing note as the shared side of the current direct-readback owner map for Phase 4 wording that spans more than one validation packet, while `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.
 
 This shared lane owns only:
 - wording that keeps the current direct-readback handoff explicit instead of reconstructing the broader shared packet from older route names alone
@@ -83,11 +84,12 @@ This shared lane does not own the approved local perf commands and acceptable li
 
 The dedicated perf lane owns only the landed packet for:
 - `scripts/zigux/check-phase4-perf-baseline-packet.py`
+- `scripts/zigux/check-phase4-perf-threshold-matrix.py`
 - `zigux/tests/phase4_perf_baseline_manifest.json`
 - `zigux/tests/phase4_perf_baseline_survey.zig`
 - the paired local replay routes `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and `make -C zigux phase4-perf-baseline-survey`
 
-Keep perf-local follow-through inside the approved local-only packet: the dedicated local checker, the benchmark commands, the acceptable limits, the local-only posture, the decision-owner wording for any future wider promotion, and the manifest-backed survey truthfulness.
+Keep perf-local follow-through inside the approved local-only packet: the dedicated local checker pair, the benchmark commands, the acceptable limits, the local-only posture, the decision-owner wording for any future wider promotion, and the manifest-backed survey truthfulness.
 
 Keep the Validation and Perf Team decision-owner cue in the dedicated local-only perf packet, but leave the current cross-family coordination-owner split with the ABI and Runtime Team plus Shared Subsystems Pod in the shared exact-readback lane because that wording spans both landed rollback gates.
 
