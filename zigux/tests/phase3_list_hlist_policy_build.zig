@@ -1,0 +1,108 @@
+const std = @import("std");
+
+fn addPhase3ListHListStarterPacket(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const list_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/list_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hlist_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/hlist_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_list_hlist_starter_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("list_view", list_view);
+    root_module.addImport("hlist_view", hlist_view);
+
+    const tests = b.addTest(.{
+        .name = "phase3-list-hlist-starter-packet",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
+fn addPhase3PolicyStarterPacket(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const abi_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const panic_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/panic_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    panic_policy.addImport("abi_bindings", abi_bindings);
+    const allocator_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/allocator_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    allocator_policy.addImport("abi_bindings", abi_bindings);
+    const narrow_surface = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow_surface.addImport("abi_bindings", abi_bindings);
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
+    unsafe_policy.addImport("narrow", narrow_surface);
+    const layout_assert = b.createModule(.{
+        .root_source_file = b.path("../helpers/layout_assert.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    layout_assert.addImport("abi_bindings", abi_bindings);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_policy_starter_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("abi_bindings", abi_bindings);
+    root_module.addImport("allocator_policy", allocator_policy);
+    root_module.addImport("panic_policy", panic_policy);
+    root_module.addImport("unsafe_policy", unsafe_policy);
+    root_module.addImport("layout_assert", layout_assert);
+    root_module.addImport("narrow_surface", narrow_surface);
+
+    const tests = b.addTest(.{
+        .name = "phase3-policy-starter-packet",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const list_hlist_starter = addPhase3ListHListStarterPacket(b, target, optimize);
+    const policy_starter = addPhase3PolicyStarterPacket(b, target, optimize);
+
+    const test_step = b.step(
+        "phase3-list-hlist-policy-test",
+        "Run the focused Phase 3 list/hlist starter packet and policy starter packet",
+    );
+    test_step.dependOn(&list_hlist_starter.step);
+    test_step.dependOn(&policy_starter.step);
+}
