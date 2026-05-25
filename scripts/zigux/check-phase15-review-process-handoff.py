@@ -417,6 +417,7 @@ def _sample_manifest() -> str:
                 "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
+                "`scripts/zigux/check-phase15-shared-summary-gap.py`",
                 "`scripts/zigux/validate-phase15.py`",
                 "one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
             ],
@@ -431,6 +432,7 @@ def _sample_manifest() -> str:
                 "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-readiness-gate-packet.py`",
+                "`scripts/zigux/check-phase15-shared-summary-gap.py`",
                 "`zigux/tests/phase15_freeze_map_governance.zig`",
                 "`zigux/tests/phase15_parity_scorecard.json`",
                 "`zigux/tests/phase15_parity_scorecard.zig`",
@@ -653,6 +655,7 @@ def _sample_handoff_note() -> str:
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `scripts/zigux/validate-phase15.py`
 - one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker
 - `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
@@ -672,6 +675,7 @@ def _sample_gap_note() -> str:
 - `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.json`
 - `zigux/tests/phase15_parity_scorecard.zig`
@@ -736,6 +740,7 @@ def run_self_test() -> int:
         _write(root / Path("scripts/zigux/check-phase15-readiness-gate-packet.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-scripts-readme-alignment.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/check-phase15-tests-readme-alignment.py"), "# fixture\n")
+        _write(root / Path("scripts/zigux/check-phase15-shared-summary-gap.py"), "# fixture\n")
         _write(root / Path("scripts/zigux/validate-phase15.py"), "# fixture\n")
         _write(root / TEST_PATH, _sample_test_file())
         _write(root / BUILD_GATE_PATH, _sample_build_gate())
@@ -899,6 +904,36 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected handoff-checklist-study-only failure: {failures}")
 
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
+        _write(
+            root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace(
+                "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "handoff note is missing required marker: `scripts/zigux/check-phase15-shared-summary-gap.py`"
+        ]:
+            raise AssertionError(f"unexpected handoff-shared-summary-gap failure: {failures}")
+
+        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
+        _write(
+            root / SHARED_GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "shared-summary gap note is missing newly landed path: `scripts/zigux/check-phase15-shared-summary-gap.py`"
+        ]:
+            raise AssertionError(f"unexpected shared-gap-shared-summary-checker failure: {failures}")
+
+        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
         _write(
             root / SHARED_GAP_NOTE_PATH,
             _sample_gap_note().replace(
