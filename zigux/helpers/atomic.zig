@@ -308,6 +308,43 @@ test "phase3 atomic helper reports allowed failure-order bounds" {
     try std.testing.expectEqual(@as(?Ordering, null), strongestAllowedFailureOrder(.unordered));
 }
 
+test "phase3 atomic helper keeps release and acq-rel compare-exchange handoffs explicit" {
+    var release_value: u32 = 0x10;
+    try std.testing.expectEqual(
+        @as(?u32, null),
+        try compareExchangeStrong(u32, &release_value, 0x10, 0x20, .release, .monotonic),
+    );
+    try std.testing.expectEqual(@as(u32, 0x20), release_value);
+    try std.testing.expectEqual(
+        @as(?u32, 0x20),
+        try compareExchangeWeak(u32, &release_value, 0x10, 0x30, .release, .monotonic),
+    );
+    try std.testing.expectEqual(@as(u32, 0x20), release_value);
+
+    var acq_rel_value: u32 = 0x44;
+    try std.testing.expectEqual(
+        @as(?u32, null),
+        try compareExchangeWeak(u32, &acq_rel_value, 0x44, 0x55, .acq_rel, .acquire),
+    );
+    try std.testing.expectEqual(@as(u32, 0x55), acq_rel_value);
+    try std.testing.expectEqual(
+        @as(?u32, 0x55),
+        try compareExchangeStrong(u32, &acq_rel_value, 0x44, 0x66, .acq_rel, .acquire),
+    );
+    try std.testing.expectEqual(@as(u32, 0x55), acq_rel_value);
+
+    var denied_value: u32 = 0xAA;
+    try std.testing.expectError(
+        error.InvalidFailureOrdering,
+        compareExchangeStrong(u32, &denied_value, 0xAA, 0xBB, .release, .acquire),
+    );
+    try std.testing.expectError(
+        error.InvalidFailureOrdering,
+        compareExchangeWeak(u32, &denied_value, 0xAA, 0xCC, .acq_rel, .seq_cst),
+    );
+    try std.testing.expectEqual(@as(u32, 0xAA), denied_value);
+}
+
 test "phase3 atomic helper keeps load ordering rules explicit" {
     try std.testing.expect(loadOrderAllowed(.monotonic));
     try std.testing.expect(loadOrderAllowed(.acquire));
