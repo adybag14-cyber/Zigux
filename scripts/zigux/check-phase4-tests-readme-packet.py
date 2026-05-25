@@ -134,8 +134,13 @@ def run_self_test() -> int:
         ),
         (
             "missing_phase5_anchor",
-            baseline.replace(REQUIRED_PRESENT_MARKERS[2] + "\n", "", 1),
-            [f"missing_required_marker={REQUIRED_PRESENT_MARKERS[2]}"],
+            baseline.replace(REQUIRED_PRESENT_MARKERS[1] + "\n", "", 1).replace(
+                REQUIRED_PRESENT_MARKERS[2] + "\n", "", 1
+            ),
+            [
+                f"missing_required_marker={REQUIRED_PRESENT_MARKERS[1]}",
+                f"missing_required_marker={REQUIRED_PRESENT_MARKERS[2]}",
+            ],
         ),
         (
             "stale_phase4_heading",
