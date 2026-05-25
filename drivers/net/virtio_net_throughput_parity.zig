@@ -24,6 +24,7 @@ pub const ThroughputParityRequest = struct {
     receive_buffers_before_reset: u16,
     receive_buffers_after_restore: u16,
     receive_descriptors_reposted: bool = false,
+    free_transmit_descriptors_before_recycle: u16 = 0,
     recycled_transmit_descriptors: u16,
     wake_threshold: u16 = default_wake_threshold,
     transmit_queue_was_stopped: bool = false,
@@ -39,6 +40,8 @@ pub const ThroughputParitySummary = struct {
     receive_buffers_before_reset: u16,
     receive_buffers_after_restore: u16,
     receive_descriptors_reposted: bool,
+    free_transmit_descriptors_before_recycle: u16,
+    free_transmit_descriptors_after_recycle: u16,
     recycled_transmit_descriptors: u16,
     wake_threshold: u16,
     transmit_queue_was_stopped: bool,
@@ -77,8 +80,12 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
         request.receive_buffers_after_restore,
         request.receive_buffers_before_reset,
     );
-    const recycle_ratio_pct = recycleRatioPct(
+    const free_transmit_descriptors_after_recycle = try checkedAddU16(
+        request.free_transmit_descriptors_before_recycle,
         request.recycled_transmit_descriptors,
+    );
+    const recycle_ratio_pct = recycleRatioPct(
+        free_transmit_descriptors_after_recycle,
         request.wake_threshold,
         request.transmit_queue_was_stopped,
     );
@@ -91,7 +98,7 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
     };
     const refill_budget_preserved = request.receive_buffers_after_restore >= request.receive_buffers_before_reset;
     const recycle_budget_ready = !request.transmit_queue_was_stopped or
-        request.recycled_transmit_descriptors >= request.wake_threshold;
+        free_transmit_descriptors_after_recycle >= request.wake_threshold;
     const receive_refill_checkpoint_ready = switch (request.replay_checkpoint) {
         .before_receive_refill, .after_control_queue_restore => false,
         .after_receive_refill, .after_transmit_queue_restore => true,
@@ -127,6 +134,8 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
         .receive_buffers_before_reset = request.receive_buffers_before_reset,
         .receive_buffers_after_restore = request.receive_buffers_after_restore,
         .receive_descriptors_reposted = request.receive_descriptors_reposted,
+        .free_transmit_descriptors_before_recycle = request.free_transmit_descriptors_before_recycle,
+        .free_transmit_descriptors_after_recycle = free_transmit_descriptors_after_recycle,
         .recycled_transmit_descriptors = request.recycled_transmit_descriptors,
         .wake_threshold = request.wake_threshold,
         .transmit_queue_was_stopped = request.transmit_queue_was_stopped,
@@ -151,15 +160,20 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
     };
 }
 
+fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
+    const value = @as(u32, lhs) + rhs;
+    return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+}
+
 fn ratioPct(numerator: u16, denominator: u16) u8 {
     const pct = (@as(u32, numerator) * 100) / denominator;
     return @intCast(@min(pct, 100));
 }
 
-fn recycleRatioPct(recycled: u16, wake_threshold: u16, queue_was_stopped: bool) u8 {
+fn recycleRatioPct(free_after: u16, wake_threshold: u16, queue_was_stopped: bool) u8 {
     if (!queue_was_stopped) return 100;
     if (wake_threshold == 0) return 100;
-    return ratioPct(recycled, wake_threshold);
+    return ratioPct(free_after, wake_threshold);
 }
 
 fn min3(lhs: u8, mid: u8, rhs: u8) u8 {
@@ -277,6 +291,29 @@ test "summarizeThroughputParity keeps descriptor repost explicit after refill co
     try std.testing.expect(!summary.requires_post_reset_probe_replay);
 }
 
+test "summarizeThroughputParity counts preexisting free descriptors toward the stopped-queue wake gate" {
+    const summary = try summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 2,
+        .queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 256,
+        .receive_buffers_after_restore = 256,
+        .receive_descriptors_reposted = true,
+        .free_transmit_descriptors_before_recycle = 1,
+        .recycled_transmit_descriptors = 1,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_transmit_queue_restore,
+    });
+
+    try std.testing.expectEqual(@as(u16, 1), summary.free_transmit_descriptors_before_recycle);
+    try std.testing.expectEqual(@as(u16, 2), summary.free_transmit_descriptors_after_recycle);
+    try std.testing.expect(summary.recycle_budget_ready);
+    try std.testing.expect(summary.transmit_recycle_ready);
+    try std.testing.expectEqual(@as(u8, 100), summary.recycle_ratio_pct);
+    try std.testing.expectEqual(ThroughputParityStatus.parity_gate_ready, summary.status);
+    try std.testing.expect(summary.meets_expected_min_ratio);
+}
+
 test "summarizeThroughputParity blocks stopped transmit queues below the wake threshold" {
     const summary = try summarizeThroughputParity(.{
         .queue_pairs_before_reset = 2,
@@ -324,6 +361,8 @@ test "summarizeThroughputParity keeps receive refill explicit after control queu
     try std.testing.expect(!summary.transmit_recycle_ready);
     try std.testing.expect(summary.recycle_budget_ready);
     try std.testing.expect(summary.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(@as(u8, 100), summary.recycle_ratio_pct);
+    try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
     try std.testing.expect(!summary.meets_expected_min_ratio);
 }
 
@@ -414,5 +453,17 @@ test "summarizeThroughputParity rejects out-of-range target ratios" {
         .receive_buffers_after_restore = 128,
         .recycled_transmit_descriptors = 0,
         .expected_min_ratio_pct = 101,
+    }));
+}
+
+test "summarizeThroughputParity rejects free-descriptor overflow after recycle" {
+    try std.testing.expectError(error.QueueCountOverflow, summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .free_transmit_descriptors_before_recycle = std.math.maxInt(u16),
+        .recycled_transmit_descriptors = 1,
+        .transmit_queue_was_stopped = true,
     }));
 }
