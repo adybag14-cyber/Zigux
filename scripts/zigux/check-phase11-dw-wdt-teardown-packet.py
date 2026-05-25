@@ -317,6 +317,7 @@ def run_self_test() -> None:
             ("clock_plan", CLOCK_PLAN_MARKERS[0]),
             ("clock_plan", CLOCK_PLAN_MARKERS[4]),
             ("platform_plan", PLATFORM_PLAN_MARKERS[1]),
+            ("platform_plan", PLATFORM_PLAN_MARKERS[4]),
             ("gap_note", GAP_NOTE_MARKERS[1]),
             ("provenance", PROVENANCE_MARKERS[1]),
             ("provenance", PROVENANCE_MARKERS[3]),
