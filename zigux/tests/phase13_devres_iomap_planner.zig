@@ -39,10 +39,11 @@ test "phase13 devres iomap planning stops before managed ioremap resource when t
     try std.testing.expect(!plan.request_region_denied);
     try std.testing.expect(!plan.releases_region_on_remap_failure);
     try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(!plan.requires_nonposted_ioremap);
     try std.testing.expect(!plan.keeps_nonposted_mapping_type);
 }
 
-test "phase13 devres iomap planning preserves translated size on request-region denial" {
+test "phase13 devres iomap planning keeps the blocked non-posted wrapper requirement explicit" {
     const plan = devres.DevresHelperLab.planDeviceTreeIomap(.{
         .index = 1,
         .translated_size = 8192,
@@ -61,6 +62,7 @@ test "phase13 devres iomap planning preserves translated size on request-region 
     try std.testing.expect(plan.request_region_denied);
     try std.testing.expect(!plan.releases_region_on_remap_failure);
     try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(plan.requires_nonposted_ioremap);
     try std.testing.expect(plan.keeps_nonposted_mapping_type);
 }
 
@@ -83,6 +85,7 @@ test "phase13 devres iomap planning reaches helper-first remap when translation 
     try std.testing.expect(!plan.request_region_denied);
     try std.testing.expect(!plan.releases_region_on_remap_failure);
     try std.testing.expect(plan.remap_ready);
+    try std.testing.expect(plan.requires_nonposted_ioremap);
     try std.testing.expect(plan.keeps_nonposted_mapping_type);
 }
 
@@ -105,6 +108,7 @@ test "phase13 devres iomap planning releases the requested region when remap lat
     try std.testing.expect(!plan.request_region_denied);
     try std.testing.expect(plan.releases_region_on_remap_failure);
     try std.testing.expect(!plan.remap_ready);
+    try std.testing.expect(!plan.requires_nonposted_ioremap);
     try std.testing.expect(!plan.keeps_nonposted_mapping_type);
 }
 
@@ -124,6 +128,7 @@ test "phase13 devres iomap cleanup handoff materializes helper-first iounmap cle
     try std.testing.expectEqual(@as(u32, 3), handoff.index);
     try std.testing.expectEqual(@as(u64, 16384), handoff.translated_size);
     try std.testing.expect(handoff.remap_ready);
+    try std.testing.expect(handoff.requires_nonposted_ioremap);
     try std.testing.expect(handoff.keeps_nonposted_mapping_type);
     try std.testing.expect(handoff.hands_off_to_iounmap_cleanup);
     try std.testing.expect(handoff.unmaps_mapping);
@@ -145,6 +150,7 @@ test "phase13 devres iomap cleanup handoff keeps missing release records warnabl
     const handoff = devres.DevresHelperLab.planDeviceTreeIomapCleanupHandoff(iomap_plan, false);
 
     try std.testing.expect(handoff.remap_ready);
+    try std.testing.expect(!handoff.requires_nonposted_ioremap);
     try std.testing.expect(handoff.hands_off_to_iounmap_cleanup);
     try std.testing.expect(handoff.unmaps_mapping);
     try std.testing.expect(!handoff.releases_from_devres);
@@ -166,10 +172,12 @@ test "phase13 devres iomap planner manifest records the landed helper-first mmio
     try requireContains(manifest, "scripts/zigux/check-phase13-devres-iomap-planner.py");
     try requireContains(manifest, "\"translation_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"");
     try requireContains(manifest, "\"request_region_denial_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"");
+    try requireContains(manifest, "\"nonposted_wrapper_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"");
     try requireContains(manifest, "\"cleanup_handoff_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"");
     try requireContains(manifest, "\"cleanup_release_miss_owner\": \"zigux/tests/phase13_devres_iomap_planner.zig\"");
     try requireContains(manifest, "planDeviceTreeIomap");
     try requireContains(manifest, "planDeviceTreeIomapCleanupHandoff");
+    try requireContains(manifest, "requires_nonposted_ioremap");
     try requireContains(manifest, "\"id\": \"phase13-devres-missing-devm-ioremap-np-surface\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-device-tree-walks\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-mmio-mapping-state\"");
@@ -184,6 +192,7 @@ test "phase13 devres iomap planner note keeps the helper-first mmio slice bounde
     try requireContains(note, "translated size is preserved when a requested region is denied as busy");
     try requireContains(note, "requested region is released again when remap later fails");
     try requireContains(note, "requested non-posted mapping type stays attached to the planning surface");
+    try requireContains(note, "translated helper-first remap would require the still-blocked `devm_ioremap_np()` wrapper");
     try requireContains(note, "successful helper-first remap hands off to `devm_iounmap()` cleanup planning");
     try requireContains(note, "cleanup handoff consumes the matching release record or still warns when the release record is missing");
     try requireContains(note, "does not claim live MMIO mapping state");
