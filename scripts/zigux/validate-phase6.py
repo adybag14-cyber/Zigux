@@ -231,7 +231,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 26
 
 
 class ValidationError(RuntimeError):
@@ -595,6 +595,29 @@ def run_self_test() -> None:
                                 "current_direct_readback_companions"
                             ]
                             if item != "scripts/zigux/check-phase6-perf-threshold-markers.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "helpers": [
+                            helper
+                            if helper.get("key") != "base64"
+                            else {
+                                **helper,
+                                "still_missing_direct_companions": [
+                                    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"
+                                ],
+                            }
+                            for helper in read_json(root / HELPER_EVIDENCE_MANIFEST)["helpers"]
                         ],
                     },
                     indent=2,
