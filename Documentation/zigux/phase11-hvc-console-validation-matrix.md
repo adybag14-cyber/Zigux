@@ -24,6 +24,7 @@ Treat the current matrix packet as:
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
@@ -41,11 +42,13 @@ Treat the current matrix packet as:
 Current contents reads stay aligned with the smaller companion stack, so keep
 route claims bounded to `make -C zigux phase11-validate` until `zigux/Makefile`
 exposes a dedicated `make -C zigux phase11-hvc-survey` step. The witness shard
-now rereads the live starter and the boundary note together, keep the
-modem-control proof pair directly readable through its focused build route
-without promoting it into the shared build inventory yet, and keep the
-targetless-unregister witness explicitly separate from the smaller proof-backed
-continuity packet.
+now rereads the live starter and the boundary note together, the focused
+ direct-build replay checker keeps the dedicated modem-control and
+ targetless-unregister build routes fail-closed without promoting either pair
+ into the shared three-entry build inventory, keep the modem-control proof pair
+ directly readable through its focused build route without promoting it into the
+ shared build inventory yet, and keep the targetless-unregister witness
+ explicitly separate from the smaller proof-backed continuity packet.
 
 ## Failure-Mode Evidence
 
@@ -86,6 +89,9 @@ continuity packet.
 - keep the dedicated survey route absent until `zigux/Makefile` grows it
 - keep helper-local failure-mode edges reviewable through the verify boundary
   note and the current companion stack
+- keep `scripts/zigux/check-phase11-focused-direct-build-replays.py` explicit as
+  the guard for the dedicated modem-control and targetless-unregister build
+  routes while those proofs stay outside the shared three-entry build inventory
 - keep `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   explicit as a focused direct-readback proof route outside the shared
   inventory-backed replay contract for now
