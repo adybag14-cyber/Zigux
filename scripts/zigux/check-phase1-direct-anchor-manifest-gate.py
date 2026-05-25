@@ -110,6 +110,7 @@ EXPECTED_REVIEW_FIELDS = {
             'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
             'test "Linux-style aliases mirror the primary find helpers, including andnot"',
         ],
+        "same_word_start_masks": 'test "single-word next scans honor start masks"',
         "andnot_scan_entrypoints": [
             "findFirstAndNotBit",
             "find_first_andnot_bit",
@@ -136,6 +137,9 @@ EXPECTED_REVIEW_FIELDS = {
             "tail_inclusive_boundary_zero",
             "tail_inclusive_boundary_and",
         ],
+        "review_packet_summary": (
+            "shared Phase 1 fixture keys own the exact tail-clamped and tail-inclusive-boundary find_bit replay, while helper-local anchors keep same-word start-mask, head-word and tail-word inclusive-boundary, single-word tail inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, tail-word set or zero or shared skip, clump8, getValue8(), findLastBit(), underscore-alias, and Linux-style alias behavior review-visible on current master"
+        ),
         "next_safe_step_note": (
             "If this helper lane reopens, keep find_bit parked unless a fresh reread finds direct-anchor "
             "drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, "
