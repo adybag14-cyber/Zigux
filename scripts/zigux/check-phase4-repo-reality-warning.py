@@ -34,7 +34,7 @@ BITMAP_HELPER_REPLAY = Path("zigux/tests/phase4_bitmap_live_helper_replay.zig")
 ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
 ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 30
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 31
 EXPECTED_PIN_SELF_TEST_CASES = 19
 
 PERF_BASELINE_CHECKER_LINE = (
@@ -109,6 +109,11 @@ SCRIPTS_README_PHASE4_REQ = (
     "- current `master` keeps the broader Phase 4 packet in a split-readback state rather than the missing bucket: `scripts/zigux/validate-phase4.py` now rereads directly in authenticated contents reads in this runtime, while `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still flap there even though public raw fallback rereads return those three files on current `master`, so keep the validator entrypoint explicit beside the now-returned build and bitmap replay companions while exact authenticated blob-pin refresh remains pending for those three routes",
 )
 
+SEQUENCING_NOTE_PHASE4_REQ = (
+    "wording that keeps the current broader shared-CI perf-promotion coordination-owner split explicit across both landed rollback gates while the dedicated Validation and Perf Team decision-owner cue stays inside the adjacent local-only perf packet",
+    "If the drift is limited to the matrix-side or sequencing-note reminder surfaces around `scripts/zigux/check-phase4-remaining-gap-matrix.py`, keep it in the live `P4-L24` matrix reminder lane; if the drift is limited to the dedicated remaining-gap checker falling behind those already-landed markers, keep it in the live `P4-L19` checker-maintenance lane before reopening either parked starter-gap packet.",
+)
+
 REQUIRED_FILES = (
     NOTE,
     DOCS_README,
@@ -172,6 +177,7 @@ def check(root: Path) -> None:
     )
     require(read(root, DOCS_README), DOCS_README_PHASE4_REQ, DOCS_README.as_posix())
     require(read(root, CHECKLIST), CHECKLIST_PHASE4_REQ, CHECKLIST.as_posix())
+    require(read(root, SEQUENCING_NOTE), SEQUENCING_NOTE_PHASE4_REQ, SEQUENCING_NOTE.as_posix())
     require(read(root, SCRIPTS_README), SCRIPTS_README_PHASE4_REQ, SCRIPTS_README.as_posix())
     require(read(root, SELF), ("EXPECTED_PIN_SELF_TEST_CASES = 19",), SELF.as_posix())
 
@@ -217,6 +223,10 @@ def _baseline_scripts_readme() -> str:
     return "\n".join(SCRIPTS_README_PHASE4_REQ) + "\n"
 
 
+def _baseline_sequencing_note() -> str:
+    return "\n".join(SEQUENCING_NOTE_PHASE4_REQ) + "\n"
+
+
 def _baseline_tests_readme() -> str:
     return "# zigux/tests\nThis directory is the home of reusable Zigux parity and differential validation harnesses.\n## Phase 5 sample packet\n"
 
@@ -236,9 +246,10 @@ def _build_baseline_tree(root: Path) -> None:
     write(root, DOCS_README, _baseline_docs_readme())
     write(root, CHECKLIST, _baseline_checklist())
     write(root, SCRIPTS_README, _baseline_scripts_readme())
+    write(root, SEQUENCING_NOTE, _baseline_sequencing_note())
     write(root, TESTS_README, _baseline_tests_readme())
     for rel in REQUIRED_FILES:
-        if rel in {NOTE, DOCS_README, CHECKLIST, SCRIPTS_README, TESTS_README}:
+        if rel in {NOTE, DOCS_README, CHECKLIST, SCRIPTS_README, SEQUENCING_NOTE, TESTS_README}:
             continue
         write(root, rel, _baseline_other(rel))
 
@@ -288,6 +299,7 @@ def run_self_test() -> int:
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[0], "scripts drift")
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[1], "scripts checker drift")
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[2], "scripts split drift")
+        cases += _expect_failure(root, SEQUENCING_NOTE, SEQUENCING_NOTE_PHASE4_REQ[0], "sequencing drift")
         cases += _expect_failure(root, TESTS_README_PACKET, None, None)
         cases += _expect_failure(root, PINS, None, None)
         cases += _expect_failure(root, PERF_BASELINE_CHECKER, None, None)
