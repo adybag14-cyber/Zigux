@@ -176,3 +176,23 @@ test "value constructor still rejects entries that would overlap err_ptr space" 
         fromValue(xa_value.safe_inline_limit + 1),
     );
 }
+
+test "second rejected inline value stays in the err lane and keeps value and pointer decoders closed" {
+    const overlapping_value = xa_value.safe_inline_limit + 2;
+    const raw = (overlapping_value << 1) | xa_value.value_tag_mask;
+    const slot = fromRaw(raw);
+
+    try std.testing.expect(!xa_value.canRepresent(overlapping_value));
+    try std.testing.expect(err_ptr.isErrValue(raw));
+    try std.testing.expect(!xa_value.isValue(raw));
+    try std.testing.expectEqual(err_ptr.err_floor + 2, raw);
+    try std.testing.expectEqual(@as(isize, -4093), err_ptr.toErrorCode(raw));
+    try std.testing.expectEqual(SlotKind.err, slot.kind());
+    try std.testing.expect(!slot.isValue());
+    try std.testing.expect(slot.isErr());
+    try std.testing.expect(!slot.isPointer());
+    try std.testing.expectEqual(@as(?usize, null), slot.value());
+    try std.testing.expectEqual(@as(?isize, -4093), slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(raw));
+}
