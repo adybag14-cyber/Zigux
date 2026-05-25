@@ -67,16 +67,23 @@ DOCS_README_REQUIRED_MARKERS = [
 ]
 
 LANE_SEQUENCING_REQUIRED_MARKERS = [
-    "Trusted mixed rereads on 2026-05-21 confirm three distinct current-master Phase 9 postures.",
-    "The shared runtime-loader allocator/init-flow and command/environment boundary packet now survives as a narrower direct-readback shared-owner surface",
-    "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-atomic64-diff`, `phase9-runtime-bitmap-tests`, `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-first-loadable-runtime-module-parity-survey-tests`",
+    "Trusted mixed rereads on 2026-05-25 confirm four distinct current-master Phase 9 postures.",
+    "The shared runtime-loader allocator/init-flow and command/environment boundary packet survives as a narrower shared-owner surface",
+    "`zigux/tests/phase9_build.zig` still exposes `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-shared-tests`, `phase9-runtime-loader-command-env-boundary-guard-tests`, and `phase9-runtime-trace-events-loader-substrate-drift-tests`",
     "`zigux/kernel/runtime_loader_command_env_boundary_guard.zig`",
     "`phase9-runtime-loader-command-env-boundary-guard-tests`",
-    "the review-first shared packet still stays neighboring shared-owner evidence through the aligned docs-root, scripts-root, and tests-root reminders, the bounded loader shard, and the direct command/environment boundary guard",
     "keep the Phase 8 command and environment ownership boundary explicit",
     "deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` cues stay with `tools/lib/subcmd/exec-cmd.zig`",
     "`LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`",
-    "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet",
+    "### 4. The runtime kretprobe side returns a family-local pilot packet, but shared reminder surfaces still lag it",
+    "`samples/zigux/runtime_kretprobe.zig`",
+    "`zigux/tests/runtime_kretprobe_module.zig`",
+    "`zigux/tests/runtime_first_loadable_parity_behavior.zig`",
+    "`phase9-runtime-kretprobe-sample-tests`",
+    "`phase9-runtime-kretprobe-module-tests`",
+    "`phase9-runtime-kretprobe-tests`",
+    "`phase9-first-loadable-runtime-module-parity-behavior-tests`",
+    "current `master` no longer supports treating kretprobe as absent from the cross-family parity surface",
     "keep `modules.order`, `modules.builtin`, `Module.symvers`, and module install-root wording framed as blocked wider-family vocabulary too",
     "keep blocked depmod script, depmod manifest, and depmod alias-output wording framed as historical wider-family vocabulary too until trusted direct rereads return a current shared owner surface for that publication packet",
     PHASE2_CONF_BRIDGE_MARKER,
@@ -179,6 +186,7 @@ CURRENT_PHASE9_MAKE_ROUTES = [
     "phase9-runtime-bitmap-test",
     "phase9-runtime-loader-shared-test",
     "phase9-runtime-trace-events-test",
+    "phase9-runtime-kretprobe-test",
     "phase9-first-loadable-runtime-module-parity-test",
     "phase9-test",
 ]
@@ -301,7 +309,7 @@ jobs:
 ZIG ?= zig
 ZIGUX_ROOT := ..
 
-.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
+.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
 
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
@@ -318,10 +326,13 @@ phase9-runtime-loader-shared-test:
 phase9-runtime-trace-events-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
 
+phase9-runtime-kretprobe-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig --summary all
+
 phase9-first-loadable-runtime-module-parity-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-survey-tests --build-file zigux/tests/phase9_build.zig --summary all
 
-phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-first-loadable-runtime-module-parity-test
+phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
 
 phase10-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
