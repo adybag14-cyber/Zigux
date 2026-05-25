@@ -256,7 +256,7 @@ def build_self_test_root(root: Path) -> None:
         root / CONF_BRIDGE.relative_to(ROOT),
         "\n".join(
             [
-                *(f'test \"{anchor}\" {{}}' for anchor in REQUIRED_HELPER_ANCHORS),
+                *(f'test "{anchor}" {{}}' for anchor in REQUIRED_HELPER_ANCHORS),
                 *REQUIRED_BRIDGE_SOURCE_MARKERS,
             ]
         )
