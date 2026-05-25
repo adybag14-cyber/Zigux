@@ -11,6 +11,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md")
+DOCS_README_PATH = Path("Documentation/zigux/README.md")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
+TESTS_README_PATH = Path("zigux/tests/README.md")
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 BUILD_PATH = Path("zigux/tests/phase7_build.zig")
@@ -148,6 +152,21 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current repo-reality gaps",
     "- none currently",
 ]
+REQUIRED_DOCS_README_SNIPPETS = [
+    "Phase 7 notes - `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`",
+    "* `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` replay the bounded current Phase 7 docs-root reminder packet without widening it into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes.",
+]
+REQUIRED_REVIEW_CHECKLIST_SNIPPETS = [
+    "* if the change touches the shared Phase 7 leaf-library packet, do `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase7-shared-surface.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_leaf_library_evidence_manifest.json`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, and `lib/rbtree.zig` still agree on the current bounded Phase 7 packet, keep the returned helper-anchor set and shared build-wiring packet explicit, keep `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` explicit as the current bounded replay surfaces, and keep broader wrapper families or deeper runtime validation claims out of the Phase 7 reminder packet?",
+]
+REQUIRED_SCRIPTS_README_SNIPPETS = [
+    "- Phase 7 flow - the current scripts-root leaf-library packet stays reviewable through the returned leaf-library evidence catalog, the shared docs-root and tests-root reminder packet, the shipped shared-surface, build-wiring, make-wrapper self-test alignment, and dedicated `argv_split` guards, the validator entrypoint, the shared machine-readable manifest, the shared build graph, the narrow `phase7-validate` wrapper foothold, and the four roadmap-backed helper anchors instead of reopening helper semantics or reconstructing a broader missing-wrapper story",
+    "- `python3 scripts/zigux/check-phase7-shared-surface.py --self-test`, `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`, and `python3 scripts/zigux/validate-phase7.py --self-test` replay the shipped shared Phase 7 scripts-root reminder guards",
+]
+REQUIRED_TESTS_README_SNIPPETS = [
+    "## Phase 7 leaf-library packet",
+    "Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, and `zigux/Makefile` still keeps only the narrow `phase7-validate` foothold explicit rather than a broader wrapper family.",
+]
 REQUIRED_MAKEFILE_SNIPPETS = [
     "phase7-validate:",
     "$(PYTHON) scripts/zigux/validate-phase7.py",
@@ -159,6 +178,10 @@ REQUIRED_BUILD_SNIPPETS = [
 ]
 REQUIRED_FILES = [
     CATALOG_PATH,
+    DOCS_README_PATH,
+    REVIEW_CHECKLIST_PATH,
+    SCRIPTS_README_PATH,
+    TESTS_README_PATH,
     MANIFEST_PATH,
     MAKEFILE_PATH,
     BUILD_PATH,
@@ -169,7 +192,7 @@ REQUIRED_FILES = [
     Path("lib/argv_split.zig"),
     Path("lib/rbtree.zig"),
 ]
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 31
 
 
 class ValidationError(RuntimeError):
@@ -200,6 +223,10 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("missing required files: " + ", ".join(missing))
 
     require_snippets(repo_root / CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(repo_root / DOCS_README_PATH, REQUIRED_DOCS_README_SNIPPETS)
+    require_snippets(repo_root / REVIEW_CHECKLIST_PATH, REQUIRED_REVIEW_CHECKLIST_SNIPPETS)
+    require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_README_SNIPPETS)
+    require_snippets(repo_root / TESTS_README_PATH, REQUIRED_TESTS_README_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(repo_root / BUILD_PATH, REQUIRED_BUILD_SNIPPETS)
 
@@ -252,6 +279,10 @@ def scaffold_repo(root: Path) -> None:
             *REQUIRED_CATALOG_SNIPPETS,
         ]) + "\n",
     )
+    write(root / DOCS_README_PATH, "\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n")
+    write(root / REVIEW_CHECKLIST_PATH, "\n".join(REQUIRED_REVIEW_CHECKLIST_SNIPPETS) + "\n")
+    write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
+    write(root / TESTS_README_PATH, "\n".join(REQUIRED_TESTS_README_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
     write(root / BUILD_PATH, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass')\n")
@@ -297,6 +328,13 @@ def _mutate_text(root: Path, rel: Path, old: str, new: str, case: str) -> None:
 def run_self_test() -> None:
     missing_file_cases = [(f"missing_{rel.name}", rel) for rel in REQUIRED_FILES]
     marker_cases = [
+        ("missing_docs_readme_phase7_section", DOCS_README_PATH, "Phase 7 notes - `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`", "Phase 6 notes - `Documentation/zigux/phase6-helper-evidence-catalog.md`"),
+        ("missing_docs_readme_phase7_validate_sentence", DOCS_README_PATH, "* `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` replay the bounded current Phase 7 docs-root reminder packet without widening it into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes.", "* `python3 scripts/zigux/check-phase7-shared-surface.py` and `python3 scripts/zigux/validate-phase7.py` replay the bounded current Phase 7 docs-root reminder packet."),
+        ("missing_review_checklist_phase7_packet_question", REVIEW_CHECKLIST_PATH, "* if the change touches the shared Phase 7 leaf-library packet, do `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase7-shared-surface.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_leaf_library_evidence_manifest.json`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, `lib/string_helpers.zig`, `lib/cmdline.zig`, `lib/argv_split.zig`, and `lib/rbtree.zig` still agree on the current bounded Phase 7 packet, keep the returned helper-anchor set and shared build-wiring packet explicit, keep `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` explicit as the current bounded replay surfaces, and keep broader wrapper families or deeper runtime validation claims out of the Phase 7 reminder packet?", "* if the change touches the shared Phase 7 leaf-library packet, do the current docs and scripts still agree on the packet?"),
+        ("missing_scripts_readme_phase7_flow", SCRIPTS_README_PATH, "- Phase 7 flow - the current scripts-root leaf-library packet stays reviewable through the returned leaf-library evidence catalog, the shared docs-root and tests-root reminder packet, the shipped shared-surface, build-wiring, make-wrapper self-test alignment, and dedicated `argv_split` guards, the validator entrypoint, the shared machine-readable manifest, the shared build graph, the narrow `phase7-validate` wrapper foothold, and the four roadmap-backed helper anchors instead of reopening helper semantics or reconstructing a broader missing-wrapper story", "- Phase 7 flow - the current scripts-root leaf-library packet stays reviewable through the validator entrypoint and helper anchors."),
+        ("missing_scripts_readme_phase7_selftests", SCRIPTS_README_PATH, "- `python3 scripts/zigux/check-phase7-shared-surface.py --self-test`, `python3 scripts/zigux/check-phase7-build-wiring.py --self-test`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`, and `python3 scripts/zigux/validate-phase7.py --self-test` replay the shipped shared Phase 7 scripts-root reminder guards", "- `python3 scripts/zigux/validate-phase7.py --self-test` replays the shipped shared Phase 7 scripts-root reminder guards"),
+        ("missing_tests_readme_phase7_heading", TESTS_README_PATH, "## Phase 7 leaf-library packet", "## Phase 7 packet"),
+        ("missing_tests_readme_phase7_validate_sentence", TESTS_README_PATH, "Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, and `zigux/Makefile` still keeps only the narrow `phase7-validate` foothold explicit rather than a broader wrapper family.", "Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/validate-phase7.py` remains the shipped bounded replay surface."),
         ("missing_catalog_build_wiring_companion_marker", CATALOG_PATH, "- `scripts/zigux/check-phase7-build-wiring.py`", "- `scripts/zigux/check-phase7-build-route.py`"),
         ("missing_catalog_make_wrapper_companion_marker", CATALOG_PATH, "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`", "- `scripts/zigux/check-phase7-make-wrapper.py`"),
         ("missing_catalog_rbtree_marker", CATALOG_PATH, "- `lib/rbtree.zig`", "- `tools/lib/rbtree.zig`"),
