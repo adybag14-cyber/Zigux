@@ -222,6 +222,19 @@ def run_self_test() -> int:
         expect_failure(missing_validator, "missing the scripts/zigux/validate-phase11.py route")
         case_count += 1
 
+        duplicate_validator = tempdir / "duplicate_validator"
+        build_fixture(
+            duplicate_validator,
+            recipe_lines=[
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_a_build.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_b_build.zig",
+            ],
+        )
+        expect_failure(duplicate_validator, "must call scripts/zigux/validate-phase11.py exactly once")
+        case_count += 1
+
         wrong_order = tempdir / "wrong_order"
         build_fixture(
             wrong_order,
