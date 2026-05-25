@@ -421,7 +421,7 @@ def run_self_test() -> int:
     )
     mutation_specs.extend(
         (f"lane_marker_{idx}_{kind}", ("lane_text", marker), kind)
-        for idx, marker in enumerate(EXPECTED_LANE_LINES + [EXPECTED_LANE_PARAGRAPH])
+        for idx, marker in enumerate(EXPECTED_LANE_LINES + [EXPECTED_LANE_PARAGRAPH, EXPECTED_CLOSURE_PARAGRAPH])
         for kind in ("remove", "duplicate")
     )
     mutation_specs.extend(
