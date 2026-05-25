@@ -416,7 +416,7 @@ def run_self_test() -> int:
             print("expected missing skbuff stay-in-c survey marker drift to fail")
             return 1
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         duplicate_line(base, SURVEY_PATH, SURVEY_EXACT_LINE_SNIPPETS[0])
         if not any(
             error.startswith(
