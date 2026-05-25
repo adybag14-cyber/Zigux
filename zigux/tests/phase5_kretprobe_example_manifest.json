@@ -11,7 +11,7 @@
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
     "maxactive stays a pre-init in-memory choice and replayed summary field instead of implying concurrent kretprobe pressure parity",
-    "sample-behavior changes update the manifest-backed replay and teardown contract, and the shared reminder packet keeps scripts/zigux/check-phase5-review-guide-surface.py plus zigux/tests/phase5_build.zig explicit as the shipped guide-surface guard and current directly readable shared build-route companion evidence instead of leaving those contributor cues implied",
+    "sample-behavior changes update the manifest-backed replay, ownershipSummary()/runOwnershipReplay() lifecycle packet, and teardown contract, and the shared reminder packet keeps scripts/zigux/check-phase5-review-guide-surface.py plus zigux/tests/phase5_build.zig explicit as the shipped guide-surface guard and current directly readable shared build-route companion evidence instead of leaving those contributor cues implied",
     "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and loadable module wiring out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
@@ -53,12 +53,12 @@
     {
       "id": "outstanding-instance-boundary",
       "kind": "ownership_lifetime",
-      "expected": "exit rejects an armed sample until retHandler clears the outstanding tracked instance"
+      "expected": "ownershipSummary() and runOwnershipReplay() keep the armed sample explicit until retHandler clears the outstanding tracked instance"
     },
     {
       "id": "post-exit-rejection",
       "kind": "ownership_lifetime",
-      "expected": "after exit the sample rejects later recordMissedInstance or handler calls"
+      "expected": "after exit the sample rejects later recordMissedInstance or handler calls while ownershipSummary() keeps the exited snapshot explicit"
     }
   ],
   "non_goals": [
