@@ -3,12 +3,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 MANIFEST = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
+ARCHIVE_PAYLOAD = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+ARCHIVE_PARTS_MANIFEST = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz.parts/manifest.json"
+ARCHIVE_SUPPORT_FIXED_PREFIX = ("third_party/README.md",)
+ARCHIVE_SUPPORT_ALTERNATIVES = (
+    ARCHIVE_PAYLOAD,
+    ARCHIVE_PARTS_MANIFEST,
+)
 
 REQUIRED_TOP_LEVEL = {
     "phase": "Phase 2",
@@ -82,7 +90,6 @@ KCONFIG_CONFDATA_EXPECTED_PACKET = (
     "zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_assignment_expected.json",
 )
 
-
 def expected_make_wrappers(required_make_routes: tuple[str, ...]) -> tuple[str, ...]:
     return (
         "zigux/Makefile",
@@ -145,10 +152,7 @@ BASE_REQUIRED_PRESENT_SURFACES = {
     "policy": (
         "scripts/zigux/zig-toolchain-policy.json",
     ),
-    "archive_support": (
-        "third_party/README.md",
-        "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
-    ),
+    "archive_support": ARCHIVE_SUPPORT_FIXED_PREFIX + (ARCHIVE_PAYLOAD,),
     "cross_route_support": (
         "scripts/zigux/check-phase2-cross.py",
         "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -342,6 +346,24 @@ def seed_required_repo_paths(root: Path, required_present_surfaces: dict[str, tu
         write_text(root / entry, "present\n")
 
 
+def collect_archive_support_issues(root: Path, entries: list[str]) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    expected_prefix = list(ARCHIVE_SUPPORT_FIXED_PREFIX)
+    if entries[: len(expected_prefix)] != expected_prefix:
+        issues.append(("ARCHIVE_SUPPORT_ORDER_MISMATCH", "archive_support"))
+        return issues
+
+    tail = entries[len(expected_prefix) :]
+    allowed_tail = set(ARCHIVE_SUPPORT_ALTERNATIVES)
+    if len(tail) != 1 or tail[0] not in allowed_tail:
+        issues.append(("INVALID_ARCHIVE_SUPPORT_ENTRY", repr(tail)))
+        return issues
+
+    if not (root / tail[0]).exists():
+        issues.append(("MISSING_SURFACE_PATH", f"archive_support:{tail[0]}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     required_make_routes = load_required_make_routes(root)
     required_present_surfaces = build_required_present_surfaces(required_make_routes)
@@ -365,6 +387,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             string_entries = [entry for entry in entries if isinstance(entry, str)]
             for entry in find_duplicate_strings(string_entries):
                 issues.append(("DUPLICATE_SURFACE_ENTRY", f"{category}:{entry}"))
+            if category == "archive_support":
+                issues.extend(collect_archive_support_issues(root, string_entries))
+                continue
             for entry in required_entries:
                 if entry not in string_entries:
                     issues.append(("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
@@ -411,9 +436,12 @@ def write_manifest(path: Path, manifest: dict) -> None:
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
-def build_self_test_manifest(required_make_routes: tuple[str, ...] = DEFAULT_REQUIRED_MAKE_ROUTES) -> dict:
+def build_self_test_manifest(
+    required_make_routes: tuple[str, ...] = DEFAULT_REQUIRED_MAKE_ROUTES,
+    archive_entry: str = ARCHIVE_PAYLOAD,
+) -> dict:
     required_present_surfaces = build_required_present_surfaces(required_make_routes)
-    return {
+    manifest = {
         **REQUIRED_TOP_LEVEL,
         "present_surfaces": {
             category: list(entries)
@@ -422,10 +450,21 @@ def build_self_test_manifest(required_make_routes: tuple[str, ...] = DEFAULT_REQ
         "repo_reality_gaps": [],
         "notes": list(REQUIRED_NOTE_MARKERS),
     }
+    manifest["present_surfaces"]["archive_support"] = [*ARCHIVE_SUPPORT_FIXED_PREFIX, archive_entry]
+    return manifest
 
 
-def build_self_test_root(root: Path, required_make_routes: tuple[str, ...] = DEFAULT_REQUIRED_MAKE_ROUTES) -> None:
-    write_manifest(root / MANIFEST, build_self_test_manifest(required_make_routes))
+def build_self_test_root(
+    root: Path,
+    required_make_routes: tuple[str, ...] = DEFAULT_REQUIRED_MAKE_ROUTES,
+    archive_entry: str = ARCHIVE_PAYLOAD,
+) -> None:
+    for child in root.iterdir():
+        if child.is_dir():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
+    write_manifest(root / MANIFEST, build_self_test_manifest(required_make_routes, archive_entry))
     policy_payload = {
         "phase": "Phase 2",
         "channel": "0.17.0-dev.87+9b177a7d2",
@@ -439,21 +478,25 @@ def build_self_test_root(root: Path, required_make_routes: tuple[str, ...] = DEF
     }
     write_text(root / TOOLCHAIN_POLICY, json.dumps(policy_payload, indent=2) + "\n")
     seed_required_repo_paths(root, build_required_present_surfaces(required_make_routes))
+    if archive_entry != ARCHIVE_PAYLOAD and (root / ARCHIVE_PAYLOAD).exists():
+        (root / ARCHIVE_PAYLOAD).unlink()
+    write_text(root / archive_entry, "present\n")
 
 
 def run_self_test() -> int:
     required_present_surfaces = build_required_present_surfaces(DEFAULT_REQUIRED_MAKE_ROUTES)
     expected_case_count = (
         1
+        + 1
         + len(REQUIRED_TOP_LEVEL)
         + 1
         + sum(1 for entries in required_present_surfaces.values() if len(entries) > 1)
-        + sum(len(entries) for entries in required_present_surfaces.values())
+        + sum(len(entries) for category, entries in required_present_surfaces.items() if category != "archive_support")
         + len(required_present_surfaces)
-        + len(required_present_surfaces)
-        + len(required_present_surfaces)
+        + sum(1 for category in required_present_surfaces if category != "archive_support")
+        + sum(1 for category in required_present_surfaces if category != "archive_support")
         + len(iter_required_repo_paths(required_present_surfaces)) - 1
-        + 1
+        + 3
         + 1
         + len(REQUIRED_NOTE_MARKERS)
         + 1
@@ -461,12 +504,17 @@ def run_self_test() -> int:
         + 1
         + 1
         + 3
+        - 2
     )
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_tool_manifest_") as tmp_dir:
         root = Path(tmp_dir)
         manifest_path = root / MANIFEST
         build_self_test_root(root)
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root, archive_entry=ARCHIVE_PARTS_MANIFEST)
         assert collect_issues(root) == []
         checks_run += 1
 
@@ -482,6 +530,7 @@ def run_self_test() -> int:
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
+            write_text(root / ARCHIVE_PAYLOAD, "present\n")
             assert ("TOP_LEVEL_MISMATCH", key) in collect_issues(root)
             checks_run += 1
 
@@ -503,8 +552,55 @@ def run_self_test() -> int:
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
+            write_text(root / ARCHIVE_PAYLOAD, "present\n")
             assert ("MISSING_SURFACE_CATEGORY", category) in collect_issues(root)
             checks_run += 1
+            if category == "archive_support":
+                manifest = build_self_test_manifest()
+                manifest["present_surfaces"][category] = [ARCHIVE_PAYLOAD]
+                write_manifest(manifest_path, manifest)
+                seed_required_repo_paths(root, required_present_surfaces)
+                write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": "3" * 64},
+                    "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+                }, indent=2) + "\n")
+                write_text(root / ARCHIVE_PAYLOAD, "present\n")
+                assert ("ARCHIVE_SUPPORT_ORDER_MISMATCH", "archive_support") in collect_issues(root)
+                checks_run += 1
+
+                manifest = build_self_test_manifest()
+                manifest["present_surfaces"][category] = [*ARCHIVE_SUPPORT_FIXED_PREFIX, ARCHIVE_PAYLOAD, ARCHIVE_PARTS_MANIFEST]
+                write_manifest(manifest_path, manifest)
+                seed_required_repo_paths(root, required_present_surfaces)
+                write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": "3" * 64},
+                    "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+                }, indent=2) + "\n")
+                write_text(root / ARCHIVE_PAYLOAD, "present\n")
+                write_text(root / ARCHIVE_PARTS_MANIFEST, "present\n")
+                assert ("INVALID_ARCHIVE_SUPPORT_ENTRY", repr([ARCHIVE_PAYLOAD, ARCHIVE_PARTS_MANIFEST])) in collect_issues(root)
+                checks_run += 1
+
+                manifest = build_self_test_manifest(archive_entry="third_party/unpinned.tar.xz")
+                write_manifest(manifest_path, manifest)
+                seed_required_repo_paths(root, required_present_surfaces)
+                write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": "3" * 64},
+                    "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+                }, indent=2) + "\n")
+                write_text(root / "third_party/unpinned.tar.xz", "present\n")
+                assert ("INVALID_ARCHIVE_SUPPORT_ENTRY", repr(["third_party/unpinned.tar.xz"])) in collect_issues(root)
+                checks_run += 1
+                continue
             for entry in entries:
                 manifest = build_self_test_manifest()
                 manifest["present_surfaces"][category].remove(entry)
@@ -517,6 +613,7 @@ def run_self_test() -> int:
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
+                write_text(root / ARCHIVE_PAYLOAD, "present\n")
                 assert ("MISSING_SURFACE_ENTRY", f"{category}:{entry}") in collect_issues(root)
                 checks_run += 1
             manifest = build_self_test_manifest()
@@ -530,6 +627,7 @@ def run_self_test() -> int:
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
+            write_text(root / ARCHIVE_PAYLOAD, "present\n")
             assert ("DUPLICATE_SURFACE_ENTRY", f"{category}:{entries[0]}") in collect_issues(root)
             checks_run += 1
             manifest = build_self_test_manifest()
@@ -543,6 +641,7 @@ def run_self_test() -> int:
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
+            write_text(root / ARCHIVE_PAYLOAD, "present\n")
             assert ("INVALID_SURFACE_ENTRY", f"{category}:123") in collect_issues(root)
             checks_run += 1
             if len(entries) > 1:
@@ -558,11 +657,14 @@ def run_self_test() -> int:
                     "archive_sha256": {"x86_64-linux": "3" * 64},
                     "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
                 }, indent=2) + "\n")
+                write_text(root / ARCHIVE_PAYLOAD, "present\n")
                 assert ("SURFACE_ORDER_MISMATCH", category) in collect_issues(root)
                 checks_run += 1
 
         for category, entry in iter_required_repo_paths(required_present_surfaces):
             if entry == TOOLCHAIN_POLICY.as_posix():
+                continue
+            if category == "archive_support":
                 continue
             build_self_test_root(root)
             (root / entry).unlink()
@@ -580,6 +682,7 @@ def run_self_test() -> int:
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
+        write_text(root / ARCHIVE_PAYLOAD, "present\n")
         assert ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps") in collect_issues(root)
         checks_run += 1
 
@@ -594,6 +697,7 @@ def run_self_test() -> int:
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
+        write_text(root / ARCHIVE_PAYLOAD, "present\n")
         assert ("MISSING_NOTES", "notes") in collect_issues(root)
         checks_run += 1
 
@@ -609,6 +713,7 @@ def run_self_test() -> int:
                 "archive_sha256": {"x86_64-linux": "3" * 64},
                 "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
             }, indent=2) + "\n")
+            write_text(root / ARCHIVE_PAYLOAD, "present\n")
             assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
@@ -623,6 +728,7 @@ def run_self_test() -> int:
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
+        write_text(root / ARCHIVE_PAYLOAD, "present\n")
         assert ("DUPLICATE_NOTE_ENTRY", REQUIRED_NOTE_MARKERS[0]) in collect_issues(root)
         checks_run += 1
 
@@ -637,6 +743,7 @@ def run_self_test() -> int:
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
+        write_text(root / ARCHIVE_PAYLOAD, "present\n")
         assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
         checks_run += 1
 
@@ -651,6 +758,7 @@ def run_self_test() -> int:
             "archive_sha256": {"x86_64-linux": "3" * 64},
             "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
         }, indent=2) + "\n")
+        write_text(root / ARCHIVE_PAYLOAD, "present\n")
         assert ("NOTE_ORDER_MISMATCH", "notes") in collect_issues(root)
         checks_run += 1
 
