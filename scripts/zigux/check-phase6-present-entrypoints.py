@@ -178,7 +178,7 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 28
 
 
 class ValidationError(RuntimeError):
@@ -538,6 +538,24 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_shared_replay_inventory"].remove("make -C zigux phase6-hexdump-review")))
         cases_run += 1
+        expect_failure(
+            root,
+            MANIFEST_PATH,
+            lambda path: rewrite_json(
+                path,
+                lambda data: data.update(
+                    {
+                        "helpers": [
+                            data["helpers"][1],
+                            data["helpers"][0],
+                            data["helpers"][2],
+                            data["helpers"][3],
+                        ]
+                    }
+                ),
+            ),
+        )
+        cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"packet": EXPECTED_PACKET})))
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"lane_scope": "shared helper-parity rows only"})))
@@ -565,6 +583,24 @@ def run_self_test() -> None:
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1]["current_perf_evidence"].update({"runtime_selected_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS[:1]})))
         cases_run += 1
         expect_failure(root, PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][3]["current_perf_evidence"].update({"linux_style_rerun_routes": EXPECTED_HEXDUMP_PARITY_RERUN_ROUTES[:-1]})))
+        cases_run += 1
+        expect_failure(
+            root,
+            PARITY_MANIFEST_PATH,
+            lambda path: rewrite_json(
+                path,
+                lambda data: data.update(
+                    {
+                        "helpers": [
+                            data["helpers"][1],
+                            data["helpers"][0],
+                            data["helpers"][2],
+                            data["helpers"][3],
+                        ]
+                    }
+                ),
+            ),
+        )
         cases_run += 1
 
         if cases_run != SELF_TEST_CASE_COUNT:
