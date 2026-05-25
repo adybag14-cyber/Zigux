@@ -85,7 +85,7 @@ REQUIRED_MARKERS = {
         '"scripts/zigux/check-phase7-cmdline-packet.py"',
         '"parseOptionStr"',
         '"memparse"',
-        'helper-local survey-manifest-checker truthfulness packet',
+        "helper-local survey-manifest-checker truthfulness packet",
     ],
     "scripts/zigux/check-phase7-cmdline-packet.py": [
         "--self-test",
@@ -105,7 +105,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 28
 
 
 def read_text(path: Path) -> str:
@@ -262,6 +262,21 @@ def run_self_test() -> None:
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker(
             "manifest_checker_path_guard",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest_marker = "helper-local survey-manifest-checker truthfulness packet"
+        manifest["next_bounded_step"] = (
+            "Keep same-lane follow-through limited to one bounded parsing replay proof "
+            "while shared-control routes stay parked outside this helper-local lane."
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_next_bounded_step_truthfulness_guard",
             tmp_root,
             f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
         )
