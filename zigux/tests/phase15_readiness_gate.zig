@@ -57,23 +57,23 @@ test "phase 15 readiness manifest preserves the validator-first packet truth" {
     try std.testing.expectEqualStrings("P15-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-23", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-25", manifest.surveyed_commit);
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         manifest.readiness_packet_checker,
     );
-    try std.testing.expectEqual(@as(usize, 35), manifest.direct_packet_paths.len);
+    try std.testing.expectEqual(@as(usize, 37), manifest.direct_packet_paths.len);
     try std.testing.expectEqualStrings(
         "scripts/zigux/validate-phase15.py",
-        manifest.direct_packet_paths[19],
+        manifest.direct_packet_paths[21],
     );
     try std.testing.expectEqualStrings(
         "zigux/tests/phase15_freeze_map_governance.zig",
-        manifest.direct_packet_paths[24],
+        manifest.direct_packet_paths[26],
     );
     try std.testing.expectEqualStrings(
         "zigux/tests/phase15_readiness_gate_manifest.json",
-        manifest.direct_packet_paths[34],
+        manifest.direct_packet_paths[36],
     );
     try std.testing.expectEqual(@as(usize, 5), manifest.phase15_validate_checkers.len);
     try std.testing.expectEqualStrings(
@@ -107,7 +107,7 @@ test "phase 15 readiness note stays aligned with the validator-first packet" {
 
     try expectContains(readiness_note, "PHASE15_LANE_KEY=P15-L02");
     try expectContains(readiness_note, "PHASE15_SLICE=validator_first_readiness_packet");
-    try expectContains(readiness_note, "current-master-readback-2026-05-23");
+    try expectContains(readiness_note, "current-master-readback-2026-05-25");
     try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
     try expectContains(readiness_note, "the dedicated validator now exists as a directly readable maintenance gate");
     try expectContains(
