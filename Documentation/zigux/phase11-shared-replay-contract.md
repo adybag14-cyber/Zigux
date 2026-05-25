@@ -33,6 +33,7 @@ reminder surfaces:
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-focused-direct-build-replays.py`
 - `scripts/zigux/check-phase11-shared-replay-contract-counts.py`
@@ -55,16 +56,16 @@ These shared surfaces keep the Phase 11 packet reviewable as a reminder and
 checker contract while the bounded driver-local matrices, DesignWare continuity,
 and HVC proof-backed packet stay directly materialized on current `master`.
 
-Keep the scripts-root reminder honest too: broader contributor-facing summaries
-in `scripts/zigux/README.md` still skip the active Phase 11 packet, and live
-current-`master` rereads also show `Documentation/zigux/README.md` and
-`Documentation/zigux/review-checklist.md` skipping the active Phase 11 packet
-entirely, so treat those three broad surfaces as the next same-lane reminder
-follow-through instead of as already current packet members. Until that broader
-reminder work lands, keep the shared Phase 11 packet rooted in the narrower
-lane-sequencing, matrix-gap, header-boundary, checker, workflow,
-contributor-sync, tests-root-companion, and tests-root reminder stack listed
-above.
+Keep the broader reminder follow-through honest too: the shared reviewer-facing
+checklist now carries the active Phase 11 packet, but broader contributor-facing
+summaries in `scripts/zigux/README.md` still skip that active packet and live
+current-`master` rereads also show `Documentation/zigux/README.md` still
+skipping the active Phase 11 packet entirely, so treat those two broad surfaces
+as the next same-lane reminder follow-through instead of as already current
+packet members. Until that broader reminder work lands, keep the shared Phase 11
+packet rooted in the narrower lane-sequencing, matrix-gap, checklist,
+checker, workflow, contributor-sync, tests-root-companion, and tests-root
+reminder stack listed above.
 
 ## Current Repo Reality
 
@@ -74,10 +75,11 @@ above.
 - `.github/workflows/zigux-bootstrap.yml` now replays the shared Phase 11 packet
   through `make -C zigux phase11-validate` and does not name a separate
   dedicated HVC survey workflow step
-- the broader docs-root README, shared review checklist, and scripts-root README
-  still skip Phase 11 in their live current-`master` wording, so do not treat
-  those three broad reminders as current shared-packet proof until a future
-  same-lane repair restores explicit simple-driver coverage there
+- the shared review checklist now carries the live Phase 11 packet, while the
+  broader docs-root README and scripts-root README still skip it on current
+  `master`, so do not treat those two broader reminders as current shared-packet
+  proof until a future same-lane repair restores explicit simple-driver
+  coverage there
 - the shared packet now uses the shipped `check-phase11-*.py` reminder scripts,
   the validator self-test `python3 scripts/zigux/validate-phase11.py --self-test`,
   `scripts/zigux/validate-phase11.py`, the shared inventory fixture, and the
@@ -232,8 +234,8 @@ route:
 ## What This Contract Does Not Claim
 
 - no overall simple-driver tranche closure
-- no `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
-  or `scripts/zigux/README.md` Phase 11 coverage on current `master`
+- no `Documentation/zigux/README.md` or `scripts/zigux/README.md` Phase 11
+  coverage on current `master`
 - no `make -C zigux phase11-contract`, `make -C zigux phase11`, or
   `make -C zigux phase11-hvc-survey` route on current `master`
 - no dedicated HVC survey workflow step on current `master`
