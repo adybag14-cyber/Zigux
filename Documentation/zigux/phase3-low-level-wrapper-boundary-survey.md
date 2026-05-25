@@ -21,6 +21,7 @@ This note records the current roadmap-versus-repo reality for the bounded Phase 
 - `zigux/tests/phase3_low_level_wrappers_build.zig`
 - `zigux/tests/README.md`
 - `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`
 - `zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig`
 - `zigux/Makefile`
 - `make -C zigux phase3-low-level-wrappers`
