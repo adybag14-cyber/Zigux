@@ -24,6 +24,7 @@ TESTS_README_PATH = "zigux/tests/README.md"
 PERF_BUFFER_POLL_TEST_PATH = "zigux/tests/phase8_perf_buffer_poll.zig"
 PERF_BUFFER_POLL_BUILD_PATH = "zigux/tests/phase8_perf_buffer_poll_only_build.zig"
 PERF_BUFFER_POLL_HELPER_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+PHASE8_BUILD_PATH = "zigux/tests/phase8_build.zig"
 
 NOTE_REQUIRED_MARKERS = [
     "# Phase 8 Perf-Buffer Poll Slice",
@@ -104,6 +105,14 @@ PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS = [
     "phase8-perf-buffer-poll-verify-tests",
     "test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);",
     "test_step.dependOn(&run_perf_buffer_poll_verify_tests.step);",
+]
+
+PHASE8_BUILD_REQUIRED_MARKERS = [
+    "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    "phase8-perf-buffer-poll-tests",
+    "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
+    "phase8-ready-buffer-fd-lookup-tests",
+    "test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);",
 ]
 
 PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
@@ -278,6 +287,7 @@ def validate(root: Path) -> list[str]:
         PERF_BUFFER_POLL_TEST_PATH,
         PERF_BUFFER_POLL_BUILD_PATH,
         PERF_BUFFER_POLL_HELPER_PATH,
+        PHASE8_BUILD_PATH,
     )
     for rel_path in required_files:
         if not (root / rel_path).exists():
@@ -293,6 +303,7 @@ def validate(root: Path) -> list[str]:
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
+        (PHASE8_BUILD_PATH, PHASE8_BUILD_REQUIRED_MARKERS),
     )
     for rel_path, markers in marker_groups:
         text = read_text(root, rel_path)
@@ -311,6 +322,7 @@ def build_fixture_root(root: Path) -> None:
         (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
         (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
+        (PHASE8_BUILD_PATH, PHASE8_BUILD_REQUIRED_MARKERS),
     )
     for rel_path, markers in marker_groups:
         write_text(root, rel_path, "\n".join(markers) + "\n")
@@ -340,6 +352,7 @@ def run_self_test() -> int:
             (PERF_BUFFER_POLL_TEST_PATH, PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS),
             (PERF_BUFFER_POLL_BUILD_PATH, PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS),
             (PERF_BUFFER_POLL_HELPER_PATH, PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS),
+            (PHASE8_BUILD_PATH, PHASE8_BUILD_REQUIRED_MARKERS),
         )
         for rel_path, markers in marker_groups:
             baseline = "\n".join(markers) + "\n"
@@ -357,6 +370,7 @@ def run_self_test() -> int:
             PERF_BUFFER_POLL_TEST_PATH,
             PERF_BUFFER_POLL_BUILD_PATH,
             PERF_BUFFER_POLL_HELPER_PATH,
+            PHASE8_BUILD_PATH,
         ):
             path = base / rel_path
             original = path.read_text(encoding="utf-8")
@@ -390,6 +404,10 @@ def run_self_test() -> int:
         "PHASE8_PERF_BUFFER_POLL_GATE_HELPER_FILE_MARKER_COUNT="
         f"{len(PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS)}"
     )
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_SHARED_BUILD_MARKER_COUNT="
+        f"{len(PHASE8_BUILD_REQUIRED_MARKERS)}"
+    )
     return 0
 
 
@@ -398,7 +416,8 @@ def main() -> int:
         description=(
             "Check that the surviving Phase 8 perf-buffer poll packet stays aligned "
             "across the dedicated poll note, the bridge-boundary reminder, the scripts guide, "
-            "the tests guide, the focused poll build shard, the bounded poll helper test, and the helper source markers."
+            "the tests guide, the focused poll build shard, the shared Phase 8 aggregate build, "
+            "the bounded poll helper test, and the helper source markers."
         )
     )
     parser.add_argument(
@@ -445,6 +464,10 @@ def main() -> int:
     print(
         "PHASE8_PERF_BUFFER_POLL_GATE_HELPER_FILE_MARKER_COUNT="
         f"{len(PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS)}"
+    )
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_SHARED_BUILD_MARKER_COUNT="
+        f"{len(PHASE8_BUILD_REQUIRED_MARKERS)}"
     )
     print("PHASE8_PERF_BUFFER_POLL_GATE=pass")
     return 0
