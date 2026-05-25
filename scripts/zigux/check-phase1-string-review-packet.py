@@ -514,7 +514,7 @@ def collect_failures(root: Path) -> list[str]:
 
     failures.extend(
         require_exact_value(
-            "string_manifest:review_anchors.tools/lib.string.zig.helper_test_anchors",
+            "string_manifest:review_anchors.tools/lib/string.zig.helper_test_anchors",
             nested_value(manifest, ("review_anchors", "tools/lib/string.zig", "helper_test_anchors")),
             EXPECTED_HELPER_TEST_ANCHORS,
         )
@@ -680,7 +680,7 @@ def run_self_test() -> int:
         if cases[4][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:missing_lane_marker")
 
-        build_sampleRepo(tmp_root)
+        build_sample_repo(tmp_root)
         line = EXPECTED_STRING_LANE_MARKERS[3][1]
         text = lane_path.read_text(encoding="utf-8").replace(line + "\n", line + "\n" + line + "\n", 1)
         lane_path.write_text(text, encoding="utf-8")
@@ -712,7 +712,7 @@ def run_self_test() -> int:
         if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:fixture_invalid_json")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo(tmp_root)
         insert_duplicate_json_line(
             tmp_root,
             STRING_MANIFEST_REL,
