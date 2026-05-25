@@ -730,6 +730,31 @@ test "clump8 scans align to the containing byte and return its value" {
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
 
+test "clump8 scans skip earlier aligned bytes once the offset moves forward" {
+    const nbits = bits_per_long;
+    const bitmap = [_]Word{
+        (@as(Word, 1) << 9) |
+            (@as(Word, 1) << 25) |
+            (@as(Word, 1) << 29),
+    };
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &bitmap, nbits, 0));
+    try std.testing.expectEqual(@as(u8, 0b0000_0010), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, 24), findNextClump8(&clump, &bitmap, nbits, 16));
+    try std.testing.expectEqual(@as(u8, 0b0010_0010), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, 24), findNextClump8(&clump, &bitmap, nbits, 25));
+    try std.testing.expectEqual(@as(u8, 0b0010_0010), clump);
+
+    clump = 0x5a;
+    try std.testing.expectEqual(@as(usize, nbits), findNextClump8(&clump, &bitmap, nbits, 30));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+}
+
 test "clump8 scans keep tail bytes reachable from partial final words" {
     const nbits = bits_per_long + 5;
     const bitmap = [_]Word{ 0, @as(Word, 1) << 3 };
