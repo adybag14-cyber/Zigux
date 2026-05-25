@@ -92,8 +92,14 @@ test "phase 8 file-path handle bridge proof keeps helper-local routing evidence 
     try expectContains(boundary_note, "summarizeNextOnlineCpuRoute()");
     try expectContains(boundary_note, "summarizeOnlineCpuRouting()");
     try expectContains(boundary_note, "It also does not claim the deferred `perf-buffer-online-cpu-routing` packet");
+    try expectContains(boundary_note, "`libbpf_num_possible_cpus()`");
+    try expectContains(boundary_note, "online CPU filtering");
+    try expectContains(boundary_note, "per-CPU perf-event-array map updates");
     try expectContains(boundary_note, "per-CPU `perf_event_open()` setup");
+    try expectContains(boundary_note, "`mmap()` setup");
+    try expectContains(boundary_note, "`PERF_EVENT_IOC_ENABLE` enablement");
     try expectContains(boundary_note, "epoll-backed perf FD registration");
+    try expectContains(boundary_note, "poll waits");
 
     const routing_helper = try readWorkspaceFile(
         std.testing.allocator,
