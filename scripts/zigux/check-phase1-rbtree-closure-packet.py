@@ -279,7 +279,6 @@ def run_self_test() -> int:
             return 1
 
         build_sample_repo(root)
-        (root / LANE_NOTE_REL).writeText = None
         (root / LANE_NOTE_REL).write_text("# sample\n\n" + LANE_LINES[1] + "\n", encoding="utf-8")
         if not collect_failures(root):
             print("self-test:missing_lane_line:expected_failure")
@@ -352,7 +351,8 @@ def main() -> int:
         return run_self_test()
 
     if args.write_sample_root:
-        build_sample_repo(Path(args.write_sample_root).resolve())
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(Path(args.write_sample_root).resolve())
         print(f"PHASE1_RBTREE_CLOSURE_PACKET_SAMPLE_ROOT={Path(args.write_sample_root).resolve()}")
         return 0
 
