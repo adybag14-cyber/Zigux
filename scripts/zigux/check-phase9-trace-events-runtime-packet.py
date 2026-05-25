@@ -158,6 +158,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         "runtime_loader_allocator_init_flow.zig",
         "runtime_trace_events_loader_substrate_drift.zig",
         "../../samples/zigux/runtime_trace_events.zig",
+        "runtime_trace_events_module.zig",
         "../../samples/zigux/runtime_trace_events_unregistered_gate.zig",
         "../../samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
         "../../samples/zigux/runtime_trace_events_registration_reentry_gate.zig",
@@ -350,7 +351,10 @@ def run_self_test() -> int:
             for marker in markers:
                 seed_fixture_tree(base)
                 current = read_text(base, rel_path)
-                write_text(base / rel_path, tamper_marker_occurrences(current, marker))
+                mutated = tamper_marker_occurrences(current, marker)
+                if mutated == current:
+                    raise SystemExit(f"unable to tamper marker for self-test: {rel_path}:{marker}")
+                write_text(base / rel_path, mutated)
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
         for rel_path, markers in FILE_EXACT_ONCE_MARKERS.items():
@@ -366,9 +370,12 @@ def run_self_test() -> int:
             expect_failure(base, f"missing_file:{rel_path}")
 
         print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_FILE_COUNT={len(FILE_MARKERS)}")
         print(
-            "PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXACT_ONCE_MARKER_COUNT="
+            "PHASE9_TRACE_EVENTS_RUNTIME_PACKET_MARKER_COUNT="
+            f"{sum(len(markers) for markers in FILE_MARKERS.values())}"
+        )
+        print(
+            "PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXACT_ONCE_COUNT="
             f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
         )
         return 0
@@ -395,9 +402,12 @@ def main() -> int:
         return 1
 
     print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET=pass")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_FILE_COUNT={len(FILE_MARKERS)}")
     print(
-        "PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXACT_ONCE_MARKER_COUNT="
+        "PHASE9_TRACE_EVENTS_RUNTIME_PACKET_MARKER_COUNT="
+        f"{sum(len(markers) for markers in FILE_MARKERS.values())}"
+    )
+    print(
+        "PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXACT_ONCE_COUNT="
         f"{sum(len(markers) for markers in FILE_EXACT_ONCE_MARKERS.values())}"
     )
     return 0
