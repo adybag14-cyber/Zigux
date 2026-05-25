@@ -70,6 +70,7 @@ SURVEY_MARKERS = [
     "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
     "The same narrower continuity packet also keeps the dedicated `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` guard explicit through `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test` and `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`",
     "The same narrower continuity packet now also records 2 focused direct build checker routes through `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py --self-test` and `python3 scripts/zigux/check-phase11-focused-direct-build-replays.py`, together with 2 focused direct build replays through `zigux/tests/phase11_hvc_modem_control_proof_build.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`.",
+    "The shared current-head packet also now keeps `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` directly readable beside the returned driver-local matrices, so the watchdog teardown-or-failure-mode proof pair stays explicit even while the narrower shared inventory remains HVC-centered.",
     "The shared `phase11-validate` route also now carries `zigux/tests/phase11_hvc_modem_control_proof_build.zig` as a focused HVC teardown-or-failure-mode proof outside the narrower three-entry build inventory",
     "The shared `phase11-validate` route also now carries `zigux/tests/phase11_dw_wdt_restart_build.zig` and `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig` as focused watchdog teardown-or-failure-mode proofs outside the narrower three-entry HVC build inventory, so keep those shared watchdog replay routes explicit beside the returned driver-local matrices instead of reducing the shared gate to HVC-only proof coverage.",
     "That adjacent HVC-only proof packet still leaves a roadmap-facing ABI proof gap on current `master`: the repo does not yet rematerialize a broader shared replay or survey route that would carry cross-driver public-struct ABI proof beyond those surviving `layout_assert` shards.",
@@ -202,7 +203,7 @@ def run_self_test() -> None:
             path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             expect_failure(case_root, marker)
             case_count += 1
-        for marker in SURVEY_MARKERS[6:14]:
+        for marker in SURVEY_MARKERS[6:15]:
             case_root = tmpdir / f"required_{case_count}"
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES["matrix_gap_note"]
