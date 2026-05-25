@@ -263,6 +263,14 @@ pub fn write8InteropPolicyBytes(base_addr: usize, byte_offset: usize, value: u8,
     try writeInteropPolicyBytes(u8, unsafe_scope, reserved, try offsetPointer(u8, base_addr, byte_offset), value);
 }
 
+pub fn read16InteropPolicyBytes(base_addr: usize, byte_offset: usize, unsafe_scope: u8, reserved: u8) PolicyError!u16 {
+    return readInteropPolicyBytes(u16, unsafe_scope, reserved, try offsetConstPointer(u16, base_addr, byte_offset));
+}
+
+pub fn write16InteropPolicyBytes(base_addr: usize, byte_offset: usize, value: u16, unsafe_scope: u8, reserved: u8) PolicyError!void {
+    try writeInteropPolicyBytes(u16, unsafe_scope, reserved, try offsetPointer(u16, base_addr, byte_offset), value);
+}
+
 pub fn read32InteropPolicyByte(base_addr: usize, byte_offset: usize, unsafe_scope: u8) PolicyError!u32 {
     return readInteropPolicyByte(u32, unsafe_scope, try offsetConstPointer(u32, base_addr, byte_offset));
 }
@@ -433,6 +441,10 @@ test "phase3 mmio helper keeps helper-local ranges and width aliases explicit" {
 
     try write8InteropPolicyBytes(base_addr, 1, 0x44, mmio_scope, 0);
     try std.testing.expectEqual(@as(u8, 0x44), try read8InteropPolicyBytes(base_addr, 1, mmio_scope, 0));
+
+    try write16InteropPolicyBytes(base_addr, 2, 0xBEEF, mmio_scope, 0);
+    try std.testing.expectEqual(@as(u16, 0xBEEF), try read16InteropPolicyBytes(base_addr, 2, mmio_scope, 0));
+    try std.testing.expectError(error.InvalidInteropPolicy, read16InteropPolicyBytes(base_addr, 3, mmio_scope, 0));
 
     try write32InteropPolicyByte(base_addr, 4, 0xC001_D00D, mmio_scope);
     try std.testing.expectEqual(@as(u32, 0xC001_D00D), try read32InteropPolicyByte(base_addr, 4, mmio_scope));
