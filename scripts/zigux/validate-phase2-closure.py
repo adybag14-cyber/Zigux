@@ -55,7 +55,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`python3 scripts/zigux/check-phase2-closure-archive-contract.py --self-test`",
     "`python3 scripts/zigux/check-phase2-closure-archive-contract.py`",
     "`PHASE2_CURRENT_GAP_PACKET=third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`",
-    "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
+    "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `scripts/zigux/check-phase2-closure-archive-contract.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -269,13 +269,13 @@ def run_self_test() -> int:
         closure_path.write_text(
             replace_once(
                 closure_path.read_text(encoding="utf-8"),
-                "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
+                "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `scripts/zigux/check-phase2-closure-archive-contract.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
             ),
             encoding="utf-8",
         )
         assert (
             "MISSING_CLOSURE_MARKER",
-            "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
+            "The current closure-side archive-contract packet now stays explicit through `scripts/zigux/check-phase2-archive-contract-packet.py`, `scripts/zigux/check-phase2-closure-archive-contract.py`, `third_party/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `scripts/zigux/check-phase2-tool-manifest.py`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` while `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz` remains the lone current repo-reality gap on `master`.",
         ) in collect_issues(root)
         checks_run += 1
 
