@@ -7,11 +7,14 @@ import argparse
 import ast
 import json
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 
-DEFAULT_ROOT = Path("/workspace/current-like")
+SELF_PATH = Path(__file__).resolve()
+DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else Path.cwd()
 VALIDATE_PATH = Path("scripts/zigux/validate-phase11.py")
 FIXTURE_PATH = Path("zigux/tests/fixtures/phase11_validate_checks.json")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
@@ -334,6 +337,28 @@ def run_self_test() -> int:
         build_fixture(passing)
         required_path_count, check_count = run_check(passing)
         case_count = 1
+
+        default_root_cli = tmpdir / "default_root_cli"
+        build_fixture(default_root_cli)
+        write(default_root_cli / SELF_CHECK_PATH, read_text(SELF_PATH))
+        completed = subprocess.run(
+            [sys.executable, str(default_root_cli / SELF_CHECK_PATH)],
+            cwd=default_root_cli,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode != 0:
+            raise AssertionError(
+                "default-root CLI invocation failed: "
+                f"stdout={completed.stdout!r} stderr={completed.stderr!r}"
+            )
+        if "PHASE11_VALIDATE_CHECK_ROSTER=pass" not in completed.stdout:
+            raise AssertionError(
+                "default-root CLI invocation did not report pass: "
+                f"stdout={completed.stdout!r} stderr={completed.stderr!r}"
+            )
+        case_count += 1
 
         wrong_fixture = tmpdir / "wrong_fixture"
         build_fixture(wrong_fixture, wrong_fixture_command=True)
