@@ -43,6 +43,10 @@ XARRAY_SLOT_STARTER_BUILD_FILE = Path(
 XARRAY_SLOT_CHECK_FILE = Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")
 SHARED_TESTS_BUILD_FILE = Path("zigux/tests/build.zig")
 SHARED_VALIDATOR_FILE = Path("scripts/zigux/validate-phase3.py")
+ABI_CHECK_FILE = Path("scripts/zigux/check-phase3-abi.py")
+ABI_SUPPORT_PACKET_FILE = Path("scripts/zigux/check-phase3-abi-support-packet.py")
+ABI_REPLAY_FILE = Path("zigux/tests/phase3_abi.zig")
+ABI_DUMP_REPLAY_FILE = Path("zigux/tests/phase3_abi_dump_current.zig")
 CATALOG_TOOL_FILE = Path("scripts/zigux/phase3_catalog.py")
 CATALOG_SELFTEST_CHECK_FILE = Path("scripts/zigux/check-phase3-catalog-selftest.py")
 GENERATED_WRAPPER_FILE = Path("scripts/zigux/generate-phase3-check-wrappers.py")
@@ -133,6 +137,8 @@ CATALOG_SELFTEST_GAP_MARKER = "scripts/zigux/check-phase3-catalog-selftest.py"
 CATALOG_TOOL_MARKER = "scripts/zigux/phase3_catalog.py"
 WRAPPER_GENERATION_GAP_MARKER = "scripts/zigux/generate-phase3-check-wrappers.py"
 SHARED_VALIDATOR_MARKER = "scripts/zigux/validate-phase3.py"
+ABI_CHECK_MARKER = "scripts/zigux/check-phase3-abi.py"
+ABI_SUPPORT_PACKET_MARKER = "scripts/zigux/check-phase3-abi-support-packet.py"
 FIXTURE_MANIFEST_MARKER = "zigux/tests/fixtures/phase3_abi_manifest.json"
 XARRAY_SLOT_HELPER_MARKER = "zigux/helpers/xarray_slot_view.zig"
 XARRAY_SLOT_STARTER_MARKER = "zigux/tests/phase3_xarray_slot_starter_packet.zig"
@@ -189,6 +195,8 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate_phase3_selftest.py"),
     RUNNER_FILE,
     SHARED_VALIDATOR_FILE,
+    ABI_CHECK_FILE,
+    ABI_SUPPORT_PACKET_FILE,
     CATALOG_TOOL_FILE,
     CATALOG_SELFTEST_CHECK_FILE,
     GENERATED_WRAPPER_FILE,
@@ -230,6 +238,8 @@ REQUIRED_FILES = (
     XARRAY_SLOT_STARTER_FILE,
     XARRAY_SLOT_STARTER_BUILD_FILE,
     SHARED_TESTS_BUILD_FILE,
+    ABI_REPLAY_FILE,
+    ABI_DUMP_REPLAY_FILE,
     Path("zigux/tests/phase3_policy_starter_packet.zig"),
     POLICY_STARTER_BUILD_FILE,
     POLICY_DUMP_REPLAY_FILE,
@@ -266,6 +276,8 @@ REQUIRED_MARKERS = (
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/validate-phase3.py",
+    ABI_CHECK_MARKER,
+    ABI_SUPPORT_PACKET_MARKER,
     "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
@@ -449,6 +461,14 @@ README_MARKER_CASES = (
         "expected missing shared validator README marker was not reported",
     ),
     (
+        ABI_CHECK_MARKER,
+        "expected missing shared ABI checker README marker was not reported",
+    ),
+    (
+        ABI_SUPPORT_PACKET_MARKER,
+        "expected missing shared ABI support-packet README marker was not reported",
+    ),
+    (
         FIXTURE_MANIFEST_MARKER,
         "expected missing fixture-manifest README marker was not reported",
     ),
@@ -612,7 +632,11 @@ FILE_CASES = (
         SHARED_TESTS_BUILD_FILE,
         "expected missing shared tests build file was not reported",
     ),
+    (ABI_REPLAY_FILE, "expected missing shared ABI replay file was not reported"),
+    (ABI_DUMP_REPLAY_FILE, "expected missing shared ABI dump replay file was not reported"),
     (SHARED_VALIDATOR_FILE, "expected missing shared validator file was not reported"),
+    (ABI_CHECK_FILE, "expected missing shared ABI checker file was not reported"),
+    (ABI_SUPPORT_PACKET_FILE, "expected missing shared ABI support-packet file was not reported"),
     (
         Path("Documentation/zigux/phase3-policy-slice.md"),
         "expected missing policy-slice file was not reported",
