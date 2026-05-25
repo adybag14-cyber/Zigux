@@ -38,12 +38,12 @@
       "behavior": "Keeps the adjacent HVC notifier declarations visible through notifier_add_irq, notifier_del_irq, notifier_hangup_irq, and the hv_ops notifier callbacks."
     },
     "scripts/zigux/check-phase13-notifier-packet.py": {
-      "sha": "f7f7f00c6890a9cab73fa2253bc9660f3e395a42",
-      "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, exported list-empty and first-pprev witnesses, HVC declarations, and repo-reality-gap wording."
+      "sha": "23475a657a2dc7e6801a0f5f66d3cc5ed488e79b",
+      "behavior": "Fail-closes the adjacent packet around the survey note, manifest, reviewability gate, read-only helpers, the exported list-empty, first-pprev, broken-prev, and tail-next witnesses, HVC declarations, and repo-reality-gap wording."
     },
     "zigux/tests/phase13_notifier_list_reviewability.zig": {
       "sha": "6aad487a082e238f1a5b8b3be3e3b41e416fae7f",
-      "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, HVC-header, exported list-empty and first-pprev witnesses, and returned zigux/Makefile versus missing shared-route distinction visible without widening into the shared Phase 13 build shard."
+      "behavior": "Keeps the manifest, survey, checker, binding, helper, ABI-header, HVC-header, the exported list-empty, first-pprev, broken-prev, and tail-next witnesses, and returned zigux/Makefile versus missing shared-route distinction visible without widening into the shared Phase 13 build shard."
     },
     "scripts/zigux/validate-phase13-release.py": {
       "sha": "6b27a83d4a3f20588fdf9ec63d71fbe00d30f478",
