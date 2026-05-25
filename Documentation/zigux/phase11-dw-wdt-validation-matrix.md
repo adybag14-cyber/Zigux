@@ -28,9 +28,10 @@ This matrix keeps the current bounded validation packet for the Zigux
   choice, optional APB clock presence, reset-release posture, imported-running
   handoff, optional pretimeout IRQ acquisition, and the missing-timer-clock
   block reviewable before live platform execution lands.
-- `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_pm.zig`, and
-  `drivers/watchdog/dw_wdt_pm_scaffold.zig` keep restart and bounded PM-helper
-  handoff coverage reviewable inside the same smaller packet.
+- `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
+  `drivers/watchdog/dw_wdt_pm.zig`, and `drivers/watchdog/dw_wdt_pm_scaffold.zig`
+  keep restart, teardown-parity, and bounded PM-helper handoff coverage
+  reviewable inside the same smaller packet.
 - `Documentation/zigux/phase11-dw-wdt-survey.md` keeps the same packet summary
   readable for reviewers.
 
@@ -39,11 +40,10 @@ This matrix keeps the current bounded validation packet for the Zigux
 - Authenticated current-head rereads in this environment do not rematerialize
   `Documentation/zigux/phase11-dw-wdt-slice.md`,
   `Documentation/zigux/phase11-dw-wdt-teardown-note.md`,
-  `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, or
-  `zigux/tests/phase11_dw_wdt.zig`.
-- Treat that broader direct-driver, verify-helper, and replay stack as larger
-  same-lane vocabulary or fallback-visible evidence until a future authenticated
-  reread proves it returned through the same bridge.
+  `drivers/watchdog/dw_wdt.zig`, or `zigux/tests/phase11_dw_wdt.zig`.
+- Treat that broader direct-driver, direct-replay, and older reminder stack as
+  larger same-lane vocabulary or fallback-visible evidence until a future
+  authenticated reread proves it returned through the same bridge.
 - Keep the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed
   as historical context until a future reread proves it returned.
 
@@ -61,7 +61,7 @@ This matrix keeps the current bounded validation packet for the Zigux
 - no claim that live platform registration side effects are already executing
 - no claim that clock or reset execution, IRQ delivery, or hardware-backed
   MMIO validation has already landed
-- no promotion of the broader direct-driver, verify-helper, or replay stack to
-  authenticated current-head evidence without a fresh reread
+- no promotion of the broader direct-driver or replay stack to authenticated
+  current-head evidence without a fresh reread
 - no migration of this driver-local packet into a broader shared Phase 11
   reminder surface
