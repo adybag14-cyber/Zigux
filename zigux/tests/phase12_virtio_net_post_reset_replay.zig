@@ -64,33 +64,35 @@ test "phase12 virtio net post reset replay keeps parked optional gates resumable
     try std.testing.expect(summary.can_resume_queues);
 }
 
-test "phase12 virtio net post reset ownership stays with recovery until replay clears and returns to the driver after parked gates" {
-    const blocked = try post_reset_replay.summarizePostResetOwnership(.{
+test "phase12 virtio net post reset ownership splits receive and transmit ownership until replay fully clears" {
+    const split = try post_reset_replay.summarizePostResetOwnership(.{
         .reset_generation = 12,
         .receive_queue_pairs = 4,
         .control_queue_restored = true,
         .receive_refill_replayed = true,
         .transmit_recycle_ready = false,
-        .probe_snapshot_replayed = false,
+        .probe_snapshot_replayed = true,
     });
 
     try std.testing.expectEqual(
         post_reset_replay.PostResetReplayBlocker.transmit_recycle,
-        blocked.blocker,
+        split.blocker,
     );
     try std.testing.expectEqual(
         post_reset_replay.PostResetReplayCheckpoint.after_transmit_recycle,
-        blocked.next_checkpoint,
+        split.next_checkpoint,
+    );
+    try std.testing.expect(split.resumes_receive_submission);
+    try std.testing.expect(!split.resumes_transmit_submission);
+    try std.testing.expectEqual(
+        post_reset_replay.QueueSubmissionOwner.driver,
+        split.receive_submission_owner,
     );
     try std.testing.expectEqual(
         post_reset_replay.QueueSubmissionOwner.recovery,
-        blocked.receive_submission_owner,
+        split.transmit_submission_owner,
     );
-    try std.testing.expectEqual(
-        post_reset_replay.QueueSubmissionOwner.recovery,
-        blocked.transmit_submission_owner,
-    );
-    try std.testing.expect(!blocked.queues_ready_for_driver_ownership);
+    try std.testing.expect(!split.queues_ready_for_driver_ownership);
 
     const parked = try post_reset_replay.summarizePostResetOwnership(.{
         .reset_generation = 13,
@@ -110,6 +112,8 @@ test "phase12 virtio net post reset ownership stays with recovery until replay c
         post_reset_replay.PostResetReplayCheckpoint.queues_may_resume,
         parked.next_checkpoint,
     );
+    try std.testing.expect(parked.resumes_receive_submission);
+    try std.testing.expect(parked.resumes_transmit_submission);
     try std.testing.expectEqual(
         post_reset_replay.QueueSubmissionOwner.driver,
         parked.receive_submission_owner,
