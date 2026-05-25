@@ -498,7 +498,7 @@ def main() -> int:
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
 
-    if args.self-test:
+    if args.self_test:
         return run_self_test()
 
     issues = collect_issues(args.root.resolve())
