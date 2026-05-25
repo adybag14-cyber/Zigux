@@ -119,6 +119,10 @@ def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def count_exact_line_occurrences(lines: list[str], marker: str) -> int:
+    return sum(1 for line in lines if line.strip() == marker)
+
+
 def extract_section(text: str, first_line: str) -> list[str]:
     section: list[str] = []
     capturing = False
@@ -157,7 +161,7 @@ def collect_issues(root: Path) -> list[str]:
         text = read_text(root, relative_path)
         lines = text.splitlines()
         for marker in markers:
-            count = sum(1 for line in lines if line.strip() == marker) if relative_path == WORKFLOW_REL else text.count(marker)
+            count = count_exact_line_occurrences(lines, marker)
             if count != 1:
                 issues.append(f"{relative_path}:marker_count:{marker}:expected=1:actual={count}")
 
@@ -320,6 +324,26 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-embedded-marker-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        path = root / PHASE1_CLOSURE_REL
+        marker = "- `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py`"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text.replace(marker, f"prefix {marker} suffix", 1),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        expected_issue = (
+            f"{PHASE1_CLOSURE_REL}:marker_count:{marker}:expected=1:actual=0"
+        )
+        if issues != [expected_issue]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=embedded_closure_marker_fail_closed")
+            print(f"actual={issues!r}")
+            return 1
+
     with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-workflow-direct-run-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
@@ -341,7 +365,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
