@@ -25,6 +25,8 @@ REQUIRED_PATHS = (
     "scripts/zigux/stage-pinned-zig-archive.py",
     "scripts/zigux/check-lane05-stage-helper-contract.py",
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "scripts/zigux/check-lane05-split-helper-manifest-packet.py",
+    "scripts/zigux/check-lane05-split-helper-manifest-selftest.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
@@ -90,6 +92,10 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
     "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
     "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
+    "run: python3 scripts/zigux/check-lane05-split-helper-manifest-packet.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-split-helper-manifest-packet.py",
+    "run: python3 scripts/zigux/check-lane05-split-helper-manifest-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-split-helper-manifest-selftest.py",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
     "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
@@ -301,6 +307,8 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-contract.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-selftest.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-split-helper-manifest-packet.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-split-helper-manifest-selftest.py", "present\n")
     write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
     write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
     write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
@@ -381,6 +389,22 @@ def run_self_test() -> int:
             WORKFLOW,
             replace_exact_line(
                 read_text(root, WORKFLOW),
+                "run: python3 scripts/zigux/check-lane05-split-helper-manifest-packet.py",
+                "run: python3 scripts/zigux/check-lane05-split-helper-manifest-packet-missing.py",
+            ),
+        )
+        assert (
+            "MISSING_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/check-lane05-split-helper-manifest-packet.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            replace_exact_line(
+                read_text(root, WORKFLOW),
                 "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
                 "run: python3 scripts/zigux/check-lane05-stage-helper-contract-missing.py",
             ),
@@ -414,6 +438,14 @@ def run_self_test() -> int:
         assert (
             "MISSING_REQUIRED_PATH",
             "scripts/zigux/check-lane05-stage-helper-selftest.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-lane05-split-helper-manifest-selftest.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/check-lane05-split-helper-manifest-selftest.py",
         ) in collect_issues(root)
         checks += 1
 
