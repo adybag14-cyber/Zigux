@@ -125,19 +125,35 @@ pub const ManagedIoportUnmapPlan = struct {
 };
 
 pub const DevresHelperLab = struct {
+    const ReleaseDisposition = struct {
+        releases_from_devres: bool,
+        release_record_consumed: bool,
+        warns_on_release_miss: bool,
+    };
+
     fn requireReleaseRecordAllocated(release_record_allocated: bool) !void {
         if (!release_record_allocated) {
             return error.OutOfMemory;
         }
     }
 
-    pub fn planManagedReleaseCall(requested_size: u64, release_record_matches: bool) ManagedReleaseCallPlan {
+    fn planReleaseDisposition(release_record_matches: bool) ReleaseDisposition {
         return .{
-            .anchor = descriptor().anchor,
-            .requested_size = requested_size,
             .releases_from_devres = release_record_matches,
             .release_record_consumed = release_record_matches,
             .warns_on_release_miss = !release_record_matches,
+        };
+    }
+
+    pub fn planManagedReleaseCall(requested_size: u64, release_record_matches: bool) ManagedReleaseCallPlan {
+        const disposition = planReleaseDisposition(release_record_matches);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_size = requested_size,
+            .releases_from_devres = disposition.releases_from_devres,
+            .release_record_consumed = disposition.release_record_consumed,
+            .warns_on_release_miss = disposition.warns_on_release_miss,
             .destroys_release_record_before_free = true,
         };
     }
@@ -298,14 +314,16 @@ pub const DevresHelperLab = struct {
             };
         }
 
+        const disposition = planReleaseDisposition(release_record_matches);
+
         return .{
             .anchor = descriptor().anchor,
             .had_mapping_owner = true,
             .generates_cleanup_plan = true,
             .unmaps_mapping = true,
-            .releases_from_devres = release_record_matches,
-            .release_record_consumed = release_record_matches,
-            .warns_on_release_miss = !release_record_matches,
+            .releases_from_devres = disposition.releases_from_devres,
+            .release_record_consumed = disposition.release_record_consumed,
+            .warns_on_release_miss = disposition.warns_on_release_miss,
         };
     }
 
@@ -392,6 +410,22 @@ test "managed allocation requires a release record" {
         .release_record_allocated = false,
         .allocation_succeeds = true,
     }));
+}
+
+test "shared release disposition marks exact matches as consumed without warnings" {
+    const disposition = DevresHelperLab.planReleaseDisposition(true);
+
+    try std.testing.expect(disposition.releases_from_devres);
+    try std.testing.expect(disposition.release_record_consumed);
+    try std.testing.expect(!disposition.warns_on_release_miss);
+}
+
+test "shared release disposition keeps missing release records warnable" {
+    const disposition = DevresHelperLab.planReleaseDisposition(false);
+
+    try std.testing.expect(!disposition.releases_from_devres);
+    try std.testing.expect(!disposition.release_record_consumed);
+    try std.testing.expect(disposition.warns_on_release_miss);
 }
 
 test "release-call planning consumes the matching devres release record" {
