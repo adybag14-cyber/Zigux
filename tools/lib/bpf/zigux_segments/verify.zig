@@ -12,6 +12,7 @@ const perf_buffer_ready_window = @import("perf_buffer_ready_window.zig");
 const pin_path = @import("pin_path.zig");
 const pin_path_verify = @import("pin_path_verify.zig");
 const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");
+const ready_buffer_fd_lookup = @import("ready_buffer_fd_lookup.zig");
 const ready_buffer_fd_verify = @import("ready_buffer_fd_verify.zig");
 const ready_buffer_window_verify = @import("ready_buffer_window_verify.zig");
 const type_names = @import("type_names.zig");
@@ -61,6 +62,7 @@ test "materialized tools/lib/bpf Zigux segments compile together and keep their 
     std.testing.refAllDecls(pin_path);
     std.testing.refAllDecls(pin_path_verify);
     std.testing.refAllDecls(ready_buffer_attempt_verify);
+    std.testing.refAllDecls(ready_buffer_fd_lookup);
     std.testing.refAllDecls(ready_buffer_fd_verify);
     std.testing.refAllDecls(ready_buffer_window_verify);
     std.testing.refAllDecls(type_names);
@@ -166,6 +168,15 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowMappedSize");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturn");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturnAtIndex");
+
+    try expectHasDecl(ready_buffer_fd_lookup, "ReadyBufferFdLookupError");
+    try expectHasDecl(ready_buffer_fd_lookup, "ReadyBufferFdLookupDisposition");
+    try expectHasDecl(ready_buffer_fd_lookup, "ReadyBufferFdLookupSummary");
+    try expectHasDecl(ready_buffer_fd_lookup, "summarizeReadyBufferFdLookupAtAttempt");
+    try expectHasDecl(ready_buffer_fd_lookup, "resolveReadyBufferFdLookup");
+    try expectHasDecl(ready_buffer_fd_lookup, "resolveReadyBufferFdAtAttempt");
+    try expectHasDecl(ready_buffer_fd_lookup, "resolveReadyBufferFdLookupReturn");
+    try expectHasDecl(ready_buffer_fd_lookup, "resolveReadyBufferFdLookupReturnAtAttempt");
 
     try expectHasDecl(perf_buffer_ready_window, "ReadyBufferWindowLookupError");
     try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowMappedSizeAtAttempt");
@@ -339,6 +350,50 @@ test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd wrap
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
         perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &missing_fd, 1),
+    );
+}
+
+test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd-lookup wrappers explicit" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const buffer_fds = [_]?i32{ null, 9, null, 21 };
+
+    const lookup = ready_buffer_fd_lookup.summarizeReadyBufferFdLookupAtAttempt(
+        &buffers,
+        &buffer_fds,
+        1,
+    );
+    try std.testing.expectEqual(
+        ready_buffer_fd_lookup.ReadyBufferFdLookupDisposition.found_fd,
+        lookup.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 3), lookup.ready_index);
+    try std.testing.expectEqual(@as(?i32, 21), lookup.fd);
+    try std.testing.expectEqual(
+        @as(i32, 9),
+        try ready_buffer_fd_lookup.resolveReadyBufferFdAtAttempt(&buffers, &buffer_fds, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 21),
+        ready_buffer_fd_lookup.resolveReadyBufferFdLookupReturn(lookup),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        ready_buffer_fd_lookup.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &buffer_fds, 2),
+    );
+
+    const short_fds = [_]?i32{ null, 9 };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        ready_buffer_fd_lookup.resolveReadyBufferFdLookupReturnAtAttempt(
+            &buffers,
+            &short_fds,
+            1,
+        ),
     );
 }
 
