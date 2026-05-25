@@ -11,13 +11,17 @@ This note records the current bounded Phase 8 perf-buffer poll helper packet aga
 - scope: helper-local perf-buffer poll reviewability and timing-boundary truthfulness only
 
 ## Current helper packet
-Current `master` keeps the dedicated helper packet reviewable through `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-validate`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8-test`.
+Current `master` keeps the dedicated helper packet reviewable through `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`, `tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`, `tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`, `tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_build.zig`, `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-validate`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8-test`.
 
 That packet stays bounded to helper-local wait classification, poll summary bookkeeping, ready-buffer attempt routing, ready-buffer fd lookup, and ready-buffer mapped-window lookup behavior. It does not promote broader setup-side perf-event ownership, shared routing setup, or bridge-heavy reopen flow into shipped proof.
 
 The landed verifier companion keeps wait classification, poll summary, execution summary, and impossible-summary fail-closed outputs explicit beside that same bounded helper packet.
 
-The dedicated ready-buffer fd lookup companion keeps typed lookup summaries, missing-ready-buffer precedence, and errno-shaped lookup returns explicit beside that same bounded helper packet.
+The dedicated ready-buffer attempt verifier keeps ready-buffer ordinal lookup summaries, typed attempt resolution, and errno-shaped attempt returns explicit beside that same bounded helper packet.
+
+The dedicated ready-buffer fd verifier keeps typed ready-buffer fd lookups, compact errno-shaped fd returns, and missing-ready-buffer precedence explicit beside that same bounded helper packet.
+
+The dedicated ready-buffer window companion keeps helper-local ready-buffer window summaries, typed mapped-size resolution, compact errno-shaped mapped-size returns, and lookup-return wrappers explicit beside that same bounded helper packet.
 
 ## Timing boundary
 The dedicated reminder stays explicit about no standalone timer helper behavior and no standalone clockevent helper behavior.
@@ -34,4 +38,4 @@ This slice does not yet claim:
 - any direct Zig port of the full `tools/lib/bpf/libbpf.c` setup path
 
 ## Next bounded step
-Keep this helper slice parked unless the dedicated poll gate, the focused poll replay, the dedicated ready-buffer fd lookup companion, or the shared timing-boundary reminder surfaces drift again around the no-timer, no-clockevent, or broader timeout-sensitive routing boundary.
+Keep this helper slice parked unless the dedicated poll gate, the focused poll replay, the dedicated ready-buffer fd verifier, the dedicated ready-buffer window companion, or the shared timing-boundary reminder surfaces drift again around the no-timer, no-clockevent, or broader timeout-sensitive routing boundary.
