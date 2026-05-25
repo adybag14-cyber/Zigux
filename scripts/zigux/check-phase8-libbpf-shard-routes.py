@@ -135,6 +135,8 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase8.py`",
         "make -C zigux phase8-file-path-handle-bridge-test",
         "make -C zigux phase8",
+        "resolveReusePinnedMapAttempt()",
+        "planTokenPreparation()",
         "live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior",
     ),
     BRIDGE_SLICE_PATH: (
