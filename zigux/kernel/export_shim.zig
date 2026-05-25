@@ -17,7 +17,7 @@ pub const abi_version: u16 = abi.ABI_VERSION;
 pub const header_size: u32 = version.header_size;
 
 pub fn canonicalHeader(flags: u16) BoundaryHeader {
-    return version.boundaryHeader(flags);
+    return version.canonicalHeader(flags);
 }
 
 pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {
@@ -134,6 +134,7 @@ test "export shim preserves the canonical boundary header and version snapshot" 
     try testing.expectEqual(header_size, header.size);
     try testing.expectEqual(@as(u16, abi.ABI_VERSION), header.abi_version);
     try testing.expectEqual(@as(u16, 0x41), header.flags);
+    try testing.expectEqual(version.canonicalHeader(0x41), header);
     try testing.expectEqual(version.boundaryHeader(0x41), header);
     try testing.expectEqual(@as(usize, 8), @sizeOf(BoundaryHeader));
     try testing.expectEqual(@as(usize, 4), @alignOf(BoundaryHeader));
