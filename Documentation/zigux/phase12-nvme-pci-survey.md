@@ -8,7 +8,7 @@ This note restores the bounded survey packet for `drivers/nvme/host/pci.c` on cu
 - `PHASE12_SLICE=nvme-pci-survey`
 - lane owner: `P12-L08`
 - roadmap anchor: `drivers/nvme/host/pci.c`
-- current packet pin carried by the manifest: `7f9b8703b96d4de67447791a88584023950b1de7`
+- current packet pin carried by the manifest: `ecc0463de6609349d805eb2a87fab7c7f72d3d4e`
 - repo-truth boundary:
   - `Documentation/zigux/phase12-nvme-pci-survey.md`
   - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
