@@ -10,7 +10,7 @@ from pathlib import Path
 
 MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
-EXPECTED_SELF_TEST_CASES = 5
+EXPECTED_SELF_TEST_CASES = 7
 
 SELF_TEST_MANIFEST = """{
   "atomic64": {
@@ -111,6 +111,16 @@ def replace_once(text: str, old: str, new: str) -> str:
     return text.replace(old, new, 1)
 
 
+def replace_after_anchor(text: str, anchor: str, old: str, new: str) -> str:
+    anchor_index = text.find(anchor)
+    if anchor_index == -1:
+        raise ValueError(f"missing anchor: {anchor!r}")
+    target_index = text.find(old, anchor_index)
+    if target_index == -1:
+        raise ValueError(f"missing replacement target after anchor {anchor!r}: {old!r}")
+    return text[:target_index] + new + text[target_index + len(old) :]
+
+
 def expect_failure(root: Path, expected_prefix: str) -> bool:
     return any(item.startswith(expected_prefix) for item in validate_root(root))
 
@@ -158,6 +168,31 @@ def run_self_test() -> int:
             if not expect_failure(root, expected_prefix):
                 print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
                 print(f"drift case did not fail closed: {expected_prefix}")
+                return 1
+            cases += 1
+
+        bitmap_manifest_variants = (
+            (
+                "\"acceptable_limit_iterations\": 4",
+                "\"acceptable_limit_iterations\": 5",
+                "matrix_line_missing:`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit:",
+            ),
+            (
+                "\"acceptable_limit_sample_count\": 7",
+                "\"acceptable_limit_sample_count\": 8",
+                "matrix_line_missing:`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit:",
+            ),
+        )
+        for old, new, expected_prefix in bitmap_manifest_variants:
+            build_fixture_tree(root)
+            target = root / MANIFEST
+            write_text(
+                target,
+                replace_after_anchor(read_text(target), "\"bitmap\": {", old, new),
+            )
+            if not expect_failure(root, expected_prefix):
+                print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+                print(f"bitmap drift case did not fail closed: {expected_prefix}")
                 return 1
             cases += 1
 
