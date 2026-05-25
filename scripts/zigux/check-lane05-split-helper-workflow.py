@@ -38,6 +38,10 @@ CLI_SELF_TEST_STEP = "- name: Self-test current Lane 05 split helper cli-contrac
 CLI_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-cli-contract.py --self-test"
 CLI_CHECK_STEP = "- name: Check current Lane 05 split helper cli-contract packet"
 CLI_CHECK_CMD = "python3 scripts/zigux/check-lane05-split-helper-cli-contract.py"
+CLI_SELFTEST_SELF_TEST_STEP = "- name: Self-test current Lane 05 split helper cli-contract selftest checker"
+CLI_SELFTEST_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-cli-contract-selftest.py --self-test"
+CLI_SELFTEST_CHECK_STEP = "- name: Check current Lane 05 split helper cli-contract selftest packet"
+CLI_SELFTEST_CHECK_CMD = "python3 scripts/zigux/check-lane05-split-helper-cli-contract-selftest.py"
 ALIGN_SELF_TEST_STEP = "- name: Self-test current Lane 05 split-stage alignment checker"
 ALIGN_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-stage-helper-alignment.py --self-test"
 ALIGN_CHECK_STEP = "- name: Check current Lane 05 split-stage alignment packet"
@@ -64,6 +68,8 @@ ORDERED_STEPS = (
     (WORKFLOW_SELFTEST_CHECK_STEP, WORKFLOW_SELFTEST_CHECK_CMD),
     (CLI_SELF_TEST_STEP, CLI_SELF_TEST_CMD),
     (CLI_CHECK_STEP, CLI_CHECK_CMD),
+    (CLI_SELFTEST_SELF_TEST_STEP, CLI_SELFTEST_SELF_TEST_CMD),
+    (CLI_SELFTEST_CHECK_STEP, CLI_SELFTEST_CHECK_CMD),
     (ALIGN_SELF_TEST_STEP, ALIGN_SELF_TEST_CMD),
     (ALIGN_CHECK_STEP, ALIGN_CHECK_CMD),
     (ALIGN_SELFTEST_SELF_TEST_STEP, ALIGN_SELFTEST_SELF_TEST_CMD),
@@ -136,6 +142,7 @@ def run_self_test() -> int:
         (CONTRACT_SELFTEST_SELF_TEST_STEP, "contract selftest step"),
         (SELFTEST_SELF_TEST_STEP, "selftest selftest step"),
         (WORKFLOW_SELFTEST_CHECK_STEP, "workflow selftest check step"),
+        (CLI_SELFTEST_CHECK_STEP, "cli selftest check step"),
     )
     for marker, expected in missing_cases:
         try:
@@ -147,14 +154,14 @@ def run_self_test() -> int:
             raise AssertionError(f"expected failure for {expected}")
 
     reordered_steps = good_workflow.replace(
-        f"      {WORKFLOW_CHECK_STEP}\n"
-        f"        run: {WORKFLOW_CHECK_CMD}\n"
-        f"      {WORKFLOW_SELFTEST_SELF_TEST_STEP}\n"
-        f"        run: {WORKFLOW_SELFTEST_SELF_TEST_CMD}\n",
-        f"      {WORKFLOW_SELFTEST_SELF_TEST_STEP}\n"
-        f"        run: {WORKFLOW_SELFTEST_SELF_TEST_CMD}\n"
-        f"      {WORKFLOW_CHECK_STEP}\n"
-        f"        run: {WORKFLOW_CHECK_CMD}\n",
+        f"      {CLI_CHECK_STEP}\n"
+        f"        run: {CLI_CHECK_CMD}\n"
+        f"      {CLI_SELFTEST_SELF_TEST_STEP}\n"
+        f"        run: {CLI_SELFTEST_SELF_TEST_CMD}\n",
+        f"      {CLI_SELFTEST_SELF_TEST_STEP}\n"
+        f"        run: {CLI_SELFTEST_SELF_TEST_CMD}\n"
+        f"      {CLI_CHECK_STEP}\n"
+        f"        run: {CLI_CHECK_CMD}\n",
         1,
     )
     try:
