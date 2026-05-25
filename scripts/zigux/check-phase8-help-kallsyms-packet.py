@@ -60,6 +60,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "`make -C zigux phase8-help-test`",
         "`make -C zigux phase8-help-kallsyms-test`",
         "parked help-and-kallsyms packet reviewable",
+        "`zigux/tests/phase8_help_only_build.zig` and `zigux/tests/phase8_help.zig` through current public default-branch raw readback only",
+        "current public raw reread shows `zigux/tests/phase8_help.zig` still names older helper surfaces such as `CmdNames`, `commandNameFromEntry`, `planPrettyPrint`, `loadCommandListsFromEnvPath`, and `writeCommandSectionsForTerminal`, while the shipped helper body on current `master` exposes `CommandNames`, `trimCommandPrefix`, `computePrettyLayout`, `renderPrettyStringList`, and `renderCommandSections`, so the dedicated help replay should be treated as a mixed-source review note rather than same-source proof until that packet is realigned",
+        "the current public raw `zigux/tests/phase8_help.zig` replay no longer matches that shipped helper surface, so it is not honest same-source proof for the parked help packet until a help-local replay refresh lands",
+        "refresh the dedicated help replay so it uses the shipped helper surface instead of the older pre-rename API names",
     ),
     KALLSYMS_SLICE: (
         "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
@@ -72,9 +76,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "oversized symbol names now truncate to `KSYM_NAME_LEN`",
         "weak-object `V` and `v` classes still follow the current C header contract",
         "the public raw fallback returns usable `tools/lib/symbol/kallsyms.zig` helper content",
-        "the helper-local source tests still keep the split CRLF contract reviewable: the chunked parser normalizes the CRLF-backed name to `startup_64`, while the reader, path, and callback wrappers preserve one trailing `\\r` before newline",
-        "the public raw fallback also returns usable `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_kallsyms_only_build.zig` bodies; the dedicated replay still keeps the chunked-reader `startup_64\\r` expectation visible as a broader symbol-packet witness, while the focused `make -C zigux phase8-kallsyms-test` build route remains tied to the helper-local source tests in `tools/lib/symbol/kallsyms.zig`",
-        "the split raw-backed CRLF contract: the dedicated replay keeps the chunked-reader `startup_64\\r` witness visible, while the helper-local wrapper tests still preserve the trailing carriage return on the reader, path, and callback wrapper path",
+        "the helper-local source tests still keep the split CRLF contract reviewable: the chunked parser normalizes the CRLF-backed name to `startup_64`, while the reader, path, and callback wrappers preserve one trailing carriage return before newline",
+        "the public raw fallback also returns usable `zigux/tests/phase8_kallsyms.zig` and `zigux/tests/phase8_kallsyms_only_build.zig` bodies; the dedicated replay still keeps the chunked-reader `startup_64\r` expectation visible as a broader symbol-packet witness, while the focused `make -C zigux phase8-kallsyms-test` build route remains tied to the helper-local source tests in `tools/lib/symbol/kallsyms.zig`",
+        "the split raw-backed CRLF contract: the dedicated replay keeps the chunked-reader `startup_64\r` witness visible, while the helper-local wrapper tests still preserve the trailing carriage return on the reader, path, and callback wrapper path",
     ),
     TOOLING_LANE_SEQUENCE: (
         "current public default-branch raw readback now also serves `tools/lib/symbol/kallsyms.zig`, so the shared owner map should treat the helper path as readable current-tree evidence while the mixed help-plus-kallsyms build shard stays a shared validation route instead of turning help-local and symbol-local follow-through into one owner",
