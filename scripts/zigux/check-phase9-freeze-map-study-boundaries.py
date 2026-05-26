@@ -131,6 +131,7 @@ CURRENT_PHASE9_MAKE_ROUTES = [
     "phase9-runtime-atomic64-test",
     "phase9-runtime-bitmap-test",
     "phase9-runtime-loader-shared-test",
+    "phase9-runtime-loader-command-env-boundary-guard-test",
     "phase9-runtime-trace-events-test",
     "phase9-runtime-kretprobe-test",
     "phase9-first-loadable-runtime-module-parity-test",
@@ -210,7 +211,7 @@ def extract_study_only_accounting_anchors(text: str) -> list[str]:
     for line in extract_section_lines(text, "## Study-Only Anchor Inventory"):
         stripped = line.strip()
         if stripped.startswith("### `") and stripped.endswith("`"):
-            anchors.append(stripped[4:-1])
+            anchors.append(stripped[5:-1])
     return anchors
 
 
@@ -429,7 +430,7 @@ def build_makefile_fixture_text() -> str:
 ZIG ?= zig
 ZIGUX_ROOT := ..
 
-.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
+.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
 
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
@@ -443,6 +444,9 @@ phase9-runtime-bitmap-test:
 phase9-runtime-loader-shared-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all
 
+phase9-runtime-loader-command-env-boundary-guard-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig --summary all
+
 phase9-runtime-trace-events-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
 
@@ -452,7 +456,7 @@ phase9-runtime-kretprobe-test:
 phase9-first-loadable-runtime-module-parity-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-survey-tests --build-file zigux/tests/phase9_build.zig --summary all
 
-phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
+phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
 
 phase10-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
