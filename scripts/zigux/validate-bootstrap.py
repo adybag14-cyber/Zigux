@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
+SPLIT_HELPER_WORKFLOW = ".github/workflows/zigux-bootstrap-split-helper.yml"
 
 REQUIRED_PATHS = (
     "zigux-alpha/README.md",
@@ -22,6 +23,9 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-lane05-local-archive-readme.py",
     "scripts/zigux/check-lane05-install-zig-archive-verification.py",
     "scripts/zigux/stage-pinned-zig-archive.py",
+    "scripts/zigux/split-pinned-zig-archive.py",
+    "scripts/zigux/check-lane05-split-helper-selftest.py",
+    "scripts/zigux/check-lane05-split-helper-workflow.py",
     "scripts/zigux/check-lane05-stage-helper-contract.py",
     "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-phase1-route-summary-counts.py",
@@ -30,6 +34,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/tests/README.md",
     WORKFLOW,
+    SPLIT_HELPER_WORKFLOW,
 )
 
 README_MARKERS = (
@@ -96,6 +101,14 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/validate-bootstrap.py",
 )
 
+REQUIRED_SPLIT_HELPER_WORKFLOW_LINES = (
+    "run: python3 -m py_compile scripts/zigux/split-pinned-zig-archive.py scripts/zigux/check-lane05-split-helper-selftest.py scripts/zigux/check-lane05-split-helper-workflow.py",
+    "run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py",
+)
+
 
 def read_text(root: Path, rel: str) -> str:
     path = root / rel
@@ -147,6 +160,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     freeze_map = read_text(root, "Documentation/zigux/freeze-map.md")
     scripts_readme = read_text(root, "scripts/zigux/README.md")
     workflow = read_text(root, WORKFLOW)
+    split_helper_workflow = read_text(root, SPLIT_HELPER_WORKFLOW)
 
     for marker in README_MARKERS:
         if marker not in readme:
@@ -173,6 +187,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_SPLIT_HELPER_WORKFLOW_LINES:
+        count = count_exact_lines(split_helper_workflow, marker)
+        if count == 0:
+            issues.append(("MISSING_SPLIT_HELPER_WORKFLOW_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_SPLIT_HELPER_WORKFLOW_LINE", f"{marker}:count={count}"))
 
     return issues
 
@@ -291,6 +312,9 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-install-zig-archive-verification.py", "present\n")
     write_text(root, "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
+    write_text(root, "scripts/zigux/split-pinned-zig-archive.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-split-helper-selftest.py", "present\n")
+    write_text(root, "scripts/zigux/check-lane05-split-helper-workflow.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-contract.py", "present\n")
     write_text(root, "scripts/zigux/check-lane05-stage-helper-selftest.py", "present\n")
     write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
@@ -299,6 +323,11 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
     write_text(root, "zigux/tests/README.md", "present\n")
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
+    write_text(
+        root,
+        SPLIT_HELPER_WORKFLOW,
+        "\n".join(("name: zigux-bootstrap-split-helper", *REQUIRED_SPLIT_HELPER_WORKFLOW_LINES)) + "\n",
+    )
 
 
 def run_self_test() -> int:
@@ -398,6 +427,37 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        write_text(
+            root,
+            SPLIT_HELPER_WORKFLOW,
+            replace_exact_line(
+                read_text(root, SPLIT_HELPER_WORKFLOW),
+                "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test",
+                "run: python3 scripts/zigux/other.py",
+            ),
+        )
+        assert (
+            "MISSING_SPLIT_HELPER_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            SPLIT_HELPER_WORKFLOW,
+            duplicate_exact_line(
+                read_text(root, SPLIT_HELPER_WORKFLOW),
+                "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py",
+            ),
+        )
+        assert (
+            "DUPLICATE_SPLIT_HELPER_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/check-lane05-split-helper-workflow.py:count=2",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         (root / "scripts/zigux/check-zig-toolchain.py").unlink()
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-zig-toolchain.py") in collect_issues(root)
         checks += 1
@@ -423,6 +483,22 @@ def run_self_test() -> int:
         assert (
             "MISSING_REQUIRED_PATH",
             "scripts/zigux/check-lane05-stage-helper-selftest.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/split-pinned-zig-archive.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/split-pinned-zig-archive.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-lane05-split-helper-workflow.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/check-lane05-split-helper-workflow.py",
         ) in collect_issues(root)
         checks += 1
 
@@ -462,6 +538,7 @@ def main() -> int:
     print("BOOTSTRAP_VALIDATION=pass")
     print(f"BOOTSTRAP_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     print(f"BOOTSTRAP_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"BOOTSTRAP_SPLIT_HELPER_WORKFLOW_LINE_COUNT={len(REQUIRED_SPLIT_HELPER_WORKFLOW_LINES)}")
     return 0
 
 
