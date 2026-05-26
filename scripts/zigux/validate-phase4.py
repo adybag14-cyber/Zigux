@@ -67,6 +67,8 @@ WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
     "missing_make_remaining_gap_command,",
     "missing_make_validator_replays_selftest_command,",
     "missing_make_validator_replays_command,",
+    "missing_make_validation_lane_sequencing_selftest_command,",
+    "missing_make_validation_lane_sequencing_command,",
     "missing_make_perf_baseline_command,",
     "missing_workflow_validate_route,",
     "missing_workflow_test_route,",
@@ -230,7 +232,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     ),
     "phase4-workflow-route-counts-self-test": (
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass"),
-        ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30"),
+        ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=32"),
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES)),
         ("PHASE4_WORKFLOW_ROUTE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNT=12"),
         ("PHASE4_WORKFLOW_MARKER_COUNT", "PHASE4_WORKFLOW_MARKER_COUNT=20"),
@@ -487,7 +489,7 @@ def configure_workflow_route_stub(root: Path) -> None:
         root / "scripts/zigux/check-phase4-workflow-route-counts.py",
         self_test_stdout_lines=(
             "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
-            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=32",
             "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES),
             "PHASE4_WORKFLOW_ROUTE_COUNT=12",
             "PHASE4_WORKFLOW_MARKER_COUNT=20",
@@ -753,7 +755,7 @@ def run_self_test() -> int:
             root / "scripts/zigux/check-phase4-workflow-route-counts.py",
             self_test_stdout_lines=(
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
-                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=30",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=32",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES),
                 "PHASE4_WORKFLOW_ROUTE_COUNT=12",
                 "PHASE4_WORKFLOW_MARKER_COUNT=20",
