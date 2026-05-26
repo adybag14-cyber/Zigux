@@ -12,7 +12,7 @@ MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 LANE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
-EXPECTED_SELF_TEST_CASES = 10
+EXPECTED_SELF_TEST_CASES = 11
 
 SELF_TEST_MANIFEST = """{
   "atomic64": {
@@ -264,6 +264,14 @@ def run_self_test() -> int:
         if not expect_failure(root, "lane_marker:  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`"):
             print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
             print("lane checker drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        (root / LANE).unlink()
+        if not expect_failure(root, f"file:{LANE.as_posix()}"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("missing lane file case did not fail closed")
             return 1
         cases += 1
 
