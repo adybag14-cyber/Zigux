@@ -204,7 +204,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
@@ -527,6 +527,13 @@ def run_self_test() -> int:
         payload["conf_cases"][11]["silent"] = "true"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         assert ("INVALID_CONF_CASES_FIELD_TYPE", "11:silent:str") in collect_manifest_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][0]["input"] = 7
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert ("INVALID_CONFDATA_CASES_FIELD_TYPE", "0:input:int") in collect_manifest_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
