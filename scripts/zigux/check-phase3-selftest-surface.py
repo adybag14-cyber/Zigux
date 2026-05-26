@@ -281,6 +281,7 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
     'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
     'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
+    'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
     'Path("scripts/zigux/run-phase3-checks.py")',
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
@@ -299,6 +300,8 @@ SELFTEST_DRIVER_MARKERS = (
     "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=",
     "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST=pass",
     "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST_CASE_COUNT=",
+    "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=pass",
+    "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT=",
     "PHASE3_WRAPPER_SELF_TEST=pass",
     "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=",
     "PHASE3_VALIDATE_SELFTEST=pass",
@@ -539,6 +542,7 @@ def run_self_test() -> int:
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-wrapper-templates.py")', "selftest driver"),
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-catalog-selftest.py")', "selftest driver"),
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")', "selftest driver"),
+        (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")', "selftest driver"),
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")', "selftest driver"),
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")', "selftest driver"),
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")', "selftest driver"),
@@ -559,6 +563,8 @@ def run_self_test() -> int:
         (SELFTEST_DRIVER_PATH, "PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=", "selftest driver"),
         (SELFTEST_DRIVER_PATH, "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST=pass", "selftest driver"),
         (SELFTEST_DRIVER_PATH, "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST_CASE_COUNT=", "selftest driver"),
+        (SELFTEST_DRIVER_PATH, "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=pass", "selftest driver"),
+        (SELFTEST_DRIVER_PATH, "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT=", "selftest driver"),
         (SELFTEST_DRIVER_PATH, "PHASE3_WRAPPER_SELF_TEST=pass", "selftest driver"),
         (SELFTEST_DRIVER_PATH, "PHASE3_WRAPPER_SELF_TEST_CASE_COUNT=", "selftest driver"),
         (SELFTEST_DRIVER_PATH, "PHASE3_VALIDATE_SELFTEST=pass", "selftest driver"),
@@ -622,13 +628,13 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the shared Phase 3 selftest reminder surface."
+        description="Fail-close the shared Phase 3 selftest reminder surface."
     )
     parser.add_argument(
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the shared Phase 3 reminder files",
+        help="repository root that contains the documented Phase 3 reminder packet",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -639,11 +645,11 @@ def main() -> int:
     issues = validate_repo(args.repo_root)
     if issues:
         print("PHASE3_SELFTEST_SURFACE=fail")
-        for issue in issues:
-            print(issue)
+        print("\n".join(issues))
         return 1
 
-    print(f"validated {args.repo_root / SCRIPTS_README_PATH}")
+    print("PHASE3_SELFTEST_SURFACE=pass")
+    print("PHASE3_SELFTEST_SCOPE=shared-phase3-selftest-reminder-surface")
     return 0
 
 
