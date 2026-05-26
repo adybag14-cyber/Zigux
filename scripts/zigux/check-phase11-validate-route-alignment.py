@@ -271,6 +271,40 @@ def run_self_test() -> int:
         expect_failure(extra_build, "build fan-out mismatch")
         case_count += 1
 
+        no_makefile_builds = tempdir / "no_makefile_builds"
+        build_fixture(
+            no_makefile_builds,
+            recipe_lines=[
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
+            ],
+        )
+        expect_failure(no_makefile_builds, "phase11-validate has no zig build fan-out")
+        case_count += 1
+
+        no_validator_builds = tempdir / "no_validator_builds"
+        build_fixture(
+            no_validator_builds,
+            checks_text="\n".join(
+                [
+                    "from dataclasses import dataclass",
+                    "",
+                    "@dataclass(frozen=True)",
+                    "class CheckSpec:",
+                    "    name: str",
+                    "    command: tuple[str, ...]",
+                    "",
+                    "CHECKS = (",
+                    "    CheckSpec(\"phase11-validation-self-test\", (\"python\", \"scripts/zigux/validate-phase11.py\", \"--self-test\")),",
+                    "    CheckSpec(\"phase11-validate-route-alignment-self-test\", (\"python\", \"scripts/zigux/check-phase11-validate-route-alignment.py\", \"--self-test\")),",
+                    "    CheckSpec(\"phase11-validate-route-alignment\", (\"python\", \"scripts/zigux/check-phase11-validate-route-alignment.py\")),",
+                    ")",
+                    "",
+                ]
+            ),
+        )
+        expect_failure(no_validator_builds, "validate-phase11.py does not declare any zig build fan-out")
+        case_count += 1
+
         bad_validator = tempdir / "bad_validator"
         build_fixture(bad_validator, checks_text="CHECKS = (\n")
         expect_failure(bad_validator, "invalid Python")
