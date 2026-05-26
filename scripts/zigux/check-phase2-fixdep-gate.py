@@ -962,7 +962,15 @@ def run_self_test() -> int:
             assert ("MISSING_REQUIRED_FILE", rel.as_posix()) in issues
             checks_run += 1
 
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
+        print("PHASE2_FIXDEP_GATE_SELF_TEST=fail")
+        print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT={checks_run}")
+        print(
+            "PHASE2_FIXDEP_GATE_SELF_TEST_EXPECTED_CASE_COUNT="
+            f"{EXPECTED_SELF_TEST_CASE_COUNT}"
+        )
+        return 1
+
     print("PHASE2_FIXDEP_GATE_SELF_TEST=pass")
     print(f"PHASE2_FIXDEP_GATE_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
