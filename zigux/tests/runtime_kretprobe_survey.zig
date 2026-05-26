@@ -75,6 +75,14 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     );
     try expectContains(
         loader_file,
+        "runtime kretprobe loader keeps initialized reusable probe cycles from drifting shared-request plans before selftest",
+    );
+    try expectContains(
+        loader_file,
+        "runtime kretprobe loader keeps invalid loader transitions fail-closed without disturbing shared-request snapshots",
+    );
+    try expectContains(
+        loader_file,
         "runtime kretprobe loader keeps selftest-complete shared requests blocked by the current loader family contract",
     );
     try expectContains(
