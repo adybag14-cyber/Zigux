@@ -612,6 +612,7 @@ def fixture_manifest() -> dict:
             REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
         },
     }
+}
 
 
 def build_fixture_ledger(manifest: dict) -> str:
@@ -763,11 +764,33 @@ def run_self_test() -> int:
         write_fixture(root)
 
         broken = copy.deepcopy(original)
+        broken["survey_provenance"]["source"] = "manual_summary"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "survey_provenance:source:'manual_summary'!='manifest_derived'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = copy.deepcopy(original)
         broken["survey_provenance"]["lane_keys"]["mmio"] = "P10-L12"
         write_manifest(broken)
         expect_contains(
             validate(root)[1],
             "survey_provenance:lane_keys:mmio:'P10-L12'!='P10-L11'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = copy.deepcopy(original)
+        broken["cross_phase_scoreboard_boundary"]["runtime_starters"]["status"] = "starter_landed"
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "cross_phase_scoreboard_boundary:runtime_starters:status:'starter_landed'!='out_of_scope'",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
