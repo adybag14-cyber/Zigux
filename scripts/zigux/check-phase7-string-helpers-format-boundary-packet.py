@@ -34,11 +34,16 @@ FORMAT_BOUNDARY_SENTENCE = (
     "Current `master` also still ships no standalone broad `*format*` Phase 5 reference sample here."
 )
 
+SLICE_BOUNDARY_REPLAY_MARKER = (
+    "The dedicated sample-boundary and format-boundary replays should keep that distinction explicit while "
+    "the expanded starter packet advances through helper-local review surfaces only."
+)
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "`zigux/tests/phase7_string_helpers_format_boundary.zig`",
         "`scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
-        "The dedicated sample-boundary and format-boundary replays should keep that distinction explicit while the expanded starter packet advances through helper-local review surfaces only.",
+        SLICE_BOUNDARY_REPLAY_MARKER,
         FOLLOW_ON_MARKER,
     ],
     "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py": [
@@ -85,7 +90,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 22
 
 
 def read_text(path: Path) -> str:
@@ -166,6 +171,16 @@ def run_self_test() -> None:
         remove_once(slice_path, slice_marker)
         expect_missing_marker(
             "missing_slice_format_boundary_surface",
+            tmp_root,
+            f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        slice_marker = SLICE_BOUNDARY_REPLAY_MARKER
+        remove_once(slice_path, slice_marker)
+        expect_missing_marker(
+            "missing_slice_boundary_replay_marker",
             tmp_root,
             f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}",
         )
