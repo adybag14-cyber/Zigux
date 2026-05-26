@@ -105,6 +105,8 @@ EXPECTED_HELPER_LOCAL_ANCHORS = (
     "genksyms bridge renders unexpected long option argument like the fixture",
     "genksyms bridge appends usage after getopt-style parse failures",
     "genksyms bridge leaves tool-local reference-limit failure message unchanged",
+    "genksyms bridge keeps dash-prefixed long option arguments as data",
+    "genksyms bridge keeps dash-prefixed short option arguments as data",
     "genksyms bridge rejects more than sixteen reference files like the C harness",
 )
 
