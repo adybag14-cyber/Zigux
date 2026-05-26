@@ -216,7 +216,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_WARNING_LINES)
     + len(README_WARNING_LINES)
     + len(README_FORBIDDEN_MARKERS)
-    + 2
+    + 3
     + (len(SURFACE_PATHS) - 1)
     + 2
     + len(REQUIRED_MAKEFILE_LINES)
@@ -224,11 +224,13 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(DISALLOWED_MAKEFILE_LINES)
 )
 
+
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+
 
 def resolve_path(root: Path, path: Path) -> Path:
     try:
@@ -236,11 +238,14 @@ def resolve_path(root: Path, path: Path) -> Path:
     except ValueError:
         return root / path
 
+
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker in text]
 
+
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
 
 def collect_exact_line_issues(text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
@@ -251,6 +256,7 @@ def collect_exact_line_issues(text: str, markers: tuple[str, ...], missing_code:
         elif count != 1:
             issues.append((duplicate_code, f"{marker}:count={count}"))
     return issues
+
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
@@ -275,9 +281,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("MISSING_ARCHIVE_SURFACE_PATHS", " or ".join(path.relative_to(ROOT).as_posix() for path in ARCHIVE_SURFACE_PATHS)))
     return issues
 
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
@@ -290,6 +298,7 @@ def build_self_test_root(root: Path) -> None:
         write_text(resolve_path(root, path), "present\n")
     write_text(resolve_path(root, THIRD_PARTY_ARCHIVE_PARTS_MANIFEST), "present\n")
 
+
 def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -298,6 +307,7 @@ def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
 
+
 def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -305,6 +315,7 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
+
 
 def run_self_test() -> int:
     checks_run = 0
@@ -362,6 +373,16 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("FORBIDDEN_README_MARKERS", marker) in issues
             checks_run += 1
+        build_self_test_root(root)
+        readme_path = resolve_path(root, SCRIPTS_README)
+        readme_path.unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing scripts readme did not abort")
         build_self_test_root(root)
         makefile_path = resolve_path(root, MAKEFILE)
         makefile_path.unlink()
@@ -429,6 +450,7 @@ def run_self_test() -> int:
     print("PHASE2_KBUILD_ROUTES_SELF_TEST=pass")
     print(f"PHASE2_KBUILD_ROUTES_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
+
 
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
