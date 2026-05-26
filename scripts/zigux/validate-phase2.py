@@ -299,7 +299,7 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
-    "phase2-kconfig:",
+    "phase2-kconfig: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
@@ -311,13 +311,13 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
-    "phase2-genksyms:",
+    "phase2-genksyms: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-genksyms-selftest-alignment.py",
-    "phase2-fixdep:",
+    "phase2-fixdep: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
@@ -455,19 +455,19 @@ def build_self_test_root(root: Path) -> None:
         root,
         MAKEFILE,
         "\n".join(
-            (\
-                "PYTHON ?= python3",\
-                "ZIG ?= zig",\
-                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",\
-                "ZIGUX_ROOT := ..",\
-                "",\
-                REQUIRED_PHASE2_PHONY_LINE,\
-                *REQUIRED_MAKEFILE_LINES,\
+            (
+                "PYTHON ?= python3",
+                "ZIG ?= zig",
+                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+                "ZIGUX_ROOT := ..",
+                "",
+                REQUIRED_PHASE2_PHONY_LINE,
+                *REQUIRED_MAKEFILE_LINES,
             )
         ) + "\n",
     )
     for rel in REQUIRED_PATHS:
-        if rel != MAKEFILE:\
+        if rel != MAKEFILE:
             write_text(root, rel, "present\n")
     write_text(
         root,
