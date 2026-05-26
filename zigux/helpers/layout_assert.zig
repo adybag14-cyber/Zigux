@@ -191,7 +191,9 @@ pub fn assertPublishedAbiLayouts() LayoutError!void {
     try assertExportStatusLayout();
     try assertInteropPolicyLayout();
     assertStatusAndFacilityValues();
+    try assertMmioRangeLayout();
     try assertRbtreeRootViewLayout();
+    assertNotifierResultValues();
     try assertNotifierBlockLayout();
     try assertNotifierChainPriorityIncreaseLayout();
     try assertListHeadLayout();
