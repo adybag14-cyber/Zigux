@@ -9,41 +9,17 @@
     "preexisting_phase8_libbpf_note_present": true,
     "repo_reality_notes": [
       "Current master carries helper-first Zig segments under tools/lib/bpf/zigux_segments.",
-      "Current master now carries tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig for helper-only proc-fdinfo pathname shaping and reused-map name retention, but bounded fdinfo parsers, map-info decoders, and reuse-comparison helpers remain queued inside that shared destination."
+      "Current master now carries tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig for helper-only proc-fdinfo pathname shaping, compact fdinfo map-info parsing, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token readiness while direct procfs reads, bpffs opens, and descriptor ownership still stay deferred."
     ],
     "companion_c_files": [
-      {
-        "path": "tools/lib/bpf/bpf.c",
-        "lines": 1419
-      },
-      {
-        "path": "tools/lib/bpf/btf.c",
-        "lines": 6360
-      },
-      {
-        "path": "tools/lib/bpf/features.c",
-        "lines": 727
-      },
-      {
-        "path": "tools/lib/bpf/libbpf_utils.c",
-        "lines": 256
-      },
-      {
-        "path": "tools/lib/bpf/linker.c",
-        "lines": 3116
-      },
-      {
-        "path": "tools/lib/bpf/netlink.c",
-        "lines": 938
-      },
-      {
-        "path": "tools/lib/bpf/nlattr.c",
-        "lines": 194
-      },
-      {
-        "path": "tools/lib/bpf/ringbuf.c",
-        "lines": 684
-      }
+      { "path": "tools/lib/bpf/bpf.c", "lines": 1419 },
+      { "path": "tools/lib/bpf/btf.c", "lines": 6360 },
+      { "path": "tools/lib/bpf/features.c", "lines": 727 },
+      { "path": "tools/lib/bpf/libbpf_utils.c", "lines": 256 },
+      { "path": "tools/lib/bpf/linker.c", "lines": 3116 },
+      { "path": "tools/lib/bpf/netlink.c", "lines": 938 },
+      { "path": "tools/lib/bpf/nlattr.c", "lines": 194 },
+      { "path": "tools/lib/bpf/ringbuf.c", "lines": 684 }
     ]
   },
   "segments": [
@@ -96,24 +72,24 @@
     {
       "id": "P8-L13-S05",
       "slug": "fdinfo-map-info-helpers",
-      "status": "blocked_on_fdinfo_parser_materialization",
+      "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The shared file-path bridge destination is now materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers are still queued, so this slice must stay explicit as partially landed rather than complete."
+      "why_now": "The shared file-path bridge destination already carries bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow."
     },
     {
       "id": "P8-L13-S06",
       "slug": "map-reuse-compatibility",
-      "status": "blocked_on_reuse_comparison_materialization",
+      "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The shared bridge file now carries bounded reused-map name retention, but the helper-only compatibility observation, flag normalization, and mismatch reporting work remains queued, so the segment cannot yet be reported as fully landed on master."
+      "why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
     },
     {
       "id": "P8-L13-S07",
@@ -199,32 +175,33 @@
   "segmentation_notes": [
     {
       "destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "status": "partial_landed",
+      "status": "helper_landed",
       "landed_scope": [
         "validateProcFdinfoRoot() proc-fdinfo root shape validation",
-        "buildProcFdinfoPath() bounded /proc/.../fdinfo pathname shaping",
+        "buildProcFdinfoPath() bounded /proc/self/fdinfo pathname shaping",
+        "buildCurrentProcessFdinfoPath() bounded /proc/<pid>/fdinfo pathname shaping",
         "buildProcFdinfoPathReturn() errno-shaped pathname helper wrapper",
+        "buildCurrentProcessFdinfoPathReturn() errno-shaped current-process pathname helper wrapper",
         "parseFdinfoLine() bounded fdinfo field splitting and trimming",
-        "summarizeReusedMapName() bounded reused-map name retention summary",
-        "resolveReusedMapName() helper-only retained reused-map name copy",
-        "resolveReusedMapNameReturn() errno-shaped reused-name helper wrapper"
-      ],
-      "queued_scope": [
         "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
         "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
         "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
         "mapReuseObservationFromFdinfo() helper-only conversion from parsed fdinfo metadata into a reusable comparison observation",
-        "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
+        "normalizeObservedReuseMapFlags() helper-only observed flag normalization for reuse comparison",
         "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
         "isMapReuseCompatible() helper-only reused-map compatibility comparison",
+        "summarizeReusedMapName() bounded reused-map name retention summary",
+        "resolveReusedMapName() helper-only retained reused-map name copy",
+        "resolveReusedMapNameReturn() errno-shaped reused-name helper wrapper",
         "resolveReusePinnedMapAttempt() helper-only pinned-map reuse planning without procfs, bpffs, or fd side effects",
-        "planTokenPreparation() helper-only token readiness planning from a prepared reuse plan without token materialization"
+        "planTokenPreparation() helper-only token readiness planning without token materialization"
       ],
+      "queued_scope": [],
       "deferred_scope": [
         "direct procfs reads and descriptor ownership flow",
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
       ],
-      "why_now": "Master now materializes the shared bridge file for stable path-shaping and name-retention outputs, while the remaining fdinfo parser and reuse-comparison packet stays explicit as queued groundwork instead of being overstated as complete."
+      "why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects."
     }
   ]
 }
