@@ -324,7 +324,6 @@ def run_self_test() -> int:
             raise SystemExit(f"expected missing build failure, got {failures!r}")
 
         write_fixture_root(base)
-        (base / BUILD_PATH).writeText if False else None
         (base / BUILD_PATH).write_text(
             'const std = @import("std");\n'
             "pub fn build(b: *std.Build) void {\n"
