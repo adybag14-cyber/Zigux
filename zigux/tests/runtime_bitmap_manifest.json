@@ -27,7 +27,7 @@
     "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the direct sample re-init guards explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the loader empty-payload direct-exit guard explicit when the manifest summarizes runtime lifecycle evidence.",
-    "Keep the newer loader re-init, re-selftest, and direct-exit summary guards explicit when the manifest summarizes runtime lifecycle evidence.",
+    "Keep the newer loader re-init, re-selftest, direct-exit, and rejected re-exit rollback guards explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the module-side descriptor, selftest-summary, lifecycle-summary, mutation-and-copy, and source-target guard proofs explicit when the manifest summarizes the direct module packet.",
     "Keep the diff-side summary replay, copy-tail clearing, and exit-guard coverage explicit when the manifest summarizes the bounded runtime bitmap packet."
   ],
@@ -52,6 +52,7 @@
     "loader_empty_payload_direct_exit",
     "loader_reinit_and_re_selftest_guards",
     "loader_loaded_summary_stability",
+    "loader_reexit_rollback",
     "module_descriptor_and_contract",
     "module_selftest_summary_replay",
     "module_lifecycle_summary_replay",
