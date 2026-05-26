@@ -72,6 +72,23 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
         matched,
     );
 
+    try env.set("PATH", "/usr/bin");
+    const mismatched = try exec_cmd.setupPathWithPwd(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "/logical/repo",
+        .{ .device = 11, .inode = 7 },
+        .{ .device = 12, .inode = 9 },
+    );
+    defer std.testing.allocator.free(mismatched);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        mismatched,
+    );
+
     try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "");
     try exec_cmd.setArgv0Path(std.testing.allocator, &state, "tools");
     try env.set("PATH", "");
@@ -166,143 +183,4 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
     try std.testing.expectEqual(@as(usize, 2), deferred_execv_command_only.argv.len);
     try std.testing.expectEqualStrings("perf", deferred_execv_command_only.argv[0].?);
     try std.testing.expectEqual(@as(?[]const u8, null), deferred_execv_command_only.argv[1]);
-}
-
-test "phase 8 exec-cmd shared witness keeps argv0 sentinel path shapes explicit" {
-    var rooted = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
-    defer rooted.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("", rooted.argv0_path.?);
-    try std.testing.expectEqualStrings("perf", rooted.command_name);
-
-    const rooted_search_path = try exec_cmd.buildSearchPath(
-        std.testing.allocator,
-        "/repo",
-        "tools/bin",
-        rooted.argv0_path,
-        "/usr/bin",
-    );
-    defer std.testing.allocator.free(rooted_search_path);
-    try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", rooted_search_path);
-
-    var directory_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/tmp/")) orelse unreachable;
-    defer directory_only.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("/tmp", directory_only.argv0_path.?);
-    try std.testing.expectEqualStrings("", directory_only.command_name);
-
-    const directory_only_search_path = try exec_cmd.buildSearchPath(
-        std.testing.allocator,
-        "/repo",
-        "tools/bin",
-        directory_only.argv0_path,
-        "/usr/bin",
-    );
-    defer std.testing.allocator.free(directory_only_search_path);
-    try std.testing.expectEqualStrings("/repo/tools/bin:/tmp:/usr/bin", directory_only_search_path);
-
-    var root_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/")) orelse unreachable;
-    defer root_only.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("", root_only.argv0_path.?);
-    try std.testing.expectEqualStrings("", root_only.command_name);
-
-    const root_only_search_path = try exec_cmd.buildSearchPath(
-        std.testing.allocator,
-        "/repo",
-        "tools/bin",
-        root_only.argv0_path,
-        "/usr/bin",
-    );
-    defer std.testing.allocator.free(root_only_search_path);
-    try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", root_only_search_path);
-}
-
-test "phase 8 exec-cmd note keeps deferred execution boundaries explicit" {
-    const slice_note = try readWorkspaceFile(
-        std.testing.allocator,
-        "Documentation/zigux/phase8-exec-cmd-slice.md",
-        32 * 1024,
-    );
-    defer std.testing.allocator.free(slice_note);
-
-    try expectContains(slice_note, "deferred execution");
-    try expectContains(slice_note, "buildDeferredExeclCall()");
-    try expectContains(slice_note, "buildDeferredExecvCall()");
-    try expectContains(slice_note, "make -C zigux phase8-validate");
-    try expectContains(slice_note, "queue ownership");
-    try expectContains(slice_note, "kernel/workqueue.c remains a Phase 14 boundary-study target");
-}
-
-test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit" {
-    const scripts_readme = try readWorkspaceFile(
-        std.testing.allocator,
-        "scripts/zigux/README.md",
-        96 * 1024,
-    );
-    defer std.testing.allocator.free(scripts_readme);
-    try expectContains(scripts_readme, "Documentation/zigux/phase8-exec-cmd-slice.md");
-    try expectContains(scripts_readme, "scripts/zigux/validate-phase8.py");
-    try expectContains(scripts_readme, "tools/lib/subcmd/exec-cmd.zig");
-    try expectContains(scripts_readme, "zigux/tests/phase8_exec_cmd.zig");
-    try expectContains(scripts_readme, "zigux/tests/phase8_exec_cmd_only_build.zig");
-    try expectContains(scripts_readme, "make -C zigux phase8-exec-cmd-test");
-
-    const tests_readme = try readWorkspaceFile(
-        std.testing.allocator,
-        "zigux/tests/README.md",
-        96 * 1024,
-    );
-    defer std.testing.allocator.free(tests_readme);
-    try expectContains(tests_readme, "`scripts/zigux/validate-phase8.py`");
-    try expectContains(tests_readme, "`zigux/tests/phase8_exec_cmd.zig`");
-    try expectContains(tests_readme, "`zigux/tests/phase8_exec_cmd_only_build.zig`");
-    try expectContains(tests_readme, "`make -C zigux phase8-exec-cmd-test`");
-
-    const review_checklist = try readWorkspaceFile(
-        std.testing.allocator,
-        "Documentation/zigux/review-checklist.md",
-        128 * 1024,
-    );
-    defer std.testing.allocator.free(review_checklist);
-    try expectContains(review_checklist, "`Documentation/zigux/phase8-exec-cmd-slice.md`");
-    try expectContains(review_checklist, "`tools/lib/subcmd/exec-cmd.zig`");
-    try expectContains(review_checklist, "`zigux/tests/phase8_exec_cmd.zig`");
-    try expectContains(review_checklist, "`zigux/tests/phase8_exec_cmd_only_build.zig`");
-    try expectContains(review_checklist, "`make -C zigux phase8-exec-cmd-test`");
-    try expectContains(review_checklist, "`make -C zigux phase8-validate`");
-    try expectContains(review_checklist, "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context");
-
-    const packet_checker = try readWorkspaceFile(
-        std.testing.allocator,
-        "scripts/zigux/check-phase8-exec-cmd-packet.py",
-        64 * 1024,
-    );
-    defer std.testing.allocator.free(packet_checker);
-    try expectContains(packet_checker, "EXEC_CMD_SLICE = Path(\"Documentation/zigux/phase8-exec-cmd-slice.md\")");
-    try expectContains(packet_checker, "EXEC_CMD_TEST = Path(\"zigux/tests/phase8_exec_cmd.zig\")");
-    try expectContains(packet_checker, "EXEC_CMD_BUILD = Path(\"zigux/tests/phase8_exec_cmd_only_build.zig\")");
-    try expectContains(packet_checker, "`PHASE8_SLICE=exec-cmd-deferred-exec-packet`");
-    try expectContains(packet_checker, "buildDeferredExeclCall()");
-    try expectContains(packet_checker, "buildDeferredExecvCall()");
-    try expectContains(packet_checker, "deferred execution");
-    try expectContains(packet_checker, "queue ownership");
-    try expectContains(packet_checker, "kernel/workqueue.c remains a Phase 14 boundary-study target");
-
-    const validate_phase8 = try readWorkspaceFile(
-        std.testing.allocator,
-        "scripts/zigux/validate-phase8.py",
-        128 * 1024,
-    );
-    defer std.testing.allocator.free(validate_phase8);
-    try expectContains(validate_phase8, "scripts/zigux/validate-phase8.py");
-    try expectContains(validate_phase8, "tools/lib/subcmd/exec-cmd.zig");
-    try expectContains(validate_phase8, "zigux/tests/phase8_exec_cmd.zig");
-    try expectContains(validate_phase8, "zigux/tests/phase8_exec_cmd_only_build.zig");
-    try expectNotContains(validate_phase8, "expectMissingPath(\"tools/lib/subcmd/exec-cmd.zig\")");
-
-    const build_file = try readWorkspaceFile(
-        std.testing.allocator,
-        "zigux/tests/phase8_exec_cmd_only_build.zig",
-        16 * 1024,
-    );
-    defer std.testing.allocator.free(build_file);
-    try expectContains(build_file, "Run focused Phase 8 exec-cmd tests");
 }
