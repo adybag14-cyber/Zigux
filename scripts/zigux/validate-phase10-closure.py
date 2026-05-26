@@ -60,6 +60,8 @@ CLOSURE_DOC_MARKERS = [
     "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
     "fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`",
     "shared reminder-surface drift",
+    "manifest-backed survey provenance for the core packet now stays explicit through `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`",
+    "core survey lane `P10-L01` remains tied to surveyed commit `c11221dc7a68d7511ae1c69d64b3f08528287ed8`",
 ]
 
 LANE_MARKERS = [
@@ -234,6 +236,22 @@ def run_self_test() -> int:
         expect_contains(collect_missing_markers(root), "ledger:PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L11", "phase10-closure-self-test")
         cases += 1
         ledger.write_text(original_ledger, encoding="utf-8")
+
+        closure_doc.write_text(
+            original_doc.replace(
+                "core survey lane `P10-L01` remains tied to surveyed commit `c11221dc7a68d7511ae1c69d64b3f08528287ed8`",
+                "core survey lane `P10-L02` remains tied to surveyed commit `c11221dc7a68d7511ae1c69d64b3f08528287ed8`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_contains(
+            collect_missing_markers(root),
+            "closure:core survey lane `P10-L01` remains tied to surveyed commit `c11221dc7a68d7511ae1c69d64b3f08528287ed8`",
+            "phase10-closure-self-test",
+        )
+        cases += 1
+        closure_doc.write_text(original_doc, encoding="utf-8")
 
         manifest = root / "zigux/tests/phase10_closure_manifest.json"
         original_manifest = manifest.read_text(encoding="utf-8")
