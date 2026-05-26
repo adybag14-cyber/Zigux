@@ -31,4 +31,5 @@ fn expectInvalidShortOptionFailure(
 test "phase2 genksyms wrapper preserves repeated abbreviated version counts before invalid short option failures" {
     try expectInvalidShortOptionFailure(&.{ "--ver", "--ver" }, "-x", 2, "x");
     try expectInvalidShortOptionFailure(&.{ "--ver", "-V", "--ver" }, "-z", 3, "z");
+    try expectInvalidShortOptionFailure(&.{ "--ver", "--version", "--ver" }, "-dx", 3, "x");
 }
