@@ -137,6 +137,7 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "sample_comment_continuation.d",
         "sample_comment_continuation_dep.so",
         "sample_comment_continuation_expected.txt",
+        "sample_comment_continuation_source.c",
         "sample_comment_continuation_source.rmeta",
         "sample_comment_only.d",
         "sample_comment_only_expected.stderr.txt",
@@ -177,7 +178,7 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "shared:config.h",
     }
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+EXPECTED_SELF_TEST_CASE_COUNT = 16
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -431,6 +432,15 @@ def run_self_test() -> int:
             "missing_expected_output_fixture",
             lambda: validate_cases(valid_cases),
             f"{CASES_PATH}:missing_expected_output:{missing_expected_output_fixture.name}",
+        )
+    checks_run += 1
+
+    missing_comment_continuation_source = FIXTURE_DIR / "sample_comment_continuation_source.c"
+    with temporarily_hidden_file(missing_comment_continuation_source):
+        expect_failure(
+            "missing_comment_continuation_source_fixture",
+            validate_fixture_inventory,
+            f"{FIXTURE_DIR}:missing_fixtures:{missing_comment_continuation_source.name}",
         )
     checks_run += 1
 
