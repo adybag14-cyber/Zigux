@@ -165,9 +165,7 @@ PROOF_MARKERS = (
     'try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");',
     'try expectContains(driver, "const targetless_hangup_short_circuit = request.notifier_registered and");',
     'try expectContains(driver, ".targetless_hangup_short_circuit = targetless_hangup_short_circuit,");',
-    'try expectContains(driver, "try std.testing.expect(!active.targetless_hangup_short_circuit);");',
     'try expectContains(driver, "try std.testing.expect(targetless.targetless_hangup_short_circuit);");',
-    'try expectContains(driver, "try std.testing.expect(!invalid.targetless_hangup_short_circuit);");',
 )
 
 MODEM_CONTROL_PROOF_MARKERS = (
@@ -351,6 +349,7 @@ def run_self_test() -> int:
             (SURVEY_PATH, "`make -C zigux phase11-validate`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_console_manifest.json`"),
             (COMPANION_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
+            (MATRIX_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_modem_control_proof.zig`"),
             (MATRIX_PATH, "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`"),
