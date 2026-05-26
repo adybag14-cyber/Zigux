@@ -187,6 +187,34 @@ static inline zigux_boundary_header zigux_boundary_header_canonicalize(
     return zigux_uapi_boundary_header_canonicalize(header);
 }
 
+static inline struct zigux_dev_t_fields zigux_uapi_dev_t_fields_make(
+    uint32_t major,
+    uint32_t minor)
+{
+    return zigux_dev_t_fields_make(major, minor);
+}
+
+static inline uint32_t zigux_uapi_mkdev(uint32_t major, uint32_t minor)
+{
+    return zigux_mkdev(major, minor);
+}
+
+static inline uint32_t zigux_uapi_major(uint32_t dev)
+{
+    return zigux_major(dev);
+}
+
+static inline uint32_t zigux_uapi_minor(uint32_t dev)
+{
+    return zigux_minor(dev);
+}
+
+static inline struct zigux_dev_t_fields zigux_uapi_dev_t_fields_from_device_number(
+    uint32_t dev)
+{
+    return zigux_dev_t_fields_from_device_number(dev);
+}
+
 static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)
 {
     return fields.major <= ZIGUX_DEV_MAJOR_MAX &&
