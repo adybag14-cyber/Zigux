@@ -150,6 +150,35 @@ test "phase 8 file-path-handle bridge helper source keeps planning-only bridge b
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "close(") == null);
 }
 
+test "phase 8 file-path-handle bridge helper keeps errno-shaped wrapper boundaries explicit" {
+    var path_buffer: [64]u8 = undefined;
+    try std.testing.expectEqual(
+        @as(i32, "/proc/self/fdinfo/21".len),
+        file_path_handle_bridge.buildProcFdinfoPathReturn(&path_buffer, null, 21),
+    );
+    try std.testing.expectEqualStrings(
+        "/proc/self/fdinfo/21",
+        path_buffer[0.."/proc/self/fdinfo/21".len],
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        file_path_handle_bridge.buildCurrentProcessFdinfoPathReturn(&path_buffer, -1, 21),
+    );
+
+    var name_buffer: [16]u8 = undefined;
+    try std.testing.expectEqual(
+        @as(i32, "stats_map".len),
+        file_path_handle_bridge.resolveReusedMapNameReturn(&name_buffer, "stats_map\x00"),
+    );
+    try std.testing.expectEqualStrings("stats_map", name_buffer[0.."stats_map".len]);
+
+    var tiny_name_buffer: [4]u8 = undefined;
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
+        file_path_handle_bridge.resolveReusedMapNameReturn(&tiny_name_buffer, "stats_map\x00"),
+    );
+}
+
 test "phase 8 file-path-handle bridge helper keeps proc fdinfo path formatting explicit" {
     var buffer: [64]u8 = undefined;
     try std.testing.expectEqualStrings(
