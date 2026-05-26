@@ -147,6 +147,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectStringSliceContains(manifest.ownership_focus, "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix");
     try expectStringSliceContains(manifest.ownership_focus, "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior");
     try expectStringSliceContains(manifest.ownership_focus, "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary");
+    try expectStringSliceContains(manifest.ownership_focus, "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track");
     try expectStringSliceContains(manifest.ownership_focus, "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership");
     try expectStringSliceContains(manifest.ownership_focus, "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders");
     try expectContains(manifest.next_bounded_step, "helper-local survey-manifest-checker truthfulness packet");
