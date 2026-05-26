@@ -67,6 +67,10 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         loader_file,
         "runtime kretprobe loader keeps selftest-complete shared requests blocked by the current loader family contract",
     );
+    try expectContains(
+        loader_file,
+        "runtime kretprobe loader rejects cold and exited sample stages before preparing a shared request",
+    );
 
     try expectContains(
         module_file,
