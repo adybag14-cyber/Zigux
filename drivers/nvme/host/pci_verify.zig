@@ -671,3 +671,25 @@ test "nvme pci recovery reservation replay debt summary keeps admin replay block
         .cached_reserved_io_queues = reservation.reserved_io_queues,
     }, 3));
 }
+
+test "nvme pci recovery restore verifier keeps reservation-only queue slots distinct from frozen DMA budget" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(4, 4);
+    try testing.expectEqual(@as(usize, 4), reservation.reserved_io_queues);
+    const io = try lab.planIoQueue(16, 64, true);
+    try testing.expectEqual(@as(u16, 5), io.queue_id);
+
+    _ = lab.beginReset();
+    const summary = try lab.recoveryQueueRestoreSummary();
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", summary.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, summary.state);
+    try testing.expectEqual(@as(u32, 1), summary.reset_generation);
+    try testing.expectEqual(@as(u16, 32), summary.admin_queue_depth);
+    try testing.expectEqual(@as(u16, 1), summary.admin_host_dma_pages);
+    try testing.expectEqual(@as(usize, 5), summary.io_queue_count);
+    try testing.expectEqual(@as(u32, 1), summary.io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 2), summary.total_host_dma_pages);
+    try testing.expect(summary.restores_admin_first);
+    try testing.expect(summary.restores_io_after_admin);
+}
