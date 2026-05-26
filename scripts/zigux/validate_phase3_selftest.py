@@ -819,10 +819,34 @@ def run_self_test() -> int:
             print("expected missing list-hlist count marker to fail the packet")
             return 1
 
+        _populate_repo(root)
+        missing_shared_tests_routes_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-shared-tests-routes.py")][0]
+        _write_synthetic_script(
+            missing_shared_tests_routes_pass_path,
+            None,
+            "PHASE3_SHARED_TESTS_ROUTES_SELF_TEST_CASE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing shared-tests-routes pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_shared_tests_routes_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-shared-tests-routes.py")][0]
+        _write_synthetic_script(
+            missing_shared_tests_routes_count_path,
+            "PHASE3_SHARED_TESTS_ROUTES_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing shared-tests-routes count marker to fail the packet")
+            return 1
+
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 30}"
+        f"{len(missing_cases) + 32}"
     )
     return 0
 
