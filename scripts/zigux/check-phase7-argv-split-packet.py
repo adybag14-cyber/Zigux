@@ -17,9 +17,9 @@ EXPECTED_MANIFEST_ANCHOR = "lib/argv_split.c"
 EXPECTED_MANIFEST_STATE = "helper_slice_test_fixture_survey_manifest_anchor"
 EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (
     "Keep same-lane follow-through limited to the returned fixture-backed helper-local "
-    "survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` "
-    "enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening "
-    "into any new vector-backed replay proof."
+    "survey-manifest-checker truthfulness packet, and reopen only when a fresh reread finds "
+    "the next checker-, manifest-, slice-note-, or fixture-vector drift inside that packet "
+    "before widening into any new vector-backed replay proof."
 )
 EXPECTED_REVIEW_SURFACES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
@@ -70,7 +70,7 @@ REQUIRED_MARKERS = {
         "`PHASE7_SLICE=argv-split-runtime-leaf`",
         "`zigux/tests/fixtures/phase7_argv_split_vectors.zig`",
         "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.",
-        "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening into any new vector-backed replay proof.",
+        "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, and reopen only when a fresh reread finds the next checker-, manifest-, slice-note-, or fixture-vector drift inside that packet before widening into any new vector-backed replay proof.",
         "whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space",
         "leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins",
         "blank, whitespace-only, whitespace-before-first-NUL, and leading-NUL inputs all reuse the same shared empty storage, argv, and `cArgv()` views across calls, so blank-result teardown stays repeatable without hidden allocation churn",
@@ -140,9 +140,9 @@ REQUIRED_MARKERS = {
         'const fixture_vectors = try readRepoFile(allocator, fixture_path);',
         'try std.testing.expect(!stringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md"));',
         'try expectNotContains(checker, "\"Documentation/zigux/phase7-helper-lane-sequencing.md\",");',
-        'try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");',
-        'try expectContains(helper, "test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {");',
-        'try expectContains(helper, "test \\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\" {");',
+        'try expectContains(helper, "test \"argvSplit treats whitespace before the first NUL as blank input\" {");',
+        'try expectContains(helper, "test \"argvSplit reuses shared blank sentinel views without argc output\" {");',
+        'try expectContains(helper, "test \"argvSplit reports overflow before sizing the null-terminated argv vector\" {");',
         'try expectContains(helper_companion, "phase 7 argv split companion replays repeated blank-result sentinel reuse");',
         'try expectContains(helper_companion, "phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse");',
         'try expectContains(helper_companion, "phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries");',
@@ -338,7 +338,7 @@ def run_self_test() -> None:
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
         slice_text = read_text(slice_path)
-        slice_marker = "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening into any new vector-backed replay proof."
+        slice_marker = "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, and reopen only when a fresh reread finds the next checker-, manifest-, slice-note-, or fixture-vector drift inside that packet before widening into any new vector-backed replay proof."
         slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_slice_fixture_packet_marker", tmp_root, f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}")
         cases_run += 1
