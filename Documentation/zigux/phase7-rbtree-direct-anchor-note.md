@@ -41,6 +41,7 @@ The dedicated parity companions now keep the erase-boundary surface broader than
 
 - `zigux/tests/fixtures/phase7_rbtree.json` now also carries non-leftmost cached erase, singleton cached erase, and plain erase-init reseed scenarios
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c` now mirrors those same three erase-boundary scenarios as direct C-side parity evidence
+- `lib/rbtree.zig` now also keeps the cached duplicate-return ownership boundary explicit through the helper-local proof that `rb_find_add_cached()` returns the existing node while the rejected duplicate caller stays detached, paired with `rb_replace_node_cached()` keeping cached leftmost alignment reviewable in the same packet
 
 Repo-reality warning for the still-missing dedicated Phase 7 rbtree wrapper routes:
 
