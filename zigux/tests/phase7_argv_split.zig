@@ -55,6 +55,23 @@ test "phase 7 argv split companion replays copied-storage token ownership" {
     }
 }
 
+test "phase 7 argv split companion replays ASCII control whitespace token ownership" {
+    const vectors = fixture_vectors.phase7_argv_split_vectors;
+
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argv_split.argvSplitWithArgc(std.testing.allocator, vectors[6].input, &argc);
+    defer split.deinit(std.testing.allocator);
+
+    try expectVectorReplay(vectors[6], &split, argc);
+    try std.testing.expectEqual(@as(usize, 4), argv_split.countArgc(vectors[6].input));
+    try std.testing.expectEqual(@as(u8, 0), split.storage[0]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[6]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[11]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[17]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[18]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[19]);
+}
+
 test "phase 7 argv split companion replays non-blank cross-call ownership independence" {
     var first = try argv_split.argvSplit(std.testing.allocator, "alpha beta");
     defer first.deinit(std.testing.allocator);
