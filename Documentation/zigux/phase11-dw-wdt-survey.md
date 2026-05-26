@@ -12,6 +12,7 @@ now keep the bounded DesignWare continuity packet explicit through
 `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
 `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`,
 `Documentation/zigux/phase11-dw-wdt-survey.md`,
+`drivers/watchdog/dw_wdt.zig`, `zigux/tests/phase11_dw_wdt.zig`,
 `zigux/tests/phase11_dw_wdt_manifest.json`,
 `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
 `zigux/tests/phase11_dw_wdt_survey.zig`,
@@ -21,19 +22,19 @@ now keep the bounded DesignWare continuity packet explicit through
 `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and
 `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`.
 
-Those same authenticated contents rereads do not rematerialize
+Those same authenticated contents rereads still do not rematerialize
 `Documentation/zigux/phase11-dw-wdt-slice.md`,
-`Documentation/zigux/phase11-dw-wdt-teardown-note.md`,
-`drivers/watchdog/dw_wdt.zig`, or `zigux/tests/phase11_dw_wdt.zig`, so keep
-that broader direct-driver, direct replay, and older reminder stack framed as
-larger same-lane vocabulary and fallback-visible evidence rather than as part of
-the same direct current-head packet.
+`Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or the older
+`scripts/zigux/check-phase11-dw-wdt-packet.py` handle, so keep that broader
+reminder stack framed as larger same-lane vocabulary and fallback-visible
+evidence rather than as part of the same direct current-head packet.
 
 The returned smaller packet now keeps the platform-registration owner note, the
-current-head gap inventory, the registration scaffold outcomes, the restart
-summary helper, the returned verify helper, and the bounded PM-helper pair
-reviewable without claiming live platform execution, clock or reset acquisition
-execution, IRQ delivery, or hardware-backed MMIO behavior.
+current-head gap inventory, the returned driver-and-test pair, the registration
+scaffold outcomes, the restart summary helper, the returned verify helper, and
+the bounded PM-helper pair reviewable without claiming live platform execution,
+clock or reset acquisition execution, IRQ delivery, or hardware-backed MMIO
+behavior.
 
 The shared `zigux/tests/phase11_build.zig` route remains a shared current-head
 gap rather than landed evidence in this lane. The next bounded same-lane step
