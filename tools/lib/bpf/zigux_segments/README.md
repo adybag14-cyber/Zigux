@@ -14,7 +14,7 @@ Current master materializes helper-first or helper-adjacent slices in:
 - `ready_buffer_fd_lookup.zig`
 - `type_names.zig`
 
-Each materialized slice is paired with focused `*_verify.zig` coverage so stable outputs stay reviewable without widening into loader, verifier, or object-model churn. The new bridge foothold currently ships through `file_path_handle_bridge_verify.zig`; wiring it into the directory-level `verify.zig` aggregator remains a same-lane follow-up so this change stays bounded.
+Each materialized slice is paired with focused `*_verify.zig` coverage so stable outputs stay reviewable without widening into loader, verifier, or object-model churn. The shared bridge foothold is now wired into the directory-level `verify.zig` aggregator through `file_path_handle_bridge_verify.zig`, so the stable-output aggregate replay covers the bridge helper packet without widening it beyond the current bounded slice.
 
 ## Current Repo Gap
 
