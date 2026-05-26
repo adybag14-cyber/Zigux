@@ -54,6 +54,7 @@ The adjacent shared loader-facing reminder packet keeps the current cross-family
 ## Review Surface
 
 - `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, and `zigux/tests/runtime_atomic64_manifest.json` keep the direct packet machine-checkable.
+- `zigux/tests/runtime_atomic64_module.zig` also keeps the rejected re-init, rejected re-selftest, and rejected re-exit rollback checkpoints explicit, so initialized, selftest-complete, and exited summaries stay stable when lifecycle calls are retried out of order.
 - The shared-loader reminder packet keeps the allocator/init-flow replay explicit, keeps the command/environment boundary guard explicit, keeps the returned bitmap-loader companion visible, and keeps the loader-facing review packet visible without claiming live runtime binding.
 
 ## Freeze-Map Governance Boundary
