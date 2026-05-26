@@ -176,7 +176,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 52
+SELF_TEST_CASE_COUNT = 54
 
 
 class ValidationError(RuntimeError):
@@ -443,7 +443,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
-        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": ["lib/base64.c", "lib/bsearch.c", "lib.hexdump.c"]})))
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"roadmap_anchors": ["lib/base64.c", "lib.bsearch.c", "lib.hexdump.c"]})))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_repo_reality_gaps"].remove("zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig")))
         cases_run += 1
@@ -494,6 +494,10 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].pop("direct_c_parity_replay")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["checker_surfaces"].remove("scripts/zigux/check-phase6-checksum-c-parity.py")))
+        cases_run += 1
+        expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[0] + "\n", "", 1)))
+        cases_run += 1
+        expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[2] + "\n", "", 1)))
         cases_run += 1
