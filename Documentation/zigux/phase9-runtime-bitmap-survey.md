@@ -12,6 +12,7 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 - trusted current-tree contents reads on 2026-05-22 do materialize `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/phase9_build.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig`
 - trusted current-tree contents reads on 2026-05-25 also materialize `samples/zigux/runtime_bitmap_direct_init_contract.zig` as a bounded direct-init normalization companion for the same Phase 9 packet
 - keep `zigux/tests/phase9_build.zig` explicit only as a bounded Phase 9 build bundle whose live body reruns the direct sample, direct-init companion, cold-stage guard, loader, module, survey, diff, and top-bit proofs; that bundle still does not prove the broader runtime bitmap packet or shared runtime-loader parity
+- keep `zigux/Makefile` explicit as the narrow wrapper rerun handle for the same packet: current `master` now exposes `phase9-runtime-bitmap-test`, and that wrapper still shells into `zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all` rather than proving the broader runtime bitmap packet or shared runtime-loader parity
 - current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample
 - keep the runtime bitmap family Phase 9 only; it is not one of the four approved Phase 5 reference samples.
 - Keep the direct sample zero-length and rejected range-mutation replay explicit when reminder text summarizes sample-local range, summary, and parse stability.
@@ -22,11 +23,11 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 - Keep the loader empty-payload direct-exit guard plus the newer loader re-init, re-selftest, direct-exit summary-stability, and rejected re-exit rollback guards explicit when reminder text summarizes runtime lifecycle evidence for the returned bitmap packet.
 
 ## Boundaries
-- keep the visible bitmap-side reminder packet inside `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_direct_init_contract.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and the shared `zigux/tests/phase9_build.zig` bundle
+- keep the visible bitmap-side reminder packet inside `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_direct_init_contract.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, the shared `zigux/tests/phase9_build.zig` bundle, and the narrow `zigux/Makefile` wrapper
 - keep the blocked shared runtime-loader substrate explicit
 - do not claim loadable runtime bitmap module parity
 - do not present the visible bitmap packet as proof that the broader shared runtime-loader packet returned
-- keep the focused `phase9-runtime-bitmap-tests` route name framed only as a bounded rerun handle for the visible sample, direct-init companion, cold-stage guard, loader, module, survey, diff, and top-bit packet
+- keep the focused `phase9-runtime-bitmap-tests` route name and the narrower `phase9-runtime-bitmap-test` Makefile wrapper framed only as bounded rerun handles for the visible sample, direct-init companion, cold-stage guard, loader, module, survey, diff, and top-bit packet
 
 ## Roadmap gap
 - the Phase 9 roadmap target is still `first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity`
@@ -43,8 +44,9 @@ This note tracks the bounded Phase 9 runtime bitmap reminder packet.
 7. `zig test samples/zigux/runtime_bitmap_top_bit_contract.zig`
 8. `zig test samples/zigux/runtime_bitmap_direct_init_contract.zig`
 9. `zig build phase9-runtime-bitmap-cold-stage-guard-tests --build-file zigux/tests/phase9_build.zig`
+10. `make -C zigux phase9-runtime-bitmap-test`
 
-Treat the shared `zigux/tests/phase9_build.zig` bitmap route names as bounded rerun handles for the visible sample, direct-init companion, cold-stage guard, loader, module, survey, diff, and top-bit packet only while the broader shared runtime-loader family remains partial.
+Treat the shared `zigux/tests/phase9_build.zig` bitmap route names plus the narrow `zigux/Makefile` wrapper as bounded rerun handles for the visible sample, direct-init companion, cold-stage guard, loader, module, survey, diff, and top-bit packet only while the broader shared runtime-loader family remains partial.
 
 ## Next bounded step
 
