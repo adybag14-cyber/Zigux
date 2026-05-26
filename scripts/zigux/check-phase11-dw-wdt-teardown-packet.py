@@ -14,6 +14,7 @@ REQUIRED_FILES = {
     "clock_plan": Path("Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md"),
     "platform_plan": Path("Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"),
     "provenance": Path("Documentation/zigux/phase11-dw-wdt-provenance-readback.md"),
+    "validation_matrix": Path("Documentation/zigux/phase11-dw-wdt-validation-matrix.md"),
     "survey": Path("Documentation/zigux/phase11-dw-wdt-survey.md"),
     "manifest": Path("zigux/tests/phase11_dw_wdt_manifest.json"),
     "registration_scaffold": Path("zigux/tests/phase11_dw_wdt_registration_scaffold.zig"),
@@ -63,6 +64,16 @@ PROVENANCE_MARKERS = [
     "- current authenticated contents reads still do not rematerialize `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `drivers/watchdog/dw_wdt.zig`, or `zigux/tests/phase11_dw_wdt.zig`, so those broader driver, direct-replay, and older reminder surfaces remain fallback-visible evidence in this environment rather than part of the same authenticated current-head packet.",
     "- the authenticated current-head packet is now internally aligned on the shared build-route boundary and the current bounded lifecycle inventory: the manifest still marks `phase11-build-gate` as `shared_gap_current_head` with `preexisting_phase11_build_present` false, keeps `dw_wdt_zig_present`, `dw_wdt_test_present`, and `dw_wdt_slice_note_present` explicitly false, and keeps the returned verify helper, restart summary, PM helper, survey note, validation matrix, and focused survey gate explicit.",
     "- the roadmap still keeps this family inside Phase 11 simple-driver starter discipline: keep owner-packet truthfulness and scaffold truthfulness bounded, and leave the next substantive step on platform-backed acquisition or MMIO follow-through rather than widening into unrelated watchdog behavior.",
+]
+
+VALIDATION_MATRIX_MARKERS = [
+    "# Phase 11 DesignWare Watchdog Validation Matrix",
+    "`PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed`",
+    "current surveyed packet pin: `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "`zigux/tests/phase11_dw_wdt_manifest.json` and",
+    "`drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_verify.zig`,",
+    "`zigux/tests/phase11_build.zig` is still a shared current-head gap rather",
+    "The next bounded same-lane follow-up remains the manifest-marked ready-next",
 ]
 
 SURVEY_MARKERS = [
@@ -162,6 +173,7 @@ MARKERS_BY_LABEL = {
     "clock_plan": CLOCK_PLAN_MARKERS,
     "platform_plan": PLATFORM_PLAN_MARKERS,
     "provenance": PROVENANCE_MARKERS,
+    "validation_matrix": VALIDATION_MATRIX_MARKERS,
     "survey": SURVEY_MARKERS,
     "registration_scaffold": REGISTRATION_SCAFFOLD_MARKERS,
     "restart": RESTART_MARKERS,
@@ -335,6 +347,8 @@ def run_self_test() -> None:
             ("gap_note", GAP_NOTE_MARKERS[1]),
             ("provenance", PROVENANCE_MARKERS[1]),
             ("provenance", PROVENANCE_MARKERS[3]),
+            ("validation_matrix", VALIDATION_MATRIX_MARKERS[1]),
+            ("validation_matrix", VALIDATION_MATRIX_MARKERS[5]),
             ("survey", SURVEY_MARKERS[2]),
             ("survey", SURVEY_MARKERS[8]),
             ("registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[0]),
@@ -354,6 +368,15 @@ def run_self_test() -> None:
             target.write_text(read_text(target).replace(marker, "", 1), encoding="utf-8")
             expect_failure(case_root, f"missing_marker:{label}:{marker}")
             case_count += 1
+
+        missing_matrix_case = root / "missing_matrix_case"
+        shutil.copytree(fixture, missing_matrix_case)
+        (missing_matrix_case / REQUIRED_FILES["validation_matrix"]).unlink()
+        expect_failure(
+            missing_matrix_case,
+            f"missing_file:{REQUIRED_FILES['validation_matrix'].as_posix()}",
+        )
+        case_count += 1
 
         manifest_lane_case = root / "manifest_lane_case"
         shutil.copytree(fixture, manifest_lane_case)
