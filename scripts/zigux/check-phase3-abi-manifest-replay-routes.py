@@ -214,6 +214,7 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test",
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "python3 scripts/zigux/run-phase3-checks.py",
+    "make -C zigux phase3-validate",
     "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test",
