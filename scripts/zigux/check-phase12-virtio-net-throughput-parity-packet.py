@@ -253,7 +253,6 @@ def run_self_test() -> None:
 
         write_fixture_tree(base)
         broken_build = base / BUILD_PATH
-        broken_build.writeText = None
         broken_build.write_text(
             broken_build.read_text(encoding="utf-8").replace(
                 "phase12-virtio-net-throughput-parity-tests",
