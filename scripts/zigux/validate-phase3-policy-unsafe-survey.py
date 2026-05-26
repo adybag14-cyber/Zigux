@@ -66,6 +66,8 @@ REQUIRED_FILE_MARKERS = {
         "pub fn assertInteropPolicyModeValues() void {",
         "pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {",
         "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {",
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() LayoutError!void {",
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() LayoutError!void {",
         "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() LayoutError!void {",
         "pub fn assertStatusAndFacilityValues() void {",
         "pub fn assertNotifierResultValues() void {",
@@ -191,13 +193,13 @@ SELF_TEST_CASES = (
     (
         "layout assert notifier-result marker drift",
         LAYOUT_ASSERT_PATH,
-        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][7],
+        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][9],
         "marker",
     ),
     (
-        "layout assert chrdev layout marker drift",
+        "layout assert chrdev summary-layout marker drift",
         LAYOUT_ASSERT_PATH,
-        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][4],
+        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][5],
         "marker",
     ),
     (
