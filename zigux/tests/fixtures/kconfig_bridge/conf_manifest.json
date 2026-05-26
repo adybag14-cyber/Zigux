@@ -54,11 +54,11 @@
   ],
   "allconfig_sentinel_packet": [
     "allnoconfig_expected.json",
-    "allyesconfig_expected.json",
-    "alldefconfig_expected.json"
+    "allyesconfig_expected.json"
   ],
   "allconfig_override_packet": [
     "allmodconfig_expected.json",
+    "alldefconfig_expected.json",
     "randconfig_expected.json"
   ],
   "helper_local_allconfig_implicit_omission_modes": [
