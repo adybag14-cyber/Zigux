@@ -27,7 +27,7 @@ REQUIRED_SNIPPETS = {
     SLICE_PATH: [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=checksum-leaf-helper`",
-        "- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, fold, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable",
+        "- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, carry, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable",
         "- `zigux/tests/phase6_checksum_perf.zig` keeps the helper-vs-reference slowdown gate explicit through the committed `64B` and `1501B` payload matrix in `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "- the same perf replay also keeps `ipFastCsum()` honest through committed `IPV4_20B`, `IPV4_20B_UPDATED`, `IPV4_24B`, and `IPV4_60B` aligned-header cases that compare the fast path directly against `compute()`",
     ],
