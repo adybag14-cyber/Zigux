@@ -13,7 +13,7 @@ NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 LANE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
-EXPECTED_SELF_TEST_CASES = 16
+EXPECTED_SELF_TEST_CASES = 18
 
 SELF_TEST_MANIFEST = """{
   "atomic64": {
@@ -336,6 +336,22 @@ def run_self_test() -> int:
         if not expect_failure(root, f"file:{NOTE.as_posix()}"):
             print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
             print("missing note file case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        (root / MANIFEST).unlink()
+        if not expect_failure(root, f"file:{MANIFEST.as_posix()}"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("missing manifest file case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(root / MANIFEST, "{")
+        if not expect_failure(root, "manifest_json:decode:"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("broken manifest JSON case did not fail closed")
             return 1
         cases += 1
 
