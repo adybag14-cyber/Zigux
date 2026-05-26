@@ -71,7 +71,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try std.testing.expectEqualStrings("lib/argv_split.c", manifest.anchor);
     try std.testing.expectEqualStrings("helper_slice_test_fixture_survey_manifest_anchor", manifest.current_master_state);
     try std.testing.expectEqualStrings(
-        "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening into any new vector-backed replay proof.",
+        "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, and reopen only when a fresh reread finds the next checker-, manifest-, slice-note-, or fixture-vector drift inside that packet before widening into any new vector-backed replay proof.",
         manifest.next_bounded_step,
     );
     try std.testing.expect(manifest.verified_on_utc.len != 0);
@@ -117,7 +117,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(slice_note, "`PHASE7_SLICE=argv-split-runtime-leaf`");
     try expectContains(slice_note, "`zigux/tests/fixtures/phase7_argv_split_vectors.zig`");
     try expectContains(slice_note, "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.");
-    try expectContains(slice_note, "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening into any new vector-backed replay proof.");
+    try expectContains(slice_note, "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, and reopen only when a fresh reread finds the next checker-, manifest-, slice-note-, or fixture-vector drift inside that packet before widening into any new vector-backed replay proof.");
     try expectContains(slice_note, "whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space");
     try expectContains(slice_note, "leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins");
 
