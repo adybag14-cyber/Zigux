@@ -106,6 +106,8 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py",
     "scripts/zigux/check-phase2-cross-validate-validator-order.py",
     "scripts/zigux/check-phase2-cross-validate-validator-order-selftest-alignment.py",
+    "scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py",
+    "scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py",
     "scripts/zigux/check-phase2-cross-tool-manifest-contract.py",
     "scripts/zigux/check-phase2-cross-tool-manifest-contract-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
@@ -228,6 +230,10 @@ REQUIRED_WORKFLOW_LINES = (
     "run: make -C zigux phase2-tools",
     "run: make -C zigux phase2-kconfig",
     "run: make -C zigux phase2-cross",
+    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py",
+    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py",
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",
@@ -316,6 +322,7 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
+
 
 def read_text(root: Path, rel: str) -> str:
     path = root / rel
