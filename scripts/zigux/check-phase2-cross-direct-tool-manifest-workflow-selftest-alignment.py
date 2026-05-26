@@ -15,8 +15,10 @@ REQUIRED_SOURCE_MARKERS = (
     'TOOL_MANIFEST_ALIGNMENT = (',
     'TOOL_MANIFEST_WORKFLOW_LINES = (',
     'CROSS_ROUTE = "run: make -C zigux phase2-cross"',
+    'SHARED_SURFACE_START = "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test"',
     'VALIDATE_ROUTE = "run: make -C zigux phase2-validate"',
     'issues.append(("TOOL_MANIFEST_NOT_DIRECT_AFTER_CROSS", TOOL_MANIFEST_WORKFLOW_LINES[0]))',
+    'issues.append(("TOOL_MANIFEST_NOT_DIRECT_BEFORE_SHARED_SURFACE", SHARED_SURFACE_START))',
     'print("PHASE2_CROSS_DIRECT_TOOL_MANIFEST_WORKFLOW=pass")',
     'print("PHASE2_CROSS_DIRECT_TOOL_MANIFEST_WORKFLOW_SELF_TEST=pass")',
 )
@@ -25,6 +27,8 @@ REQUIRED_CASE_MARKERS = (
     'read_text(workflow_path).replace(TOOL_MANIFEST_WORKFLOW_LINES[0] + "\\n", "", 1)',
     'read_text(workflow_path) + TOOL_MANIFEST_WORKFLOW_LINES[0] + "\\n"',
     'workflow_lines[cross_index], workflow_lines[first_tool_manifest_index] = (',
+    'shared_surface_index = workflow_lines.index(SHARED_SURFACE_START)',
+    'workflow_lines[shared_surface_index], workflow_lines[last_tool_manifest_index] = (',
     'resolve_path(root, TOOL_MANIFEST_ALIGNMENT).unlink()',
 )
 
