@@ -51,14 +51,17 @@ SURVEY_MARKERS = (
 )
 
 SURVEY_GATE_MARKERS = (
-    '"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
-    '"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete"',
-    '"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays"',
-    'try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);',
-    'try expectContains(gap.why_now, "standalone syntax-lab compile-smoke pair");',
-    'try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));',
-    'try expectNotContains(build_zig, "phase12_virtio_net_syntax_lab.zig");',
-    'try expectContains(makefile, "phase12: phase12-validate phase12-smoke phase12-test");',
+    "\"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present\"",
+    "\"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete\"",
+    "\"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays\"",
+    "try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);",
+    "try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_build_present);",
+    "try expectContains(gap.why_now, \"standalone syntax-lab compile-smoke pair\");",
+    "try std.testing.expect(try pathExists(\"zigux/tests/phase12_virtio_net_syntax_lab.zig\"));",
+    "try std.testing.expect(try pathExists(\"zigux/tests/phase12_virtio_net_syntax_lab_build.zig\"));",
+    "try expectNotContains(build_zig, \"phase12_virtio_net_syntax_lab.zig\");",
+    "try expectNotContains(build_zig, \"phase12_virtio_net_syntax_lab_build.zig\");",
+    "try expectContains(makefile, \"phase12: phase12-validate phase12-smoke phase12-test\");",
 )
 
 VALIDATOR_MARKERS = (
@@ -74,7 +77,7 @@ BUILD_MARKERS = (
     "../../drivers/net/virtio_net_transmit_recycle.zig",
     "../../drivers/net/virtio_net_post_reset_replay.zig",
     "../../drivers/net/virtio_net_throughput_parity.zig",
-    '"phase12_virtio_net_survey.zig"',
+    "\"phase12_virtio_net_survey.zig\"",
     "phase12-virtio-net-survey-tests",
     "smoke_step.dependOn(&run_virtio_net_survey_tests.step);",
     "test_step.dependOn(&run_virtio_net_survey_tests.step);",
@@ -139,13 +142,14 @@ def run_check(root: Path) -> None:
         if manifest.get(key) != value:
             raise CheckError(f"{manifest_path.as_posix()}: {key} drifted from {value!r}")
     for marker in (
-        '"preexisting_phase12_virtio_net_syntax_lab_present": true',
-        '"status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present"',
-        '"status": "throughput_parity_helper_present_review_only_runtime_completion_missing"',
-        '"status": "split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete"',
-        '"status": "shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays"',
-        '"id": "phase12-virtio-net-runtime-data-path"',
-        '"status": "blocked_on_dma_transport_runtime"',
+        "\"preexisting_phase12_virtio_net_syntax_lab_present\": true",
+        "\"preexisting_phase12_virtio_net_syntax_lab_build_present\": true",
+        "\"status\": \"split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present\"",
+        "\"status\": \"throughput_parity_helper_present_review_only_runtime_completion_missing\"",
+        "\"status\": \"split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete\"",
+        "\"status\": \"shared_build_present_with_queue_resume_receive_refill_transmit_recycle_post_reset_throughput_and_survey_gate_replays\"",
+        "\"id\": \"phase12-virtio-net-runtime-data-path\"",
+        "\"status\": \"blocked_on_dma_transport_runtime\"",
     ):
         if marker not in manifest_text:
             raise CheckError(f"{manifest_path.as_posix()}: missing marker {marker!r}")
@@ -153,7 +157,12 @@ def run_check(root: Path) -> None:
     require_markers(require_file(root, "Documentation/zigux/phase12-virtio-net-survey.md"), SURVEY_MARKERS)
     require_markers(require_file(root, VALIDATOR_PATH), VALIDATOR_MARKERS)
     build_text = require_markers(require_file(root, "zigux/tests/phase12_build.zig"), BUILD_MARKERS)
-    for stale in ("../../drivers/net/virtio_net.zig", '"phase12_virtio_net.zig"', '"phase12_virtio_net_syntax_lab.zig"'):
+    for stale in (
+        "../../drivers/net/virtio_net.zig",
+        "\"phase12_virtio_net.zig\"",
+        "\"phase12_virtio_net_syntax_lab.zig\"",
+        "\"phase12_virtio_net_syntax_lab_build.zig\"",
+    ):
         if stale in build_text:
             raise CheckError(f"zigux/tests/phase12_build.zig: stale marker {stale!r}")
     require_markers(require_file(root, "zigux/tests/phase12_virtio_net_survey.zig"), SURVEY_GATE_MARKERS)
@@ -190,6 +199,7 @@ def make_fixture_tree(root: Path) -> None:
                 "anchor": "drivers/net/virtio_net.c",
                 "survey_summary": {
                     "preexisting_phase12_virtio_net_syntax_lab_present": True,
+                    "preexisting_phase12_virtio_net_syntax_lab_build_present": True,
                 },
                 "roadmap_gap_check": {
                     "queueing_correctness": {
@@ -244,7 +254,7 @@ def run_self_test() -> None:
             ".github/workflows/zigux-bootstrap.yml",
         ):
             make_fixture_tree(base)
-            (base / rel).write_text("broken\n", encoding="utf-8")
+            (base / rel).writeText("broken\n", encoding="utf-8")
             try:
                 run_check(base)
             except CheckError:
@@ -290,6 +300,33 @@ def run_self_test() -> None:
             pass
         else:
             raise AssertionError("expected survey route failure")
+        cases += 1
+
+        make_fixture_tree(base)
+        broken_manifest = base / "zigux/tests/phase12_virtio_net_manifest.json"
+        payload = json.loads(broken_manifest.read_text(encoding="utf-8"))
+        payload["survey_summary"].pop("preexisting_phase12_virtio_net_syntax_lab_build_present")
+        broken_manifest.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            run_check(base)
+        except CheckError:
+            pass
+        else:
+            raise AssertionError("expected syntax-lab build manifest drift failure")
+        cases += 1
+
+        make_fixture_tree(base)
+        broken_build = base / "zigux/tests/phase12_build.zig"
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8") + "\"phase12_virtio_net_syntax_lab_build.zig\"\n",
+            encoding="utf-8",
+        )
+        try:
+            run_check(base)
+        except CheckError:
+            pass
+        else:
+            raise AssertionError("expected syntax-lab build route leakage failure")
         cases += 1
 
     print("PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass")
