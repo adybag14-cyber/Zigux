@@ -100,6 +100,93 @@ test "first-loadable runtime pilot families keep direct exit parity explicit bef
     try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .exited, 1, 0, 1);
 }
 
+test "first-loadable runtime pilot families keep captured initialized direct-activity parity explicit across later selftest and exit" {
+    var atomic_module = RuntimeAtomic64Sample{};
+    var bitmap_module = RuntimeBitmapSample{};
+    var kretprobe_module = RuntimeKretprobeSample{};
+
+    try atomic_module.init(21);
+    try bitmap_module.initWithSetBits(&.{ 0, 64, 70 });
+    try kretprobe_module.init();
+
+    const atomic_update = try atomic_module.addCounter(6);
+    try std.testing.expectEqual(@as(i64, 21), atomic_update.previous);
+    try std.testing.expectEqual(@as(i64, 27), atomic_update.final);
+
+    try bitmap_module.setRange(9, 3);
+    try std.testing.expectEqual(@as(u32, 3), try bitmap_module.countSetBitsInRange(9, 3));
+
+    try kretprobe_module.registerProbe();
+    try kretprobe_module.recordEntry();
+    try kretprobe_module.recordReturn(13);
+    try kretprobe_module.unregisterProbe();
+
+    const initialized_atomic_summary = atomic_module.summary();
+    const initialized_bitmap_summary = bitmap_module.summary();
+    const initialized_kretprobe_snapshot = kretprobe_module.lifecycleSnapshot();
+    try expectLifecycleCounts(
+        &atomic_module,
+        &bitmap_module,
+        &kretprobe_module,
+        .initialized,
+        1,
+        0,
+        0,
+    );
+    try std.testing.expectEqual(@as(i64, 27), initialized_atomic_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(u32, 0), initialized_bitmap_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 6), initialized_bitmap_summary.weight);
+    try std.testing.expectEqual(@as(usize, 1), initialized_kretprobe_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_kretprobe_snapshot.unregistration_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_kretprobe_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 13), initialized_kretprobe_snapshot.last_retval);
+
+    _ = try atomic_module.runSelftest();
+    _ = try bitmap_module.runSelftest();
+    _ = try kretprobe_module.runSelftest();
+    try atomic_module.exit();
+    try bitmap_module.exit();
+    try kretprobe_module.exit();
+
+    const exited_atomic_summary = atomic_module.summary();
+    const exited_bitmap_summary = bitmap_module.summary();
+    const exited_kretprobe_snapshot = kretprobe_module.lifecycleSnapshot();
+    try expectLifecycleCounts(
+        &atomic_module,
+        &bitmap_module,
+        &kretprobe_module,
+        .exited,
+        1,
+        1,
+        1,
+    );
+
+    try std.testing.expectEqual(@as(i64, 27), initialized_atomic_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 0), initialized_atomic_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_atomic_summary.exit_runs);
+    try std.testing.expectEqual(@as(u32, 6), initialized_bitmap_summary.weight);
+    try std.testing.expectEqual(@as(usize, 0), initialized_bitmap_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_bitmap_summary.exit_runs);
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.initialized, initialized_kretprobe_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 0), initialized_kretprobe_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_kretprobe_snapshot.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_kretprobe_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_kretprobe_snapshot.unregistration_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_kretprobe_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 13), initialized_kretprobe_snapshot.last_retval);
+
+    try std.testing.expectEqual(@as(i64, 27), exited_atomic_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), exited_atomic_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_atomic_summary.exit_runs);
+    try std.testing.expectEqual(@as(u32, 6), exited_bitmap_summary.weight);
+    try std.testing.expectEqual(@as(usize, 1), exited_bitmap_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_bitmap_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), exited_kretprobe_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 2), exited_kretprobe_snapshot.unregistration_runs);
+    try std.testing.expectEqual(@as(usize, 2), exited_kretprobe_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), exited_kretprobe_snapshot.last_retval);
+}
+
 test "first-loadable runtime pilot families keep rejected repeat selftest and exit stable" {
     var atomic_module = RuntimeAtomic64Sample{};
     var bitmap_module = RuntimeBitmapSample{};
