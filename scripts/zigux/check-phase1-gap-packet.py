@@ -47,6 +47,47 @@ REQUIRED_EXACT_LINES = {
     },
 }
 
+REQUIRED_SINGLE_OCCURRENCE_FRAGMENTS = {
+    DOCS_ROOT_REL: {
+        "validate_phase1_py": "`scripts/zigux/validate-phase1.py`",
+        "check_phase1_parity_py": "`scripts/zigux/check-phase1-parity.py`",
+        "phase1_bench_zig": "`zigux/tests/phase1_bench.zig`",
+        "phase1_bench_expectations_json": "`zigux/tests/fixtures/phase1_bench_expectations.json`",
+        "phase1_helpers_c_harness_c": "`zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+        "zig_build_test": "`zig build test --build-file zigux/tests/build.zig`",
+        "zig_build_bench": "`zig build bench --build-file zigux/tests/build.zig`",
+        "make_phase1_validate": "`make -C zigux phase1-validate`",
+        "make_phase1_test": "`make -C zigux phase1-test`",
+        "make_phase1_bench": "`make -C zigux phase1-bench`",
+        "make_phase1": "`make -C zigux phase1`",
+    },
+    PHASE1_CLOSURE_REL: {
+        "validate_phase1_py": "`scripts/zigux/validate-phase1.py`",
+        "check_phase1_parity_py": "`scripts/zigux/check-phase1-parity.py`",
+        "phase1_bench_zig": "`zigux/tests/phase1_bench.zig`",
+        "phase1_bench_expectations_json": "`zigux/tests/fixtures/phase1_bench_expectations.json`",
+        "phase1_helpers_c_harness_c": "`zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+        "make_phase1_validate": "`make -C zigux phase1-validate`",
+        "make_phase1_test": "`make -C zigux phase1-test`",
+        "make_phase1_bench": "`make -C zigux phase1-bench`",
+        "make_phase1": "`make -C zigux phase1`",
+    },
+    SCRIPTS_README_REL: {
+        "validate_phase1_py": "`scripts/zigux/validate-phase1.py`",
+        "check_phase1_parity_py": "`scripts/zigux/check-phase1-parity.py`",
+        "phase1_bench_zig": "`zigux/tests/phase1_bench.zig`",
+        "phase1_bench_expectations_json": "`zigux/tests/fixtures/phase1_bench_expectations.json`",
+        "phase1_helpers_c_harness_c": "`zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    },
+    TESTS_README_REL: {
+        "validate_phase1_py": "`scripts/zigux/validate-phase1.py`",
+        "check_phase1_parity_py": "`scripts/zigux/check-phase1-parity.py`",
+        "phase1_bench_zig": "`zigux/tests/phase1_bench.zig`",
+        "phase1_bench_expectations_json": "`zigux/tests/fixtures/phase1_bench_expectations.json`",
+        "phase1_helpers_c_harness_c": "`zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    },
+}
+
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
@@ -60,6 +101,11 @@ def require_exact_line(text: str, label: str, line: str) -> list[str]:
     expected = line.strip()
     count = sum(1 for current in text.splitlines() if current.strip() == expected)
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
+
+
+def require_fragment_count(text: str, label: str, fragment: str, expected_count: int = 1) -> list[str]:
+    count = text.count(fragment)
+    return [] if count == expected_count else [f"{label}:expected={expected_count}:actual={count}"]
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -77,6 +123,14 @@ def collect_failures(root: Path) -> list[str]:
             failures.extend(
                 require_exact_line(text, f"{relative_path.as_posix()}:{label}", line)
             )
+        for label, fragment in REQUIRED_SINGLE_OCCURRENCE_FRAGMENTS.get(relative_path, {}).items():
+            failures.extend(
+                require_fragment_count(
+                    text,
+                    f"{relative_path.as_posix()}:{label}",
+                    fragment,
+                )
+            )
 
     return failures
 
@@ -89,7 +143,15 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
 
 def sample_text(relative_path: Path) -> str:
     labels = REQUIRED_EXACT_LINES.get(relative_path, {})
-    return "# sample\n\n" + "\n".join(labels.values()) + "\n"
+    fragments = REQUIRED_SINGLE_OCCURRENCE_FRAGMENTS.get(relative_path, {})
+    lines = ["# sample", ""]
+    lines.extend(labels.values())
+    lines.extend(
+        fragment
+        for fragment in fragments.values()
+        if not any(fragment in line for line in labels.values())
+    )
+    return "\n".join(lines) + "\n"
 
 
 def build_sample_repo(root: Path) -> None:
@@ -109,15 +171,22 @@ def mutate_duplicate(root: Path, relative_path: Path, needle: str) -> None:
     path.write_text(text.replace(needle, needle + "\n" + needle, 1), encoding="utf-8")
 
 
+def mutate_append(root: Path, relative_path: Path, needle: str) -> None:
+    path = root / relative_path
+    text = path.read_text(encoding="utf-8")
+    path.write_text(text + needle + "\n", encoding="utf-8")
+
+
 def run_self_test() -> int:
-    cases: list[tuple[str, Path | None, str | None, str, list[str]]] = [
-        ("success", None, None, "none", []),
+    cases: list[tuple[str, Path | None, str | None, str, list[str], str]] = [
+        ("success", None, None, "none", [], "exact"),
         (
             "missing_phase1_closure",
             PHASE1_CLOSURE_REL,
             None,
             "missing_file",
             [f"missing_file:{PHASE1_CLOSURE_REL.as_posix()}"],
+            "exact",
         ),
     ]
 
@@ -130,6 +199,7 @@ def run_self_test() -> int:
                     line,
                     "remove",
                     [f"{relative_path.as_posix()}:{label}:expected=1:actual=0"],
+                    "contains",
                 )
             )
             cases.append(
@@ -139,10 +209,24 @@ def run_self_test() -> int:
                     line,
                     "duplicate",
                     [f"{relative_path.as_posix()}:{label}:expected=1:actual=2"],
+                    "contains",
                 )
             )
 
-    for name, relative_path, needle, operation, expected_failures in cases:
+    for relative_path, labels in REQUIRED_SINGLE_OCCURRENCE_FRAGMENTS.items():
+        for label, fragment in labels.items():
+            cases.append(
+                (
+                    f"duplicate_fragment_{relative_path.name}_{label}",
+                    relative_path,
+                    fragment,
+                    "append",
+                    [f"{relative_path.as_posix()}:{label}:expected=1:actual=2"],
+                    "exact",
+                )
+            )
+
+    for name, relative_path, needle, operation, expected_failures, expectation_mode in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-gap-packet-{name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
@@ -153,6 +237,8 @@ def run_self_test() -> int:
                 mutate_remove(root, relative_path, needle)
             elif relative_path and needle and operation == "duplicate":
                 mutate_duplicate(root, relative_path, needle)
+            elif relative_path and needle and operation == "append":
+                mutate_append(root, relative_path, needle)
 
             failures = collect_failures(root)
             if name == "success":
@@ -163,9 +249,16 @@ def run_self_test() -> int:
                     return 1
                 continue
 
-            if failures != expected_failures:
+            if expectation_mode == "exact" and failures != expected_failures:
                 print(f"self-test:{name}:unexpected_failures")
                 print(f"expected={expected_failures!r}")
+                print(f"actual={failures!r}")
+                return 1
+            if expectation_mode == "contains" and not all(
+                failure in failures for failure in expected_failures
+            ):
+                print(f"self-test:{name}:missing_expected_failures")
+                print(f"expected_subset={expected_failures!r}")
                 print(f"actual={failures!r}")
                 return 1
 
@@ -195,6 +288,10 @@ def main() -> int:
     print(
         "PHASE1_GAP_PACKET_REQUIRED_MARKER_COUNT="
         f"{sum(len(markers) for markers in REQUIRED_EXACT_LINES.values())}"
+    )
+    print(
+        "PHASE1_GAP_PACKET_REQUIRED_FRAGMENT_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_SINGLE_OCCURRENCE_FRAGMENTS.values())}"
     )
     return 0
 
