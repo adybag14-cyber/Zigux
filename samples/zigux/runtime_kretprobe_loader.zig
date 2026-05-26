@@ -403,6 +403,9 @@ test "runtime kretprobe loader keeps post-selftest reusable probe cycles from di
     try std.testing.expectEqual(selftested_after_cycle.active_instances, after_failed_prepare.active_instances);
     try std.testing.expectEqual(selftested_after_cycle.completed_instances, after_failed_prepare.completed_instances);
     try std.testing.expectEqual(selftested_after_cycle.last_retval, after_failed_prepare.last_retval);
+
+    const reread_plan = try RuntimeKretprobeLoader.planFor(&module, .caller_provided);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(reread_plan, selftested_plan));
 }
 
 test "runtime kretprobe loader keeps invalid loader transitions fail-closed without disturbing shared-request snapshots" {
@@ -510,6 +513,8 @@ test "runtime kretprobe loader keeps selftest-complete shared requests blocked b
     try std.testing.expectError(error.InvalidPilotFamilyShape, loader.prepareSharedRequest(&module));
     try std.testing.expectEqual(LoaderStage.cold, loader.stage());
 }
+
+
 
 test "runtime kretprobe loader rejects cold and exited sample stages before preparing a shared request" {
     var cold_module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
