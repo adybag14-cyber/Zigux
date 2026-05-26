@@ -55,6 +55,7 @@ The current helper-local replay keeps these proofs explicit:
 
 - exact bare-option matching that rejects key-value forms and keeps empty-entry behavior explicit
 - Linux-style option parsing across signed, unsigned, comma-separated, and range-expanded inputs, including malformed-input and wraparound behavior
+- dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point
 - quoted and key-value argument splitting that preserves the remaining borrowed suffix without widening beyond the first exported C-string boundary
 - decimal, hexadecimal, octal, signed, and suffix-aware memory parsing with explicit no-conversion and signed-clamping behavior
 - dedicated helper-local replay, survey, manifest, and checker coverage rooted at `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, and `scripts/zigux/check-phase7-cmdline-packet.py`
