@@ -348,6 +348,18 @@ jobs:
       - name: Run current Phase 2 genksyms make route
         run: make -C zigux phase2-genksyms
 
+      - name: Self-test current Phase 2 direct tool-manifest workflow checker
+        run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py --self-test
+
+      - name: Check current Phase 2 direct tool-manifest workflow packet
+        run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py
+
+      - name: Self-test current Phase 2 direct tool-manifest workflow selftest alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 direct tool-manifest workflow selftest alignment packet
+        run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py
+
       - name: Self-test current Phase 2 cross shared-surface checker
         run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test
 
