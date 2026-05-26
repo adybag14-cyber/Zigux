@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L09",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-23T13:46:32Z",
+  "verified_on_utc": "2026-05-26T06:30:01Z",
   "anchor": "lib/argv_split.c",
   "current_master_state": "helper_slice_test_fixture_survey_manifest_anchor",
   "review_surfaces": [
@@ -36,5 +36,5 @@
     "the helper-local argv_split packet stays reviewable without treating `Documentation/zigux/phase7-helper-lane-sequencing.md` as same-lane ownership",
     "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders"
   ],
-  "next_bounded_step": "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof."
+  "next_bounded_step": "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening into any new vector-backed replay proof."
 }
