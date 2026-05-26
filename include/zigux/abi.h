@@ -68,7 +68,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view 
 typedef struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view
     zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view;
 
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_summary {
     uint32_t applied;
     uint32_t skipped;
     uint32_t delivered;
@@ -375,6 +375,42 @@ static inline struct zigux_interop_policy zigux_default_interop_policy(void)
         .reserved = 0,
     };
     return policy;
+}
+
+static inline int zigux_panic_mode_is_known(uint8_t mode)
+{
+    return mode == (uint8_t)ZIGUX_PANIC_ABORT ||
+        mode == (uint8_t)ZIGUX_PANIC_BUG ||
+        mode == (uint8_t)ZIGUX_PANIC_WARN;
+}
+
+static inline int zigux_allocator_mode_is_known(uint8_t mode)
+{
+    return mode == (uint8_t)ZIGUX_ALLOC_CALLER_PROVIDED ||
+        mode == (uint8_t)ZIGUX_ALLOC_KERNEL_HEAP ||
+        mode == (uint8_t)ZIGUX_ALLOC_ARENA;
+}
+
+static inline int zigux_unsafe_scope_is_known(uint8_t scope)
+{
+    return scope == (uint8_t)ZIGUX_UNSAFE_NONE ||
+        scope == (uint8_t)ZIGUX_UNSAFE_VOLATILE_MMIO ||
+        scope == (uint8_t)ZIGUX_UNSAFE_RAW_POINTER_BRIDGE;
+}
+
+static inline int zigux_interop_policy_reserved_clear(
+    struct zigux_interop_policy policy)
+{
+    return policy.reserved == 0;
+}
+
+static inline int zigux_interop_policy_is_recognized(
+    struct zigux_interop_policy policy)
+{
+    return zigux_interop_policy_reserved_clear(policy) &&
+        zigux_panic_mode_is_known(policy.panic_mode) &&
+        zigux_allocator_mode_is_known(policy.allocator_mode) &&
+        zigux_unsafe_scope_is_known(policy.unsafe_scope);
 }
 
 static inline int zigux_facility_is_known(uint16_t facility)
