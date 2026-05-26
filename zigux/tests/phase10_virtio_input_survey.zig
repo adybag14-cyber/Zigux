@@ -95,6 +95,36 @@ test "phase10 virtio input manifest keeps the restored replay ids and blocked li
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-registration-lifecycle\"");
 }
 
+test "phase10 virtio input freeze boundary and reopen posture stay explicit" {
+    const allocator = std.testing.allocator;
+    const survey_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-input-survey.md",
+    );
+    defer allocator.free(survey_note);
+
+    const manifest = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_input_manifest.json");
+    defer allocator.free(manifest);
+
+    const freeze_map = try readRepoRelative(allocator, "Documentation/zigux/freeze-map.md");
+    defer allocator.free(freeze_map);
+
+    try expectContains(survey_note, "Documentation/zigux/freeze-map.md");
+    try expectContains(
+        survey_note,
+        "this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.",
+    );
+    try expectContains(manifest, "\"freeze_map\": \"Documentation/zigux/freeze-map.md\"");
+    try expectContains(manifest, "\"architecture_council_reopen_required\": true");
+    try expectContains(manifest, "\"architecture_council_reopen_attached\": false");
+    try expectContains(freeze_map, "`kernel/workqueue.c`");
+    try expectContains(freeze_map, "`kernel/trace/ring_buffer.c`");
+    try expectContains(
+        freeze_map,
+        "changes to either list require an explicit Architecture Council decision",
+    );
+}
+
 test "phase10 virtio input queue callback helper stays explicit in the survey packet" {
     const allocator = std.testing.allocator;
     const survey_note = try readRepoRelative(
