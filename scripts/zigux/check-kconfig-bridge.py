@@ -168,7 +168,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
@@ -358,7 +358,8 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     if manifest_modes != expected_mode_order:
         issues.append(("CONF_CASE_MODE_ORDER_ACTUAL", ",".join(manifest_modes)))
         issues.append(("CONF_CASE_MODE_ORDER_EXPECTED", ",".join(expected_mode_order)))
-    confdata_case_names = [str(case["name"]) for case in confdata_cases]
+    confdata_case_names = [str(case["name"])
+ for case in confdata_cases]
     if confdata_case_names != REQUIRED_CONFDATA_CASES:
         issues.append(("CONFDATA_CASE_ORDER_ACTUAL", ",".join(confdata_case_names)))
         issues.append(("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)))
@@ -559,6 +560,39 @@ def run_self_test() -> int:
         payload["conf_cases"][7].pop("probability")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         assert any(code == "CONF_MANIFEST_RANDCONFIG_ENV_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(confdata_manifest_path, "[]\n")
+        assert ("INVALID_CONFDATA_MANIFEST_PAYLOAD", "list") in collect_manifest_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
+        manifest["cases"][0] = "broken"
+        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "CONFDATA_MANIFEST_CASES_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
+        manifest["input_packet"] = []
+        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "CONFDATA_MANIFEST_INPUT_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
+        manifest["expected_packet"] = []
+        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "CONFDATA_MANIFEST_EXPECTED_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(confdata_manifest_path.read_text(encoding="utf-8"))
+        manifest["helper_local_anchors"] = []
+        write_text(confdata_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "CONFDATA_MANIFEST_HELPER_LOCAL_ANCHORS_MISMATCH" for code, _ in collect_manifest_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
