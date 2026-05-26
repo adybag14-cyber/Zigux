@@ -19,6 +19,8 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(?usize, null), initialized_before.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), initialized_before.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), initialized_before.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before.register_transitions);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 1), initialized_before.init_runs);
     try std.testing.expectEqual(@as(usize, 0), initialized_before.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), initialized_before.exit_runs);
@@ -48,6 +50,8 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(ModuleStage.initialized, initialized_registered_before_duplicate.stage);
     try std.testing.expectEqual(@as(usize, 1), initialized_registered_before_duplicate.registration_depth);
     try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_duplicate.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 1), initialized_registered_before_duplicate.register_transitions);
+    try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_duplicate.unregister_transitions);
     try std.testing.expectEqualStrings("foo_bar_reg", initialized_registered_before_duplicate.last_register_label orelse return error.ExpectedRegisterLabel);
 
     try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
@@ -64,6 +68,8 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(usize, 0), initialized_after.registration_depth);
     try std.testing.expectEqual(@as(usize, 0), initialized_after.main_iterations);
     try std.testing.expectEqual(@as(usize, 1), initialized_after.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 2), initialized_after.register_transitions);
+    try std.testing.expectEqual(@as(usize, 1), initialized_after.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 0), initialized_after.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), initialized_after.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 2), initialized_after.total_events);
@@ -105,6 +111,8 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(usize, 0), selftest_before.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), selftest_before.main_iterations);
     try std.testing.expectEqual(@as(usize, 2), selftest_before.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 3), selftest_before.register_transitions);
+    try std.testing.expectEqual(@as(usize, 2), selftest_before.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 6), selftest_before.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), selftest_before.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 10), selftest_before.total_events);
@@ -139,6 +147,8 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     const selftest_registered_before_duplicate = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_registered_before_duplicate.stage);
     try std.testing.expectEqual(@as(usize, 1), selftest_registered_before_duplicate.registration_depth);
+    try std.testing.expectEqual(@as(usize, 4), selftest_registered_before_duplicate.register_transitions);
+    try std.testing.expectEqual(@as(usize, 2), selftest_registered_before_duplicate.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 1), selftest_registered_before_duplicate.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), selftest_registered_before_duplicate.exit_runs);
     try std.testing.expectEqual(@as(i32, 1), selftest_registered_before_duplicate.last_fn_count);
@@ -158,6 +168,8 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(usize, 0), selftest_after.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), selftest_after.main_iterations);
     try std.testing.expectEqual(@as(usize, 3), selftest_after.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 4), selftest_after.register_transitions);
+    try std.testing.expectEqual(@as(usize, 3), selftest_after.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 6), selftest_after.main_thread_events);
     try std.testing.expectEqual(@as(usize, 6), selftest_after.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 12), selftest_after.total_events);
@@ -197,6 +209,8 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), before_exit.main_iterations);
     try std.testing.expectEqual(@as(usize, 3), before_exit.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 4), before_exit.register_transitions);
+    try std.testing.expectEqual(@as(usize, 3), before_exit.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 6), before_exit.main_thread_events);
     try std.testing.expectEqual(@as(usize, 6), before_exit.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 12), before_exit.total_events);
@@ -242,6 +256,8 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(before_exit.last_main_emitted_events, after_exit.last_main_emitted_events);
     try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);
     try std.testing.expectEqual(before_exit.last_main_conditional_event_count, after_exit.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_exit.register_transitions, after_exit.register_transitions);
+    try std.testing.expectEqual(before_exit.unregister_transitions, after_exit.unregister_transitions);
     try std.testing.expectEqual(before_exit.last_main_count, after_exit.last_main_count);
     try std.testing.expectEqual(before_exit.last_fn_count, after_exit.last_fn_count);
     try std.testing.expectEqual(before_exit.saw_vararg_payload, after_exit.saw_vararg_payload);
