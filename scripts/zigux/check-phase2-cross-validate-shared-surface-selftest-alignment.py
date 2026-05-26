@@ -16,6 +16,8 @@ REQUIRED_SOURCE_MARKERS = (
     '    / "check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py"',
     '    DIRECT_WORKFLOW_CHECKER,',
     '    DIRECT_WORKFLOW_ALIGNMENT,',
+    '    "scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py",',
+    '    "scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py",',
     'WORKFLOW_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order.py"',
     'WORKFLOW_ORDER_ALIGNMENT = (',
     '    ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order-selftest-alignment.py"',
