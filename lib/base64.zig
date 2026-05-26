@@ -600,6 +600,26 @@ fn expectVariantPinnedForeignAlphabetRejection(
     }
 }
 
+fn expectGenericForeignShortTailRejection(
+    accepted: []const u8,
+    expected: []const u8,
+    padding: bool,
+    variant: Variant,
+    rejected: []const []const u8,
+) !void {
+    var decoded_buf: [3]u8 = undefined;
+    const exact_len = try bytes(accepted, padding, variant);
+    try std.testing.expectEqual(expected.len, exact_len);
+    const decoded_len = try decode(decoded_buf[0..], accepted, padding, variant);
+    try std.testing.expectEqual(expected.len, decoded_len);
+    try std.testing.expectEqualSlices(u8, expected, decoded_buf[0..decoded_len]);
+
+    for (rejected) |input| {
+        try std.testing.expectError(DecodeError.InvalidInput, bytes(input, padding, variant));
+        try std.testing.expectError(DecodeError.InvalidInput, decode(decoded_buf[0..], input, padding, variant));
+    }
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -670,6 +690,26 @@ test "variant-pinned decode wrappers reject foreign alphabet tails" {
     try expectVariantPinnedForeignAlphabetRejection("+w==", &one_byte, true, .imap, &[_][]const u8{"-w=="});
     try expectVariantPinnedForeignAlphabetRejection(",,A", &two_byte, false, .imap, &[_][]const u8{ "//A", "__A" });
     try expectVariantPinnedForeignAlphabetRejection(",,A=", &two_byte, true, .imap, &[_][]const u8{ "//A=", "__A=" });
+}
+
+test "generic bytes and decode reject foreign variant short tails" {
+    const one_byte = [_]u8{0xfb};
+    const two_byte = [_]u8{ 0xff, 0xf0 };
+
+    try expectGenericForeignShortTailRejection("+w", &one_byte, false, .std, &[_][]const u8{"-w"});
+    try expectGenericForeignShortTailRejection("+w==", &one_byte, true, .std, &[_][]const u8{"-w=="});
+    try expectGenericForeignShortTailRejection("//A", &two_byte, false, .std, &[_][]const u8{ "__A", ",,A" });
+    try expectGenericForeignShortTailRejection("//A=", &two_byte, true, .std, &[_][]const u8{ "__A=", ",,A=" });
+
+    try expectGenericForeignShortTailRejection("-w", &one_byte, false, .urlsafe, &[_][]const u8{"+w"});
+    try expectGenericForeignShortTailRejection("-w==", &one_byte, true, .urlsafe, &[_][]const u8{"+w=="});
+    try expectGenericForeignShortTailRejection("__A", &two_byte, false, .urlsafe, &[_][]const u8{ "//A", ",,A" });
+    try expectGenericForeignShortTailRejection("__A=", &two_byte, true, .urlsafe, &[_][]const u8{ "//A=", ",,A=" });
+
+    try expectGenericForeignShortTailRejection("+w", &one_byte, false, .imap, &[_][]const u8{"-w"});
+    try expectGenericForeignShortTailRejection("+w==", &one_byte, true, .imap, &[_][]const u8{"-w=="});
+    try expectGenericForeignShortTailRejection(",,A", &two_byte, false, .imap, &[_][]const u8{ "//A", "__A" });
+    try expectGenericForeignShortTailRejection(",,A=", &two_byte, true, .imap, &[_][]const u8{ "//A=", "__A=" });
 }
 
 test "standard slice and allocator helpers pin the common variant across exact-span ownership paths" {
