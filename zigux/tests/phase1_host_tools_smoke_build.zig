@@ -91,17 +91,23 @@ pub fn build(b: *std.Build) void {
     root_module.addImport("zalloc", zalloc_module);
 
     const tests = b.addTest(.{
-        .name = "phase1-host-tools-smoke-test",
+        .name = "phase1-host-tools-smoke",
         .root_module = root_module,
     });
     const run_tests = b.addRunArtifact(tests);
     run_tests.setCwd(b.path("../.."));
 
     const phase1_step = b.step(
-        "phase1-host-tools-smoke-test",
-        "Run the dedicated Phase 1 host-tools smoke build shard from zigux/tests",
+        "phase1-host-tools-smoke",
+        "Run the shared Phase 1 host-tools smoke anchor from zigux/tests",
     );
     phase1_step.dependOn(&run_tests.step);
+
+    const smoke_step = b.step(
+        "smoke",
+        "Run the dedicated Phase 1 host-tools smoke build shard",
+    );
+    smoke_step.dependOn(&run_tests.step);
 
     const test_step = b.step(
         "test",
