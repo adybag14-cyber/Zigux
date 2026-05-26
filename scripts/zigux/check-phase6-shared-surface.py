@@ -89,6 +89,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-perf",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
+    "python3 scripts/zigux/check-phase6-base64-bsearch-perf-markers.py",
     "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-test",
     "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
@@ -97,6 +98,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "make -C zigux phase6-checksum-perf",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
     "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+    "python3 scripts/zigux/check-phase6-perf-threshold-markers.py",
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
@@ -122,6 +124,8 @@ REQUIRED_EVIDENCE_CATALOG_SNIPPETS = [
     "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`, and that broader perf note is now aligned again on the currently readable base64, bsearch, checksum, and hexdump measurement packet.",
     "Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `Documentation/zigux/phase6-hexdump-perf-refresh.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `scripts/zigux/check-phase6-perf-threshold-markers.py`, `scripts/zigux/check-phase6-hexdump-packet.py`, and `scripts/zigux/check-phase6-hexdump-route.py`.",
     "The docs-root README now keeps a dedicated Phase 6 helper-evidence stanza aligned with surveyed head `current-master-readback-2026-05-22`, so keep `Documentation/zigux/README.md` inside the current direct-readback packet rather than treating it as a remaining shared-note follow-through gap.",
+    "- `python3 scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`",
+    "- `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`",
 ]
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
