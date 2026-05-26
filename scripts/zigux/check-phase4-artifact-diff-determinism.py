@@ -208,6 +208,17 @@ VALIDATOR_REPLAYS_EXPECTED_SELF_TEST_CASES = (
     "artifact_diff_note_marker_drift",
 )
 
+VALIDATOR_MARKERS = (
+    '"phase4-artifact-diff-determinism-self-test": (',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass",',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12",',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASES="',
+    '"phase4-artifact-diff-determinism": (',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM=pass",',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_DIRECT_PACKET_MEMBERS=11",',
+    '"PHASE4_ARTIFACT_DIFF_DETERMINISM_AUTH_MISSING_BROADER_COMPANIONS=0",',
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -294,6 +305,10 @@ def require_current_validator_replays_checker(text: str) -> None:
         )
 
 
+def require_current_validator(text: str) -> None:
+    require_markers(text, VALIDATOR_MARKERS, VALIDATOR.as_posix())
+
+
 def require_current_repo_reality(root: Path) -> None:
     missing = [path for path in CURRENT_DIRECT_PACKET if not (root / Path(path)).exists()]
     if missing:
@@ -308,6 +323,7 @@ def check(root: Path) -> None:
     helper_text = read(root, DIRECT_HELPER)
     contract_text = read(root, CONTRACT_CHECKER)
     validator_replays_text = read(root, VALIDATOR_REPLAYS)
+    validator_text = read(root, VALIDATOR)
 
     require_markers(survey, SURVEY_MARKERS, SURVEY.as_posix())
     require_paths_listed(survey, CURRENT_DIRECT_PACKET, SURVEY.as_posix())
@@ -320,6 +336,7 @@ def check(root: Path) -> None:
     require_current_helper_contract(helper_text)
     require_current_contract_checker(contract_text)
     require_current_validator_replays_checker(validator_replays_text)
+    require_current_validator(validator_text)
     require_current_repo_reality(root)
 
 
@@ -372,6 +389,10 @@ def validator_replays_fixture_text() -> str:
     ) + "\n"
 
 
+def validator_fixture_text() -> str:
+    return "\n".join(VALIDATOR_MARKERS) + "\n"
+
+
 def artifact_note_fixture_text() -> str:
     return "\n".join(ARTIFACT_DIFF_NOTE_MARKERS) + "\n"
 
@@ -388,7 +409,7 @@ def fixture_root(root: Path) -> None:
     write(root / REPO_WARNING, "\n".join(REPO_WARNING_MARKERS) + "\n")
     write(root / PINS_CHECKER, "# pins checker placeholder\n")
     write(root / VALIDATOR_REPLAYS, validator_replays_fixture_text())
-    write(root / VALIDATOR, "# validator placeholder\n")
+    write(root / VALIDATOR, validator_fixture_text())
     write(root / DIRECT_HELPER, helper_fixture_text())
     write(root / CONTRACT_CHECKER, contract_fixture_text())
     write(root / SELF_PATH, "# current checker\n")
