@@ -30,7 +30,6 @@ The following paths now count as present governance evidence on current `master`
 - `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
-- `Documentation/zigux/phase15-deep-core-blocker-survey.md`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.json`
@@ -70,7 +69,7 @@ These broader reminder surfaces still are not directly materialized as dedicated
 
 The remaining Phase 15 discipline work is broad-summary truthfulness and route wording exactness, not missing-file recovery by wishful thinking:
 
-- `Documentation/zigux/README.md`
+- `Documentation/zigux/README.md` now carries the broad Phase 15 reminder surface and should be reread with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and the directly materialized governance packet whenever that docs-root summary drifts
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -115,7 +114,7 @@ Treat the current Phase 15 shared-summary state as a wording-and-alignment check
 - do not treat the parked make-route vocabulary or shared-CI route vocabulary as shipped evidence until direct current-tree reads recover them
 - do keep the landed tests-root Phase 15 reminder aligned with `scripts/zigux/check-phase15-tests-readme-alignment.py` and the rest of the directly materialized governance packet instead of letting that summary drift back into undercounted or implied-approval wording
 - do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves
-- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, the deep-core blocker survey, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 - keep tests-root follow-through separate from review-process and parity-scorecard packet maintenance unless the same direct evidence forces them back together
 
 ## Non-goals
