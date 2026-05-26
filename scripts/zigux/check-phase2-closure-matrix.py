@@ -78,7 +78,10 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def collect_manifest_surface_expectations(manifest_path: Path) -> list[tuple[str, tuple[str, ...]]]:
+MANIFEST_EXPECTATION_ATTR_PREFIX = "EXPECTED_MANIFEST_"
+
+
+def collect_manifest_surface_expectations(module, manifest_path: Path) -> list[tuple[str, tuple[str, ...]]]:
     payload = load_json(manifest_path)
     if not isinstance(payload, dict):
         raise AssertionError("manifest root must stay a dict in the seeded baseline")
@@ -87,10 +90,17 @@ def collect_manifest_surface_expectations(manifest_path: Path) -> list[tuple[str
         raise AssertionError("manifest present_surfaces must stay a dict in the seeded baseline")
 
     expectations: list[tuple[str, tuple[str, ...]]] = []
-    for key, value in surfaces.items():
+    for attr_name, expected in sorted(vars(module).items()):
+        if not attr_name.startswith(MANIFEST_EXPECTATION_ATTR_PREFIX):
+            continue
+        if not isinstance(expected, tuple) or not all(isinstance(item, str) for item in expected):
+            continue
+
+        key = attr_name[len(MANIFEST_EXPECTATION_ATTR_PREFIX) :].lower()
+        value = surfaces.get(key)
         if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
             raise AssertionError(f"manifest surface must stay a list[str] in the seeded baseline: {key}")
-        expectations.append((key, tuple(value)))
+        expectations.append((key, expected))
     return expectations
 
 
@@ -163,7 +173,7 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
-        for key, expected in collect_manifest_surface_expectations(manifest_path):
+        for key, expected in collect_manifest_surface_expectations(module, manifest_path):
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
             payload = load_json(manifest_path)
@@ -302,11 +312,11 @@ def resolve(root: Path, rel: Path) -> Path:
 
 def build_self_test_root(root: Path) -> None:
     resolve(root, PHASE2_CLOSURE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\n`marker-b`\n", encoding="utf-8")
+    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\\n`marker-b`\\n", encoding="utf-8")
     resolve(root, WORKFLOW_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, WORKFLOW_REL).write_text("run: alpha\nrun: beta\n", encoding="utf-8")
+    resolve(root, WORKFLOW_REL).write_text("run: alpha\\nrun: beta\\n", encoding="utf-8")
     resolve(root, MAKEFILE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, MAKEFILE_REL).write_text("phase2-a:\nphase2-b:\n", encoding="utf-8")
+    resolve(root, MAKEFILE_REL).write_text("phase2-a:\\nphase2-b:\\n", encoding="utf-8")
     resolve(root, MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, MANIFEST_REL).write_text(json.dumps({
         "repo_reality_gaps": [],
@@ -320,21 +330,22 @@ def build_self_test_root(root: Path) -> None:
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
             "policy": list(EXPECTED_MANIFEST_POLICY),
+            "out_of_scope": ["extra-surface.md"],
         },
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, KCONFIG_CASES_REL).write_text(json.dumps({
         "conf_cases": EXPECTED_CONF_CASE_DETAILS,
         "confdata_cases": EXPECTED_CONFDATA_CASE_DETAILS,
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, CONF_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\\n", encoding="utf-8")
     resolve(root, CONFDATA_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\\n", encoding="utf-8")
     resolve(root, GENKSYMS_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\n", encoding="utf-8")
+    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\\n", encoding="utf-8")
     resolve(root, GENKSYMS_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\\n", encoding="utf-8")
 
 def _count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
