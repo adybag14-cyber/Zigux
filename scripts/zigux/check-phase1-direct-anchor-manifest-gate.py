@@ -183,6 +183,7 @@ EXPECTED_REVIEW_FIELDS = {
             'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
         ],
         "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+        "cached_root_transition_fixture_keys": ["cached_root_transition_serials"],
         "shared_replay_summary": (
             "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, "
             "and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools "
