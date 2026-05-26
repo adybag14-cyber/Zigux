@@ -43,7 +43,11 @@ targetless-unregister witness build routes stay jointly fail-closed by
 `scripts/zigux/check-phase11-focused-direct-build-replays.py` without
 promoting either pair into the shared three-entry build inventory, and the
 proof-backed HVC continuity packet remains reviewable through the shared
-inventory-backed proof routes.
+inventory-backed proof routes. The same packet now keeps
+`zigux/tests/phase11_hvc_current_head_manifest.json` explicit as a
+machine-readable current-head manifest packet, with
+`scripts/zigux/check-phase11-hvc-current-head-manifest.py` guarding the lane
+key, current packet roster, direct checks, and bounded repo-reality gaps.
 
 ## Drift Kept Explicit
 
@@ -70,6 +74,7 @@ This companion does not claim:
 It only records that current `master` keeps the direct starter, the returned
 verify helper, the verify boundary reminder, the standalone
 targetless-unregister witness pair, the focused-direct-build replay checker,
-the dedicated modem-control proof pair, and the smaller proof-backed
-continuity packet reviewable while the sysrq helper, survey-replay, manifest,
-teardown-note, and survey-checker anchors remain absent on current head.
+the dedicated modem-control proof pair, the machine-readable current-head
+manifest packet, and the smaller proof-backed continuity packet reviewable
+while the sysrq helper, survey-replay, manifest, teardown-note, and
+survey-checker anchors remain absent on current head.
