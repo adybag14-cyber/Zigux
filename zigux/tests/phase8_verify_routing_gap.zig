@@ -186,11 +186,11 @@ test "phase 8 verify routing witness records the current mixed-source bridge rem
 
     try expectContains(
         survey,
-        "That same reminder-side bridge test packet in `zigux/tests/phase8_file_path_handle_bridge.zig` now also keeps the Linux-style replay route, the manifest-backed split between the landed `fdinfo-map-info-helpers` and `map-reuse-compatibility` helpers versus the deferred `file-path-and-handle-bridge` resource boundary, and the source-level ban on `bpf_obj_get(`, `F_DUPFD_CLOEXEC`, and direct file-open bridge-heavy calls explicit on current `master`.",
+        "That same reminder-side bridge test packet in `zigux/tests/phase8_file_path_handle_bridge.zig` now also keeps the Linux-style replay route, the manifest-backed split between the landed `fdinfo-path-and-reuse-name-footholds` helper foothold versus the still-partial `fdinfo-map-info-helpers` and `map-reuse-compatibility` groundwork plus the deferred `file-path-and-handle-bridge` resource boundary, and the source-level ban on `bpf_obj_get(`, `F_DUPFD_CLOEXEC`, and direct file-open bridge-heavy calls explicit on current `master`.",
     );
     try expectContains(
         survey,
-        "`tools/lib/bpf/zigux_segments/manifest.json` has since advanced both `fdinfo-map-info-helpers` and `map-reuse-compatibility` as landed helper-first slices with the newer shared bridge rationale, so the smallest same-family reminder drift is now whether sibling reminder surfaces continue to reflect those same landed `why_now` strings whenever they restate the focused bridge packet.",
+        "`tools/lib/bpf/zigux_segments/manifest.json` now keeps the shared bridge packet split more precisely than the older landed-helper wording: `fdinfo-map-info-helpers` is still `blocked_on_fdinfo_parser_materialization`, `map-reuse-compatibility` is still `blocked_on_reuse_comparison_materialization`, and the newer landed helper foothold is `fdinfo-path-and-reuse-name-footholds`. The smallest same-family reminder drift is therefore whether sibling reminder surfaces preserve that partial-helper-versus-landed-foothold split whenever they restate the focused bridge packet.",
     );
     try expectContains(
         survey,
@@ -202,19 +202,27 @@ test "phase 8 verify routing witness records the current mixed-source bridge rem
 
     try expectContains(
         manifest,
-        "\\\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"starter_landed\\\"",
+        "\\\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"blocked_on_fdinfo_parser_materialization\\\"",
     );
     try expectContains(
         manifest,
-        "\\\"why_now\\\": \\\"The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.\\\"",
+        "\\\"why_now\\\": \\\"The shared file-path bridge destination is now materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers are still queued, so this slice must stay explicit as partially landed rather than complete.\\\"",
     );
     try expectContains(
         manifest,
-        "\\\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"starter_landed\\\"",
+        "\\\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"blocked_on_reuse_comparison_materialization\\\"",
     );
     try expectContains(
         manifest,
-        "\\\"why_now\\\": \\\"The shared bridge surface now already carries the reused-map-name chooser, truncated-name retention through `resolveReusedMapName()`, devmap readonly-prog flag normalization through `normalizeObservedReuseMapFlags()`, and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\\\"",
+        "\\\"why_now\\\": \\\"The shared bridge file now carries bounded reused-map name retention, but the helper-only compatibility observation, flag normalization, and mismatch reporting work remains queued, so the segment cannot yet be reported as fully landed on master.\\\"",
+    );
+    try expectContains(
+        manifest,
+        "\\\"slug\\\": \\\"fdinfo-path-and-reuse-name-footholds\\\", \\\"status\\\": \\\"starter_landed\\\"",
+    );
+    try expectContains(
+        manifest,
+        "\\\"why_now\\\": \\\"This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred.\\\"",
     );
     try expectContains(
         manifest,
