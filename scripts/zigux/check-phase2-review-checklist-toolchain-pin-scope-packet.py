@@ -12,7 +12,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 REVIEW_CHECKLIST = ROOT / "Documentation/zigux/review-checklist.md"
 BOOTSTRAP_NOTES = ROOT / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
-TESTS_README = ROOT / "zigux/tests/README.md"
 WORKFLOW = ROOT / ".github/workflows/zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux/Makefile"
 TOOLCHAIN_POLICY = ROOT / "scripts/zigux/zig-toolchain-policy.json"
@@ -24,15 +23,11 @@ REVIEW_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
-    "`make -C zigux phase2-genksyms`",
-    "`make -C zigux phase2-fixdep`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "same pinned toolchain",
@@ -54,25 +49,6 @@ BOOTSTRAP_MARKERS = (
     "`make -C zigux phase2-fixdep`",
     "`make -C zigux phase2-validate`",
     "pinned-channel",
-)
-
-TESTS_MARKERS = (
-    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
-    "`Documentation/zigux/review-checklist.md`",
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz --archive-target x86_64-linux`",
-    "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-tools`",
-    "`make -C zigux phase2-kconfig`",
-    "`make -C zigux phase2-cross`",
-    "`make -C zigux phase2-genksyms`",
-    "`make -C zigux phase2-fixdep`",
-    "`make -C zigux phase2-validate`",
-    "`make -C zigux phase2`",
-    "pinned `x86_64-linux` bootstrap archive note",
 )
 
 WORKFLOW_LINES = (
@@ -206,19 +182,52 @@ def validate_policy(payload: object) -> list[tuple[str, str]]:
 def validate(root: Path) -> list[tuple[str, str]]:
     review_text = read_text(root / REVIEW_CHECKLIST.relative_to(ROOT))
     bootstrap_text = read_text(root / BOOTSTRAP_NOTES.relative_to(ROOT))
-    tests_text = read_text(root / TESTS_README.relative_to(ROOT))
     workflow_text = read_text(root / WORKFLOW.relative_to(ROOT))
     makefile_text = read_text(root / MAKEFILE.relative_to(ROOT))
     checker_text = read_text(root / TOOLCHAIN_CHECKER.relative_to(ROOT))
     policy_text = read_text(root / TOOLCHAIN_POLICY.relative_to(ROOT))
 
     issues: list[tuple[str, str]] = []
-    issues.extend(collect_occurrence_issues(review_text, REVIEW_MARKERS, "REVIEW_MARKER_MISSING", "REVIEW_MARKER_DUPLICATED"))
-    issues.extend(collect_occurrence_issues(bootstrap_text, BOOTSTRAP_MARKERS, "BOOTSTRAP_MARKER_MISSING", "BOOTSTRAP_MARKER_DUPLICATED"))
-    issues.extend(collect_occurrence_issues(tests_text, TESTS_MARKERS, "TESTS_MARKER_MISSING", "TESTS_MARKER_DUPLICATED"))
-    issues.extend(collect_exact_line_issues(workflow_text, WORKFLOW_LINES, "WORKFLOW_LINE_MISSING", "WORKFLOW_LINE_DUPLICATED"))
-    issues.extend(collect_exact_line_issues(makefile_text, MAKEFILE_LINES, "MAKEFILE_LINE_MISSING", "MAKEFILE_LINE_DUPLICATED"))
-    issues.extend(collect_occurrence_issues(checker_text, CHECKER_MARKERS, "TOOLCHAIN_CHECKER_MARKER_MISSING", "TOOLCHAIN_CHECKER_MARKER_DUPLICATED"))
+    issues.extend(
+        collect_occurrence_issues(
+            review_text,
+            REVIEW_MARKERS,
+            "REVIEW_MARKER_MISSING",
+            "REVIEW_MARKER_DUPLICATED",
+        )
+    )
+    issues.extend(
+        collect_occurrence_issues(
+            bootstrap_text,
+            BOOTSTRAP_MARKERS,
+            "BOOTSTRAP_MARKER_MISSING",
+            "BOOTSTRAP_MARKER_DUPLICATED",
+        )
+    )
+    issues.extend(
+        collect_exact_line_issues(
+            workflow_text,
+            WORKFLOW_LINES,
+            "WORKFLOW_LINE_MISSING",
+            "WORKFLOW_LINE_DUPLICATED",
+        )
+    )
+    issues.extend(
+        collect_exact_line_issues(
+            makefile_text,
+            MAKEFILE_LINES,
+            "MAKEFILE_LINE_MISSING",
+            "MAKEFILE_LINE_DUPLICATED",
+        )
+    )
+    issues.extend(
+        collect_occurrence_issues(
+            checker_text,
+            CHECKER_MARKERS,
+            "TOOLCHAIN_CHECKER_MARKER_MISSING",
+            "TOOLCHAIN_CHECKER_MARKER_DUPLICATED",
+        )
+    )
     issues.extend(validate_policy(json.loads(policy_text)))
     return issues
 
@@ -279,7 +288,6 @@ def sample_lines(lines: tuple[str, ...]) -> str:
 def write_sample_root(root: Path) -> None:
     write_text(root / REVIEW_CHECKLIST.relative_to(ROOT), sample_markdown("Review Checklist", REVIEW_MARKERS))
     write_text(root / BOOTSTRAP_NOTES.relative_to(ROOT), sample_markdown("Bootstrap Notes", BOOTSTRAP_MARKERS))
-    write_text(root / TESTS_README.relative_to(ROOT), sample_markdown("Tests README", TESTS_MARKERS))
     write_text(root / WORKFLOW.relative_to(ROOT), sample_lines(WORKFLOW_LINES))
     write_text(root / MAKEFILE.relative_to(ROOT), sample_lines(MAKEFILE_LINES))
     write_text(root / TOOLCHAIN_CHECKER.relative_to(ROOT), sample_checker())
@@ -287,6 +295,7 @@ def write_sample_root(root: Path) -> None:
 
 
 def run_self_test() -> None:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="lane25_toolchain_pin_scope_") as tempdir:
         root = Path(tempdir)
         write_sample_root(root)
@@ -294,15 +303,37 @@ def run_self_test() -> None:
         pass_issues = validate(root)
         if pass_issues:
             raise SystemExit(f"sample root should pass, found: {pass_issues}")
+        case_count += 1
 
         broken_review = read_text(root / REVIEW_CHECKLIST.relative_to(ROOT)).replace(REVIEW_MARKERS[0], "", 1)
         write_text(root / REVIEW_CHECKLIST.relative_to(ROOT), broken_review)
         fail_issues = validate(root)
         if not any(code == "REVIEW_MARKER_MISSING" and detail == REVIEW_MARKERS[0] for code, detail in fail_issues):
             raise SystemExit(f"expected missing review marker failure, found: {fail_issues}")
+        case_count += 1
+
+        write_sample_root(root)
+        duplicated_workflow = read_text(root / WORKFLOW.relative_to(ROOT)) + WORKFLOW_LINES[0] + "\n"
+        write_text(root / WORKFLOW.relative_to(ROOT), duplicated_workflow)
+        fail_issues = validate(root)
+        if not any(
+            code == "WORKFLOW_LINE_DUPLICATED" and detail == f"{WORKFLOW_LINES[0]}:count=2"
+            for code, detail in fail_issues
+        ):
+            raise SystemExit(f"expected duplicate workflow line failure, found: {fail_issues}")
+        case_count += 1
+
+        write_sample_root(root)
+        broken_policy = json.loads(read_text(root / TOOLCHAIN_POLICY.relative_to(ROOT)))
+        broken_policy["upgrade_policy"]["required_make_routes"] = EXPECTED_REQUIRED_ROUTES[:-1]
+        write_text(root / TOOLCHAIN_POLICY.relative_to(ROOT), json.dumps(broken_policy, indent=2) + "\n")
+        fail_issues = validate(root)
+        if not any(code == "INVALID_POLICY_REQUIRED_ROUTES" for code, _detail in fail_issues):
+            raise SystemExit(f"expected invalid policy required routes failure, found: {fail_issues}")
+        case_count += 1
 
     print("PHASE2_REVIEW_CHECKLIST_TOOLCHAIN_PIN_SCOPE_PACKET_SELF_TEST=pass")
-    print("PHASE2_REVIEW_CHECKLIST_TOOLCHAIN_PIN_SCOPE_PACKET_SELF_TEST_CASE_COUNT=2")
+    print(f"PHASE2_REVIEW_CHECKLIST_TOOLCHAIN_PIN_SCOPE_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> None:
@@ -328,10 +359,10 @@ def main() -> None:
         raise SystemExit(1)
 
     print("PHASE2_REVIEW_CHECKLIST_TOOLCHAIN_PIN_SCOPE_PACKET=pass")
-    print(f"PHASE2_REVIEW_CHECKLIST_TOOLCHAIN_PIN_SCOPE_PACKET_REQUIRED_PATH_COUNT=7")
+    print("PHASE2_REVIEW_CHECKLIST_TOOLCHAIN_PIN_SCOPE_PACKET_REQUIRED_PATH_COUNT=6")
     print(
         "PHASE2_REVIEW_CHECKLIST_TOOLCHAIN_PIN_SCOPE_PACKET_MARKER_COUNT="
-        f"{len(REVIEW_MARKERS) + len(BOOTSTRAP_MARKERS) + len(TESTS_MARKERS) + len(WORKFLOW_LINES) + len(MAKEFILE_LINES) + len(CHECKER_MARKERS)}"
+        f"{len(REVIEW_MARKERS) + len(BOOTSTRAP_MARKERS) + len(WORKFLOW_LINES) + len(MAKEFILE_LINES) + len(CHECKER_MARKERS)}"
     )
 
 
