@@ -559,6 +559,22 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def drift_queue_publish_readiness_helper_destination(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for gap in data["gaps"]:
+                if gap.get("id") == "phase10-queue-publish-readiness-helper":
+                    gap["zigux_destination"] = "drivers/virtio/virtio_ring_missing_publish_readiness.zig"
+                    break
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_queue_publish_readiness_helper_destination,
+            f"{MANIFEST_PATH}:gap:phase10-queue-publish-readiness-helper:zigux_destination:drivers/virtio/virtio_ring_missing_publish_readiness.zig",
+        )
+        write_fixture(root)
+
         def remove_empty_queue_test(tmp_root: Path) -> None:
             path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
             text = path.read_text(encoding="utf-8")
@@ -694,7 +710,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=28")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
