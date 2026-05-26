@@ -217,3 +217,24 @@ test "error normalization stays defined for the i32 minimum edge" {
         try formatLibbpfError(buffer[0..], std.math.minInt(i32)),
     );
 }
+
+test "logging helpers fail closed on undersized stable-output buffers" {
+    var version_buffer: [3]u8 = undefined;
+    var warning_buffer: [32]u8 = undefined;
+    var known_error_buffer: [24]u8 = undefined;
+    var unknown_error_buffer: [16]u8 = undefined;
+
+    try std.testing.expectError(error.NoSpaceLeft, libbpfVersionString(version_buffer[0..]));
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        formatUnrecognizedLogLevel(warning_buffer[0..], "chatty"),
+    );
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        formatLibbpfError(known_error_buffer[0..], @intFromEnum(LibbpfErrno.verify)),
+    );
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        formatLibbpfError(unknown_error_buffer[0..], -4999),
+    );
+}
