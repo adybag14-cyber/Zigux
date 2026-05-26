@@ -441,6 +441,15 @@ def run_self_test() -> None:
         expect_failure(manifest_verify_flag_case, "manifest_flag:dw_wdt_verify_helper_present:False")
         case_count += 1
 
+        manifest_verify_gap_case = root / "manifest_verify_gap_case"
+        shutil.copytree(fixture, manifest_verify_gap_case)
+        manifest_path = manifest_verify_gap_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["gaps"][0]["status"] = "ready_next"
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        expect_failure(manifest_verify_gap_case, "manifest_verify_status:'ready_next'")
+        case_count += 1
+
         manifest_restart_gap_case = root / "manifest_restart_gap_case"
         shutil.copytree(fixture, manifest_restart_gap_case)
         manifest_path = manifest_restart_gap_case / REQUIRED_FILES["manifest"]
