@@ -9,7 +9,7 @@
     "preexisting_phase8_libbpf_note_present": true,
     "repo_reality_notes": [
       "Current master carries helper-first Zig segments under tools/lib/bpf/zigux_segments.",
-      "Current master does not carry tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig, so landed claims for that destination stay blocked until the file and its bounded validators actually materialize."
+      "Current master now carries tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig for helper-only proc-fdinfo pathname shaping and reused-map name retention, but bounded fdinfo parsers, map-info decoders, and reuse-comparison helpers remain queued inside that shared destination."
     ],
     "companion_c_files": [
       {
@@ -96,24 +96,24 @@
     {
       "id": "P8-L13-S05",
       "slug": "fdinfo-map-info-helpers",
-      "status": "blocked_on_materialization",
+      "status": "blocked_on_fdinfo_parser_materialization",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The shared file-path bridge destination is still the right bounded home for procfs-path shaping and fdinfo text parsing, but current master does not yet carry that Zig file or its validators, so this slice must stay explicit as planned rather than landed."
+      "why_now": "The shared file-path bridge destination is now materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers are still queued, so this slice must stay explicit as partially landed rather than complete."
     },
     {
       "id": "P8-L13-S06",
       "slug": "map-reuse-compatibility",
-      "status": "blocked_on_materialization",
+      "status": "blocked_on_reuse_comparison_materialization",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The helper-only reused-map compatibility packet remains a valid future bounded slice, but the repo does not currently materialize the shared bridge file it would live in, so the segment cannot be reported as landed on master."
+      "why_now": "The shared bridge file now carries bounded reused-map name retention, but the helper-only compatibility observation, flag normalization, and mismatch reporting work remains queued, so the segment cannot yet be reported as fully landed on master."
     },
     {
       "id": "P8-L13-S07",
@@ -182,15 +182,33 @@
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
       "why_now": "The bounded poll-summary helper proves wait-result normalization and ready-buffer accounting without widening into epoll wiring, mmap-backed ring ownership, or online-CPU setup."
+    },
+    {
+      "id": "P8-L13-S13",
+      "slug": "fdinfo-path-and-reuse-name-footholds",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() proc-fdinfo path shaping",
+        "tools/lib/bpf/libbpf.c: reused-map name retention before compatibility comparison"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred."
     }
   ],
   "segmentation_notes": [
     {
       "destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "status": "blocked_on_materialization",
-      "landed_scope": [],
+      "status": "partial_landed",
+      "landed_scope": [
+        "validateProcFdinfoRoot() proc-fdinfo root shape validation",
+        "buildProcFdinfoPath() bounded /proc/.../fdinfo pathname shaping",
+        "buildProcFdinfoPathReturn() errno-shaped pathname helper wrapper",
+        "summarizeReusedMapName() bounded reused-map name retention summary",
+        "resolveReusedMapName() helper-only retained reused-map name copy",
+        "resolveReusedMapNameReturn() errno-shaped reused-name helper wrapper"
+      ],
       "queued_scope": [
-        "buildProcFdinfoPath() bounded /proc/<fd>/fdinfo pathname shaping",
         "parseFdinfoLine() field splitting and trimming",
         "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
         "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
@@ -207,7 +225,7 @@
         "direct procfs reads and descriptor ownership flow",
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
       ],
-      "why_now": "Master currently lacks this shared bridge file, so the inventory should describe it as a bounded queued packet and not as landed helper behavior."
+      "why_now": "Master now materializes the shared bridge file for stable path-shaping and name-retention outputs, while the remaining fdinfo parser and reuse-comparison packet stays explicit as queued groundwork instead of being overstated as complete."
     }
   ]
 }
