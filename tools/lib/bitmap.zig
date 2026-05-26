@@ -1033,6 +1033,22 @@ test "bitmap Linux-style aliases mirror copy logical range and format helpers" {
     const alias_len = bitmap_scnprintf(&alias_range, nbits, &alias_buffer);
     try std.testing.expectEqual(direct_len, alias_len);
     try std.testing.expectEqualStrings(direct_buffer[0..direct_len], alias_buffer[0..alias_len]);
+
+    var direct_terminator_only = [_]u8{0xaa};
+    var alias_terminator_only = [_]u8{0xaa};
+    const direct_terminator_only_len = scnprintf(&direct_range, nbits, direct_terminator_only[0..1]);
+    const alias_terminator_only_len = bitmap_scnprintf(&alias_range, nbits, alias_terminator_only[0..1]);
+    try std.testing.expectEqual(direct_terminator_only_len, alias_terminator_only_len);
+    try std.testing.expectEqual(@as(u8, 0), direct_terminator_only[0]);
+    try std.testing.expectEqualSlices(u8, &direct_terminator_only, &alias_terminator_only);
+
+    const empty_range = [_]Word{ 0, 0 };
+    var direct_empty_buffer = [_]u8{ 0xcc, 0xcc, 0xcc };
+    var alias_empty_buffer = [_]u8{ 0xcc, 0xcc, 0xcc };
+    const direct_empty_len = scnprintf(&empty_range, nbits, &direct_empty_buffer);
+    const alias_empty_len = bitmap_scnprintf(&empty_range, nbits, &alias_empty_buffer);
+    try std.testing.expectEqual(direct_empty_len, alias_empty_len);
+    try std.testing.expectEqualSlices(u8, &direct_empty_buffer, &alias_empty_buffer);
 }
 
 test "bitmap Linux-style aliases mirror size state and allocation helpers" {
