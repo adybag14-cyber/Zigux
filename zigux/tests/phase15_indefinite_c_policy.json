@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L16",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-25",
+  "surveyed_commit": "current-master-readback-2026-05-26",
   "surveyed_commit_mode": "dated_master_readback",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
@@ -146,7 +146,7 @@
       "status": "landed",
       "kind": "maintenance_reread",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
-      "why_now": "The direct stay-in-C packet had to be reread against current 2026-05-25 master so the roadmap-required policy surface stays explicitly landed instead of drifting behind newer Phase 15 governance companions."
+      "why_now": "The direct stay-in-C packet had to be reread against current 2026-05-26 master so the roadmap-required policy surface stays explicitly landed instead of drifting behind newer Phase 15 governance companions."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
