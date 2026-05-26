@@ -335,6 +335,76 @@ test "runtime kretprobe loader keeps initialized reusable probe cycles from drif
     ));
 }
 
+test "runtime kretprobe loader keeps post-selftest reusable probe cycles from disturbing the blocked shared-request path" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    const selftested_before_cycle = module.lifecycleSnapshot();
+    try std.testing.expectEqual(
+        runtime_kretprobe_sample.ModuleStage.selftest_complete,
+        selftested_before_cycle.stage,
+    );
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_cycle.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_cycle.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftested_before_cycle.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_cycle.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_cycle.unregistration_runs);
+    try std.testing.expect(!selftested_before_cycle.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), selftested_before_cycle.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_cycle.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), selftested_before_cycle.last_retval);
+
+    try module.registerProbe();
+    try module.recordEntry();
+    try module.recordReturn(37);
+    try module.unregisterProbe();
+
+    const selftested_after_cycle = module.lifecycleSnapshot();
+    try std.testing.expectEqual(
+        runtime_kretprobe_sample.ModuleStage.selftest_complete,
+        selftested_after_cycle.stage,
+    );
+    try std.testing.expectEqual(@as(usize, 1), selftested_after_cycle.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftested_after_cycle.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftested_after_cycle.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), selftested_after_cycle.registration_runs);
+    try std.testing.expectEqual(@as(usize, 2), selftested_after_cycle.unregistration_runs);
+    try std.testing.expect(!selftested_after_cycle.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), selftested_after_cycle.active_instances);
+    try std.testing.expectEqual(@as(usize, 2), selftested_after_cycle.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 37), selftested_after_cycle.last_retval);
+
+    const selftested_plan = try RuntimeKretprobeLoader.planFor(&module, .caller_provided);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        selftested_plan,
+        .caller_provided,
+        .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(selftested_plan));
+
+    var loader = RuntimeKretprobeLoader{ .allocator_handoff = .caller_provided };
+    try std.testing.expectError(error.InvalidPilotFamilyShape, loader.prepareSharedRequest(&module));
+    try std.testing.expectEqual(LoaderStage.cold, loader.stage());
+
+    const after_failed_prepare = module.lifecycleSnapshot();
+    try std.testing.expectEqual(selftested_after_cycle.stage, after_failed_prepare.stage);
+    try std.testing.expectEqual(selftested_after_cycle.init_runs, after_failed_prepare.init_runs);
+    try std.testing.expectEqual(selftested_after_cycle.selftest_runs, after_failed_prepare.selftest_runs);
+    try std.testing.expectEqual(selftested_after_cycle.exit_runs, after_failed_prepare.exit_runs);
+    try std.testing.expectEqual(selftested_after_cycle.registration_runs, after_failed_prepare.registration_runs);
+    try std.testing.expectEqual(selftested_after_cycle.unregistration_runs, after_failed_prepare.unregistration_runs);
+    try std.testing.expectEqual(selftested_after_cycle.probe_registered, after_failed_prepare.probe_registered);
+    try std.testing.expectEqual(selftested_after_cycle.active_instances, after_failed_prepare.active_instances);
+    try std.testing.expectEqual(selftested_after_cycle.completed_instances, after_failed_prepare.completed_instances);
+    try std.testing.expectEqual(selftested_after_cycle.last_retval, after_failed_prepare.last_retval);
+}
+
 test "runtime kretprobe loader keeps invalid loader transitions fail-closed without disturbing shared-request snapshots" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
     try module.init();
