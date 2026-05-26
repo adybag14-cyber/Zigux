@@ -153,7 +153,8 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(module_slice_note, "`phase9-runtime-bitmap-direct-init-contract-tests`");
     try expectContains(module_slice_note, "The shared `zigux/tests/phase9_build.zig` bundle reruns the direct sample, direct-init companion, cold-stage guard, loader, module, survey, diff gate, and top-bit companion through the dedicated `phase9-runtime-bitmap-direct-init-contract-tests`, `phase9-runtime-bitmap-cold-stage-guard-tests`, and `phase9-runtime-bitmap-top-bit-tests` routes plus the aggregate `phase9-runtime-bitmap-tests` handle.");
     try expectContains(module_slice_note, "the Phase 9 roadmap target is still `first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity`");
-    try expectContains(module_slice_note, "the blocked follow-through remains `broader shared runtime-loader family completion plus loadable runtime bitmap module parity`");
+    try expectContains(module_slice_note, "those adjacent shared-owner surfaces still do not prove the broader runtime bitmap packet has reached loadable pilot-module parity.");
+    try expectContains(module_slice_note, "the blocked follow-through remains `broader shared runtime-loader family completion plus loadable Phase 9 runtime bitmap pilot module parity`");
 
     try expectContains(lane_sequencing_note, "### 3. The runtime bitmap side now returns a broader direct packet without promoting the broader shared runtime-loader boundaries");
     try expectContains(lane_sequencing_note, "`zigux/tests/runtime_bitmap_module.zig` and `zigux/tests/runtime_bitmap_diff.zig` now return on the trusted path as the module-side descriptor and lifecycle packet plus the bounded diff-side summary replay packet");
@@ -207,7 +208,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(manifest, "Keep the newer loader re-init, re-selftest, and direct-exit summary guards explicit when the manifest summarizes runtime lifecycle evidence.");
     try expectContains(manifest, "Keep the module-side descriptor, selftest-summary, lifecycle-summary, mutation-and-copy, and source-target guard proofs explicit when the manifest summarizes the direct module packet.");
     try expectContains(manifest, "Keep the diff-side summary replay, copy-tail clearing, and exit-guard coverage explicit when the manifest summarizes the bounded runtime bitmap packet.");
-    try expectContains(manifest, "\"loadable runtime bitmap module parity\"");
+    try expectContains(manifest, "\"loadable Phase 9 runtime bitmap pilot module parity\"");
     try expectContains(manifest, "\"shared runtime-loader command-name or argv-policy controls\"");
 
     try expectContains(phase9_build, "\"phase9-runtime-bitmap-sample-tests\"");
