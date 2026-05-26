@@ -95,6 +95,7 @@ fn parseRangePrefix(text: []const u8) ParseCpuMaskError!ParsedRange {
         cursor = after_start;
     }
 
+    cursor = skipScanfWhitespace(text, cursor);
     return .{
         .start = start,
         .end = end,
@@ -287,10 +288,12 @@ test "cpu-mask parser keeps stable direct summary outputs explicit" {
     try std.testing.expectEqual(@as(usize, 2), derivePerfBufferAutoCpuCount(summary.possible_cpu_count, 2));
     try std.testing.expectEqual(@as(usize, 4), derivePerfBufferAutoCpuCount(summary.possible_cpu_count, 99));
 
-    var spaced_plus = try parseCpuMaskString(allocator, " +0, 2- 3\n");
+    var spaced_plus = try parseCpuMaskString(allocator, " +0, 2- 3 \t,\n 5 \r\n");
     defer spaced_plus.deinit(allocator);
-    try std.testing.expectEqualSlices(bool, &[_]bool{ true, false, true, true }, spaced_plus.values);
-    try std.testing.expectEqual(@as(usize, 3), countPossibleCpus(spaced_plus.values));
+    try std.testing.expectEqualSlices(bool, &[_]bool{ true, false, true, true, false, true }, spaced_plus.values);
+    try std.testing.expectEqual(@as(usize, 4), countPossibleCpus(spaced_plus.values));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "0 -3"));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "+5 \t-6"));
 
     const empty_summary = summarizePossibleCpus(&.{});
     try std.testing.expectEqual(@as(usize, 0), empty_summary.mask_bit_len);
