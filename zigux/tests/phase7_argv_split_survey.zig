@@ -111,6 +111,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(fixture_vectors, "leading_nul_reuses_empty_packet");
     try expectContains(fixture_vectors, "first_nul_truncation_keeps_tail_outside_packet");
     try expectContains(fixture_vectors, "quoted_tokens_stay_whitespace_split");
+    try expectContains(fixture_vectors, "ascii_control_whitespace_packet");
 
     try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_packet_landed`");
     try expectContains(slice_note, "`PHASE7_SLICE=argv-split-runtime-leaf`");
@@ -131,6 +132,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(helper, "test \\\"argvSplit treats a leading NUL as blank input\\\" {");
     try expectContains(helper, "test \\\"argvSplit truncates owned storage at the first NUL and ignores the tail\\\" {");
     try expectContains(helper, "test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {");
+    try expectContains(helper, "test \\\"argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too\\\" {");
     try expectContains(helper, "test \\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\" {");
 
     try expectContains(helper_companion, "const argv_split = @import(\"argv_split\");");
