@@ -131,12 +131,30 @@ REQUIRED_EXPORT_SHIM_BUILD_MARKERS = (
 REQUIRED_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-xarray-slot.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-policy-dump.py")',
+    'Path("scripts/zigux/validate-phase3.py")',
     'Path("scripts/zigux/check-phase3-abi.py")',
+    'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
+    'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
     'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
+    'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
+    'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
+    'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+    'Path("scripts/zigux/run-phase3-checks.py")',
+    'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
+    'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
+    'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+    'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
+    'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+    'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
+    'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
+    'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
 )
 
 REQUIRED_MAKEFILE_MARKERS = (
@@ -248,7 +266,43 @@ SELF_TEST_CASES = (
     ),
     (
         SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-xarray-slot.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-policy-dump.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/validate-phase3.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
         'Path("scripts/zigux/check-phase3-abi.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-abi-support-packet.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-abi-manifest-replay-routes.py")',
     ),
     (
         SELFTEST_DRIVER_PATH,
@@ -256,7 +310,63 @@ SELF_TEST_CASES = (
     ),
     (
         SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-wrapper-templates.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/run-phase3-checks.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/generate-phase3-check-wrappers.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-selftest-surface.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
         'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
+    ),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
     ),
     (
         MAKEFILE_PATH,
