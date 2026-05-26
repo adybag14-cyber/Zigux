@@ -38,16 +38,6 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     defer std.testing.allocator.free(loader_file);
     const module_file = try readRepoFileAlloc("zigux/tests/runtime_kretprobe_module.zig", 64 * 1024);
     defer std.testing.allocator.free(module_file);
-    const survey_note = try readRepoFileAlloc(
-        "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
-        32 * 1024,
-    );
-    defer std.testing.allocator.free(survey_note);
-    const module_note = try readRepoFileAlloc(
-        "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
-        32 * 1024,
-    );
-    defer std.testing.allocator.free(module_note);
     const initialized_guard_file = try readRepoFileAlloc(
         "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
         16 * 1024,
@@ -58,6 +48,11 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         16 * 1024,
     );
     defer std.testing.allocator.free(registration_reentry_guard_file);
+    const parity_behavior_file = try readRepoFileAlloc(
+        "zigux/tests/runtime_first_loadable_parity_behavior.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(parity_behavior_file);
     const phase9_build = try readRepoFileAlloc("zigux/tests/phase9_build.zig", 64 * 1024);
     defer std.testing.allocator.free(phase9_build);
 
@@ -120,14 +115,6 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         module_file,
         "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary",
     );
-    try expectContains(
-        survey_note,
-        "retargeted probe-symbol ownership explicit from `cold` through `initialized`, `selftest_complete`, and `exited`, and it rejects late `retargetSymbol()` attempts after arming",
-    );
-    try expectContains(
-        module_note,
-        "retargeted probe symbol now stays fixed from `cold` through `initialized`, `selftest_complete`, and `exited`, and late `retargetSymbol()` attempts are rejected after arming",
-    );
 
     try expectContains(
         initialized_guard_file,
@@ -146,6 +133,25 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         "runtime kretprobe registration reentry stays fail-closed after exit",
     );
 
+    try expectContains(
+        parity_behavior_file,
+        "first-loadable runtime pilot families keep descriptor parity explicit",
+    );
+    try expectContains(
+        parity_behavior_file,
+        "first-loadable runtime pilot families keep init selftest and exit counts aligned",
+    );
+    try expectContains(
+        parity_behavior_file,
+        "first-loadable runtime pilot families keep direct exit parity explicit before selftest",
+    );
+    try expectContains(
+        parity_behavior_file,
+        "first-loadable runtime pilot families keep post-selftest mutation parity explicit",
+    );
+    try expectContains(parity_behavior_file, "runtime_kretprobe");
+    try expectContains(parity_behavior_file, "samples/kprobes/kretprobe_example.c");
+
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-sample-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-loader-tests\"");
     try expectContains(
@@ -161,10 +167,18 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-tests\"");
     try expectContains(
         phase9_build,
+        "\"phase9-first-loadable-runtime-module-parity-behavior-tests\"",
+    );
+    try expectContains(
+        phase9_build,
         "Run the Phase 9 runtime kretprobe loader handoff and blocked shared-request tests.",
     );
     try expectContains(
         phase9_build,
         "Run the Phase 9 runtime kretprobe sample, loader, initialized-snapshot guard, registration-reentry gate, survey, and module lifecycle tests.",
+    );
+    try expectContains(
+        phase9_build,
+        "Run the Phase 9 first-loadable runtime-module parity behavior tests.",
     );
 }
