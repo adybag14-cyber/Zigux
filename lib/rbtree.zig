@@ -731,6 +731,57 @@ test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged" {
     try std.testing.expectEqual(@as(?*Node, &replacement.node), last(&root.root));
 }
 
+test "rbtree rb_find_add_cached keeps duplicate callers detached and rb_replace_node_cached keeps leftmost aligned" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var leftmost_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 15 };
+    var duplicate_entry = Entry{ .key = 10 };
+    var replacement_entry = Entry{ .key = 5 };
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, &root_entry.node), addCached(&root_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &leftmost_entry.node), rb_add_cached(&leftmost_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, null), rb_add_cached(&right_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &leftmost_entry.node), rb_first_cached(&root));
+
+    const existing = rb_find_add_cached(&duplicate_entry.node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &root_entry.node), existing);
+    try std.testing.expectEqual(@as(?*Node, &leftmost_entry.node), rb_first_cached(&root));
+    try std.testing.expectEqual(@as(?*Node, null), duplicate_entry.node.parent);
+    try std.testing.expectEqual(@as(?*Node, null), duplicate_entry.node.left);
+    try std.testing.expectEqual(@as(?*Node, null), duplicate_entry.node.right);
+    try std.testing.expectEqual(Color.red, duplicate_entry.node.color);
+
+    rb_replace_node_cached(&leftmost_entry.node, &replacement_entry.node, &root);
+    try std.testing.expectEqual(@as(?*Node, &replacement_entry.node), rb_first_cached(&root));
+    try std.testing.expectEqual(first(&root.root), rb_first_cached(&root));
+    try std.testing.expect(prev(&replacement_entry.node) == null);
+    try std.testing.expectEqual(@as(?*Node, &root_entry.node), next(&replacement_entry.node));
+}
+
 test "rbtree rb_add mirrors add for ordered traversal" {
     const Entry = struct {
         key: i32,
