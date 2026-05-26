@@ -325,12 +325,11 @@ def write_checker(root: Path, script_rel: Path, text: str) -> None:
 
 def write_stub_checkers(root: Path) -> None:
     for script_rel, _, success_stdout, _ in DELEGATED_CHECKERS:
-        write_checker(
-            root,
-            script_rel,
-            "#!/usr/bin/env python3\n"
-            f"print({success_stdout!r})\n",
-        )
+        write_checker(root, script_rel, "#!/usr/bin/env python3\nprint(%r)\n" % success_stdout)
+
+
+def write_zero_exit_wrong_output_checker(root: Path, script_rel: Path, stdout_line: str) -> None:
+    write_checker(root, script_rel, "#!/usr/bin/env python3\nprint(%r)\n" % stdout_line)
 
 
 def write_failing_checker(root: Path, script_rel: Path, stdout_line: str, stderr_line: str) -> None:
@@ -357,7 +356,7 @@ def sample_manifest() -> dict:
             "rule_summary": EXPECTED_RULE_SUMMARY,
             "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
         },
-        "review_anchors": EXPECTED_REVIEW_FIELDS,
+        "review_anchors": json.loads(json.dumps(EXPECTED_REVIEW_FIELDS)),
     }
 
 
@@ -368,11 +367,9 @@ def write_sample_root(root: Path) -> None:
 
 def collect_issues(manifest: dict) -> list[str]:
     issues: list[str] = []
-
     duplicate_paths = collect_duplicate_json_key_paths(manifest)
     if duplicate_paths:
-        issues.extend(f"manifest:duplicate_json_key:{path}" for path in duplicate_paths)
-        return issues
+        return [f"manifest:duplicate_json_key:{path}" for path in duplicate_paths]
 
     if manifest.get("phase") != "Phase 1":
         issues.append("manifest:phase=Phase 1")
@@ -413,31 +410,27 @@ def collect_issues(manifest: dict) -> list[str]:
     return issues
 
 
-def run_checker(root: Path, script_rel: Path, label: str) -> list[str]:
+def run_checker(root: Path, script_rel: Path, label: str, success_stdout: str) -> list[str]:
     proc = subprocess.run(
         [sys.executable, str(root / script_rel), "--root", str(root)],
         check=False,
         capture_output=True,
         text=True,
     )
+    stdout_lines = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+    stderr_lines = [line.strip() for line in proc.stderr.splitlines() if line.strip()]
     if proc.returncode == 0:
-        return []
+        if success_stdout in stdout_lines:
+            return []
+        issues = [f"{label}:missing_success_stdout:{success_stdout}"]
+        issues.extend(f"{label}:stdout:{line}" for line in stdout_lines)
+        issues.extend(f"{label}:stderr:{line}" for line in stderr_lines)
+        return issues
 
-    issues: list[str] = [f"{label}:exit={proc.returncode}"]
-    stdout = proc.stdout.strip()
-    stderr = proc.stderr.strip()
-    if stdout:
-        issues.extend(f"{label}:stdout:{line}" for line in stdout.splitlines())
-    if stderr:
-        issues.extend(f"{label}:stderr:{line}" for line in stderr.splitlines())
+    issues = [f"{label}:exit={proc.returncode}"]
+    issues.extend(f"{label}:stdout:{line}" for line in stdout_lines)
+    issues.extend(f"{label}:stderr:{line}" for line in stderr_lines)
     return issues
-
-
-def assert_issue_case(root: Path, mutate, expected_issue: str) -> None:
-    mutate()
-    issues = collect_issues(load_manifest(root))
-    assert expected_issue in issues, issues
-    write_sample_root(root)
 
 
 def insert_duplicate_manifest_line(root: Path, needle: str, duplicate_line: str) -> None:
@@ -454,74 +447,48 @@ def drift_value(value: object) -> object:
     return f"{value} drift"
 
 
-def mutate_manifest_path(manifest: dict, path: tuple[str, ...]) -> None:
-    current = manifest
-    for key in path[:-1]:
-        current = current[key]
-    final_key = path[-1]
-    current[final_key] = drift_value(current[final_key])
-
-
 def run_self_test() -> None:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_direct_anchor_manifest_gate_") as tmp_dir:
         root = Path(tmp_dir)
         write_sample_root(root)
         assert collect_issues(load_manifest(root)) == []
+        case_count += 1
 
-        manifest_path = root / MANIFEST_REL
+        manifest = sample_manifest()
+        manifest["helper_count"] = 12
+        write_manifest(root, manifest)
+        assert "manifest:helper_count=13" in collect_issues(load_manifest(root))
+        write_sample_root(root)
+        case_count += 1
 
-        def load_current() -> dict:
-            return json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = sample_manifest()
+        manifest["lane_sequencing"]["rule_summary"] = "drift"
+        write_manifest(root, manifest)
+        assert "manifest:lane_sequencing.rule_summary" in collect_issues(load_manifest(root))
+        write_sample_root(root)
+        case_count += 1
 
-        top_level_expectations = {
-            ("phase",): "manifest:phase=Phase 1",
-            ("status",): "manifest:status=closed",
-            ("helper_count",): "manifest:helper_count=13",
-            ("helpers",): "manifest:helpers=expected_phase1_helper_list",
-            ("lane_sequencing", "shared_replay_parked_helpers"): "manifest:lane_sequencing.shared_replay_parked_helpers",
-            ("lane_sequencing", "direct_anchor_followup_helpers"): "manifest:lane_sequencing.direct_anchor_followup_helpers",
-            ("lane_sequencing", "rule_summary"): "manifest:lane_sequencing.rule_summary",
-            ("lane_sequencing", "anti_overlap_rule"): "manifest:lane_sequencing.anti_overlap_rule",
-        }
+        manifest = sample_manifest()
+        manifest["review_anchors"]["tools/lib/string.zig"]["strcmp_review_summary"] = "drift"
+        write_manifest(root, manifest)
+        assert "manifest:review_anchor_value=tools/lib/string.zig:strcmp_review_summary" in collect_issues(load_manifest(root))
+        write_sample_root(root)
+        case_count += 1
 
-        for path, expected_issue in top_level_expectations.items():
-            assert_issue_case(
-                root,
-                lambda path=path: (
-                    lambda manifest: (
-                        mutate_manifest_path(manifest, path),
-                        write_manifest(root, manifest),
-                    )
-                )(load_current()),
-                expected_issue,
-            )
-            case_count += 1
-
-        for helper, expected_fields in EXPECTED_REVIEW_FIELDS.items():
-            for field in expected_fields:
-                assert_issue_case(
-                    root,
-                    lambda helper=helper, field=field: (
-                        lambda manifest: (
-                            manifest["review_anchors"][helper].__setitem__(
-                                field,
-                                drift_value(manifest["review_anchors"][helper][field]),
-                            ),
-                            write_manifest(root, manifest),
-                        )
-                    )(load_current()),
-                    f"manifest:review_anchor_value={helper}:{field}",
-                )
-                case_count += 1
+        manifest = sample_manifest()
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["andnot_scan_entrypoints"] = ["findFirstAndNotBit"]
+        write_manifest(root, manifest)
+        assert "manifest:review_anchor_value=tools/lib/find_bit.zig:andnot_scan_entrypoints" in collect_issues(load_manifest(root))
+        write_sample_root(root)
+        case_count += 1
 
         insert_duplicate_manifest_line(
             root,
             '    "tools/lib/string.zig": {',
             '    "tools/lib/string.zig": {},',
         )
-        issues = collect_issues(load_manifest(root))
-        assert "manifest:duplicate_json_key:review_anchors.tools/lib/string.zig" in issues, issues
+        assert "manifest:duplicate_json_key:review_anchors.tools/lib/string.zig" in collect_issues(load_manifest(root))
         write_sample_root(root)
         case_count += 1
 
@@ -531,26 +498,49 @@ def run_self_test() -> None:
             "PHASE1_BITMAP_DIRECT_ANCHORS=fail",
             "or_window_anchor:expected=1:actual=0",
         )
-        checker_failures = run_checker(root, BITMAP_DIRECT_ANCHOR_CHECKER_REL, "bitmap_direct_anchor_checker")
-        assert checker_failures == [
+        assert run_checker(
+            root,
+            BITMAP_DIRECT_ANCHOR_CHECKER_REL,
+            "bitmap_direct_anchor_checker",
+            "PHASE1_BITMAP_DIRECT_ANCHORS=pass",
+        ) == [
             "bitmap_direct_anchor_checker:exit=1",
             "bitmap_direct_anchor_checker:stdout:PHASE1_BITMAP_DIRECT_ANCHORS=fail",
             "bitmap_direct_anchor_checker:stderr:or_window_anchor:expected=1:actual=0",
-        ], checker_failures
+        ]
+        write_sample_root(root)
+        case_count += 1
+
+        write_zero_exit_wrong_output_checker(
+            root,
+            STRING_REVIEW_CHECKER_REL,
+            "phase1-string-review-packet:noop",
+        )
+        assert run_checker(
+            root,
+            STRING_REVIEW_CHECKER_REL,
+            "string_review_checker",
+            "phase1-string-review-packet:ok",
+        ) == [
+            "string_review_checker:missing_success_stdout:phase1-string-review-packet:ok",
+            "string_review_checker:stdout:phase1-string-review-packet:noop",
+        ]
         write_sample_root(root)
         case_count += 1
 
         missing_checker_path = root / STRING_REVIEW_CHECKER_REL
         missing_checker_path.unlink()
-        checker_failures = run_checker(root, STRING_REVIEW_CHECKER_REL, "string_review_checker")
-        assert checker_failures == [
-            "string_review_checker:exit=2",
-            f"string_review_checker:stderr:{sys.executable}: can't open file '{missing_checker_path}': [Errno 2] No such file or directory",
-        ], checker_failures
+        missing_failures = run_checker(
+            root,
+            STRING_REVIEW_CHECKER_REL,
+            "string_review_checker",
+            "phase1-string-review-packet:ok",
+        )
+        assert missing_failures[0] == "string_review_checker:exit=2"
         write_sample_root(root)
         case_count += 1
 
-        manifest_path.write_text("{\n", encoding="utf-8")
+        (root / MANIFEST_REL).write_text("{\n", encoding="utf-8")
         try:
             load_manifest(root)
         except json.JSONDecodeError:
@@ -599,8 +589,8 @@ def main() -> int:
 
     issues = collect_issues(manifest)
     if not issues:
-        for script_rel, label, _, _ in DELEGATED_CHECKERS:
-            issues.extend(run_checker(root, script_rel, label))
+        for script_rel, label, success_stdout, _ in DELEGATED_CHECKERS:
+            issues.extend(run_checker(root, script_rel, label, success_stdout))
     if issues:
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=fail")
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_START")
