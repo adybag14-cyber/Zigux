@@ -16,6 +16,7 @@ BARRIER_PATH = Path("zigux/helpers/barrier.zig")
 MMIO_PATH = Path("zigux/helpers/mmio.zig")
 UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
+LAYOUT_ASSERT_PATH = Path("zigux/helpers/layout_assert.zig")
 WRAPPER_REPLAY_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
 WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 SHARED_TESTS_README_PATH = Path("zigux/tests/README.md")
@@ -186,8 +187,14 @@ REQUIRED_MARKERS = {
         "pub fn writeValueAtInteropPolicy(comptime T: type, address: usize, value: T, policy: abi.InteropPolicy) RawPointerBridgeError!void {",
         "pub fn writeValueAtByte(comptime T: type, address: usize, value: T, scope: u8) RawPointerBridgeError!void {",
     ),
+    LAYOUT_ASSERT_PATH: (
+        "pub const MmioRange = extern struct {",
+        "pub fn assertMmioRangeLayout() LayoutError!void {",
+    ),
     WRAPPER_REPLAY_PATH: (
         'test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {',
+        'test "phase3 low-level wrappers keep helper-local MMIO layout assertions explicit" {',
+        "try layout_assert.assertMmioRangeLayout();",
         'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {',
         'test "phase3 low-level wrappers keep monotonic strong compare-exchange mismatch explicit before MMIO publish" {',
         'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {',
@@ -223,10 +230,13 @@ REQUIRED_MARKERS = {
     WRAPPER_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/atomic.zig"),',
         '.root_source_file = b.path("../helpers/barrier.zig"),',
+        '.root_source_file = b.path("../helpers/layout_assert.zig"),',
         '.root_source_file = b.path("../helpers/mmio.zig"),',
+        'layout_assert.addImport("abi_bindings", abi_bindings);',
         'narrow.addImport("abi_bindings", abi_bindings);',
         'root_module.addImport("atomic", atomic);',
         'root_module.addImport("barrier", barrier);',
+        'root_module.addImport("layout_assert", layout_assert);',
         'root_module.addImport("unsafe_policy", unsafe_policy);',
         'root_module.addImport("narrow", narrow);',
         'mmio.addImport("abi_bindings", abi_bindings);',
@@ -298,6 +308,7 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "zigux/helpers/atomic.zig",
     "zigux/helpers/barrier.zig",
+    "zigux/helpers/layout_assert.zig",
     "zigux/helpers/mmio.zig",
     "zigux/helpers/unsafe_policy.zig",
     "zigux/unsafe/narrow.zig",
@@ -491,6 +502,16 @@ def run_self_test() -> int:
         _populate_repo(root)
         manifest_path = root / MANIFEST_PATH
         manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].remove("zigux/helpers/layout_assert.zig")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        if "phase3_abi_manifest.json missing packet_files entry: zigux/helpers/layout_assert.zig" not in issues:
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing low-level-wrapper layout-assert packet file was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
         manifest["packet_files"].remove("zigux/helpers/mmio.zig")
         _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -637,7 +658,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
-    print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + len(SELF_TEST_FIELD_CASES) + 13}")
+    print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + len(SELF_TEST_FIELD_CASES) + 14}")
     return 0
 
 
@@ -669,6 +690,7 @@ def main() -> int:
     print(f"validated {MMIO_PATH.as_posix()}")
     print(f"validated {UNSAFE_POLICY_PATH.as_posix()}")
     print(f"validated {NARROW_PATH.as_posix()}")
+    print(f"validated {LAYOUT_ASSERT_PATH.as_posix()}")
     print(f"validated {WRAPPER_REPLAY_PATH.as_posix()}")
     print(f"validated {WRAPPER_BUILD_PATH.as_posix()}")
     print(f"validated {SHARED_TESTS_README_PATH.as_posix()}")
