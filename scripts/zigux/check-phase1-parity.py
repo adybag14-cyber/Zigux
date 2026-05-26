@@ -77,6 +77,185 @@ EXPECTED_DIRECT_REVIEW_ANCHOR_HELPERS = (
     "tools/lib/string.zig",
 )
 
+EXPECTED_DIRECT_REVIEW_ANCHOR_EXACT_FIELDS: dict[str, dict[str, object]] = {
+    "tools/lib/bitmap.zig": {
+        "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+        "first_word_boundary_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
+        "equal_fast_path_anchor": 'test "bitmap equal fast path ignores storage beyond an exact word boundary"',
+        "predicate_tail_mask_anchor": 'test "bitmap tail-masked helpers ignore out-of-range differences"',
+        "weighted_tail_count_anchor": 'test "bitmap weighted or and xor clamp counts to the declared tail window"',
+        "weighted_and_tail_count_anchor": 'test "bitmap weighted and andnot clamp counts to the declared tail window"',
+        "parity_fixture_keys": (
+            "alloc_words",
+            "zalloc_words",
+            "zalloc_values",
+            "scnprintf",
+            "truncated_scnprintf_len",
+            "truncated_scnprintf",
+            "terminator_only_scnprintf_len",
+            "terminator_only_nul",
+            "zero_length_scnprintf_len",
+        ),
+        "shared_logical_fixture_keys": (
+            "weight",
+            "and_result",
+            "and_values",
+            "andnot_result",
+            "andnot_values",
+            "or_values",
+            "xor_values",
+            "equal",
+            "intersects",
+            "subset",
+        ),
+        "partial_xor_review_fields": (
+            "partial_xor_nbits",
+            "partial_xor_masked_values",
+        ),
+    },
+    "tools/lib/find_bit.zig": {
+        "same_word_start_masks": 'test "single-word next scans honor start masks"',
+        "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+        "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+        "single_word_tail_inclusive_boundary_anchor": 'test "single-word tail windows keep the last in-range next matches reachable from an inclusive start"',
+        "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
+        "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers, including andnot"',
+        "andnot_scan_entrypoints": (
+            "findFirstAndNotBit",
+            "find_first_andnot_bit",
+            "_find_first_andnot_bit",
+            "findNextAndNotBit",
+            "find_next_andnot_bit",
+            "_find_next_andnot_bit",
+        ),
+        "tail_clamp_fixture_keys": (
+            "tail_clamped_first",
+            "tail_clamped_next",
+            "tail_zero_clamped_first",
+            "tail_zero_clamped_next",
+            "tail_and_clamped_first",
+            "tail_and_clamped_next",
+            "tail_clamped_last",
+            "tail_clamped_empty_last",
+        ),
+        "tail_inclusive_boundary_fixture_keys": (
+            "tail_inclusive_boundary_next",
+            "tail_inclusive_boundary_zero",
+            "tail_inclusive_boundary_and",
+        ),
+    },
+    "tools/lib/rbtree.zig": {
+        "phase1_helper_replay_anchor": 'test "phase1 host-tools smoke exercises live helper behavior"',
+        "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
+        "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
+        "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+        "parity_fixture_keys": (
+            "empty_root",
+            "insert_order",
+            "reverse_order",
+            "replace_order",
+            "erase_init_order",
+            "postorder_count",
+            "erase_init_node_empty",
+            "cleared_node_empty",
+            "find_found_key",
+            "find_missing",
+            "find_first_serial",
+            "next_match_serials",
+            "match_iterator_serials",
+            "next_match_terminal_null",
+        ),
+        "cached_leftmost_fixture_keys": (
+            "cached_leftmost_return_serials",
+        ),
+        "cached_root_transition_fixture_keys": (
+            "cached_root_transition_serials",
+        ),
+        "duplicate_search_anchors": (
+            'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+            'test "rbtree nextMatch walks the duplicate range in order"',
+            'test "rbtree matchIterator walks the duplicate range in order"',
+        ),
+    },
+    "tools/lib/string.zig": {
+        "phase1_helper_replay_anchor": 'test "strreplace mirrors replaceChar C-string semantics"',
+        "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+        "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
+        "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
+        "strnchr_review_anchor": 'test "strnchr honors count and C-string boundaries"',
+        "strnchrnul_review_anchor": 'test "strnchrNul returns the first match, NUL, or count boundary"',
+        "parity_fixture_keys": (
+            "strtobool_y",
+            "strtobool_on",
+            "strtobool_zero",
+            "strtobool_off",
+            "strtobool_invalid",
+            "strlcpy_len",
+            "strlcpy_buffer",
+            "skip_spaces",
+            "trim_spaces",
+            "remove_spaces",
+            "replace_char",
+            "replace_char_end",
+            "replace_char_cstr_end",
+            "replace_char_cstr_bytes",
+            "memchr_inv_index",
+            "memchr_inv_none",
+        ),
+        "memparse_review_anchors": (
+            'test "memparse handles decimal hexadecimal octal and suffixes"',
+            'test "memparse keeps original rest when sign is not followed by digits"',
+            'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse clamps explicit positive signed overflow"',
+            'test "memparse keeps signed values and their trailing rest aligned"',
+            'test "memparse consumes suffix after saturation"',
+            'test "memparse applies suffixes before signed clamping"',
+        ),
+        "sysfs_review_anchors": (
+            'test "sysfsStreq treats trailing newline and NUL as equivalent"',
+            'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+            'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+            'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
+        ),
+    },
+}
+
+EXPECTED_DIRECT_REVIEW_ANCHOR_SUBSET_FIELDS: dict[str, dict[str, tuple[str, ...]]] = {
+    "tools/lib/bitmap.zig": {
+        "helper_test_anchors": (
+            'test "bitmap range helpers preserve edges across whole-word spans"',
+            'test "bitmap equal fast path ignores storage beyond an exact word boundary"',
+            'test "bitmap weighted or and xor clamp counts to the declared tail window"',
+            'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
+        ),
+    },
+    "tools/lib/find_bit.zig": {
+        "helper_test_anchors": (
+            'test "single-word next scans honor start masks"',
+            'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+            'test "low-level underscore aliases mirror the primary find helpers, including andnot"',
+            'test "Linux-style aliases mirror the primary find helpers, including andnot"',
+        ),
+    },
+    "tools/lib/rbtree.zig": {
+        "helper_test_anchors": (
+            'test "rbtree inserts and traverses in sorted order"',
+            'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
+            'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
+            'test "rbtree cached root keeps the leftmost pointer in sync"',
+        ),
+    },
+    "tools/lib/string.zig": {
+        "helper_test_anchors": (
+            'test "strreplace mirrors replaceChar C-string semantics"',
+            'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+            'test "memparse saturates signed overflow instead of trapping"',
+            'test "kbasename returns the final path component with C-string semantics"',
+            'test "strnchrNul returns the first match, NUL, or count boundary"',
+        ),
+    },
+}
+
 EXPECTED_FIXTURE_VALUES = {
     ("string", "strtobool_invalid"): 184,
     ("string", "replace_char_cstr_end"): 2,
@@ -197,6 +376,28 @@ def ensure_exact_occurrence(text: str, label: str, marker: str, issues: list[str
         issues.append(f"{label}:expected=1:actual={count}")
 
 
+def ensure_review_anchor_exact_fields(helper: str, helper_payload: dict[str, object], issues: list[str]) -> None:
+    for key, expected_value in EXPECTED_DIRECT_REVIEW_ANCHOR_EXACT_FIELDS.get(helper, {}).items():
+        actual_value = helper_payload.get(key)
+        issue_prefix = f"manifest:review_anchors:{helper}:{key}"
+        if isinstance(expected_value, tuple):
+            ensure(isinstance(actual_value, list), f"{issue_prefix}:not_list", issues)
+            if isinstance(actual_value, list):
+                ensure(tuple(actual_value) == expected_value, f"{issue_prefix}:{actual_value!r}!={expected_value!r}", issues)
+        else:
+            ensure(actual_value == expected_value, f"{issue_prefix}:{actual_value!r}!={expected_value!r}", issues)
+
+
+def ensure_review_anchor_subset_fields(helper: str, helper_payload: dict[str, object], issues: list[str]) -> None:
+    for key, expected_values in EXPECTED_DIRECT_REVIEW_ANCHOR_SUBSET_FIELDS.get(helper, {}).items():
+        actual_value = helper_payload.get(key)
+        issue_prefix = f"manifest:review_anchors:{helper}:{key}"
+        ensure(isinstance(actual_value, list), f"{issue_prefix}:not_list", issues)
+        if isinstance(actual_value, list):
+            for expected_value in expected_values:
+                ensure(expected_value in actual_value, f"{issue_prefix}:missing:{expected_value}", issues)
+
+
 def check_artifact_diff(root: Path, issues: list[str]) -> None:
     artifact_diff = root / ARTIFACT_DIFF_REL
     result = run_python(artifact_diff, "--self-test")
@@ -299,6 +500,10 @@ def collect_issues(root: Path) -> list[str]:
                         f"manifest:review_anchors:{helper}:not_object",
                         issues,
                     )
+                    helper_payload = review_anchors.get(helper)
+                    if isinstance(helper_payload, dict):
+                        ensure_review_anchor_exact_fields(helper, helper_payload, issues)
+                        ensure_review_anchor_subset_fields(helper, helper_payload, issues)
     elif manifest_payload is not None:
         ensure(False, "manifest:not_object", issues)
 
@@ -355,6 +560,18 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def build_sample_review_anchor_payloads() -> dict[str, dict[str, object]]:
+    payloads: dict[str, dict[str, object]] = {}
+    for helper in EXPECTED_DIRECT_REVIEW_ANCHOR_HELPERS:
+        payload: dict[str, object] = {}
+        for key, value in EXPECTED_DIRECT_REVIEW_ANCHOR_EXACT_FIELDS[helper].items():
+            payload[key] = list(value) if isinstance(value, tuple) else value
+        for key, value in EXPECTED_DIRECT_REVIEW_ANCHOR_SUBSET_FIELDS.get(helper, {}).items():
+            payload[key] = list(value)
+        payloads[helper] = payload
+    return payloads
+
+
 def build_sample_root(root: Path) -> None:
     artifact_diff_text = """#!/usr/bin/env python3
 from __future__ import annotations
@@ -400,9 +617,7 @@ else:
             "rule_summary": EXPECTED_RULE_SUMMARY,
             "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
         },
-        "review_anchors": {
-            helper: {} for helper in EXPECTED_DIRECT_REVIEW_ANCHOR_HELPERS
-        },
+        "review_anchors": build_sample_review_anchor_payloads(),
     }
 
     blockers_payload = {
@@ -465,6 +680,10 @@ def run_self_test() -> int:
             ("manifest_missing_review_anchors", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload.pop("review_anchors"))),
             ("manifest_missing_direct_review_anchor_helper", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"].pop("tools/lib/find_bit.zig"))),
             ("manifest_direct_review_anchor_helper_not_object", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"].update({"tools/lib/string.zig": []}))),
+            ("manifest_bitmap_anchor_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"]["tools/lib/bitmap.zig"].pop("equal_fast_path_anchor"))),
+            ("manifest_find_bit_entrypoints_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"]["tools/lib/find_bit.zig"].update({"andnot_scan_entrypoints": ["findFirstAndNotBit"]}))),
+            ("manifest_rbtree_cached_transition_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"]["tools/lib/rbtree.zig"].update({"cached_root_transition_fixture_keys": ["cached_leftmost_return_serials"]}))),
+            ("manifest_string_sysfs_anchor_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"]["tools/lib/string.zig"].pop("sysfs_review_anchors"))),
             ("blocker_drift", lambda root: mutate_json(root / BLOCKERS_REL, lambda payload: payload["replay"]["blockers"][0].update({"actual": True}))),
             ("fixture_duplicate_key", lambda root: insert_duplicate_json_line(root / FIXTURE_REL, '    "tail_clamped_last": 67', '    "tail_clamped_last": 0,')),
             ("manifest_duplicate_key", lambda root: insert_duplicate_json_line(root / MANIFEST_REL, '  "status": "closed",', '  "status": "open",')),
