@@ -132,3 +132,25 @@ Purpose
   * current `master` also directly materializes `Documentation/zigux/phase2-genksyms-dual-implementation-survey.md`, `scripts/zigux/check-phase2-genksyms-selftest-alignment.py`, `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_version_before_invalid_long_option_test.zig`, `scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned survey, selftest-alignment, checker, bridge helper, standalone proof, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder
   * current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder
   * keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, helper-local kconfig allconfig, the survey-backed genksyms packet, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
+
+## Phase 7 leaf-library packet
+
+  * current direct-readback Phase 7 leaf-library packet:
+  * `Documentation/zigux/phase7-leaf-library-evidence-catalog.md`
+  * `Documentation/zigux/README.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `scripts/zigux/README.md`
+  * `scripts/zigux/check-phase7-shared-surface.py`
+  * `scripts/zigux/check-phase7-build-wiring.py`
+  * `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+  * `scripts/zigux/check-phase7-argv-split-packet.py`
+  * `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`
+  * `scripts/zigux/validate-phase7.py`
+  * `zigux/tests/phase7_leaf_library_evidence_manifest.json`
+  * `zigux/tests/phase7_build.zig`
+  * `zigux/Makefile`
+  * `lib/string_helpers.zig`
+  * `lib/cmdline.zig`
+  * `lib/argv_split.zig`
+  * `lib/rbtree.zig`
+  * Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, and `zigux/Makefile` still keeps only the narrow `phase7-validate` foothold explicit rather than a broader wrapper family.
