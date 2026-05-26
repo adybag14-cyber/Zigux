@@ -21,10 +21,14 @@ REQUIRED_MARKERS = [
     '        .name = "phase9-runtime-loader-command-env-boundary-guard-tests",',
     "const runtime_trace_events_loader_substrate_drift_tests = b.addTest(.{",
     '        .name = "phase9-runtime-trace-events-loader-substrate-drift-tests",',
+    "const runtime_kretprobe_loader_tests = b.addTest(.{",
+    '        .name = "phase9-runtime-kretprobe-loader-tests",',
     "    const run_runtime_loader_kernel_tests = b.addRunArtifact(runtime_loader_kernel_tests);",
     "    const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(",
     "        runtime_loader_allocator_init_flow_tests,",
     "    const run_runtime_loader_contract_tests = b.addRunArtifact(runtime_loader_contract_tests);",
+    "    const run_runtime_kretprobe_loader_tests = b.addRunArtifact(",
+    "        runtime_kretprobe_loader_tests,",
     "const phase9_runtime_loader_kernel = b.step(",
     '        "phase9-runtime-loader-kernel-tests",',
     "    phase9_runtime_loader_kernel.dependOn(&run_runtime_loader_kernel_tests.step);",
@@ -40,6 +44,7 @@ REQUIRED_MARKERS = [
     "        &run_runtime_loader_command_env_boundary_guard_tests.step,",
     "        &run_runtime_trace_events_loader_substrate_drift_tests.step,",
     "    phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);",
+    "    phase9_runtime_loader_shared.dependOn(&run_runtime_kretprobe_loader_tests.step);",
     "    const phase9_first_loadable_runtime_module_parity = b.step(",
     '        "phase9-first-loadable-runtime-module-parity-survey-tests",',
 ]
@@ -50,8 +55,11 @@ EXACT_ONCE_MARKERS = [
     '        .name = "phase9-runtime-loader-contract-tests",',
     '        .name = "phase9-runtime-loader-command-env-boundary-guard-tests",',
     '        .name = "phase9-runtime-trace-events-loader-substrate-drift-tests",',
+    '        .name = "phase9-runtime-kretprobe-loader-tests",',
     "    const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(",
     "        runtime_loader_allocator_init_flow_tests,",
+    "    const run_runtime_kretprobe_loader_tests = b.addRunArtifact(",
+    "        runtime_kretprobe_loader_tests,",
     '        "phase9-runtime-loader-kernel-tests",',
     '        "phase9-runtime-loader-contract-tests",',
     '        "phase9-runtime-loader-shared-tests",',
@@ -131,6 +139,10 @@ pub fn build(b: *std.Build) void {
         .name = \"phase9-runtime-trace-events-loader-substrate-drift-tests\",
     });
 
+    const runtime_kretprobe_loader_tests = b.addTest(.{
+        .name = \"phase9-runtime-kretprobe-loader-tests\",
+    });
+
     const run_runtime_loader_kernel_tests = b.addRunArtifact(runtime_loader_kernel_tests);
     const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(
         runtime_loader_allocator_init_flow_tests,
@@ -143,6 +155,9 @@ pub fn build(b: *std.Build) void {
         runtime_trace_events_loader_substrate_drift_tests,
     );
     const run_runtime_bitmap_loader_tests = b.addSystemCommand(&.{\"true\"});
+    const run_runtime_kretprobe_loader_tests = b.addRunArtifact(
+        runtime_kretprobe_loader_tests,
+    );
     const run_runtime_first_loadable_parity_survey_tests = b.addSystemCommand(&.{\"true\"});
 
     const phase9_runtime_loader_kernel = b.step(
@@ -171,6 +186,7 @@ pub fn build(b: *std.Build) void {
         &run_runtime_trace_events_loader_substrate_drift_tests.step,
     );
     phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);
+    phase9_runtime_loader_shared.dependOn(&run_runtime_kretprobe_loader_tests.step);
 
     const phase9_first_loadable_runtime_module_parity = b.step(
         \"phase9-first-loadable-runtime-module-parity-survey-tests\",
@@ -239,8 +255,9 @@ def main() -> int:
         description=(
             "Check that the bounded Phase 9 build bundle keeps the shared loader "
             "kernel, allocator/init-flow, contract, command/environment boundary, "
-            "trace-events loader-substrate drift, shared aggregate step, and the "
-            "first-loadable parity-survey route explicit on current master."
+            "trace-events loader-substrate drift, bitmap and kretprobe loader "
+            "routes, shared aggregate step, and the first-loadable parity-survey "
+            "route explicit on current master."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
