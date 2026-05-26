@@ -557,6 +557,19 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"mode\":\"allmodconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
 
+    var default_no_capture = try TestCapture.init(std.testing.allocator, 192);
+    defer default_no_capture.deinit();
+
+    try runConfBridge(&default_no_capture, .{
+        .mode = .allnoconfig,
+        .kconfig = "Kconfig",
+        .config = "none/.config",
+        .arch = "arm64",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, default_no_capture.list.items, "\"mode\":\"allnoconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, default_no_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+
     var path_capture = try TestCapture.init(std.testing.allocator, 192);
     defer path_capture.deinit();
 
@@ -571,6 +584,19 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"mode\":\"allnoconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"mini-all.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+
+    var default_yes_capture = try TestCapture.init(std.testing.allocator, 192);
+    defer default_yes_capture.deinit();
+
+    try runConfBridge(&default_yes_capture, .{
+        .mode = .allyesconfig,
+        .kconfig = "Kconfig",
+        .config = "yes/.config",
+        .arch = "arm64",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, default_yes_capture.list.items, "\"mode\":\"allyesconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, default_yes_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 
     var empty_capture = try TestCapture.init(std.testing.allocator, 192);
     defer empty_capture.deinit();
