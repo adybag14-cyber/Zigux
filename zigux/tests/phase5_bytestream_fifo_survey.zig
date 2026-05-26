@@ -208,9 +208,9 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
     defer std.testing.allocator.free(survey_note);
 
     const required_markers = [_][]const u8{
-        "Fresh repo-first inspection on 2026-05-24 confirmed these same-lane facts:",
-        "## Exact checks verified on 2026-05-24",
-        "Fresh direct sample and tests readback on 2026-05-24 showed this exact packet on current `master`:",
+        "Fresh repo-first inspection on 2026-05-25 confirmed these same-lane facts:",
+        "## Exact checks verified on 2026-05-25",
+        "Fresh direct sample and tests readback on 2026-05-25 showed this exact packet on current `master`:",
         "`samples/zigux/bytestream_fifo.zig` currently carries four in-file self-checks",
         "the fixed-buffer storage backing",
         "the ten-item `reviewContract().focus` order",
