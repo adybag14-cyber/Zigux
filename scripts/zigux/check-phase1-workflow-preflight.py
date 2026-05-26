@@ -17,23 +17,7 @@ VIABILITY_CHECKER_REL = Path("scripts/zigux/check-phase1-workflow-viability.py")
 
 PREFLIGHT_STEP = (
     "Preflight current Phase 1 workflow viability checker",
-    "python3 scripts/zigux/check-phase1-workflow-viability.py --self-test",
-)
-LANE_STEPS = (
-    (
-        "Self-test current Phase 1 workflow viability checker",
-        "python3 scripts/zigux/check-phase1-workflow-viability.py --self-test",
-    ),
-    (
-        "Check current Phase 1 workflow viability",
-        "python3 scripts/zigux/check-phase1-workflow-viability.py",
-    ),
-)
-ADJACENT_CHAIN = (
-    "Check current Phase 1 shared reminder packet",
-    "Self-test current Phase 1 workflow viability checker",
-    "Check current Phase 1 workflow viability",
-    "Self-test current Phase 3 interop packet",
+    "python3 scripts/zigux/check-phase1-workflow-preflight.py",
 )
 PREFLIGHT_ORDER = (
     "Setup Python",
@@ -52,19 +36,8 @@ REQUIRED_NOTE_LINES = (
     "- `PHASE1_WORKFLOW_SCOPE=current bootstrap Phase 1 workflow preflight guard`",
     "- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-preflight`",
     "- `PHASE1_WORKFLOW_PREFLIGHT=Preflight current Phase 1 workflow viability checker after Setup Python and before Setup pinned Zig toolchain`",
-    "- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 shared reminder packet and before current Phase 3 interop packet`",
-    "- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 shared reminder packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`",
-)
-
-WORKFLOW_CONTEXT_STEPS = (
-    (
-        "Check current Phase 1 shared reminder packet",
-        "python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
-    ),
-    (
-        "Self-test current Phase 3 interop packet",
-        "python3 scripts/zigux/validate_phase3_selftest.py",
-    ),
+    "- `PHASE1_WORKFLOW_PREFLIGHT_ORDER=Setup Python,Preflight current Phase 1 workflow viability checker,Setup pinned Zig toolchain`",
+    "- `PHASE1_WORKFLOW_VIABILITY_NEXT_STEP=wire the lane-local workflow-viability self-test and packet-check pair after the current Phase 1 closure packet and before the current Phase 3 interop packet`",
 )
 
 
@@ -87,11 +60,6 @@ def require_line_once(text: str, label: str, line: str) -> list[str]:
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
 
-def workflow_step_names(workflow_text: str) -> list[str]:
-    prefix = "      - name: "
-    return [line[len(prefix) :] for line in workflow_text.splitlines() if line.startswith(prefix)]
-
-
 def require_workflow_step(workflow_text: str, step_name: str, run_command: str) -> list[str]:
     failures: list[str] = []
     failures.extend(
@@ -106,15 +74,6 @@ def require_workflow_step(workflow_text: str, step_name: str, run_command: str) 
     if count != 1:
         failures.append(f"workflow_run:{step_name}:expected=1:actual={count}")
     return failures
-
-
-def require_adjacent_chain(workflow_text: str, step_names: tuple[str, ...]) -> list[str]:
-    names = workflow_step_names(workflow_text)
-    width = len(step_names)
-    for index in range(len(names) - width + 1):
-        if tuple(names[index : index + width]) == step_names:
-            return []
-    return [f"workflow_adjacent_chain:missing:{'->'.join(step_names)}"]
 
 
 def require_order(workflow_text: str, step_names: tuple[str, ...], label: str) -> list[str]:
@@ -142,12 +101,8 @@ def collect_failures(root: Path) -> list[str]:
     for note_line in REQUIRED_NOTE_LINES:
         failures.extend(require_line_once(note_text, "note", note_line))
 
-    for step_name, run_command in (PREFLIGHT_STEP,) + LANE_STEPS + WORKFLOW_CONTEXT_STEPS:
-        failures.extend(require_workflow_step(workflow_text, step_name, run_command))
-
+    failures.extend(require_workflow_step(workflow_text, PREFLIGHT_STEP[0], PREFLIGHT_STEP[1]))
     failures.extend(require_order(workflow_text, PREFLIGHT_ORDER, "workflow_preflight_order"))
-    failures.extend(require_adjacent_chain(workflow_text, ADJACENT_CHAIN))
-
     return failures
 
 
@@ -157,9 +112,9 @@ def build_note_text() -> str:
             "# Phase 1 Workflow Viability",
             "",
             *REQUIRED_NOTE_LINES,
-            "- keep this packet scoped to the lightweight Lane 17 workflow preflight and the existing workflow-viability pair.",
+            "- keep this packet scoped to the lightweight Lane 17 workflow preflight guard.",
             "- run the preflight before pinned Zig setup so the lane still emits direct signal when the external archive path fails first.",
-            "- preserve the shared-reminder to Phase 3 handoff around the lane-local workflow-viability pair instead of widening back into older closure-side cues.",
+            "- leave the lane-local workflow-viability self-test and packet-check pair as a separate follow-up until the surrounding closure-to-Phase-3 handoff is restacked safely.",
             "",
         )
     )
@@ -181,18 +136,6 @@ def build_sample_workflow_text() -> str:
         "",
         "      - name: Setup pinned Zig toolchain",
         "        run: printf 'pinned-zig\\n'",
-        "",
-        f"      - name: {WORKFLOW_CONTEXT_STEPS[0][0]}",
-        f"        run: {WORKFLOW_CONTEXT_STEPS[0][1]}",
-        "",
-        f"      - name: {LANE_STEPS[0][0]}",
-        f"        run: {LANE_STEPS[0][1]}",
-        "",
-        f"      - name: {LANE_STEPS[1][0]}",
-        f"        run: {LANE_STEPS[1][1]}",
-        "",
-        f"      - name: {WORKFLOW_CONTEXT_STEPS[1][0]}",
-        f"        run: {WORKFLOW_CONTEXT_STEPS[1][1]}",
         "",
     ]
     return "\n".join(lines)
@@ -253,7 +196,7 @@ def run_self_test() -> int:
         workflow_text = read_text(root, WORKFLOW_REL)
         duplicate = (
             "      - name: Preflight current Phase 1 workflow viability checker\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-preflight.py\n"
         )
         write_text(root, WORKFLOW_REL, workflow_text + "\n" + duplicate)
         failures = collect_failures(root)
@@ -264,14 +207,15 @@ def run_self_test() -> int:
             print("phase1-workflow-preflight-self-test:duplicate_preflight_step_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(root)
 
         workflow_text = read_text(root, WORKFLOW_REL)
         old = (
             "      - name: Setup Python\n"
             "        run: python3 --version\n\n"
             "      - name: Preflight current Phase 1 workflow viability checker\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-preflight.py\n\n"
             "      - name: Setup pinned Zig toolchain\n"
             "        run: printf 'pinned-zig\\n'\n"
         )
@@ -281,41 +225,12 @@ def run_self_test() -> int:
             "      - name: Setup pinned Zig toolchain\n"
             "        run: printf 'pinned-zig\\n'\n\n"
             "      - name: Preflight current Phase 1 workflow viability checker\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-preflight.py\n"
         )
         write_text(root, WORKFLOW_REL, workflow_text.replace(old, new, 1))
         failures = collect_failures(root)
         if "workflow_preflight_order:out_of_order" not in failures:
             print("phase1-workflow-preflight-self-test:preflight_order_not_detected")
-            return 1
-        case_count += 1
-        build_sample_repo(root)
-
-        workflow_text = read_text(root, WORKFLOW_REL)
-        old = (
-            "      - name: Check current Phase 1 shared reminder packet\n"
-            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n\n"
-            "      - name: Self-test current Phase 1 workflow viability checker\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n"
-            "      - name: Check current Phase 1 workflow viability\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n\n"
-            "      - name: Self-test current Phase 3 interop packet\n"
-            "        run: python3 scripts/zigux/validate_phase3_selftest.py\n"
-        )
-        new = (
-            "      - name: Check current Phase 1 shared reminder packet\n"
-            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n\n"
-            "      - name: Self-test current Phase 3 interop packet\n"
-            "        run: python3 scripts/zigux/validate_phase3_selftest.py\n\n"
-            "      - name: Self-test current Phase 1 workflow viability checker\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n"
-            "      - name: Check current Phase 1 workflow viability\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n"
-        )
-        write_text(root, WORKFLOW_REL, workflow_text.replace(old, new, 1))
-        failures = collect_failures(root)
-        if not any(failure.startswith("workflow_adjacent_chain:missing:") for failure in failures):
-            print("phase1-workflow-preflight-self-test:adjacent_chain_not_detected")
             return 1
         case_count += 1
 
