@@ -20,6 +20,7 @@ Treat the current matrix packet as:
 
 - `drivers/tty/hvc/hvc_console.h`
 - `drivers/tty/hvc/hvc_console.zig`
+- `drivers/tty/hvc/hvc_console_verify.zig`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
@@ -82,11 +83,12 @@ that live cleanup execution has returned.
   forward declaration, `struct hv_ops` callback-table tag, `struct winsize`
   layout, and helper declarations directly readable for the focused exported
   surface proofs on current `master`.
+- `drivers/tty/hvc/hvc_console_verify.zig` keeps helper-local remove, notifier,
+  sysrq fallback, and cleanup-trigger summaries reviewable on current `master`.
 - `Documentation/zigux/phase11-hvc-console-survey.md` and
   `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
   keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`,
   `zigux/tests/phase11_hvc_console_manifest.json`,
-  `drivers/tty/hvc/hvc_console_verify.zig`,
   `drivers/tty/hvc/hvc_console_sysrq.zig`,
   `zigux/tests/phase11_hvc_console.zig`,
   `zigux/tests/phase11_hvc_cleanup.zig`,
@@ -119,8 +121,9 @@ that live cleanup execution has returned.
 
 - keep `make -C zigux phase11-validate` as the returned shared route
 - keep the dedicated survey route absent until `zigux/Makefile` grows it
-- keep helper-local failure-mode edges reviewable through the verify boundary
-  note, the cleanup-prerequisite parity note, and the current companion stack
+- keep helper-local failure-mode edges reviewable through the returned verify
+  helper source, the verify boundary note, the cleanup-prerequisite parity
+  note, and the current companion stack
 - keep `scripts/zigux/check-phase11-validate-manifest-roster.py`,
   `scripts/zigux/check-phase11-validate-check-roster.py`,
   `scripts/zigux/check-phase11-validate-route-alignment.py`, and
@@ -135,8 +138,8 @@ that live cleanup execution has returned.
 - keep `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   explicit as a focused direct-readback proof route outside the shared
   inventory-backed replay contract for now
-- keep `drivers/tty/hvc/hvc_console_verify.zig`,
-  `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
+- keep `drivers/tty/hvc/hvc_console_sysrq.zig`,
+  `zigux/tests/phase11_hvc_console.zig`,
   `zigux/tests/phase11_hvc_cleanup.zig`,
   `zigux/tests/phase11_hvc_console_survey.zig`,
   `zigux/tests/phase11_hvc_console_manifest.json`,
