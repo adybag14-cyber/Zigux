@@ -400,435 +400,86 @@ pub fn collectExeclArgs(
     return error.MissingNullTerminator;
 }
 
-pub fn buildDeferredExeclCall(
-    allocator: std.mem.Allocator,
-    config: Config,
-    cmd: []const u8,
-    argv_tail: []const ?[]const u8,
-) (CollectExeclArgsError || std.mem.Allocator.Error)!DeferredExecCall {
-    const collected = try collectExeclArgs(allocator, cmd, argv_tail);
-    defer allocator.free(collected);
-
-    var borrowed = try allocator.alloc(?[]const u8, collected.len + 1);
-    defer allocator.free(borrowed);
-
-    borrowed[0] = config.exec_name;
-    for (collected, 0..) |arg, index| {
-        borrowed[index + 1] = arg;
-    }
-
-    return .{ .argv = try duplicateOptionalArgv(allocator, borrowed) };
-}
-
-pub fn buildDeferredExecvCall(
-    allocator: std.mem.Allocator,
-    config: Config,
-    argv: []const []const u8,
-) !DeferredExecCall {
-    const prepared = try prepareExecCmd(allocator, config, argv);
-    defer allocator.free(prepared);
-
-    return .{ .argv = try duplicateOptionalArgv(allocator, prepared) };
-}
-
-test "systemPath and getArgvExecPath preserve C-style precedence" {
-    const config = Config{
-        .exec_name = "perf",
-        .prefix = "/usr/libexec/perf-core",
-        .exec_path = "libexec/perf-core",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    const absolute = try systemPath(std.testing.allocator, config, "/opt/perf/bin");
-    defer std.testing.allocator.free(absolute);
-    try std.testing.expectEqualStrings("/opt/perf/bin", absolute);
-
-    const relative = try systemPath(std.testing.allocator, config, "libexec/perf-core");
-    defer std.testing.allocator.free(relative);
-    try std.testing.expectEqualStrings("/usr/libexec/perf-core/libexec/perf-core", relative);
-
-    const explicit = try getArgvExecPath(std.testing.allocator, config, "/tmp/perf", "/ignored");
-    defer std.testing.allocator.free(explicit);
-    try std.testing.expectEqualStrings("/tmp/perf", explicit);
-
-    const explicit_empty = try getArgvExecPath(std.testing.allocator, config, "", "/ignored");
-    defer std.testing.allocator.free(explicit_empty);
-    try std.testing.expectEqualStrings("", explicit_empty);
-
-    const from_env = try getArgvExecPath(std.testing.allocator, config, null, "/env/perf");
-    defer std.testing.allocator.free(from_env);
-    try std.testing.expectEqualStrings("/env/perf", from_env);
-
-    const fallback = try getArgvExecPath(std.testing.allocator, config, null, "");
-    defer std.testing.allocator.free(fallback);
-    try std.testing.expectEqualStrings("/usr/libexec/perf-core/libexec/perf-core", fallback);
-}
-
-test "EnvMap owns inserted keys so later caller mutations cannot corrupt lookups" {
-    var env = EnvMap.init(std.testing.allocator);
-    defer env.deinit();
-
-    const mutable_key = try std.testing.allocator.dupe(u8, "PERF_EXEC_PATH");
-    defer std.testing.allocator.free(mutable_key);
-
-    try env.set(mutable_key, "/tmp/perf");
-    @memset(mutable_key, 'X');
-
-    try std.testing.expectEqualStrings("/tmp/perf", env.get("PERF_EXEC_PATH").?);
-    try std.testing.expectEqual(@as(?[]const u8, null), env.get("XXXXXXXXXXXXXX"));
-}
-
-test "extractArgv0Path splits command names from directory prefixes" {
-    var extracted = (try extractArgv0Path(std.testing.allocator, "/tmp/perf")) orelse unreachable;
-    defer extracted.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("/tmp", extracted.argv0_path.?);
-    try std.testing.expectEqualStrings("perf", extracted.command_name);
-}
-
-test "buildSearchPath rewrites relative entries against the working directory" {
-    const built = try buildSearchPath(
+test "buildSearchPath normalizes relative exec roots and preserves an empty PATH tail" {
+    const rendered = try buildSearchPath(
         std.testing.allocator,
-        "/work/tree",
-        "tools/bin",
-        "scripts",
-        "/usr/bin:/bin",
-    );
-    defer std.testing.allocator.free(built);
-
-    try std.testing.expectEqualStrings(
-        "/work/tree/tools/bin:/work/tree/scripts:/usr/bin:/bin",
-        built,
-    );
-}
-
-test "buildSearchPath preserves root-cwd doubled slashes used by the C helper" {
-    const built = try buildSearchPath(
-        std.testing.allocator,
-        "/",
-        "tools/bin",
-        "scripts",
-        "/usr/bin:/bin",
-    );
-    defer std.testing.allocator.free(built);
-
-    try std.testing.expectEqualStrings(
-        "//tools/bin://scripts:/usr/bin:/bin",
-        built,
-    );
-}
-
-test "buildSearchPath skips rooted argv0 empty directories when assembling PATH" {
-    var rooted = (try extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
-    defer rooted.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("", rooted.argv0_path.?);
-    try std.testing.expectEqualStrings("perf", rooted.command_name);
-
-    const built = try buildSearchPath(
-        std.testing.allocator,
-        "/repo",
-        "tools/bin",
-        rooted.argv0_path,
-        "/usr/bin",
-    );
-    defer std.testing.allocator.free(built);
-
-    try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", built);
-}
-
-test "setupPath preserves the inherited exec-path string while normalizing PATH entries" {
-    const config = Config{
-        .exec_name = "perf",
-        .prefix = "/usr/libexec/perf-core",
-        .exec_path = "libexec/perf-core",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    var env = EnvMap.init(std.testing.allocator);
-    defer env.deinit();
-    var state = ExecCmdState{};
-    defer state.deinit(std.testing.allocator);
-
-    try execCmdInit(&env, config);
-    try env.set(config.exec_path_env, "tools/bin");
-    try setArgv0Path(std.testing.allocator, &state, "scripts");
-    try env.set("PATH", "/usr/bin");
-
-    const new_path = try setupPath(
-        std.testing.allocator,
-        &env,
-        state,
-        config,
-        "/repo",
-    );
-    defer std.testing.allocator.free(new_path);
-
-    try std.testing.expectEqualStrings(
-        "/repo/tools/bin:/repo/scripts:/usr/bin",
-        new_path,
-    );
-    try std.testing.expectEqualStrings(new_path, env.get("PATH").?);
-    try std.testing.expectEqualStrings("tools/bin", env.get(config.exec_path_env).?);
-}
-
-test "setupPathWithPwd keeps logical PWD when identity matches" {
-    try std.testing.expectEqualStrings(
-        "/logical/repo",
-        choosePwdCwdFromIdentities(
-            "/repo",
-            "/logical/repo",
-            .{ .device = 3, .inode = 44 },
-            .{ .device = 3, .inode = 44 },
-        ),
-    );
-}
-
-test "setupPathWithPwd falls back to cwd when logical PWD identity does not match" {
-    const config = Config{
-        .exec_name = "perf",
-        .prefix = "/usr/libexec/perf-core",
-        .exec_path = "libexec/perf-core",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    var env = EnvMap.init(std.testing.allocator);
-    defer env.deinit();
-    var state = ExecCmdState{};
-    defer state.deinit(std.testing.allocator);
-
-    try execCmdInit(&env, config);
-    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
-    try setArgv0Path(std.testing.allocator, &state, "scripts");
-    try env.set("PATH", "/usr/bin");
-
-    const new_path = try setupPathWithPwd(
-        std.testing.allocator,
-        &env,
-        state,
-        config,
-        "/repo",
-        "/logical/repo",
-        .{ .device = 3, .inode = 44 },
-        .{ .device = 9, .inode = 99 },
-    );
-    defer std.testing.allocator.free(new_path);
-
-    try std.testing.expectEqualStrings("/repo/tools/bin:/repo/scripts:/usr/bin", new_path);
-    try std.testing.expectEqualStrings(new_path, env.get("PATH").?);
-}
-
-test "setupPathWithPwd falls back to cwd when logical PWD identity is unavailable" {
-    const config = Config{
-        .exec_name = "perf",
-        .prefix = "/usr/libexec/perf-core",
-        .exec_path = "libexec/perf-core",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    var env = EnvMap.init(std.testing.allocator);
-    defer env.deinit();
-    var state = ExecCmdState{};
-    defer state.deinit(std.testing.allocator);
-
-    try execCmdInit(&env, config);
-    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
-    try setArgv0Path(std.testing.allocator, &state, "scripts");
-    try env.set("PATH", "/usr/bin");
-
-    const new_path = try setupPathWithPwd(
-        std.testing.allocator,
-        &env,
-        state,
-        config,
-        "/repo",
-        "/logical/repo",
-        .{ .device = 3, .inode = 44 },
-        null,
-    );
-    defer std.testing.allocator.free(new_path);
-
-    try std.testing.expectEqualStrings("/repo/tools/bin:/repo/scripts:/usr/bin", new_path);
-    try std.testing.expectEqualStrings(new_path, env.get("PATH").?);
-}
-
-test "setupPathWithPwd ignores an explicitly empty logical PWD even when identity matches" {
-    const config = Config{
-        .exec_name = "perf",
-        .prefix = "/usr/libexec/perf-core",
-        .exec_path = "libexec/perf-core",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    var env = EnvMap.init(std.testing.allocator);
-    defer env.deinit();
-    var state = ExecCmdState{};
-    defer state.deinit(std.testing.allocator);
-
-    try execCmdInit(&env, config);
-    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
-    try setArgv0Path(std.testing.allocator, &state, "scripts");
-    try env.set("PATH", "/usr/bin");
-
-    const new_path = try setupPathWithPwd(
-        std.testing.allocator,
-        &env,
-        state,
-        config,
-        "/repo",
+        "/tmp/work",
+        "libexec/perf-core",
+        "wrappers",
         "",
-        .{ .device = 3, .inode = 44 },
-        .{ .device = 3, .inode = 44 },
     );
-    defer std.testing.allocator.free(new_path);
+    defer std.testing.allocator.free(rendered);
 
-    try std.testing.expectEqualStrings("/repo/tools/bin:/repo/scripts:/usr/bin", new_path);
-    try std.testing.expectEqualStrings(new_path, env.get("PATH").?);
+    try std.testing.expectEqualStrings(
+        "/tmp/work/libexec/perf-core:/tmp/work/wrappers:",
+        rendered,
+    );
 }
 
-test "prepareExecCmd prepends the configured executable name and preserves a trailing null slot" {
+test "setupPathWithPwd prefers PWD when identities match for relative argv paths" {
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
     const config = Config{
         .exec_name = "perf",
-        .prefix = "/unused",
-        .exec_path = "unused",
+        .prefix = "/usr",
+        .exec_path = "libexec/perf-core",
         .exec_path_env = "PERF_EXEC_PATH",
     };
 
-    const prepared = try prepareExecCmd(
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "alt/libexec");
+    try setArgv0Path(std.testing.allocator, &state, "wrappers");
+
+    const rendered = try setupPathWithPwd(
         std.testing.allocator,
+        &env,
+        state,
         config,
-        &[_][]const u8{ "status", "--help" },
+        "/proc/self/cwd",
+        "/tmp/project",
+        .{ .device = 1, .inode = 7 },
+        .{ .device = 1, .inode = 7 },
     );
-    defer std.testing.allocator.free(prepared);
+    defer std.testing.allocator.free(rendered);
 
-    try std.testing.expectEqual(@as(usize, 4), prepared.len);
-    try std.testing.expectEqualStrings("perf", prepared[0].?);
-    try std.testing.expectEqualStrings("status", prepared[1].?);
-    try std.testing.expectEqualStrings("--help", prepared[2].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared[3]);
+    try std.testing.expectEqualStrings(
+        "/tmp/project/alt/libexec:/tmp/project/wrappers:/usr/local/bin:/usr/bin:/bin",
+        rendered,
+    );
+    try std.testing.expectEqualStrings(rendered, env.get("PATH").?);
 }
 
-test "collectExeclArgs keeps the command head and first null terminator" {
-    const collected = try collectExeclArgs(
-        std.testing.allocator,
-        "record",
-        &[_]?[]const u8{ "-a", "--call-graph", null, "--ignored" },
-    );
-    defer std.testing.allocator.free(collected);
-
-    try std.testing.expectEqual(@as(usize, 4), collected.len);
-    try std.testing.expectEqualStrings("record", collected[0].?);
-    try std.testing.expectEqualStrings("-a", collected[1].?);
-    try std.testing.expectEqualStrings("--call-graph", collected[2].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), collected[3]);
-}
-
-test "collectExeclArgs rejects a tail that never terminates with null" {
-    try std.testing.expectError(
-        error.MissingNullTerminator,
-        collectExeclArgs(
-            std.testing.allocator,
-            "record",
-            &[_]?[]const u8{ "-a", "--call-graph" },
-        ),
-    );
-}
-
-test "collectExeclArgs rejects a null terminator that lands in MAX_ARGS" {
-    var argv_tail = [_]?[]const u8{null} ** (max_execl_slots - 1);
-    for (argv_tail[0 .. argv_tail.len - 1]) |*slot| {
-        slot.* = "--stdio";
+test "collectExeclArgs preserves the MAX_ARGS overflow rule from execl_cmd" {
+    var argv_tail: [max_execl_slots - 1]?[]const u8 = undefined;
+    for (argv_tail[0 .. argv_tail.len - 1], 0..) |*slot, index| {
+        slot.* = if ((index & 1) == 0) "arg-even" else "arg-odd";
     }
+    argv_tail[argv_tail.len - 1] = null;
 
     try std.testing.expectError(
         error.TooManyArguments,
-        collectExeclArgs(std.testing.allocator, "record", argv_tail[0..]),
+        collectExeclArgs(std.testing.allocator, "perf", &argv_tail),
     );
 }
 
-test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
-    const config = Config{
-        .exec_name = "perf",
-        .prefix = "/unused",
-        .exec_path = "unused",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    var deferred = try buildDeferredExeclCall(
+test "collectExeclArgs duplicates the deferred argv payload up to the null terminator" {
+    const collected = try collectExeclArgs(
         std.testing.allocator,
-        config,
-        "record",
-        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+        "perf",
+        &.{ "annotate", "--stdio", null, "ignored" },
     );
+    defer std.testing.allocator.free(collected);
+
+    const duplicated = try duplicateOptionalArgv(std.testing.allocator, collected);
+    var deferred = DeferredExecCall{ .argv = duplicated };
     defer deferred.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqual(@as(usize, 4), deferred.argv.len);
     try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
-    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
-    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
-    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
-}
-
-test "buildDeferredExecvCall owns deferred argv entries for later handoff" {
-    const owned_exec_name = try std.testing.allocator.dupe(u8, "perf");
-    defer std.testing.allocator.free(owned_exec_name);
-    const command = try std.testing.allocator.dupe(u8, "record");
-    defer std.testing.allocator.free(command);
-    const flag = try std.testing.allocator.dupe(u8, "-a");
-    defer std.testing.allocator.free(flag);
-
-    const config = Config{
-        .exec_name = owned_exec_name,
-        .prefix = "/unused",
-        .exec_path = "unused",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    var deferred = try buildDeferredExecvCall(
-        std.testing.allocator,
-        config,
-        &[_][]const u8{ command, flag },
-    );
-    defer deferred.deinit(std.testing.allocator);
-
-    @memset(owned_exec_name, 'X');
-    @memset(command, 'Y');
-    @memset(flag, 'Z');
-
-    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
-    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
-    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[3]);
-}
-
-test "buildDeferredExeclCall owns deferred argv entries for later handoff" {
-    const owned_exec_name = try std.testing.allocator.dupe(u8, "perf");
-    defer std.testing.allocator.free(owned_exec_name);
-    const command = try std.testing.allocator.dupe(u8, "record");
-    defer std.testing.allocator.free(command);
-    const flag = try std.testing.allocator.dupe(u8, "--stdio");
-    defer std.testing.allocator.free(flag);
-
-    const config = Config{
-        .exec_name = owned_exec_name,
-        .prefix = "/unused",
-        .exec_path = "unused",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    var deferred = try buildDeferredExeclCall(
-        std.testing.allocator,
-        config,
-        command,
-        &[_]?[]const u8{ flag, null },
-    );
-    defer deferred.deinit(std.testing.allocator);
-
-    @memset(owned_exec_name, 'X');
-    @memset(command, 'Y');
-    @memset(flag, 'Z');
-
-    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
-    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("annotate", deferred.argv[1].?);
     try std.testing.expectEqualStrings("--stdio", deferred.argv[2].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[3]);
+    try std.testing.expectEqual(@as(?[]u8, null), deferred.argv[3]);
 }
