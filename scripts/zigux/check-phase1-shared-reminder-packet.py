@@ -90,7 +90,7 @@ MARKERS = {
         'print("PHASE1_DIRECT_OWNER_MARKERS=pass")',
     ),
     "scripts/zigux/check-phase1-find-bit-bench-anchors.py": (
-        'description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot and tail-word next-skip paths."',
+        'description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot, clump-forward-skip, and tail-word next-skip paths."',
         'print("PHASE1_FIND_BIT_BENCH_ANCHORS=pass")',
         'print("PHASE1_FIND_BIT_BENCH_ANCHORS_SELF_TEST=pass")',
     ),
@@ -206,18 +206,14 @@ FORBIDDEN_FRAGMENTS = (
     "`zigux/Makefile` is current repo evidence again from the scripts root too, because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14, so keep that returned route summary aligned here while the older Phase 1 wrapper names stay historical reminder vocabulary",
 )
 
-
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
-
 
 def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
-
 def collect_missing_files(root: Path) -> list[str]:
     return [relative_path for relative_path in REQUIRED_FILES if not (root / relative_path).exists()]
-
 
 def collect_exact_markers(text: str, label: str, markers: tuple[str, ...]) -> list[str]:
     issues: list[str] = []
@@ -226,7 +222,6 @@ def collect_exact_markers(text: str, label: str, markers: tuple[str, ...]) -> li
         if count != 1:
             issues.append(f"{label}:{marker}:expected=1:actual={count}")
     return issues
-
 
 def collect_stripped_line_markers(text: str, label: str, markers: tuple[str, ...]) -> list[str]:
     issues: list[str] = []
@@ -237,7 +232,6 @@ def collect_stripped_line_markers(text: str, label: str, markers: tuple[str, ...
             issues.append(f"{label}:{marker}:expected=1:actual={count}")
     return issues
 
-
 def collect_forbidden_fragments(text: str, label: str) -> list[str]:
     issues: list[str] = []
     for fragment in FORBIDDEN_FRAGMENTS:
@@ -245,7 +239,6 @@ def collect_forbidden_fragments(text: str, label: str) -> list[str]:
         if count != 0:
             issues.append(f"{label}:forbidden:{fragment}:actual={count}")
     return issues
-
 
 def collect_missing_markers(root: Path) -> list[str]:
     issues = [f"missing_file:{relative_path}" for relative_path in collect_missing_files(root)]
@@ -261,12 +254,10 @@ def collect_missing_markers(root: Path) -> list[str]:
         issues.extend(collect_forbidden_fragments(text, relative_path))
     return issues
 
-
 def write_text(root: Path, relative_path: str, content: str) -> None:
     destination = root / relative_path
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(content, encoding="utf-8")
-
 
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
@@ -281,24 +272,20 @@ def build_sample_repo(root: Path) -> None:
         "\n".join(MARKERS["scripts/zigux/check-phase1-shared-reminder-packet.py"]) + "\n",
     )
 
-
 def mutate_remove_marker(root: Path, relative_path: str, marker: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
-
 
 def mutate_duplicate_marker(root: Path, relative_path: str, marker: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
-
 def mutate_append_fragment(root: Path, relative_path: str, fragment: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text + fragment + "\n", encoding="utf-8")
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-shared-reminder-success-") as tmpdir:
@@ -364,7 +351,6 @@ def run_self_test() -> int:
     print("PHASE1_SHARED_REMINDER_PACKET_SELF_TEST=pass")
     print(f"PHASE1_SHARED_REMINDER_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
