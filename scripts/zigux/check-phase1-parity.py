@@ -70,6 +70,13 @@ EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = (
     "tools/lib/string.zig",
 )
 
+EXPECTED_DIRECT_REVIEW_ANCHOR_HELPERS = (
+    "tools/lib/bitmap.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/string.zig",
+)
+
 EXPECTED_FIXTURE_VALUES = {
     ("string", "strtobool_invalid"): 184,
     ("string", "replace_char_cstr_end"): 2,
@@ -281,6 +288,17 @@ def collect_issues(root: Path) -> list[str]:
             )
             ensure(lane.get("rule_summary") == EXPECTED_RULE_SUMMARY, "manifest:rule_summary", issues)
             ensure(lane.get("anti_overlap_rule") == EXPECTED_ANTI_OVERLAP_RULE, "manifest:anti_overlap_rule", issues)
+        review_anchors = manifest_payload.get("review_anchors")
+        ensure(isinstance(review_anchors, dict), "manifest:review_anchors:not_object", issues)
+        if isinstance(review_anchors, dict):
+            for helper in EXPECTED_DIRECT_REVIEW_ANCHOR_HELPERS:
+                ensure(helper in review_anchors, f"manifest:review_anchors:{helper}:missing", issues)
+                if helper in review_anchors:
+                    ensure(
+                        isinstance(review_anchors.get(helper), dict),
+                        f"manifest:review_anchors:{helper}:not_object",
+                        issues,
+                    )
     elif manifest_payload is not None:
         ensure(False, "manifest:not_object", issues)
 
@@ -328,6 +346,7 @@ def run_check(root: Path) -> int:
     print("PHASE1_PARITY_REPLAY=present")
     print(f"PHASE1_PARITY_BLOCKER_COUNT={len(EXPECTED_REPLAY_BLOCKER_IDS)}")
     print("PHASE1_PARITY_BLOCKER_IDS=" + ",".join(EXPECTED_REPLAY_BLOCKER_IDS))
+    print(f"PHASE1_PARITY_DIRECT_REVIEW_HELPER_COUNT={len(EXPECTED_DIRECT_REVIEW_ANCHOR_HELPERS)}")
     return 0
 
 
@@ -380,6 +399,9 @@ else:
             "direct_anchor_followup_helpers": list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS),
             "rule_summary": EXPECTED_RULE_SUMMARY,
             "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+        },
+        "review_anchors": {
+            helper: {} for helper in EXPECTED_DIRECT_REVIEW_ANCHOR_HELPERS
         },
     }
 
@@ -440,6 +462,9 @@ def run_self_test() -> int:
             ("good", lambda root: None),
             ("fixture_drift", lambda root: mutate_json(root / FIXTURE_REL, lambda payload: payload["string"].update({"strtobool_invalid": 22}))),
             ("manifest_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload.update({"status": "open"}))),
+            ("manifest_missing_review_anchors", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload.pop("review_anchors"))),
+            ("manifest_missing_direct_review_anchor_helper", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"].pop("tools/lib/find_bit.zig"))),
+            ("manifest_direct_review_anchor_helper_not_object", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload["review_anchors"].update({"tools/lib/string.zig": []}))),
             ("blocker_drift", lambda root: mutate_json(root / BLOCKERS_REL, lambda payload: payload["replay"]["blockers"][0].update({"actual": True}))),
             ("fixture_duplicate_key", lambda root: insert_duplicate_json_line(root / FIXTURE_REL, '    "tail_clamped_last": 67', '    "tail_clamped_last": 0,')),
             ("manifest_duplicate_key", lambda root: insert_duplicate_json_line(root / MANIFEST_REL, '  "status": "closed",', '  "status": "open",')),
@@ -471,7 +496,7 @@ def run_self_test() -> int:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate the bounded Lane 09 Phase 1 parity packet.")
+    parser = argparse.ArgumentParser(description="Validate the bounded Phase 1 parity packet.")
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
