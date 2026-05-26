@@ -477,6 +477,37 @@ def assert_case(condition: bool, name: str, payload: object = None) -> None:
         raise AssertionError((name, payload))
 
 
+def run_main_with_args(argv: list[str]) -> tuple[int, str]:
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-main-") as tmp:
+        work = Path(tmp)
+        original_default = globals()["DEFAULT_ROOT"]
+        try:
+            globals()["DEFAULT_ROOT"] = work
+            parser = argparse.ArgumentParser(description="Run and validate the bounded Phase 1 benchmark smoke output.")
+        finally:
+            globals()["DEFAULT_ROOT"] = original_default
+    return (0, "")
+
+
+def invoke_main(argv: list[str]) -> tuple[int, str]:
+    import contextlib
+    import io
+    import sys
+
+    original_argv = sys.argv[:]
+    stdout = io.StringIO()
+    try:
+        sys.argv = [str(HERE), *argv]
+        with contextlib.redirect_stdout(stdout):
+            try:
+                code = main()
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+    finally:
+        sys.argv = original_argv
+    return code, stdout.getvalue()
+
+
 def run_self_test() -> None:
     case_count = 0
 
@@ -557,8 +588,8 @@ def run_self_test() -> None:
   \"status\": \"pass\",
   \"status\": \"fail\",
   \"iterations\": {\"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS\": 20000, \"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS\": 20000, \"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS\": 20000, \"PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS\": 20000, \"PHASE1_BENCH_STRING_ITERATIONS\": 40000, \"PHASE1_BENCH_HWEIGHT_ITERATIONS\": 100000, \"PHASE1_BENCH_LIST_SORT_ITERATIONS\": 1000, \"PHASE1_BENCH_RBTREE_ITERATIONS\": 4000},
-  \"checksums\": [\"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\", \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\", \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\", \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\", \"PHASE1_BENCH_STRING_CHECKSUM\", \"PHASE1_BENCH_HWEIGHT_CHECKSUM\", \"PHASE1_BENCH_LIST_SORT_CHECKSUM\", \"PHASE1_BENCH_RBTREE_CHECKSUM\", \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\", \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\", \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\", \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"],
-  \"exact_checksums\": {\"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1, \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2, \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3, \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4, \"PHASE1_BENCH_STRING_CHECKSUM\": 5, \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6, \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7, \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8, \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9, \"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM\": 10, \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11, \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12}
+  \"checksums\": [\"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\", \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\", \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\", \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\", \"PHASE1_BENCH_STRING_CHECKSUM\", \"PHASE1_BENCH_HWEIGHT_CHECKSUM\", \"PHASE1_BENCH_LIST_SORT_CHECKSUM\", \"PHASE1_BENCH_RBTREE_CHECKSUM\", \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\", \"PHASE1_BENCH_FIND_ADD_CHECKSUM\", \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\", \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\"],
+  \"exact_checksums\": {\"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM\": 1, \"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM\": 2, \"PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM\": 3, \"PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM\": 4, \"PHASE1_BENCH_STRING_CHECKSUM\": 5, \"PHASE1_BENCH_HWEIGHT_CHECKSUM\": 6, \"PHASE1_BENCH_LIST_SORT_CHECKSUM\": 7, \"PHASE1_BENCH_RBTREE_CHECKSUM\": 8, \"PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM\": 9, \"PHASE1_BENCH_FIND_ADD_CHECKSUM\": 10, \"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM\": 11, \"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\": 12}
 }"""
     kind, payload = validate_expectations(load_expectations_text(duplicate_top_level_text))
     assert_case(kind == "expectations_duplicate_keys", "duplicate top-level key", (kind, payload))
@@ -625,6 +656,42 @@ def run_self_test() -> None:
     assert_case(payload == ["PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"], "missing rbtree output exact checksum payload", payload)
     case_count += 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-json-error-") as tmp:
+        root = Path(tmp)
+        malformed = expectations_path(root)
+        malformed.parent.mkdir(parents=True, exist_ok=True)
+        malformed.write_text('{"status": "pass",\n', encoding="utf-8")
+        code, output = invoke_main(["--root", str(root)])
+        lines = output.strip().splitlines()
+        assert_case(code == 1, "json error exit", (code, lines))
+        assert_case(lines[0] == "PHASE1_BENCH_CHECK=fail", "json error fail header", lines)
+        assert_case(
+            "PHASE1_BENCH_CHECK_REASON=expectations_json_error" in lines,
+            "json error reason line",
+            lines,
+        )
+        assert_case(
+            f"PHASE1_BENCH_EXPECTATIONS={malformed}" in lines,
+            "json error expectations path",
+            lines,
+        )
+        assert_case(
+            any(line.startswith("EXPECTATIONS_JSON_ERROR=") for line in lines),
+            "json error message line",
+            lines,
+        )
+        assert_case(
+            any(line.startswith("EXPECTATIONS_JSON_LINE=") for line in lines),
+            "json error line number",
+            lines,
+        )
+        assert_case(
+            any(line.startswith("EXPECTATIONS_JSON_COLUMN=") for line in lines),
+            "json error column",
+            lines,
+        )
+        case_count += 1
+
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
     print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -654,6 +721,8 @@ def main() -> int:
         exc = payload
         assert isinstance(exc, json.JSONDecodeError)
         print("PHASE1_BENCH_CHECK=fail")
+        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+        print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}")
         print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")
         print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")
         print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")
