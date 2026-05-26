@@ -31,9 +31,9 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn memparse(text: []const u8) MemparseResult {",
     "pub fn strscpy(dest: []u8, src: []const u8) isize {",
     "pub fn strscpyPad(dest: []u8, src: []const u8) isize {",
-    "pub fn strscpy_pad(dest: []u8, src: []const u8) isize {",
+    "pub fn strscpy_pad(dest: []const u8, src: []const u8) isize {",
     "pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {",
-    "pub fn memcpy_and_pad(dest: []u8, src: []const u8, count: usize, pad: u8) void {",
+    "pub fn memcpy_and_pad(dest: []const u8, src: []const u8, count: usize, pad: u8) void {",
     "pub fn strtomem(dest: []u8, src: []const u8) void {",
     "pub fn strtomem_pad(dest: []u8, src: []const u8, pad: u8) void {",
     "pub fn memtostr(dest: []u8, src: []const u8) void {",
@@ -412,26 +412,20 @@ EXPECTED_STRING_LANE_MARKERS = [
     ),
 ]
 
-
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
-
 
 def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
-
 def load_json_with_duplicate_tracking(text: str) -> object:
     return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
-
 
 def load_json(root: Path, relative_path: Path) -> object:
     return load_json_with_duplicate_tracking(load_text(root, relative_path))
 
-
 def load_json_failure(label: str, exc: json.JSONDecodeError) -> str:
     return f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}"
-
 
 def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
     paths: list[str] = []
@@ -446,17 +440,14 @@ def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ())
             paths.extend(collect_duplicate_json_key_paths(item, prefix))
     return paths
 
-
 def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     count = text.count(marker)
     if count != 1:
         return [f"{label}:expected=1:actual={count}"]
     return []
 
-
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
-
 
 def nested_value(data: object, path: tuple[str, ...]) -> object:
     current = data
@@ -465,7 +456,6 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
             return None
         current = current.get(key)
     return current
-
 
 def iter_anchor_strings(expected: object) -> list[str]:
     anchors: list[str] = []
@@ -477,7 +467,6 @@ def iter_anchor_strings(expected: object) -> list[str]:
             if isinstance(item, str) and item.startswith('test "'):
                 anchors.append(item)
     return anchors
-
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
@@ -563,12 +552,10 @@ def collect_failures(root: Path) -> list[str]:
 
     return failures
 
-
 def write_file(root: Path, relative_path: Path, text: str) -> None:
     destination = root / relative_path
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(text, encoding="utf-8")
-
 
 def sample_helper_source() -> str:
     return "\n".join(
@@ -577,7 +564,6 @@ def sample_helper_source() -> str:
         + EXPECTED_HELPER_TEST_ANCHORS
         + EXPECTED_HELPER_LOCAL_ONLY_ANCHORS
     ) + "\n"
-
 
 def sample_manifest() -> str:
     return (
@@ -588,14 +574,11 @@ def sample_manifest() -> str:
         + "\n"
     )
 
-
 def sample_fixture() -> str:
     return json.dumps({"string": EXPECTED_STRING_FIXTURE_VALUES}, indent=2) + "\n"
 
-
 def sample_lane_note() -> str:
     return "# sample\n\n" + "\n".join(marker for _, marker in EXPECTED_STRING_LANE_MARKERS) + "\n"
-
 
 def build_sample_repo(root: Path) -> None:
     write_file(root, STRING_HELPER_REL, sample_helper_source())
@@ -603,12 +586,10 @@ def build_sample_repo(root: Path) -> None:
     write_file(root, STRING_FIXTURE_REL, sample_fixture())
     write_file(root, STRING_LANE_NOTE_REL, sample_lane_note())
 
-
 def insert_duplicate_json_line(root: Path, relative_path: Path, needle: str, duplicate_line: str) -> None:
     json_path = root / relative_path
     text = json_path.read_text(encoding="utf-8")
     json_path.write_text(text.replace(needle, duplicate_line + "\n" + needle, 1), encoding="utf-8")
-
 
 def run_self_test() -> int:
     cases = [
@@ -632,6 +613,14 @@ def run_self_test() -> int:
         (
             "duplicate_lane_marker",
             "string_lane:lane_counted_search_strspn:expected=1:actual=2",
+        ),
+        (
+            "missing_lane_next_safe_step_marker",
+            "string_lane:lane_next_safe_step:expected=1:actual=0",
+        ),
+        (
+            "missing_lane_counted_search_match_or_nul_marker",
+            "string_lane:lane_counted_search_match_or_nul:expected=1:actual=0",
         ),
         (
             "manifest_drift",
@@ -742,28 +731,42 @@ def run_self_test() -> int:
             raise SystemExit("phase1-string-review:self-test:duplicate_lane_marker")
 
         build_sample_repo(tmp_root)
+        line = EXPECTED_STRING_LANE_MARKERS[1][1]
+        text = lane_path.read_text(encoding="utf-8").replace(line + "\n", "", 1)
+        lane_path.write_text(text, encoding="utf-8")
+        if cases[6][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:missing_lane_next_safe_step_marker")
+
+        build_sample_repo(tmp_root)
+        line = EXPECTED_STRING_LANE_MARKERS[2][1]
+        text = lane_path.read_text(encoding="utf-8").replace(line + "\n", "", 1)
+        lane_path.write_text(text, encoding="utf-8")
+        if cases[7][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:missing_lane_counted_search_match_or_nul_marker")
+
+        build_sample_repo(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["review_anchors"]["tools/lib/string.zig"]["next_safe_step_note"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         manifest_failures = collect_failures(tmp_root)
-        if not any(item.startswith(cases[6][1]) for item in manifest_failures):
+        if not any(item.startswith(cases[8][1]) for item in manifest_failures):
             raise SystemExit("phase1-string-review:self-test:manifest_drift")
 
         build_sample_repo(tmp_root)
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
         fixture["string"]["replace_char_cstr_end"] = 0
         fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
-        if cases[7][1] not in collect_failures(tmp_root):
+        if cases[9][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:fixture_drift")
 
         build_sample_repo(tmp_root)
         manifest_path.write_text("{\n", encoding="utf-8")
-        if cases[8][1] not in collect_failures(tmp_root):
+        if cases[10][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:manifest_invalid_json")
 
         build_sample_repo(tmp_root)
         fixture_path.write_text("{\n", encoding="utf-8")
-        if cases[9][1] not in collect_failures(tmp_root):
+        if cases[11][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:fixture_invalid_json")
 
         build_sample_repo(tmp_root)
@@ -773,7 +776,7 @@ def run_self_test() -> int:
             '      "counted_search_review_anchors": [',
             '      "counted_search_review_anchors": [],',
         )
-        if cases[10][1] not in collect_failures(tmp_root):
+        if cases[12][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:manifest_duplicate_json_key")
 
         build_sample_repo(tmp_root)
@@ -783,7 +786,7 @@ def run_self_test() -> int:
             '    "replace_char": "a_b",',
             '    "replace_char": "drift",',
         )
-        if cases[11][1] not in collect_failures(tmp_root):
+        if cases[13][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:fixture_duplicate_json_key")
 
         build_sample_repo(tmp_root)
@@ -793,7 +796,7 @@ def run_self_test() -> int:
             1,
         )
         helper_path.write_text(text, encoding="utf-8")
-        if cases[12][1] not in collect_failures(tmp_root):
+        if cases[14][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:missing_helper_local_memtostr_anchor")
 
         build_sample_repo(tmp_root)
@@ -803,7 +806,7 @@ def run_self_test() -> int:
             1,
         )
         helper_path.write_text(text, encoding="utf-8")
-        if cases[13][1] not in collect_failures(tmp_root):
+        if cases[15][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:missing_helper_local_memcpy_and_pad_alias_anchor")
 
         build_sample_repo(tmp_root)
@@ -811,7 +814,7 @@ def run_self_test() -> int:
         manifest["review_anchors"]["tools/lib/string.zig"]["memtostr_review_anchors"] = []
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         manifest_failures = collect_failures(tmp_root)
-        if not any(item.startswith(cases[14][1]) for item in manifest_failures):
+        if not any(item.startswith(cases[16][1]) for item in manifest_failures):
             raise SystemExit("phase1-string-review:self-test:manifest_memtostr_anchors_drift")
 
         build_sample_repo(tmp_root)
@@ -819,7 +822,7 @@ def run_self_test() -> int:
         manifest["review_anchors"]["tools/lib/string.zig"]["memtostr_review_summary"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         manifest_failures = collect_failures(tmp_root)
-        if not any(item.startswith(cases[15][1]) for item in manifest_failures):
+        if not any(item.startswith(cases[17][1]) for item in manifest_failures):
             raise SystemExit("phase1-string-review:self-test:manifest_memtostr_summary_drift")
 
         build_sample_repo(tmp_root)
@@ -827,7 +830,7 @@ def run_self_test() -> int:
         manifest["review_anchors"]["tools/lib/string.zig"]["counted_search_review_anchors"] = []
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         manifest_failures = collect_failures(tmp_root)
-        if not any(item.startswith(cases[16][1]) for item in manifest_failures):
+        if not any(item.startswith(cases[18][1]) for item in manifest_failures):
             raise SystemExit("phase1-string-review:self-test:manifest_counted_search_anchors_drift")
 
         build_sample_repo(tmp_root)
@@ -835,13 +838,12 @@ def run_self_test() -> int:
         manifest["review_anchors"]["tools/lib/string.zig"]["strnchr_review_summary"] = "drift"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         manifest_failures = collect_failures(tmp_root)
-        if not any(item.startswith(cases[17][1]) for item in manifest_failures):
+        if not any(item.startswith(cases[19][1]) for item in manifest_failures):
             raise SystemExit("phase1-string-review:self-test:manifest_counted_search_summary_drift")
 
     print("PHASE1_STRING_REVIEW_PACKET_SELF_TEST=pass")
     print(f"PHASE1_STRING_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
