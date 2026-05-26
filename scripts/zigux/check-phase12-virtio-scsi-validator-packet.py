@@ -19,20 +19,51 @@ REQUIRED_VIRTIO_SCSI_CHECKERS = (
 )
 
 
+def collect_string_assignments(module: ast.Module) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for node in module.body:
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        target = node.targets[0]
+        if not isinstance(target, ast.Name):
+            continue
+        value = node.value
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            values[target.id] = value.value
+    return values
+
+
+def resolve_packet_checker_tuple(
+    value: ast.AST, string_assignments: dict[str, str]
+) -> tuple[str, ...]:
+    if not isinstance(value, ast.Tuple):
+        raise ValueError("PHASE12_PACKET_CHECKERS is not a tuple")
+
+    resolved: list[str] = []
+    for item in value.elts:
+        if isinstance(item, ast.Constant) and isinstance(item.value, str):
+            resolved.append(item.value)
+            continue
+        if isinstance(item, ast.Name) and item.id in string_assignments:
+            resolved.append(string_assignments[item.id])
+            continue
+        raise ValueError(
+            "PHASE12_PACKET_CHECKERS contains an unsupported entry: "
+            f"{ast.dump(item, include_attributes=False)}"
+        )
+    return tuple(resolved)
+
+
 def read_packet_checker_tuple(root: Path) -> tuple[str, ...]:
     source = (root / VALIDATOR_PATH).read_text(encoding="utf-8")
     module = ast.parse(source, filename=str(VALIDATOR_PATH))
+    string_assignments = collect_string_assignments(module)
     for node in module.body:
         if not isinstance(node, ast.Assign):
             continue
         for target in node.targets:
             if isinstance(target, ast.Name) and target.id == "PHASE12_PACKET_CHECKERS":
-                value = ast.literal_eval(node.value)
-                if not isinstance(value, tuple):
-                    raise ValueError("PHASE12_PACKET_CHECKERS is not a tuple")
-                if not all(isinstance(item, str) for item in value):
-                    raise ValueError("PHASE12_PACKET_CHECKERS contains a non-string entry")
-                return value
+                return resolve_packet_checker_tuple(node.value, string_assignments)
     raise ValueError("PHASE12_PACKET_CHECKERS assignment missing")
 
 
@@ -81,12 +112,28 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def write_fixture_root(root: Path, packet_checkers: tuple[str, ...]) -> None:
-    validator_source = (
-        "PHASE12_PACKET_CHECKERS = (\n"
-        + "".join(f'    "{item}",\n' for item in packet_checkers)
-        + ")\n"
-    )
+def write_fixture_root(
+    root: Path, packet_checkers: tuple[str, ...], *, use_names: bool = False
+) -> None:
+    if use_names:
+        constant_lines: list[str] = []
+        tuple_lines: list[str] = []
+        for index, item in enumerate(packet_checkers):
+            name = f"CHECKER_{index}"
+            constant_lines.append(f'{name} = "{item}"')
+            tuple_lines.append(f"    {name},")
+        validator_source = (
+            "\n".join(constant_lines)
+            + "\nPHASE12_PACKET_CHECKERS = (\n"
+            + "\n".join(tuple_lines)
+            + "\n)\n"
+        )
+    else:
+        validator_source = (
+            "PHASE12_PACKET_CHECKERS = (\n"
+            + "".join(f'    "{item}",\n' for item in packet_checkers)
+            + ")\n"
+        )
     write_text(root / VALIDATOR_PATH, validator_source)
     for relative_path in REQUIRED_VIRTIO_SCSI_CHECKERS:
         write_text(root / relative_path, "#!/usr/bin/env python3\n")
@@ -99,6 +146,15 @@ def run_self_test() -> int:
         errors = validate(root)
         if errors:
             for error in errors:
+                print(error, file=sys.stderr)
+            print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST=fail")
+            return 1
+
+        named_root = root / "named"
+        write_fixture_root(named_root, REQUIRED_VIRTIO_SCSI_CHECKERS, use_names=True)
+        named_errors = validate(named_root)
+        if named_errors:
+            for error in named_errors:
                 print(error, file=sys.stderr)
             print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST=fail")
             return 1
@@ -148,7 +204,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
