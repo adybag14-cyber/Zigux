@@ -154,3 +154,29 @@ Purpose
   * `lib/argv_split.zig`
   * `lib/rbtree.zig`
   * Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, and `zigux/Makefile` still keeps only the narrow `phase7-validate` foothold explicit rather than a broader wrapper family.
+
+## Phase 12 shared release packet
+
+  * current direct-readback Phase 12 reminder packet:
+  * `Documentation/zigux/phase12-release-sequencing.md`
+  * `Documentation/zigux/phase12-release-readiness-survey.md`
+  * `Documentation/zigux/phase12-release-closure-checklist.md`
+  * `Documentation/zigux/phase12-release-coordination-matrix.md`
+  * `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `scripts/zigux/README.md`
+  * `scripts/zigux/check-build-only-phase12-surface.py`
+  * `scripts/zigux/check-phase12-release-readiness-packet.py`
+  * `scripts/zigux/check-phase12-libbpf-snapshot.py`
+  * `scripts/zigux/check-phase12-libbpf-lane-marker.py`
+  * `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`
+  * `scripts/zigux/validate-phase12.py`
+  * `zigux/tests/phase12_build.zig`
+  * `.github/workflows/zigux-bootstrap.yml`
+  * `zigux/Makefile`
+  * `zigux/tests/README.md`
+  * Keep the directly readable validator-first support bundle explicit too: `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the current shared build gate explicit from the tests root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` remain shipped wrapper evidence on current `master`.
+  * Keep the active shared build packet explicit too: `zigux/tests/phase12_build.zig` keeps `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig` wired through the shared `smoke` and `test` route, so keep that six-file `virtio_net` packet explicit instead of widening it into deeper queue, DMA, throughput, or recovery claims.
+  * Keep the adjacent driver-local split explicit too: `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` stay the rollback-lab `virtio_scsi` packet outside the shared route, `Documentation/zigux/phase12-nvme-pci-survey.md` plus `zigux/tests/phase12_nvme_pci_manifest.json` stay the bounded driver-local NVMe foothold, and `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and `zigux/tests/fixtures/phase12_libbpf_snapshot.json` keep the parked libbpf packet explicit without promoting any of them into shared build outputs.
+  * Tests-root reviewer prompt:
+  * Does the bounded Phase 12 reminder keep the returned validator-first support bundle, the shipped `phase12-validate` / `phase12-smoke` / `phase12-test` / `phase12` wrapper set, the six-file shared `virtio_net` packet, the rollback-lab `virtio_scsi` split, the bounded NVMe foothold, and the parked libbpf snapshot-and-lane-marker packet aligned without widening into DMA, queue ownership, throughput, recovery, or deeper transport claims?
