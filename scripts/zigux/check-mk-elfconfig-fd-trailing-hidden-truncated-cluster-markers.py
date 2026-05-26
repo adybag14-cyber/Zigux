@@ -117,7 +117,6 @@ def run_self_test() -> None:
         reordered_markers = EXPECTED_MARKERS[
             Path("scripts/zigux/mk_elfconfig_fd_not_elf_trailing_hides_truncated_test.zig")
         ]
-        reordered_path.writeText = None
         reordered_path.write_text(
             "\n".join(
                 [
