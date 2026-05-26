@@ -364,6 +364,15 @@ def run_self_test() -> None:
         expect_failure(manifest_lane_case, "manifest_lane_key:'P11-L05'")
         case_count += 1
 
+        manifest_pin_case = root / "manifest_pin_case"
+        shutil.copytree(fixture, manifest_pin_case)
+        manifest_path = manifest_pin_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["surveyed_commit"] = "0000000000000000000000000000000000000000"
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        expect_failure(manifest_pin_case, "manifest_surveyed_commit:'0000000000000000000000000000000000000000'")
+        case_count += 1
+
         manifest_registration_order_flag_case = root / "manifest_registration_order_flag_case"
         shutil.copytree(fixture, manifest_registration_order_flag_case)
         manifest_path = manifest_registration_order_flag_case / REQUIRED_FILES["manifest"]
