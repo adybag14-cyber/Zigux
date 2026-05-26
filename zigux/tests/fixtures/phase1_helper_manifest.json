@@ -254,6 +254,9 @@
       "cached_leftmost_fixture_keys": [
         "cached_leftmost_return_serials"
       ],
+      "cached_root_transition_fixture_keys": [
+        "cached_root_transition_serials"
+      ],
       "shared_replay_summary": "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools smoke replay now rechecks duplicate-range iteration plus the exact `cached_leftmost_return_serials` cached-root leftmost-return sequence on current master",
       "traversal_replay_keys": [
         "empty_root",
