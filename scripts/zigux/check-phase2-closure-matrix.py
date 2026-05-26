@@ -68,6 +68,16 @@ def seed_materialized_root(module, root: Path, source_root: Path) -> None:
         destination_path = root / rel
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source_path, destination_path)
+    archive_support_rels = getattr(module, "ARCHIVE_SUPPORT_RELS", ())
+    for rel in archive_support_rels:
+        if not isinstance(rel, Path):
+            continue
+        source_path = source_root / rel
+        if not source_path.exists():
+            continue
+        destination_path = root / rel
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_path, destination_path)
 
 
 def load_json(path: Path):
@@ -78,7 +88,10 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def collect_manifest_surface_expectations(manifest_path: Path) -> list[tuple[str, tuple[str, ...]]]:
+MANIFEST_EXPECTATION_ATTR_PREFIX = "EXPECTED_MANIFEST_"
+
+
+def collect_manifest_surface_expectations(module, manifest_path: Path) -> list[tuple[str, tuple[str, ...]]]:
     payload = load_json(manifest_path)
     if not isinstance(payload, dict):
         raise AssertionError("manifest root must stay a dict in the seeded baseline")
@@ -87,11 +100,35 @@ def collect_manifest_surface_expectations(manifest_path: Path) -> list[tuple[str
         raise AssertionError("manifest present_surfaces must stay a dict in the seeded baseline")
 
     expectations: list[tuple[str, tuple[str, ...]]] = []
-    for key, value in surfaces.items():
+    for attr_name, expected in sorted(vars(module).items()):
+        if not attr_name.startswith(MANIFEST_EXPECTATION_ATTR_PREFIX):
+            continue
+        if not isinstance(expected, tuple) or not all(isinstance(item, str) for item in expected):
+            continue
+
+        key = attr_name[len(MANIFEST_EXPECTATION_ATTR_PREFIX) :].lower()
+        value = surfaces.get(key)
         if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
             raise AssertionError(f"manifest surface must stay a list[str] in the seeded baseline: {key}")
-        expectations.append((key, tuple(value)))
+        expectations.append((key, expected))
     return expectations
+
+
+def archive_support_note(module) -> str | None:
+    rels = getattr(module, "ARCHIVE_SUPPORT_RELS", None)
+    if not isinstance(rels, tuple) or not rels:
+        return None
+    if not all(isinstance(rel, Path) for rel in rels):
+        raise AssertionError("archive support rels must stay tuple[Path, ...] in the seeded baseline")
+    return " or ".join(rel.as_posix() for rel in rels)
+
+
+def remove_archive_support_paths(module, root: Path) -> None:
+    rels = getattr(module, "ARCHIVE_SUPPORT_RELS", ())
+    for rel in rels:
+        path = module.resolve(root, rel)
+        if path.exists():
+            path.unlink()
 
 
 def run_matrix(module, seed_root) -> int:
@@ -149,6 +186,22 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
+        payload = load_json(manifest_path)
+        del payload["repo_reality_gaps"]
+        write_json(manifest_path, payload)
+        assert_issue(module, root, ("UNEXPECTED_MANIFEST_GAPS", "None"))
+        checks_run += 1
+
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
+        payload = load_json(manifest_path)
+        payload["repo_reality_gaps"] = {}
+        write_json(manifest_path, payload)
+        assert_issue(module, root, ("UNEXPECTED_MANIFEST_GAPS", "{}"))
+        checks_run += 1
+
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
         write_json(manifest_path, [])
         assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "root"))
         checks_run += 1
@@ -163,7 +216,15 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
-        for key, expected in collect_manifest_surface_expectations(manifest_path):
+        for key, expected in collect_manifest_surface_expectations(module, manifest_path):
+            seed_root(root)
+            manifest_path = module.resolve(root, module.MANIFEST_REL)
+            payload = load_json(manifest_path)
+            del payload["present_surfaces"][key]
+            write_json(manifest_path, payload)
+            assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", key))
+            checks_run += 1
+
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
             payload = load_json(manifest_path)
@@ -188,6 +249,27 @@ def run_matrix(module, seed_root) -> int:
                 write_json(manifest_path, payload)
                 assert_issue(module, root, ("MISSING_MANIFEST_SURFACE", f"{key}:{marker}"))
                 checks_run += 1
+
+        support_note = archive_support_note(module)
+        archive_readme_rel = getattr(module, "ARCHIVE_README_REL", None)
+        if support_note is not None and isinstance(archive_readme_rel, Path):
+            seed_root(root)
+            remove_archive_support_paths(module, root)
+            manifest_path = module.resolve(root, module.MANIFEST_REL)
+            payload = load_json(manifest_path)
+            payload["present_surfaces"]["archive_support"] = [archive_readme_rel.as_posix()]
+            write_json(manifest_path, payload)
+            assert_issue(module, root, ("MISSING_REQUIRED_ARCHIVE_SUPPORT", support_note))
+            assert_issue(module, root, ("MISSING_MANIFEST_ARCHIVE_SUPPORT", support_note))
+            checks_run += 1
+
+            seed_root(root)
+            manifest_path = module.resolve(root, module.MANIFEST_REL)
+            payload = load_json(manifest_path)
+            payload["present_surfaces"]["archive_support"] = [archive_readme_rel.as_posix()]
+            write_json(manifest_path, payload)
+            assert_issue(module, root, ("MISSING_MANIFEST_ARCHIVE_SUPPORT", support_note))
+            checks_run += 1
 
         seed_root(root)
         cases_path = module.resolve(root, module.KCONFIG_CASES_REL)
@@ -254,7 +336,7 @@ def run_matrix(module, seed_root) -> int:
 
 
 def run_self_test() -> int:
-    fake_validator = """\
+    fake_validator = """\\
 from pathlib import Path
 import json
 
@@ -267,6 +349,10 @@ CONF_MANIFEST_REL = Path("zigux/tests/fixtures/kconfig_bridge/conf_manifest.json
 CONFDATA_MANIFEST_REL = Path("zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json")
 GENKSYMS_CASES_REL = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
 GENKSYMS_MANIFEST_REL = Path("zigux/tests/fixtures/genksyms_bridge/manifest.json")
+ARCHIVE_README_REL = Path("third_party/README.md")
+ARCHIVE_PAYLOAD_REL = Path("third_party/archive-b.tar.xz")
+ARCHIVE_PARTS_MANIFEST_REL = Path("third_party/archive-b.tar.xz.parts/manifest.json")
+ARCHIVE_SUPPORT_RELS = (ARCHIVE_PAYLOAD_REL, ARCHIVE_PARTS_MANIFEST_REL)
 REQUIRED_CLOSURE_MARKERS = ("`marker-a`", "`marker-b`")
 REQUIRED_WORKFLOW_LINES = ("run: alpha", "run: beta")
 REQUIRED_MAKEFILE_LINES = ("phase2-a:", "phase2-b:")
@@ -280,6 +366,7 @@ REQUIRED_FILES = (
     CONFDATA_MANIFEST_REL,
     GENKSYMS_CASES_REL,
     GENKSYMS_MANIFEST_REL,
+    ARCHIVE_README_REL,
 )
 EXPECTED_CONF_CASE_DETAILS = [{"name": "conf", "expected": "conf.json"}]
 EXPECTED_CONFDATA_CASE_DETAILS = [{"name": "confdata", "expected": "confdata.json"}]
@@ -291,6 +378,8 @@ EXPECTED_MANIFEST_REVIEW_SURFACES = ("review-a.md", "review-b.md")
 EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-a.md", "closure-b.md")
 EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
 EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
+EXPECTED_MANIFEST_BOOTSTRAP_HELPERS = ("bootstrap-a.py", "bootstrap-b.py")
+EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (ARCHIVE_README_REL.as_posix(), ARCHIVE_PAYLOAD_REL.as_posix())
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
 EXPECTED_MANIFEST_POLICY = ("policy-a.json",)
@@ -300,11 +389,11 @@ def resolve(root: Path, rel: Path) -> Path:
 
 def build_self_test_root(root: Path) -> None:
     resolve(root, PHASE2_CLOSURE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\n`marker-b`\n", encoding="utf-8")
+    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\\n`marker-b`\\n", encoding="utf-8")
     resolve(root, WORKFLOW_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, WORKFLOW_REL).write_text("run: alpha\nrun: beta\n", encoding="utf-8")
+    resolve(root, WORKFLOW_REL).write_text("run: alpha\\nrun: beta\\n", encoding="utf-8")
     resolve(root, MAKEFILE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, MAKEFILE_REL).write_text("phase2-a:\nphase2-b:\n", encoding="utf-8")
+    resolve(root, MAKEFILE_REL).write_text("phase2-a:\\nphase2-b:\\n", encoding="utf-8")
     resolve(root, MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, MANIFEST_REL).write_text(json.dumps({
         "repo_reality_gaps": [],
@@ -313,24 +402,31 @@ def build_self_test_root(root: Path) -> None:
             "closure_notes": list(EXPECTED_MANIFEST_CLOSURE_NOTES),
             "validators": list(EXPECTED_MANIFEST_VALIDATORS),
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
+            "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
+            "archive_support": list(EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
             "policy": list(EXPECTED_MANIFEST_POLICY),
+            "out_of_scope": ["extra-surface.md"],
         },
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, KCONFIG_CASES_REL).write_text(json.dumps({
         "conf_cases": EXPECTED_CONF_CASE_DETAILS,
         "confdata_cases": EXPECTED_CONFDATA_CASE_DETAILS,
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, CONF_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\\n", encoding="utf-8")
     resolve(root, CONFDATA_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\\n", encoding="utf-8")
     resolve(root, GENKSYMS_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\n", encoding="utf-8")
+    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\\n", encoding="utf-8")
     resolve(root, GENKSYMS_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\\n", encoding="utf-8")
+    resolve(root, ARCHIVE_README_REL).parent.mkdir(parents=True, exist_ok=True)
+    resolve(root, ARCHIVE_README_REL).write_text("archive readme\\n", encoding="utf-8")
+    resolve(root, ARCHIVE_PAYLOAD_REL).parent.mkdir(parents=True, exist_ok=True)
+    resolve(root, ARCHIVE_PAYLOAD_REL).write_text("archive payload\\n", encoding="utf-8")
 
 def _count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
@@ -352,6 +448,15 @@ def expect_subset(issues, label, actual, expected):
     for marker in expected:
         if marker not in actual:
             issues.append(("MISSING_MANIFEST_SURFACE", f"{label}:{marker}"))
+
+def collect_archive_support_issues(root: Path, archive_support):
+    issues = []
+    note = " or ".join(rel.as_posix() for rel in ARCHIVE_SUPPORT_RELS)
+    if not any(resolve(root, rel).exists() for rel in ARCHIVE_SUPPORT_RELS):
+        issues.append(("MISSING_REQUIRED_ARCHIVE_SUPPORT", note))
+    if archive_support is not None and not any(rel.as_posix() in archive_support for rel in ARCHIVE_SUPPORT_RELS):
+        issues.append(("MISSING_MANIFEST_ARCHIVE_SUPPORT", note))
+    return issues
 
 def collect_case_manifest_issues(issues, kconfig_cases, conf_manifest, confdata_manifest, genksyms_cases, genksyms_manifest):
     if not isinstance(kconfig_cases, dict):
@@ -410,6 +515,10 @@ def collect_issues(root: Path):
     expect_subset(issues, "closure_notes", require_manifest_list(issues, manifest, "closure_notes"), EXPECTED_MANIFEST_CLOSURE_NOTES)
     expect_subset(issues, "validators", require_manifest_list(issues, manifest, "validators"), EXPECTED_MANIFEST_VALIDATORS)
     expect_subset(issues, "checkers", require_manifest_list(issues, manifest, "checkers"), EXPECTED_MANIFEST_CHECKERS)
+    expect_subset(issues, "bootstrap_helpers", require_manifest_list(issues, manifest, "bootstrap_helpers"), EXPECTED_MANIFEST_BOOTSTRAP_HELPERS)
+    archive_support = require_manifest_list(issues, manifest, "archive_support")
+    expect_subset(issues, "archive_support", archive_support, EXPECTED_MANIFEST_ARCHIVE_SUPPORT)
+    issues.extend(collect_archive_support_issues(root, archive_support))
     expect_subset(issues, "bridge_helpers", require_manifest_list(issues, manifest, "bridge_helpers"), EXPECTED_MANIFEST_BRIDGE_HELPERS)
     expect_subset(issues, "fixture_roster", require_manifest_list(issues, manifest, "fixture_roster"), EXPECTED_MANIFEST_FIXTURE_ROSTER)
     expect_subset(issues, "policy", require_manifest_list(issues, manifest, "policy"), EXPECTED_MANIFEST_POLICY)
