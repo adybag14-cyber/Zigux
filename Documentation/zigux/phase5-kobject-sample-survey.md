@@ -97,4 +97,6 @@ This note still does not claim:
 
 Leave this lane parked unless a fresh reread changes one bounded fact inside the same packet.
 
-If the lane reopens soon, start with `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` and verify only whether the current survey note, sample-root owner, direct sample-owned replay, bounded attr-group companion, focused attr-group replay, dedicated attr-group survey guard, shared checklist, shared build-route companion, and public-tree-backed manifest-plus-survey companions still keep the same split before widening anything else.
+Fresh 2026-05-26 repo-first reread narrowed the next same-lane repair more precisely: `Documentation/zigux/README.md` still phrases `samples/zigux/kobject_example.zig` as current direct reminder evidence even though the strongest current kobject packet in this lane still keeps that owner path in the public-tree-backed owner-plus-companion bucket.
+
+If the lane reopens soon, repair that one docs-root reminder surface first, then compare `Documentation/zigux/review-checklist.md` against the same split before widening anything else.
