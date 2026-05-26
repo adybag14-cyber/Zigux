@@ -68,8 +68,11 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
 
     try std.Io.Dir.cwd().access(io, "lib/string_helpers.zig", .{});
     try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-string-helpers-packet.py", .{});
+    try std.Io.Dir.cwd().access(io, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_survey.zig", .{});
+    try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_sample_boundary.zig", .{});
+    try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_format_boundary.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_manifest.json", .{});
     try std.Io.Dir.cwd().access(io, "samples/zigux/README.md", .{});
 
@@ -88,8 +91,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(slice_note, "quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path");
     try expectContains(slice_note, "the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContainsCount(slice_note, "the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet", 1);
-    try expectContains(slice_note, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
-    try expectContainsCount(slice_note, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons", 1);
+    try expectContains(slice_note, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectContainsCount(slice_note, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons", 1);
     try expectNotContains(slice_note, "The next bounded follow-through should realign the dedicated survey and sample-boundary replays");
     try expectNotContains(slice_note, "before deciding whether `parse_int_array()` can join the same helper-local packet without widening into file-path or device-managed semantics.");
     try expectNotContains(slice_note, "restored starter packet");
@@ -98,8 +101,11 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-string-helpers-packet.py");
     defer allocator.free(checker);
     try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");
+    try expectContains(checker, "\"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py\"");
     try expectContains(checker, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
+    try expectContains(checker, "\"zigux/tests/phase7_string_helpers_format_boundary.zig\"");
     try expectContains(checker, "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectContains(checker, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
     try expectContains(checker, "the broader full-family packet that still leaves `parse_int_array_user()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContains(checker, "\"pub fn devmKasprintfStrarray(\"");
     try expectContains(checker, "\"pub fn devm_kasprintf_strarray(\"");
@@ -166,6 +172,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     defer allocator.free(survey);
     try expectContains(survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
     try expectContains(survey, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(survey, "zigux/tests/phase7_string_helpers_format_boundary.zig");
     try expectContains(survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
     try expectContains(survey, "kstrdupQuotableFile");
     try expectContains(survey, "kstrdup_quotable_file");
@@ -178,11 +185,13 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectNotContains(survey, "zigux/tests/phase7_build.zig");
     try expectContains(survey, "kstrdupQuotableFile");
     try expectContains(survey, "kstrdup_quotable_file");
+    try expectContains(survey, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
     try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
+    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_format_boundary.zig\"");
     try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_survey.zig\"");
     try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
@@ -195,8 +204,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "\"stringLower\"");
     try expectContains(manifest, "\"string_lower\"");
     try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
-    try expectContainsCount(manifest, "\"next_bounded_step\": \"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons", 1);
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectContainsCount(manifest, "\"next_bounded_step\": \"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons", 1);
     try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`\"");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
@@ -242,4 +251,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     defer allocator.free(sample_boundary);
     try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-standalone-string-helper-sample policy lane-local");
     try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
+    try expectContains(sample_boundary, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py");
+    try expectContains(sample_boundary, "zigux/tests/phase7_string_helpers_format_boundary.zig");
+    try expectContains(sample_boundary, "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
 }
