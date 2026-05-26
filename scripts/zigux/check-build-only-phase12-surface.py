@@ -70,6 +70,10 @@ PHASE12_VIRTIO_NET_SURVEY_TEST_PATH = "zigux/tests/phase12_virtio_net_survey.zig
 RELEASE_COORDINATION_MATRIX_PATH = (
     "Documentation/zigux/phase12-release-coordination-matrix.md"
 )
+VIRTIO_SCSI_FALLBACK_PATH = (
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
+)
+NVME_FALLBACK_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
 RELEASE_COORDINATION_MATRIX_MARKERS = [
     "readiness companion: `Documentation/zigux/phase12-release-readiness-survey.md`",
     "verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
@@ -124,6 +128,17 @@ RAW_GITHUB_COVERAGE_RETURNED_WRAPPER_MARKER = (
 RAW_GITHUB_COVERAGE_LOCAL_FIRST_WORKFLOW_MARKER = (
     "`.github/workflows/zigux-bootstrap.yml` now rebuilds the repo-local `.zig-toolchain` fallback by trying the pinned `third_party` archive first, then the Zig community-mirror list, and finally `ziglang.org`, so treat the Makefile fallback as a restorable local-first degraded-workflow path before falling back to attached `ZIG=<attached-zig-path>` reruns"
 )
+VIRTIO_SCSI_FALLBACK_MARKERS = [
+    "- exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
+    "- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf heavy-consumer, and `virtio_net` packet checkers plus `scripts/zigux/validate-phase12.py`",
+]
+NVME_FALLBACK_MARKERS = [
+    "Keep the current validator-first then smoke-first Phase 12 order explicit beside this driver-local gap note too:",
+    "1. shipped wrapper evidence on current `master`: `make -C zigux phase12-validate`",
+    "3. shipped wrapper evidence on current `master`: `make -C zigux phase12-smoke`",
+    "5. shipped wrapper evidence on current `master`: `make -C zigux phase12-test`",
+    "6. shipped wrapper evidence on current `master`: `make -C zigux phase12`",
+]
 MAKEFILE_FALLBACK_MARKERS = [
     "ZIG_LOCAL_TOOLCHAIN := $(firstword $(wildcard $(ZIGUX_ROOT)/.zig-toolchain/*/zig $(ZIGUX_ROOT)/.zig-toolchain/*/bin/zig))",
     "ZIG_PINNED_TOOLCHAIN := $(if $(ZIG_PINNED_EXECUTABLE),$(ZIG_PINNED_EXECUTABLE),$(ZIG_LOCAL_TOOLCHAIN))",
@@ -167,6 +182,8 @@ REQUIRED_FILES = [
     PHASE12_VIRTIO_NET_SURVEY_TEST_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
+    VIRTIO_SCSI_FALLBACK_PATH,
+    NVME_FALLBACK_PATH,
 ]
 
 REQUIRED_MARKERS = {
@@ -240,6 +257,8 @@ REQUIRED_MARKERS = {
         "    * `scripts/zigux/check-phase12-libbpf-snapshot.py`",
         "    * `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`",
     ],
+    VIRTIO_SCSI_FALLBACK_PATH: VIRTIO_SCSI_FALLBACK_MARKERS,
+    NVME_FALLBACK_PATH: NVME_FALLBACK_MARKERS,
 }
 
 PHASE12_BUILD_EXACT_COUNTS = {
@@ -491,6 +510,8 @@ def fixture_text(rel_path: str) -> str:
             WORKFLOW_PATH: "name: zigux-bootstrap",
             RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
             RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
+            VIRTIO_SCSI_FALLBACK_PATH: "# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog",
+            NVME_FALLBACK_PATH: "# Phase 12 NVMe PCI Raw GitHub Fallback Map",
         }.get(rel_path, "# Fixture")
         if rel_path == PHASE12_BUILD_PATH:
             return minimal_phase12_build()
@@ -770,7 +791,8 @@ def main() -> int:
             "Validate the current bounded Phase 12 build-only contract around the "
             "returned smoke-and-test wrappers, the docs-root, review-checklist, "
             "release-sequencing, scripts-root, tests-root, and closure-checklist "
-            "degraded fallback wording, and the split-helper virtio_net packet."
+            "degraded fallback wording, the two fallback-note smoke-order reminders, "
+            "and the split-helper virtio_net packet."
         )
     )
     parser.add_argument(
