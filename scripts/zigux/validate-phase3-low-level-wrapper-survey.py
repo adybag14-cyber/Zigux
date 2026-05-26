@@ -96,6 +96,7 @@ REQUIRED_MARKERS = {
     BARRIER_PATH: (
         "pub const FenceError = error{",
         "pub fn fenceOrderAllowed(order: Ordering) bool {",
+        "pub fn validateFenceOrder(comptime order: Ordering) FenceError!void {",
         "pub fn compiler() void {",
         "pub fn fence(comptime order: Ordering) FenceError!void {",
         "pub fn acquire() void {",
