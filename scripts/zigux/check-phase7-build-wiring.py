@@ -15,6 +15,9 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 RBTREE_PATH = Path("lib/rbtree.zig")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
+STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path(
+    "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py"
+)
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -28,6 +31,8 @@ EXPECTED_REPLAYS = [
     "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase7-argv-split-packet.py",
     "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+    "python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
+    "python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
@@ -35,10 +40,12 @@ EXPECTED_REPLAYS = [
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase7-leaf-library-evidence-catalog.md",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase7-shared-surface.py",
     "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
+    "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -156,18 +163,22 @@ REQUIRED_FILES = (
     BUILD_PATH,
     RBTREE_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
+    STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH,
 )
 
 CATALOG_REQUIRED_SNIPPETS = [
     "## Current direct-readback companions",
+    "- `Documentation/zigux/review-checklist.md`",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `scripts/zigux/check-phase7-argv-split-packet.py`",
+    "- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
     "- `zigux/tests/phase7_build.zig`",
     "- `lib/rbtree.zig`",
     "## Current replay inventory",
     "- `python3 scripts/zigux/check-phase7-build-wiring.py`",
     "- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
     "- `python3 scripts/zigux/check-phase7-argv-split-packet.py`",
+    "- `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
     "- `make -C zigux phase7-validate`",
     "## Current build-wiring evidence",
     "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
@@ -183,7 +194,9 @@ VALIDATOR_REQUIRED_SNIPPETS = [
     "phase7 build marker missing: ../../lib/rbtree.zig",
     "phase7 build marker missing: phase7-rbtree-test",
     'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
+    'STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py")',
     'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
+    'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)',
 ]
 
 MAKEFILE_REQUIRED_LINES = [
@@ -236,7 +249,7 @@ RBTREE_REQUIRED_SNIPPETS = [
     "pub fn rb_find_add_cached(",
 ]
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 17
 
 
 class ValidationError(RuntimeError):
@@ -329,7 +342,9 @@ def build_fixture_root(root: Path) -> None:
                 "phase7 build marker missing: ../../lib/rbtree.zig",
                 "phase7 build marker missing: phase7-rbtree-test",
                 'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
+                'STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py")',
                 'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
+                'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)',
             ]
         )
         + "\n",
@@ -367,6 +382,10 @@ def build_fixture_root(root: Path) -> None:
     write(root / BUILD_PATH, "\n".join(BUILD_REQUIRED_SNIPPETS) + "\n")
     write(root / RBTREE_PATH, "\n".join(RBTREE_REQUIRED_SNIPPETS) + "\n")
     write(root / ARGV_SPLIT_PACKET_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_ARGV_SPLIT_PACKET=pass')\n")
+    write(
+        root / STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH,
+        "#!/usr/bin/env python3\nprint('PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET=pass')\n",
+    )
 
 
 def expect_failure(root: Path, rel: Path, old: str, new: str) -> None:
@@ -392,6 +411,7 @@ def run_self_test() -> None:
 
         mutations = [
             (CATALOG_PATH, "- `lib/rbtree.zig`", "- `tools/lib/rbtree.zig`"),
+            (CATALOG_PATH, "- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`", "- `scripts/zigux/check-phase7-string-helpers-sample-boundary-packet.py`"),
             (CATALOG_PATH, "- none currently", "- `lib/rbtree.zig`"),
             (MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
             (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test"),
@@ -405,6 +425,8 @@ def run_self_test() -> None:
             (BUILD_PATH, 'const test_step = b.step("test", "Run the Phase 7 runtime helper tests");', 'const test_step = b.step("phase7-test", "Run the Phase 7 runtime helper tests");'),
             (BUILD_PATH, "test_step.dependOn(&run_rbtree_survey_tests.step)", "test_step.dependOn(&run_rbtree_tests.step)"),
             (MANIFEST_PATH, '"lib/rbtree.c"', '"tools/lib/rbtree.c"'),
+            (MANIFEST_PATH, '"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py"', '"scripts/zigux/check-phase7-string-helpers-sample-boundary-packet.py"'),
+            (VALIDATOR_PATH, 'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)', 'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)'),
         ]
         for rel, old, new in mutations:
             build_fixture_root(root)
