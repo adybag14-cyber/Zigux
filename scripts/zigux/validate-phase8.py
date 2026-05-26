@@ -581,7 +581,7 @@ def run_self_test() -> int:
             or 'missing-marker:Documentation/zigux/phase8-exec-cmd-slice.md:`PHASE8_SLICE=exec-cmd-deferred-exec-packet`'
             not in exec_cmd_checker_output
         ):
-            raise AssertionError("expected failing exec-cmd checker output to be reported")
+            raise AssertionError("expected failing exec_cmd checker output to be reported")
         case_count += 1
         _write(root / EXEC_CMD_PACKET_CHECKER, _passing_checker("PHASE8_EXEC_CMD_PACKET"))
 
@@ -600,8 +600,6 @@ def run_self_test() -> int:
                 case_count += 1
 
         for relative_path in REQUIRED_FILES:
-            if relative_path in CHECKERS:
-                continue
             path = root / relative_path
             original = _read(path)
             path.unlink()
