@@ -145,6 +145,40 @@ test "shared runtime loader surface keeps Phase 8 exec-cmd path controls in thei
     }
 }
 
+test "shared runtime loader surface keeps Phase 8 exec-cmd environment mutation helpers in their original owner" {
+    const exec_cmd_source = try readRepoFile(std.testing.allocator, "tools/lib/subcmd/exec-cmd.zig");
+    defer std.testing.allocator.free(exec_cmd_source);
+
+    const exec_cmd_owner_markers = [_][]const u8{
+        "pub const EnvMap",
+        "pub const ExtractArgv0Result",
+        "command_name",
+        "pub fn execCmdInit",
+        "pub fn setArgvExecPath",
+        "pub fn setupPath(",
+        "pub fn setupPathWithPwd",
+        "try env.set(config.exec_path_env, exec_path);",
+        "try env.set(\"PATH\", new_path);",
+    };
+    const loader_absence_markers = [_][]const u8{
+        "EnvMap",
+        "command_name:",
+        "execCmdInit",
+        "setArgvExecPath",
+        "setupPathWithPwd",
+        "try env.set(config.exec_path_env, exec_path);",
+        "try env.set(\"PATH\", new_path);",
+    };
+
+    inline for (exec_cmd_owner_markers) |marker| {
+        try expectContains(exec_cmd_source, marker);
+    }
+    inline for (loader_absence_markers) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+}
+
 test "shared runtime loader surface keeps Phase 8 help-display controls in their original owner" {
     const help_source = try readRepoFile(std.testing.allocator, "tools/lib/subcmd/help.zig");
     defer std.testing.allocator.free(help_source);
