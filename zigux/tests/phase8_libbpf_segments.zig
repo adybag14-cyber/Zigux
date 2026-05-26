@@ -84,6 +84,46 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
         std.mem.indexOf(u8, bridge_boundary, "standalone clockevent helper behavior") != null,
     );
 
+    const tests_readme = try readRepoFile("zigux/tests/README.md");
+    defer std.testing.allocator.free(tests_readme);
+
+    try expectContains(
+        tests_readme,
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+    );
+    try expectContains(
+        tests_readme,
+        "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`",
+    );
+    try expectContains(
+        tests_readme,
+        "`make -C zigux phase8-perf-buffer-poll-test`",
+    );
+    try expectContains(
+        tests_readme,
+        "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet",
+    );
+
+    const scripts_readme = try readRepoFile("scripts/zigux/README.md");
+    defer std.testing.allocator.free(scripts_readme);
+
+    try expectContains(
+        scripts_readme,
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
+    );
+    try expectContains(
+        scripts_readme,
+        "`zigux/tests/phase8_perf_buffer_poll.zig`",
+    );
+    try expectContains(
+        scripts_readme,
+        "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
+    );
+    try expectContains(
+        scripts_readme,
+        "surviving perf-buffer poll route",
+    );
+
     const poll_slice = try readRepoFile("Documentation/zigux/phase8-perf-buffer-poll-slice.md");
     defer std.testing.allocator.free(poll_slice);
 
