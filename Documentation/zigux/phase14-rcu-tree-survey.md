@@ -17,6 +17,8 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_rcu_tree_survey.zig`
 - authenticated contents-path readback still stays partial for those executable companions, so this note keeps the freeze-in-C blocker and review-only bridge boundary map as the owner surfaces rather than claiming restored local replay or active ownership
+- dedicated compile-route guard surface:
+  - `scripts/zigux/check-phase14-rcu-compile-route.py`
 - dedicated rollback guard surface:
   - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
 
@@ -44,6 +46,8 @@ This packet keeps that distinction honest: it records the current boundary evide
 - packet-local rerun vocabulary that public fallback now corroborates, even though this lane still lacks a local exact-replay environment on current `master`:
   - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+- dedicated compile-route guard surface:
+  - `python3 scripts/zigux/check-phase14-rcu-compile-route.py`
 - dedicated rollback guard surface:
   - `python3 scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
 
@@ -63,6 +67,11 @@ This packet keeps that distinction honest: it records the current boundary evide
 ## Bridge blocker
 `kernel/rcu/tree_bridge.zig` remains blocked by `phase14-rcu-tree-bridge-blocker`.
 The current survey evidence still shows force-quiescent-state escalation, poll-cookie sequencing plus synchronize_rcu wait-head rollover and completion cleanup handoff, public wait and callback-barrier ownership, CPU hotplug callback migration, expedited waits, grace-period publication, NOCB offload, idle-watch re-entry, quiescent-state propagation, callback enqueue, and the memory-ordering lock network as one live deep-core ownership surface. That is still a freeze-in-C posture, not a review-ready bridge seam.
+
+## Compile-route guard
+- machine-check surface: `scripts/zigux/check-phase14-rcu-compile-route.py` keeps the dedicated RCU compile row fail-closed on the shared-manifest entry, the focused `phase14_build` wiring, and this note's replay vocabulary.
+- route posture: the checker treats `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all` and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` as packet-local review routes corroborated by public fallback, not as active ownership or parity claims.
+- freeze posture: the compile-route guard adds drift detection for the RCU matrix row without weakening the existing freeze-in-C blocker or the rollback threshold.
 
 ## Rollback guardrail
 - manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` keeps this freeze-in-C packet fail-closed until the same review packet carries the required reopen evidence instead of a lighter status-review claim.
@@ -84,5 +93,5 @@ The current survey evidence still shows force-quiescent-state escalation, poll-c
 - any claim that Tree RCU is now a study-only anchor instead of a freeze-in-C anchor
 
 ## Next bounded step
-Keep this dedicated RCU packet aligned only when the dedicated note, the executable-companion readback, the freeze map, or the shared Phase 14 owner-map packet changes in a way that would otherwise hide the current freeze-in-C blocker.
+Keep this dedicated RCU packet aligned only when the dedicated note, the executable-companion readback, the compile-route guard, the freeze map, or the shared Phase 14 owner-map packet changes in a way that would otherwise hide the current freeze-in-C blocker.
 If authenticated contents-path readback recovers for the executable companions too, update this note and the dedicated checker together before restoring any stronger exact-readback wording.
