@@ -156,6 +156,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 help command-set helpers keep stable filtering and layout planning" {',
         'test "phase 8 help pretty printer keeps the current row-major stable output" {',
         'test "phase 8 help section rendering keeps stable main and fallback headings" {',
+        'test "phase 8 help empty exec path keeps the stable heading unquoted" {',
         'test "phase 8 help fallback-only packet suppresses the empty main heading" {',
         'const help = @import("help");',
         'const phase8_help_options = @import("phase8_help_options");',
