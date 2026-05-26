@@ -92,6 +92,7 @@
         "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
         "scripts/zigux/check-phase6-bsearch-c-parity.py"
       ],
+      "direct_c_parity_case_count": 17,
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
       "still_missing_direct_companions": [],
