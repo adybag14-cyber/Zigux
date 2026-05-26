@@ -88,6 +88,7 @@ WORKFLOW_MARKERS = (
     "run: make -C zigux phase2-validate",
     "run: make -C zigux phase2-genksyms",
     "run: make -C zigux phase2-fixdep",
+    "run: make -C zigux phase2",
 )
 
 MAKEFILE_MARKERS = (
@@ -99,6 +100,8 @@ MAKEFILE_MARKERS = (
     "phase2-genksyms: phase2-toolchain",
     "phase2-fixdep: phase2-toolchain",
     "phase2-kconfig: phase2-toolchain",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
+    "phase2: phase2-validate",
 )
 
 MAKEFILE_VARIABLE_MARKERS = (
