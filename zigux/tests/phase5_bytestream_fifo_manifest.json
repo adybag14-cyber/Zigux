@@ -1,5 +1,5 @@
 {
-  "lane_key": "P5-L03",
+  "lane_key": "P5-L01",
   "phase": "Phase 5",
   "surveyed_commit": "8cb62795e150bf23986906112dd53b3c1c74f26f",
   "anchor": "samples/kfifo/bytestream-example.c",
@@ -9,7 +9,7 @@
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the same sample packet still keeps StorageBacking.embedded_fixed_buffer explicit so reviewers can read the approved idiom as a bounded fixed-buffer ring instead of an implied allocation-backed runtime queue",
     "the contributor packet still frames the landed sample as an approved Phase 5 in-memory FIFO idiom instead of a runtime-substrate claim",
-    "the manifest-backed contributor packet still keeps runAnchorReplay(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), the exact queue-order replay, the non-destructive snapshotInto() cue, the lifecycle boundary, the reinit-after-exit reuse cue, the short-drain \"hel\" plus queued \"lo\" helper boundary, and the remaining-capacity evidence explicit instead of leaving those review cues implied",
+    "the manifest-backed contributor packet still keeps runAnchorReplay(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), the exact queue-order replay, the non-destructive snapshotInto() cue, the lifecycle boundary, the reinit-after-exit reuse cue, the short-drain \\\"hel\\\" plus queued \\\"lo\\\" helper boundary, and the remaining-capacity evidence explicit instead of leaving those review cues implied",
     "the approved in-memory FIFO idiom still keeps queue-shape evidence explicit so previewInto(), snapshotInto(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), available(), occupancySummary(), visibleSpanSummary(), writableSpanSummary(), and usesWrappedStorageWindow() stay aligned across the same cold, full, wrapped-window, and rollover boundaries that reviewers expect from a bounded ring sample",
     "the shared docs-root, sample-root, scripts-root, and tests-root contributor packet still points at this exact bytestream FIFO slice through the survey note, sample file, directly readable focused replay packet, directly readable manifest companion, directly readable survey gate, and the directly readable phase5_build.zig route instead of collapsing the review surface back to the sample file and survey note alone",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
@@ -19,12 +19,12 @@
     {
       "id": "initial-fill-len",
       "kind": "queue_state",
-      "expected": "fifo length is 15 after enqueueing \"hello\" and bytes 0 through 9"
+      "expected": "fifo length is 15 after enqueueing \\\"hello\\\" and bytes 0 through 9"
     },
     {
       "id": "first-drain",
       "kind": "drain_replay",
-      "expected": "first five bytes drained are the string \"hello\""
+      "expected": "first five bytes drained are the string \\\"hello\\\""
     },
     {
       "id": "second-drain-and-requeue",
@@ -54,7 +54,7 @@
     {
       "id": "remaining-capacity",
       "kind": "capacity_accounting",
-      "expected": "available() reports 32 at cold, initialized, replay-complete, reset, and exited boundaries, 27 after enqueueing \"hello\", 22 after the preview-boundary setup, 0 at full capacity, and 1 immediately after skip-at-capacity"
+      "expected": "available() reports 32 at cold, initialized, replay-complete, reset, and exited boundaries, 27 after enqueueing \\\"hello\\\", 22 after the preview-boundary setup, 0 at full capacity, and 1 immediately after skip-at-capacity"
     },
     {
       "id": "occupancy-summary-boundary",
@@ -64,7 +64,7 @@
     {
       "id": "wrapped-storage-window-boundary",
       "kind": "queue_shape",
-      "expected": "visibleSpanSummary() keeps the bounded split cues explicit with {0,0} at cold, initialized, replay-complete, reset, and exited boundaries, {5,0} after enqueueing \"hello\", {32,0} at full capacity, {31,0} immediately after skip-at-capacity, and {31,1} once the refill rollover wraps the bounded ring window, while usesWrappedStorageWindow() stays false at cold, initialized, reset, preview-boundary, replay-complete, and full-capacity states, then flips true only after the skip-at-capacity plus refill rollover cue makes the bounded ring window wrap; runWrappedPreviewReplay() keeps that wrapped preview non-destructive too by draining \"hell\", refilling {200,201,202,203}, leaving snapshotInto() to begin with ['o',0,1,2,3,4,5,6,7,8,9,10], keeping previewInto() at ['o',0,1,2,3,4,5,6], still reporting 32 visible bytes, leaving queue_len_after_preview at 32, available_after_preview at 0, and preserving the wrapped {28,4} split"
+      "expected": "visibleSpanSummary() keeps the bounded split cues explicit with {0,0} at cold, initialized, replay-complete, reset, and exited boundaries, {5,0} after enqueueing \\\"hello\\\", {32,0} at full capacity, {31,0} immediately after skip-at-capacity, and {31,1} once the refill rollover wraps the bounded ring window, while usesWrappedStorageWindow() stays false at cold, initialized, reset, preview-boundary, replay-complete, and full-capacity states, then flips true only after the skip-at-capacity plus refill rollover cue makes the bounded ring window wrap; runWrappedPreviewReplay() keeps that wrapped preview non-destructive too by draining \\\"hell\\\", refilling {200,201,202,203}, leaving snapshotInto() to begin with ['o',0,1,2,3,4,5,6,7,8,9,10], keeping previewInto() at ['o',0,1,2,3,4,5,6], still reporting 32 visible bytes, leaving queue_len_after_preview at 32, available_after_preview at 0, and preserving the wrapped {28,4} split"
     },
     {
       "id": "window-contract-visible-shapes",
@@ -99,7 +99,7 @@
     {
       "id": "short-drain-prefix",
       "kind": "helper_contract",
-      "expected": "draining a three-byte destination from the queued string \"hello\" yields exactly \"hel\", leaves the remaining prefix \"lo\" queued in order, and a follow-up drain on the now-empty queue returns 0"
+      "expected": "draining a three-byte destination from the queued string \\\"hello\\\" yields exactly \\\"hel\\\", leaves the remaining prefix \\\"lo\\\" queued in order, and a follow-up drain on the now-empty queue returns 0"
     },
     {
       "id": "reinit-after-exit",
