@@ -524,6 +524,40 @@ test "renderCommandSections treats an empty exec path like a missing one" {
     );
 }
 
+test "renderCommandSections keeps an empty exec path unquoted while sharing longest width with fallback commands" {
+    var main_cmds = CommandNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.add("annotate");
+    try main_cmds.add("bench");
+
+    var other_cmds = CommandNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.add("buildid-cache");
+
+    const rendered = try renderCommandSections(
+        std.testing.allocator,
+        "subcommands",
+        "",
+        &main_cmds,
+        &other_cmds,
+        20,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "available subcommands\n" ++
+            "---------------------\n" ++
+            " annotate\n" ++
+            " bench\n" ++
+            "\n" ++
+            "subcommands available from elsewhere on your $PATH\n" ++
+            "--------------------------------------------------\n" ++
+            " buildid-cache\n" ++
+            "\n",
+        rendered,
+    );
+}
+
 test "renderCommandSections returns an empty packet when both command groups are empty" {
     var main_cmds = CommandNames.init(std.testing.allocator);
     defer main_cmds.deinit();
