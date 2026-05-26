@@ -67,6 +67,10 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py"',
     '"python3 scripts/zigux/validate_phase3_selftest.py"',
     '"python3 scripts/zigux/run-phase3-checks.py"',
+    '"python3 scripts/zigux/check-phase3-bitmap-cpumask.py --self-test"',
+    '"python3 scripts/zigux/check-phase3-bitmap-cpumask.py"',
+    '"python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test"',
+    '"python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py"',
     '"zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all"',
     '"zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig"',
     '"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"',
@@ -90,6 +94,8 @@ REQUIRED_VALIDATOR_MARKERS = (
     '"make -C zigux phase3-export-uapi-layout"',
     '"make -C zigux phase3-export-uapi-layout-test"',
     '"make -C zigux phase3-low-level-wrappers-test"',
+    '"zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig"',
+    '"zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig"',
 )
 
 REQUIRED_MANIFEST_FIELDS = {
@@ -410,7 +416,7 @@ def run_self_test() -> int:
             issues = validate_repo(repo_root)
             _expect_issue(
                 issues,
-                f"phase3_abi_manifest.json missing replay route: {route}",
+                f"phase3_abi_manifest.json missing replay route: {route}"
             )
             cases += 1
 
