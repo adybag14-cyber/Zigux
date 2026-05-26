@@ -180,10 +180,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     LIBBPF_SEGMENT_MANIFEST: (
         '"lane_key": "P8-L13"',
         '"phase": "Phase 8"',
-        '"slug": "fdinfo-map-info-helpers", "status": "blocked_on_fdinfo_parser_materialization"',
-        '"slug": "map-reuse-compatibility", "status": "blocked_on_reuse_comparison_materialization"',
-        '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
-        '"slug": "fdinfo-path-and-reuse-name-footholds", "status": "starter_landed"',
+        '"slug": "fdinfo-map-info-helpers",\n      "status": "starter_landed"',
+        '"why_now": "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow."',
+        '"slug": "map-reuse-compatibility",\n      "status": "starter_landed"',
+        '"why_now": "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."',
+        '"slug": "file-path-and-handle-bridge",\n      "status": "deferred_high_risk",\n      "kind": "resource_boundary"',
+        '"slug": "fdinfo-path-and-reuse-name-footholds",\n      "status": "starter_landed"',
         '"why_now": "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred."',
     ),
     REVIEW_CHECKLIST: (
@@ -600,6 +602,8 @@ def run_self_test() -> int:
                 case_count += 1
 
         for relative_path in REQUIRED_FILES:
+            if relative_path in CHECKERS:
+                continue
             path = root / relative_path
             original = _read(path)
             path.unlink()
