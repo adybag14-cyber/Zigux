@@ -156,6 +156,10 @@ MATRIX_MARKERS = (
     "next bounded evidence step: keep the dedicated parked survey packet",
 )
 
+TEST_FSMOUNT_SURVEY_MARKERS = (
+    '"PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"',
+)
+
 DOCS_README_MARKERS = (
     "Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`",
     "the current docs-root Phase 4 reminder packet should stay parked on the directly readable helper, the returned contract checker, the determinism and validator-replay checkers, the shared repo-reality and pin guards, the dedicated local-only perf packet, the recovered broader note-and-checker companions, and the roadmap-backed atomic64 differential pair",
@@ -375,7 +379,7 @@ def build_fixture_tree(root: Path) -> None:
         BITMAP_SURVEY.as_posix(): "bitmap survey placeholder\n",
         PERF_SURVEY.as_posix(): "perf survey placeholder\n",
         KPROBE_MANIFEST.as_posix(): "kprobe manifest placeholder\n",
-        TEST_FSMOUNT_SURVEY.as_posix(): "test fsmount survey placeholder\n",
+        TEST_FSMOUNT_SURVEY.as_posix(): '"PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"\n',
         PHASE4_BUILD.as_posix(): "phase4 build placeholder\n",
         PHASE9_BUILD.as_posix(): "phase9 build placeholder\n",
         REVERSIBLE_DELIVERY_EVIDENCE.as_posix(): "reversible delivery evidence placeholder\n",
@@ -430,6 +434,7 @@ def validate_root(root: Path) -> list[str]:
     for marker_label, expected in COUNT_MARKERS:
         require_exact_value(note_text, marker_label, expected, "note", missing)
     require_markers(read_text(root / MATRIX), MATRIX_MARKERS, "matrix", missing)
+    require_markers(read_text(root / TEST_FSMOUNT_SURVEY), TEST_FSMOUNT_SURVEY_MARKERS, "test_fsmount_survey", missing)
     require_markers(read_text(root / DOCS_README), DOCS_README_MARKERS, "docs_readme", missing)
     require_markers(read_text(root / SCRIPTS_README), SCRIPTS_README_MARKERS, "scripts_readme", missing)
     require_markers(read_text(root / TESTS_README), TESTS_README_MARKERS, "tests_readme", missing)
