@@ -5,6 +5,8 @@ const SurveySummary = struct {
     surviving_sample_family_files: usize,
     survey_note_present: bool,
     module_slice_present: bool,
+    shared_phase9_make_routes_present: bool,
+    shared_phase9_make_routes_checked: usize,
 };
 
 const SamplePacketSummary = struct {
@@ -19,6 +21,13 @@ const ModuleSliceAlignment = struct {
     survey_note_path: []const u8,
     manifest_path: []const u8,
     alignment_focus: []const u8,
+};
+
+const DeliveryRouteSummary = struct {
+    makefile_path: []const u8,
+    shared_phase9_make_routes: []const []const u8,
+    build_shard_routes: []const []const u8,
+    delivery_discipline_boundary: []const u8,
 };
 
 const RoadmapGapSummary = struct {
@@ -44,6 +53,7 @@ const Manifest = struct {
     survey_summary: SurveySummary,
     sample_packet_summary: SamplePacketSummary,
     module_slice_alignment: ModuleSliceAlignment,
+    delivery_route_summary: DeliveryRouteSummary,
     roadmap_gap_summary: RoadmapGapSummary,
     ownership_map: []const OwnershipEntry,
 };
@@ -103,6 +113,14 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         .limited(48 * 1024),
     );
     defer std.testing.allocator.free(workflow_file);
+
+    const makefile_file = try cwd.readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile_file);
 
     const phase9_build_file = try cwd.readFileAlloc(
         io_instance.io(),
@@ -177,6 +195,8 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.surviving_sample_family_files);
     try std.testing.expect(manifest.survey_summary.survey_note_present);
     try std.testing.expect(manifest.survey_summary.module_slice_present);
+    try std.testing.expect(manifest.survey_summary.shared_phase9_make_routes_present);
+    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.shared_phase9_make_routes_checked);
 
     try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", manifest.sample_packet_summary.direct_sample);
     try std.testing.expectEqual(@as(usize, 5), manifest.sample_packet_summary.companion_files.len);
@@ -223,6 +243,42 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         manifest.module_slice_alignment.alignment_focus,
     );
 
+    try std.testing.expectEqualStrings("zigux/Makefile", manifest.delivery_route_summary.makefile_path);
+    try std.testing.expectEqual(@as(usize, 3), manifest.delivery_route_summary.shared_phase9_make_routes.len);
+    try std.testing.expectEqualStrings(
+        "phase9-runtime-loader-shared-test",
+        manifest.delivery_route_summary.shared_phase9_make_routes[0],
+    );
+    try std.testing.expectEqualStrings(
+        "phase9-runtime-trace-events-test",
+        manifest.delivery_route_summary.shared_phase9_make_routes[1],
+    );
+    try std.testing.expectEqualStrings(
+        "phase9-test",
+        manifest.delivery_route_summary.shared_phase9_make_routes[2],
+    );
+    try std.testing.expectEqual(@as(usize, 4), manifest.delivery_route_summary.build_shard_routes.len);
+    try std.testing.expectEqualStrings(
+        "phase9-runtime-loader-allocator-init-flow-tests",
+        manifest.delivery_route_summary.build_shard_routes[0],
+    );
+    try std.testing.expectEqualStrings(
+        "phase9-runtime-loader-command-env-boundary-guard-tests",
+        manifest.delivery_route_summary.build_shard_routes[1],
+    );
+    try std.testing.expectEqualStrings(
+        "phase9-runtime-trace-events-loader-substrate-drift-tests",
+        manifest.delivery_route_summary.build_shard_routes[2],
+    );
+    try std.testing.expectEqualStrings(
+        "phase9-runtime-trace-events-tests",
+        manifest.delivery_route_summary.build_shard_routes[3],
+    );
+    try std.testing.expectEqualStrings(
+        "Keeps the shipped trace-events make route, the adjacent shared loader-handoff make route, and the bounded trace-events rerun shard explicit without promoting broader shared runtime-loader completion into family-local trace-events proof.",
+        manifest.delivery_route_summary.delivery_discipline_boundary,
+    );
+
     try std.testing.expectEqualStrings(
         "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
         manifest.roadmap_gap_summary.roadmap_phase_goal,
@@ -240,7 +296,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         manifest.roadmap_gap_summary.next_gate,
     );
 
-    try std.testing.expectEqual(@as(usize, 8), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.ownership_map.len);
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-survey.md", manifest.ownership_map[0].surface);
     try std.testing.expectEqualStrings("survey_note", manifest.ownership_map[0].role);
     try std.testing.expectEqualStrings("P9-L12", manifest.ownership_map[0].owner);
@@ -259,12 +315,15 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", manifest.ownership_map[5].surface);
     try std.testing.expectEqualStrings("adjacent_shared_build_shard", manifest.ownership_map[5].role);
     try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[5].owner);
-    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader_command_env_boundary_guard.zig", manifest.ownership_map[6].surface);
-    try std.testing.expectEqualStrings("adjacent_shared_command_env_guard", manifest.ownership_map[6].role);
+    try std.testing.expectEqualStrings("zigux/Makefile", manifest.ownership_map[6].surface);
+    try std.testing.expectEqualStrings("adjacent_shared_make_wrapper", manifest.ownership_map[6].role);
     try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[6].owner);
-    try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", manifest.ownership_map[7].surface);
-    try std.testing.expectEqualStrings("adjacent_shared_workflow_guard", manifest.ownership_map[7].role);
+    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader_command_env_boundary_guard.zig", manifest.ownership_map[7].surface);
+    try std.testing.expectEqualStrings("adjacent_shared_command_env_guard", manifest.ownership_map[7].role);
     try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[7].owner);
+    try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", manifest.ownership_map[8].surface);
+    try std.testing.expectEqualStrings("adjacent_shared_workflow_guard", manifest.ownership_map[8].role);
+    try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[8].owner);
 
     try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events.zig`");
@@ -324,6 +383,12 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_reinit_rollback_guard.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_reinit_reexit_guard.zig");
     try expectContains(workflow_file, "zig test zigux/tests/runtime_trace_events_survey.zig");
+
+    try expectContains(makefile_file, "phase9-runtime-loader-shared-test:");
+    try expectContains(makefile_file, "phase9-runtime-trace-events-test:");
+    try expectContains(makefile_file, "phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test");
+    try expectContains(makefile_file, "$(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all");
+    try expectContains(makefile_file, "$(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all");
 
     try expectContains(phase9_build_file, ".name = \"phase9-runtime-atomic64-diff-tests\"");
     try expectContains(phase9_build_file, "runtime_atomic64_diff.zig");
