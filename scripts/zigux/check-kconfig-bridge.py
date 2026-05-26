@@ -168,7 +168,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
@@ -530,6 +530,13 @@ def run_self_test() -> int:
         payload["conf_cases"][8].pop("mode_arg")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         assert any(code == "CONF_MANIFEST_MODE_ARG_CASES_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][10].pop("silent")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONF_MANIFEST_SILENT_REQUEST_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
