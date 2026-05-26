@@ -165,6 +165,7 @@ REQUIRED_MARKERS = {
         'try expectContains(makefile, "phase7-validate:");',
         'try expectContains(slice_note, "public-fallback provenance stays explicit through the now-empty `public_fallback_non_owner_paths` field");',
         'try expectContains(fixture, "\\"packet\\": \\"phase7-rbtree-parity-fixture\\"");',
+        'try expectContains(c_harness, "ordered-duplicate-cached-eraseinit-postorder-reverse-c-harness");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
         '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest_fixture_harness"',
@@ -191,7 +192,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c": [
         "struct phase7_rbtree_c_harness {",
         '.packet = "phase7-rbtree-parity-fixture",',
-        '.current_master_state = "ordered-duplicate-cached-postorder-reverse-c-harness",',
+        '.current_master_state = "ordered-duplicate-cached-eraseinit-postorder-reverse-c-harness",',
         ".ordered_duplicate_range = {",
         ".non_leftmost_cached_erase = {",
         ".singleton_cached_erase = {",
@@ -203,7 +204,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 49
+SELF_TEST_CASE_COUNT = 50
 
 
 def read_text(path: Path) -> str:
@@ -568,26 +569,32 @@ def run_self_test() -> None:
         fixture_path = root / "zigux/tests/fixtures/phase7_rbtree.json"
         fixture_marker = '"packet": "phase7-rbtree-parity-fixture"'
         fixture_path.write_text(read_text(fixture_path).replace(fixture_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree.json: {fixture_marker}"])
+        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree.json: {fixture_marker}"])
         cases_run += 1
 
         write_fixture_root(root)
         fixture_marker = '"non_leftmost_cached_erase"'
         fixture_path.write_text(read_text(fixture_path).replace(fixture_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree.json: {fixture_marker}"])
+        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree.json: {fixture_marker}"])
         cases_run += 1
 
         write_fixture_root(root)
         harness_path = root / "zigux/tests/fixtures/phase7_rbtree_c_harness.c"
         harness_marker = ".non_leftmost_cached_erase = {"
         harness_path.write_text(read_text(harness_path).replace(harness_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_c_harness.c: {harness_marker}"])
+        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree_c_harness.c: {harness_marker}"])
         cases_run += 1
 
         write_fixture_root(root)
         harness_marker = ".reverse_alias_detached = {"
         harness_path.write_text(read_text(harness_path).replace(harness_marker + "\n", "", 1), encoding="utf-8")
-        assert validate(root) == ([], [f"zigux/tests/phase7_rbtree_c_harness.c: {harness_marker}"])
+        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree_c_harness.c: {harness_marker}"])
+        cases_run += 1
+
+        write_fixture_root(root)
+        harness_marker = '.current_master_state = "ordered-duplicate-cached-eraseinit-postorder-reverse-c-harness",'
+        harness_path.write_text(read_text(harness_path).replace(harness_marker + "\n", "", 1), encoding="utf-8")
+        assert validate(root) == ([], [f"zigux/tests/fixtures/phase7_rbtree_c_harness.c: {harness_marker}"])
         cases_run += 1
 
         write_fixture_root(root)
