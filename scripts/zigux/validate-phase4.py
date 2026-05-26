@@ -35,6 +35,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-tests-readme-packet.py",
+    "scripts/zigux/check-phase4-validation-lane-sequencing.py",
     "scripts/zigux/check-phase4-workflow-route-counts.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -234,6 +235,16 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
         ("PHASE4_REMAINING_GAP_MATRIX", "PHASE4_REMAINING_GAP_MATRIX=pass"),
         ("PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT", "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6"),
     ),
+    "phase4-validation-lane-sequencing-self-test": (
+        ("PHASE4_VALIDATION_LANE_SEQUENCING_SELF_TEST", "PHASE4_VALIDATION_LANE_SEQUENCING_SELF_TEST=pass"),
+        (
+            "PHASE4_VALIDATION_LANE_SEQUENCING_SELF_TEST_CASES",
+            "PHASE4_VALIDATION_LANE_SEQUENCING_SELF_TEST_CASES=10",
+        ),
+    ),
+    "phase4-validation-lane-sequencing": (
+        ("PHASE4_VALIDATION_LANE_SEQUENCING_CHECK", "PHASE4_VALIDATION_LANE_SEQUENCING_CHECK=pass"),
+    ),
     "phase4-workflow-route-counts-self-test": (
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass"),
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=32"),
@@ -282,6 +293,8 @@ CHECKS = (
     CheckSpec("phase4-perf-threshold-matrix", ("python", "scripts/zigux/check-phase4-perf-threshold-matrix.py")),
     CheckSpec("phase4-remaining-gap-matrix-self-test", ("python", "scripts/zigux/check-phase4-remaining-gap-matrix.py", "--self-test")),
     CheckSpec("phase4-remaining-gap-matrix", ("python", "scripts/zigux/check-phase4-remaining-gap-matrix.py")),
+    CheckSpec("phase4-validation-lane-sequencing-self-test", ("python", "scripts/zigux/check-phase4-validation-lane-sequencing.py", "--self-test")),
+    CheckSpec("phase4-validation-lane-sequencing", ("python", "scripts/zigux/check-phase4-validation-lane-sequencing.py")),
     CheckSpec("phase4-workflow-route-counts-self-test", ("python", "scripts/zigux/check-phase4-workflow-route-counts.py", "--self-test")),
     CheckSpec("phase4-workflow-route-counts", ("python", "scripts/zigux/check-phase4-workflow-route-counts.py")),
     CheckSpec("phase4-build-test", ("zig", "build", "test", "--build-file", "zigux/tests/phase4_build.zig")),
@@ -605,6 +618,14 @@ def configure_phase4_output_stubs(root: Path) -> None:
         self_test_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass", "PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT=38"),
         live_stdout_lines=("PHASE4_REMAINING_GAP_MATRIX=pass", "PHASE4_REMAINING_GAP_MATRIX_PACKET_COUNT=6"),
     )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-validation-lane-sequencing.py",
+        self_test_stdout_lines=(
+            "PHASE4_VALIDATION_LANE_SEQUENCING_SELF_TEST=pass",
+            "PHASE4_VALIDATION_LANE_SEQUENCING_SELF_TEST_CASES=10",
+        ),
+        live_stdout_lines=("PHASE4_VALIDATION_LANE_SEQUENCING_CHECK=pass",),
+    )
     configure_workflow_route_stub(root)
 
 
@@ -755,13 +776,32 @@ def run_self_test() -> int:
         cases += 1
 
         reset_fixture()
+        build_stub_script(root / "scripts/zigux/check-phase4-validation-lane-sequencing.py", self_test_exit_code=0, live_exit_code=1)
+        if "live_failed:phase4-validation-lane-sequencing:exit=1" not in collect_issues(root):
+            print("PHASE4_VALIDATE_SELF_TEST=fail")
+            print("validation lane sequencing live failure was not detected")
+            return 1
+        cases += 1
+
+        reset_fixture()
+        build_stub_script(
+            root / "scripts/zigux/check-phase4-validation-lane-sequencing.py",
+            self_test_stdout_lines=("PHASE4_VALIDATION_LANE_SEQUENCING_SELF_TEST=pass",),
+            live_stdout_lines=("PHASE4_VALIDATION_LANE_SEQUENCING_CHECK=pass",),
+        )
+        if "output_marker_missing:phase4-validation-lane-sequencing-self-test:PHASE4_VALIDATION_LANE_SEQUENCING_SELF_TEST_CASES" not in collect_issues(root):
+            print("PHASE4_VALIDATE_SELF_TEST=fail")
+            print("validation lane sequencing marker drift was not detected")
+            return 1
+        cases += 1
+
+        reset_fixture()
         build_stub_script(
             root / "scripts/zigux/check-phase4-workflow-route-counts.py",
             self_test_stdout_lines=(
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=32",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES),
-                "PHASE4_WORKFLOW_ROUTE_COUNT=12",
                 "PHASE4_WORKFLOW_MARKER_COUNT=20",
                 "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=7",
