@@ -16,6 +16,7 @@ ROOT = _FILE_PATH.parents[2] if len(_FILE_PATH.parents) > 2 else _FILE_PATH.pare
 CATALOG_PATH = Path("Documentation/zigux/phase7-leaf-library-evidence-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
@@ -150,7 +151,7 @@ REQUIRED_MAKEFILE_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 20
 
 
 class ValidationError(RuntimeError):
@@ -305,6 +306,21 @@ def scaffold_repo(root: Path) -> None:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py\n",
     )
+    write(
+        root / WORKFLOW_PATH,
+        "\n".join(
+            [
+                "jobs:",
+                "  bootstrap:",
+                "    steps:",
+                "      - name: Self-test current Phase 7 make-wrapper selftest alignment checker",
+                "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+                "      - name: Check current Phase 7 make-wrapper selftest alignment packet",
+                "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+            ]
+        )
+        + "\n",
+    )
     write(root / BUILD_PATH, "\n".join(EXPECTED_BUILD_WIRING_EVIDENCE[0]["expected_markers"]) + "\n")
     write(
         root / MANIFEST_PATH,
@@ -378,10 +394,21 @@ def scaffold_repo(root: Path) -> None:
         ),
     ]:
         write(root / rel_path, content)
+    write(
+        root / Path("scripts/zigux/validate-phase7.py"),
+        "\n".join(
+            [
+                "from pathlib import Path",
+                'MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")',
+                'run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")',
+                "print('PHASE7_VALIDATE=pass')",
+            ]
+        )
+        + "\n",
+    )
     for checker_path, success_marker, root_flag in [
         (CHECKER_PATH, "PHASE7_SHARED_SURFACE=pass", "--repo-root"),
         (BUILD_WIRING_CHECKER_PATH, "PHASE7_BUILD_WIRING=pass", "--repo-root"),
-        (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass", "--root"),
         (ARGV_SPLIT_PACKET_CHECKER_PATH, "PHASE7_ARGV_SPLIT_PACKET=pass", "--repo-root"),
         (STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET=pass", "--repo-root"),
     ]:
@@ -400,6 +427,46 @@ def scaffold_repo(root: Path) -> None:
             "if __name__ == '__main__':\n"
             "    raise SystemExit(main())\n",
         )
+    write(
+        root / MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
+        "#!/usr/bin/env python3\n"
+        "from __future__ import annotations\n"
+        "import argparse\n"
+        "from pathlib import Path\n\n"
+        "WORKFLOW_PATH = Path('.github/workflows/zigux-bootstrap.yml')\n"
+        "VALIDATOR_PATH = Path('scripts/zigux/validate-phase7.py')\n"
+        "PARKED_PATH = Path('scripts/zigux/check-phase7-make-wrapper.py')\n"
+        "REQUIRED_WORKFLOW_LINES = (\n"
+        "    'run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test',\n"
+        "    'run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py',\n"
+        ")\n"
+        "REQUIRED_VALIDATOR_MARKERS = (\n"
+        "    'MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path(\"scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\")',\n"
+        "    'run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, \"--root\")',\n"
+        ")\n\n"
+        "def count_exact_lines(text: str, marker: str) -> int:\n"
+        "    normalized = marker.strip()\n"
+        "    return sum(1 for line in text.splitlines() if line.strip() == normalized)\n\n"
+        "def main() -> int:\n"
+        "    parser = argparse.ArgumentParser()\n"
+        "    parser.add_argument('--root', type=Path, default=Path('.'))\n"
+        "    args = parser.parse_args()\n"
+        "    root = args.root\n"
+        "    if (root / PARKED_PATH).exists():\n"
+        "        raise SystemExit('parked make-wrapper path unexpectedly returned')\n"
+        "    workflow_text = (root / WORKFLOW_PATH).read_text(encoding='utf-8')\n"
+        "    validator_text = (root / VALIDATOR_PATH).read_text(encoding='utf-8')\n"
+        "    for marker in REQUIRED_WORKFLOW_LINES:\n"
+        "        if count_exact_lines(workflow_text, marker) != 1:\n"
+        "            raise SystemExit(f'workflow marker drift: {marker}')\n"
+        "    for marker in REQUIRED_VALIDATOR_MARKERS:\n"
+        "        if validator_text.count(marker) != 1:\n"
+        "            raise SystemExit(f'validator marker drift: {marker}')\n"
+        "    print('PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass')\n"
+        "    return 0\n\n"
+        "if __name__ == '__main__':\n"
+        "    raise SystemExit(main())\n",
+    )
 
 
 def expect_failure(root: Path, rel_path: Path, marker: str, delete_only: bool = False) -> None:
@@ -438,6 +505,9 @@ def run_self_test() -> None:
             (Path("lib/string_helpers.zig"), "pub fn parseIntArray()", False),
             (MANIFEST_PATH, '"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py"', False),
             (MANIFEST_PATH, '"python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py"', False),
+            (WORKFLOW_PATH, "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test\n", False),
+            (WORKFLOW_PATH, "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\n", False),
+            (Path("scripts/zigux/validate-phase7.py"), 'run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")\n', False),
             (CHECKER_PATH, "", True),
             (BUILD_WIRING_CHECKER_PATH, "", True),
             (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "", True),
