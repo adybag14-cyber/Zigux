@@ -166,7 +166,7 @@ LONG_OPTION_SPECS = (
     ("preserve", "preserve", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -188,6 +188,34 @@ def read_json(root: Path, rel: str, issue_code: str) -> tuple[object | None, tup
 
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def find_duplicate_strings(values: list[str]) -> list[str]:
+    duplicates: list[str] = []
+    seen: set[str] = set()
+    recorded: set[str] = set()
+    for value in values:
+        if value in seen and value not in recorded:
+            duplicates.append(value)
+            recorded.add(value)
+            continue
+        seen.add(value)
+    return duplicates
+
+
+def extract_case_field_strings(payload: object, field: str) -> list[str] | None:
+    if not isinstance(payload, list):
+        return None
+
+    values: list[str] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            return None
+        value = item.get(field)
+        if not isinstance(value, str):
+            return None
+        values.append(value)
+    return values
 
 
 def resolve_long_option(name: str) -> tuple[str, bool]:
@@ -427,6 +455,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if cases_issue is not None:
         issues.append(cases_issue)
         return issues
+    case_names = extract_case_field_strings(cases_payload, "name")
+    if case_names is not None:
+        for value in find_duplicate_strings(case_names):
+            issues.append(("DUPLICATE_CASE_NAME", value))
+    expected_files = extract_case_field_strings(cases_payload, "expected_file")
+    if expected_files is not None:
+        for value in find_duplicate_strings(expected_files):
+            issues.append(("DUPLICATE_EXPECTED_FILE", value))
     expected_cases = [dict(case) for case in CASE_FIXTURES]
     if cases_payload != expected_cases:
         issues.append(("CASE_ROSTER_MISMATCH", CASES_FIXTURE))
@@ -486,7 +522,7 @@ def build_self_test_root(root: Path) -> None:
         "phase2-genksyms:\n"
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test\n"
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py\n"
-        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig\n",
+        "cd $(ZIG) test scripts/zigux/genksyms.zig\n",
     )
     write_text(
         root,
@@ -550,6 +586,20 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, CASES_FIXTURE, "{broken\n")
         assert ("INVALID_CASES_FIXTURE_JSON", CASES_FIXTURE) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        duplicate_name_cases = [dict(case) for case in CASE_FIXTURES]
+        duplicate_name_cases[1]["name"] = duplicate_name_cases[0]["name"]
+        write_text(root, CASES_FIXTURE, json.dumps(duplicate_name_cases, indent=2) + "\n")
+        assert ("DUPLICATE_CASE_NAME", "minimal") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        duplicate_expected_cases = [dict(case) for case in CASE_FIXTURES]
+        duplicate_expected_cases[1]["expected_file"] = duplicate_expected_cases[0]["expected_file"]
+        write_text(root, CASES_FIXTURE, json.dumps(duplicate_expected_cases, indent=2) + "\n")
+        assert ("DUPLICATE_EXPECTED_FILE", "minimal_expected.json") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
