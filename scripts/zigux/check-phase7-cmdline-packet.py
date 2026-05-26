@@ -44,6 +44,7 @@ EXPECTED_COVERED_HELPERS = [
 EXPECTED_OWNERSHIP_FOCUS = [
     "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix",
     "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior",
+    "the dedicated `get_option` alias replay keeps leading-plus and range-style cursor movement explicit beside the primary `getOption()` entry point",
     "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
     "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
     "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
@@ -77,6 +78,7 @@ REQUIRED_MARKERS = {
         "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.",
         "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs",
         "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
+        "dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point",
     ],
     "lib/cmdline.zig": [
         "pub fn parseOptionStr",
@@ -166,7 +168,7 @@ COUNTED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 54
+SELF_TEST_CASE_COUNT = 56
 
 
 def read_text(path: Path) -> str:
@@ -324,6 +326,7 @@ def run_self_test() -> None:
             ("Documentation/zigux/phase7-cmdline-slice.md", "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.", ""),
+            ("Documentation/zigux/phase7-cmdline-slice.md", "dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point", ""),
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
             ("lib/cmdline.zig", "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {", ""),
             ("lib/cmdline.zig", "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {", ""),
@@ -391,6 +394,19 @@ def run_self_test() -> None:
             "manifest_samples_readme_guard",
             tmp_root,
             "zigux/tests/phase7_cmdline_manifest.json: review_surfaces: samples/zigux/README.md",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(
+            "the dedicated `get_option` alias replay keeps leading-plus and range-style cursor movement explicit beside the primary `getOption()` entry point"
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_get_option_alias_replay_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: the dedicated `get_option` alias replay keeps leading-plus and range-style cursor movement explicit beside the primary `getOption()` entry point",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
