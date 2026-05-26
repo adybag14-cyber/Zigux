@@ -177,6 +177,7 @@ SELF_TEST_CASES = (
         REQUIRED_NOTE_MARKERS[8],
         "marker",
     ),
+    ("missing policy packet gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[9], "marker"),
     ("missing policy packet test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[10], "marker"),
     ("missing policy dump gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[11], "marker"),
     ("missing starter packet make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
