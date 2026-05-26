@@ -98,6 +98,20 @@
       "still_missing_direct_companions": [],
       "current_perf_evidence": {
         "budget_model": "comparison_budget",
+        "cases": [
+          {
+            "label": "len15",
+            "reps": 4000
+          },
+          {
+            "label": "len64",
+            "reps": 2000
+          },
+          {
+            "label": "len1024",
+            "reps": 250
+          }
+        ],
         "case_labels": [
           "len15",
           "len64",
@@ -105,7 +119,7 @@
         ],
         "query_count": 16,
         "budget_formula": "std.math.log2_int_ceil(len) + 1",
-        "bound_budget_formula": "len == 0 ? 0 : std.math.log2_int_floor(len) + 1",
+        "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
         "runtime_selected_c_abi_replays": [
           "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
           "zigux/tests/phase6_bsearch_c_abi_budget.zig"
