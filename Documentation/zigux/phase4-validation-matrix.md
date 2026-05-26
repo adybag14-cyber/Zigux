@@ -2,13 +2,14 @@
 
 ## Status
   * `PHASE4_STATUS=differential_validation_matrix_landed`
-  * scope: keep the currently shipped Phase 4 rollback-readiness gates, the host-side artifact-diff contract replay, the dedicated artifact-diff determinism checker, the dedicated artifact-diff validator-replay checker, the dedicated exact-readback gate-evidence packet, the direct-readback repo-reality warning and tests-readme packet checkers, the dedicated remaining-gap matrix checker, the dedicated workflow-route-count checker, the manifest-backed runtime atomic64 and bitmap rollback survey packets, and the dedicated local perf-baseline posture survey reviewable, name the rollback owners for each bounded gate or survey, and make the current CI and local replay paths explicit
+  * scope: keep the currently shipped Phase 4 rollback-readiness gates, the host-side artifact-diff contract replay, the dedicated artifact-diff determinism checker, the dedicated artifact-diff validator-replay checker, the dedicated exact-readback gate-evidence packet, the dedicated validation-lane sequencing note and checker, the direct-readback repo-reality warning and tests-readme packet checkers, the dedicated remaining-gap matrix checker, the dedicated workflow-route-count checker, the manifest-backed runtime atomic64 and bitmap rollback survey packets, and the dedicated local perf-baseline posture survey reviewable, name the rollback owners for each bounded gate or survey, and make the current CI and local replay paths explicit
   * current repo reality:
     * `scripts/zigux/artifact_diff.py`
     * `scripts/zigux/check-artifact-diff-contract.py`
     * `scripts/zigux/check-phase4-artifact-diff-determinism.py`
     * `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
     * `scripts/zigux/check-phase4-gate-evidence.py`
+    * `scripts/zigux/check-phase4-validation-lane-sequencing.py`
     * `scripts/zigux/check-phase4-perf-baseline-packet.py`
     * `scripts/zigux/check-phase4-perf-threshold-matrix.py`
     * `scripts/zigux/check-phase4-remaining-gap-matrix.py`
@@ -21,6 +22,8 @@
     * `Documentation/zigux/phase4-kprobe-example-gap-survey.md`
     * `Documentation/zigux/phase4-reversible-delivery-evidence.md`
     * `Documentation/zigux/phase4-test-fsmount-gap-survey.md`
+    * `Documentation/zigux/phase4-validation-lane-sequencing.md`
+    * `Documentation/zigux/phase4-validation-matrix.md`
     * `Documentation/zigux/review-checklist.md`
     * `Documentation/zigux/README.md`
     * `scripts/zigux/README.md`
@@ -44,7 +47,7 @@
     * `scripts/zigux/validate-phase4.py`
     * `.github/workflows/zigux-bootstrap.yml`
   * direct-readback split: this broader matrix packet is still live on current `master`, but the smaller current direct-readback packet stays intentionally narrower until authenticated contents reads recover for the broader build and bitmap companions again; today that direct-readback packet already includes `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`
-  * roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` and `phase4_bitmap_diff` survey packets keep the wrapper-to-runtime atomic64 handoff and the bounded bitmap rollback packet measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` starters are intentionally opened, the dedicated `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` packet now keeps the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates measurable through a direct local survey route plus the matching Linux-style wrapper without promoting shared CI perf coverage yet, and the dedicated workflow-route-count checker now keeps that same wrapper inventory reviewable beside `zigux/Makefile` instead of leaving the local replay surface implicit.
+  * roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` and `phase4_bitmap_diff` survey packets keep the wrapper-to-runtime atomic64 handoff and the bounded bitmap rollback packet measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` starters are intentionally opened, the dedicated `zigux/tests/phase4_perf_baseline_manifest.json` plus `zigux/tests/phase4_perf_baseline_survey.zig` packet now keeps the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates measurable through a direct local survey route plus the matching Linux-style wrapper without promoting shared CI perf coverage yet, the dedicated validation-lane sequencing note plus checker keep the current shared matrix-side reminder lane split explicit beside the dedicated remaining-gap checker, and the dedicated workflow-route-count checker now keeps that same wrapper inventory reviewable beside `zigux/Makefile` instead of leaving the local replay surface implicit.
 
 ## Why this exists
 
@@ -54,7 +57,7 @@ The repo already had the shared Phase 4 build entrypoint, validator wiring, and 
   * the bounded rollback owner for each live Phase 4 gate
   * the current perf threshold status for those gates
   * the manifest-backed survey packets that keep the atomic64 wrapper-to-runtime handoff and the bitmap rollback packet measurable
-  * the shipped host-side artifact-diff contract packet, the dedicated artifact-diff determinism checker, the dedicated artifact-diff validator-replay checker, the dedicated gate-evidence checker-plus-note packet, the direct-readback repo-reality warning and tests-readme packet checkers, the dedicated remaining-gap matrix checker for the parked kprobe, `test_fsmount`, and local-only perf-threshold rows, and the dedicated workflow-route-count checker that the broader validator already depends on
+  * the shipped host-side artifact-diff contract packet, the dedicated artifact-diff determinism checker, the dedicated artifact-diff validator-replay checker, the dedicated gate-evidence checker-plus-note packet, the dedicated validation-lane sequencing note plus checker, the direct-readback repo-reality warning and tests-readme packet checkers, the dedicated remaining-gap matrix checker for the parked kprobe, `test_fsmount`, and local-only perf-threshold rows, and the dedicated workflow-route-count checker that the broader validator already depends on
   * the dedicated local perf-baseline survey route that keeps the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked without treating it as shared CI perf approval
   * the shared review-checklist guardrail that keeps the same Phase 4 packet explicit when reviewers touch it
   * the dedicated reversible-delivery handoff note and pin checker that keep the shared exact-readback packet, the validator-first route inventory, and the dedicated local-only perf packet exact together as the smallest current reversible-delivery evidence set
