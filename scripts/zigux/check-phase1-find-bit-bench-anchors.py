@@ -24,6 +24,7 @@ REQUIRED_TEST_MARKERS = {
     "tail_word_zero_shared_skip_test": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping" {',
     "clump8_untouched_test": 'test "clump8 zero-bit and past-end windows leave the caller byte untouched" {',
     "clump8_no_read_test": 'test "clump8 past-end scans return without reading bitmap words" {',
+    "clump8_skip_forward_test": 'test "clump8 scans skip earlier aligned bytes once the offset moves forward" {',
     "get_value8_last_aligned_test": 'test "getValue8 reads the last aligned byte of a word without folding in the next word" {',
     "underscore_andnot_alias_test": 'test "low-level underscore aliases mirror the primary find helpers, including andnot" {',
     "linux_andnot_alias_test": 'test "Linux-style aliases mirror the primary find helpers, including andnot" {',
@@ -72,6 +73,10 @@ REQUIRED_SOURCE_EXACT_MARKERS = {
     "find_clump8_past_end": "findNextClump8(&clump, &empty, 8, 8)",
     "find_clump8_linux_alias_past_end": "find_next_clump8(&clump, &empty, 8, 12)",
     "find_clump8_low_level_alias_past_end": "_find_next_clump8(&clump, &empty, 8, 20)",
+    "find_clump8_skip_first": "try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &bitmap, nbits, 0));",
+    "find_clump8_skip_second": "try std.testing.expectEqual(@as(usize, 24), findNextClump8(&clump, &bitmap, nbits, 16));",
+    "find_clump8_skip_same_byte": "try std.testing.expectEqual(@as(usize, 24), findNextClump8(&clump, &bitmap, nbits, 25));",
+    "find_clump8_skip_stop": "try std.testing.expectEqual(@as(usize, nbits), findNextClump8(&clump, &bitmap, nbits, 30));",
     "find_get_value8_last_aligned": "try std.testing.expectEqual(@as(u8, 0xa5), getValue8(&bitmap, last_aligned_byte));",
     "find_get_value8_next_word": "try std.testing.expectEqual(@as(u8, 0x11), getValue8(&bitmap, bits_per_long));",
     "find_next_andnot_low_level_alias": "try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), _find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));",
@@ -206,6 +211,12 @@ def build_sample_source(
         "    _ = find_next_clump8(&clump, &empty, 8, 12);",
         "    _ = _find_next_clump8(&clump, &empty, 8, 20);",
         "}",
+        'test "clump8 scans skip earlier aligned bytes once the offset moves forward" {',
+        "    try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &bitmap, nbits, 0));",
+        "    try std.testing.expectEqual(@as(usize, 24), findNextClump8(&clump, &bitmap, nbits, 16));",
+        "    try std.testing.expectEqual(@as(usize, 24), findNextClump8(&clump, &bitmap, nbits, 25));",
+        "    try std.testing.expectEqual(@as(usize, nbits), findNextClump8(&clump, &bitmap, nbits, 30));",
+        "}",
         'test "getValue8 reads the last aligned byte of a word without folding in the next word" {',
         "    try std.testing.expectEqual(@as(u8, 0xa5), getValue8(&bitmap, last_aligned_byte));",
         "    try std.testing.expectEqual(@as(u8, 0x11), getValue8(&bitmap, bits_per_long));",
@@ -306,7 +317,7 @@ def run_self_test() -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot and tail-word next-skip paths."
+        description="Validate that the live find_bit helper still carries the current bench-adjacent edge anchors, including the landed andnot, clump-forward-skip, and tail-word next-skip paths."
     )
     parser.add_argument("--self-test", action="store_true", help="Run self-test cases only.")
     args = parser.parse_args()
