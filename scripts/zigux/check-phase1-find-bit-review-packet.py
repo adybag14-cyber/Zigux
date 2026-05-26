@@ -383,6 +383,7 @@ def run_self_test() -> int:
         ("fixture_tail_inclusive_boundary_and_drift", "fixture:tail_inclusive_boundary_and:expected_current_packet"),
         ("manifest_tail_word_set_skip_anchor_drift", "manifest:tail_word_set_skip_anchor:expected_current_packet"),
         ("manifest_tail_word_skip_anchor_drift", "manifest:tail_word_skip_anchor:expected_current_packet"),
+        ("manifest_helper_test_anchors_drift", "manifest:helper_test_anchors:expected_current_packet"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_review_") as tmp_dir:
@@ -575,6 +576,15 @@ def run_self_test() -> int:
         write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         if cases[23][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:manifest_tail_word_skip_anchor_drift")
+
+        build_sample_repo(tmp_root)
+        manifest = load_json(tmp_root, MANIFEST_REL)
+        manifest["review_anchors"]["tools/lib/find_bit.zig"]["helper_test_anchors"] = [
+            EXPECTED_HELPER_TEST_ANCHORS[0],
+        ]
+        write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
+        if cases[24][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:manifest_helper_test_anchors_drift")
 
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
     print(f"PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
