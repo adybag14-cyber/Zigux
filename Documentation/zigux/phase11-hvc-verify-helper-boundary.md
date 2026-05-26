@@ -1,10 +1,10 @@
 # Phase 11 HVC Verify Helper Boundary
 
-This note records the helper-facing failure-mode packet previously landed in `drivers/tty/hvc/hvc_console_verify.zig`.
+This note records the helper-facing failure-mode packet now materialized in `drivers/tty/hvc/hvc_console_verify.zig`.
 
 It keeps the current HVC simple-driver lane honest without widening into live tty registration, notifier callback execution, khvcd worker execution, live sysrq dispatch, or host-backed transport behavior.
 
-Current direct contents reads on `master` still do not rematerialize `drivers/tty/hvc/hvc_console_verify.zig`, so keep this note as the current-head reminder surface for those landed helper edges rather than treating the helper file itself as returned direct-readback evidence.
+Current direct contents reads on `master` now rematerialize `drivers/tty/hvc/hvc_console_verify.zig`, so keep this note aligned with the helper itself and treat the helper as current-head evidence for the bounded failure-mode edges listed below.
 
 ## Verify Helper Coverage
 
@@ -20,15 +20,14 @@ Current direct contents reads on `master` still do not rematerialize `drivers/tt
 
 ## Packet Relationship
 
-- `Documentation/zigux/phase11-hvc-console-survey.md` keeps the broader archived HVC packet vocabulary visible while the live current-head packet stays bounded to `drivers/tty/hvc/hvc_console.zig`, `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `scripts/zigux/check-phase11-build-inventory.py`, and the proof-backed adjunct files instead of treating the deeper verify helper, split replays, or sysrq helper as returned direct-readback evidence.
+- `Documentation/zigux/phase11-hvc-console-survey.md` keeps the broader HVC packet vocabulary visible while the live current-head packet now reads through `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `scripts/zigux/check-phase11-build-inventory.py`, and the proof-backed adjunct files instead of treating the deeper verify helper as archival vocabulary.
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` keeps cleanup prerequisite failures, the targetless notifier no-unregister edge, and targetless sysrq dispatch reviewable at the shared packet level.
-- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` together with `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` keeps the targetless notifier no-unregister edge, the sanitized targetless-unregister request, and the targetless sysrq boundary tied to returned current-head evidence without treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned helper.
-- current HVC current-head reads keep those landed helper edges reviewable through this note and the coupled survey and validation packet, while `drivers/tty/hvc/hvc_console_verify.zig` itself remains survey-recorded archival vocabulary until a future reread proves the helper returned.
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` together with `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` keeps the targetless notifier no-unregister edge, the sanitized targetless-unregister request, and the targetless sysrq boundary tied to returned current-head evidence.
+- current HVC current-head reads now keep those landed helper edges reviewable through both this note and `drivers/tty/hvc/hvc_console_verify.zig` itself, while deeper sysrq helpers or older manifest-side companions remain separate follow-up surfaces until they return directly.
 - this note narrows one current-head reminder surface so the detached-binding remove-handoff branch, notifier prerequisite failure edge, extra verify-helper failure-mode details, and the standalone targetless-unregister witness packet stay reviewable without forcing the broader survey note or validation matrix to carry every helper-local detail.
 
 ## Guardrails
 
-- keep this note coupled only to the landed `drivers/tty/hvc/hvc_console_verify.zig` helper history and the already-landed survey and validation packet
-- do not treat this note as proof that `drivers/tty/hvc/hvc_console_verify.zig` has returned to direct current-head readback
-- do not treat this note as evidence of live notifier callbacks, tty registration, khvcd execution, live sysrq dispatch, or host-backed teardown
+- keep this note coupled to `drivers/tty/hvc/hvc_console_verify.zig` and the already-landed survey and validation packet
+- do not treat the helper as evidence of live notifier callbacks, tty registration, khvcd execution, live sysrq dispatch, or host-backed teardown
 - if the verify helper adds or removes cleanup-trigger, notifier-unregister, detached-binding remove-handoff, notifier-prerequisite, or sysrq-literal-fallback edges, update this note together with any dedicated checker that guards it
