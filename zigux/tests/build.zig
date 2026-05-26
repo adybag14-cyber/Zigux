@@ -864,11 +864,23 @@ pub fn build(b: *std.Build) void {
     );
     phase3_abi_core_step.dependOn(&phase3_abi_core_packet.step);
 
+    const phase3_abi_core_test_step = b.step(
+        "phase3-abi-core-packet-test",
+        "Alias the shared Phase 3 ABI core packet rerun from zigux/tests",
+    );
+    phase3_abi_core_test_step.dependOn(&phase3_abi_core_packet.step);
+
     const phase3_export_uapi_layout_step = b.step(
         "phase3-export-uapi-layout",
         "Run the shared Phase 3 export/UAPI layout replay from zigux/tests",
     );
     phase3_export_uapi_layout_step.dependOn(&phase3_export_uapi_layout.step);
+
+    const phase3_export_uapi_layout_test_step = b.step(
+        "phase3-export-uapi-layout-test",
+        "Alias the shared Phase 3 export/UAPI layout replay from zigux/tests",
+    );
+    phase3_export_uapi_layout_test_step.dependOn(&phase3_export_uapi_layout.step);
 
     const phase3_abi_export_step = b.step(
         "phase3-abi-export",
@@ -877,6 +889,14 @@ pub fn build(b: *std.Build) void {
     phase3_abi_export_step.dependOn(&phase3_abi_core_packet.step);
     phase3_abi_export_step.dependOn(&phase3_export_shim.step);
     phase3_abi_export_step.dependOn(&phase3_export_uapi_layout.step);
+
+    const phase3_abi_export_test_step = b.step(
+        "phase3-abi-export-test",
+        "Alias the shared Phase 3 ABI export bundle rerun from zigux/tests",
+    );
+    phase3_abi_export_test_step.dependOn(&phase3_abi_core_packet.step);
+    phase3_abi_export_test_step.dependOn(&phase3_export_shim.step);
+    phase3_abi_export_test_step.dependOn(&phase3_export_uapi_layout.step);
 
     const phase3_low_level_wrapper_step = b.step(
         "phase3-low-level-wrappers",
@@ -904,6 +924,12 @@ pub fn build(b: *std.Build) void {
         "Dump the current shared Phase 3 ABI snapshot from zigux/tests",
     );
     phase3_dump_step.dependOn(&phase3_abi_dump.step);
+
+    const phase3_abi_dump_test_step = b.step(
+        "phase3-abi-dump-test",
+        "Alias the shared Phase 3 ABI dump replay from zigux/tests",
+    );
+    phase3_abi_dump_test_step.dependOn(&phase3_abi_dump.step);
 
     const phase10_step = b.step(
         "phase10-virtio-core-survey",
