@@ -172,6 +172,26 @@ test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer pol
     );
 }
 
+test "phase 8 libbpf-segment compatibility witness keeps the current bridge-boundary readback wording explicit" {
+    const bridge_boundary = try readRepoFile(
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+    );
+    defer std.testing.allocator.free(bridge_boundary);
+
+    try expectContains(
+        bridge_boundary,
+        "authenticated contents readback now reaches the bridge-side helper and witness files directly again in this runtime.",
+    );
+    try expectContains(
+        bridge_boundary,
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge.zig` directly",
+    );
+    try expectContains(
+        bridge_boundary,
+        "That narrower split is therefore packet role rather than fetchability:",
+    );
+}
+
 test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {
     const bridge_review_witness = try readRepoFile("zigux/tests/phase8_file_path_handle_bridge.zig");
     defer std.testing.allocator.free(bridge_review_witness);
