@@ -202,31 +202,31 @@ test "phase 8 verify routing witness records the current mixed-source bridge rem
 
     try expectContains(
         manifest,
-        "\\\"slug\\\": \\\"fdinfo-map-info-helpers\\\", \\\"status\\\": \\\"blocked_on_fdinfo_parser_materialization\\\"",
+        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"blocked_on_fdinfo_parser_materialization\"",
     );
     try expectContains(
         manifest,
-        "\\\"why_now\\\": \\\"The shared file-path bridge destination is now materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers are still queued, so this slice must stay explicit as partially landed rather than complete.\\\"",
+        "\"why_now\": \"The shared file-path bridge destination is now materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers are still queued, so this slice must stay explicit as partially landed rather than complete.\"",
     );
     try expectContains(
         manifest,
-        "\\\"slug\\\": \\\"map-reuse-compatibility\\\", \\\"status\\\": \\\"blocked_on_reuse_comparison_materialization\\\"",
+        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"blocked_on_reuse_comparison_materialization\"",
     );
     try expectContains(
         manifest,
-        "\\\"why_now\\\": \\\"The shared bridge file now carries bounded reused-map name retention, but the helper-only compatibility observation, flag normalization, and mismatch reporting work remains queued, so the segment cannot yet be reported as fully landed on master.\\\"",
+        "\"why_now\": \"The shared bridge file now carries bounded reused-map name retention, but the helper-only compatibility observation, flag normalization, and mismatch reporting work remains queued, so the segment cannot yet be reported as fully landed on master.\"",
     );
     try expectContains(
         manifest,
-        "\\\"slug\\\": \\\"fdinfo-path-and-reuse-name-footholds\\\", \\\"status\\\": \\\"starter_landed\\\"",
+        "\"slug\": \"fdinfo-path-and-reuse-name-footholds\",\n      \"status\": \"starter_landed\"",
     );
     try expectContains(
         manifest,
-        "\\\"why_now\\\": \\\"This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred.\\\"",
+        "\"why_now\": \"This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred.\"",
     );
     try expectContains(
         manifest,
-        "\\\"slug\\\": \\\"file-path-and-handle-bridge\\\", \\\"status\\\": \\\"deferred_high_risk\\\", \\\"kind\\\": \\\"resource_boundary\\\"",
+        "\"slug\": \"file-path-and-handle-bridge\",\n      \"status\": \"deferred_high_risk\",\n      \"kind\": \"resource_boundary\"",
     );
 
     const bridge_test = try readRepoFile("zigux/tests/phase8_file_path_handle_bridge.zig");
