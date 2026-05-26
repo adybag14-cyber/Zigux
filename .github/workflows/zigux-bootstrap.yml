@@ -55,6 +55,12 @@ jobs:
       - name: Preflight current Phase 1 workflow viability checker
         run: python3 scripts/zigux/check-phase1-workflow-preflight.py
 
+      - name: Self-test current Phase 1 workflow viability checker
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test
+
+      - name: Check current Phase 1 workflow viability
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py
+
       - name: Setup pinned Zig toolchain
         run: |
           set -euxo pipefail
