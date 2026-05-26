@@ -15,6 +15,7 @@ MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 BITMAP_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-bitmap-direct-anchors.py")
 FIND_BIT_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-review-packet.py")
 RBTREE_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-direct-anchors.py")
+RBTREE_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-review-packet.py")
 STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 
 
@@ -274,6 +275,12 @@ DELEGATED_CHECKERS = (
         "PHASE1_RBTREE_DIRECT_ANCHOR_CHECKER=pass",
     ),
     (
+        RBTREE_REVIEW_CHECKER_REL,
+        "rbtree_review_checker",
+        "phase1-rbtree-review-packet:ok",
+        "PHASE1_RBTREE_REVIEW_CHECKER=pass",
+    ),
+    (
         STRING_REVIEW_CHECKER_REL,
         "string_review_checker",
         "phase1-string-review-packet:ok",
@@ -530,6 +537,25 @@ def run_self_test() -> None:
         write_sample_root(root)
         case_count += 1
 
+        write_failing_checker(
+            root,
+            RBTREE_REVIEW_CHECKER_REL,
+            "PHASE1_RBTREE_REVIEW_PACKET=fail",
+            "fixture:rbtree.cached_leftmost_return_serials:expected_current_packet",
+        )
+        assert run_checker(
+            root,
+            RBTREE_REVIEW_CHECKER_REL,
+            "rbtree_review_checker",
+            "phase1-rbtree-review-packet:ok",
+        ) == [
+            "rbtree_review_checker:exit=1",
+            "rbtree_review_checker:stdout:PHASE1_RBTREE_REVIEW_PACKET=fail",
+            "rbtree_review_checker:stderr:fixture:rbtree.cached_leftmost_return_serials:expected_current_packet",
+        ]
+        write_sample_root(root)
+        case_count += 1
+
         write_zero_exit_wrong_output_checker(
             root,
             STRING_REVIEW_CHECKER_REL,
@@ -556,6 +582,18 @@ def run_self_test() -> None:
             "phase1-string-review-packet:ok",
         )
         assert missing_failures[0] == "string_review_checker:exit=2"
+        write_sample_root(root)
+        case_count += 1
+
+        missing_rbtree_review_checker = root / RBTREE_REVIEW_CHECKER_REL
+        missing_rbtree_review_checker.unlink()
+        missing_rbtree_review_failures = run_checker(
+            root,
+            RBTREE_REVIEW_CHECKER_REL,
+            "rbtree_review_checker",
+            "phase1-rbtree-review-packet:ok",
+        )
+        assert missing_rbtree_review_failures[0] == "rbtree_review_checker:exit=2"
         write_sample_root(root)
         case_count += 1
 
