@@ -102,6 +102,17 @@ REQUIRED_FILES = [
     VALIDATOR_PATH,
 ]
 
+SUBCHECKER_PATHS = [
+    SHARED_SMOKE_ROUTE_CHECKER_PATH,
+    TESTS_README_CHECKER_PATH,
+    ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
+    SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
+    SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+    RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
+    RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
+    RELEASE_BOUNDARY_CHECKER_PATH,
+]
+
 REQUIRED_MARKERS = {
     DOCS_README_PATH: [
         "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
@@ -219,8 +230,7 @@ REQUIRED_MARKERS = {
     RELEASE_BOUNDARY_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=release_boundary_exact_counts",
         "PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass",
-        "\"Documentation/zigux/phase14-compile-shard-matrix-survey.md\"",
-        "\"scripts/zigux/check-phase14-skbuff-compile-route.py\"",
+        'SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")',
     ],
     ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=rollback_threshold_sequencing",
@@ -236,14 +246,14 @@ REQUIRED_MARKERS = {
     SKBUFF_COMPILE_ROUTE_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=skbuff_compile_route",
         "PHASE14_SKBUFF_COMPILE_ROUTE_SELF_TEST=pass",
-        "\"phase14-skbuff-bridge-tests\"",
-        "\"phase14-skbuff-live-ownership-blocker\"",
+        '"phase14-skbuff-bridge-tests"',
+        '"phase14-skbuff-live-ownership-blocker"',
     ],
     RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=ring_buffer_compile_route",
         "PHASE14_RING_BUFFER_COMPILE_ROUTE_SELF_TEST=pass",
-        "\"phase14-ring-buffer-survey-tests\"",
-        "\"phase14-ring-buffer-zig-port-blocker\"",
+        '"phase14-ring-buffer-survey-tests"',
+        '"phase14-ring-buffer-zig-port-blocker"',
     ],
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
         "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
@@ -254,7 +264,7 @@ REQUIRED_MARKERS = {
     TESTS_README_CHECKER_PATH: [
         "Check that the shared Phase 14 tests-root reminder stays aligned with repo reality.",
         "PHASE14_TESTS_README_SMOKE_SUMMARY_SELF_TEST=pass",
-        "SURVEY_PATH = Path(\"Documentation/zigux/phase14-end-to-end-smoke-survey.md\")",
+        'SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")',
     ],
     TESTS_README_PATH: [
         "## Phase 14 shared smoke packet",
@@ -504,16 +514,11 @@ def run_self_test() -> int:
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
-        for rel_path in (
-            SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
-            SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
-            RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
-            RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
-        ):
+        for rel_path in SUBCHECKER_PATHS:
             checker_failures = run_guardrail_checker(base, rel_path, self_test=True)
             if checker_failures:
                 raise SystemExit(
-                    "fixture tree should pass the dedicated Phase 14 guardrail self-tests "
+                    "fixture tree should pass the dedicated Phase 14 checker self-tests "
                     f"but failed: {checker_failures!r}"
                 )
 
@@ -633,37 +638,16 @@ def main() -> int:
 
     failures = validate(args.root)
     if not failures:
-        failures.extend(
-            run_guardrail_checker(
-                args.root,
-                SKBUFF_STAY_IN_C_GUARDRAIL_CHECKER_PATH,
-                self_test=False,
+        for rel_path in SUBCHECKER_PATHS:
+            failures.extend(
+                run_guardrail_checker(
+                    args.root,
+                    rel_path,
+                    self_test=False,
+                )
             )
-        )
-    if not failures:
-        failures.extend(
-            run_guardrail_checker(
-                args.root,
-                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
-                self_test=False,
-            )
-        )
-    if not failures:
-        failures.extend(
-            run_guardrail_checker(
-                args.root,
-                RING_BUFFER_COMPILE_ROUTE_CHECKER_PATH,
-                self_test=False,
-            )
-        )
-    if not failures:
-        failures.extend(
-            run_guardrail_checker(
-                args.root,
-                RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
-                self_test=False,
-            )
-        )
+            if failures:
+                break
     if failures:
         print("PHASE14_VALIDATION=fail")
         print("PHASE14_PACKET_DRIFT_START")
