@@ -370,6 +370,70 @@ test "policy starter packet keeps unsafe boundary and audit semantics explicit" 
     }
 }
 
+test "policy starter packet keeps unsafe surface mappings explicit" {
+    const cases = [_]struct {
+        policy: abi.InteropPolicy,
+        expected_scope: ?abi.UnsafeScope,
+        expected_surface: ?unsafe_policy.Surface,
+    }{
+        .{ .policy = .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 }, .expected_scope = .none, .expected_surface = .safe_only },
+        .{ .policy = .{ .panic_mode = 1, .allocator_mode = 1, .unsafe_scope = 1, .reserved = 0 }, .expected_scope = .volatile_mmio, .expected_surface = .mmio_only },
+        .{ .policy = .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 0 }, .expected_scope = .raw_pointer_bridge, .expected_surface = .raw_pointer_bridge_only },
+        .{ .policy = .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 9, .reserved = 0 }, .expected_scope = null, .expected_surface = null },
+        .{ .policy = .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 1 }, .expected_scope = null, .expected_surface = null },
+    };
+
+    for (cases) |case| {
+        try testing.expectEqual(case.expected_scope, unsafe_policy.scopeFromInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_scope, narrow_surface.scopeFromInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_surface, unsafe_policy.surfaceFromInteropPolicy(case.policy));
+        try testing.expectEqual(case.expected_surface, unsafe_policy.surfaceFromInteropPolicyBytes(case.policy.unsafe_scope, case.policy.reserved));
+
+        const narrow_policy_surface = narrow_surface.surfaceFromInteropPolicy(case.policy);
+        const narrow_byte_surface = narrow_surface.surfaceFromInteropPolicyBytes(case.policy.unsafe_scope, case.policy.reserved);
+        if (case.expected_surface) |surface| {
+            const expected_narrow = switch (surface) {
+                .safe_only => narrow_surface.Surface.safe_only,
+                .mmio_only => narrow_surface.Surface.mmio_only,
+                .raw_pointer_bridge_only => narrow_surface.Surface.raw_pointer_bridge_only,
+            };
+            try testing.expectEqual(@as(?narrow_surface.Surface, expected_narrow), narrow_policy_surface);
+            try testing.expectEqual(@as(?narrow_surface.Surface, expected_narrow), narrow_byte_surface);
+        } else {
+            try testing.expectEqual(@as(?narrow_surface.Surface, null), narrow_policy_surface);
+            try testing.expectEqual(@as(?narrow_surface.Surface, null), narrow_byte_surface);
+        }
+
+        if (case.policy.reserved == 0) {
+            try testing.expectEqual(case.expected_scope, unsafe_policy.scopeFromByte(case.policy.unsafe_scope));
+            try testing.expectEqual(case.expected_scope, narrow_surface.scopeFromByte(case.policy.unsafe_scope));
+            try testing.expectEqual(case.expected_surface, unsafe_policy.surfaceFromByte(case.policy.unsafe_scope));
+
+            const narrow_surface_byte = narrow_surface.surfaceFromByte(case.policy.unsafe_scope);
+            if (case.expected_surface) |surface| {
+                const expected_narrow = switch (surface) {
+                    .safe_only => narrow_surface.Surface.safe_only,
+                    .mmio_only => narrow_surface.Surface.mmio_only,
+                    .raw_pointer_bridge_only => narrow_surface.Surface.raw_pointer_bridge_only,
+                };
+                try testing.expectEqual(@as(?narrow_surface.Surface, expected_narrow), narrow_surface_byte);
+            } else {
+                try testing.expectEqual(@as(?narrow_surface.Surface, null), narrow_surface_byte);
+            }
+        }
+
+        if (case.expected_scope) |scope| {
+            try testing.expectEqual(case.expected_surface.?, unsafe_policy.surfaceFor(scope));
+            const expected_narrow = switch (case.expected_surface.?) {
+                .safe_only => narrow_surface.Surface.safe_only,
+                .mmio_only => narrow_surface.Surface.mmio_only,
+                .raw_pointer_bridge_only => narrow_surface.Surface.raw_pointer_bridge_only,
+            };
+            try testing.expectEqual(expected_narrow, narrow_surface.surfaceFor(scope));
+        }
+    }
+}
+
 test "policy starter packet keeps panic and allocator byte guards explicit" {
     const bug_heap = abi.InteropPolicy{
         .panic_mode = @intFromEnum(abi.PanicMode.bug),
