@@ -6,7 +6,7 @@ This note tracks the bounded Phase 9 runtime atomic64 starter packet on `master`
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
-- `PHASE9_LANE_KEY=P9-L04`
+- `PHASE9_LANE_KEY=P9-L16`
 - `PHASE9_SURVEYED_COMMIT=2026-05-23-runtime-atomic64-shared-loader-reminder-trim`
 - scope: selftest-hook and guarded lifecycle reviewability through the direct atomic64 starter packet, plus the adjacent shared loader-facing reminder surfaces only
 
@@ -65,7 +65,7 @@ The adjacent shared loader-facing reminder packet keeps the current cross-family
 
 ## Minimum Freeze-Map Review Record
 
-- owner: the direct atomic64 starter packet named by `PHASE9_LANE_KEY=P9-L04`, with this note carrying the same Phase 9 freeze-boundary review record for `P9-L13`
+- owner: the direct atomic64 starter packet named by `PHASE9_LANE_KEY=P9-L16`, with this note carrying the same Phase 9 freeze-boundary review record for `P9-L16`
 - phase: `Phase 9`
 - status bucket: review-only direct starter packet plus the returned allocator/init-flow loader packet, dedicated command/environment boundary guard, and returned bitmap-loader companion beside the study-only `kernel/workqueue.c` boundary
 - validation gate summary: `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_atomic64_manifest.json`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, and `samples/zigux/runtime_bitmap_loader.zig` keep this packet reviewable without claiming live loader parity
