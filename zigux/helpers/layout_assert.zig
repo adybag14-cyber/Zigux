@@ -13,9 +13,7 @@ pub const MmioRange = extern struct {
     stride: u32,
 };
 
-pub const RbtreeRootView = extern struct {
-    root: usize,
-};
+pub const RbtreeRootView = abi.RbtreeRootView;
 
 pub fn expectSize(comptime T: type, expected: usize) LayoutError!void {
     if (@sizeOf(T) != expected) return error.SizeMismatch;
@@ -93,8 +91,14 @@ pub fn assertMmioRangeLayout() LayoutError!void {
 }
 
 pub fn assertRbtreeRootViewLayout() LayoutError!void {
-    try expectLayout(RbtreeRootView, @sizeOf(usize), @alignOf(usize));
-    try expectFieldLayout(RbtreeRootView, "root", 0);
+    try expectLayout(RbtreeRootView, abi.rbtree_root_view_size, abi.rbtree_root_view_align);
+    try expectFieldLayout(RbtreeRootView, "root", abi.rbtree_root_view_root_offset);
+    try expectFieldLayout(
+        RbtreeRootView,
+        "cached_leftmost",
+        abi.rbtree_root_view_cached_leftmost_offset,
+    );
+    try expectFieldLayout(RbtreeRootView, "flags", abi.rbtree_root_view_flags_offset);
 }
 
 pub fn assertNotifierBlockLayout() LayoutError!void {
@@ -187,6 +191,7 @@ pub fn assertPublishedAbiLayouts() LayoutError!void {
     try assertExportStatusLayout();
     try assertInteropPolicyLayout();
     assertStatusAndFacilityValues();
+    try assertRbtreeRootViewLayout();
     try assertNotifierBlockLayout();
     try assertNotifierChainPriorityIncreaseLayout();
     try assertListHeadLayout();
