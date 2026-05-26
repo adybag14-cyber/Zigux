@@ -8,8 +8,8 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 - `PHASE15_LANE_KEY=P15-L12`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
-- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-25 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, wrapper-route, or shared-CI reminder surfaces are fully aligned
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-26`
+- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-26 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, wrapper-route, or shared-CI reminder surfaces are fully aligned
 
 ## Why this note exists
 
@@ -19,6 +19,8 @@ Current `master` already carries the freeze map, the freeze-map governance note,
 
 The older handoff target that treated the shared build companion as still missing was no longer precise enough for the current packet. The dedicated validator, the shared build companion, the governance-lane sequencing companions, and the directly materialized reminder-surface checkers now define the tighter same-lane boundaries, while the broader wrapper-route and shared-CI follow-through should only reopen when fresh drift actually appears.
 
+`zigux-alpha/README.md` and `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md` keep the bootstrap boundary explicit: the ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so later-lane Phase 15 status still has to be confirmed in the live product docs, current repo tree, and active lane notes.
+
 The dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`.
 
 The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.
@@ -27,7 +29,7 @@ The dedicated deep-core blocker survey `Documentation/zigux/phase15-deep-core-bl
 
 Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `zigux/tests/phase15_build.zig` as the handoff-specific source of truth while the blocked route bodies and shared-CI route remain gap-tracked.
 
-This refresh closes the dedicated handoff undercount around the already-landed docs-readme alignment checker, scripts-readme alignment checker, validator maintenance gate, shared build companion, governance-lane sequencing companions, deep-core blocker survey, freeze-map governance companion, and parity-scorecard focused companions. Reviewers can now read this note against the current 2026-05-25 governance packet instead of reconciling it against an older handoff inventory by hand.
+This refresh closes the dedicated handoff undercount around the already-landed docs-readme alignment checker, scripts-readme alignment checker, validator maintenance gate, shared build companion, governance-lane sequencing companions, deep-core blocker survey, freeze-map governance companion, parity-scorecard focused companions, and the explicit bootstrap-ledger boundary that limits what the early commit train can say about current Phase 15 status. Reviewers can now read this note against the current 2026-05-26 governance packet instead of reconciling it against an older handoff inventory by hand.
 
 ## Current handed-off packet on current master
 
@@ -36,6 +38,7 @@ This refresh closes the dedicated handoff undercount around the already-landed d
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, `scripts/zigux/check-phase15-readiness-gate-packet.py`, `scripts/zigux/check-phase15-tests-readme-alignment.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused docs-readme checker, one focused scripts-readme checker, one focused review-process checker, one focused review-checklist study-only checker, one focused readiness-packet checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`
 - `scripts/zigux/validate-phase15.py`, which keeps the dedicated validator directly materialized as a maintenance gate without implying that the broader dedicated `phase15*` wrapper routes or shared-CI route are landed
 - `zigux/tests/phase15_build.zig`, which keeps the shared Phase 15 governance replay materialized beside `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `scripts/zigux/validate-phase15.py` without implying that dedicated `phase15*` wrapper routes or a shared-CI route have landed
+- `zigux-alpha/README.md` and `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`, which remain bootstrap provenance companions and explicitly limit the ledger to the early commit train through the broadened Phase 2 tranche rather than a standalone Phase 15 truth source
 - the broad docs-root reminder surface `Documentation/zigux/README.md`, which still stops at Phase 14 on current `master` and should stay treated as an active shared-summary gap source until a dedicated Phase 15 docs-root reminder lands and aligns with `scripts/zigux/check-phase15-docs-readme-alignment.py` plus the directly materialized governance packet
 - the broad scripts-root reminder surface `scripts/zigux/README.md`, which should be reread with `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet rather than being treated as a dedicated handoff-local truth source by default
 - the broad `zigux/tests/README.md` reminder surface, which should be reread with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet instead of being carried here as an unlanded future target by default
@@ -47,9 +50,15 @@ This refresh closes the dedicated handoff undercount around the already-landed d
 - treat broader docs-root, checklist, scripts-root, tests-root, and dedicated-build Phase 15 wording drift as truthfulness gaps, not as already-landed evidence
 - do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged
 
-## Roadmap-backed open handoff gaps
+## Roadmap and ledger synthesis boundary
 
 The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.
+
+`zigux-alpha/README.md` and `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md` keep the bootstrap boundary explicit: the ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so later-lane Phase 15 status still has to be confirmed in the live product docs, current repo tree, and active lane notes.
+
+That means current Phase 15 handoff synthesis should start from the live governance packet plus the roadmap, and only use the bootstrap ledger as early-tranche provenance when a reminder surface needs historical context.
+
+## Roadmap-backed open handoff gaps
 
 The dedicated validator `scripts/zigux/validate-phase15.py` and shared build companion `zigux/tests/phase15_build.zig` are directly materialized on current `master`, but they do not by themselves land the broader dedicated `phase15*` wrapper routes or shared-CI route.
 
@@ -60,21 +69,23 @@ The dedicated validator `scripts/zigux/validate-phase15.py` and shared build com
 
 ## Pending next-step order
 
-1. tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet
-2. reread this handoff note together with any newly landed dedicated `phase15*` wrapper or shared-CI route recovery before treating that broader replay surface as current evidence here
-3. revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves
+1. compare the live Phase 15 governance packet against the roadmap first and use the bootstrap ledger only as early-tranche context, because the ledger does not own later-lane status
+2. tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet
+3. reread this handoff note together with any newly landed dedicated `phase15*` wrapper or shared-CI route recovery before treating that broader replay surface as current evidence here
+4. revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves
 
 ## Next bounded future targets
 
 1. reread `Documentation/zigux/review-checklist.md` together with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and the current directly materialized governance packet whenever the shared Architecture Council prompts drift
 2. reread `zigux/tests/README.md` together with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the current directly materialized governance packet whenever the tests-root reminder drifts, rather than treating a dedicated Phase 15 review section as still-unlanded by default
 3. keep the broad docs-root reminder surface `Documentation/zigux/README.md` in the shared-summary gap bucket until a dedicated Phase 15 reminder lands there, reread it with `scripts/zigux/check-phase15-docs-readme-alignment.py`, and only treat it as routine drift-follow-through after that wording exists and starts to diverge from the directly materialized governance packet
-4. keep the landed `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.json`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_architecture_council_review_process_build.zig`, `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, `scripts/zigux/check-phase15-readiness-gate-packet.py`, and `scripts/zigux/validate-phase15.py` companions aligned with the shared-summary gap note before any freeze-map status change discussion
-5. if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet
+4. if `zigux-alpha/README.md` or `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md` changes its scope note, reread this handoff note before using the ledger to explain any later-lane Phase 15 next step
+5. keep the landed `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.json`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_architecture_council_review_process_build.zig`, `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_handoff_next_steps.zig`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, `scripts/zigux/check-phase15-readiness-gate-packet.py`, and `scripts/zigux/validate-phase15.py` companions aligned with the shared-summary gap note before any freeze-map status change discussion
+6. if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet
 
 ## Handoff rules
 
-- if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused docs-readme checker, the focused scripts-readme checker, the focused tests-readme checker, the checker-backed shared-gap packet, the focused handoff-note checker, the focused handoff-specific replay, and the shared Phase 15 build companion instead of carrying stale future-target language
+- if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused docs-readme checker, the focused scripts-readme checker, the focused tests-readme checker, the checker-backed shared-gap packet, the focused handoff-note checker, the focused handoff-specific replay, the shared Phase 15 build companion, and the explicit bootstrap-ledger boundary instead of carrying stale future-target language
 - if dedicated `phase15*` wrapper routes or a dedicated shared-CI route are published later, reread this note together with those new direct paths before presenting them as current evidence here
 - if the freeze-map anchor set or any blocker disposition changes, reopen `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-parity-scorecard.md` before widening this note
 
@@ -88,4 +99,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this note parked until one broad Phase 15 reminder surface drifts away from the materialized governance packet above, one existing governance packet changes enough that the roadmap-backed gap list or future-target inventory above becomes stale, or one of the broader dedicated `phase15*` wrapper routes or shared-CI routes returns on current `master`.
+Keep this note parked until one broad Phase 15 reminder surface drifts away from the materialized governance packet above, one existing governance packet changes enough that the roadmap-backed gap list or future-target inventory above becomes stale, the bootstrap ledger boundary changes enough that this handoff synthesis needs a narrower reminder, or one of the broader dedicated `phase15*` wrapper routes or shared-CI routes returns on current `master`.
