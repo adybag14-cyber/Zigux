@@ -82,7 +82,7 @@
     "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"
   ],
   "shared_replay_markers": [],
-  "deterministic_tooling_lane": "P11-L11",
+  "deterministic_tooling_lane": "P11-L07",
   "deterministic_fixture_surfaces": [
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
