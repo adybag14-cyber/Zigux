@@ -22,6 +22,30 @@ fn expectCounterAndInitStable(before: Summary, after: Summary) !void {
     try std.testing.expectEqual(before.init_runs, after.init_runs);
 }
 
+fn expectBlockedPublicationAndDepmodFieldsExcluded(comptime T: type) !void {
+    const blocked_publication_fields = [_][]const u8{
+        "modinfo",
+        "module_alias",
+        "module_aliases",
+        "modules_alias_path",
+        "module_install_root",
+        "modules_order_path",
+        "modules_builtin_path",
+        "module_symvers_path",
+        "depmod_script",
+        "depmod_manifest",
+        "depmod_aliases",
+    };
+
+    inline for (blocked_publication_fields) |field| {
+        try std.testing.expect(!@hasField(T, field));
+    }
+}
+
+test "runtime atomic64 loader keeps blocked publication and depmod surfaces out of the loader-facing payload" {
+    try expectBlockedPublicationAndDepmodFieldsExcluded(LoadPlan);
+}
+
 test "runtime atomic64 loader keeps loader-facing seed and descriptor explicit" {
     const descriptor = RuntimeAtomic64Sample.descriptor();
     try std.testing.expectEqualStrings(load_plan.name, descriptor.name);
