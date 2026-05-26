@@ -1,0 +1,39 @@
+{
+  "lane_key": "P5-L17",
+  "phase": "Phase 5",
+  "anchor": "samples/trace_events/trace-events-sample.c",
+  "sample_path": "samples/zigux/trace_events_string_formatting_sample.zig",
+  "focused_replay_path": "zigux/tests/phase5_trace_events_string_formatting_sample.zig",
+  "validation_entrypoints": [
+    "zig test samples/zigux/trace_events_string_formatting_sample.zig",
+    "zig test --dep trace_events_string_formatting_sample -Mroot=zigux/tests/phase5_trace_events_string_formatting_sample.zig -Mtrace_events_string_formatting_sample=samples/zigux/trace_events_string_formatting_sample.zig",
+    "zig test zigux/tests/phase5_trace_events_string_formatting_sample_survey.zig"
+  ],
+  "exact_checks": [
+    {
+      "id": "descriptor-anchor",
+      "expected": "descriptor stays tied to samples/trace_events/trace-events-sample.c with requires_runtime_substrate false and provides_selfcheck true"
+    },
+    {
+      "id": "selected-string-replay",
+      "expected": "runAnchorReplay(7) stays on Gandalf, renders iter=7, and preserves the checked focus order"
+    },
+    {
+      "id": "exact-fit-iteration",
+      "expected": "formatIterationMessageInto(12, [7]u8) returns iter=12 without changing stage or replay_runs"
+    },
+    {
+      "id": "exact-fit-selected-string",
+      "expected": "formatSelectedIterationMessageInto(2, [14]u8) returns Gandalf iter=2 without changing stage or replay_runs"
+    },
+    {
+      "id": "wrapped-selected-string",
+      "expected": "formatSelectedIterationMessageInto(9, [32]u8) returns One ring to rule them all iter=9 without changing stage or replay_runs"
+    }
+  ],
+  "non_goals": [
+    "standalone Phase 5 string-helper delivery",
+    "standalone broad formatting sample delivery",
+    "runtime trace-events registration parity"
+  ]
+}
