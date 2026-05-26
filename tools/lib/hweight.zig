@@ -92,3 +92,38 @@ test "hweight helpers stay additive for disjoint masks" {
     try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
     try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
 }
+
+test "hweight helpers drop exactly one bit when clearing the lowest set bit" {
+    const values8 = [_]u32{ 0x01, 0x03, 0x90, 0xff };
+    for (values8) |value| {
+        try std.testing.expectEqual(swHweight8(value) - 1, swHweight8(value & (value - 1)));
+        try std.testing.expectEqual(__sw_hweight8(value) - 1, __sw_hweight8(value & (value - 1)));
+    }
+
+    const values16 = [_]u32{ 0x0001, 0x8001, 0x00f0, 0xffff };
+    for (values16) |value| {
+        try std.testing.expectEqual(swHweight16(value) - 1, swHweight16(value & (value - 1)));
+        try std.testing.expectEqual(__sw_hweight16(value) - 1, __sw_hweight16(value & (value - 1)));
+    }
+
+    const values32 = [_]u32{ 0x0000_0001, 0x8000_0001, 0x00f0_0f00, 0xffff_ffff };
+    for (values32) |value| {
+        try std.testing.expectEqual(swHweight32(value) - 1, swHweight32(value & (value - 1)));
+        try std.testing.expectEqual(__sw_hweight32(value) - 1, __sw_hweight32(value & (value - 1)));
+    }
+
+    const values64 = [_]u64{ 0x0000_0000_0000_0001, 0x8000_0000_0000_0001, 0x00f0_0f00_f000_00ff, 0xffff_ffff_ffff_ffff };
+    for (values64) |value| {
+        try std.testing.expectEqual(swHweight64(value) - 1, swHweight64(value & (value - 1)));
+        try std.testing.expectEqual(__sw_hweight64(value) - 1, __sw_hweight64(value & (value - 1)));
+    }
+
+    const values_long = if (@sizeOf(usize) == 4)
+        [_]usize{ 0x0000_0001, 0x8000_0001, 0x00f0_0f00, 0xffff_ffff }
+    else
+        [_]usize{ 0x0000_0000_0000_0001, 0x8000_0000_0000_0001, 0x00f0_0f00_f000_00ff, 0xffff_ffff_ffff_ffff };
+    for (values_long) |value| {
+        try std.testing.expectEqual(hweightLong(value) - 1, hweightLong(value & (value - 1)));
+        try std.testing.expectEqual(hweight_long(value) - 1, hweight_long(value & (value - 1)));
+    }
+}
