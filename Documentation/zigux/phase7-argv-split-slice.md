@@ -89,5 +89,5 @@ This helper-local Phase 7 argv-split slice does not yet claim:
 
 ## Next Bounded Step
 
-Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.
+Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening into any new vector-backed replay proof.
 Route shared validator, Makefile, workflow, tests-root, and broader docs-root follow-through to the separate Phase 7 shared-control lanes.
