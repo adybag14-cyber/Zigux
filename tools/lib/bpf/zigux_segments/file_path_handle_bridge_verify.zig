@@ -112,6 +112,68 @@ test "phase8 file-path bridge keeps fdinfo-map-info and planning helpers stable"
     try std.testing.expect(token_plan.should_attempt_token_open);
 }
 
+test "phase8 file-path bridge keeps reuse-flag normalization and mismatch reporting stable" {
+    const devmap_observed = bridge.MapReuseObservation{
+        .map_type = 14,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 16,
+        .map_flags = 0x80,
+        .map_extra = 0x20,
+    };
+    const devmap_expected = bridge.MapReuseObservation{
+        .map_type = 14,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 16,
+        .map_flags = 0,
+        .map_extra = 0x20,
+    };
+    const devmap_compatibility = bridge.summarizeMapReuseCompatibility(devmap_observed, devmap_expected);
+    try std.testing.expectEqual(@as(?u32, 0), bridge.normalizeObservedReuseMapFlags(14, 0x80));
+    try std.testing.expectEqual(@as(?u32, 0), bridge.normalizeObservedReuseMapFlags(15, 0x80));
+    try std.testing.expectEqual(bridge.MapReuseCompatibilityDisposition.compatible, devmap_compatibility.disposition);
+    try std.testing.expect(devmap_compatibility.compatible);
+    try std.testing.expect(bridge.isMapReuseCompatible(devmap_observed, devmap_expected));
+
+    const plain_flags_mismatch = bridge.summarizeMapReuseCompatibility(.{
+        .map_type = 5,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 16,
+        .map_flags = 0x80,
+        .map_extra = 0x20,
+    }, .{
+        .map_type = 5,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 16,
+        .map_flags = 0,
+        .map_extra = 0x20,
+    });
+    try std.testing.expectEqual(@as(?u32, 0x80), bridge.normalizeObservedReuseMapFlags(5, 0x80));
+    try std.testing.expectEqual(
+        bridge.MapReuseCompatibilityDisposition.map_flags_mismatch,
+        plain_flags_mismatch.disposition,
+    );
+    try std.testing.expect(!plain_flags_mismatch.compatible);
+
+    const map_extra_mismatch = bridge.summarizeMapReuseCompatibility(devmap_observed, .{
+        .map_type = 14,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 16,
+        .map_flags = 0,
+        .map_extra = 0x21,
+    });
+    try std.testing.expectEqual(
+        bridge.MapReuseCompatibilityDisposition.map_extra_mismatch,
+        map_extra_mismatch.disposition,
+    );
+    try std.testing.expect(!map_extra_mismatch.compatible);
+    try std.testing.expect(!bridge.isMapReuseCompatible(devmap_observed, map_extra_mismatch.expected));
+}
+
 test "phase8 file-path bridge keeps validation and errno outputs stable" {
     var path_buffer: [64]u8 = undefined;
     var name_buffer: [64]u8 = undefined;
