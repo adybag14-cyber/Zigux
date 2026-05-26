@@ -31,6 +31,7 @@ DIRECT_PACKET_PATHS = (
     "samples/zigux/kobject_example.zig",
     "samples/zigux/kobject_example_attr_group_contract.zig",
     "samples/zigux/kretprobe_example.zig",
+    "samples/zigux/kretprobe_example_instance_budget_contract.zig",
     "samples/zigux/kretprobe_example_probe_spec.zig",
     "samples/zigux/trace_events_callback_focus_contract.zig",
     "samples/zigux/trace_events_string_formatting_sample.zig",
@@ -42,6 +43,7 @@ DIRECT_PACKET_PATHS = (
     "zigux/tests/phase5_bytestream_fifo_survey.zig",
     "zigux/tests/phase5_kobject_example.zig",
     "zigux/tests/phase5_kretprobe_example.zig",
+    "zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig",
     "zigux/tests/phase5_kretprobe_example_manifest.json",
     "zigux/tests/phase5_kretprobe_example_probe_spec.zig",
     "zigux/tests/phase5_kretprobe_example_survey.zig",
@@ -265,7 +267,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 46
+    expected_case_count = 47
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -355,6 +357,11 @@ def run_self_test() -> int:
         seed(mutated)
         write_text(mutated, GUIDE_PATH, placeholder(GUIDE_PATH).replace(MARKERS[GUIDE_PATH][8], ""))
         expect_exact("missing guide kretprobe probe-spec marker", collect_failures(mutated), [f"{GUIDE_PATH}:missing_text:{MARKERS[GUIDE_PATH][8]}"])
+        checks_run += 1
+        mutated = root / "missing_guide_kretprobe_instance_budget_path"
+        seed(mutated)
+        write_text(mutated, GUIDE_PATH, strip_standalone_path(placeholder(GUIDE_PATH), "samples/zigux/kretprobe_example_instance_budget_contract.zig"))
+        expect_exact("missing guide kretprobe instance-budget path", collect_failures(mutated), ["guide:missing_path:samples/zigux/kretprobe_example_instance_budget_contract.zig"])
         checks_run += 1
         mutated = root / "missing_sample_root_trace_callback_marker"
         seed(mutated)
