@@ -115,6 +115,10 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         registration_reentry_guard_file,
         "runtime kretprobe registration reentry stays reusable after selftest",
     );
+    try expectContains(
+        registration_reentry_guard_file,
+        "runtime kretprobe registration reentry stays fail-closed after exit",
+    );
 
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-sample-tests\"");
     try expectContains(
