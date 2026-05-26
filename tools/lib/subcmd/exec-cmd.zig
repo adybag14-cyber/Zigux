@@ -90,9 +90,14 @@ pub const CollectExeclArgsError = error{
 };
 
 pub const DeferredExecCall = struct {
-    argv: []const ?[]const u8,
+    argv: []const ?[]u8,
 
     pub fn deinit(self: *DeferredExecCall, allocator: std.mem.Allocator) void {
+        for (self.argv) |arg| {
+            if (arg) |value| {
+                allocator.free(value);
+            }
+        }
         allocator.free(self.argv);
         self.* = undefined;
     }
@@ -344,6 +349,29 @@ pub fn prepareExecCmd(
     return nargv;
 }
 
+fn duplicateOptionalArgv(
+    allocator: std.mem.Allocator,
+    argv: []const ?[]const u8,
+) ![]const ?[]u8 {
+    var owned = try allocator.alloc(?[]u8, argv.len);
+    var initialized: usize = 0;
+    errdefer {
+        for (owned[0..initialized]) |arg| {
+            if (arg) |value| {
+                allocator.free(value);
+            }
+        }
+        allocator.free(owned);
+    }
+
+    for (argv, 0..) |arg, index| {
+        owned[index] = if (arg) |value| try allocator.dupe(u8, value) else null;
+        initialized = index + 1;
+    }
+
+    return owned;
+}
+
 pub fn collectExeclArgs(
     allocator: std.mem.Allocator,
     cmd: []const u8,
@@ -381,13 +409,15 @@ pub fn buildDeferredExeclCall(
     const collected = try collectExeclArgs(allocator, cmd, argv_tail);
     defer allocator.free(collected);
 
-    var argv = try allocator.alloc(?[]const u8, collected.len + 1);
-    argv[0] = config.exec_name;
+    var borrowed = try allocator.alloc(?[]const u8, collected.len + 1);
+    defer allocator.free(borrowed);
+
+    borrowed[0] = config.exec_name;
     for (collected, 0..) |arg, index| {
-        argv[index + 1] = arg;
+        borrowed[index + 1] = arg;
     }
 
-    return .{ .argv = argv };
+    return .{ .argv = try duplicateOptionalArgv(allocator, borrowed) };
 }
 
 pub fn buildDeferredExecvCall(
@@ -395,7 +425,10 @@ pub fn buildDeferredExecvCall(
     config: Config,
     argv: []const []const u8,
 ) !DeferredExecCall {
-    return .{ .argv = try prepareExecCmd(allocator, config, argv) };
+    const prepared = try prepareExecCmd(allocator, config, argv);
+    defer allocator.free(prepared);
+
+    return .{ .argv = try duplicateOptionalArgv(allocator, prepared) };
 }
 
 test "systemPath and getArgvExecPath preserve C-style precedence" {
@@ -733,4 +766,69 @@ test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
     try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
     try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
     try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
+}
+
+test "buildDeferredExecvCall owns deferred argv entries for later handoff" {
+    const owned_exec_name = try std.testing.allocator.dupe(u8, "perf");
+    defer std.testing.allocator.free(owned_exec_name);
+    const command = try std.testing.allocator.dupe(u8, "record");
+    defer std.testing.allocator.free(command);
+    const flag = try std.testing.allocator.dupe(u8, "-a");
+    defer std.testing.allocator.free(flag);
+
+    const config = Config{
+        .exec_name = owned_exec_name,
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExecvCall(
+        std.testing.allocator,
+        config,
+        &[_][]const u8{ command, flag },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    @memset(owned_exec_name, 'X');
+    @memset(command, 'Y');
+    @memset(flag, 'Z');
+
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[3]);
+}
+
+test "buildDeferredExeclCall owns deferred argv entries for later handoff" {
+    const owned_exec_name = try std.testing.allocator.dupe(u8, "perf");
+    defer std.testing.allocator.free(owned_exec_name);
+    const command = try std.testing.allocator.dupe(u8, "record");
+    defer std.testing.allocator.free(command);
+    const flag = try std.testing.allocator.dupe(u8, "--stdio");
+    defer std.testing.allocator.free(flag);
+
+    const config = Config{
+        .exec_name = owned_exec_name,
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        command,
+        &[_]?[]const u8{ flag, null },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    @memset(owned_exec_name, 'X');
+    @memset(command, 'Y');
+    @memset(flag, 'Z');
+
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[3]);
 }
