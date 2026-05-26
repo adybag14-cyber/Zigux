@@ -40,8 +40,10 @@ PHASE12_COMPLEX_DRIVER_LANE_PATH = (
 PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = (
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 )
+CROSS_COMPILE_SMOKE_PATH = "Documentation/zigux/phase12-cross-compile-smoke.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 LIBBPF_LANE_MARKER_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-lane-marker.py"
+CROSS_COMPILE_SMOKE_CHECKER_PATH = "scripts/zigux/check-phase12-cross-compile-smoke.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 MAKEFILE_PATH = "zigux/Makefile"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -59,8 +61,10 @@ REQUIRED_FILES = [
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
     PHASE12_COMPLEX_DRIVER_LANE_PATH,
     PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
+    CROSS_COMPILE_SMOKE_PATH,
     SCRIPTS_README_PATH,
     LIBBPF_LANE_MARKER_CHECKER_PATH,
+    CROSS_COMPILE_SMOKE_CHECKER_PATH,
     VALIDATOR_PATH,
     MAKEFILE_PATH,
     TESTS_README_PATH,
@@ -84,11 +88,12 @@ REQUIRED_MARKERS = {
         "keep `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` explicit beside the smoke-first and rollback-lab `virtio_scsi` packet",
     ],
     RELEASE_READINESS_SURVEY_PATH: [
-        "The route story on current `master` is now fully returned rather than split: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again.",
+        "The route story on current `master` is now fully returned rather than split: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again.",
         "The active shared build route on current `master` is the six-file `virtio_net` smoke-and-test packet in `zigux/tests/phase12_build.zig`: `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig` are the directly wired shared reruns",
         "That means the PMO release notes can treat `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again",
-        "the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, and `.github/workflows/zigux-bootstrap.yml`",
+        "the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, and `.github/workflows/zigux-bootstrap.yml`",
         "`scripts/zigux/check-build-only-phase12-surface.py` remains the bounded build-only contract checker",
+        "`scripts/zigux/check-phase12-cross-compile-smoke.py` remains the same-lane compile-smoke truthfulness checker for the surviving standalone syntax-lab companion",
         "`scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` remains the packet-local boundary guard that keeps the rollback-only `virtio_scsi` survey packet distinct from the parked libbpf reviewability packet inside the shared Phase 12 release story.",
         "`scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` remain the parked libbpf support guards",
         "Fresh repo-first rereads now confirm that `scripts/zigux/check-phase12-release-readiness-packet.py` already matches the returned `phase12-validate` wrapper and the six-file shared `virtio_net` follow-up sextet on current `master`, so this note should no longer send the next same-lane pass back to that already-closed checker-side repair.",
