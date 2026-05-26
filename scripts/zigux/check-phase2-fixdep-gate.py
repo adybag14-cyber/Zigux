@@ -193,7 +193,7 @@ REQUIRED_MAKEFILE_PHONY_TARGETS = (
 )
 
 REQUIRED_MAKEFILE_LINES = (
-    "phase2-fixdep:",
+    "phase2-fixdep: phase2-toolchain",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
@@ -670,7 +670,7 @@ def build_self_test_root(root: Path) -> None:
             (
                 "PYTHON ?= python3",
                 ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2",
-                "phase2-fixdep:",
+                "phase2-fixdep: phase2-toolchain",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
