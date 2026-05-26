@@ -284,6 +284,21 @@ def run_self_test() -> int:
             raise AssertionError("expected compile-smoke marker failure")
 
         write_fixture(root)
+        direct_read_bridge_readme = "`scripts/zigux/README.md`, "
+        (root / NOTE_PATH).write_text(
+            read_text(root, NOTE_PATH).replace(direct_read_bridge_readme, "", 1),
+            encoding="utf-8",
+        )
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "phase12-complex-driver-lane-sequencing.md" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected direct-read bridge README marker failure")
+
+        write_fixture(root)
         survey_build_marker = "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`"
         (root / NOTE_PATH).write_text(
             read_text(root, NOTE_PATH).replace(
@@ -316,7 +331,7 @@ def run_self_test() -> int:
             raise AssertionError("expected workflow marker failure")
 
         write_fixture(root)
-        (root / BUILD_PATH).write_text("broken\n", encoding="utf-8")
+        (root / BUILD_PATH).writeText("broken\n", encoding="utf-8")
         try:
             check(root)
         except CheckFailure as exc:
