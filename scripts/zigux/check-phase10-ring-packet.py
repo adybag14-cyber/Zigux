@@ -273,6 +273,8 @@ def fixture_manifest() -> dict[str, object]:
         },
         "gaps": gaps,
     }
+}
+
 
 def write_fixture(root: Path) -> None:
     for rel_path, markers in REQUIRED_MARKERS.items():
@@ -465,6 +467,7 @@ def run_self_test() -> int:
             f"{MANIFEST_PATH}:freeze_in_c_anchors:['kernel/sched/core.c', 'mm/page_alloc.c', 'kernel/rcu/tree.c']",
         )
         write_fixture(root)
+
         def drift_freeze_status_change_claimed(tmp_root: Path) -> None:
             path = tmp_root / MANIFEST_PATH
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -572,6 +575,22 @@ def run_self_test() -> int:
             root,
             drift_queue_publish_readiness_helper_destination,
             f"{MANIFEST_PATH}:gap:phase10-queue-publish-readiness-helper:zigux_destination:drivers/virtio/virtio_ring_missing_publish_readiness.zig",
+        )
+        write_fixture(root)
+
+        def drift_ring_publish_readiness_replay_destination(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for gap in data["gaps"]:
+                if gap.get("id") == "phase10-ring-publish-readiness-replay":
+                    gap["zigux_destination"] = "drivers/virtio/virtio_ring_publish_readiness_gap.zig"
+                    break
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_ring_publish_readiness_replay_destination,
+            f"{MANIFEST_PATH}:gap:phase10-ring-publish-readiness-replay:zigux_destination:drivers/virtio/virtio_ring_publish_readiness_gap.zig",
         )
         write_fixture(root)
 
@@ -758,7 +777,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=32")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
