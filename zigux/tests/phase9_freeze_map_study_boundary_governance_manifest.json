@@ -1,0 +1,34 @@
+{
+  "lane_key": "P9-L13",
+  "phase": "Phase 9",
+  "status": "freeze_boundary_governance_survey_landed",
+  "surveyed_commit": "current-master-readback-2026-05-26",
+  "anchor": "Documentation/zigux/freeze-map.md",
+  "study_only_targets": [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c"
+  ],
+  "phase9_surfaces": [
+    "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "samples/zigux/README.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
+    "scripts/zigux/check-phase9-trace-events-runtime-packet.py",
+    "scripts/zigux/check-phase9-freeze-map-study-boundaries.py",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/Makefile"
+  ],
+  "result": {
+    "roadmap_gap": "no_active_study_boundary_break_visible",
+    "lane_posture": "maintenance_mode",
+    "next_reopen_conditions": [
+      "study-only anchor set changes",
+      "Phase 15 study-only accounting posture changes",
+      "Phase 9 reminder surface stops routing study-only summaries back through the owner notes",
+      "Phase 9 reminder surface overclaims deeper runtime-substrate or publication closure from bounded runtime-pilot packets"
+    ]
+  }
+}
