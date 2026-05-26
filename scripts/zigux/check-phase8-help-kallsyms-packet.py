@@ -205,6 +205,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'test "phase 8 kallsyms keeps weak object classes on the current header-backed path"',
         'test "phase 8 kallsyms chunked parser also truncates oversized names"',
         'expectEqualStrings("startup_64\\r", symbols.items[0].name)',
+        'test "phase 8 kallsyms segmented reader bubbles callback failures unchanged"',
         'test "phase 8 kallsyms wrappers preserve the parked callback contract"',
     ),
     KALLSYMS_SOURCE: (
