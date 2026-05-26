@@ -199,6 +199,55 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqualSlices(i32, &.{ 1, 1, 2, 3, 3 }, sorted_keys[0..sorted_count]);
     try std.testing.expectEqualSlices(usize, &.{ 1, 3, 0, 2, 4 }, sorted_ordinals[0..sorted_count]);
 
+    const ListSortMode = enum { ascending, descending };
+    var replay_list_head: list_sort.ListHead = .{};
+    replay_list_head.init();
+    var replay_entries = [_]ListSortSmokeEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 5, .ordinal = 1 },
+        .{ .key = 1, .ordinal = 2 },
+        .{ .key = 5, .ordinal = 3 },
+        .{ .key = 4, .ordinal = 4 },
+        .{ .key = 1, .ordinal = 5 },
+    };
+    const replay_cmp = struct {
+        fn less(priv: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const mode: *const ListSortMode = @ptrCast(@alignCast(priv.?));
+            const lhs: *const ListSortSmokeEntry = @fieldParentPtr("node", a);
+            const rhs: *const ListSortSmokeEntry = @fieldParentPtr("node", b);
+            if (lhs.key == rhs.key) return 0;
+            const ascending = lhs.key < rhs.key;
+            return if (mode.* == .ascending)
+                (if (ascending) -11 else 13)
+            else
+                (if (ascending) 13 else -11);
+        }
+    }.less;
+    for (&replay_entries) |*entry| {
+        list_sort.listAddTail(&entry.node, &replay_list_head);
+    }
+    var replay_mode = ListSortMode.descending;
+    list_sort.listSort(&replay_mode, &replay_list_head, replay_cmp);
+    replay_mode = .ascending;
+    list_sort.listSort(&replay_mode, &replay_list_head, replay_cmp);
+
+    var replay_keys: [6]i32 = undefined;
+    var replay_ordinals: [6]usize = undefined;
+    var replay_count: usize = 0;
+    var replay_node = replay_list_head.next;
+    while (replay_node != &replay_list_head) : (replay_node = replay_node.?.next) {
+        const entry: *const ListSortSmokeEntry = @fieldParentPtr("node", replay_node.?);
+        replay_keys[replay_count] = entry.key;
+        replay_ordinals[replay_count] = entry.ordinal;
+        try std.testing.expect(replay_node.?.next.?.prev == replay_node.?);
+        try std.testing.expect(replay_node.?.prev.?.next == replay_node.?);
+        replay_count += 1;
+    }
+    try std.testing.expectEqualSlices(i32, &.{ 1, 1, 2, 4, 5, 5 }, replay_keys[0..replay_count]);
+    try std.testing.expectEqualSlices(usize, &.{ 2, 5, 0, 4, 1, 3 }, replay_ordinals[0..replay_count]);
+    try std.testing.expect(replay_list_head.next == &replay_entries[2].node);
+    try std.testing.expect(replay_list_head.prev == &replay_entries[3].node);
+
     const word_bits = find_bit.bits_per_long;
     const nbits = word_bits + 5;
     var map = [_]find_bit.Word{ 0, 0 };
