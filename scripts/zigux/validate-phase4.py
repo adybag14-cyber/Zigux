@@ -217,7 +217,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-perf-baseline-packet": (("PHASE4_PERF_BASELINE_PACKET_CHECK", "PHASE4_PERF_BASELINE_PACKET_CHECK=pass"),),
     "phase4-perf-threshold-matrix-self-test": (
         ("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST", "PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=pass"),
-        ("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES", "PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES=5"),
+        ("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES", "PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES=11"),
     ),
     "phase4-perf-threshold-matrix": (("PHASE4_PERF_THRESHOLD_MATRIX", "PHASE4_PERF_THRESHOLD_MATRIX=pass"),),
     "phase4-remaining-gap-matrix-self-test": (
@@ -591,7 +591,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-perf-threshold-matrix.py",
-        self_test_stdout_lines=("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=pass", "PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES=5"),
+        self_test_stdout_lines=("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=pass", "PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST_CASES=11"),
         live_stdout_lines=("PHASE4_PERF_THRESHOLD_MATRIX=pass",),
     )
     build_stub_script(
@@ -632,6 +632,7 @@ def run_self_test() -> int:
             print("PHASE4_VALIDATE_SELF_TEST=fail")
             print("baseline fixture did not validate cleanly")
             return 1
+
         cases += 1
 
         reset_fixture()
