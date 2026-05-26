@@ -37,6 +37,12 @@ The currently reviewable Phase 1 reminder packet is:
 
 - `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_helpers_build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`
 
+## Helper-Local Direct Anchor Reminder
+
+For `tools/lib/bitmap.zig`, current `master` still justifies a parked helper-local follow-up rather than a reopened closure pass. The shipped direct anchors already cover whole-word range edges, raw copy and tail-clearing behavior, zero and aligned `copyAndExtend()` handling, zero-sized destination-view no-op behavior, exact-word-boundary equality masking, out-of-range tail masking for predicates and weights, caller-window `xor` and `or` clamping including multiword tails, complement tail clamping, cross-word `scnprintf()` merging, empty-bitmap caller-buffer preservation, Linux-style alias mirrors, and allocator optional-reset coverage.
+
+This helper should only reopen if a fresh reread finds drift in those direct anchors or in the committed shared bitmap parity fields carried by `zigux/tests/phase1_helpers.zig` and `zigux/tests/fixtures/phase1_helper_manifest.json`; do not widen this helper-local reminder into older closure-side validator names by default.
+
 ## Broader Closure Companions
 
 The older validator-first and replay-side closure companions remain broader closure-stack references rather than active current reminder-packet proof.
