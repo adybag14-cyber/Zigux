@@ -539,6 +539,25 @@ def run_self_test() -> None:
 
         write_failing_checker(
             root,
+            RBTREE_DIRECT_ANCHOR_CHECKER_REL,
+            "PHASE1_RBTREE_DIRECT_ANCHORS=fail",
+            "cached_root_alias_anchor:expected=1:actual=0",
+        )
+        assert run_checker(
+            root,
+            RBTREE_DIRECT_ANCHOR_CHECKER_REL,
+            "rbtree_direct_anchor_checker",
+            "PHASE1_RBTREE_DIRECT_ANCHORS=pass",
+        ) == [
+            "rbtree_direct_anchor_checker:exit=1",
+            "rbtree_direct_anchor_checker:stdout:PHASE1_RBTREE_DIRECT_ANCHORS=fail",
+            "rbtree_direct_anchor_checker:stderr:cached_root_alias_anchor:expected=1:actual=0",
+        ]
+        write_sample_root(root)
+        case_count += 1
+
+        write_failing_checker(
+            root,
             RBTREE_REVIEW_CHECKER_REL,
             "PHASE1_RBTREE_REVIEW_PACKET=fail",
             "fixture:rbtree.cached_leftmost_return_serials:expected_current_packet",
@@ -582,6 +601,18 @@ def run_self_test() -> None:
             "phase1-string-review-packet:ok",
         )
         assert missing_failures[0] == "string_review_checker:exit=2"
+        write_sample_root(root)
+        case_count += 1
+
+        missing_rbtree_direct_checker = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
+        missing_rbtree_direct_checker.unlink()
+        missing_rbtree_direct_failures = run_checker(
+            root,
+            RBTREE_DIRECT_ANCHOR_CHECKER_REL,
+            "rbtree_direct_anchor_checker",
+            "PHASE1_RBTREE_DIRECT_ANCHORS=pass",
+        )
+        assert missing_rbtree_direct_failures[0] == "rbtree_direct_anchor_checker:exit=2"
         write_sample_root(root)
         case_count += 1
 
