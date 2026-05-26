@@ -29,6 +29,8 @@ CPU_MASK_VERIFY_PATH = "tools/lib/bpf/zigux_segments/cpu_mask_verify.zig"
 LOGGING_PATH = "tools/lib/bpf/zigux_segments/logging.zig"
 LOGGING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/logging_verify.zig"
 ONLINE_CPU_ROUTING_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing.zig"
+ONLINE_CPU_ROUTING_MASK_BRIDGE_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing_mask_bridge.zig"
+ONLINE_CPU_ROUTING_MASK_BRIDGE_VERIFY_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing_mask_bridge_verify.zig"
 ONLINE_CPU_ROUTING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig"
 PERF_BUFFER_POLL_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
 PERF_BUFFER_POLL_VERIFY_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig"
@@ -64,6 +66,8 @@ REQUIRED_FILES = (
     LOGGING_PATH,
     LOGGING_VERIFY_PATH,
     ONLINE_CPU_ROUTING_PATH,
+    ONLINE_CPU_ROUTING_MASK_BRIDGE_PATH,
+    ONLINE_CPU_ROUTING_MASK_BRIDGE_VERIFY_PATH,
     ONLINE_CPU_ROUTING_VERIFY_PATH,
     PERF_BUFFER_POLL_PATH,
     PERF_BUFFER_POLL_VERIFY_PATH,
@@ -236,6 +240,8 @@ REQUIRED_MARKERS = {
         'const logging = @import("logging.zig");',
         'const logging_verify = @import("logging_verify.zig");',
         'const online_cpu_routing = @import("online_cpu_routing.zig");',
+        'const online_cpu_routing_mask_bridge = @import("online_cpu_routing_mask_bridge.zig");',
+        'const online_cpu_routing_mask_bridge_verify = @import("online_cpu_routing_mask_bridge_verify.zig");',
         'const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");',
         'const perf_buffer_poll = @import("perf_buffer_poll.zig");',
         'const perf_buffer_poll_verify = @import("perf_buffer_poll_verify.zig");',
@@ -243,17 +249,21 @@ REQUIRED_MARKERS = {
         'const pin_path = @import("pin_path.zig");',
         'const pin_path_verify = @import("pin_path_verify.zig");',
         'const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");',
+        'const ready_buffer_fd_lookup = @import("ready_buffer_fd_lookup.zig");',
         'const ready_buffer_fd_verify = @import("ready_buffer_fd_verify.zig");',
         'const ready_buffer_window_verify = @import("ready_buffer_window_verify.zig");',
         'const type_names = @import("type_names.zig");',
         'const type_names_verify = @import("type_names_verify.zig");',
         "std.testing.refAllDecls(cpu_mask_verify);",
         "std.testing.refAllDecls(logging_verify);",
+        "std.testing.refAllDecls(online_cpu_routing_mask_bridge);",
+        "std.testing.refAllDecls(online_cpu_routing_mask_bridge_verify);",
         "std.testing.refAllDecls(online_cpu_routing_verify);",
         "std.testing.refAllDecls(perf_buffer_poll_verify);",
         "std.testing.refAllDecls(perf_buffer_ready_window);",
         "std.testing.refAllDecls(pin_path_verify);",
         "std.testing.refAllDecls(ready_buffer_attempt_verify);",
+        "std.testing.refAllDecls(ready_buffer_fd_lookup);",
         "std.testing.refAllDecls(ready_buffer_fd_verify);",
         "std.testing.refAllDecls(ready_buffer_window_verify);",
         "std.testing.refAllDecls(type_names);",
@@ -265,9 +275,15 @@ REQUIRED_MARKERS = {
         "resolveNextOnlineCpuRouteBufferFd(",
         "resolveNextOnlineCpuRouteBufferFdAtIndex",
         "resolveNextOnlineCpuRouteBufferFdReturnAtIndex",
+        "materialized tools/lib/bpf Zigux segments keep stable online-CPU mask-bridge wrappers explicit",
+        "summarizeOnlineCpuRoutingFromString(",
+        "summarizeOnlineCpuRoutingFromReader(",
         "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd wrappers explicit",
         "resolveReadyBufferFdAtAttempt",
         "resolveReadyBufferFdLookupReturnAtAttempt",
+        "materialized tools/lib/bpf Zigux segments keep stable ready-buffer fd-lookup wrappers explicit",
+        "summarizeReadyBufferFdLookupAtAttempt(",
+        "resolveReadyBufferFdLookupReturn(",
         "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window wrappers explicit",
         "resolveReadyBufferWindowMappedSizeAtAttempt",
         "resolveReadyBufferWindowMappedSizeReturnAtAttempt",
@@ -302,6 +318,20 @@ REQUIRED_MARKERS = {
         "pub fn resolveNextOnlineCpuRouteCpuIndex(",
         "pub fn resolveNextOnlineCpuRouteCpuIndexReturnAtIndex(",
         'test "resolveNextOnlineCpuRouteCpuIndexReturnAtIndex keeps direct errno-shaped route-cpu wrappers aligned" {',
+    ),
+    ONLINE_CPU_ROUTING_MASK_BRIDGE_PATH: (
+        "pub const ChunkReader = cpu_mask.ChunkReader;",
+        "pub const ParseCpuMaskError = cpu_mask.ParseCpuMaskError;",
+        "pub const OnlineCpuRoutingSummary = online_cpu_routing.OnlineCpuRoutingSummary;",
+        "pub fn summarizeOnlineCpuRoutingFromString(",
+        "pub fn summarizeOnlineCpuRoutingFromReader(",
+    ),
+    ONLINE_CPU_ROUTING_MASK_BRIDGE_VERIFY_PATH: (
+        'test "phase8 online-cpu routing mask bridge entrypoints stay explicit" {',
+        "summarizeOnlineCpuRoutingFromString(",
+        'test "phase8 online-cpu routing mask bridge keeps reader-backed summaries aligned" {',
+        "summarizeOnlineCpuRoutingFromReader(",
+        'test "phase8 online-cpu routing mask bridge keeps malformed mask inputs fail-closed" {',
     ),
     ONLINE_CPU_ROUTING_VERIFY_PATH: (
         'test "phase8 online-cpu route helpers keep typed cpu-index wrappers stable" {',
