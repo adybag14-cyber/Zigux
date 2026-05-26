@@ -1,0 +1,76 @@
+{
+  "word_bits": 64,
+  "list_cases": [
+    {
+      "name": "empty",
+      "is_empty": true,
+      "len": 0,
+      "first_index": null,
+      "last_index": null,
+      "backlinks_consistent": true,
+      "first_broken_index": null,
+      "expected_prev_label": null,
+      "actual_prev_label": null
+    },
+    {
+      "name": "ordered_two",
+      "is_empty": false,
+      "len": 2,
+      "first_index": 0,
+      "last_index": 1,
+      "backlinks_consistent": true,
+      "first_broken_index": null,
+      "expected_prev_label": null,
+      "actual_prev_label": null
+    },
+    {
+      "name": "broken_backlink",
+      "is_empty": false,
+      "len": 2,
+      "first_index": 0,
+      "last_index": 1,
+      "backlinks_consistent": false,
+      "first_broken_index": 1,
+      "expected_prev_label": "node0",
+      "actual_prev_label": "head"
+    }
+  ],
+  "hlist_cases": [
+    {
+      "name": "empty",
+      "is_empty": true,
+      "len": 0,
+      "first_index": null,
+      "first_pprev_matches_head": true,
+      "prev_links_consistent": true,
+      "tail_next_is_null": true,
+      "first_broken_index": null,
+      "expected_pprev_label": null,
+      "actual_pprev_label": null
+    },
+    {
+      "name": "ordered_two",
+      "is_empty": false,
+      "len": 2,
+      "first_index": 0,
+      "first_pprev_matches_head": true,
+      "prev_links_consistent": true,
+      "tail_next_is_null": true,
+      "first_broken_index": null,
+      "expected_pprev_label": null,
+      "actual_pprev_label": null
+    },
+    {
+      "name": "broken_prev_link",
+      "is_empty": false,
+      "len": 2,
+      "first_index": 0,
+      "first_pprev_matches_head": true,
+      "prev_links_consistent": false,
+      "tail_next_is_null": true,
+      "first_broken_index": 1,
+      "expected_pprev_label": "node0.next",
+      "actual_pprev_label": "head.first"
+    }
+  ]
+}
