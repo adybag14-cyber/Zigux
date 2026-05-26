@@ -288,6 +288,21 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const runtime_kretprobe_registration_reentry_gate_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_kretprobe_registration_reentry_gate.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_kretprobe_registration_reentry_gate_module.addImport(
+        "runtime_kretprobe_sample",
+        runtime_kretprobe_sample_module,
+    );
+
+    const runtime_kretprobe_registration_reentry_gate_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-registration-reentry-gate-tests",
+        .root_module = runtime_kretprobe_registration_reentry_gate_module,
+    });
+
     const runtime_kretprobe_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_kretprobe_survey.zig"),
         .target = target,
@@ -415,6 +430,9 @@ pub fn build(b: *std.Build) void {
     );
     const run_runtime_kretprobe_initialized_snapshot_guard_tests = b.addRunArtifact(
         runtime_kretprobe_initialized_snapshot_guard_tests,
+    );
+    const run_runtime_kretprobe_registration_reentry_gate_tests = b.addRunArtifact(
+        runtime_kretprobe_registration_reentry_gate_tests,
     );
     const run_runtime_kretprobe_survey_tests = b.addRunArtifact(
         runtime_kretprobe_survey_tests,
@@ -598,6 +616,14 @@ pub fn build(b: *std.Build) void {
         &run_runtime_kretprobe_initialized_snapshot_guard_tests.step,
     );
 
+    const phase9_runtime_kretprobe_registration_reentry_gate = b.step(
+        "phase9-runtime-kretprobe-registration-reentry-gate-tests",
+        "Run the Phase 9 runtime kretprobe registration-reentry gate tests.",
+    );
+    phase9_runtime_kretprobe_registration_reentry_gate.dependOn(
+        &run_runtime_kretprobe_registration_reentry_gate_tests.step,
+    );
+
     const phase9_runtime_kretprobe_survey = b.step(
         "phase9-runtime-kretprobe-survey-tests",
         "Run the Phase 9 runtime kretprobe survey tests.",
@@ -612,11 +638,14 @@ pub fn build(b: *std.Build) void {
 
     const phase9_runtime_kretprobe = b.step(
         "phase9-runtime-kretprobe-tests",
-        "Run the Phase 9 runtime kretprobe sample, initialized-snapshot guard, survey, and module lifecycle tests.",
+        "Run the Phase 9 runtime kretprobe sample, initialized-snapshot guard, registration-reentry gate, survey, and module lifecycle tests.",
     );
     phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_sample_tests.step);
     phase9_runtime_kretprobe.dependOn(
         &run_runtime_kretprobe_initialized_snapshot_guard_tests.step,
+    );
+    phase9_runtime_kretprobe.dependOn(
+        &run_runtime_kretprobe_registration_reentry_gate_tests.step,
     );
     phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_survey_tests.step);
     phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_module_tests.step);
