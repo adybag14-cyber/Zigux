@@ -1,0 +1,27 @@
+{
+  "phase": "Phase 7",
+  "lane": "kernel-leaf-libraries",
+  "slug": "phase7-leaf-libraries-starter-packet",
+  "status": "existing_leaf_ports_now_have_bounded_shared_validation_packet",
+  "scope": "bounded shared replay for the existing string_helpers, cmdline, argv_split, and rbtree Phase 7 ports",
+  "packet_files": [
+    "Documentation/zigux/phase7-leaf-libraries.md",
+    "lib/string_helpers.zig",
+    "lib/cmdline.zig",
+    "lib/argv_split.zig",
+    "lib/rbtree.zig",
+    "zigux/tests/phase7_leaf_libraries_starter_packet.zig",
+    "zigux/tests/phase7_leaf_libraries_starter_packet_build.zig",
+    "zigux/tests/fixtures/phase7_leaf_libraries_manifest.json",
+    "scripts/zigux/check-phase7-leaf-libraries.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase7-leaf-libraries.py --self-test",
+    "python3 scripts/zigux/check-phase7-leaf-libraries.py --repo-root . --skip-exec",
+    "zig build phase7-leaf-libraries-starter-packet --build-file zigux/tests/phase7_leaf_libraries_starter_packet_build.zig"
+  ],
+  "repo_reality_gaps": [
+    "shared top-level zigux/tests/build.zig wiring is still separate work inside the same phase family"
+  ],
+  "next_safe_step": "wire this packet into the shared tests root only after the standalone replay path stays stable on master"
+}
