@@ -11,31 +11,44 @@ SELF_PATH = Path(__file__).resolve()
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 
 REQUIRED_MARKERS = [
+    "const runtime_loader_kernel_tests = b.addTest(.{",
+    '        .name = "phase9-runtime-loader-kernel-tests",',
     "const runtime_loader_allocator_init_flow_tests = b.addTest(.{",
     '        .name = "phase9-runtime-loader-allocator-init-flow-tests",',
     "const runtime_loader_contract_tests = b.addTest(.{",
     '        .name = "phase9-runtime-loader-contract-tests",',
     "const runtime_loader_command_env_boundary_guard_tests = b.addTest(.{",
     '        .name = "phase9-runtime-loader-command-env-boundary-guard-tests",',
+    "const runtime_trace_events_loader_substrate_drift_tests = b.addTest(.{",
+    '        .name = "phase9-runtime-trace-events-loader-substrate-drift-tests",',
+    "    const run_runtime_loader_kernel_tests = b.addRunArtifact(runtime_loader_kernel_tests);",
     "    const run_runtime_loader_contract_tests = b.addRunArtifact(runtime_loader_contract_tests);",
+    "const phase9_runtime_loader_kernel = b.step(",
+    '        "phase9-runtime-loader-kernel-tests",',
+    "    phase9_runtime_loader_kernel.dependOn(&run_runtime_loader_kernel_tests.step);",
     "    const phase9_runtime_loader_contract = b.step(",
     '        "phase9-runtime-loader-contract-tests",',
     "    phase9_runtime_loader_contract.dependOn(&run_runtime_loader_contract_tests.step);",
     "const phase9_runtime_loader_shared = b.step(",
     '        "phase9-runtime-loader-shared-tests",',
+    "    phase9_runtime_loader_shared.dependOn(&run_runtime_loader_kernel_tests.step);",
     "    phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
     "    phase9_runtime_loader_shared.dependOn(&run_runtime_loader_contract_tests.step);",
     "    phase9_runtime_loader_shared.dependOn(",
     "        &run_runtime_loader_command_env_boundary_guard_tests.step,",
+    "        &run_runtime_trace_events_loader_substrate_drift_tests.step,",
     "    phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);",
     "    const phase9_first_loadable_runtime_module_parity = b.step(",
     '        "phase9-first-loadable-runtime-module-parity-survey-tests",',
 ]
 
 EXACT_ONCE_MARKERS = [
+    '        .name = "phase9-runtime-loader-kernel-tests",',
     '        .name = "phase9-runtime-loader-allocator-init-flow-tests",',
     '        .name = "phase9-runtime-loader-contract-tests",',
     '        .name = "phase9-runtime-loader-command-env-boundary-guard-tests",',
+    '        .name = "phase9-runtime-trace-events-loader-substrate-drift-tests",',
+    '        "phase9-runtime-loader-kernel-tests",',
     '        "phase9-runtime-loader-contract-tests",',
     '        "phase9-runtime-loader-shared-tests",',
     '        "phase9-first-loadable-runtime-module-parity-survey-tests",',
@@ -94,6 +107,10 @@ def build_fixture_text() -> str:
     return """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
+    const runtime_loader_kernel_tests = b.addTest(.{
+        .name = \"phase9-runtime-loader-kernel-tests\",
+    });
+
     const runtime_loader_allocator_init_flow_tests = b.addTest(.{
         .name = \"phase9-runtime-loader-allocator-init-flow-tests\",
     });
@@ -106,6 +123,11 @@ pub fn build(b: *std.Build) void {
         .name = \"phase9-runtime-loader-command-env-boundary-guard-tests\",
     });
 
+    const runtime_trace_events_loader_substrate_drift_tests = b.addTest(.{
+        .name = \"phase9-runtime-trace-events-loader-substrate-drift-tests\",
+    });
+
+    const run_runtime_loader_kernel_tests = b.addRunArtifact(runtime_loader_kernel_tests);
     const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(
         runtime_loader_allocator_init_flow_tests,
     );
@@ -113,8 +135,17 @@ pub fn build(b: *std.Build) void {
     const run_runtime_loader_command_env_boundary_guard_tests = b.addRunArtifact(
         runtime_loader_command_env_boundary_guard_tests,
     );
+    const run_runtime_trace_events_loader_substrate_drift_tests = b.addRunArtifact(
+        runtime_trace_events_loader_substrate_drift_tests,
+    );
     const run_runtime_bitmap_loader_tests = b.addSystemCommand(&.{\"true\"});
     const run_runtime_first_loadable_parity_survey_tests = b.addSystemCommand(&.{\"true\"});
+
+    const phase9_runtime_loader_kernel = b.step(
+        \"phase9-runtime-loader-kernel-tests\",
+        \"Run the Phase 9 shared runtime loader kernel-contract tests.\",
+    );
+    phase9_runtime_loader_kernel.dependOn(&run_runtime_loader_kernel_tests.step);
 
     const phase9_runtime_loader_contract = b.step(
         \"phase9-runtime-loader-contract-tests\",
@@ -126,10 +157,14 @@ pub fn build(b: *std.Build) void {
         \"phase9-runtime-loader-shared-tests\",
         \"Run the shared Phase 9 runtime loader handoff parity tests.\",
     );
+    phase9_runtime_loader_shared.dependOn(&run_runtime_loader_kernel_tests.step);
     phase9_runtime_loader_shared.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     phase9_runtime_loader_shared.dependOn(&run_runtime_loader_contract_tests.step);
     phase9_runtime_loader_shared.dependOn(
         &run_runtime_loader_command_env_boundary_guard_tests.step,
+    );
+    phase9_runtime_loader_shared.dependOn(
+        &run_runtime_trace_events_loader_substrate_drift_tests.step,
     );
     phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);
 
@@ -199,8 +234,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the bounded Phase 9 build bundle keeps the shared loader "
-            "allocator/init-flow shard, the direct contract replay, the command/"
-            "environment boundary guard shard, the shared aggregate step, and the "
+            "kernel, allocator/init-flow, contract, command/environment boundary, "
+            "trace-events loader-substrate drift, shared aggregate step, and the "
             "first-loadable parity-survey route explicit on current master."
         )
     )
