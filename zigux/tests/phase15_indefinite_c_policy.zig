@@ -100,7 +100,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_requirements.len);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
     try std.testing.expectEqual(@as(usize, 2), manifest.maintenance_handoff.replay_before_trusting.len);
@@ -113,6 +113,8 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-parity-scorecard.md");
+    try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-governance-lane-sequencing.md");
+    try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-study-only-anchor-accounting.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/README.md");
     try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
 
@@ -129,6 +131,8 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
     try expectContains(policy_note, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(policy_note, "same reviewable ownership vocabulary");
+    try expectContains(policy_note, "governance lane sequencing link or explicit scope note");
+    try expectContains(policy_note, "study-only anchor accounting link or explicit freeze-map-anchor confirmation");
     try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_policy.zig");
     try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectContains(policy_note, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
@@ -167,7 +171,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(source_of_truth.required_terms[1], "remains in C indefinitely");
 
     const recordkeeping = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-recordkeeping") orelse return error.MissingRequirement;
-    try std.testing.expectEqual(@as(usize, 20), recordkeeping.required_terms.len);
+    try std.testing.expectEqual(@as(usize, 22), recordkeeping.required_terms.len);
     try std.testing.expectEqualStrings("lane owner", recordkeeping.required_terms[5]);
     try std.testing.expectEqualStrings("required approver set", recordkeeping.required_terms[6]);
     try std.testing.expectEqualStrings("rollback owner", recordkeeping.required_terms[7]);
@@ -176,6 +180,11 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("retired_from_active_discussion state", recordkeeping.required_terms[14]);
     try std.testing.expectEqualStrings("reopen triggers", recordkeeping.required_terms[15]);
     try std.testing.expectEqualStrings("trigger-specific evidence refresh", recordkeeping.required_terms[16]);
+    try std.testing.expectEqualStrings("governance lane sequencing link or explicit scope note", recordkeeping.required_terms[17]);
+    try std.testing.expectEqualStrings("study-only anchor accounting link or explicit freeze-map-anchor confirmation", recordkeeping.required_terms[18]);
+    try std.testing.expectEqualStrings("parity scorecard link or blocker record", recordkeeping.required_terms[19]);
+    try std.testing.expectEqualStrings("explicit non-goals", recordkeeping.required_terms[20]);
+    try std.testing.expectEqualStrings("written rationale", recordkeeping.required_terms[21]);
 
     const exception_path = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-exception-path") orelse return error.MissingRequirement;
     try std.testing.expectEqual(@as(usize, 3), exception_path.required_terms.len);
