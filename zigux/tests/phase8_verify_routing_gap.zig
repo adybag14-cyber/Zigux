@@ -186,11 +186,11 @@ test "phase 8 verify routing witness records the current mixed-source bridge rem
 
     try expectContains(
         survey,
-        "That same reminder-side bridge test packet in `zigux/tests/phase8_file_path_handle_bridge.zig` now also keeps the Linux-style replay route, the manifest-backed split between the landed `fdinfo-path-and-reuse-name-footholds` helper foothold versus the still-partial `fdinfo-map-info-helpers` and `map-reuse-compatibility` groundwork plus the deferred `file-path-and-handle-bridge` resource boundary, and the source-level ban on `bpf_obj_get(`, `F_DUPFD_CLOEXEC`, and direct file-open bridge-heavy calls explicit on current `master`.",
+        "That same reminder-side bridge test packet in `zigux/tests/phase8_file_path_handle_bridge.zig` now also keeps the Linux-style replay route, the manifest-backed split between the landed `fdinfo-path-and-reuse-name-footholds`, `fdinfo-map-info-helpers`, and `map-reuse-compatibility` helper slices plus the deferred `file-path-and-handle-bridge` resource boundary, and the source-level ban on `bpf_obj_get(`, `F_DUPFD_CLOEXEC`, and direct file-open bridge-heavy calls explicit on current `master`.",
     );
     try expectContains(
         survey,
-        "`tools/lib/bpf/zigux_segments/manifest.json` now keeps the shared bridge packet split more precisely than the older landed-helper wording: `fdinfo-map-info-helpers` is still `blocked_on_fdinfo_parser_materialization`, `map-reuse-compatibility` is still `blocked_on_reuse_comparison_materialization`, and the newer landed helper foothold is `fdinfo-path-and-reuse-name-footholds`. The smallest same-family reminder drift is therefore whether sibling reminder surfaces preserve that partial-helper-versus-landed-foothold split whenever they restate the focused bridge packet.",
+        "`tools/lib/bpf/zigux_segments/manifest.json` has since advanced both `fdinfo-map-info-helpers` and `map-reuse-compatibility` as landed helper-first slices with the newer shared bridge rationale, so the smallest same-family reminder drift is now whether sibling reminder surfaces continue to reflect those same landed `why_now` strings whenever they restate the focused bridge packet.",
     );
     try expectContains(
         survey,
