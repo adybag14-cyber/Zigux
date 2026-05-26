@@ -87,6 +87,13 @@ GENKSYMS_PROCESS_OUTPUT_RELS = (
 )
 ARCHIVE_README_REL = Path("third_party/README.md")
 ARCHIVE_PAYLOAD_REL = Path("third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")
+ARCHIVE_PARTS_MANIFEST_REL = Path(
+    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz.parts/manifest.json"
+)
+ARCHIVE_SUPPORT_RELS = (
+    ARCHIVE_PAYLOAD_REL,
+    ARCHIVE_PARTS_MANIFEST_REL,
+)
 
 REQUIRED_FILES = (
     WORKFLOW_REL,
@@ -128,7 +135,6 @@ REQUIRED_FILES = (
     GENKSYMS_AMBIGUOUS_VERSION_PROOF_REL,
     FIXDEP_BRIDGE_REL,
     ARCHIVE_README_REL,
-    ARCHIVE_PAYLOAD_REL,
     MAKEFILE_REL,
     MANIFEST_REL,
     ARTIFACT_MANIFEST_REL,
@@ -382,7 +388,10 @@ EXPECTED_MANIFEST_BOOTSTRAP_HELPERS = (
 )
 EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (
     "third_party/README.md",
-    "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+)
+DEFAULT_MANIFEST_ARCHIVE_SUPPORT = (
+    *EXPECTED_MANIFEST_ARCHIVE_SUPPORT,
+    ARCHIVE_PAYLOAD_REL.as_posix(),
 )
 EXPECTED_MANIFEST_BRIDGE_HELPERS = (
     "scripts/zigux/kconfig/conf_bridge.zig",
@@ -787,6 +796,16 @@ def expect_subset(issues: list[tuple[str, str]], label: str, actual: list[str] |
             issues.append(("MISSING_MANIFEST_SURFACE", f"{label}:{marker}"))
 
 
+def collect_archive_support_issues(root: Path, archive_support: list[str] | None) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    archive_support_note = " or ".join(rel.as_posix() for rel in ARCHIVE_SUPPORT_RELS)
+    if not any(resolve(root, rel).exists() for rel in ARCHIVE_SUPPORT_RELS):
+        issues.append(("MISSING_REQUIRED_ARCHIVE_SUPPORT", archive_support_note))
+    if archive_support is not None and not any(rel.as_posix() in archive_support for rel in ARCHIVE_SUPPORT_RELS):
+        issues.append(("MISSING_MANIFEST_ARCHIVE_SUPPORT", archive_support_note))
+    return issues
+
+
 def collect_case_manifest_issues(
     issues: list[tuple[str, str]],
     kconfig_cases: object,
@@ -862,7 +881,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     expect_subset(issues, "validators", require_manifest_list(issues, manifest, "validators"), EXPECTED_MANIFEST_VALIDATORS)
     expect_subset(issues, "checkers", require_manifest_list(issues, manifest, "checkers"), EXPECTED_MANIFEST_CHECKERS)
     expect_subset(issues, "bootstrap_helpers", require_manifest_list(issues, manifest, "bootstrap_helpers"), EXPECTED_MANIFEST_BOOTSTRAP_HELPERS)
-    expect_subset(issues, "archive_support", require_manifest_list(issues, manifest, "archive_support"), EXPECTED_MANIFEST_ARCHIVE_SUPPORT)
+    archive_support = require_manifest_list(issues, manifest, "archive_support")
+    expect_subset(issues, "archive_support", archive_support, EXPECTED_MANIFEST_ARCHIVE_SUPPORT)
+    issues.extend(collect_archive_support_issues(root, archive_support))
     expect_subset(issues, "bridge_helpers", require_manifest_list(issues, manifest, "bridge_helpers"), EXPECTED_MANIFEST_BRIDGE_HELPERS)
     expect_subset(issues, "fixture_roster", require_manifest_list(issues, manifest, "fixture_roster"), EXPECTED_MANIFEST_FIXTURE_ROSTER)
 
@@ -920,7 +941,7 @@ def build_self_test_root(root: Path) -> None:
             "validators": list(EXPECTED_MANIFEST_VALIDATORS),
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
             "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
-            "archive_support": list(EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
+            "archive_support": list(DEFAULT_MANIFEST_ARCHIVE_SUPPORT),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
         },
@@ -957,6 +978,7 @@ def build_self_test_root(root: Path) -> None:
             write_text(resolve(root, rel), "{}\n")
         else:
             write_text(resolve(root, rel), "present\n")
+    write_text(resolve(root, ARCHIVE_PAYLOAD_REL), "present\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -979,6 +1001,20 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_validate_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        archive_payload_path = resolve(root, ARCHIVE_PAYLOAD_REL)
+        archive_payload_path.unlink()
+        manifest_path = resolve(root, MANIFEST_REL)
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["archive_support"] = [
+            "third_party/README.md",
+            ARCHIVE_PARTS_MANIFEST_REL.as_posix(),
+        ]
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        write_text(resolve(root, ARCHIVE_PARTS_MANIFEST_REL), '{"parts": []}\n')
         assert collect_issues(root) == []
         checks_run += 1
 
@@ -1036,6 +1072,19 @@ def run_self_test() -> int:
         payload["present_surfaces"]["archive_support"].remove("third_party/README.md")
         manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("MISSING_MANIFEST_SURFACE", "archive_support:third_party/README.md") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        archive_payload_path = resolve(root, ARCHIVE_PAYLOAD_REL)
+        archive_payload_path.unlink()
+        manifest_path = resolve(root, MANIFEST_REL)
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["present_surfaces"]["archive_support"] = ["third_party/README.md"]
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        archive_support_note = " or ".join(rel.as_posix() for rel in ARCHIVE_SUPPORT_RELS)
+        assert ("MISSING_REQUIRED_ARCHIVE_SUPPORT", archive_support_note) in issues
+        assert ("MISSING_MANIFEST_ARCHIVE_SUPPORT", archive_support_note) in issues
         checks_run += 1
 
         build_self_test_root(root)
