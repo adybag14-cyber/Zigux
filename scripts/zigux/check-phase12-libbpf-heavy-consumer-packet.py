@@ -25,6 +25,9 @@ ROOT = infer_repo_root()
 HEAVY_CONSUMER_LANE_PATH = (
     "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
 )
+COMPLEX_DRIVER_LANE_PATH = (
+    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+)
 LIBBPF_SEGMENT_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 LIBBPF_VERIFY_SHARD_NOTE_PATH = (
     "Documentation/zigux/phase12-libbpf-verify-shard-note.md"
@@ -59,6 +62,7 @@ LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
 
 REQUIRED_FILES = [
     HEAVY_CONSUMER_LANE_PATH,
+    COMPLEX_DRIVER_LANE_PATH,
     LIBBPF_SEGMENT_SURVEY_PATH,
     LIBBPF_VERIFY_SHARD_NOTE_PATH,
     RELEASE_SEQUENCING_PATH,
