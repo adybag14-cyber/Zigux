@@ -49,7 +49,7 @@ REQUIRED_SNIPPETS = {
         "`Documentation/zigux/phase6-hexdump-perf-refresh.md`",
         "`scripts/zigux/check-phase6-hexdump-packet.py`",
         "`zigux/tests/phase6_build.zig`",
-        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
+        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, `bin2hexUpper`/`bin2HexUpper`, and `hexDumpLineLength` helper parity surface",
         "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
         "`zigux/tests/phase6_helper_parity_manifest.json` still records a four-case slowdown packet",
         "`make -C zigux phase6-hexdump-review`",
@@ -75,6 +75,8 @@ REQUIRED_SNIPPETS = {
         "pub fn hexDumpLineLength(",
         "pub fn hexDumpToBuffer(",
         'test "hex2bin and bin2hex snake-case aliases stay aligned" {',
+        'test "bin2hexUpper emits uppercase bulk output and alias stays aligned" {',
+        'test "bin2hexUpper preserves destination on bounds errors" {',
         'test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {',
         'test "hexDumpLineLength mirrors formatter normalization" {',
         'test "hexDumpToBuffer reports normalized required length for empty and zero-sized buffers" {',
@@ -85,6 +87,7 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 hexdump helper packet preserves the curated length matrix" {',
         'test "phase 6 hexdump direct helper entrypoints stay aligned with the packet" {',
         'test "phase 6 hexdump direct pack helpers keep uppercase and lowercase nibble parity" {',
+        'test "phase 6 hexdump uppercase bulk parity and grouped-ascii exact-capacity buffers stay aligned" {',
     ],
     PERF_PATH: [
         "fn validatePerfMatrix() !void {",
@@ -179,8 +182,8 @@ SELF_TEST_CASES = [
     ),
     (
         SLICE_PATH,
+        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, `bin2hexUpper`/`bin2HexUpper`, and `hexDumpLineLength` helper parity surface",
         "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
-        "the landed `hexAsc*` helper parity surface",
     ),
     (
         SLICE_PATH,
@@ -204,6 +207,11 @@ SELF_TEST_CASES = [
     ),
     (
         LIB_PATH,
+        'test "bin2hexUpper preserves destination on bounds errors" {',
+        'test "bin2hexUpper preserves destination on overflow" {',
+    ),
+    (
+        LIB_PATH,
         'test "hexDumpLineLength mirrors formatter normalization" {',
         'test "hexDumpLength mirrors formatter normalization" {',
     ),
@@ -216,6 +224,11 @@ SELF_TEST_CASES = [
         HELPER_TEST_PATH,
         'test "phase 6 hexdump direct pack helpers keep uppercase and lowercase nibble parity" {',
         'test "phase 6 hexdump direct pack helpers keep nibble parity" {',
+    ),
+    (
+        HELPER_TEST_PATH,
+        'test "phase 6 hexdump uppercase bulk parity and grouped-ascii exact-capacity buffers stay aligned" {',
+        'test "phase 6 hexdump grouped-ascii exact-capacity buffers stay aligned" {',
     ),
     (
         PERF_PATH,
