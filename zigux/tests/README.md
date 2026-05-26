@@ -155,6 +155,61 @@ Purpose
   * `lib/rbtree.zig`
   * Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`, `python3 scripts/zigux/validate-phase7.py`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, and `zigux/Makefile` still keeps only the narrow `phase7-validate` foothold explicit rather than a broader wrapper family.
 
+## Phase 8 tooling packet
+
+  * current direct-readback Phase 8 anchors:
+  * `scripts/zigux/check-phase8-tests-readme-alignment.py`
+  * `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+  * `scripts/zigux/validate-phase8.py`
+  * `zigux/tests/phase8_exec_cmd.zig`
+  * `zigux/tests/phase8_exec_cmd_only_build.zig`
+  * `zigux/tests/phase8_perf_buffer_poll.zig`
+  * `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+  * Keep the currently returned help-and-kallsyms focused packet explicit too; current `master` now rematerializes the dedicated shard files and their route-level companions even though the broader note still treats them as public-tree-backed companion evidence:
+  * `Documentation/zigux/phase8-help-slice.md`
+  * `Documentation/zigux/phase8-kallsyms-slice.md`
+  * `zigux/tests/phase8_help_only_build.zig`
+  * `zigux/tests/phase8_help_kallsyms_only_build.zig`
+  * `zigux/tests/phase8_kallsyms_only_build.zig`
+  * `make -C zigux phase8-help-test`
+  * `make -C zigux phase8-help-kallsyms-test`
+  * `make -C zigux phase8-kallsyms-test`
+  * current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:
+  * `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
+  * `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+  * `scripts/zigux/validate-phase8.py`
+  * `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+  * `zigux/tests/phase8_file_path_handle_bridge.zig`
+  * `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+  * `zigux/tests/phase8_file_path_handle_boundary_guard.zig`
+  * `zigux/tests/phase8_file_path_handle_bridge_manifest_sync.zig`
+  * `zigux/tests/phase8_build.zig`
+  * `make -C zigux phase8-exec-cmd-test`
+  * `make -C zigux phase8-file-path-handle-bridge-test`
+  * current `zigux/tests/phase8_build.zig` also keeps the landed boundary-guard and manifest-sync witnesses inside the shared aggregate replay, so this tests-root reminder should treat both checks as current current-`master` evidence instead of leaving them implied only by the aggregate build route
+  * repo-reality warning for the broader remaining Phase 8 tooling packet:
+  * `Documentation/zigux/phase8-libbpf-segment-survey.md`
+  * `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
+  * `Documentation/zigux/phase8-tooling-lane-sequencing.md`
+  * `Documentation/zigux/phase8-help-slice.md`
+  * `Documentation/zigux/phase8-kallsyms-slice.md`
+  * `tools/lib/bpf/zigux_segments/verify.zig`
+  * `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`
+  * `zigux/tests/phase8_help_kallsyms_only_build.zig`
+  * `zigux/tests/phase8_verify_routing_gap.zig`
+  * `zigux/tests/phase8_verify_routing_gap_only_build.zig`
+  * `zigux/tests/phase8_libbpf_segments.zig`
+  * `zigux/tests/phase8_libbpf_segments_only_build.zig`
+  * `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+  * `zigux/Makefile`
+  * `make -C zigux phase8-help-kallsyms-test`
+  * `make -C zigux phase8-libbpf-segments-test`
+  * `make -C zigux phase8-perf-buffer-poll-test`
+  * `make -C zigux phase8-test`
+  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence
+  * current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set
+  * if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`
+
 ## Phase 10 shared virtio closure packet
 
 Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit as the shared Phase 10 tests-root reminder packet.
