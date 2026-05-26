@@ -279,6 +279,42 @@ static int check_interop_policy_relays(void)
     return 0;
 }
 
+static int check_chrdev_notify_window_relays(void)
+{
+    struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view view = {
+        .ack_window = 7u,
+        .delivery_window = 11u,
+        .status =
+            ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+    };
+    struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary summary = {
+        .applied =
+            ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_DELIVERY_APPLIED,
+        .skipped =
+            ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+        .delivered = 3u,
+    };
+    zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary summary_alias =
+        summary;
+
+    if (view.status !=
+        ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED)
+        return __LINE__;
+    if (summary.applied !=
+        ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_DELIVERY_APPLIED)
+        return __LINE__;
+    if (summary.skipped != view.status)
+        return __LINE__;
+    if (summary.delivered != 3u)
+        return __LINE__;
+    if (sizeof(summary) != sizeof(summary_alias))
+        return __LINE__;
+    if (summary_alias.applied != summary.applied)
+        return __LINE__;
+
+    return 0;
+}
+
 static int check_dev_t_relays(void)
 {
     struct zigux_dev_t_fields valid = zigux_dev_t_fields_make(11u, 29u);
@@ -351,6 +387,10 @@ int main(void)
         return rc;
 
     rc = check_interop_policy_relays();
+    if (rc != 0)
+        return rc;
+
+    rc = check_chrdev_notify_window_relays();
     if (rc != 0)
         return rc;
 
