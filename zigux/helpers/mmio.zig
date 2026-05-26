@@ -280,12 +280,20 @@ pub fn write16InteropPolicyBytes(base_addr: usize, byte_offset: usize, value: u1
     try writeInteropPolicyBytes(u16, unsafe_scope, reserved, try offsetPointer(u16, base_addr, byte_offset), value);
 }
 
+pub fn read32InteropPolicyBytes(base_addr: usize, byte_offset: usize, unsafe_scope: u8, reserved: u8) PolicyError!u32 {
+    return readInteropPolicyBytes(u32, unsafe_scope, reserved, try offsetConstPointer(u32, base_addr, byte_offset));
+}
+
+pub fn write32InteropPolicyBytes(base_addr: usize, byte_offset: usize, value: u32, unsafe_scope: u8, reserved: u8) PolicyError!void {
+    try writeInteropPolicyBytes(u32, unsafe_scope, reserved, try offsetPointer(u32, base_addr, byte_offset), value);
+}
+
 pub fn read32InteropPolicyByte(base_addr: usize, byte_offset: usize, unsafe_scope: u8) PolicyError!u32 {
-    return readInteropPolicyByte(u32, unsafe_scope, try offsetConstPointer(u32, base_addr, byte_offset));
+    return read32InteropPolicyBytes(base_addr, byte_offset, unsafe_scope, 0);
 }
 
 pub fn write32InteropPolicyByte(base_addr: usize, byte_offset: usize, value: u32, unsafe_scope: u8) PolicyError!void {
-    try writeInteropPolicyByte(u32, unsafe_scope, try offsetPointer(u32, base_addr, byte_offset), value);
+    try write32InteropPolicyBytes(base_addr, byte_offset, value, unsafe_scope, 0);
 }
 
 pub fn read64InteropPolicyBytes(base_addr: usize, byte_offset: usize, unsafe_scope: u8, reserved: u8) PolicyError!u64 {
@@ -457,6 +465,10 @@ test "phase3 mmio helper keeps helper-local ranges and width aliases explicit" {
 
     try write32InteropPolicyByte(base_addr, 4, 0xC001_D00D, mmio_scope);
     try std.testing.expectEqual(@as(u32, 0xC001_D00D), try read32InteropPolicyByte(base_addr, 4, mmio_scope));
+    try write32InteropPolicyBytes(base_addr, 4, 0xFACE_CAFE, mmio_scope, 0);
+    try std.testing.expectEqual(@as(u32, 0xFACE_CAFE), try read32InteropPolicyBytes(base_addr, 4, mmio_scope, 0));
+    try std.testing.expectEqual(@as(u32, 0xFACE_CAFE), try read32InteropPolicyByte(base_addr, 4, mmio_scope));
+    try std.testing.expectError(error.InvalidInteropPolicy, read32InteropPolicyBytes(base_addr, 4, mmio_scope, 1));
 
     try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base_addr, 8, 0, no_unsafe_scope, 0));
 }
