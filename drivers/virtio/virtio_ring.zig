@@ -88,6 +88,7 @@ pub const DelayedCallbackSummary = struct {
     outstanding_chain_count: u16,
     delay_budget_count: u16,
     delayed_event_target_idx: u16,
+    delayed_event_target_wraps: bool,
     pending_used_chain_count: u16,
     should_poll: bool,
     settled: bool,
@@ -312,6 +313,8 @@ pub const VirtioRingLab = struct {
 
         const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
         const delay_budget_count = @as(u16, @intCast((@as(u32, slot.outstanding_chain_count) * 3) / 4));
+        const delayed_event_target_idx = slot.last_used_idx +% delay_budget_count;
+        const delayed_event_target_wraps = delay_budget_count != 0 and delayed_event_target_idx < slot.last_used_idx;
         return .{
             .anchor = descriptor().anchor,
             .queue_index = queue_index,
@@ -320,7 +323,8 @@ pub const VirtioRingLab = struct {
             .last_polled_used_idx = slot.last_polled_used_idx,
             .outstanding_chain_count = slot.outstanding_chain_count,
             .delay_budget_count = delay_budget_count,
-            .delayed_event_target_idx = slot.last_used_idx +% delay_budget_count,
+            .delayed_event_target_idx = delayed_event_target_idx,
+            .delayed_event_target_wraps = delayed_event_target_wraps,
             .pending_used_chain_count = pending_used_chain_count,
             .should_poll = pending_used_chain_count > delay_budget_count,
             .settled = pending_used_chain_count == 0,
