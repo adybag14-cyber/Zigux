@@ -236,7 +236,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     ),
     "phase4-workflow-route-counts-self-test": (
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass"),
-        ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=32"),
+        ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASE_COUNT=32"),
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES", "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES=" + "".join(WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES)),
         ("PHASE4_WORKFLOW_ROUTE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNT=12"),
         ("PHASE4_WORKFLOW_MARKER_COUNT", "PHASE4_WORKFLOW_MARKER_COUNT=20"),
@@ -440,9 +440,9 @@ def build_stub_script(
                 f"LIVE_EXIT_CODE = {live_exit}",
                 f"SELF_TEST_STDOUT_LINES = {list(self_test_stdout_lines)!r}",
                 f"LIVE_STDOUT_LINES = {list(live_stdout_lines)!r}",
-                "for line in (SELF_TEST_STDOUT_LINES if args.self_test else LIVE_STDOUT_LINES):",
+                "for line in (SELF_TEST_STDOUT_LINES if args.self-test else LIVE_STDOUT_LINES):",
                 "    print(line)",
-                "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
+                "raise SystemExit(SELF_TEST_EXIT_CODE if args.self-test else LIVE_EXIT_CODE)",
             ]
         ) + "\n",
     )
