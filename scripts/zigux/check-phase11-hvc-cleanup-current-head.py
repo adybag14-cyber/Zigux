@@ -18,6 +18,7 @@ COMPANION_PATH = Path("Documentation/zigux/phase11-hvc-cleanup-alignment-current
 VERIFY_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundary.md")
 MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 DRIVER_PATH = Path("drivers/tty/hvc/hvc_console.zig")
+VERIFY_HELPER_SOURCE_PATH = Path("drivers/tty/hvc/hvc_console_verify.zig")
 PROOF_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_proof.zig")
 BUILD_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 MODEM_CONTROL_PROOF_PATH = Path("zigux/tests/phase11_hvc_modem_control_proof.zig")
@@ -31,7 +32,8 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
     "`.github/workflows/zigux-bootstrap.yml`",
-    "`drivers/tty/hvc/hvc_console_verify.zig`",
+    "- `drivers/tty/hvc/hvc_console_verify.zig`",
+    "returned `drivers/tty/hvc/hvc_console_verify.zig` source plus",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`Documentation/zigux/phase11-hvc-console-slice.md`",
@@ -46,9 +48,13 @@ SURVEY_MARKERS = (
     "`make -C zigux phase11-validate`",
 )
 
+SURVEY_FORBIDDEN_MARKERS = (
+    "still does not rematerialize\n  `drivers/tty/hvc/hvc_console_verify.zig`",
+)
+
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
-    "`drivers/tty/hvc/hvc_console_verify.zig`",
+    "`drivers/tty/hvc/hvc_console_verify.zig` and the verify boundary note stay explicit",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
@@ -57,8 +63,13 @@ COMPANION_MARKERS = (
     "repo-reality gaps or archival vocabulary",
 )
 
+COMPANION_FORBIDDEN_MARKERS = (
+    "still does not rematerialize\n`drivers/tty/hvc/hvc_console_verify.zig`",
+)
+
 MATRIX_MARKERS = (
     "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
+    "- `drivers/tty/hvc/hvc_console_verify.zig`",
     "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
@@ -85,6 +96,11 @@ MATRIX_MARKERS = (
     "`hvc_kick()` wakeup-cue",
     "notifier-irq",
     "modem-control helper summaries reviewable on current `master`",
+    "`drivers/tty/hvc/hvc_console_verify.zig` keeps helper-local remove, notifier, sysrq fallback, and cleanup-trigger summaries reviewable on current `master`.",
+)
+
+MATRIX_FORBIDDEN_MARKERS = (
+    "`drivers/tty/hvc/hvc_console_verify.zig`,\n  `drivers/tty/hvc/hvc_console_sysrq.zig`",
 )
 
 VERIFY_MARKERS = (
@@ -129,6 +145,14 @@ DRIVER_MARKERS = (
     "try std.testing.expect(!active.targetless_hangup_short_circuit);",
     "try std.testing.expect(targetless.targetless_hangup_short_circuit);",
     "try std.testing.expect(!invalid.targetless_hangup_short_circuit);",
+)
+
+VERIFY_HELPER_SOURCE_MARKERS = (
+    "pub fn summarizeRemoveHandoffWithoutBinding(",
+    "pub fn summarizeNotifierUnregisterTiming(",
+    "pub fn summarizeNotifierDispatch(",
+    "pub fn summarizeCleanupTrigger(",
+    "test \"phase11 hvc verify helper keeps targetless sysrq fallback reviewable\" {",
 )
 
 PROOF_MARKERS = (
@@ -239,12 +263,23 @@ def require_markers(root: Path, rel: Path, label: str, markers: tuple[str, ...])
             raise CheckError(f"missing {label} marker: {marker}")
 
 
+def require_absent_markers(root: Path, rel: Path, label: str, markers: tuple[str, ...]) -> None:
+    text = read_text(root / rel)
+    for marker in markers:
+        if marker in text:
+            raise CheckError(f"forbidden {label} marker present: {marker}")
+
+
 def run_check(root: Path) -> None:
     require_markers(root, SURVEY_PATH, "survey", SURVEY_MARKERS)
+    require_absent_markers(root, SURVEY_PATH, "survey", SURVEY_FORBIDDEN_MARKERS)
     require_markers(root, COMPANION_PATH, "companion", COMPANION_MARKERS)
+    require_absent_markers(root, COMPANION_PATH, "companion", COMPANION_FORBIDDEN_MARKERS)
     require_markers(root, VERIFY_PATH, "verify", VERIFY_MARKERS)
     require_markers(root, MATRIX_PATH, "matrix", MATRIX_MARKERS)
+    require_absent_markers(root, MATRIX_PATH, "matrix", MATRIX_FORBIDDEN_MARKERS)
     require_markers(root, DRIVER_PATH, "driver", DRIVER_MARKERS)
+    require_markers(root, VERIFY_HELPER_SOURCE_PATH, "verify-helper source", VERIFY_HELPER_SOURCE_MARKERS)
     require_markers(root, PROOF_PATH, "proof", PROOF_MARKERS)
     require_markers(root, MODEM_CONTROL_PROOF_PATH, "modem-control proof", MODEM_CONTROL_PROOF_MARKERS)
     require_markers(root, MODEM_CONTROL_BUILD_PATH, "modem-control build", MODEM_CONTROL_BUILD_MARKERS)
@@ -295,6 +330,7 @@ def build_fixture(root: Path) -> None:
     write(root / VERIFY_PATH, copy(VERIFY_PATH))
     write(root / MATRIX_PATH, copy(MATRIX_PATH))
     write(root / DRIVER_PATH, copy(DRIVER_PATH))
+    write(root / VERIFY_HELPER_SOURCE_PATH, copy(VERIFY_HELPER_SOURCE_PATH))
     write(root / PROOF_PATH, copy(PROOF_PATH))
     write(root / BUILD_PATH, '.name = "phase11-hvc-cleanup-packet-proof"\n')
     write(root / MODEM_CONTROL_PROOF_PATH, copy(MODEM_CONTROL_PROOF_PATH))
@@ -345,7 +381,7 @@ def run_self_test() -> int:
         cases = [
             (SURVEY_PATH, "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`"),
             (SURVEY_PATH, "`.github/workflows/zigux-bootstrap.yml`"),
-            (SURVEY_PATH, "`drivers/tty/hvc/hvc_console_verify.zig`"),
+            (SURVEY_PATH, "- `drivers/tty/hvc/hvc_console_verify.zig`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-slice.md`"),
             (SURVEY_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
@@ -359,6 +395,7 @@ def run_self_test() -> int:
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_console_manifest.json`"),
             (COMPANION_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
             (MATRIX_PATH, "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`"),
+            (MATRIX_PATH, "- `drivers/tty/hvc/hvc_console_verify.zig`"),
             (MATRIX_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-validate-manifest-roster.py`"),
@@ -395,6 +432,8 @@ def run_self_test() -> int:
             (DRIVER_PATH, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {"),
             (DRIVER_PATH, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {"),
             (DRIVER_PATH, "const targetless_hangup_short_circuit = request.notifier_registered and"),
+            (VERIFY_HELPER_SOURCE_PATH, "pub fn summarizeRemoveHandoffWithoutBinding("),
+            (VERIFY_HELPER_SOURCE_PATH, "pub fn summarizeNotifierDispatch("),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps missing teardown anchors explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps route boundaries explicit" {'),
             (PROOF_PATH, 'test "phase11 hvc cleanup packet proof keeps verify-boundary failure modes explicit" {'),
