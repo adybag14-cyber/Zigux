@@ -8,7 +8,7 @@ Phase 1 still uses `scripts/zigux/artifact_diff.py` as the shared host-side comp
 
 ## Current Phase 2 use
 
-Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep`, `genksyms`, and the kconfig bridge packet.
+Phase 2 still routes focused host-tool fixture comparisons through the same helper family when validating `fixdep` and the kconfig bridge packet. The current `genksyms` bridge packet keeps its fixture comparisons local to `scripts/zigux/check-genksyms-bridge.py`.
 
 ## Current Phase 3 use
 
