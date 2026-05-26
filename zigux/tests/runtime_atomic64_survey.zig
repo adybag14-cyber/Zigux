@@ -99,6 +99,13 @@ fn hasOwnership(entries: []const OwnershipEntry, surface: []const u8, owner: []c
     return false;
 }
 
+fn findOwnership(entries: []const OwnershipEntry, surface: []const u8) ?OwnershipEntry {
+    for (entries) |entry| {
+        if (std.mem.eql(u8, entry.surface, surface)) return entry;
+    }
+    return null;
+}
+
 fn hasValidationGate(entries: []const []const u8, path: []const u8) bool {
     for (entries) |entry| {
         if (std.mem.eql(u8, entry, path)) return true;
@@ -246,6 +253,42 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
         "zigux/tests/phase9_build.zig",
         "P9-L11",
     ));
+
+    const survey_entry = findOwnership(
+        manifest.ownership_map,
+        "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+    ) orelse return error.MissingSurveyOwnership;
+    try std.testing.expectEqualStrings("survey_note", survey_entry.role);
+    try std.testing.expect(std.mem.indexOf(u8, survey_entry.boundary, "blocked live loader-binding boundary") != null);
+
+    const module_slice_entry = findOwnership(
+        manifest.ownership_map,
+        "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+    ) orelse return error.MissingModuleSliceOwnership;
+    try std.testing.expectEqualStrings("module_slice_note", module_slice_entry.role);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_entry.boundary, "without claiming loadable-module parity") != null);
+
+    const sequencing_entry = findOwnership(
+        manifest.ownership_map,
+        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+    ) orelse return error.MissingSequencingOwnership;
+    try std.testing.expectEqualStrings("shared_owner_map", sequencing_entry.role);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        sequencing_entry.boundary,
+        "shared Phase 9 loader-facing reminder packet separately from this runtime atomic64 family-local packet",
+    ) != null);
+
+    const shared_build_entry = findOwnership(
+        manifest.ownership_map,
+        "zigux/tests/phase9_build.zig",
+    ) orelse return error.MissingSharedBuildOwnership;
+    try std.testing.expectEqualStrings("shared_build_bundle", shared_build_entry.role);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        shared_build_entry.boundary,
+        "outside this shared-build ownership surface",
+    ) != null);
 
     try std.testing.expectEqualStrings("P9-L13", manifest.governance_record.governance_lane);
     try std.testing.expectEqualStrings("P9-L04", manifest.governance_record.packet_owner);
