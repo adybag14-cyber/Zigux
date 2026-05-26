@@ -1,0 +1,9 @@
+{
+  "filename": "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+  "encoding": "base64",
+  "sha256": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+  "size": 58159088,
+  "chunk_bytes": 786432,
+  "part_count": 74,
+  "parts_glob": "part-*.b64"
+}
