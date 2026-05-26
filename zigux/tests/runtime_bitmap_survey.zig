@@ -135,6 +135,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(survey_note, "manifest-backed ownership packet");
     try expectContains(survey_note, "current `master` still ships no `samples/zigux/*bitmap*` Phase 5 reference sample");
     try expectContains(survey_note, "Keep the direct sample zero-length and rejected range-mutation replay explicit when reminder text summarizes sample-local range, summary, and parse stability.");
+    try expectContains(survey_note, "Keep the direct sample whitespace-only bit-list path explicit as an initialized empty bitmap plus direct-exit guard when reminder text summarizes sample-local parse, summary, and lifecycle stability.");
     try expectContains(survey_note, "Keep the direct-init companion explicit when reminder text summarizes sample-local init normalization, unsorted duplicate input collapse, nth-set ordering, and formatted sparse-summary stability.");
     try expectContains(survey_note, "Keep `samples/zigux/runtime_bitmap_cold_stage_guard.zig` explicit as the returned cold-stage sample-root guard companion; it is visible on the trusted path and the shared `zigux/tests/phase9_build.zig` bundle now reruns it through the dedicated `phase9-runtime-bitmap-cold-stage-guard-tests` route plus the aggregate `phase9-runtime-bitmap-tests` handle.");
     try expectNotContains(survey_note, "returns missing for `zigux/tests/runtime_bitmap_diff.zig`");
@@ -193,9 +194,11 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(manifest, "\"diff_copy_tail_clearing\"");
     try expectContains(manifest, "\"diff_exit_lifecycle_guards\"");
     try expectContains(manifest, "\"top_bit_contract\"");
+    try expectContains(manifest, "\"sample_whitespace_only_bit_list_empty_exit\"");
     try expectContains(manifest, "\"sample_range_guard_non_destructive\"");
     try expectContains(manifest, "\"cold_stage_selftest_and_exit_guards\"");
     try expectContains(manifest, "\"cold_stage_mutation_and_source_lifecycle_guards\"");
+    try expectContains(manifest, "Keep the direct sample whitespace-only bit-list path explicit as an initialized empty bitmap plus direct-exit guard when the manifest summarizes parse, summary, and lifecycle stability.");
     try expectContains(manifest, "Keep the direct sample zero-length and rejected range-mutation replay explicit when the manifest summarizes direct sample range, summary, and parse stability.");
     try expectContains(manifest, "Keep the cold-stage selftest, exit, mutation, and source-lifecycle guard companion explicit when the manifest summarizes the sample-root runtime bitmap packet.");
     try expectContains(manifest, "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.");
@@ -227,6 +230,7 @@ test "phase9 runtime bitmap survey gate matches the manifest-backed direct-diff 
     try expectContains(sample_file, "runtime bitmap sample keeps initialized summary stable across direct exit without selftest");
     try expectContains(sample_file, "runtime bitmap sample rejects re-init after exit without disturbing lifecycle summaries");
     try expectContains(sample_file, "runtime bitmap sample keeps zero-length and rejected range mutations non-destructive");
+    try expectContains(sample_file, "runtime bitmap sample keeps a whitespace-only bit list explicit as an initialized empty bitmap");
 
     try expectContains(cold_guard_file, "test \"runtime bitmap sample keeps cold-stage selftest and exit guards explicit\"");
     try expectContains(cold_guard_file, "test \"runtime bitmap sample keeps cold-stage mutation guards and source-lifecycle checks explicit\"");
