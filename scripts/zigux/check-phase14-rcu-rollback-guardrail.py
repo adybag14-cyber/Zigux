@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -47,9 +48,28 @@ MANIFEST_REQUIRED_MARKERS = [
     '"anchor": "kernel/rcu/tree.c"',
     '"rollback_owner": "Repo Tooling Pod"',
     '"phase14-rcu-tree-rollback-threshold-guardrail"',
-    '"Architecture Council reopen record linked from the reviewable packet"',
-    '"freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"',
 ]
+MANIFEST_REQUIRED_ROLLBACK_FIELDS = {
+    "status_bucket": "freeze_in_c",
+    "review_blocker_status": "blocked_on_stay_in_c_evidence",
+    "owner": "Core-Adjacent Pod",
+    "rollback_owner": "Repo Tooling Pod",
+    "required_evidence": [
+        "Architecture Council reopen record linked from the reviewable packet",
+        "parity scorecard evidence and benchmark notes attached to the reviewable packet",
+        "validation replay command plus evidence archive path recorded beside the blocker disposition",
+    ],
+    "rollback_triggers": [
+        "any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
+        "missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
+        "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner",
+    ],
+}
+MANIFEST_REQUIRED_SUMMARY_FLAGS = {
+    "rollback_threshold_note_present": True,
+    "rollback_threshold_checklist_present": True,
+    "rollback_threshold_freeze_map_rule_present": True,
+}
 
 
 def infer_repo_root() -> Path:
@@ -113,6 +133,35 @@ def validate(root: Path) -> list[str]:
     for marker in MANIFEST_REQUIRED_MARKERS:
         if marker not in manifest_text:
             failures.append(f"missing_manifest_marker:{marker}")
+
+    try:
+        manifest_payload = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        failures.append(f"invalid_manifest_json:{exc.msg}")
+        return failures
+
+    rollback_threshold = manifest_payload.get("rollback_threshold")
+    if not isinstance(rollback_threshold, dict):
+        failures.append("missing_manifest_object:rollback_threshold")
+    else:
+        for key, expected in MANIFEST_REQUIRED_ROLLBACK_FIELDS.items():
+            actual = rollback_threshold.get(key)
+            if actual != expected:
+                failures.append(
+                    f"manifest_rollback_threshold_mismatch:{key}:expected={expected!r}:actual={actual!r}"
+                )
+
+    survey_summary = manifest_payload.get("survey_summary")
+    if not isinstance(survey_summary, dict):
+        failures.append("missing_manifest_object:survey_summary")
+    else:
+        for key, expected in MANIFEST_REQUIRED_SUMMARY_FLAGS.items():
+            actual = survey_summary.get(key)
+            if actual != expected:
+                failures.append(
+                    f"manifest_survey_summary_mismatch:{key}:expected={expected!r}:actual={actual!r}"
+                )
+
     return failures
 
 
@@ -159,12 +208,24 @@ This document records the current Phase 14 boundary-study packet for `kernel/rcu
 FIXTURE_MANIFEST = """{
   "lane_key": "P14-L16",
   "anchor": "kernel/rcu/tree.c",
+  "survey_summary": {
+    "rollback_threshold_note_present": true,
+    "rollback_threshold_checklist_present": true,
+    "rollback_threshold_freeze_map_rule_present": true
+  },
   "rollback_threshold": {
+    "status_bucket": "freeze_in_c",
+    "review_blocker_status": "blocked_on_stay_in_c_evidence",
+    "owner": "Core-Adjacent Pod",
     "rollback_owner": "Repo Tooling Pod",
     "required_evidence": [
-      "Architecture Council reopen record linked from the reviewable packet"
+      "Architecture Council reopen record linked from the reviewable packet",
+      "parity scorecard evidence and benchmark notes attached to the reviewable packet",
+      "validation replay command plus evidence archive path recorded beside the blocker disposition"
     ],
     "rollback_triggers": [
+      "any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
+      "missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
       "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"
     ]
   },
@@ -248,12 +309,32 @@ def run_self_test() -> int:
                 '"phase14-rcu-tree-rollback-threshold-guardrail"',
                 'missing_manifest_marker:"phase14-rcu-tree-rollback-threshold-guardrail"',
             ),
+            (
+                "change-manifest-review-blocker",
+                MANIFEST_PATH,
+                '"review_blocker_status": "blocked_on_stay_in_c_evidence"',
+                '"review_blocker_status": "review_in_progress"',
+                "manifest_rollback_threshold_mismatch:review_blocker_status:expected='blocked_on_stay_in_c_evidence':actual='review_in_progress'",
+            ),
+            (
+                "change-manifest-summary-flag",
+                MANIFEST_PATH,
+                '"rollback_threshold_freeze_map_rule_present": true',
+                '"rollback_threshold_freeze_map_rule_present": false',
+                "manifest_survey_summary_mismatch:rollback_threshold_freeze_map_rule_present:expected=True:actual=False",
+            ),
         ]
-        for _, rel_path, marker, expected in cases:
+        for case in cases:
             write_text(base / NOTE_PATH, FIXTURE_NOTE)
             write_text(base / MANIFEST_PATH, FIXTURE_MANIFEST)
-            target = base / rel_path
-            write_text(target, target.read_text(encoding="utf-8").replace(marker, "", 1))
+            if len(case) == 4:
+                _, rel_path, marker, expected = case
+                target = base / rel_path
+                write_text(target, target.read_text(encoding="utf-8").replace(marker, "", 1))
+            else:
+                _, rel_path, old, new, expected = case
+                target = base / rel_path
+                write_text(target, target.read_text(encoding="utf-8").replace(old, new, 1))
             failures = validate(base)
             if expected not in failures:
                 raise SystemExit(f"expected {expected!r}, got {failures!r}")
@@ -279,7 +360,7 @@ def run_self_test() -> int:
             shutil.rmtree(note_and_manifest_missing, ignore_errors=True)
 
         print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")
-        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=13")
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=15")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -312,6 +393,14 @@ def main() -> int:
     print("PHASE14_RCU_ROLLBACK_GUARDRAIL=pass")
     print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MARKER_COUNT={len(REQUIRED_MARKERS)}")
     print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MANIFEST_MARKER_COUNT={len(MANIFEST_REQUIRED_MARKERS)}")
+    print(
+        "PHASE14_RCU_ROLLBACK_GUARDRAIL_MANIFEST_ROLLBACK_FIELD_COUNT="
+        f"{len(MANIFEST_REQUIRED_ROLLBACK_FIELDS)}"
+    )
+    print(
+        "PHASE14_RCU_ROLLBACK_GUARDRAIL_MANIFEST_SUMMARY_FLAG_COUNT="
+        f"{len(MANIFEST_REQUIRED_SUMMARY_FLAGS)}"
+    )
     print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_FORBIDDEN_COUNT={len(FORBIDDEN_MARKERS)}")
     return 0
 
