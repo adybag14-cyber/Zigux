@@ -5,6 +5,7 @@ This directory holds the bounded Phase 8 Zigux footholds for `tools/lib/bpf/libb
 Current master materializes helper-first or helper-adjacent slices in:
 
 - `cpu_mask.zig`
+- `file_path_handle_bridge.zig`
 - `logging.zig`
 - `online_cpu_routing.zig`
 - `perf_buffer_poll.zig`
@@ -13,21 +14,22 @@ Current master materializes helper-first or helper-adjacent slices in:
 - `ready_buffer_fd_lookup.zig`
 - `type_names.zig`
 
-Each materialized slice is paired with focused `*_verify.zig` coverage and the directory-level `verify.zig` aggregator so stable outputs stay reviewable without widening into loader, verifier, or object-model churn.
+Each materialized slice is paired with focused `*_verify.zig` coverage so stable outputs stay reviewable without widening into loader, verifier, or object-model churn. The new bridge foothold currently ships through `file_path_handle_bridge_verify.zig`; wiring it into the directory-level `verify.zig` aggregator remains a same-lane follow-up so this change stays bounded.
 
 ## Current Repo Gap
 
-The segment manifest still needs to stay honest about one planned shared destination:
+Current master now carries the shared bridge destination for two helper-only footholds:
 
-- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+- bounded `/proc/.../fdinfo/<fd>` pathname shaping
+- bounded reused-map name retention for NUL-terminated and fixed-width observations
 
-That file is not present on current `master`. Until it exists with bounded validators, the fdinfo-map-info and map-reuse helper slices remain queued groundwork rather than landed implementation.
+The remaining fdinfo text parser, numeric map-info decoder, reuse-compatibility summarizer, and token-planning helpers are still queued groundwork inside `file_path_handle_bridge.zig`, so fdinfo-map-info and map-reuse slices remain only partially landed.
 
 ## Still Deferred
 
 The following Phase 8 families remain intentionally deferred:
 
-- file-path and handle bridge side effects
+- direct procfs reads, descriptor ownership flow, and other file-path or handle side effects
 - broader online-CPU setup and `perf_event` wiring
 - skeleton population
 - object and ELF loader work
