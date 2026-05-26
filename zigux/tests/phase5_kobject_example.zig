@@ -67,6 +67,8 @@ test "phase 5 kobject sample keeps the anchor replay explicit through the focuse
     try std.testing.expectEqualStrings("baz", replay.attribute_specs[1].name);
     try std.testing.expectEqualStrings("bar", replay.attribute_specs[2].name);
     try std.testing.expectEqual(@as(u16, 0o664), replay.attribute_specs[0].mode);
+    try std.testing.expectEqual(@as(u16, 0o664), replay.attribute_specs[1].mode);
+    try std.testing.expectEqual(@as(u16, 0o664), replay.attribute_specs[2].mode);
     try std.testing.expect(replay.attribute_specs[1].uses_shared_b_handlers);
     try std.testing.expect(replay.attribute_specs[2].uses_shared_b_handlers);
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
