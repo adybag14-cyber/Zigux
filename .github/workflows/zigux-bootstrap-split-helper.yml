@@ -25,6 +25,12 @@ jobs:
         uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            .github/workflows/zigux-bootstrap-split-helper.yml
+            scripts/zigux
+            third_party
+          sparse-checkout-cone-mode: false
 
       - name: Setup Python
         uses: actions/setup-python@v6.2.0
