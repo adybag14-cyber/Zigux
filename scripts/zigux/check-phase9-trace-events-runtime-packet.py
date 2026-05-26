@@ -113,6 +113,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         'test "runtime trace-events sample keeps rejected re-selftest rollback explicit at the module boundary" {',
         'test "runtime trace-events sample keeps rejected re-exit rollback explicit at the module boundary" {',
         'test "runtime trace-events sample keeps direct-activity re-init and re-exit rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps initialized direct-activity failed-exit rollback explicit at the module boundary" {',
         'test "runtime trace-events sample keeps duplicate registration and failed-exit rollback explicit at the module boundary" {',
         'try std.testing.expect(descriptor.requires_runtime_substrate);',
         'try std.testing.expect(descriptor.provides_selftest_hook);',
