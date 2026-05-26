@@ -18,7 +18,12 @@ REQUIRED_MARKERS = {
         "#include <linux/zigux.h>",
         "static int check_version_relays(void)",
         "zigux_uapi_version_current()",
+        "zigux_uapi_version_has_current_abi_major(",
+        "zigux_uapi_version_has_current_abi_minor(",
+        "zigux_uapi_version_has_current_header_family_revision(",
+        "zigux_uapi_version_matches_current(",
         "zigux_uapi_validate_version(",
+        "if (invalid.code != ZIGUX_UAPI_INVALID_ARGUMENT)",
         "static int check_boundary_header_relays(void)",
         "zigux_boundary_header_make(",
         "zigux_boundary_header_make_compatible(",
@@ -832,6 +837,40 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
+        version_major_marker_text = _read(root / SMOKE_PATH).replace(
+            "zigux_uapi_version_has_current_abi_major(",
+            "zigux_uapi_version_has_current_abi_major_missing(",
+            1,
+        )
+        _write(root / SMOKE_PATH, version_major_marker_text)
+        issues = validate_repo(root, "cc")
+        expected_version_major_marker = (
+            "missing zigux/tests/phase3_export_uapi_c_header_smoke.c marker: "
+            "zigux_uapi_version_has_current_abi_major("
+        )
+        if expected_version_major_marker not in issues:
+            print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=fail")
+            print("expected missing version-major relay marker was not reported")
+            return 1
+
+        _write(root / SMOKE_PATH, SELFTEST_SMOKE)
+        missing_version_status_marker_text = _read(root / SMOKE_PATH).replace(
+            "if (invalid.code != ZIGUX_UAPI_INVALID_ARGUMENT)",
+            "",
+            1,
+        )
+        _write(root / SMOKE_PATH, missing_version_status_marker_text)
+        issues = validate_repo(root, "cc")
+        expected_version_status_marker = (
+            "missing zigux/tests/phase3_export_uapi_c_header_smoke.c marker: "
+            "if (invalid.code != ZIGUX_UAPI_INVALID_ARGUMENT)"
+        )
+        if expected_version_status_marker not in issues:
+            print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=fail")
+            print("expected missing version-status marker was not reported")
+            return 1
+
+        _write(root / SMOKE_PATH, SELFTEST_SMOKE)
         missing_marker_text = _read(root / SMOKE_PATH).replace(
             "if (!zigux_boundary_header_is_compatible(canonical))",
             "",
@@ -951,7 +990,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
