@@ -445,6 +445,22 @@ test "PreparedRequest.releaseWithoutSubstrate rejects invalid lifecycle states w
     try std.testing.expect(keepsLoadPlanExplicit(released_pending, stable));
 }
 
+test "PreparedRequest keeps Phase 8 command and environment control fields out of the shared request boundary" {
+    const blocked_control_fields = [_][]const u8{
+        "activation_env",
+        "argv_policy",
+        "command_env",
+        "command_name",
+        "exec_name",
+        "exec_path",
+        "exec_path_env",
+    };
+
+    inline for (blocked_control_fields) |field| {
+        try std.testing.expect(!@hasField(PreparedRequest, field));
+    }
+}
+
 test "PreparedRequest keeps blocked publication and depmod surfaces out of the shared request boundary" {
     const blocked_publication_fields = [_][]const u8{
         "modinfo",
@@ -488,6 +504,22 @@ test "PreparedRequest keeps blocked initcall metadata surfaces out of the shared
 
     inline for (blocked_initcall_fields) |field| {
         try std.testing.expect(!@hasField(PreparedRequest, field));
+    }
+}
+
+test "ApprovedPilotFamily keeps Phase 8 command and environment control fields out of the shared family contract" {
+    const blocked_control_fields = [_][]const u8{
+        "activation_env",
+        "argv_policy",
+        "command_env",
+        "command_name",
+        "exec_name",
+        "exec_path",
+        "exec_path_env",
+    };
+
+    inline for (blocked_control_fields) |field| {
+        try std.testing.expect(!@hasField(ApprovedPilotFamily, field));
     }
 }
 
