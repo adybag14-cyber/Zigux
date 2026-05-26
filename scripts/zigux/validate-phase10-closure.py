@@ -48,6 +48,7 @@ CLOSURE_DOC_MARKERS = [
     "scripts/zigux/check-phase10-mmio-packet.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "scripts/zigux/check-phase10-closure-manifest-counts.py",
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
@@ -227,6 +228,22 @@ def run_self_test() -> int:
         original_doc = closure_doc.read_text(encoding="utf-8")
         closure_doc.write_text(original_doc.replace("shared reminder-surface drift", "shared note drift", 1), encoding="utf-8")
         expect_contains(collect_missing_markers(root), "closure:shared reminder-surface drift", "phase10-closure-self-test")
+        cases += 1
+        closure_doc.write_text(original_doc, encoding="utf-8")
+
+        closure_doc.write_text(
+            original_doc.replace(
+                "scripts/zigux/check-phase10-closure-manifest-counts.py",
+                "scripts/zigux/check-phase10-missing-checker.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_contains(
+            collect_missing_markers(root),
+            "closure:scripts/zigux/check-phase10-closure-manifest-counts.py",
+            "phase10-closure-self-test",
+        )
         cases += 1
         closure_doc.write_text(original_doc, encoding="utf-8")
 
