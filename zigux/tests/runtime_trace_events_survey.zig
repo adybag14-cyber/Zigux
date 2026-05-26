@@ -130,6 +130,14 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     );
     defer std.testing.allocator.free(phase9_build_file);
 
+    const module_file = try cwd.readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_trace_events_module.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(module_file);
+
     const sample_file = try cwd.readFileAlloc(
         io_instance.io(),
         "samples/zigux/runtime_trace_events.zig",
@@ -360,6 +368,18 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(module_slice_note, "broader shared runtime-loader packet");
     try expectContains(module_slice_note, "`zigux/tests/phase9_build.zig`");
     try expectContains(module_slice_note, "Do not invent `validate-phase9.py`");
+    try expectContains(module_file, "const sample = @import(\"runtime_trace_events_sample\");");
+    try expectContains(module_file, "test \"runtime trace-events sample advertises the bounded pilot-module contract\" {");
+    try expectContains(module_file, "try std.testing.expect(descriptor.provides_selftest_hook);");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps selftest summary replay explicit at the module boundary\" {");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps lifecycle summary replay explicit at the module boundary\" {");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps initialized-stage exit replay explicit at the module boundary\" {");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps rejected re-init rollback explicit at the module boundary\" {");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps rejected re-selftest rollback explicit at the module boundary\" {");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps rejected re-exit rollback explicit at the module boundary\" {");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps direct-activity re-init and re-exit rollback explicit at the module boundary\" {");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps initialized direct-activity failed-exit rollback explicit at the module boundary\" {");
+    try expectContains(module_file, "test \"runtime trace-events sample keeps duplicate registration and failed-exit rollback explicit at the module boundary\" {");
 
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events.zig`");
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_unregistered_gate.zig`");
