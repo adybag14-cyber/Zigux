@@ -78,8 +78,8 @@ WORKFLOW_ROUTE_COUNTS_SELF_TEST_CASES = (
     "missing_workflow_artifact_diff_contract_check,",
     "missing_workflow_artifact_diff_determinism_selftest,",
     "missing_workflow_artifact_diff_determinism_check,",
-    "missing_workflow_artifact_diff_validator_replays_selftest,",
-    "missing_workflow_artifact_diff_validator_replays_check,",
+    "missing_workflow_artifact_diff-validator-replays_selftest,",
+    "missing_workflow_artifact_diff-validator-replays_check,",
     "missing_matrix_remaining_gap_marker,",
     "missing_gate_evidence_bitmap_build_route,",
     "missing_gate_evidence_bitmap_wrapper,",
@@ -440,9 +440,9 @@ def build_stub_script(
                 f"LIVE_EXIT_CODE = {live_exit}",
                 f"SELF_TEST_STDOUT_LINES = {list(self_test_stdout_lines)!r}",
                 f"LIVE_STDOUT_LINES = {list(live_stdout_lines)!r}",
-                "for line in (SELF_TEST_STDOUT_LINES if args.self-test else LIVE_STDOUT_LINES):",
+                "for line in (SELF_TEST_STDOUT_LINES if args.self_test else LIVE_STDOUT_LINES):",
                 "    print(line)",
-                "raise SystemExit(SELF_TEST_EXIT_CODE if args.self-test else LIVE_EXIT_CODE)",
+                "raise SystemExit(SELF_TEST_EXIT_CODE if args.self_test else LIVE_EXIT_CODE)",
             ]
         ) + "\n",
     )
