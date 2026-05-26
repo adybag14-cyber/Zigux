@@ -54,9 +54,9 @@ The current parked slice covers:
 - a tiny `FileIdentity` plus `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` layer that mirrors the C helper's stat-backed same-location proof without introducing direct filesystem calls
 - `setupPathWithPwd()` as the bounded wrapper that applies that stat-backed `PWD` proof directly to `setupPath()` before relative search-path normalization
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
-- `buildDeferredExecvCall()` as the launch-free `execv_cmd()` handoff that packages the prepared argv vector for later use without claiming any direct `execvp()` side effect
+- `buildDeferredExecvCall()` as the launch-free `execv_cmd()` handoff that packages a self-owned prepared argv vector for later use without claiming any direct `execvp()` side effect
 - a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector, including the C helper's legacy post-fetch `MAX_ARGS` overflow guard where a terminating null that lands in slot `MAX_ARGS` still fails, plus its required trailing null terminator, without claiming any direct process-launch behavior
-- `buildDeferredExeclCall()` plus the tiny `DeferredExecCall` carrier so the `execl_cmd()` path can now hand off one fully prepared future `execvp()` argv packet without launching a process, waiting for completion, or claiming any queue ownership
+- `buildDeferredExeclCall()` plus the tiny `DeferredExecCall` carrier so the `execl_cmd()` path can now hand off one fully prepared self-owned future `execvp()` argv packet without launching a process, waiting for completion, or claiming any queue ownership
 
 ## Current roadmap gap
 
@@ -69,7 +69,7 @@ The still-open gap stays bounded and explicit:
 
 - no direct `execvp()` parity, child launch, exit-status collection, or process waiting
 - no retry scheduling, timer-backed backoff, timeout handling, or poll-loop ownership around deferred execution
-- no file-descriptor, token, or environment-lifetime ownership beyond the helper-local preparation packet
+- no file-descriptor, token, or environment-lifetime ownership beyond the helper-local preparation packet and the self-owned deferred argv carrier
 - no queue ownership, wakeup routing, worker-pool control, or scheduler-visible execution substrate
 - no handoff into `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other Phase 14 core-adjacent study-only anchor
 
