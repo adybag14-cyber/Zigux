@@ -64,6 +64,7 @@ The current helper-local replay also keeps these ownership and boundary rules ex
 - `parseOptionStr()` stays bounded to exact comma-delimited bare options inside the exported C-string prefix
 - `getOption()` and `getOptions()` keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior
 - `nextArg()` and `next_arg()` keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary, including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs
+- `nextArg()` also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track
 - `memparse()` keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership
 - the no-standalone-cmdline sample boundary stays helper-local only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders
 
