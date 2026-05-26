@@ -61,6 +61,7 @@ EXPECTED_SURVEY_SUMMARY_FIELDS = {
     "preexisting_virtio_ring_doc_present": True,
     "preexisting_ring_verify_present": True,
     "preexisting_ring_publish_readiness_present": True,
+    "preexisting_ring_registration_summary_present": True,
 }
 EXPECTED_GAP_METADATA = {
     "phase10-build-gate": ("validation", "starter_landed", "zigux/tests/phase10_build.zig"),
@@ -80,6 +81,11 @@ EXPECTED_GAP_METADATA = {
     "phase10-notification-data-summary-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-broken-queue-poll-guard": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-queue-publish-readiness-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring_publish_readiness.zig"),
+    "phase10-queue-registration-summary-helper": (
+        "queue_wrapper",
+        "starter_landed",
+        "drivers/virtio/virtio_ring_registration_summary.zig",
+    ),
     "phase10-queue-reset-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-queue-reset-readiness-helper": ("queue_wrapper", "starter_landed", "drivers/virtio/virtio_ring.zig"),
     "phase10-ring-publish-readiness-replay": ("validation", "starter_landed", "drivers/virtio/virtio_ring_publish_readiness.zig"),
@@ -93,13 +99,15 @@ REQUIRED_MARKERS = {
         "lane: `P10-L10`",
         "`phase10-virtio-ring-survey-gate`",
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
+        "`drivers/virtio/virtio_ring_registration_summary.zig`",
         "`zigux/tests/phase10_virtio_ring.zig`",
         "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`",
         "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
         "`zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`",
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
-        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "`phase10-queue-registration-summary-helper`",
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
@@ -111,12 +119,13 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
+        "`drivers/virtio/virtio_ring_registration_summary.zig`",
         "`zigux/tests/phase10_virtio_ring.zig`",
         "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
         "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice",
-        "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice",
+        "the notification-data replay, the registration replay, the registration-summary wrapper, and the dedicated survey gate are now landed review surfaces inside this slice",
     ],
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "`scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`",
@@ -156,8 +165,14 @@ REQUIRED_MARKERS = {
         "test \"phase10 virtio ring publish-readiness wrapper keeps broken queues fenced even when slots remain\" {",
         "test \"phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared\" {",
     ],
+    "drivers/virtio/virtio_ring_registration_summary.zig": [
+        "pub fn summarizeQueueRegistration(",
+        "pub fn summarizeRegisteredQueueCount(ring: *const virtio_ring.VirtioRingLab) usize {",
+        "pub fn queueDefinitionDisciplineStable(",
+        "test \"phase10 virtio ring registration-summary wrapper keeps definition discipline explicit\" {",
+        "test \"phase10 virtio ring registration-summary wrapper stays queue-local across noncontiguous queue definitions\" {",
+    ],
     "zigux/tests/phase10_build.zig": [
-        ".root_source_file = b.path(\"phase10_virtio_ring_notification_data_readiness.zig\"),",
         ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_publish_readiness.zig\"),",
         ".root_source_file = b.path(\"phase10_virtio_ring_survey.zig\"),",
         ".name = \"phase10-virtio-ring-notification-data-readiness-tests\",",
@@ -176,9 +191,12 @@ REQUIRED_MARKERS = {
         "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
-        "try expectContains(slice_note, \"the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice\");",
-        "try expectContains(freeze_note, \"direct current-head readback now keeps the broader ring replay `zigux/tests/phase10_virtio_ring.zig` inside the same ring packet as the queue-local helper ladder\");",
-        "test \"phase10 virtio ring lane sequencing keeps P10-L10 queue ownership explicit beside P10-L11\" {",
+        "try expectContains(survey_note, \"drivers/virtio/virtio_ring_registration_summary.zig\");",
+        "try expectContains(manifest, \"\\\"preexisting_ring_registration_summary_present\\\": true\");",
+        "try expectContains(manifest, \"\\\"id\\\": \\\"phase10-queue-registration-summary-helper\\\"\");",
+        "const registration_summary_file = try readRepoRelative(",
+        "test \"phase10 virtio ring registration-summary wrapper stays direct current-head evidence in the survey packet\" {",
+        "try expectContains(registration_summary_file, \"test \\\"phase10 virtio ring registration-summary wrapper keeps definition discipline explicit\\\" {\");",
     ],
 }
 
@@ -279,583 +297,117 @@ def fixture_manifest() -> dict[str, object]:
         )
     return {
         **EXPECTED_MANIFEST_FIELDS,
-        "surveyed_commit": "fixture",
         "freeze_boundary_owner_lane": EXPECTED_FREEZE_BOUNDARY_OWNER,
-        "survey_summary": {
-            **EXPECTED_SURVEY_SUMMARY_FIELDS,
-        },
+        "survey_summary": EXPECTED_SURVEY_SUMMARY_FIELDS,
         "gaps": gaps,
     }
 
 
-def write_fixture(root: Path) -> None:
+def write_file(root: Path, rel_path: str, text: str) -> None:
+    path = root / rel_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def write_fixture_tree(root: Path) -> None:
     for rel_path, markers in REQUIRED_MARKERS.items():
-        target = root / rel_path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text("\n".join(markers) + "\n", encoding="utf-8")
-    manifest_path = root / MANIFEST_PATH
-    manifest_path.write_text(json.dumps(fixture_manifest(), indent=2) + "\n")
-
-
-def expect_problem(root: Path, mutate, expected: str) -> None:
-    mutate(root)
-    missing_files, problems = validate(root)
-    if missing_files:
-        actual = ",".join(missing_files)
-        raise SystemExit(f"phase10-ring-self-test:unexpected_missing={actual}")
-    if expected not in problems:
-        actual = ",".join(problems) if problems else "none"
-        raise SystemExit(f"phase10-ring-self-test:expected={expected}:actual={actual}")
+        write_file(root, rel_path, "\n".join(markers) + "\n")
+    write_file(root, MANIFEST_PATH, json.dumps(fixture_manifest(), indent=2) + "\n")
 
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_ring_packet_") as tmp_dir:
         root = Path(tmp_dir)
-        write_fixture(root)
-        missing_files, problems = validate(root)
-        if missing_files or problems:
+        write_fixture_tree(root)
+
+        missing, problems = validate(root)
+        if missing or problems:
             raise SystemExit(
-                "phase10-ring-self-test:baseline_failed:"
-                f"files={','.join(missing_files) or 'none'}:"
-                f"problems={','.join(problems) or 'none'}"
+                "phase10-ring-packet:self-test-baseline-failed:"
+                + ",".join(missing + problems)
             )
 
-        def remove_slice_marker(tmp_root: Path) -> None:
-            path = tmp_root / "Documentation/zigux/phase10-virtio-ring-slice.md"
-            text = path.read_text(encoding="utf-8")
-            marker = "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice"
-            path.write_text(text.replace(marker, "__removed__", 1), encoding="utf-8")
-
-        expect_problem(
-            root,
-            remove_slice_marker,
-            "Documentation/zigux/phase10-virtio-ring-slice.md:the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice",
-        )
-        write_fixture(root)
-
-        def remove_prepare_kick_marker(tmp_root: Path) -> None:
-            path = tmp_root / "Documentation/zigux/phase10-virtio-ring-survey.md"
-            text = path.read_text(encoding="utf-8")
-            marker = "`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`"
-            path.write_text(text.replace(marker, "`zigux/tests/phase10_virtio_ring_prepare_kick_missing.zig`", 1), encoding="utf-8")
-
-        expect_problem(
-            root,
-            remove_prepare_kick_marker,
-            "Documentation/zigux/phase10-virtio-ring-survey.md:`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`",
-        )
-        write_fixture(root)
-
-        def add_forbidden_freeze_marker(tmp_root: Path) -> None:
-            path = tmp_root / "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md"
-            text = path.read_text(encoding="utf-8")
-            marker = "public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder"
-            path.write_text(text + marker + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            add_forbidden_freeze_marker,
-            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md:forbidden:public current-`master` readback rematerializes the broader ring replay `zigux/tests/phase10_virtio_ring.zig` even though exact direct-path contents reads in this lane still leave that broader replay outside the queue-local helper ladder",
-        )
-        write_fixture(root)
-
-        def drift_manifest(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["freeze_boundary_owner_lane"] = "P10-L12"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_manifest,
-            f"{MANIFEST_PATH}:freeze_boundary_owner_lane:P10-L12",
-        )
-        write_fixture(root)
-
-        def drift_lane_key(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["lane_key"] = "P10-L11"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_lane_key,
-            f"{MANIFEST_PATH}:lane_key:P10-L11",
-        )
-        write_fixture(root)
-
-        def drift_phase(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["phase"] = "Phase 11"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_phase,
-            f"{MANIFEST_PATH}:phase:Phase 11",
-        )
-        write_fixture(root)
-
-        def drift_anchor(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["anchor"] = "drivers/virtio/virtio_mmio.c"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_anchor,
-            f"{MANIFEST_PATH}:anchor:drivers/virtio/virtio_mmio.c",
-        )
-        write_fixture(root)
-
-        def drift_freeze_map(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["freeze_map"] = "Documentation/zigux/freeze-map-missing.md"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_freeze_map,
-            f"{MANIFEST_PATH}:freeze_map:Documentation/zigux/freeze-map-missing.md",
-        )
-        write_fixture(root)
-
-        def drift_freeze_boundary_status(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["freeze_boundary_status"] = "drifted"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_freeze_boundary_status,
-            f"{MANIFEST_PATH}:freeze_boundary_status:drifted",
-        )
-        write_fixture(root)
-
-        def drift_roadmap_destinations(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["roadmap_destinations"] = ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/runtime/"]
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_roadmap_destinations,
-            f"{MANIFEST_PATH}:roadmap_destinations:['drivers/virtio/*.zig', 'zigux/kernel/', 'zigux/runtime/']",
-        )
-        write_fixture(root)
-
-        def drift_study_only_anchors(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["study_only_anchors"] = ["kernel/workqueue.c", "kernel/trace/other_buffer.c"]
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_study_only_anchors,
-            f"{MANIFEST_PATH}:study_only_anchors:['kernel/workqueue.c', 'kernel/trace/other_buffer.c']",
-        )
-        write_fixture(root)
-
-        def drift_freeze_in_c_anchors(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["freeze_in_c_anchors"] = [
-                "kernel/sched/core.c",
-                "mm/page_alloc.c",
-                "kernel/rcu/tree.c",
-            ]
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_freeze_in_c_anchors,
-            f"{MANIFEST_PATH}:freeze_in_c_anchors:['kernel/sched/core.c', 'mm/page_alloc.c', 'kernel/rcu/tree.c']",
-        )
-        write_fixture(root)
-
-        def drift_survey_summary_preexisting_phase10_test_files(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["survey_summary"]["preexisting_phase10_test_files"] = 7
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_survey_summary_preexisting_phase10_test_files,
-            f"{MANIFEST_PATH}:survey_summary:preexisting_phase10_test_files:7",
-        )
-        write_fixture(root)
-
-        def drift_freeze_status_change_claimed(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["freeze_status_change_claimed"] = True
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_freeze_status_change_claimed,
-            f"{MANIFEST_PATH}:freeze_status_change_claimed:True",
-        )
-        write_fixture(root)
-
-        def drift_risky_transport_posture(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["risky_transport_posture"] = "starter_landed"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_risky_transport_posture,
-            f"{MANIFEST_PATH}:risky_transport_posture:starter_landed",
-        )
-        write_fixture(root)
-
-        def drift_allowed_evidence_kinds(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["allowed_evidence_kinds"] = "driver_local_lab_slices"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_allowed_evidence_kinds,
-            f"{MANIFEST_PATH}:allowed_evidence_kinds:driver_local_lab_slices",
-        )
-        write_fixture(root)
-
-        def drift_forbidden_transport_claims(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["forbidden_transport_claims"] = "queue_setup_reset_paths"
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_forbidden_transport_claims,
-            f"{MANIFEST_PATH}:forbidden_transport_claims:queue_setup_reset_paths",
-        )
-        write_fixture(root)
-
-        def drift_architecture_council_reopen_required(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["architecture_council_reopen_required"] = False
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_architecture_council_reopen_required,
-            f"{MANIFEST_PATH}:architecture_council_reopen_required:False",
-        )
-        write_fixture(root)
-
-        def drift_architecture_council_reopen_attached(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            data["architecture_council_reopen_attached"] = True
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_architecture_council_reopen_attached,
-            f"{MANIFEST_PATH}:architecture_council_reopen_attached:True",
-        )
-        write_fixture(root)
-
-        def drift_ring_registration_replay_destination(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            for gap in data["gaps"]:
-                if gap.get("id") == "phase10-ring-registration-replay":
-                    gap["zigux_destination"] = "zigux/tests/phase10_virtio_ring_registration_gap.zig"
-                    break
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_ring_registration_replay_destination,
-            f"{MANIFEST_PATH}:gap:phase10-ring-registration-replay:zigux_destination:zigux/tests/phase10_virtio_ring_registration_gap.zig",
-        )
-        write_fixture(root)
-
-        def drift_queue_publish_readiness_helper_destination(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            for gap in data["gaps"]:
-                if gap.get("id") == "phase10-queue-publish-readiness-helper":
-                    gap["zigux_destination"] = "drivers/virtio/virtio_ring_missing_publish_readiness.zig"
-                    break
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_queue_publish_readiness_helper_destination,
-            f"{MANIFEST_PATH}:gap:phase10-queue-publish-readiness-helper:zigux_destination:drivers/virtio/virtio_ring_missing_publish_readiness.zig",
-        )
-        write_fixture(root)
-
-        def drift_ring_publish_readiness_replay_destination(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            for gap in data["gaps"]:
-                if gap.get("id") == "phase10-ring-publish-readiness-replay":
-                    gap["zigux_destination"] = "drivers/virtio/virtio_ring_publish_readiness_gap.zig"
-                    break
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_ring_publish_readiness_replay_destination,
-            f"{MANIFEST_PATH}:gap:phase10-ring-publish-readiness-replay:zigux_destination:drivers/virtio/virtio_ring_publish_readiness_gap.zig",
-        )
-        write_fixture(root)
-
-        def drift_ring_survey_gate_destination(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            for gap in data["gaps"]:
-                if gap.get("id") == "phase10-virtio-ring-survey-gate":
-                    gap["zigux_destination"] = "zigux/tests/phase10_virtio_ring_survey_missing.zig"
-                    break
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_ring_survey_gate_destination,
-            f"{MANIFEST_PATH}:gap:phase10-virtio-ring-survey-gate:zigux_destination:zigux/tests/phase10_virtio_ring_survey_missing.zig",
-        )
-        write_fixture(root)
-
-        def drift_ring_survey_note_destination(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            for gap in data["gaps"]:
-                if gap.get("id") == "phase10-virtio-ring-survey-note":
-                    gap["zigux_destination"] = "Documentation/zigux/phase10-virtio-ring-survey-missing.md"
-                    break
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_ring_survey_note_destination,
-            f"{MANIFEST_PATH}:gap:phase10-virtio-ring-survey-note:zigux_destination:Documentation/zigux/phase10-virtio-ring-survey-missing.md",
-        )
-        write_fixture(root)
-
-        def drift_ring_lab_driver_bridge_status(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            for gap in data["gaps"]:
-                if gap.get("id") == "phase10-ring-lab-driver-bridge":
-                    gap["status"] = "starter_landed"
-                    break
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_ring_lab_driver_bridge_status,
-            f"{MANIFEST_PATH}:gap:phase10-ring-lab-driver-bridge:status:starter_landed",
-        )
-        write_fixture(root)
-
-        def drift_ring_lab_driver_bridge_destination(tmp_root: Path) -> None:
-            path = tmp_root / MANIFEST_PATH
-            data = json.loads(path.read_text(encoding="utf-8"))
-            for gap in data["gaps"]:
-                if gap.get("id") == "phase10-ring-lab-driver-bridge":
-                    gap["zigux_destination"] = "drivers/virtio/virtio_ring.zig"
-                    break
-            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-        expect_problem(
-            root,
-            drift_ring_lab_driver_bridge_destination,
-            f"{MANIFEST_PATH}:gap:phase10-ring-lab-driver-bridge:zigux_destination:drivers/virtio/virtio_ring.zig",
-        )
-        write_fixture(root)
-
-        def remove_empty_queue_test(tmp_root: Path) -> None:
-            path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
-            text = path.read_text(encoding="utf-8")
-            marker = 'test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishable" {'
-            path.write_text(text.replace(marker, 'test "phase10 virtio ring publish-readiness wrapper keeps empty queues hidden" {', 1), encoding="utf-8")
-
-        expect_problem(
-            root,
-            remove_empty_queue_test,
-            'drivers/virtio/virtio_ring_publish_readiness.zig:test "phase10 virtio ring publish-readiness wrapper keeps empty queues publishable" {',
-        )
-        write_fixture(root)
-
-        def remove_used_buffer_recovery_test(tmp_root: Path) -> None:
-            path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
-            text = path.read_text(encoding="utf-8")
-            marker = 'test "phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled" {'
-            path.write_text(text.replace(marker, 'test "phase10 virtio ring publish-readiness wrapper regains publish capacity late" {', 1), encoding="utf-8")
-
-        expect_problem(
-            root,
-            remove_used_buffer_recovery_test,
-            'drivers/virtio/virtio_ring_publish_readiness.zig:test "phase10 virtio ring publish-readiness wrapper regains publish capacity before used buffers are polled" {',
-        )
-        write_fixture(root)
-
-        def remove_broken_full_queue_recovery_test(tmp_root: Path) -> None:
-            path = tmp_root / "drivers/virtio/virtio_ring_publish_readiness.zig"
-            text = path.read_text(encoding="utf-8")
-            marker = 'test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {'
-            path.write_text(text.replace(marker, 'test "phase10 virtio ring publish-readiness wrapper forgets queue-full after clearBroken" {', 1), encoding="utf-8")
-
-        expect_problem(
-            root,
-            remove_broken_full_queue_recovery_test,
-            'drivers/virtio/virtio_ring_publish_readiness.zig:test "phase10 virtio ring publish-readiness wrapper falls back to queue-full after a broken full queue is cleared" {',
-        )
-        write_fixture(root)
-
-        def remove_ring_survey_build_source(tmp_root: Path) -> None:
-            path = tmp_root / "zigux/tests/phase10_build.zig"
-            text = path.read_text(encoding="utf-8")
-            marker = '.root_source_file = b.path("phase10_virtio_ring_survey.zig"),'
-            path.write_text(
-                text.replace(
-                    marker,
-                    '.root_source_file = b.path("phase10_virtio_ring_survey_missing.zig"),',
-                    1,
-                ),
-                encoding="utf-8",
-            )
-
-        expect_problem(
-            root,
-            remove_ring_survey_build_source,
-            'zigux/tests/phase10_build.zig:.root_source_file = b.path("phase10_virtio_ring_survey.zig"),',
-        )
-        write_fixture(root)
-
-        def remove_publish_readiness_build_step_name(tmp_root: Path) -> None:
-            path = tmp_root / "zigux/tests/phase10_build.zig"
-            text = path.read_text(encoding="utf-8")
-            marker = '.name = "phase10-virtio-ring-publish-readiness-tests",'
-            path.write_text(
-                text.replace(
-                    marker,
-                    '.name = "phase10-virtio-ring-publish-readiness-missing-tests",',
-                    1,
-                ),
-                encoding="utf-8",
-            )
-
-        expect_problem(
-            root,
-            remove_publish_readiness_build_step_name,
-            'zigux/tests/phase10_build.zig:.name = "phase10-virtio-ring-publish-readiness-tests",',
-        )
-        write_fixture(root)
-
-        def remove_publish_readiness_build_dependency(tmp_root: Path) -> None:
-            path = tmp_root / "zigux/tests/phase10_build.zig"
-            text = path.read_text(encoding="utf-8")
-            marker = "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);"
-            path.write_text(
-                text.replace(
-                    marker,
-                    "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
-                    1,
-                ),
-                encoding="utf-8",
-            )
-
-        expect_problem(
-            root,
-            remove_publish_readiness_build_dependency,
-            "zigux/tests/phase10_build.zig:test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
-        )
-        write_fixture(root)
-
-        def remove_tests_root_ring_boundary_marker(tmp_root: Path) -> None:
-            path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
-            text = path.read_text(encoding="utf-8")
-            marker = "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh"
-            path.write_text(text.replace(marker, "__removed__", 1), encoding="utf-8")
-
-        expect_problem(
-            root,
-            remove_tests_root_ring_boundary_marker,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh",
-        )
-        write_fixture(root)
-
-        def remove_lane_sequencing_mmio_boundary_marker(tmp_root: Path) -> None:
-            path = tmp_root / "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
-            text = path.read_text(encoding="utf-8")
-            marker = "queue-local wrapper reviewability does not drift into MMIO-owned blocked transport claims"
-            path.write_text(text.replace(marker, "__removed__", 1), encoding="utf-8")
-
-        expect_problem(
-            root,
-            remove_lane_sequencing_mmio_boundary_marker,
-            "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:queue-local wrapper reviewability does not drift into MMIO-owned blocked transport claims",
-        )
-        write_fixture(root)
-
-        (root / "zigux/tests/phase10_virtio_ring_survey.zig").unlink()
-        missing_files, problems = validate(root)
-        if problems:
-            actual = ",".join(problems)
-            raise SystemExit(f"phase10-ring-self-test:unexpected_problems={actual}")
-        if "zigux/tests/phase10_virtio_ring_survey.zig" not in missing_files:
-            actual = ",".join(missing_files) if missing_files else "none"
-            raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
+        removal_cases = {
+            "missing_survey_note": "Documentation/zigux/phase10-virtio-ring-survey.md",
+            "missing_registration_summary_wrapper": "drivers/virtio/virtio_ring_registration_summary.zig",
+            "missing_manifest": MANIFEST_PATH,
+        }
+        for label, rel_path in removal_cases.items():
+            with tempfile.TemporaryDirectory(prefix=f"zigux_phase10_ring_packet_{label}_") as tmp_case:
+                case_root = Path(tmp_case)
+                write_fixture_tree(case_root)
+                (case_root / rel_path).unlink()
+                missing, problems = validate(case_root)
+                expected = rel_path
+                if expected not in missing:
+                    raise SystemExit(
+                        f"phase10-ring-packet:{label}-not-detected:"
+                        + ",".join(missing + problems)
+                    )
+
+        manifest_problem_cases = {
+            "wrong_lane": lambda manifest: manifest.__setitem__("lane_key", "P10-L99"),
+            "wrong_freeze_owner": lambda manifest: manifest.__setitem__(
+                "freeze_boundary_owner_lane", "P10-L12"
+            ),
+            "missing_gap": lambda manifest: manifest.__setitem__(
+                "gaps",
+                [gap for gap in manifest["gaps"] if gap["id"] != "phase10-queue-registration-summary-helper"],
+            ),
+            "wrong_summary": lambda manifest: manifest["survey_summary"].__setitem__(
+                "preexisting_ring_registration_summary_present", False
+            ),
+        }
+        for label, mutate in manifest_problem_cases.items():
+            with tempfile.TemporaryDirectory(prefix=f"zigux_phase10_ring_packet_{label}_") as tmp_case:
+                case_root = Path(tmp_case)
+                write_fixture_tree(case_root)
+                manifest = json.loads(read_text(case_root, MANIFEST_PATH))
+                mutate(manifest)
+                write_file(case_root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+                missing, problems = validate(case_root)
+                if not problems:
+                    raise SystemExit(f"phase10-ring-packet:{label}-not-detected")
+
+        forbidden_case_path = "Documentation/zigux/phase10-virtio-ring-slice.md"
+        forbidden_marker = FORBIDDEN_MARKERS[forbidden_case_path][0]
+        with tempfile.TemporaryDirectory(prefix="zigux_phase10_ring_packet_forbidden_") as tmp_case:
+            case_root = Path(tmp_case)
+            write_fixture_tree(case_root)
+            current = read_text(case_root, forbidden_case_path)
+            write_file(case_root, forbidden_case_path, current + forbidden_marker + "\n")
+            missing, problems = validate(case_root)
+            if not problems:
+                raise SystemExit("phase10-ring-packet:forbidden-marker-not-detected")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=35")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current directly re-readable Phase 10 virtio ring packet.")
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", default=ROOT, type=Path)
     parser.add_argument("--self-test", action="store_true")
-    parser.add_argument("--root", default=str(ROOT))
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.self_test:
         return run_self_test()
-    missing_files, problems = validate(Path(args.root))
-    if missing_files:
+
+    missing, problems = validate(args.root)
+    if missing or problems:
         print("PHASE10_RING_PACKET=fail")
-        print("MISSING_PHASE10_RING_FILES_START")
-        for item in missing_files:
-            print(item)
-        print("MISSING_PHASE10_RING_FILES_END")
+        for rel_path in missing:
+            print(f"missing:{rel_path}")
+        for problem in problems:
+            print(f"problem:{problem}")
         return 1
 
-    if problems:
-        print("PHASE10_RING_PACKET=fail")
-        print("MISSING_PHASE10_RING_MARKERS_START")
-        for item in problems:
-            print(item)
-        print("MISSING_PHASE10_RING_MARKERS_END")
-        return 1
-
-    required_marker_count = sum(len(markers) for markers in REQUIRED_MARKERS.values())
-    forbidden_marker_count = sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
     print("PHASE10_RING_PACKET=pass")
-    print(f"PHASE10_RING_REQUIRED_FILE_COUNT={len(REQUIRED_MARKERS)}")
-    print(f"PHASE10_RING_REQUIRED_MARKER_COUNT={required_marker_count}")
-    print(f"PHASE10_RING_FORBIDDEN_MARKER_COUNT={forbidden_marker_count}")
-    print(f"PHASE10_RING_EXPECTED_GAP_METADATA_COUNT={len(EXPECTED_GAP_METADATA)}")
+    print(f"PHASE10_RING_PACKET_REQUIRED_PATH_COUNT={len(REQUIRED_MARKERS)}")
+    print(f"PHASE10_RING_PACKET_GAP_COUNT={len(EXPECTED_GAP_METADATA)}")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(sys.argv[1:]))
