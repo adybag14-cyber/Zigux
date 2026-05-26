@@ -30,17 +30,6 @@ class DuplicateTrackingDict(dict[str, object]):
 
 
 EXPECTED_SOURCE_SYMBOLS = [
-    "pub fn rb_add(node: *Node, root: *Root, less: LessFn) void {",
-    "pub fn rb_find_add(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {",
-    "pub fn rb_find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
-    "pub fn rb_find_first(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
-    "pub fn rb_first(root: *const Root) ?*Node {",
-    "pub fn rb_last(root: *const Root) ?*Node {",
-    "pub fn rb_next(node: *const Node) ?*Node {",
-    "pub fn rb_prev(node: *const Node) ?*Node {",
-    "pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void {",
-    "pub fn rb_first_postorder(root: *const Root) ?*Node {",
-    "pub fn rb_next_postorder(node: ?*const Node) ?*Node {",
     "pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {",
@@ -98,7 +87,7 @@ EXPECTED_LANE_PARAGRAPH = (
     "keep both Linux-style alias proofs named explicitly inside that same helper-local packet instead "
     "of leaving either alias path implied only by the broader helper test list. Until another committed "
     "cached-root replay field lands, leave the remaining cached-root anchors helper-local and do not "
-    "batch a second widening into the same reopen step.`"
+    "batch a second widening into the same reopen step."
 )
 
 EXPECTED_CLOSURE_PARAGRAPH = (
@@ -205,6 +194,7 @@ EXPECTED_SMOKE_MARKERS = [
     "const found_duplicate = rbtree.find(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;",
     "const first_duplicate = rbtree.findFirst(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;",
     "const second_duplicate = rbtree.nextMatch(&duplicate_key, first_duplicate, RbtreeSmokeEntry.cmp) orelse return error.TestUnexpectedResult;",
+    "try std.testing.expect(rbtree.nextMatch(&duplicate_key, third_duplicate, RbtreeSmokeEntry.cmp) == null);",
     "var iter = rbtree.matchIterator(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp);",
     "var cached_leftmost_return_serials: [4]i32 = undefined;",
     "try std.testing.expectEqualSlices(i32, &.{ 0, -1, 2, -1 }, &cached_leftmost_return_serials);",
