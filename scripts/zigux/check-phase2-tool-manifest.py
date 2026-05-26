@@ -328,6 +328,15 @@ def find_duplicate_strings(entries: list[str]) -> list[str]:
     return duplicates
 
 
+def find_unexpected_strings(entries: list[str], allowed: tuple[str, ...]) -> list[str]:
+    allowed_set = set(allowed)
+    unexpected: list[str] = []
+    for entry in entries:
+        if entry not in allowed_set and entry not in unexpected:
+            unexpected.append(entry)
+    return unexpected
+
+
 def is_repo_relative_path(entry: str) -> bool:
     return not entry.startswith("make -C ")
 
@@ -362,7 +371,10 @@ def collect_archive_support_issues(root: Path, entries: list[str]) -> list[tuple
         return issues
 
     if not (root / tail[0]).exists():
-        issues.append(("MISSING_SURFACE_PATH", f"archive_support:{tail[0]}"))
+        issues.append((
+            "MISSING_SURFACE_PATH",
+            f"archive_support:{tail[0]}",
+        ))
     return issues
 
 
@@ -392,6 +404,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             if category == "archive_support":
                 issues.extend(collect_archive_support_issues(root, string_entries))
                 continue
+            for entry in find_unexpected_strings(string_entries, required_entries):
+                issues.append(("UNEXPECTED_SURFACE_ENTRY", f"{category}:{entry}"))
             for entry in required_entries:
                 if entry not in string_entries:
                     issues.append(("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
@@ -415,6 +429,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         for marker in REQUIRED_NOTE_MARKERS:
             if marker not in string_notes:
                 issues.append(("MISSING_NOTE_MARKER", marker))
+        for marker in find_unexpected_strings(string_notes, REQUIRED_NOTE_MARKERS):
+            issues.append(("UNEXPECTED_NOTE_ENTRY", marker))
         if string_notes != list(REQUIRED_NOTE_MARKERS):
             issues.append(("NOTE_ORDER_MISMATCH", "notes"))
     return issues
@@ -497,10 +513,12 @@ def run_self_test() -> int:
         + len(required_present_surfaces)
         + sum(1 for category in required_present_surfaces if category != "archive_support")
         + sum(1 for category in required_present_surfaces if category != "archive_support")
+        + sum(1 for category in required_present_surfaces if category != "archive_support")
         + len(iter_required_repo_paths(required_present_surfaces)) - 1
         + 3
         + 1
         + len(REQUIRED_NOTE_MARKERS)
+        + 1
         + 1
         + 1
         + 1
@@ -646,6 +664,20 @@ def run_self_test() -> int:
             write_text(root / ARCHIVE_PAYLOAD, "present\n")
             assert ("INVALID_SURFACE_ENTRY", f"{category}:123") in collect_issues(root)
             checks_run += 1
+            manifest = build_self_test_manifest()
+            manifest["present_surfaces"][category].append(f"{category}/unexpected-entry")
+            write_manifest(manifest_path, manifest)
+            seed_required_repo_paths(root, required_present_surfaces)
+            write_text(root / TOOLCHAIN_POLICY, json.dumps({
+                "phase": "Phase 2",
+                "channel": "0.17.0-dev.87+9b177a7d2",
+                "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                "archive_sha256": {"x86_64-linux": "3" * 64},
+                "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+            }, indent=2) + "\n")
+            write_text(root / ARCHIVE_PAYLOAD, "present\n")
+            assert ("UNEXPECTED_SURFACE_ENTRY", f"{category}:{category}/unexpected-entry") in collect_issues(root)
+            checks_run += 1
             if len(entries) > 1:
                 manifest = build_self_test_manifest()
                 reordered = manifest["present_surfaces"][category]
@@ -747,6 +779,21 @@ def run_self_test() -> int:
         }, indent=2) + "\n")
         write_text(root / ARCHIVE_PAYLOAD, "present\n")
         assert ("INVALID_NOTE_ENTRY", "123") in collect_issues(root)
+        checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["notes"].append("unexpected note")
+        write_manifest(manifest_path, manifest)
+        seed_required_repo_paths(root, required_present_surfaces)
+        write_text(root / TOOLCHAIN_POLICY, json.dumps({
+            "phase": "Phase 2",
+            "channel": "0.17.0-dev.87+9b177a7d2",
+            "minimum_version": "0.17.0-dev.87+9b177a7d2",
+            "archive_sha256": {"x86_64-linux": "3" * 64},
+            "upgrade_policy": {"channel_minimum_lockstep": True, "archive_target_scope": ["x86_64-linux"], "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES)},
+        }, indent=2) + "\n")
+        write_text(root / ARCHIVE_PAYLOAD, "present\n")
+        assert ("UNEXPECTED_NOTE_ENTRY", "unexpected note") in collect_issues(root)
         checks_run += 1
 
         manifest = build_self_test_manifest()
