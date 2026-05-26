@@ -43,6 +43,11 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         16 * 1024,
     );
     defer std.testing.allocator.free(initialized_guard_file);
+    const registration_reentry_guard_file = try readRepoFileAlloc(
+        "samples/zigux/runtime_kretprobe_registration_reentry_gate.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(registration_reentry_guard_file);
     const phase9_build = try readRepoFileAlloc("zigux/tests/phase9_build.zig", 64 * 1024);
     defer std.testing.allocator.free(phase9_build);
 
@@ -96,6 +101,14 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(
         initialized_guard_file,
         "phase9 kretprobe sample keeps captured initialized snapshot replay explicit across later selftest and exit",
+    );
+    try expectContains(
+        registration_reentry_guard_file,
+        "runtime kretprobe registration reentry stays reusable before selftest",
+    );
+    try expectContains(
+        registration_reentry_guard_file,
+        "runtime kretprobe registration reentry stays reusable after selftest",
     );
 
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-sample-tests\"");
