@@ -161,7 +161,7 @@ def expect_failure(root: Path, marker: str) -> None:
 
 
 def run_self_test() -> int:
-    cases = 8
+    cases = 10
     with tempfile.TemporaryDirectory(prefix="phase12-libbpf-lane-marker-") as tmp:
         root = Path(tmp)
 
@@ -175,9 +175,32 @@ def run_self_test() -> int:
         expect_failure(root, "survey_note:PHASE12_LANE_KEY=P12-L16")
 
         build_self_test_tree(root)
+        survey_path = root / SURVEY_NOTE_REL_PATH
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8") + "PHASE12_LANE_KEY=P12-L16\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "survey_note_count:PHASE12_LANE_KEY=P12-L16:expected=1:actual=2",
+        )
+
+        build_self_test_tree(root)
         verify_path = root / VERIFY_SHARD_NOTE_REL_PATH
         verify_path.write_text("# Phase 12 Libbpf Verify Shard Note\n", encoding="utf-8")
         expect_failure(root, "verify_shard_note:- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`")
+
+        build_self_test_tree(root)
+        verify_path = root / VERIFY_SHARD_NOTE_REL_PATH
+        verify_path.write_text(
+            verify_path.read_text(encoding="utf-8")
+            + "- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "verify_shard_note_count:- lane-marker guard: `scripts/zigux/check-phase12-libbpf-lane-marker.py`:expected=1:actual=2",
+        )
 
         build_self_test_tree(root)
         reviewability_path = root / REVIEWABILITY_GATE_REL_PATH
