@@ -160,7 +160,6 @@ def run_self_test() -> int:
 
         build_sample_root(root)
         workflow_path = resolve_path(root, WORKFLOW)
-        workflow_path.writeText = None
         workflow_path.write_text(
             read_text(workflow_path) + TOOL_MANIFEST_WORKFLOW_LINES[0] + "\n",
             encoding="utf-8",
