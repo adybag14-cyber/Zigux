@@ -232,10 +232,10 @@ VALID_CASES_PAYLOAD = {
         {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
         {"name": "duplicate_assignments", "input": "duplicate_assignments.config", "expected": "duplicate_assignments_expected.json"},
         {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"}
-    ],
+    ]
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 22
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def read_text(path: Path) -> str:
@@ -593,8 +593,8 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(resolve_path(root, KCONFIG_BRIDGE_CHECKER), render_bridge_checker_stub())
-    write_text(resolve_path(root, ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"), "test \"placeholder\" {}\n")
-    write_text(resolve_path(root, ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"), "test \"placeholder\" {}\n")
+    write_text(resolve_path(root, ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"), 'test "placeholder" {}\n')
+    write_text(resolve_path(root, ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"), 'test "placeholder" {}\n')
     write_text(resolve_path(root, KCONFIG_BRIDGE_CASES), json.dumps(VALID_CASES_PAYLOAD, indent=2) + "\n")
     write_text(
         resolve_path(root, CONF_MANIFEST),
@@ -718,6 +718,15 @@ def run_self_test() -> int:
         payload["conf_cases"][10].pop("silent")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         assert any(code == "CONF_CASE_SILENT_PACKET_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        cases_path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = read_json(cases_path)
+        assert isinstance(payload, dict)
+        payload["conf_cases"][8].pop("mode_arg")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONF_CASE_MODE_ARG_PACKET_MISMATCH" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
