@@ -142,6 +142,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'try expectContains(slice_note, "kernel/workqueue.c remains a Phase 14 boundary-study target");',
         'const matched = try exec_cmd.setupPathWithPwd(',
         '"/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin",',
+        'try std.testing.expectError(',
+        'error.MissingNullTerminator,',
+        'error.TooManyArguments,',
+        'exec_cmd.collectExeclArgs(',
+        'exec_cmd.buildDeferredExeclCall(\n            std.testing.allocator,\n            config,\n            "record",\n            overflowing_tail[0..],\n        ),',
+        'var deferred_execv = try exec_cmd.buildDeferredExecvCall(',
         'const rooted_search_path = try exec_cmd.buildSearchPath(',
         'try std.testing.expectEqualStrings("/repo/tools/bin:/tmp:/usr/bin", directory_only_search_path);',
         'const root_only_search_path = try exec_cmd.buildSearchPath(',
@@ -249,7 +255,7 @@ def run_self_test() -> int:
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
-                path.write_text(original, encoding="utf-8")
+                path.writeText(original, encoding="utf-8")
                 case_count += 1
 
         for relative_path in REQUIRED_FILES:
