@@ -537,6 +537,18 @@ test "setupPath preserves the inherited exec-path string while normalizing PATH 
     try std.testing.expectEqualStrings("tools/bin", env.get(config.exec_path_env).?);
 }
 
+test "setupPathWithPwd keeps logical PWD when identity matches" {
+    try std.testing.expectEqualStrings(
+        "/logical/repo",
+        choosePwdCwdFromIdentities(
+            "/repo",
+            "/logical/repo",
+            .{ .device = 3, .inode = 44 },
+            .{ .device = 3, .inode = 44 },
+        ),
+    );
+}
+
 test "setupPathWithPwd falls back to cwd when logical PWD identity does not match" {
     const config = Config{
         .exec_name = "perf",
