@@ -12,19 +12,20 @@ This note keeps the bounded Phase 11 `hvc_console` packet truthful on current
   simple-production-driver work where teardown parity and failure-mode
   reviewability should deepen before any live execution claims
 - current authenticated contents readback keeps the bounded HVC current-head
-  packet reviewable through the direct starter, current survey, current-head
-  companion, verify-helper boundary note, cleanup-prerequisite parity note,
-  validation matrix, the returned `phase11-validate` validator surfaces, the
-  shared manifest-roster guard, the validate-check roster guard, the
-  validate-route alignment guard, the dedicated validate-check fixture roster,
-  the build-inventory checker, focused-direct-build replay checker,
-  cleanup-current-head checker, cleanup-prerequisite packet checker,
-  targetless-unregister witness checker, shared build inventory, the
-  proof-backed adjunct stack, the dedicated modem-control proof pair, and the
-  standalone targetless-unregister witness pair
+  packet reviewable through the direct starter, returned verify helper,
+  current survey, current-head companion, verify-helper boundary note,
+  cleanup-prerequisite parity note, validation matrix, the returned
+  `phase11-validate` validator surfaces, the shared manifest-roster guard, the
+  validate-check roster guard, the validate-route alignment guard, the
+  dedicated validate-check fixture roster, the build-inventory checker,
+  focused-direct-build replay checker, cleanup-current-head checker,
+  cleanup-prerequisite packet checker, targetless-unregister witness checker,
+  shared build inventory, the proof-backed adjunct stack, the dedicated
+  modem-control proof pair, and the standalone targetless-unregister witness
+  pair
 - current authenticated contents readback still does not rematerialize
-  `drivers/tty/hvc/hvc_console_verify.zig`,
-  `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
+  `drivers/tty/hvc/hvc_console_sysrq.zig`,
+  `zigux/tests/phase11_hvc_console.zig`,
   `zigux/tests/phase11_hvc_cleanup.zig`,
   `zigux/tests/phase11_hvc_console_survey.zig`,
   `zigux/tests/phase11_hvc_console_manifest.json`,
@@ -42,6 +43,7 @@ Treat the current bounded HVC packet on `master` as:
 - `.github/workflows/zigux-bootstrap.yml`
 - `drivers/tty/hvc/hvc_console.h`
 - `drivers/tty/hvc/hvc_console.zig`
+- `drivers/tty/hvc/hvc_console_verify.zig`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
@@ -83,10 +85,14 @@ shared three-entry inventory. `drivers/tty/hvc/hvc_console.h` now stays
 explicit in the current packet too, keeping the exported `struct hvc_struct`
 forward declaration, `struct hv_ops` tag, `struct winsize` layout, and helper
 prototypes directly readable beside the starter Zig module and the focused
-export-surface proofs. `scripts/zigux/validate-phase11.py`, `zigux/Makefile`,
-and `.github/workflows/zigux-bootstrap.yml` keep the same validator-backed
-route directly readable on current `master` too. Keep the dedicated survey
-route absent until `zigux/Makefile` grows it explicitly. The dedicated
+export-surface proofs. The returned `drivers/tty/hvc/hvc_console_verify.zig`
+source plus `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` keep
+helper-local remove, notifier, sysrq fallback, and cleanup-trigger edges
+explicit inside the same bounded packet without promoting live notifier,
+sysrq, or teardown execution. `scripts/zigux/validate-phase11.py`,
+`zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` keep the same
+validator-backed route directly readable on current `master` too. Keep the
+survey route absent until `zigux/Makefile` grows it explicitly. The dedicated
 modem-control proof pair likewise stays directly readable as a focused adjunct
 route without promoting itself into the shared three-entry build inventory, the
 standalone targetless-unregister witness pair likewise stays directly readable
@@ -113,8 +119,8 @@ Keep `Documentation/zigux/phase11-hvc-console-slice.md` and a dedicated
 `make -C zigux phase11-hvc-survey` route framed as remaining gaps until a
 future reread proves they returned.
 
-Keep `drivers/tty/hvc/hvc_console_verify.zig`,
-`drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
+Keep `drivers/tty/hvc/hvc_console_sysrq.zig`,
+`zigux/tests/phase11_hvc_console.zig`,
 `zigux/tests/phase11_hvc_cleanup.zig`,
 `zigux/tests/phase11_hvc_console_survey.zig`,
 `zigux/tests/phase11_hvc_console_manifest.json`,
@@ -128,17 +134,18 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 ## Bounded Meaning
 
 This note records that the HVC simple-driver lane still has reviewable
-current-head continuity through the direct starter, the current companion stack,
-the verify-boundary reminder surface, the cleanup-prerequisite parity note, the
-shared inventory-backed proof routes, the validator-side manifest-roster,
-validate-check-roster, and validate-route-alignment guards, the dedicated
-validate-check fixture roster, the focused-direct-build replay checker, the
-cleanup-prerequisite packet checker, the validator-backed
-`make -C zigux phase11-validate` route, the dedicated modem-control proof pair,
-and the standalone targetless-unregister witness pair.
+current-head continuity through the direct starter, the returned verify helper,
+the current companion stack, the verify-boundary reminder surface, the
+cleanup-prerequisite parity note, the shared inventory-backed proof routes, the
+validator-side manifest-roster, validate-check-roster, and
+validate-route-alignment guards, the dedicated validate-check fixture roster,
+the focused-direct-build replay checker, the cleanup-prerequisite packet
+checker, the validator-backed `make -C zigux phase11-validate` route, the
+dedicated modem-control proof pair, and the standalone targetless-unregister
+witness pair.
 
-It does not claim that the currently missing verify helper, sysrq helper,
-focused survey replay, manifest, teardown note, or dedicated survey checker
-have returned, nor does it claim live tty-driver registration, notifier
-callback execution, khvcd polling execution, live sysrq dispatch, host-backed
-cleanup, or hardware-validated teardown parity.
+It does not claim that the still-missing sysrq helper, focused survey replay,
+manifest, teardown note, or dedicated survey checker have returned, nor does it
+claim live tty-driver registration, notifier callback execution, khvcd polling
+execution, live sysrq dispatch, host-backed cleanup, or hardware-validated
+teardown parity.
