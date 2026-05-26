@@ -252,6 +252,97 @@ test "runtime kretprobe loader keeps initialized shared-request snapshots stable
     ));
 }
 
+test "runtime kretprobe loader keeps invalid loader transitions fail-closed without disturbing shared-request snapshots" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.init();
+
+    var loader = RuntimeKretprobeLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    const prepared_plan = shared_request.plan;
+
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_plan,
+    ));
+
+    try std.testing.expectError(error.InvalidLoaderState, loader.prepareSharedRequest(&module));
+    try std.testing.expectError(
+        error.InvalidLoaderState,
+        loader.releaseSharedWithoutSubstrate(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .prepared,
+        prepared_plan,
+    ));
+
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(
+        runtime_loader.RequestState.waiting_on_runtime_substrate,
+        shared_request.state,
+    );
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(pending_plan, prepared_plan));
+
+    try std.testing.expectError(error.InvalidLoaderState, loader.prepareSharedRequest(&module));
+    try std.testing.expectError(
+        error.InvalidLoaderState,
+        loader.requestSharedRuntimeLoad(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(
+        runtime_loader.RequestState.waiting_on_runtime_substrate,
+        shared_request.state,
+    );
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .waiting_on_runtime_substrate,
+        pending_plan,
+    ));
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(
+        runtime_loader.RequestState.released_without_substrate,
+        shared_request.state,
+    );
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
+
+    try std.testing.expectError(error.InvalidLoaderState, loader.prepareSharedRequest(&module));
+    try std.testing.expectError(
+        error.InvalidLoaderState,
+        loader.requestSharedRuntimeLoad(&shared_request),
+    );
+    try std.testing.expectError(
+        error.InvalidLoaderState,
+        loader.releaseSharedWithoutSubstrate(&shared_request),
+    );
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(
+        runtime_loader.RequestState.released_without_substrate,
+        shared_request.state,
+    );
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        shared_request,
+        .released_without_substrate,
+        pending_plan,
+    ));
+}
+
 test "runtime kretprobe loader keeps selftest-complete shared requests blocked by the current loader family contract" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
     try module.init();
