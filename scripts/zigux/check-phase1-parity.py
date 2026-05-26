@@ -95,12 +95,51 @@ EXPECTED_ANTI_OVERLAP_RULE = (
 )
 
 
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def read_json(path: Path) -> object:
-    return json.loads(read_text(path))
+def load_json_with_duplicate_tracking(text: str) -> object:
+    return json.loads(text, object_pairs_hook=DuplicateTrackingDict)
+
+
+def collect_duplicate_json_key_paths(data: object, prefix: tuple[str, ...] = ()) -> list[str]:
+    paths: list[str] = []
+    if isinstance(data, DuplicateTrackingDict):
+        for key in data.duplicate_keys:
+            paths.append(".".join(prefix + (key,)))
+    if isinstance(data, dict):
+        for key, value in data.items():
+            paths.extend(collect_duplicate_json_key_paths(value, prefix + (key,)))
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(collect_duplicate_json_key_paths(item, prefix))
+    return paths
+
+
+def read_json(path: Path, label: str, issues: list[str]) -> object | None:
+    try:
+        payload = load_json_with_duplicate_tracking(read_text(path))
+    except json.JSONDecodeError as exc:
+        issues.append(f"{label}:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}")
+        return None
+
+    duplicate_paths = collect_duplicate_json_key_paths(payload)
+    if duplicate_paths:
+        issues.extend(f"{label}:duplicate_json_key:{duplicate_path}" for duplicate_path in duplicate_paths)
+        return None
+
+    return payload
 
 
 def run_python(script: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -161,8 +200,7 @@ def collect_issues(root: Path) -> list[str]:
 
     check_artifact_diff(root, issues)
 
-    fixture_payload = read_json(root / FIXTURE_REL)
-    ensure(isinstance(fixture_payload, dict), "fixture:not_object", issues)
+    fixture_payload = read_json(root / FIXTURE_REL, "fixture", issues)
     if isinstance(fixture_payload, dict):
         ensure(tuple(fixture_payload.keys()) == EXPECTED_SECTIONS, "fixture:sections", issues)
         for (section, key), expected_value in EXPECTED_FIXTURE_VALUES.items():
@@ -174,9 +212,10 @@ def collect_issues(root: Path) -> list[str]:
                     f"fixture:{section}.{key}:{section_payload.get(key)!r}!={expected_value!r}",
                     issues,
                 )
+    elif fixture_payload is not None:
+        ensure(False, "fixture:not_object", issues)
 
-    manifest_payload = read_json(root / MANIFEST_REL)
-    ensure(isinstance(manifest_payload, dict), "manifest:not_object", issues)
+    manifest_payload = read_json(root / MANIFEST_REL, "manifest", issues)
     if isinstance(manifest_payload, dict):
         ensure(manifest_payload.get("phase") == "Phase 1", "manifest:phase", issues)
         ensure(manifest_payload.get("status") == "closed", "manifest:status", issues)
@@ -197,9 +236,10 @@ def collect_issues(root: Path) -> list[str]:
             )
             ensure(lane.get("rule_summary") == EXPECTED_RULE_SUMMARY, "manifest:rule_summary", issues)
             ensure(lane.get("anti_overlap_rule") == EXPECTED_ANTI_OVERLAP_RULE, "manifest:anti_overlap_rule", issues)
+    elif manifest_payload is not None:
+        ensure(False, "manifest:not_object", issues)
 
-    blockers_payload = read_json(root / BLOCKERS_REL)
-    ensure(isinstance(blockers_payload, dict), "blockers:not_object", issues)
+    blockers_payload = read_json(root / BLOCKERS_REL, "blockers", issues)
     if isinstance(blockers_payload, dict):
         ensure(blockers_payload.get("status") == "parked", "blockers:status", issues)
         replay = blockers_payload.get("replay")
@@ -223,6 +263,8 @@ def collect_issues(root: Path) -> list[str]:
             ensure(harness.get("helper_count") == len(EXPECTED_HELPERS), "blockers:c_harness:helper_count", issues)
             ensure(tuple(harness.get("helpers", ())) == EXPECTED_HELPERS, "blockers:c_harness:helpers", issues)
             ensure(harness.get("blocker_id") == EXPECTED_REPLAY_BLOCKER_IDS[1], "blockers:c_harness:blocker_id", issues)
+    elif blockers_payload is not None:
+        ensure(False, "blockers:not_object", issues)
 
     return issues
 
@@ -335,10 +377,15 @@ if __name__ == "__main__":
 
 
 def mutate_json(path: Path, mutate) -> None:
-    payload = read_json(path)
+    payload = json.loads(read_text(path))
     assert isinstance(payload, dict)
     mutate(payload)
     write_text(path, json.dumps(payload, indent=2) + "\n")
+
+
+def insert_duplicate_json_line(path: Path, needle: str, duplicate_line: str) -> None:
+    text = read_text(path)
+    write_text(path, text.replace(needle, duplicate_line + "\n" + needle, 1))
 
 
 def run_self_test() -> int:
@@ -364,6 +411,48 @@ def run_self_test() -> int:
         build_sample_root(blocker_drift)
         mutate_json(blocker_drift / BLOCKERS_REL, lambda payload: payload["replay"]["blockers"][0].update({"actual": True}))
         cases.append(("blocker_drift", run_check(blocker_drift) != 0))
+
+        fixture_duplicate_key = tmp / "fixture_duplicate_key"
+        build_sample_root(fixture_duplicate_key)
+        insert_duplicate_json_line(
+            fixture_duplicate_key / FIXTURE_REL,
+            '    "tail_clamped_last": 67',
+            '    "tail_clamped_last": 0,',
+        )
+        cases.append(("fixture_duplicate_key", run_check(fixture_duplicate_key) != 0))
+
+        manifest_duplicate_key = tmp / "manifest_duplicate_key"
+        build_sample_root(manifest_duplicate_key)
+        insert_duplicate_json_line(
+            manifest_duplicate_key / MANIFEST_REL,
+            '  "status": "closed",',
+            '  "status": "open",',
+        )
+        cases.append(("manifest_duplicate_key", run_check(manifest_duplicate_key) != 0))
+
+        blocker_duplicate_key = tmp / "blocker_duplicate_key"
+        build_sample_root(blocker_duplicate_key)
+        insert_duplicate_json_line(
+            blocker_duplicate_key / BLOCKERS_REL,
+            '  "status": "parked",',
+            '  "status": "open",',
+        )
+        cases.append(("blocker_duplicate_key", run_check(blocker_duplicate_key) != 0))
+
+        fixture_invalid_json = tmp / "fixture_invalid_json"
+        build_sample_root(fixture_invalid_json)
+        write_text(fixture_invalid_json / FIXTURE_REL, "{\n")
+        cases.append(("fixture_invalid_json", run_check(fixture_invalid_json) != 0))
+
+        manifest_invalid_json = tmp / "manifest_invalid_json"
+        build_sample_root(manifest_invalid_json)
+        write_text(manifest_invalid_json / MANIFEST_REL, "{\n")
+        cases.append(("manifest_invalid_json", run_check(manifest_invalid_json) != 0))
+
+        blocker_invalid_json = tmp / "blocker_invalid_json"
+        build_sample_root(blocker_invalid_json)
+        write_text(blocker_invalid_json / BLOCKERS_REL, "{\n")
+        cases.append(("blocker_invalid_json", run_check(blocker_invalid_json) != 0))
 
     failed = [name for name, ok in cases if not ok]
     if failed:
