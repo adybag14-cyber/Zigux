@@ -193,6 +193,11 @@ pub const VirtioCoreLab = struct {
         return self.queueBookkeepingSummary();
     }
 
+    pub fn observeSelectedQueue(self: *Self, queue_index: ?u16) QueueBookkeepingSummary {
+        self.selected_queue = queue_index;
+        return self.queueBookkeepingSummary();
+    }
+
     pub fn bumpConfigGeneration(self: *Self) void {
         self.config_generation +%= 1;
     }
