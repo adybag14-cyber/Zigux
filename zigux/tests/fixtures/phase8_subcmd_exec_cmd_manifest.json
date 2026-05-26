@@ -1,0 +1,42 @@
+{
+  "tool": "tools/lib/subcmd/exec-cmd.zig",
+  "status": "closed",
+  "mode": "bounded exec handoff helper",
+  "test_case_count": 16,
+  "helper_api_surface": [
+    "systemPath",
+    "getArgvExecPath",
+    "buildSearchPath",
+    "setupPath",
+    "setupPathWithPwd",
+    "prepareExecCmd",
+    "collectExeclArgs",
+    "buildDeferredExeclCall",
+    "buildDeferredExecvCall"
+  ],
+  "helper_local_anchors": [
+    "systemPath and getArgvExecPath preserve C-style precedence",
+    "EnvMap owns inserted keys so later caller mutations cannot corrupt lookups",
+    "extractArgv0Path splits command names from directory prefixes",
+    "buildSearchPath rewrites relative entries against the working directory",
+    "buildSearchPath preserves root-cwd doubled slashes used by the C helper",
+    "buildSearchPath skips rooted argv0 empty directories when assembling PATH",
+    "setupPath preserves the inherited exec-path string while normalizing PATH entries",
+    "setupPathWithPwd keeps logical PWD when identity matches",
+    "setupPathWithPwd falls back to cwd when logical PWD identity does not match",
+    "setupPathWithPwd falls back to cwd when logical PWD identity is unavailable",
+    "setupPathWithPwd ignores an explicitly empty logical PWD even when identity matches",
+    "prepareExecCmd prepends the configured executable name and preserves a trailing null slot",
+    "collectExeclArgs keeps the command head and first null terminator",
+    "collectExeclArgs rejects a tail that never terminates with null",
+    "collectExeclArgs rejects a null terminator that lands in MAX_ARGS",
+    "buildDeferredExeclCall keeps the execl handoff pure and launch-free"
+  ],
+  "handoff_focus": [
+    "exec-path precedence stays explicit-over-env-over-prefix",
+    "PATH assembly keeps rooted and relative segments aligned with the C helper",
+    "logical PWD handoff only wins when file identity matches",
+    "execv and execl handoff packets preserve argv order and trailing null behavior",
+    "execl argument collection rejects unterminated or over-capacity tails"
+  ]
+}
