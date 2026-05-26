@@ -45,6 +45,7 @@ EXPECTED_OWNERSHIP_FOCUS = [
     "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix",
     "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior",
     "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
+    "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
     "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
     "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders",
 ]
@@ -75,6 +76,7 @@ REQUIRED_MARKERS = {
         "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.",
         "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.",
         "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs",
+        "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
     ],
     "lib/cmdline.zig": [
         "pub fn parseOptionStr",
@@ -164,7 +166,7 @@ COUNTED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 51
+SELF_TEST_CASE_COUNT = 53
 
 
 def read_text(path: Path) -> str:
@@ -320,6 +322,7 @@ def run_self_test() -> None:
             ("Documentation/zigux/phase7-cmdline-slice.md", "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "`scripts/zigux/check-phase7-cmdline-packet.py`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs", ""),
+            ("Documentation/zigux/phase7-cmdline-slice.md", "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track", ""),
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
             ("lib/cmdline.zig", "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {", ""),
             ("lib/cmdline.zig", "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {", ""),
@@ -387,6 +390,19 @@ def run_self_test() -> None:
             "manifest_samples_readme_guard",
             tmp_root,
             "zigux/tests/phase7_cmdline_manifest.json: review_surfaces: samples/zigux/README.md",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(
+            "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track"
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_suffix_cursor_ownership_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
