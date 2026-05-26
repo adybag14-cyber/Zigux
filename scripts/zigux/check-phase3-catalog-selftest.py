@@ -84,6 +84,7 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-selftest-surface.py --self-test"',
         '"python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
+        '"make -C zigux phase3-validate"',
         '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
         '"make -C zigux phase3-export-shim-test"',
@@ -233,6 +234,12 @@ def run_self_test() -> int:
                 '"python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"',
                 'missing scripts/zigux/phase3_catalog.py marker: "python3 scripts/zigux/check-phase3-wrapper-templates.py --self-test"',
                 "expected missing wrapper-template self-test command marker was not reported",
+            ),
+            (
+                CATALOG_PATH,
+                '"make -C zigux phase3-validate"',
+                'missing scripts/zigux/phase3_catalog.py marker: "make -C zigux phase3-validate"',
+                "expected missing phase3 validate command marker was not reported",
             ),
             (
                 SURVEY_PATH,
