@@ -28,6 +28,7 @@ pub const review_packet = [_][]const u8{
     "Documentation/zigux/phase14-core-boundary-traceability.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "scripts/zigux/check-phase14-rcu-compile-route.py",
     "scripts/zigux/check-phase14-rcu-rollback-guardrail.py",
 };
 
@@ -145,7 +146,7 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", roadmap_destination);
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", blocked_gap);
     try std.testing.expect(!live_bridge_claim);
-    try std.testing.expectEqual(@as(usize, 8), review_packet.len);
+    try std.testing.expectEqual(@as(usize, 9), review_packet.len);
     try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", review_packet[0]);
     try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_survey.zig", review_packet[1]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", review_packet[2]);
@@ -153,7 +154,8 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-core-boundary-traceability.md", review_packet[4]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-end-to-end-smoke-survey.md", review_packet[5]);
     try std.testing.expectEqualStrings("zigux/tests/phase14_end_to_end_smoke_manifest.json", review_packet[6]);
-    try std.testing.expectEqualStrings("scripts/zigux/check-phase14-rcu-rollback-guardrail.py", review_packet[7]);
+    try std.testing.expectEqualStrings("scripts/zigux/check-phase14-rcu-compile-route.py", review_packet[7]);
+    try std.testing.expectEqualStrings("scripts/zigux/check-phase14-rcu-rollback-guardrail.py", review_packet[8]);
     try std.testing.expectEqual(@as(usize, 11), blockedBoundaryCount());
     try std.testing.expectEqual(@as(usize, 10), concurrencyCoupledBoundaryCount());
 
