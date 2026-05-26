@@ -70,4 +70,6 @@ Treat this file as the broader parity companion for the current helper-evidence 
 
 Authenticated follow-up readback on 2026-05-22 directly recovered `Documentation/zigux/phase6-perf-gate-survey.md` and `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` again, so broader reminder surfaces can keep the shared survey plus the base64-bsearch, checksum-hexdump, and perf-threshold guard surfaces inside the directly readable shared packet instead of treating any of those guards as fallback-only evidence.
 
+A later direct perf-packet reread on 2026-05-25 also reconfirmed `Documentation/zigux/phase6-perf-gate-survey.md`, `scripts/zigux/validate-phase6.py`, `scripts/zigux/check-phase6-shared-surface.py`, the three dedicated Phase 6 perf-marker guards, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still line up on current `master`, so this parity companion should keep treating the shared perf survey as a live directly readable surface rather than only a one-time 2026-05-22 recovery note.
+
 Reopen this catalog only when one of the four roadmap anchors gains or loses a truthful helper-evidence row on `master`.
