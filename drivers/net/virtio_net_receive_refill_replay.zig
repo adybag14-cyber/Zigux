@@ -26,7 +26,9 @@ pub const ReceiveRefillReplaySummary = struct {
     receive_queue_pairs_after_restore: u16,
     receive_buffers_before_reset: u16,
     receive_buffers_after_restore: u16,
+    missing_receive_buffers_after_restore: u16,
     descriptors_posted_after_restore: u16,
+    descriptors_pending_repost: u16,
     control_queue_restored: bool,
     requires_control_queue_restore: bool,
     queue_pairs_preserved: bool,
@@ -48,10 +50,14 @@ pub fn summarizeReceiveRefillReplay(
 
     const queue_pairs_preserved =
         request.receive_queue_pairs_after_restore >= request.receive_queue_pairs_before_reset;
-    const refill_budget_preserved =
-        request.receive_buffers_after_restore >= request.receive_buffers_before_reset;
-    const descriptors_reposted =
-        request.descriptors_posted_after_restore >= request.receive_buffers_after_restore;
+    const missing_receive_buffers_after_restore =
+        request.receive_buffers_before_reset -
+        @min(request.receive_buffers_after_restore, request.receive_buffers_before_reset);
+    const descriptors_pending_repost =
+        request.receive_buffers_after_restore -
+        @min(request.descriptors_posted_after_restore, request.receive_buffers_after_restore);
+    const refill_budget_preserved = missing_receive_buffers_after_restore == 0;
+    const descriptors_reposted = descriptors_pending_repost == 0;
 
     const blocker: ReceiveRefillReplayBlocker = blk: {
         if (request.requires_control_queue_restore and !request.control_queue_restored) {
@@ -70,7 +76,9 @@ pub fn summarizeReceiveRefillReplay(
         .receive_queue_pairs_after_restore = request.receive_queue_pairs_after_restore,
         .receive_buffers_before_reset = request.receive_buffers_before_reset,
         .receive_buffers_after_restore = request.receive_buffers_after_restore,
+        .missing_receive_buffers_after_restore = missing_receive_buffers_after_restore,
         .descriptors_posted_after_restore = request.descriptors_posted_after_restore,
+        .descriptors_pending_repost = descriptors_pending_repost,
         .control_queue_restored = request.control_queue_restored,
         .requires_control_queue_restore = request.requires_control_queue_restore,
         .queue_pairs_preserved = queue_pairs_preserved,
@@ -123,6 +131,8 @@ test "receive refill replay keeps control queue restore ahead of later refill wo
         ReceiveRefillReplayBlocker.control_queue_restore,
         summary.blocker,
     );
+    try std.testing.expectEqual(@as(u16, 0), summary.missing_receive_buffers_after_restore);
+    try std.testing.expectEqual(@as(u16, 0), summary.descriptors_pending_repost);
     try std.testing.expect(!summary.replay_ready);
 }
 
@@ -142,6 +152,8 @@ test "receive refill replay skips control queue restore when the packet says no 
     try std.testing.expect(summary.queue_pairs_preserved);
     try std.testing.expect(summary.refill_budget_preserved);
     try std.testing.expect(summary.descriptors_reposted);
+    try std.testing.expectEqual(@as(u16, 0), summary.missing_receive_buffers_after_restore);
+    try std.testing.expectEqual(@as(u16, 0), summary.descriptors_pending_repost);
     try std.testing.expectEqual(ReceiveRefillReplayBlocker.none, summary.blocker);
     try std.testing.expect(summary.replay_ready);
 }
@@ -163,6 +175,7 @@ test "receive refill replay requires queue-pair restore before budget replay" {
     );
     try std.testing.expect(!summary.queue_pairs_preserved);
     try std.testing.expect(summary.refill_budget_preserved);
+    try std.testing.expectEqual(@as(u16, 0), summary.missing_receive_buffers_after_restore);
 }
 
 test "receive refill replay keeps refill budget restoration explicit" {
@@ -182,6 +195,8 @@ test "receive refill replay keeps refill budget restoration explicit" {
     );
     try std.testing.expect(summary.queue_pairs_preserved);
     try std.testing.expect(!summary.refill_budget_preserved);
+    try std.testing.expectEqual(@as(u16, 32), summary.missing_receive_buffers_after_restore);
+    try std.testing.expectEqual(@as(u16, 0), summary.descriptors_pending_repost);
 }
 
 test "receive refill replay keeps descriptor repost explicit after the refill budget is restored" {
@@ -201,6 +216,8 @@ test "receive refill replay keeps descriptor repost explicit after the refill bu
     );
     try std.testing.expect(summary.refill_budget_preserved);
     try std.testing.expect(!summary.descriptors_reposted);
+    try std.testing.expectEqual(@as(u16, 0), summary.missing_receive_buffers_after_restore);
+    try std.testing.expectEqual(@as(u16, 32), summary.descriptors_pending_repost);
     try std.testing.expect(!summary.replay_ready);
 }
 
@@ -220,5 +237,7 @@ test "receive refill replay clears once queue pairs buffers and reposted descrip
     try std.testing.expect(summary.queue_pairs_preserved);
     try std.testing.expect(summary.refill_budget_preserved);
     try std.testing.expect(summary.descriptors_reposted);
+    try std.testing.expectEqual(@as(u16, 0), summary.missing_receive_buffers_after_restore);
+    try std.testing.expectEqual(@as(u16, 0), summary.descriptors_pending_repost);
     try std.testing.expect(summary.replay_ready);
 }
