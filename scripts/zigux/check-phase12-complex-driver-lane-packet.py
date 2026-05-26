@@ -331,7 +331,7 @@ def run_self_test() -> int:
             raise AssertionError("expected workflow marker failure")
 
         write_fixture(root)
-        (root / BUILD_PATH).writeText("broken\n", encoding="utf-8")
+        (root / BUILD_PATH).write_text("broken\n", encoding="utf-8")
         try:
             check(root)
         except CheckFailure as exc:
