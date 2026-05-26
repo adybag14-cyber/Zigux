@@ -16,6 +16,16 @@
     "expected_exit_code": 0
   },
   {
+    "name": "sample_multi_target_stdout_full",
+    "depfile": "sample_multi_target.d",
+    "target": "module/sample2_stdout_full.o",
+    "cmdline": "clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2_stdout_full.o",
+    "expected": "sample_output_write_expected.txt",
+    "expected_stderr": "sample_output_write_expected.stderr.txt",
+    "expected_exit_code": 1,
+    "stdout_mode": "dev_full"
+  },
+  {
     "name": "sample_escaped_space",
     "depfile": "sample_escaped_space.d",
     "target": "sample_escaped_space.o",
