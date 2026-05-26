@@ -418,3 +418,49 @@ test "runtime atomic64 sample keeps rejected re-exit rollback explicit at the mo
     try std.testing.expectEqual(before_selftested_reexit_summary.selftest_runs, after_selftested_reexit_summary.selftest_runs);
     try std.testing.expectEqual(before_selftested_reexit_summary.exit_runs, after_selftested_reexit_summary.exit_runs);
 }
+
+test "runtime atomic64 sample keeps guard-returning counter APIs rejected outside active lifecycle states without disturbing summaries" {
+    var cold_module = sample.RuntimeAtomic64Sample{};
+    const cold_snapshot = cold_module.lifecycleSnapshot();
+    const cold_summary = cold_module.summary();
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.addUnlessCounter(4, 99));
+    try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.incNotZeroCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.decIfPositiveCounter());
+
+    const cold_snapshot_after = cold_module.lifecycleSnapshot();
+    const cold_summary_after = cold_module.summary();
+    try std.testing.expectEqual(cold_snapshot.stage, cold_snapshot_after.stage);
+    try std.testing.expectEqual(cold_snapshot.init_runs, cold_snapshot_after.init_runs);
+    try std.testing.expectEqual(cold_snapshot.selftest_runs, cold_snapshot_after.selftest_runs);
+    try std.testing.expectEqual(cold_snapshot.exit_runs, cold_snapshot_after.exit_runs);
+    try std.testing.expectEqual(cold_snapshot.allows_counter_ops, cold_snapshot_after.allows_counter_ops);
+    try std.testing.expectEqual(cold_summary.counter_snapshot, cold_summary_after.counter_snapshot);
+    try std.testing.expectEqual(cold_summary.init_runs, cold_summary_after.init_runs);
+    try std.testing.expectEqual(cold_summary.selftest_runs, cold_summary_after.selftest_runs);
+    try std.testing.expectEqual(cold_summary.exit_runs, cold_summary_after.exit_runs);
+
+    var exited_module = sample.RuntimeAtomic64Sample{};
+    try exited_module.init(55);
+    _ = try exited_module.runSelftest();
+    try exited_module.exit();
+
+    const exited_snapshot = exited_module.lifecycleSnapshot();
+    const exited_summary = exited_module.summary();
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.addUnlessCounter(8, 99));
+    try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.incNotZeroCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, exited_module.decIfPositiveCounter());
+
+    const exited_snapshot_after = exited_module.lifecycleSnapshot();
+    const exited_summary_after = exited_module.summary();
+    try std.testing.expectEqual(exited_snapshot.stage, exited_snapshot_after.stage);
+    try std.testing.expectEqual(exited_snapshot.init_runs, exited_snapshot_after.init_runs);
+    try std.testing.expectEqual(exited_snapshot.selftest_runs, exited_snapshot_after.selftest_runs);
+    try std.testing.expectEqual(exited_snapshot.exit_runs, exited_snapshot_after.exit_runs);
+    try std.testing.expectEqual(exited_snapshot.allows_counter_ops, exited_snapshot_after.allows_counter_ops);
+    try std.testing.expectEqual(exited_summary.counter_snapshot, exited_summary_after.counter_snapshot);
+    try std.testing.expectEqual(exited_summary.init_runs, exited_summary_after.init_runs);
+    try std.testing.expectEqual(exited_summary.selftest_runs, exited_summary_after.selftest_runs);
+    try std.testing.expectEqual(exited_summary.exit_runs, exited_summary_after.exit_runs);
+}
