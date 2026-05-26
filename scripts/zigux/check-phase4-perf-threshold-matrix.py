@@ -12,7 +12,8 @@ MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 LANE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
-EXPECTED_SELF_TEST_CASES = 11
+PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
+EXPECTED_SELF_TEST_CASES = 14
 
 SELF_TEST_MANIFEST = """{
   "atomic64": {
@@ -51,6 +52,10 @@ SELF_TEST_LANE = """- directly readable dedicated local-only perf packet that st
 - `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.
 """
 
+SELF_TEST_BUILD = """const phase4_perf_baseline_survey = @import("phase4_perf_baseline_survey.zig");
+const phase4_perf_baseline_survey_step = "phase4-perf-baseline-survey";
+"""
+
 NOTE_MARKERS = (
     "`scripts/zigux/check-phase4-perf-threshold-matrix.py`",
     "Current direct-readback dedicated local-only perf checkers: `scripts/zigux/check-phase4-perf-baseline-packet.py` and `scripts/zigux/check-phase4-perf-threshold-matrix.py`.",
@@ -59,6 +64,11 @@ NOTE_MARKERS = (
 LANE_MARKERS = (
     "  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`",
     "`scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.",
+)
+
+PHASE4_BUILD_MARKERS = (
+    "phase4_perf_baseline_survey.zig",
+    "phase4-perf-baseline-survey",
 )
 
 
@@ -110,6 +120,7 @@ def validate_root(root: Path) -> list[str]:
     note_path = root / NOTE
     lane_path = root / LANE
     manifest_path = root / MANIFEST
+    phase4_build_path = root / PHASE4_BUILD
     if not matrix_path.is_file():
         issues.append(f"file:{MATRIX.as_posix()}")
     if not note_path.is_file():
@@ -118,6 +129,8 @@ def validate_root(root: Path) -> list[str]:
         issues.append(f"file:{LANE.as_posix()}")
     if not manifest_path.is_file():
         issues.append(f"file:{MANIFEST.as_posix()}")
+    if not phase4_build_path.is_file():
+        issues.append(f"file:{PHASE4_BUILD.as_posix()}")
     if issues:
         return issues
 
@@ -136,6 +149,7 @@ def validate_root(root: Path) -> list[str]:
 
     require_markers(read_text(note_path), NOTE_MARKERS, "note_marker", issues)
     require_markers(read_text(lane_path), LANE_MARKERS, "lane_marker", issues)
+    require_markers(read_text(phase4_build_path), PHASE4_BUILD_MARKERS, "phase4_build_marker", issues)
     return issues
 
 
@@ -144,6 +158,7 @@ def build_fixture_tree(root: Path) -> None:
     write_text(root / MATRIX, SELF_TEST_MATRIX)
     write_text(root / NOTE, SELF_TEST_NOTE)
     write_text(root / LANE, SELF_TEST_LANE)
+    write_text(root / PHASE4_BUILD, SELF_TEST_BUILD)
 
 
 def replace_once(text: str, old: str, new: str) -> str:
@@ -268,6 +283,36 @@ def run_self_test() -> int:
         cases += 1
 
         build_fixture_tree(root)
+        write_text(
+            root / PHASE4_BUILD,
+            replace_once(
+                read_text(root / PHASE4_BUILD),
+                "phase4_perf_baseline_survey.zig",
+                "phase4_perf_baseline_packet.zig",
+            ),
+        )
+        if not expect_failure(root, "phase4_build_marker:phase4_perf_baseline_survey.zig"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("phase4 build file drift case did not fail closed for survey source marker")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            root / PHASE4_BUILD,
+            replace_once(
+                read_text(root / PHASE4_BUILD),
+                "phase4-perf-baseline-survey",
+                "phase4-local-baseline-survey",
+            ),
+        )
+        if not expect_failure(root, "phase4_build_marker:phase4-perf-baseline-survey"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("phase4 build file drift case did not fail closed for build route marker")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
         (root / LANE).unlink()
         if not expect_failure(root, f"file:{LANE.as_posix()}"):
             print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
@@ -280,6 +325,14 @@ def run_self_test() -> int:
         if not expect_failure(root, f"file:{NOTE.as_posix()}"):
             print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
             print("missing note file case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        (root / PHASE4_BUILD).unlink()
+        if not expect_failure(root, f"file:{PHASE4_BUILD.as_posix()}"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("missing phase4 build file case did not fail closed")
             return 1
         cases += 1
 
