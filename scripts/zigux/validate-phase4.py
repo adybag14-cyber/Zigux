@@ -124,13 +124,17 @@ PHASE4_TESTS_README_PACKET_SELF_TEST_CASES = (
     "stale_phase4_note_reference,",
     "stale_phase4_gate_evidence_note_reference,",
     "stale_phase4_repo_reality_warning_reference,",
+    "stale_phase4_validator_reference,",
     "stale_phase4_perf_manifest_reference,",
     "stale_phase4_perf_reference,",
+    "stale_phase4_build_reference,",
+    "stale_phase4_bitmap_reference,",
+    "stale_phase4_bitmap_replay_reference,",
+    "stale_phase4_atomic64_pair_reference,",
     "stale_phase4_perf_make_route,",
     "stale_phase4_gate_evidence_checker_reference,",
     "stale_phase4_reversible_delivery_checker_reference,",
     "stale_phase4_perf_checker_reference,",
-    "stale_phase4_bitmap_reference,",
     "stale_phase4_tests_readme_checker_reference",
 )
 
@@ -147,7 +151,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-reversible-delivery-pins": (("PHASE4_REVERSIBLE_DELIVERY_PINS", "PHASE4_REVERSIBLE_DELIVERY_PINS=pass"),),
     "phase4-tests-readme-packet-self-test": (
         ("PHASE4_TESTS_README_PACKET_SELF_TEST", "PHASE4_TESTS_README_PACKET_SELF_TEST=pass"),
-        ("PHASE4_TESTS_README_PACKET_SELF_TEST_CASES", "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=15"),
+        ("PHASE4_TESTS_README_PACKET_SELF_TEST_CASES", "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=19"),
         ("PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES", "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES=" + "".join(PHASE4_TESTS_README_PACKET_SELF_TEST_CASES)),
     ),
     "phase4-tests-readme-packet": (("PHASE4_TESTS_README_PACKET_CHECK", "PHASE4_TESTS_README_PACKET_CHECK=pass"),),
@@ -526,7 +530,7 @@ def configure_phase4_output_stubs(root: Path) -> None:
         root / "scripts/zigux/check-phase4-tests-readme-packet.py",
         self_test_stdout_lines=(
             "PHASE4_TESTS_README_PACKET_SELF_TEST=pass",
-            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=15",
+            "PHASE4_TESTS_README_PACKET_SELF_TEST_CASES=19",
             "PHASE4_TESTS_README_PACKET_SELF_TEST_CASE_NAMES=" + "".join(PHASE4_TESTS_README_PACKET_SELF_TEST_CASES),
         ),
         live_stdout_lines=("PHASE4_TESTS_README_PACKET_CHECK=pass",),
