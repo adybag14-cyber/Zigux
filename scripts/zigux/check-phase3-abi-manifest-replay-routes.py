@@ -277,6 +277,23 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+def _append_duplicate_list_entry_issues(
+    label: str,
+    values: list[object],
+    issues: list[str],
+) -> None:
+    seen: dict[str, int] = {}
+    for index, value in enumerate(values):
+        key = repr(value)
+        first_index = seen.get(key)
+        if first_index is None:
+            seen[key] = index
+            continue
+        issues.append(
+            f"{label} duplicate entry: {value!r} (first index {first_index}, duplicate index {index})"
+        )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -313,6 +330,11 @@ def validate_repo(repo_root: Path) -> list[str]:
     if not isinstance(packet_files, list):
         issues.append("phase3_abi_manifest.json packet_files is not a list")
     else:
+        _append_duplicate_list_entry_issues(
+            "phase3_abi_manifest.json packet_files",
+            packet_files,
+            issues,
+        )
         for entry in REQUIRED_PACKET_FILES:
             if entry not in packet_files:
                 issues.append(f"phase3_abi_manifest.json missing packet_files entry: {entry}")
@@ -321,6 +343,11 @@ def validate_repo(repo_root: Path) -> list[str]:
     if not isinstance(replay_routes, list):
         issues.append("phase3_abi_manifest.json replay_routes is not a list")
     else:
+        _append_duplicate_list_entry_issues(
+            "phase3_abi_manifest.json replay_routes",
+            replay_routes,
+            issues,
+        )
         for route in REQUIRED_REPLAY_ROUTES:
             if route not in replay_routes:
                 issues.append(f"phase3_abi_manifest.json missing replay route: {route}")
@@ -410,6 +437,21 @@ def run_self_test() -> int:
             )
             cases += 1
 
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        duplicate_packet_file = manifest["packet_files"][-1]
+        first_packet_index = len(manifest["packet_files"]) - 1
+        manifest["packet_files"].append(duplicate_packet_file)
+        duplicate_packet_index = len(manifest["packet_files"]) - 1
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        _expect_issue(
+            issues,
+            "phase3_abi_manifest.json packet_files duplicate entry: "
+            f"{duplicate_packet_file!r} (first index {first_packet_index}, duplicate index {duplicate_packet_index})",
+        )
+        cases += 1
+
         for route in REQUIRED_REPLAY_ROUTES:
             _populate_repo(repo_root)
             manifest = json.loads(_read(manifest_path))
@@ -421,6 +463,21 @@ def run_self_test() -> int:
                 f"phase3_abi_manifest.json missing replay route: {route}"
             )
             cases += 1
+
+        _populate_repo(repo_root)
+        manifest = json.loads(_read(manifest_path))
+        duplicate_replay_route = manifest["replay_routes"][-1]
+        first_route_index = len(manifest["replay_routes"]) - 1
+        manifest["replay_routes"].append(duplicate_replay_route)
+        duplicate_route_index = len(manifest["replay_routes"]) - 1
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(repo_root)
+        _expect_issue(
+            issues,
+            "phase3_abi_manifest.json replay_routes duplicate entry: "
+            f"{duplicate_replay_route!r} (first index {first_route_index}, duplicate index {duplicate_route_index})",
+        )
+        cases += 1
 
         for field, bad_value in (
             ("status", "stale-status"),
