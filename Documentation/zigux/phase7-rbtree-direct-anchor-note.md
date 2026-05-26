@@ -47,4 +47,5 @@ Repo-reality warning for the still-missing dedicated Phase 7 rbtree wrapper rout
 - `zigux/Makefile` now returns shared `phase7-validate`, but it still lacks dedicated `phase7-rbtree-test:`, `phase7-rbtree-survey:`, `phase7-test:`, and aggregate `phase7:` wrapper markers
 - `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps
 
-Keep the current Phase 7 rbtree reminder surface tied to the returned runtime-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, the returned JSON fixture, the returned C harness, the readable legacy `tools/lib/rbtree.zig` companion, and the directly readable shared build, validator, and workflow evidence.
+Keep the current Phase 7 rbtree reminder surface tied to the returned runtime-root helper, the dedicated slice note, the dedicated replay companion, the returned survey and manifest, the parity checker, the returned JSON fixture, the returned C harness, and the readable legacy `tools/lib/rbtree.zig` companion.
+Treat the shared build, validator, and workflow route evidence above as non-owner context only, and route any further wrapper or workflow truthfulness follow-up to the separate shared-control lane.
