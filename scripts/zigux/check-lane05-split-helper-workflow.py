@@ -26,6 +26,8 @@ HELPER_SELF_TEST_STEP = "- name: Self-test current split pinned Zig archive help
 HELPER_SELF_TEST_CMD = "python3 scripts/zigux/split-pinned-zig-archive.py --self-test"
 SELFTEST_CHECKER_STEP = "- name: Self-test current Lane 05 split helper selftest checker"
 SELFTEST_CHECKER_CMD = "python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test"
+SELFTEST_PACKET_STEP = "- name: Check current Lane 05 split helper selftest packet"
+SELFTEST_PACKET_CMD = "python3 scripts/zigux/check-lane05-split-helper-selftest.py"
 WORKFLOW_CHECKER_SELF_TEST_STEP = "- name: Self-test current Lane 05 split-helper workflow checker"
 WORKFLOW_CHECKER_SELF_TEST_CMD = (
     "python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test"
@@ -77,6 +79,8 @@ def check_workflow(text: str) -> None:
         (HELPER_SELF_TEST_CMD, "helper self-test command"),
         (SELFTEST_CHECKER_STEP, "selftest checker step"),
         (SELFTEST_CHECKER_CMD, "selftest checker command"),
+        (SELFTEST_PACKET_STEP, "selftest packet step"),
+        (SELFTEST_PACKET_CMD, "selftest packet command"),
         (WORKFLOW_CHECKER_SELF_TEST_STEP, "workflow checker self-test step"),
         (WORKFLOW_CHECKER_SELF_TEST_CMD, "workflow checker self-test command"),
         (WORKFLOW_CHECKER_STEP, "workflow checker step"),
@@ -92,6 +96,7 @@ def check_workflow(text: str) -> None:
         (f"run: {COMPILE_CMD}", "compile command"),
         (f"run: {HELPER_SELF_TEST_CMD}", "helper self-test command"),
         (f"run: {SELFTEST_CHECKER_CMD}", "selftest checker command"),
+        (f"run: {SELFTEST_PACKET_CMD}", "selftest packet command"),
         (f"run: {WORKFLOW_CHECKER_SELF_TEST_CMD}", "workflow checker self-test command"),
         (f"run: {WORKFLOW_CHECKER_CMD}", "workflow checker command"),
     ):
@@ -101,6 +106,7 @@ def check_workflow(text: str) -> None:
         (COMPILE_STEP, "compile step"),
         (HELPER_SELF_TEST_STEP, "helper self-test step"),
         (SELFTEST_CHECKER_STEP, "selftest checker step"),
+        (SELFTEST_PACKET_STEP, "selftest packet step"),
         (WORKFLOW_CHECKER_SELF_TEST_STEP, "workflow checker self-test step"),
         (WORKFLOW_CHECKER_STEP, "workflow checker step"),
     ):
@@ -117,9 +123,10 @@ def check_workflow(text: str) -> None:
     require_order(text, PYTHON_STEP, COMPILE_STEP, "step order")
     require_order(text, COMPILE_STEP, HELPER_SELF_TEST_STEP, "step order")
     require_order(text, HELPER_SELF_TEST_STEP, SELFTEST_CHECKER_STEP, "step order")
+    require_order(text, SELFTEST_CHECKER_STEP, SELFTEST_PACKET_STEP, "step order")
     require_order(
         text,
-        SELFTEST_CHECKER_STEP,
+        SELFTEST_PACKET_STEP,
         WORKFLOW_CHECKER_SELF_TEST_STEP,
         "step order",
     )
@@ -171,6 +178,9 @@ jobs:
       - name: Self-test current Lane 05 split helper selftest checker
         run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
 
+      - name: Check current Lane 05 split helper selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
+
       - name: Self-test current Lane 05 split-helper workflow checker
         run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test
 
@@ -197,6 +207,15 @@ jobs:
                 1,
             ),
             COMPILE_CMD,
+        ),
+        (
+            good_workflow.replace(
+                "      - name: Check current Lane 05 split helper selftest packet\n"
+                "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py\n",
+                "",
+                1,
+            ),
+            SELFTEST_PACKET_STEP,
         ),
         (
             good_workflow.replace(
@@ -228,10 +247,10 @@ jobs:
     reordered_steps = good_workflow.replace(
         "      - name: Self-test current Lane 05 split helper selftest checker\n"
         "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test\n\n"
-        "      - name: Self-test current Lane 05 split-helper workflow checker\n"
-        "        run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test\n",
-        "      - name: Self-test current Lane 05 split-helper workflow checker\n"
-        "        run: python3 scripts/zigux/check-lane05-split-helper-workflow.py --self-test\n\n"
+        "      - name: Check current Lane 05 split helper selftest packet\n"
+        "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py\n",
+        "      - name: Check current Lane 05 split helper selftest packet\n"
+        "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py\n\n"
         "      - name: Self-test current Lane 05 split helper selftest checker\n"
         "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test\n",
         1,
