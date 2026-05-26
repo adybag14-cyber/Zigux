@@ -28,6 +28,10 @@ This matrix keeps the current bounded validation packet for the Zigux
   choice, optional APB clock presence, reset-release posture, imported-running
   handoff, optional pretimeout IRQ acquisition, and the missing-timer-clock
   block reviewable before live platform execution lands.
+- `drivers/watchdog/dw_wdt.zig` now rematerializes on current `master` and
+  keeps timer-clock choice, registration-order intent, imported-running
+  handoff, and timeout-programming readiness reviewable alongside the smaller
+  owner packet without claiming live platform execution.
 - `drivers/watchdog/dw_wdt_restart.zig`, `drivers/watchdog/dw_wdt_verify.zig`,
   `drivers/watchdog/dw_wdt_pm.zig`, and `drivers/watchdog/dw_wdt_pm_scaffold.zig`
   keep restart, teardown-parity, and bounded PM-helper handoff coverage
@@ -39,11 +43,13 @@ This matrix keeps the current bounded validation packet for the Zigux
 
 - Authenticated current-head rereads in this environment do not rematerialize
   `Documentation/zigux/phase11-dw-wdt-slice.md`,
-  `Documentation/zigux/phase11-dw-wdt-teardown-note.md`,
-  `drivers/watchdog/dw_wdt.zig`, or `zigux/tests/phase11_dw_wdt.zig`.
-- Treat that broader direct-driver, direct-replay, and older reminder stack as
-  larger same-lane vocabulary or fallback-visible evidence until a future
-  authenticated reread proves it returned through the same bridge.
+  `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, or
+  `zigux/tests/phase11_dw_wdt.zig`.
+- Treat the broader direct-replay and older reminder stack as larger same-lane
+  vocabulary or fallback-visible evidence until a future authenticated reread
+  proves it returned through the same bridge, while keeping the returned
+  `drivers/watchdog/dw_wdt.zig` anchor explicit inside the smaller current-head
+  packet.
 - Keep the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed
   as historical context until a future reread proves it returned.
 
