@@ -577,3 +577,18 @@ test "renderCommandSections returns an empty packet when both command groups are
 
     try std.testing.expectEqualStrings("", rendered);
 }
+
+test "renderPrettyStringList falls back to the default width when terminal columns are unavailable" {
+    var cmds = CommandNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.add("annotate");
+    try cmds.add("bench");
+
+    const rendered = try renderPrettyStringList(std.testing.allocator, &cmds, 0);
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        " annotate bench\n",
+        rendered,
+    );
+}
