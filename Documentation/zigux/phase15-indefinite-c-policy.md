@@ -8,8 +8,8 @@ This note keeps the roadmap-required Phase 15 stay-in-C policy surface explicit 
 - `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=maintenance-mode-policy-truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
-- current repo reality: the roadmap-required stay-in-C policy packet remains landed on `current-master-readback-2026-05-25` and stays maintenance-only under the same blocked deep-core posture
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-26`
+- current repo reality: the roadmap-required stay-in-C policy packet remains landed on `current-master-readback-2026-05-26`, and the remaining gap versus the roadmap now lives in broader reminder-route alignment rather than in a missing indefinite-C policy packet
 - scope: keep the dedicated indefinite-C policy note, its direct policy vocabulary, and its lane-owner alignment companion truthful without widening into neighboring Phase 15 packets
 
 ## Why this slice exists
@@ -19,6 +19,13 @@ Phase 15 is supposed to keep the mixed-language end state honest.
 That requires more than a freeze map and a parity scorecard. The repo also needs one reviewable place that says when a deep-core anchor remains in C, what must still be recorded about that choice, and what evidence is required before anyone may reopen the decision later.
 
 This packet keeps that policy surface explicit without claiming a new deep-core Zig bridge, a status change approval, or a broader Phase 15 closure.
+
+## Roadmap gap versus current repo reality
+
+- roadmap requirement: `policy for code that remains in C indefinitely`
+- current dedicated packet is already materialized through `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+- broader reminder-route gaps still exist around this packet: `Documentation/zigux/README.md` still stops at Phase 14, `zigux/Makefile` still carries no dedicated `phase15-validate`, `phase15-test`, or `phase15` routes, and `.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route
+- honest conclusion: the roadmap's indefinite-C policy requirement is satisfied by the direct policy packet, while the remaining drift is shared-summary and wrapper-route follow-through rather than evidence that the stay-in-C policy itself is missing
 
 ## When the indefinite-C policy applies
 
