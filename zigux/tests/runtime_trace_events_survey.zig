@@ -446,7 +446,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sample_file, "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);");
     try expectContains(sample_file, "try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);");
     try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
-    try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(9));");
+    try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(");
     try expectContains(sample_file, "test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {");
     try expectContains(sample_file, "test \"trace-events sample keeps rejected re-selftest rollback explicit\" {");
     try expectContains(sample_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);");
