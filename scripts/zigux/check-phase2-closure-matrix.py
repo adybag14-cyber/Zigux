@@ -291,6 +291,8 @@ EXPECTED_MANIFEST_REVIEW_SURFACES = ("review-a.md", "review-b.md")
 EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-a.md", "closure-b.md")
 EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
 EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
+EXPECTED_MANIFEST_BOOTSTRAP_HELPERS = ("bootstrap-a.py", "bootstrap-b.py")
+EXPECTED_MANIFEST_ARCHIVE_SUPPORT = ("archive-a.md", "archive-b.tar.xz")
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
 EXPECTED_MANIFEST_POLICY = ("policy-a.json",)
@@ -313,6 +315,8 @@ def build_self_test_root(root: Path) -> None:
             "closure_notes": list(EXPECTED_MANIFEST_CLOSURE_NOTES),
             "validators": list(EXPECTED_MANIFEST_VALIDATORS),
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
+            "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
+            "archive_support": list(EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
             "policy": list(EXPECTED_MANIFEST_POLICY),
@@ -410,6 +414,8 @@ def collect_issues(root: Path):
     expect_subset(issues, "closure_notes", require_manifest_list(issues, manifest, "closure_notes"), EXPECTED_MANIFEST_CLOSURE_NOTES)
     expect_subset(issues, "validators", require_manifest_list(issues, manifest, "validators"), EXPECTED_MANIFEST_VALIDATORS)
     expect_subset(issues, "checkers", require_manifest_list(issues, manifest, "checkers"), EXPECTED_MANIFEST_CHECKERS)
+    expect_subset(issues, "bootstrap_helpers", require_manifest_list(issues, manifest, "bootstrap_helpers"), EXPECTED_MANIFEST_BOOTSTRAP_HELPERS)
+    expect_subset(issues, "archive_support", require_manifest_list(issues, manifest, "archive_support"), EXPECTED_MANIFEST_ARCHIVE_SUPPORT)
     expect_subset(issues, "bridge_helpers", require_manifest_list(issues, manifest, "bridge_helpers"), EXPECTED_MANIFEST_BRIDGE_HELPERS)
     expect_subset(issues, "fixture_roster", require_manifest_list(issues, manifest, "fixture_roster"), EXPECTED_MANIFEST_FIXTURE_ROSTER)
     expect_subset(issues, "policy", require_manifest_list(issues, manifest, "policy"), EXPECTED_MANIFEST_POLICY)
