@@ -96,7 +96,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-25", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-26", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
@@ -120,10 +120,14 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
 
     try expectContains(policy_note, "PHASE15_STATUS=indefinite_c_policy_packet_landed");
     try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
-    try expectContains(policy_note, "current-master-readback-2026-05-25");
+    try expectContains(policy_note, "current-master-readback-2026-05-26");
     try expectContains(policy_note, "roadmap-required Phase 15 stay-in-C policy surface");
     try expectContains(policy_note, "the C implementation remains the source of truth");
     try expectContains(policy_note, "code that remains in C indefinitely");
+    try expectContains(policy_note, "Roadmap gap versus current repo reality");
+    try expectContains(policy_note, "the roadmap's indefinite-C policy requirement is satisfied by the direct policy packet");
+    try expectContains(policy_note, "`Documentation/zigux/README.md` still stops at Phase 14");
+    try expectContains(policy_note, "`phase15-validate`, `phase15-test`, or `phase15` routes");
     try expectContains(policy_note, "evidence archive path");
     try expectContains(policy_note, "automatic return-to-blocked trigger");
     try expectContains(policy_note, "retired_from_active_discussion");
@@ -224,7 +228,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("landed", current_reread_refresh.status);
     try std.testing.expectEqualStrings("maintenance_reread", current_reread_refresh.kind);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", current_reread_refresh.zigux_destination);
-    try expectContains(current_reread_refresh.why_now, "2026-05-25");
+    try expectContains(current_reread_refresh.why_now, "2026-05-26");
     try expectContains(current_reread_refresh.why_now, "roadmap");
 
     const blocker_gap = findGap(manifest.gaps, "phase15-deep-core-status-change-blocker") orelse return error.MissingGap;
