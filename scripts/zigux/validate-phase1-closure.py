@@ -34,12 +34,13 @@ STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packe
 FIND_BIT_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-review-packet.py")
 RBTREE_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-review-packet.py")
 DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
-DIRECT_ANCHOR_MANIFEST_GATE_REL = Path("scripts/zigux/check-phase1-direct-anchor-manifest-gate.py")
 ROUTE_SUMMARY_CHECKER_REL = Path("scripts/zigux/check-phase1-route-summary-counts.py")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 FIND_BIT_BENCH_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-bench-anchors.py")
 BITMAP_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-bitmap-direct-anchors.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
+LANE_SEQUENCING_PACKET_CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-packet.py")
+LANE_SEQUENCING_WORKFLOW_CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-workflow.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
@@ -61,12 +62,13 @@ REQUIRED_FILES = (
     FIND_BIT_REVIEW_CHECKER_REL,
     RBTREE_REVIEW_CHECKER_REL,
     DIRECT_OWNER_CHECKER_REL,
-    DIRECT_ANCHOR_MANIFEST_GATE_REL,
     ROUTE_SUMMARY_CHECKER_REL,
     BENCH_CHECKER_REL,
     FIND_BIT_BENCH_ANCHOR_CHECKER_REL,
     BITMAP_DIRECT_ANCHOR_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
+    LANE_SEQUENCING_PACKET_CHECKER_REL,
+    LANE_SEQUENCING_WORKFLOW_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
@@ -130,23 +132,18 @@ EXPECTED_CLOSURE_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
     "helper_count": "`PHASE1_HELPER_COUNT=13`",
-    "reminder_packet": "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "reminder_packet": "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
     "gap_packet": "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`",
     "closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
     "bitmap_direct_review": "`PHASE1_BITMAP_DIRECT_REVIEW=helper-local bitmap direct anchors stay explicit through the closure packet because the shared Phase 1 replay still only owns allocator sizing, zero-filled allocation words, scnprintf output, truncation, tiny-buffer handling, and partial-window xor replay, so current master keeps fill-tail clamp, raw copy alias, tail-clearing and extension semantics, zero and aligned copyAndExtend handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, exact-word-boundary equality fast-path masking, tail-masked predicate behavior, caller-window xor and or clamping, multiword-tail xor and or clamp witnesses, weighted tail-count clamping, complement-tail masking, terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator optional-reset coverage review-visible at the helper surface`",
-    "bitmap_unit_review": "`PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view`",
-    "bitmap_empty_unit_review": "`PHASE1_BITMAP_EMPTY_UNIT_REVIEW=bitmap_scnprintf leaves a non-empty caller buffer untouched when no bits are set, matching both the direct Zig unit test and the committed parity fixture`",
     "string_sysfs_review": "`PHASE1_STRING_SYSFS_REVIEW=helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests and the Phase 1 helper manifest because the shared Phase 1 replay still carries no dedicated sysfs fixture keys`",
     "string_memtostr_review": "Current `master` now also spells the helper-local `memtostr()`, `memtostrPad()`, and `memtostr_pad()` anchors directly in the shipped manifest-backed string review packet beside the `memcpyAndPad()`, `memcpy_and_pad()`, `strtomem()`, and `strtomem_pad()` byte-copy anchors. Keep those byte-copy and pad tests helper-local review evidence rather than shared-fixture or validator-owned requirements until dedicated fixture keys land.",
     "find_bit_bench_guard": "`PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
     "rbtree_bench_guard": "`PHASE1_RBTREE_BENCH_GUARD=scripts/zigux/check-phase1-bench.py now hard-codes PHASE1_BENCH_RBTREE_ITERATIONS=4000 and exact-checks PHASE1_BENCH_RBTREE_CHECKSUM, PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM, PHASE1_BENCH_FIND_ADD_CHECKSUM, PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM, and PHASE1_BENCH_RBTREE_CACHED_CHECKSUM when the broader expectations packet returns`",
     "find_bit_bench_anchor_guard": "`PHASE1_FIND_BIT_BENCH_ANCHOR_GUARD=python3 scripts/zigux/check-phase1-find-bit-bench-anchors.py exact-checks inclusive-boundary, past-nbits no-read, clump8 past-end no-read, and findLastBit tail-clamp anchors directly in tools/lib/find_bit.zig`",
-    "find_bit_review_guard": "`PHASE1_FIND_BIT_REVIEW_GUARD=python3 scripts/zigux/check-phase1-find-bit-review-packet.py exact-checks helper-local find_bit anchors plus the committed tail-clamped and tail-inclusive-boundary replay packet across the helper, closure note, lane note, manifest, and fixture`",
-    "rbtree_review_guard": "`PHASE1_RBTREE_REVIEW_GUARD=python3 scripts/zigux/check-phase1-rbtree-review-packet.py exact-checks helper-local rbtree anchors plus the committed duplicate-search and cached-leftmost replay packet across the helper, closure note, lane note, manifest, fixture, and shared smoke route`",
-    "direct_anchor_manifest_gate": "`PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py exact-checks the current direct-anchor helper manifest packet for bitmap, find_bit, rbtree, and string and then reruns the dedicated rbtree direct-anchor checker`",
     "next_step": "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific next_safe_step_note entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.`",
 }
 
@@ -275,12 +272,13 @@ DELEGATED_CHECKERS = (
     (FIND_BIT_REVIEW_CHECKER_REL, "phase1-find-bit-review-packet"),
     (RBTREE_REVIEW_CHECKER_REL, "phase1-rbtree-review-packet"),
     (DIRECT_OWNER_CHECKER_REL, "phase1-direct-owner-markers"),
-    (DIRECT_ANCHOR_MANIFEST_GATE_REL, "phase1-direct-anchor-manifest-gate"),
     (ROUTE_SUMMARY_CHECKER_REL, "phase1-route-summary-counts"),
     (BENCH_CHECKER_REL, "phase1-bench"),
     (FIND_BIT_BENCH_ANCHOR_CHECKER_REL, "phase1-find-bit-bench-anchors"),
     (BITMAP_DIRECT_ANCHOR_CHECKER_REL, "phase1-bitmap-direct-anchors"),
     (SHARED_REMINDER_CHECKER_REL, "phase1-shared-reminder-packet"),
+    (LANE_SEQUENCING_PACKET_CHECKER_REL, "phase1-lane-sequencing-packet"),
+    (LANE_SEQUENCING_WORKFLOW_CHECKER_REL, "phase1-lane-sequencing-workflow"),
 )
 
 
@@ -481,21 +479,11 @@ def run_self_test() -> int:
         ("missing_find_bit_bench_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["find_bit_bench_guard"] + "\n", "", 1))),
         ("missing_rbtree_bench_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["rbtree_bench_guard"] + "\n", "", 1))),
         ("missing_find_bit_bench_anchor_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["find_bit_bench_anchor_guard"] + "\n", "", 1))),
-        ("missing_find_bit_review_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["find_bit_review_guard"] + "\n", "", 1))),
-        ("stale_find_bit_review_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["find_bit_review_guard"], "`PHASE1_FIND_BIT_REVIEW_GUARD=drifted review guard marker`", 1))),
-        ("missing_rbtree_review_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["rbtree_review_guard"] + "\n", "", 1))),
-        ("stale_rbtree_review_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["rbtree_review_guard"], "`PHASE1_RBTREE_REVIEW_GUARD=drifted review guard marker`", 1))),
-        ("missing_direct_anchor_manifest_gate_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["direct_anchor_manifest_gate"] + "\n", "", 1))),
-        ("stale_direct_anchor_manifest_gate_marker", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["direct_anchor_manifest_gate"], "`PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=drifted direct anchor manifest gate marker`", 1))),
         ("missing_route_summary_guard", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["route_summary_guard"] + "\n", "", 1))),
         ("missing_shared_tests_route", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["shared_tests_route"] + "\n", "", 1))),
         ("missing_validator_state", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["validator_state"] + "\n", "", 1))),
         ("missing_bitmap_direct_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["bitmap_direct_review"] + "\n", "", 1))),
         ("stale_bitmap_direct_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["bitmap_direct_review"], "`PHASE1_BITMAP_DIRECT_REVIEW=drifted bitmap direct review marker`", 1))),
-        ("missing_bitmap_unit_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["bitmap_unit_review"] + "\n", "", 1))),
-        ("stale_bitmap_unit_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["bitmap_unit_review"], "`PHASE1_BITMAP_UNIT_REVIEW=drifted bitmap unit marker`", 1))),
-        ("missing_bitmap_empty_unit_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["bitmap_empty_unit_review"] + "\n", "", 1))),
-        ("stale_bitmap_empty_unit_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["bitmap_empty_unit_review"], "`PHASE1_BITMAP_EMPTY_UNIT_REVIEW=drifted bitmap empty marker`", 1))),
         ("stale_string_sysfs_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["string_sysfs_review"], "`PHASE1_STRING_SYSFS_REVIEW=drifted string sysfs review marker`", 1))),
         ("missing_string_memtostr_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["string_memtostr_review"] + "\n", "", 1))),
         ("stale_string_memtostr_review", lambda root: write_text(root / PHASE1_CLOSURE_REL, load_text(root, PHASE1_CLOSURE_REL).replace(EXPECTED_CLOSURE_MARKERS["string_memtostr_review"], "Current `master` now spells a drifted memtostr reminder paragraph.", 1))),
@@ -532,8 +520,10 @@ def run_self_test() -> int:
         ("failing_find_bit_bench_anchor_checker", lambda root: make_checker_stub(root / FIND_BIT_BENCH_ANCHOR_CHECKER_REL, ok=False)),
         ("missing_bitmap_direct_anchor_checker", lambda root: (root / BITMAP_DIRECT_ANCHOR_CHECKER_REL).unlink()),
         ("failing_bitmap_direct_anchor_checker", lambda root: make_checker_stub(root / BITMAP_DIRECT_ANCHOR_CHECKER_REL, ok=False)),
-        ("missing_direct_anchor_manifest_gate_checker", lambda root: (root / DIRECT_ANCHOR_MANIFEST_GATE_REL).unlink()),
-        ("failing_direct_anchor_manifest_gate_checker", lambda root: make_checker_stub(root / DIRECT_ANCHOR_MANIFEST_GATE_REL, ok=False)),
+        ("missing_lane_sequencing_packet_checker", lambda root: (root / LANE_SEQUENCING_PACKET_CHECKER_REL).unlink()),
+        ("failing_lane_sequencing_packet_checker", lambda root: make_checker_stub(root / LANE_SEQUENCING_PACKET_CHECKER_REL, ok=False)),
+        ("missing_lane_sequencing_workflow_checker", lambda root: (root / LANE_SEQUENCING_WORKFLOW_CHECKER_REL).unlink()),
+        ("failing_lane_sequencing_workflow_checker", lambda root: make_checker_stub(root / LANE_SEQUENCING_WORKFLOW_CHECKER_REL, ok=False)),
         ("failing_find_bit_review_checker", lambda root: make_checker_stub(root / FIND_BIT_REVIEW_CHECKER_REL, ok=False)),
         ("failing_rbtree_review_checker", lambda root: make_checker_stub(root / RBTREE_REVIEW_CHECKER_REL, ok=False)),
         ("failing_direct_owner_checker", lambda root: make_checker_stub(root / DIRECT_OWNER_CHECKER_REL, ok=False)),
