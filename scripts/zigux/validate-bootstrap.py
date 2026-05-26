@@ -30,6 +30,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-bootstrap-preflight-sequence.py",
     "scripts/zigux/check-phase2-bootstrap-make-route-sequence.py",
+    "scripts/zigux/check-phase2-bootstrap-compile-packet.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
@@ -106,6 +107,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-bootstrap-preflight-sequence.py",
     "run: python3 scripts/zigux/check-phase2-bootstrap-make-route-sequence.py --self-test",
     "run: python3 scripts/zigux/check-phase2-bootstrap-make-route-sequence.py",
+    "run: python3 scripts/zigux/check-phase2-bootstrap-compile-packet.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-bootstrap-compile-packet.py",
     "run: make -C zigux phase2-toolchain",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
@@ -434,6 +437,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / "scripts/zigux/check-phase2-bootstrap-make-route-sequence.py").unlink()
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-phase2-bootstrap-make-route-sequence.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-bootstrap-compile-packet.py").unlink()
+        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-phase2-bootstrap-compile-packet.py") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
