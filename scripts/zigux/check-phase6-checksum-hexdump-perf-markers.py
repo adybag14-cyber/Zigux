@@ -146,7 +146,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 77
+SELF_TEST_CASE_COUNT = 78
 
 
 class ValidationError(RuntimeError):
@@ -486,7 +486,7 @@ def run_self_test() -> None:
             (
                 PARITY_MANIFEST_PATH,
                 '"key": "hexdump",\n      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": [],',
-                '"key": "hexdump",\n      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": ["zigux/tests/phase6_hexdump_route_refresh.zig"],',
+                '"key": "hexdump",\n      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": ["zigux/tests/phase6_hexdump_route_refresh.zig"]',
                 "hexdump parity still_missing_direct_companions drifted",
             ),
             (PARITY_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-22"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-parity surveyed_head drifted"),
@@ -501,6 +501,7 @@ def run_self_test() -> None:
             (PARITY_MANIFEST_PATH, '"max_slowdown_pct": 600', '"max_slowdown_pct": 650', "hexdump 16B-ascii-g8 max_slowdown_pct drifted"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-checksum-perf-matrix-test"', '"make -C zigux phase6-checksum-test"', "phase6-checksum-perf-matrix-test"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-checksum-perf"', '"make -C zigux phase6-checksum-test"', "phase6-checksum-perf"),
+            (PARITY_MANIFEST_PATH, '"linux_style_rerun_routes": [\n          "make -C zigux phase6-checksum-perf-matrix-test",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-perf"\n        ]', '"linux_style_rerun_routes": [\n          "make -C zigux phase6-checksum-perf-matrix-test",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-perf"\n        ]', "duplicate rerun route: make -C zigux phase6-checksum-perf"),
             (PARITY_MANIFEST_PATH, '"linux_style_rerun_routes": [\n          "make -C zigux phase6-checksum-perf-matrix-test",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-perf"\n        ]', '"linux_style_rerun_routes": [\n          "make -C zigux phase6-checksum-perf-matrix-test",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-checksum-test"\n        ]', "phase6-perf"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-hexdump-review"', '"make -C zigux phase6-hexdump-scan"', "phase6-hexdump-review"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf-matrix-test"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf-matrix-test"),
