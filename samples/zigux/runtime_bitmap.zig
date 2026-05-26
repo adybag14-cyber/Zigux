@@ -775,3 +775,27 @@ test "runtime bitmap sample rejects re-init after exit without disturbing lifecy
     try std.testing.expect(module.isSet(70));
     try std.testing.expectEqual(@as(?u32, 70), module.nthSetBit(3));
 }
+
+test "runtime bitmap sample rejects out-of-range direct init arrays without leaving the cold state" {
+    var module = RuntimeBitmapSample{};
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        module.initWithSetBits(&.{ 0, RuntimeBitmapSample.bitmap_nbits }),
+    );
+
+    const summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.cold, module.stage());
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
+    try std.testing.expectEqual(@as(usize, 0), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+    try std.testing.expect(!module.isSet(0));
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(0));
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        try module.countSetBitsInRange(0, RuntimeBitmapSample.bitmap_nbits),
+    );
+}
