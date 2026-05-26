@@ -8,27 +8,30 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKER = (
-    ROOT
-    / "scripts"
-    / "zigux"
-    / "check-phase2-cross-direct-tool-manifest-validator-contract.py"
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-direct-tool-manifest-validator-contract.py"
 )
 
 REQUIRED_SOURCE_MARKERS = (
-    'VALIDATE = ROOT / "scripts" / "zigux" / "validate-phase2.py"',
-    'WORKFLOW_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-direct-tool-manifest-workflow.py"',
-    'WORKFLOW_ALIGNMENT = (',
-    'REQUIRED_PATHS = (',
-    'REQUIRED_VALIDATE_MARKERS = (',
-    'print("PHASE2_CROSS_DIRECT_TOOL_MANIFEST_VALIDATOR_CONTRACT=pass")',
+    'PATH_PRECEDING_MARKER =',
+    'PATH_DIRECT_MARKERS = (',
+    'PATH_FOLLOWING_MARKER =',
+    'WORKFLOW_PRECEDING_MARKER = (',
+    'WORKFLOW_DIRECT_MARKERS = (',
+    'WORKFLOW_FOLLOWING_MARKER = (',
+    'ORDER_MARKERS = (',
+    'index_map = line_index_map(validate_text, ORDER_MARKERS)',
+    'issues.append(("INVALID_VALIDATE_MARKER_ORDER", ",".join(ORDER_MARKERS)))',
+    'print("PHASE2_CROSS_DIRECT_TOOL_MANIFEST_VALIDATOR_CONTRACT_ORDER_MARKER_COUNT="',
     'print("PHASE2_CROSS_DIRECT_TOOL_MANIFEST_VALIDATOR_CONTRACT_SELF_TEST=pass")',
 )
 
 REQUIRED_CASE_MARKERS = (
     'write_text(resolve_path(root, VALIDATE), "CHECKS = ()\\n")',
-    'REQUIRED_VALIDATE_MARKERS + (REQUIRED_VALIDATE_MARKERS[0],)',
-    'for path in REQUIRED_PATHS[1:]:',
-    'resolve_path(root, VALIDATE).unlink()',
+    '"\\n".join((PATH_PRECEDING_MARKER, *PATH_DIRECT_MARKERS, PATH_DIRECT_MARKERS[0]))',
+    'moved = lines.pop(lines.index(PATH_DIRECT_MARKERS[0]))',
+    'lines.insert(lines.index(PATH_FOLLOWING_MARKER), moved)',
+    'moved = lines.pop(lines.index(WORKFLOW_DIRECT_MARKERS[-1]))',
+    'lines.insert(lines.index(WORKFLOW_PRECEDING_MARKER), moved)',
 )
 
 
