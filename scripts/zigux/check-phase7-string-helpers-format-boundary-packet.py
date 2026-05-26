@@ -85,7 +85,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -193,6 +193,36 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        checker_marker = "PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET_SELF_TEST=pass"
+        remove_once(checker_path, checker_marker)
+        expect_missing_marker(
+            "missing_checker_selftest_pass_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = 'print("PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET=pass")'
+        remove_once(checker_path, checker_marker)
+        expect_missing_marker(
+            "missing_checker_pass_output",
+            tmp_root,
+            f"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        checker_marker = 'print("PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET=fail")'
+        remove_once(checker_path, checker_marker)
+        expect_missing_marker(
+            "missing_checker_fail_output",
+            tmp_root,
+            f"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py: {checker_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         checker_marker = "MISSING_PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_FILES_START"
         remove_once(checker_path, checker_marker)
         expect_missing_marker(
@@ -265,6 +295,16 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        manifest_marker = FOLLOW_ON_MARKER
+        remove_once(manifest_path, manifest_marker)
+        expect_missing_marker(
+            "missing_manifest_follow_on_marker",
+            tmp_root,
+            f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         replay_marker = 'test "phase 7 string helper format boundary keeps the trace-events formatting companion as the only sample-root exception" {'
         remove_once(format_boundary_path, replay_marker)
         expect_missing_marker(
@@ -301,6 +341,28 @@ def run_self_test() -> None:
             "missing_format_boundary_vsprintf_marker",
             tmp_root,
             f"zigux/tests/phase7_string_helpers_format_boundary.zig: {replay_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        sample_boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
+        sample_boundary_marker = FORMAT_BOUNDARY_SENTENCE
+        remove_once(sample_boundary_path, sample_boundary_marker)
+        expect_missing_marker(
+            "missing_sample_boundary_format_sentence",
+            tmp_root,
+            f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {sample_boundary_marker}",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        samples_readme_path = tmp_root / "samples" / "zigux" / "README.md"
+        samples_readme_marker = FORMAT_BOUNDARY_SENTENCE
+        remove_once(samples_readme_path, samples_readme_marker)
+        expect_missing_marker(
+            "missing_samples_readme_format_sentence",
+            tmp_root,
+            f"samples/zigux/README.md: {samples_readme_marker}",
         )
         cases_run += 1
 
