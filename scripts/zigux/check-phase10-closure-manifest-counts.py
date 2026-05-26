@@ -302,6 +302,18 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
+        broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] = [item for item in broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] if item != 'zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig']
+        write_manifest(broken)
+        expect_contains(validate(root)[1], "roadmap_parity_scoreboard:lab_only_driver_validation:'zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig':missing", 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
+        broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] = [item for item in broken['roadmap_parity_scoreboard']['lab_only_driver_validation']['evidence'] if item != 'drivers/virtio/virtio_driver_id.zig']
+        write_manifest(broken)
+        expect_contains(validate(root)[1], "roadmap_parity_scoreboard:lab_only_driver_validation:'drivers/virtio/virtio_driver_id.zig':missing", 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
         del broken['landed_ring_helper_evidence']['zigux/tests/phase10_virtio_ring_manifest.json']
         write_manifest(broken)
         expect_contains(validate(root)[1], 'landed_ring_helper_evidence:zigux/tests/phase10_virtio_ring_manifest.json:missing', 'phase10-manifest-counts-self-test')
