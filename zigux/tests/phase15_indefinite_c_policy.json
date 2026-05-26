@@ -17,6 +17,8 @@
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "Documentation/zigux/phase15-study-only-anchor-accounting.md",
     "Documentation/zigux/README.md",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
   ],
@@ -31,7 +33,7 @@
     },
     {
       "id": "indefinite-c-recordkeeping",
-      "summary": "The stay-in-C record must preserve the roadmap phase, owner fields, blocker evidence, return-to-blocked trigger, and reopen vocabulary.",
+      "summary": "The stay-in-C record must preserve the roadmap phase, owner fields, blocker evidence, return-to-blocked trigger, and the supporting governance-context links.",
       "required_terms": [
         "Linux anchor path",
         "current roadmap phase",
@@ -50,6 +52,8 @@
         "retired_from_active_discussion state",
         "reopen triggers",
         "trigger-specific evidence refresh",
+        "governance lane sequencing link or explicit scope note",
+        "study-only anchor accounting link or explicit freeze-map-anchor confirmation",
         "parity scorecard link or blocker record",
         "explicit non-goals",
         "written rationale"
