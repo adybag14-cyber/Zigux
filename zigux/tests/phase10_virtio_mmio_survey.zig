@@ -120,6 +120,28 @@ test "phase10 virtio mmio survey packet keeps the config-write companion and sli
     );
 }
 
+test "phase10 virtio mmio survey packet keeps the shared review companion aligned with the MMIO packet" {
+    const allocator = std.testing.allocator;
+
+    const review_companion = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    );
+    defer allocator.free(review_companion);
+
+    try expectContains(review_companion, "helper-local MMIO packet anchors:");
+    try expectContains(review_companion, "`Documentation/zigux/phase10-virtio-mmio-survey.md`");
+    try expectContains(review_companion, "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`");
+    try expectContains(review_companion, "`Documentation/zigux/phase10-virtio-mmio-slice.md`");
+    try expectContains(review_companion, "`drivers/virtio/virtio_mmio.zig`");
+    try expectContains(review_companion, "`drivers/virtio/virtio_mmio_verify.zig`");
+    try expectContains(review_companion, "`zigux/tests/phase10_virtio_mmio_manifest.json`");
+    try expectContains(review_companion, "`zigux/tests/phase10_virtio_mmio.zig`");
+    try expectContains(review_companion, "`zigux/tests/phase10_virtio_mmio_survey.zig`");
+    try expectContains(review_companion, "`scripts/zigux/check-phase10-mmio-packet.py`");
+    try expectContains(review_companion, "`zigux/tests/phase10_build.zig`");
+}
+
 test "phase10 virtio mmio survey gate keeps survey-note lane identity, lane sequencing ownership, helper inventory, and risky transport posture explicit" {
     const allocator = std.testing.allocator;
 
