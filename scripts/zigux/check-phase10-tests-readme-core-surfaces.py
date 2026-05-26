@@ -34,6 +34,8 @@ COMPANION_REQUIRED_MARKERS = (
     "`zigux/tests/phase10_virtio_input_teardown_preflight.zig`",
     "`zigux/tests/phase10_virtio_input_teardown_observation.zig`",
     "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`",
+    "`zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`",
+    "`zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`",
     "`zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`",
     "`zigux/tests/phase10_virtio_mmio_manifest.json`",
     "returned shared closure packet anchors: `scripts/zigux/check-phase10-closure-manifest-counts.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_closure_manifest.json`",
@@ -43,7 +45,7 @@ COMPANION_REQUIRED_MARKERS = (
     "Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.",
     "Keep the returned shared validator pair `scripts/zigux/validate-phase10.py` and `scripts/zigux/validate-phase10-closure.py` plus the returned `zigux/Makefile` explicit in that directly re-readable anchor set instead of leaving them visible only in the shared build-gate reminder.",
     "Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig` instead of framing that survey replay as a last-known packet member.",
-    "treat any dedicated MMIO lifecycle replay step as a last-known packet member until a fresh reread rematerializes it.",
+    "Keep that landed apply-observation replay pair framed as helper-local observation evidence rather than transport-backed lifecycle proof.",
     "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet",
     "Wrapper ownership for the input lane stays split:",
     "`drivers/virtio/virtio.zig` owns shared device-status bookkeeping",
@@ -146,7 +148,7 @@ Keep the current bounded virtio closure packet explicit through the shared remin
 - shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-shared-freeze-boundary.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/check-phase10-closure-manifest-counts.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml`
 - directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `zigux/tests/phase10_build.zig`
 - directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_queue_callback_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_status_drain.zig`, `drivers/virtio/virtio_input_teardown_preflight.zig`, `drivers/virtio/virtio_input_teardown_observation.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
-- helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`
+- helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`, `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/check-phase10-mmio-packet.py`, and `zigux/tests/phase10_build.zig`
 - returned shared closure packet anchors: `scripts/zigux/check-phase10-closure-manifest-counts.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_closure_manifest.json`
 - current direct lane readback now rematerializes `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig`
 
@@ -160,7 +162,7 @@ Keep the returned shared validator pair `scripts/zigux/validate-phase10.py` and 
 
 Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig` instead of framing that survey replay as a last-known packet member.
 
-Keep the MMIO helper names `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig` explicit beside `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `scripts/zigux/check-phase10-mmio-packet.py`, and the shared `zigux/tests/phase10_build.zig` gate on the same narrower basis; treat any dedicated MMIO lifecycle replay step as a last-known packet member until a fresh reread rematerializes it.
+Keep the MMIO helper names `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`, `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig` explicit beside `Documentation/zigux/phase10-virtio-mmio-survey.md`, `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `scripts/zigux/check-phase10-mmio-packet.py`, and the shared `zigux/tests/phase10_build.zig` gate on the same narrower basis. Keep that landed apply-observation replay pair framed as helper-local observation evidence rather than transport-backed lifecycle proof.
 
 Keep the returned driver-id pair and those mixed-source returned core companions explicit here, and keep `zigux/tests/phase10_virtio_ring.zig` explicit as the directly re-readable broader ring companion.
 
@@ -533,17 +535,41 @@ Keep the helper-local MMIO replay pair explicit too through `zigux/tests/phase10
     else:
         raise AssertionError("expected missing ring survey gate marker failure")
 
-    missing_mmio_lifecycle_boundary = good_companion.replace(
-        "treat any dedicated MMIO lifecycle replay step as a last-known packet member until a fresh reread rematerializes it.",
-        "treat any dedicated MMIO lifecycle replay step as immediately returned direct evidence.",
+    missing_companion_mmio_apply_replay = good_companion.replace(
+        "`zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`",
+        "`zigux/tests/phase10_virtio_mmio_apply_observation_replay_missing.zig`",
         1,
     )
     try:
-        check_companion_text(missing_mmio_lifecycle_boundary)
+        check_companion_text(missing_companion_mmio_apply_replay)
     except SystemExit as exc:
         assert "companion" in str(exc)
     else:
-        raise AssertionError("expected missing mmio lifecycle boundary marker failure")
+        raise AssertionError("expected companion mmio apply-observation replay marker failure")
+
+    missing_companion_mmio_apply_build = good_companion.replace(
+        "`zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`",
+        "`zigux/tests/build.phase10_virtio_mmio_apply_observation_replay_missing.zig`",
+        1,
+    )
+    try:
+        check_companion_text(missing_companion_mmio_apply_build)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected companion mmio apply-observation build marker failure")
+
+    missing_mmio_observation_boundary = good_companion.replace(
+        "Keep that landed apply-observation replay pair framed as helper-local observation evidence rather than transport-backed lifecycle proof.",
+        "Keep that landed apply-observation replay pair framed as transport-backed lifecycle proof.",
+        1,
+    )
+    try:
+        check_companion_text(missing_mmio_observation_boundary)
+    except SystemExit as exc:
+        assert "companion" in str(exc)
+    else:
+        raise AssertionError("expected missing mmio observation-boundary marker failure")
 
     missing_ring_mmio_lane_split = good_companion.replace(
         "Keep the queue-local `P10-L10` ring freeze-boundary packet distinct from the bounded `P10-L11` MMIO helper packet when shared reviewer-facing reminders refresh, so the returned ring survey, the helper-local MMIO survey, and their blocked risky-transport wording do not collapse back into one generic freeze-boundary bucket.",
@@ -570,7 +596,7 @@ Keep the helper-local MMIO replay pair explicit too through `zigux/tests/phase10
         raise AssertionError("expected missing ring publish-readiness scripts-root marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=32")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
