@@ -60,6 +60,11 @@ def require_line_once(text: str, label: str, line: str) -> list[str]:
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
 
+def workflow_step_names(workflow_text: str) -> list[str]:
+    prefix = "      - name: "
+    return [line[len(prefix) :] for line in workflow_text.splitlines() if line.startswith(prefix)]
+
+
 def require_workflow_step(workflow_text: str, step_name: str, run_command: str) -> list[str]:
     failures: list[str] = []
     failures.extend(
@@ -74,6 +79,15 @@ def require_workflow_step(workflow_text: str, step_name: str, run_command: str) 
     if count != 1:
         failures.append(f"workflow_run:{step_name}:expected=1:actual={count}")
     return failures
+
+
+def require_adjacent_chain(workflow_text: str, step_names: tuple[str, ...]) -> list[str]:
+    names = workflow_step_names(workflow_text)
+    width = len(step_names)
+    for index in range(len(names) - width + 1):
+        if tuple(names[index : index + width]) == step_names:
+            return []
+    return [f"workflow_adjacent_chain:missing:{'->'.join(step_names)}"]
 
 
 def require_order(workflow_text: str, step_names: tuple[str, ...], label: str) -> list[str]:
@@ -207,8 +221,7 @@ def run_self_test() -> int:
             print("phase1-workflow-preflight-self-test:duplicate_preflight_step_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = read_text(root, WORKFLOW_REL)
         old = (
@@ -233,7 +246,9 @@ def run_self_test() -> int:
             print("phase1-workflow-preflight-self-test:preflight_order_not_detected")
             return 1
         case_count += 1
+        build_sample_repo(root)
 
+        workflow_text = read_text(root, WORKFLOW_REL)
     print("PHASE1_WORKFLOW_PREFLIGHT_SELF_TEST=pass")
     print(f"PHASE1_WORKFLOW_PREFLIGHT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
