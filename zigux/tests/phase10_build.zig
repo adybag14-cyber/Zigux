@@ -115,6 +115,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_ring_publish_readiness_module.addImport("virtio_ring", virtio_ring_module);
+    const virtio_ring_reset_readiness_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_ring_reset_readiness.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_ring_reset_readiness_module.addImport("virtio_ring", virtio_ring_module);
 
     const phase10_virtio_input_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input.zig"),
@@ -239,6 +245,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_ring_reset_reuse_module.addImport("virtio_ring", virtio_ring_module);
+
+    const phase10_virtio_ring_reset_readiness_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_ring_reset_readiness.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_ring_reset_readiness_module.addImport("virtio_ring", virtio_ring_module);
+    phase10_virtio_ring_reset_readiness_module.addImport(
+        "virtio_ring_reset_readiness",
+        virtio_ring_reset_readiness_module,
+    );
 
     const phase10_virtio_ring_broken_queue_queue_discipline_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_ring_broken_queue_queue_discipline.zig"),
@@ -395,6 +412,9 @@ pub fn build(b: *std.Build) void {
     const phase10_virtio_ring_reset_reuse_tests = b.addTest(.{ .name = "phase10-virtio-ring-reset-reuse-tests", .root_module = phase10_virtio_ring_reset_reuse_module });
     const run_phase10_virtio_ring_reset_reuse_tests = b.addRunArtifact(phase10_virtio_ring_reset_reuse_tests);
 
+    const phase10_virtio_ring_reset_readiness_tests = b.addTest(.{ .name = "phase10-virtio-ring-reset-readiness-tests", .root_module = phase10_virtio_ring_reset_readiness_module });
+    const run_phase10_virtio_ring_reset_readiness_tests = b.addRunArtifact(phase10_virtio_ring_reset_readiness_tests);
+
     const phase10_virtio_ring_broken_queue_queue_discipline_tests = b.addTest(.{ .name = "phase10-virtio-ring-broken-queue-queue-discipline-tests", .root_module = phase10_virtio_ring_broken_queue_queue_discipline_module });
     const run_phase10_virtio_ring_broken_queue_queue_discipline_tests = b.addRunArtifact(phase10_virtio_ring_broken_queue_queue_discipline_tests);
 
@@ -484,6 +504,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_reset_readiness_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);
