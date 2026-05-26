@@ -609,6 +609,22 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        def drift_ring_survey_note_destination(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for gap in data["gaps"]:
+                if gap.get("id") == "phase10-virtio-ring-survey-note":
+                    gap["zigux_destination"] = "Documentation/zigux/phase10-virtio-ring-survey-missing.md"
+                    break
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_ring_survey_note_destination,
+            f"{MANIFEST_PATH}:gap:phase10-virtio-ring-survey-note:zigux_destination:Documentation/zigux/phase10-virtio-ring-survey-missing.md",
+        )
+        write_fixture(root)
+
         def drift_ring_lab_driver_bridge_status(tmp_root: Path) -> None:
             path = tmp_root / MANIFEST_PATH
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -776,7 +792,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=33")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
