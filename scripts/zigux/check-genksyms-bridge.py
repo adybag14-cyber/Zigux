@@ -522,7 +522,7 @@ def build_self_test_root(root: Path) -> None:
         "phase2-genksyms:\n"
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test\n"
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py\n"
-        "cd $(ZIG) test scripts/zigux/genksyms.zig\n",
+        "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig\n",
     )
     write_text(
         root,
