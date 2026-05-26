@@ -49,19 +49,21 @@ test "phase 15 handoff manifest records the focused replay, scripts-root checker
 
     try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-25", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-26", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-handoff-note-alignment.py", manifest.checker);
-    try std.testing.expectEqual(@as(usize, 37), manifest.present_paths.len);
+    try std.testing.expectEqual(@as(usize, 39), manifest.present_paths.len);
     try std.testing.expectEqual(@as(usize, 0), manifest.still_missing_paths.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.required_markers.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.checker_group_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff_rule_markers.len);
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_alignment_markers.len);
-    try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_step_markers.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_alignment_markers.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.pending_next_step_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.missing_route_markers.len);
 
     try expectSliceContains(manifest.present_paths, "Documentation/zigux/phase15-deep-core-blocker-survey.md");
+    try expectSliceContains(manifest.present_paths, "zigux-alpha/README.md");
+    try expectSliceContains(manifest.present_paths, "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_freeze_map_governance.zig");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_parity_scorecard.json");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_parity_scorecard.zig");
