@@ -306,6 +306,17 @@ def mutate_duplicate(root: Path, relative_path: str, marker: str) -> None:
     path.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
 
+def mutate_missing_file(root: Path, relative_path: str) -> None:
+    (root / relative_path).unlink()
+
+
+def mutate_append_forbidden_fragment(root: Path, relative_path: str, fragment: str) -> None:
+    path = root / relative_path
+    text = path.read_text(encoding="utf-8")
+    suffix = "" if text.endswith("\n") else "\n"
+    path.write_text(text + suffix + fragment + "\n", encoding="utf-8")
+
+
 def mutate_assert_block_reorder(root: Path, relative_path: str, first_line: str) -> list[str]:
     path = root / relative_path
     text = path.read_text(encoding="utf-8")
@@ -347,6 +358,10 @@ def expected_issue(relative_path: str, needle: str, operation: str, block: list[
         return f"{relative_path}:marker_count:{needle}:expected=1:actual=0"
     if operation == "duplicate":
         return f"{relative_path}:marker_count:{needle}:expected=1:actual=2"
+    if operation == "missing_file":
+        return f"missing_file:{relative_path}"
+    if operation == "forbidden":
+        return f"{relative_path}:forbidden:{needle}:actual=1"
     assert block is not None
     return f"{relative_path}:assert_block:{needle}:{block!r}"
 
@@ -405,6 +420,11 @@ def run_self_test() -> int:
         for marker in markers:
             cases.append((f"remove:{relative_path}", relative_path, marker, "remove"))
             cases.append((f"duplicate:{relative_path}", relative_path, marker, "duplicate"))
+    for relative_path in REQUIRED_FILES:
+        cases.append((f"missing_file:{relative_path}", relative_path, "", "missing_file"))
+    for relative_path, fragments in FORBIDDEN_FRAGMENTS.items():
+        for fragment in fragments:
+            cases.append((f"forbidden:{relative_path}:{fragment}", relative_path, fragment, "forbidden"))
     for block in EXPECTED_BLOCKS[BENCH_CHECKER_REL]:
         if len(block) > 2:
             cases.append((f"assert_block:{block[0]}", BENCH_CHECKER_REL, block[0], "assert_block_reorder"))
@@ -418,6 +438,10 @@ def run_self_test() -> int:
                 mutate_remove(root, relative_path, needle)
             elif operation == "duplicate":
                 mutate_duplicate(root, relative_path, needle)
+            elif operation == "missing_file":
+                mutate_missing_file(root, relative_path)
+            elif operation == "forbidden":
+                mutate_append_forbidden_fragment(root, relative_path, needle)
             else:
                 block = mutate_assert_block_reorder(root, relative_path, needle)
             issues = collect_issues(root)
