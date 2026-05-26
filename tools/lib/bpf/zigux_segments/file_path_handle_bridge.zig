@@ -4,9 +4,18 @@ pub const default_proc_fdinfo_root = "/proc/self/fdinfo";
 
 pub const FilePathHandleBridgeError = error{
     EmptyMapName,
+    EmptyFdinfoLine,
+    EmptyFdinfoLineKey,
+    EmptyFdinfoLineValue,
+    MissingFdinfoLineSeparator,
     InvalidProcRoot,
     NameTooLong,
     NegativeFd,
+};
+
+pub const FdinfoLine = struct {
+    key: []const u8,
+    value: []const u8,
 };
 
 pub const ReusedMapNameDisposition = enum {
@@ -55,6 +64,32 @@ pub fn buildProcFdinfoPath(
     return std.fmt.bufPrint(buffer, "{s}/{d}", .{ root, fd }) catch |err| noSpaceToNameTooLong(err);
 }
 
+pub fn parseFdinfoLine(line: []const u8) FilePathHandleBridgeError!FdinfoLine {
+    const trimmed_line = std.mem.trim(u8, line, " \t\r\n");
+    if (trimmed_line.len == 0) {
+        return error.EmptyFdinfoLine;
+    }
+
+    const separator_index = std.mem.indexOfScalar(u8, trimmed_line, ':') orelse {
+        return error.MissingFdinfoLineSeparator;
+    };
+
+    const key = std.mem.trim(u8, trimmed_line[0..separator_index], " \t");
+    if (key.len == 0) {
+        return error.EmptyFdinfoLineKey;
+    }
+
+    const value = std.mem.trim(u8, trimmed_line[separator_index + 1 ..], " \t");
+    if (value.len == 0) {
+        return error.EmptyFdinfoLineValue;
+    }
+
+    return .{
+        .key = key,
+        .value = value,
+    };
+}
+
 fn retainedNameSlice(observed_name: []const u8) FilePathHandleBridgeError!ReusedMapNameSummary {
     if (observed_name.len == 0) {
         return error.EmptyMapName;
@@ -91,7 +126,14 @@ pub fn resolveReusedMapName(
 fn bridgeErrorReturn(err: FilePathHandleBridgeError) i32 {
     return switch (err) {
         error.NameTooLong => -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
-        error.EmptyMapName, error.InvalidProcRoot, error.NegativeFd => -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        error.EmptyMapName,
+        error.EmptyFdinfoLine,
+        error.EmptyFdinfoLineKey,
+        error.EmptyFdinfoLineValue,
+        error.MissingFdinfoLineSeparator,
+        error.InvalidProcRoot,
+        error.NegativeFd,
+        => -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
     };
 }
 
@@ -158,6 +200,28 @@ test "phase8 file-path bridge keeps proc fdinfo errno-shaped return helpers expl
         -@as(i32, @intFromEnum(std.os.linux.E.NAMETOOLONG)),
         buildProcFdinfoPathReturn(&tiny, null, 12345),
     );
+}
+
+test "phase8 file-path bridge keeps fdinfo line splitting outputs stable" {
+    const simple = try parseFdinfoLine("map_flags:\t0x20\n");
+    try std.testing.expectEqualStrings("map_flags", simple.key);
+    try std.testing.expectEqualStrings("0x20", simple.value);
+
+    const padded = try parseFdinfoLine("  max_entries :  1024  \r\n");
+    try std.testing.expectEqualStrings("max_entries", padded.key);
+    try std.testing.expectEqualStrings("1024", padded.value);
+
+    const extra_colon = try parseFdinfoLine("map_name:\tstats:rx\n");
+    try std.testing.expectEqualStrings("map_name", extra_colon.key);
+    try std.testing.expectEqualStrings("stats:rx", extra_colon.value);
+}
+
+test "phase8 file-path bridge keeps fdinfo line parser failures explicit" {
+    try std.testing.expectError(error.EmptyFdinfoLine, parseFdinfoLine(""));
+    try std.testing.expectError(error.EmptyFdinfoLine, parseFdinfoLine(" \t\r\n "));
+    try std.testing.expectError(error.MissingFdinfoLineSeparator, parseFdinfoLine("map_flags 0x20"));
+    try std.testing.expectError(error.EmptyFdinfoLineKey, parseFdinfoLine(" : 0x20"));
+    try std.testing.expectError(error.EmptyFdinfoLineValue, parseFdinfoLine("map_flags:\t "));
 }
 
 test "phase8 file-path bridge keeps reused-map name retention summaries stable" {
