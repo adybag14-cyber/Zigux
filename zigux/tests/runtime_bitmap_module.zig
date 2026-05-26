@@ -192,6 +192,73 @@ test "runtime bitmap sample keeps post-selftest mutation and copy replay explici
     try std.testing.expectEqual(@as(u32, 4), try target.countSetBitsInRange(9, 4));
 }
 
+test "runtime bitmap sample keeps selftested target copy replay explicit at the module boundary" {
+    var source = sample.RuntimeBitmapSample{};
+    try source.initWithSetBits(&.{ 1, 64, 65, 90 });
+    _ = try source.runSelftest();
+    try source.clearRange(64, 1);
+    try source.setRange(70, 2);
+
+    const source_before = source.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, source.stage());
+    try std.testing.expectEqual(@as(u32, 1), source_before.first_set);
+    try std.testing.expectEqual(@as(u32, 0), source_before.first_zero);
+    try std.testing.expectEqual(@as(u32, 5), source_before.weight);
+    try std.testing.expectEqual(@as(usize, 1), source_before.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), source_before.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), source_before.exit_runs);
+
+    var target = sample.RuntimeBitmapSample{};
+    try target.initWithSetBits(&.{ 0, 5, 64, 127 });
+    _ = try target.runSelftest();
+
+    const target_before = target.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, target.stage());
+    try std.testing.expectEqual(@as(u32, 0), target_before.first_set);
+    try std.testing.expectEqual(@as(u32, 4), target_before.weight);
+    try std.testing.expectEqual(@as(usize, 1), target_before.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), target_before.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), target_before.exit_runs);
+
+    try target.copyFrom(&source);
+
+    const source_after = source.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, source.stage());
+    try expectSummaryStable(source_before, source_after);
+    try std.testing.expect(!source.isSet(0));
+    try std.testing.expect(source.isSet(1));
+    try std.testing.expect(!source.isSet(64));
+    try std.testing.expect(source.isSet(65));
+    try std.testing.expect(source.isSet(70));
+    try std.testing.expect(source.isSet(71));
+    try std.testing.expect(source.isSet(90));
+    try std.testing.expectEqual(@as(?u32, 1), source.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 90), source.nthSetBit(4));
+    try std.testing.expectEqual(@as(?u32, null), source.nthSetBit(5));
+
+    const target_after = target.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, target.stage());
+    try std.testing.expectEqual(source_before.first_set, target_after.first_set);
+    try std.testing.expectEqual(source_before.first_zero, target_after.first_zero);
+    try std.testing.expectEqual(source_before.weight, target_after.weight);
+    try std.testing.expectEqual(source_before.nbits, target_after.nbits);
+    try std.testing.expectEqual(target_before.init_runs, target_after.init_runs);
+    try std.testing.expectEqual(target_before.selftest_runs, target_after.selftest_runs);
+    try std.testing.expectEqual(target_before.exit_runs, target_after.exit_runs);
+    try std.testing.expect(!target.isSet(0));
+    try std.testing.expect(target.isSet(1));
+    try std.testing.expect(!target.isSet(64));
+    try std.testing.expect(target.isSet(65));
+    try std.testing.expect(target.isSet(70));
+    try std.testing.expect(target.isSet(71));
+    try std.testing.expect(target.isSet(90));
+    try std.testing.expectEqual(@as(?u32, 1), target.nthSetBit(0));
+    try std.testing.expectEqual(@as(?u32, 90), target.nthSetBit(4));
+    try std.testing.expectEqual(@as(?u32, null), target.nthSetBit(5));
+    try std.testing.expectEqual(@as(u32, 4), try target.countSetBitsInRange(0, 72));
+    try std.testing.expectEqual(@as(u32, 1), try target.countSetBitsInRange(72, 19));
+}
+
 test "runtime bitmap sample keeps source and target lifecycle guards explicit at the module boundary" {
     var cold_source = sample.RuntimeBitmapSample{};
 
