@@ -16,7 +16,7 @@ fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usiz
     );
 }
 
-test "phase 8 file-path-handle bridge manifest keeps the landed helper wording explicit" {
+test "phase 8 file-path-handle bridge manifest keeps the current landed and queued helper wording explicit" {
     const manifest = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/zigux_segments/manifest.json",
@@ -42,27 +42,31 @@ test "phase 8 file-path-handle bridge manifest keeps the landed helper wording e
     );
     try expectContains(
         manifest,
+        "\"id\": \"P8-L13-S13\"",
+    );
+    try expectContains(
+        manifest,
         "\"surveyed_commit\": \"3fbd40a49963769118cb15f2aadfc175540c833d\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"fdinfo-map-info-helpers\", \"status\": \"starter_landed\"",
+        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"blocked_on_fdinfo_parser_materialization\"",
     );
     try expectContains(
         manifest,
-        "\"why_now\": \"The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.\"",
+        "\"why_now\": \"The shared file-path bridge destination is now materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers are still queued, so this slice must stay explicit as partially landed rather than complete.\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"map-reuse-compatibility\", \"status\": \"starter_landed\"",
+        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"blocked_on_reuse_comparison_materialization\"",
     );
     try expectContains(
         manifest,
-        "\"why_now\": \"The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\"",
+        "\"why_now\": \"The shared bridge file now carries bounded reused-map name retention, but the helper-only compatibility observation, flag normalization, and mismatch reporting work remains queued, so the segment cannot yet be reported as fully landed on master.\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"file-path-and-handle-bridge\", \"status\": \"deferred_high_risk\", \"kind\": \"resource_boundary\"",
+        "\"slug\": \"file-path-and-handle-bridge\",\n      \"status\": \"deferred_high_risk\",\n      \"kind\": \"resource_boundary\"",
     );
     try expectContains(
         manifest,
@@ -70,7 +74,15 @@ test "phase 8 file-path-handle bridge manifest keeps the landed helper wording e
     );
     try expectContains(
         manifest,
-        "\"why_now\": \"The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects.\"",
+        "\"slug\": \"fdinfo-path-and-reuse-name-footholds\",\n      \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "\"why_now\": \"This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred.\"",
+    );
+    try expectContains(
+        manifest,
+        "\"why_now\": \"Master now materializes the shared bridge file for stable path-shaping and name-retention outputs, while the remaining fdinfo parser and reuse-comparison packet stays explicit as queued groundwork instead of being overstated as complete.\"",
     );
     try expectContains(
         manifest,
