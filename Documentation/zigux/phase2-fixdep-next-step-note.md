@@ -21,6 +21,7 @@ Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-imple
 ## Survey result
 
 - The older same-lane reminder drift around supposedly missing fixdep governance, wrapper, and fixture coverage is now closed by current repo evidence.
+- The direct Phase 2 gate is truthful again: `scripts/zigux/check-phase2-fixdep-gate.py` now pins the full twenty-four-test helper-local surface, including the CRLF escaped-colon concatenated-target survivor, alongside the live workflow, Makefile, fixture, and closure markers.
 - The current diff-and-artifact packet is truthful again: `scripts/zigux/check-fixdep-diff.py` now validates the Zig helper path, the thirteen-case fixture roster, the committed expected-output files, and deterministic repeat runs without depending on a readable `scripts/basic/fixdep.c` path.
 - The live helper-local test surface is also broad enough that this lane does not currently have an honest parser-side or expected-output-side reopen signal.
 - Widening this lane into parser behavior, expected-output growth, or shared Phase 2 reminder maintenance would skip over the honest current result, which is to keep the lane parked until a fresh fixdep-local failure appears.
