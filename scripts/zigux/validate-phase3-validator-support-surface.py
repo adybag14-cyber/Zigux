@@ -93,6 +93,8 @@ SELF_TEST_NOTE_MARKERS = (
     "That adjacent low-level-wrapper packet now keeps `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/helpers/unsafe_policy.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `make -C zigux phase3-low-level-wrappers-test` directly readable on current `master`, but those returned wrapper-local surfaces should stay adjacent here instead of being promoted into broader validator support.",
     "`Documentation/zigux/README.md` now keeps the validator-support, `err_ptr` / `xarray`, bitmap/cpumask, list/hlist, `xarray_slot`, shared catalog companion, and bounded export/UAPI plus header-family reminder surfaces explicit beside the starter, policy, low-level-wrapper, and layout-replay packet, so keep any broader shared-summary follow-through parked unless a fresh reread reopens same-packet drift on current `master`.",
     "`scripts/zigux/README.md` now keeps the returned bitmap/cpumask and list/hlist helper slices explicit beside the shared ABI manifest companion, export/UAPI layout replay pair, named Linux-side boundary-header helper family, and direct C smoke proof, so keep any broader shared-summary follow-through parked unless a fresh reread reopens same-packet drift on current `master`.",
+    "records the separately landed linux-header governance note without promoting it into broader validator support",
+    "records the separately landed low-level-wrapper packet without promoting it into broader validator support",
     "records the separately landed header-family survey follow-through without promoting it into broader validator support",
 )
 
