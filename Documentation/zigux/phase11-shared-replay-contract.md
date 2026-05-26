@@ -102,9 +102,9 @@ reminder stack listed above.
   routes, 2 focused direct build replays, and 11 HVC current-head exact command
   markers, while `python3 scripts/zigux/validate-phase11.py --self-test`,
   `scripts/zigux/validate-phase11.py`, and `make -C zigux phase11-validate`
-  keep the broader matrix-gap, focused direct replay, targetless-unregister,
-  DesignWare, bcm2835, and gpio checker chain explicit beside that narrower
-  inventory packet.
+  keep the broader matrix-gap, cleanup-prerequisite, focused direct replay,
+  targetless-unregister, DesignWare, bcm2835, and gpio checker chain explicit
+  beside that narrower inventory packet.
   The same shared validator packet and `make -C zigux phase11-validate`
   wrapper now cover thirteen focused proof builds through
   `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`,
@@ -148,6 +148,7 @@ deterministic and reviewable:
   `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py --self-test`,
   `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`,
   `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test`,
+  `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`,
   `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py --self-test`,
   `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py --self-test`,
   and `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py --self-test`
@@ -162,6 +163,7 @@ deterministic and reviewable:
   `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`,
   `python3 scripts/zigux/check-phase11-header-boundary-packet.py`,
   `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
+  `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`,
   `python3 scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
   `python3 scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`,
   and `python3 scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
@@ -224,10 +226,12 @@ route:
   `Documentation/zigux/phase11-hvc-console-survey.md`,
   `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,
   `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
+  `Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`,
   `drivers/tty/hvc/hvc_console.zig`,
   `scripts/zigux/check-phase11-build-inventory.py`,
   `scripts/zigux/check-phase11-focused-direct-build-replays.py`,
   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
+  `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`,
   `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`,
   `zigux/tests/fixtures/phase11_build_inventory.json`,
   `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
