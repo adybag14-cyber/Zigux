@@ -235,7 +235,7 @@ VALID_CASES_PAYLOAD = {
     ]
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def read_text(path: Path) -> str:
@@ -736,6 +736,15 @@ def run_self_test() -> int:
         payload["conf_cases"][6].pop("allconfig")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         assert any(code == "CONF_CASE_ALLCONFIG_OVERRIDE_PACKET_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        cases_path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = read_json(cases_path)
+        assert isinstance(payload, dict)
+        payload["conf_cases"][1].pop("nosilentupdate")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONF_CASE_SYNCCONFIG_ENV_PACKET_MISMATCH" for code, _ in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
