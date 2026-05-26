@@ -36,7 +36,29 @@ REQUIRED_LANDED_CORE_HELPER_EVIDENCE = {'zigux/tests/phase10_virtio_core_manifes
 REQUIRED_LANDED_RING_HELPER_EVIDENCE = {'zigux/tests/phase10_virtio_ring_manifest.json': ['phase10-virtqueue-shape-helper', 'phase10-used-buffer-polling-helper', 'phase10-callback-enable-helper', 'phase10-callback-delay-helper', 'phase10-notify-prepare-helper', 'phase10-notification-data-summary-helper', 'phase10-broken-queue-poll-guard', 'phase10-queue-publish-readiness-helper', 'phase10-queue-reset-helper', 'phase10-queue-reset-readiness-helper', 'phase10-ring-verify-replay', 'phase10-virtio-ring-slice-note']}
 REQUIRED_LANDED_INPUT_HELPER_EVIDENCE = {'zigux/tests/phase10_virtio_input_manifest.json': ['phase10-virtio-input-capability-setup-helper', 'phase10-virtio-input-multitouch-slot-helper', 'phase10-virtio-input-probe-preflight-helper', 'phase10-virtio-input-teardown-preflight-helper', 'phase10-virtio-input-teardown-observation-helper', 'phase10-virtio-input-registration-preflight-helper', 'phase10-virtio-input-queue-callback-preflight-helper', 'phase10-virtio-input-status-drain-helper']}
 REQUIRED_LANDED_MMIO_HELPER_EVIDENCE = {'zigux/tests/phase10_virtio_mmio_manifest.json': ['phase10-virtio-mmio-lab-helper', 'phase10-mmio-transport-identity-helper', 'phase10-mmio-probe-preflight-helper', 'phase10-mmio-selected-queue-readiness-helper', 'phase10-mmio-interrupt-ack-disposition-helper', 'phase10-mmio-feature-negotiation-summary-helper', 'phase10-mmio-config-write-plan-freshness-helper', 'phase10-mmio-config-write-disposition-helper', 'phase10-mmio-config-write-apply-observation-helper']}
-REQUIRED_FOCUSED_HARNESS_REPLAYS = {'zigux/tests/phase10_virtio_driver_id.zig': ['phase10 driver-id review path replay'], 'zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig': ['phase10 core interrupt-compound-ack replay'], 'zigux/tests/phase10_virtio_core_reset_queue.zig': ['phase10 core reset-queue replay'], 'drivers/virtio/virtio_ring_publish_readiness.zig': ['phase10 ring publish-readiness wrapper replay'], 'zigux/tests/phase10_virtio_ring_notification_data_readiness.zig': ['phase10 ring notification-data readiness replay'], 'zigux/tests/phase10_virtio_mmio.zig': ['phase10 mmio lab replay'], 'zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig': ['phase10 mmio apply-observation replay'], 'zigux/tests/phase10_virtio_mmio_survey.zig': ['phase10 mmio survey replay']}
+REQUIRED_FOCUSED_HARNESS_REPLAYS = {
+    'zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig': ['phase10 core interrupt-compound-ack replay'],
+    'zigux/tests/phase10_virtio_core_reset_queue.zig': ['phase10 core reset-queue replay'],
+    'zigux/tests/phase10_virtio_driver_id.zig': ['phase10 driver-id review path replay'],
+    'zigux/tests/phase10_virtio_ring.zig': ['phase10 ring broader replay'],
+    'zigux/tests/phase10_virtio_ring_notification_data_readiness.zig': ['phase10 ring notification-data readiness replay'],
+    'zigux/tests/phase10_virtio_ring_registration_replay.zig': ['phase10 ring queue-registration replay'],
+    'zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig': ['phase10 ring prepare-kick idempotence replay'],
+    'zigux/tests/phase10_virtio_ring_reset_reuse.zig': ['phase10 ring drained-reset reuse replay'],
+    'zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig': ['phase10 ring broken-queue queue-discipline replay'],
+    'zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig': ['phase10 ring delayed-callback budget replay'],
+    'zigux/tests/phase10_virtio_input_queue_callback_preflight.zig': ['phase10 input queue-callback-preflight replay'],
+    'zigux/tests/phase10_virtio_input_status_drain.zig': ['phase10 input status-drain replay'],
+    'zigux/tests/phase10_virtio_input_probe_preflight.zig': ['phase10 input probe-preflight replay'],
+    'zigux/tests/phase10_virtio_input_registration_preflight.zig': ['phase10 input registration-preflight replay'],
+    'zigux/tests/phase10_virtio_input_teardown_preflight.zig': ['phase10 input teardown-preflight replay'],
+    'zigux/tests/phase10_virtio_input_teardown_observation.zig': ['phase10 input teardown-observation replay'],
+    'zigux/tests/phase10_virtio_mmio.zig': ['phase10 mmio lab replay'],
+    'zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig': ['phase10 mmio apply-observation replay'],
+    'drivers/virtio/virtio_mmio_verify.zig': ['phase10 mmio wrapper-facing verify replay'],
+    'zigux/tests/phase10_virtio_mmio_survey.zig': ['phase10 mmio survey replay'],
+    'drivers/virtio/virtio_ring_publish_readiness.zig': ['phase10 ring publish-readiness wrapper replay'],
+}
 
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding='utf-8'))
@@ -359,6 +381,18 @@ def run_self_test() -> int:
         broken['cross_phase_scoreboard_boundary']['runtime_starters']['status'] = 'starter_landed'
         write_manifest(broken)
         expect_contains(validate(root)[1], "cross_phase_scoreboard_boundary:runtime_starters:status:'starter_landed'!='out_of_scope'", 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
+        broken['focused_harness_replays']['zigux/tests/phase10_virtio_input_registration_preflight.zig'] = []
+        write_manifest(broken)
+        expect_contains(validate(root)[1], 'focused_harness_replays:zigux/tests/phase10_virtio_input_registration_preflight.zig:missing', 'phase10-manifest-counts-self-test')
+        cases += 1
+        write_fixture(root)
+        broken = copy.deepcopy(original)
+        broken['focused_harness_replays']['drivers/virtio/virtio_mmio_verify.zig'] = []
+        write_manifest(broken)
+        expect_contains(validate(root)[1], 'focused_harness_replays:drivers/virtio/virtio_mmio_verify.zig:missing', 'phase10-manifest-counts-self-test')
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
