@@ -15,6 +15,11 @@ EXPECTED_MANIFEST_LANE_KEY = "P7-L08"
 EXPECTED_MANIFEST_PHASE = "Phase 7"
 EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"
 EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"
+EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (
+    "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker "
+    "truthfulness packet or one bounded parsing replay proof while shared-control routes stay "
+    "parked outside this helper-local lane."
+)
 EXPECTED_REVIEW_SURFACES = [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-cmdline-slice.md",
@@ -142,6 +147,7 @@ REQUIRED_MARKERS = {
         'EXPECTED_MANIFEST_PHASE = "Phase 7"',
         'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"',
         'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"',
+        "EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (",
         "EXPECTED_REVIEW_SURFACES = [",
         "EXPECTED_COVERED_HELPERS = [",
         "EXPECTED_OWNERSHIP_FOCUS = [",
@@ -218,6 +224,9 @@ def collect_missing_manifest_entries(manifest: dict[str, object]) -> list[str]:
     if missing_paths != []:
         missing.append("zigux/tests/phase7_cmdline_manifest.json: missing_paths")
 
+    if manifest.get("next_bounded_step") != EXPECTED_MANIFEST_NEXT_BOUNDED_STEP:
+        missing.append("zigux/tests/phase7_cmdline_manifest.json: next_bounded_step")
+
     return missing
 
 
@@ -265,7 +274,7 @@ def write_fixture_root(tmp_root: Path) -> None:
                 "covered_helpers": EXPECTED_COVERED_HELPERS,
                 "missing_paths": [],
                 "ownership_focus": EXPECTED_OWNERSHIP_FOCUS,
-                "next_bounded_step": "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof while shared-control routes stay parked outside this helper-local lane.",
+                "next_bounded_step": EXPECTED_MANIFEST_NEXT_BOUNDED_STEP,
             },
             indent=2,
         )
@@ -406,14 +415,15 @@ def run_self_test() -> None:
 
         manifest = json.loads(read_text(manifest_path))
         manifest["next_bounded_step"] = (
-            "Keep same-lane follow-through limited to one bounded parsing replay proof "
-            "while shared-control routes stay parked outside this helper-local lane."
+            "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker "
+            "truthfulness packet or one bounded parsing replay proof while sample-root routes stay parked "
+            "outside this helper-local lane."
         )
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_missing_marker(
             "manifest_next_bounded_step_truthfulness_guard",
             tmp_root,
-            "zigux/tests/phase7_cmdline_manifest.json: helper-local survey-manifest-checker truthfulness packet",
+            "zigux/tests/phase7_cmdline_manifest.json: next_bounded_step",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
