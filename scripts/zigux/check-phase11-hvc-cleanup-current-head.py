@@ -77,6 +77,10 @@ MATRIX_MARKERS = (
     "`hvc_hangup()` disconnect",
     "`hvc_remove()` handoff",
     "`hvc_cleanup()` tty-port",
+    "DTR/RTS shutdown",
+    "`wait_until_sent()` carryover",
+    "`close_wait` ownership",
+    "`port_initialized` clearing",
     "`hvc_kick()` wakeup-cue",
     "notifier-irq",
     "modem-control helper summaries reviewable on current `master`",
@@ -339,6 +343,7 @@ def run_self_test() -> int:
         run_check(fixture)
 
         cases = [
+            (SURVEY_PATH, "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`"),
             (SURVEY_PATH, "`.github/workflows/zigux-bootstrap.yml`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-slice.md`"),
@@ -349,8 +354,10 @@ def run_self_test() -> int:
             (SURVEY_PATH, "`zigux/tests/phase11_hvc_modem_control_proof.zig`"),
             (SURVEY_PATH, "`zigux/tests/phase11_hvc_modem_control_proof_build.zig`"),
             (SURVEY_PATH, "`make -C zigux phase11-validate`"),
+            (COMPANION_PATH, "`PHASE11_STATUS=current_head_companion_landed`"),
             (COMPANION_PATH, "`zigux/tests/phase11_hvc_console_manifest.json`"),
             (COMPANION_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
+            (MATRIX_PATH, "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`"),
             (MATRIX_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-survey-packet.py`"),
             (MATRIX_PATH, "flush intent"),
