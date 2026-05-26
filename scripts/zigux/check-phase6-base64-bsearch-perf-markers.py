@@ -82,6 +82,11 @@ EXPECTED_BASE64_LABELS = [
     "IMAP_NO_PAD",
 ]
 EXPECTED_BSEARCH_LABELS = ["len15", "len64", "len1024"]
+EXPECTED_BSEARCH_CASES = [
+    {"label": "len15", "reps": 4000},
+    {"label": "len64", "reps": 2000},
+    {"label": "len1024", "reps": 250},
+]
 EXPECTED_BSEARCH_C_ABI_REPLAYS = [
     "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
     "zigux/tests/phase6_bsearch_c_abi_budget.zig",
@@ -95,7 +100,7 @@ EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
 EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 
-SELF_TEST_CASE_COUNT = 51
+SELF_TEST_CASE_COUNT = 53
 
 
 class ValidationError(RuntimeError):
@@ -227,6 +232,8 @@ def validate_evidence_manifest(path: Path) -> None:
     bsearch_perf = bsearch.get("current_perf_evidence")
     if not isinstance(bsearch_perf, dict):
         raise ValidationError("bsearch current_perf_evidence missing from helper-evidence manifest")
+    if bsearch_perf.get("cases") != EXPECTED_BSEARCH_CASES:
+        raise ValidationError("bsearch evidence perf cases drifted")
     if bsearch_perf.get("case_labels") != EXPECTED_BSEARCH_LABELS:
         raise ValidationError("bsearch evidence perf labels drifted")
     if bsearch_perf.get("query_count") != 16:
@@ -297,6 +304,8 @@ def validate_parity_manifest(path: Path) -> None:
     require_checker_surfaces(bsearch, "bsearch", REQUIRED_BSEARCH_CHECKER_SURFACES)
     if bsearch_perf.get("budget_model") != "comparison_budget":
         raise ValidationError("bsearch budget model drifted")
+    if bsearch_perf.get("cases") != EXPECTED_BSEARCH_CASES:
+        raise ValidationError("bsearch perf cases drifted")
     if bsearch_perf.get("case_labels") != EXPECTED_BSEARCH_LABELS:
         raise ValidationError("bsearch perf labels drifted")
     if bsearch_perf.get("query_count") != 16:
@@ -367,6 +376,7 @@ def scaffold_repo(root: Path) -> None:
                         "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
                         "focused_c_abi_replays": EXPECTED_BSEARCH_C_ABI_REPLAYS,
                         "current_perf_evidence": {
+                            "cases": EXPECTED_BSEARCH_CASES,
                             "case_labels": EXPECTED_BSEARCH_LABELS,
                             "query_count": 16,
                             "budget_formula": EXPECTED_BSEARCH_BUDGET_FORMULA,
@@ -413,6 +423,7 @@ def scaffold_repo(root: Path) -> None:
                         "checker_surfaces": REQUIRED_BSEARCH_CHECKER_SURFACES,
                         "current_perf_evidence": {
                             "budget_model": "comparison_budget",
+                            "cases": EXPECTED_BSEARCH_CASES,
                             "case_labels": EXPECTED_BSEARCH_LABELS,
                             "query_count": 16,
                             "bound_budget_formula": EXPECTED_BSEARCH_BOUND_BUDGET_FORMULA,
@@ -750,6 +761,18 @@ def run_self_test() -> None:
             root,
             lambda: mutate_text(
                 root / EVIDENCE_MANIFEST_PATH,
+                '"cases": [\n          {\n            "label": "len15",\n            "reps": 4000\n          },\n          {\n            "label": "len64",\n            "reps": 2000\n          },\n          {\n            "label": "len1024",\n            "reps": 250\n          }\n        ]',
+                '"cases": [{"label": "len15", "reps": 4000}, {"label": "len64", "reps": 2000}]',
+            ),
+            "bsearch evidence perf cases drifted",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / EVIDENCE_MANIFEST_PATH,
                 '"case_labels": [\n          "len15",\n          "len64",\n          "len1024"\n        ]',
                 '"case_labels": ["len15", "len64"]',
             ),
@@ -994,6 +1017,18 @@ def run_self_test() -> None:
                 '"zig build phase6-bsearch-bench --build-file zigux/tests/phase6_build.zig"',
             ),
             "bsearch rerun route missing",
+        )
+        cases_run += 1
+        scaffold_repo(root)
+
+        expect_failure(
+            root,
+            lambda: mutate_text(
+                root / PARITY_MANIFEST_PATH,
+                f'"cases": {json.dumps(EXPECTED_BSEARCH_CASES)}',
+                '"cases": [{"label": "len15", "reps": 4000}, {"label": "len64", "reps": 2000}]',
+            ),
+            "bsearch perf cases drifted",
         )
         cases_run += 1
         scaffold_repo(root)
