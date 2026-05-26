@@ -249,6 +249,67 @@ test "list sort accepts boolean-style comparator" {
     try std.testing.expectEqualSlices(usize, &.{ 1, 3, 0, 2, 4 }, ordinals[0..idx]);
 }
 
+test "list sort preserves stable order after detach and relink before resort" {
+    const Entry = struct {
+        key: i32,
+        ordinal: usize,
+        node: ListHead = .{},
+    };
+
+    const cmp = struct {
+        fn less(_: ?*anyopaque, a: *const ListHead, b: *const ListHead) i32 {
+            const lhs: *const Entry = @fieldParentPtr("node", a);
+            const rhs: *const Entry = @fieldParentPtr("node", b);
+            if (lhs.key < rhs.key) return -1;
+            if (lhs.key > rhs.key) return 1;
+            return 0;
+        }
+    }.less;
+
+    var head: ListHead = .{};
+    head.init();
+    var entries = [_]Entry{
+        .{ .key = 3, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 2, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+        .{ .key = 2, .ordinal = 5 },
+    };
+
+    for (&entries) |*entry| listAddTail(&entry.node, &head);
+    listSort(null, &head, cmp);
+
+    listDel(&entries[4].node);
+    try std.testing.expect(entries[4].node.next == null);
+    try std.testing.expect(entries[4].node.prev == null);
+    listDel(&entries[3].node);
+    try std.testing.expect(entries[3].node.next == null);
+    try std.testing.expect(entries[3].node.prev == null);
+
+    listAdd(&entries[4].node, &head);
+    listAddTail(&entries[3].node, &head);
+    listSort(null, &head, cmp);
+
+    var keys: [6]i32 = undefined;
+    var ordinals: [6]usize = undefined;
+    var idx: usize = 0;
+    var current = head.next;
+    while (current != &head) : (current = current.?.next) {
+        const entry: *const Entry = @fieldParentPtr("node", current.?);
+        keys[idx] = entry.key;
+        ordinals[idx] = entry.ordinal;
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+        idx += 1;
+    }
+
+    try std.testing.expectEqualSlices(i32, &.{ 1, 1, 2, 2, 3, 3 }, keys[0..idx]);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 3, 2, 5, 4, 0 }, ordinals[0..idx]);
+    try std.testing.expect(head.next == &entries[1].node);
+    try std.testing.expect(head.prev == &entries[0].node);
+}
+
 test "list sort honors comparator context" {
     const Entry = struct {
         key: i32,
