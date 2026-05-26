@@ -135,6 +135,13 @@ test "phase 7 cmdline companion replays quoted argument splitting and memparse b
     try std.testing.expectEqualStrings("", leading_plus.rest);
 }
 
+test "phase 7 cmdline companion replays quoted leading-equals bare-token alias parity" {
+    const parsed = cmdline.next_arg("\"=ttyS0\" tail");
+    try std.testing.expectEqualStrings("=ttyS0", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
+
 test "phase 7 cmdline companion replays leading-plus fallback boundaries" {
     const incomplete_hex = cmdline.memparse("+0x");
     try std.testing.expectEqual(@as(u64, 0), incomplete_hex.value);
