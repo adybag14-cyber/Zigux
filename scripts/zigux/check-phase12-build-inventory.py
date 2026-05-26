@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path(".")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 FIXTURE_PATH = Path("zigux/tests/fixtures/phase12_build_inventory.json")
 
@@ -28,7 +28,16 @@ TEST_RE = re.compile(
     r'\.root_module\s*=\s*([A-Za-z0-9_]+)\s*,',
     re.S,
 )
-DEPEND_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+STEP_RE = re.compile(
+    r'const\s+([A-Za-z0-9_]+)\s*=\s*b\.step\(\s*'
+    r'"([^"]+)"\s*,\s*"([^"]+)"\s*,?\s*\);',
+    re.S,
+)
+SMOKE_DEPEND_RE = re.compile(r"smoke_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+TEST_DEPEND_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+THROUGHPUT_DEPEND_RE = re.compile(
+    r"throughput_parity_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);"
+)
 
 
 def load_json(path: Path) -> object:
@@ -49,14 +58,21 @@ def render_inventory(build_text: str) -> dict[str, object]:
         for module_name, import_name, imported_module in IMPORT_RE.findall(build_text)
     ]
     tests = TEST_RE.findall(build_text)
+    steps = STEP_RE.findall(build_text)
     return {
         "build_test_names": [test_name for _, test_name, _ in tests],
-        "shared_test_depend_steps": DEPEND_RE.findall(build_text),
+        "shared_smoke_depend_steps": SMOKE_DEPEND_RE.findall(build_text),
+        "shared_test_depend_steps": TEST_DEPEND_RE.findall(build_text),
+        "throughput_anchor_depend_steps": THROUGHPUT_DEPEND_RE.findall(build_text),
         "module_root_source_files": modules,
         "module_imports": imports,
         "test_root_modules": [
             {"test": test_name, "root_module": root_module}
             for _, test_name, root_module in tests
+        ],
+        "build_step_catalog": [
+            {"variable": variable_name, "step": step_name, "description": description}
+            for variable_name, step_name, description in steps
         ],
     }
 
@@ -77,17 +93,26 @@ def validate(root: Path) -> list[str]:
     actual = render_inventory(build_path.read_text(encoding="utf-8"))
 
     build_test_names = actual["build_test_names"]
-    shared_depend_steps = actual["shared_test_depend_steps"]
+    shared_smoke_depend_steps = actual["shared_smoke_depend_steps"]
+    shared_test_depend_steps = actual["shared_test_depend_steps"]
+    throughput_anchor_depend_steps = actual["throughput_anchor_depend_steps"]
+    build_step_catalog = actual["build_step_catalog"]
     test_root_modules = actual["test_root_modules"]
 
     if not build_test_names:
         failures.append("phase12_build_inventory_missing_tests")
-    if len(build_test_names) != len(shared_depend_steps):
-        failures.append("phase12_build_inventory_depend_step_count_mismatch")
+    if not build_step_catalog:
+        failures.append("phase12_build_inventory_missing_steps")
+    if len(build_test_names) != len(shared_smoke_depend_steps):
+        failures.append("phase12_build_inventory_smoke_depend_step_count_mismatch")
+    if len(build_test_names) != len(shared_test_depend_steps):
+        failures.append("phase12_build_inventory_test_depend_step_count_mismatch")
     if len(build_test_names) != len(test_root_modules):
         failures.append("phase12_build_inventory_test_root_count_mismatch")
     if len(set(build_test_names)) != len(build_test_names):
         failures.append("phase12_build_inventory_duplicate_test_name")
+    if len(throughput_anchor_depend_steps) != 1:
+        failures.append("phase12_build_inventory_throughput_anchor_depend_step_mismatch")
 
     if expected != actual:
         failures.append("phase12_build_inventory_mismatch")
@@ -252,6 +277,12 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
     test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
     test_step.dependOn(&run_virtio_net_survey_tests.step);
+
+    const throughput_parity_step = b.step(
+        "phase12-virtio-net-throughput-parity",
+        "Run the Phase 12 virtio_net throughput-parity replay in isolation",
+    );
+    throughput_parity_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
 }
 """
 
@@ -280,7 +311,7 @@ def run_self_test() -> int:
 
         bad_fixture = base / FIXTURE_PATH
         data = load_json(bad_fixture)
-        data["build_test_names"] = data["build_test_names"][:-1]
+        data["build_step_catalog"] = data["build_step_catalog"][:-1]
         bad_fixture.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         failures = validate(base)
         if "phase12_build_inventory_mismatch" not in failures:
@@ -293,6 +324,7 @@ def run_self_test() -> int:
             raise SystemExit(f"expected missing build failure, got {failures!r}")
 
         write_fixture_root(base)
+        (base / BUILD_PATH).writeText if False else None
         (base / BUILD_PATH).write_text(
             'const std = @import("std");\n'
             "pub fn build(b: *std.Build) void {\n"
@@ -303,6 +335,25 @@ def run_self_test() -> int:
         failures = validate(base)
         if "phase12_build_inventory_missing_tests" not in failures:
             raise SystemExit(f"expected missing tests failure, got {failures!r}")
+        if "phase12_build_inventory_missing_steps" not in failures:
+            raise SystemExit(f"expected missing steps failure, got {failures!r}")
+
+        write_fixture_root(base)
+        (base / BUILD_PATH).write_text(
+            (base / BUILD_PATH)
+            .read_text(encoding="utf-8")
+            .replace(
+                "    throughput_parity_step.dependOn(&run_virtio_net_throughput_parity_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate(base)
+        if "phase12_build_inventory_throughput_anchor_depend_step_mismatch" not in failures:
+            raise SystemExit(
+                f"expected throughput anchor mismatch failure, got {failures!r}"
+            )
 
         print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
         print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=4")
@@ -335,6 +386,10 @@ def main() -> int:
     print(
         "PHASE12_BUILD_INVENTORY_MODULE_COUNT="
         f"{len(actual['module_root_source_files'])}"
+    )
+    print(
+        "PHASE12_BUILD_INVENTORY_STEP_COUNT="
+        f"{len(actual['build_step_catalog'])}"
     )
     return 0
 
