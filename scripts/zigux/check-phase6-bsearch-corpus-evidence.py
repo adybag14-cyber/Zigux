@@ -47,6 +47,15 @@ C_PARITY_COMPANIONS = (
     "`zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and "
     "`scripts/zigux/check-phase6-bsearch-c-parity.py`"
 )
+HELPER_EVIDENCE_FOCUSED_C_ABI_REPLAYS = (
+    "- focused C ABI replays: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and "
+    "`zigux/tests/phase6_bsearch_c_abi_budget.zig`"
+)
+HELPER_EVIDENCE_C_PARITY_POSTURE = (
+    "the direct C parity spot check now keeps 17 sorted lookup cases explicit across "
+    "ascending and descending comparator-driven lookups, duplicate hits, heterogeneous "
+    "string-key lookup, and mutable write-through behavior"
+)
 HELPER_POSTURE = (
     "- current posture: direct helper readback is restored across the helper, focused "
     "replay, perf replay, C ABI review routes, direct C parity runner, direct C parity "
@@ -107,9 +116,11 @@ REQUIRED_SNIPPETS = {
     ],
     CATALOG_PATH: [
         "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`",
+        HELPER_EVIDENCE_FOCUSED_C_ABI_REPLAYS,
         "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
         C_PARITY_COMPANIONS,
         "- `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`",
+        HELPER_EVIDENCE_C_PARITY_POSTURE,
         "- `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`",
     ],
     PARITY_CATALOG_PATH: [
@@ -261,7 +272,9 @@ SELF_TEST_CASES = [
     (LIB_PATH, "pub fn firstConst(self: @This(), comptime T: type, items: []const T) ?*const T {", "pub fn firstHead(self: @This(), comptime T: type, items: []const T) ?*const T {"),
     (LIB_PATH, "pub fn bytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {", "pub fn rawBytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {"),
     (CATALOG_PATH, "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`", "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
+    (CATALOG_PATH, HELPER_EVIDENCE_FOCUSED_C_ABI_REPLAYS, "- focused C ABI replays: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` only"),
     (CATALOG_PATH, C_PARITY_COMPANIONS, "- direct C parity companions: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`"),
+    (CATALOG_PATH, HELPER_EVIDENCE_C_PARITY_POSTURE, "the direct C parity spot check now keeps 15 sorted lookup cases explicit across ascending and descending comparator-driven lookups, duplicate hits, heterogeneous string-key lookup, and mutable write-through behavior"),
     (PARITY_CATALOG_PATH, PARITY_HELPER_EVIDENCE_ROW, "- helper-evidence row: `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, `scripts/zigux/check-phase6-bsearch-c-parity.py`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`"),
     (PARITY_CATALOG_PATH, HELPER_POSTURE, "- current posture: direct helper readback is restored across the helper, focused replay, perf replay, C ABI review routes, fixture surface, and slice note"),
     (PARITY_CATALOG_PATH, "PHASE6_BSEARCH_C_PARITY_CASES=17", "PHASE6_BSEARCH_C_PARITY_CASES=15"),
