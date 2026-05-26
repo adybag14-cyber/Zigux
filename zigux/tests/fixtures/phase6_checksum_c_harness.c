@@ -126,6 +126,29 @@ static uint32_t csum_tcpudp_nofold(uint32_t saddr, uint32_t daddr,
 	return partial_bytes((const unsigned char *)"", 0, acc);
 }
 
+static uint32_t read_be32(const unsigned char *bytes)
+{
+	return ((uint32_t)bytes[0] << 24) |
+	       ((uint32_t)bytes[1] << 16) |
+	       ((uint32_t)bytes[2] << 8) |
+	       (uint32_t)bytes[3];
+}
+
+static uint16_t csum_ip_fast_csum(const unsigned char *header, size_t ihl_words)
+{
+	uint64_t sum = 0;
+	size_t len = ihl_words * 4;
+	size_t index;
+
+	for (index = 0; index < len; index += 4)
+		sum += read_be32(header + index);
+
+	while ((sum >> 16) != 0)
+		sum = (sum & 0xffff) + (sum >> 16);
+
+	return (uint16_t)~sum;
+}
+
 static void print_u16_case(const char *kind, const char *name, uint16_t value)
 {
 	printf("%s\t%s\t0x%04x\n", kind, name, value);
@@ -151,6 +174,45 @@ int main(void)
 	static const unsigned char carry_payload[] = { 0xff, 0xff, 0xff, 0xff, 0x7f };
 	static const unsigned char carry_phrase[] = "checksum fragments keep their carry";
 	static const unsigned char udp_payload[] = "zigux checksum";
+	static const unsigned char ipv4_20b[] = {
+		0x45, 0x00, 0x00, 0x3c,
+		0x1c, 0x46, 0x40, 0x00,
+		0x40, 0x06, 0x00, 0x00,
+		0xc0, 0xa8, 0x00, 0x01,
+		0xc0, 0xa8, 0x00, 0xc7,
+	};
+	static const unsigned char ipv4_20b_updated[] = {
+		0x45, 0x00, 0x00, 0x40,
+		0x1c, 0x46, 0x40, 0x00,
+		0x3f, 0x11, 0x00, 0x00,
+		0xc0, 0xa8, 0x00, 0x02,
+		0xc0, 0xa8, 0x00, 0xc7,
+	};
+	static const unsigned char ipv4_24b[] = {
+		0x46, 0x00, 0x00, 0x30,
+		0x12, 0x34, 0x20, 0x00,
+		0x40, 0x11, 0x00, 0x00,
+		0xc0, 0xa8, 0x01, 0x01,
+		0xc0, 0xa8, 0x01, 0x02,
+		0x01, 0x01, 0x00, 0x00,
+	};
+	static const unsigned char ipv4_60b[] = {
+		0x4f, 0x00, 0x00, 0x3c,
+		0xbe, 0xef, 0x40, 0x00,
+		0x40, 0x11, 0x00, 0x00,
+		0xc0, 0x00, 0x02, 0x01,
+		0xc6, 0x33, 0x64, 0x07,
+		0x01, 0x01, 0x94, 0x04,
+		0xde, 0xad, 0xbe, 0xef,
+		0xca, 0xfe, 0xba, 0xbe,
+		0x11, 0x22, 0x33, 0x44,
+		0x55, 0x66, 0x77, 0x88,
+		0x99, 0xaa, 0xbb, 0xcc,
+		0xdd, 0xee, 0xf0, 0x0d,
+		0x10, 0x20, 0x30, 0x40,
+		0x50, 0x60, 0x70, 0x80,
+		0x90, 0xa0, 0xb0, 0xc0,
+	};
 	unsigned char payload[] = { 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
 	unsigned char mutable_ipv4_header[] = {
 		0x45, 0x00, 0x00, 0x3c,
@@ -202,6 +264,24 @@ int main(void)
 	print_u32_case("tcpudp-nofold", "udp pseudo header",
 		       csum_tcpudp_nofold(udp_saddr, udp_daddr, sizeof(udp_payload) - 1, udp_proto,
 					  partial_bytes(udp_payload, sizeof(udp_payload) - 1, 0)));
+
+	print_u16_case("add16", "zero-plus-zero", csum16_add(0x0000, 0x0000));
+	print_u16_case("sub16", "zero-plus-zero", csum16_sub(0x0000, 0x0000));
+	print_u16_case("add16", "saturated-plus-one", csum16_add(0xffff, 0x0001));
+	print_u16_case("sub16", "saturated-plus-one", csum16_sub(0xffff, 0x0001));
+	print_u16_case("add16", "halfword-wrap", csum16_add(0x7fff, 0x8000));
+	print_u16_case("sub16", "halfword-wrap", csum16_sub(0x7fff, 0x8000));
+	print_u16_case("add16", "near-wrap-plus-three", csum16_add(0xfffe, 0x0003));
+	print_u16_case("sub16", "near-wrap-plus-three", csum16_sub(0xfffe, 0x0003));
+
+	print_u16_case("ip-fast-csum", "IPV4_20B", csum_ip_fast_csum(ipv4_20b, 5));
+	print_u16_case("ip-fast-csum-ihl", "IPV4_20B", csum_ip_fast_csum(ipv4_20b, 5));
+	print_u16_case("ip-fast-csum", "IPV4_20B_UPDATED", csum_ip_fast_csum(ipv4_20b_updated, 5));
+	print_u16_case("ip-fast-csum-ihl", "IPV4_20B_UPDATED", csum_ip_fast_csum(ipv4_20b_updated, 5));
+	print_u16_case("ip-fast-csum", "IPV4_24B", csum_ip_fast_csum(ipv4_24b, 6));
+	print_u16_case("ip-fast-csum-ihl", "IPV4_24B", csum_ip_fast_csum(ipv4_24b, 6));
+	print_u16_case("ip-fast-csum", "IPV4_60B", csum_ip_fast_csum(ipv4_60b, 15));
+	print_u16_case("ip-fast-csum-ihl", "IPV4_60B", csum_ip_fast_csum(ipv4_60b, 15));
 
 	print_u32_case("negate", "zero", csum_negate(0x00000000U));
 	print_u32_case("negate", "unit", csum_negate(0x00000001U));
