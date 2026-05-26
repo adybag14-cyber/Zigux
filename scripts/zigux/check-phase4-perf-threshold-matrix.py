@@ -13,7 +13,7 @@ NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 LANE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
-EXPECTED_SELF_TEST_CASES = 14
+EXPECTED_SELF_TEST_CASES = 16
 
 SELF_TEST_MANIFEST = """{
   "atomic64": {
@@ -216,6 +216,12 @@ def run_self_test() -> int:
                 "\"acceptable_limit_sample_count\": 8",
                 "matrix_line_missing:`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit:",
             ),
+            (
+                MANIFEST,
+                "\"acceptable_limit_max_elapsed_ns\": 8192",
+                "\"acceptable_limit_max_elapsed_ns\": 9000",
+                "matrix_line_missing:`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit:",
+            ),
         )
         for rel, old, new, expected_prefix in variants:
             build_fixture_tree(root)
@@ -236,6 +242,11 @@ def run_self_test() -> int:
             (
                 "\"acceptable_limit_sample_count\": 7",
                 "\"acceptable_limit_sample_count\": 8",
+                "matrix_line_missing:`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit:",
+            ),
+            (
+                "\"acceptable_limit_max_elapsed_ns\": 12288",
+                "\"acceptable_limit_max_elapsed_ns\": 13000",
                 "matrix_line_missing:`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` approved local-only acceptable limit:",
             ),
         )
