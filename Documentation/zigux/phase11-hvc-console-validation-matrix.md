@@ -34,6 +34,7 @@ Treat the current matrix packet as:
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
 - `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py`
+- `scripts/zigux/check-phase11-hvc-current-head-manifest.py`
 - `scripts/zigux/validate-phase11.py`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
@@ -48,6 +49,7 @@ Treat the current matrix packet as:
 - `zigux/tests/phase11_hvc_modem_control_proof_build.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap.zig`
 - `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig`
+- `zigux/tests/phase11_hvc_current_head_manifest.json`
 
 Current contents reads stay aligned with the smaller companion stack, so keep
 route claims bounded to `make -C zigux phase11-validate` until `zigux/Makefile`
@@ -64,7 +66,11 @@ focused build route without promoting it into the shared build inventory yet,
 keep the targetless-unregister witness explicitly separate from the smaller
 proof-backed continuity packet, and keep the cleanup-prerequisite parity note
 plus checker explicit as a helper-local teardown reminder rather than a claim
-that live cleanup execution has returned.
+that live cleanup execution has returned. The same matrix packet now keeps
+`zigux/tests/phase11_hvc_current_head_manifest.json` explicit as a
+machine-readable current-head manifest packet, and
+`scripts/zigux/check-phase11-hvc-current-head-manifest.py` fail-closes on its
+lane key, packet surface roster, direct checks, and bounded repo-reality gaps.
 
 ## Failure-Mode Evidence
 
@@ -109,6 +115,10 @@ that live cleanup execution has returned.
   `zigux/tests/fixtures/phase11_validate_checks.json` keep the returned shared
   validator-side manifest, exact-check, and route fan-out evidence explicit for
   the current HVC-facing packet without claiming a dedicated HVC-only validator.
+- `zigux/tests/phase11_hvc_current_head_manifest.json` keeps the same bounded
+  packet machine-readable, including the returned `make -C zigux phase11-validate`
+  route, the current direct proof builds, and the still-missing survey-route
+  and archival helper gaps.
 - `zigux/tests/phase11_hvc_modem_control_proof.zig` and
   `zigux/tests/phase11_hvc_modem_control_proof_build.zig` keep the bounded
   `tiocmget`, `tiocmset`, `dtr_rts`, and `hupcl` teardown distinction explicit
@@ -135,6 +145,9 @@ that live cleanup execution has returned.
 - keep `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py --self-test`
   and `python3 scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`
   explicit as the dedicated teardown-prerequisite reminder guard
+- keep `python3 scripts/zigux/check-phase11-hvc-current-head-manifest.py --self-test`
+  and `python3 scripts/zigux/check-phase11-hvc-current-head-manifest.py`
+  explicit as the machine-readable current-head manifest guard
 - keep `zig build test --build-file zigux/tests/phase11_hvc_modem_control_proof_build.zig`
   explicit as a focused direct-readback proof route outside the shared
   inventory-backed replay contract for now
