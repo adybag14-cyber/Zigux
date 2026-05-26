@@ -169,6 +169,7 @@ SCRIPTS_README_MARKERS = (
     "## Phase 2",
     "the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet",
     "`scripts/zigux/check-genksyms-bridge.py`",
+    "`third_party/README.md`, `scripts/zigux/stage-pinned-zig-archive.py`, `python3 scripts/zigux/stage-pinned-zig-archive.py --self-test`, `scripts/zigux/check-lane05-stage-helper-contract.py`, and `scripts/zigux/check-lane05-stage-helper-selftest.py` keep the staged repo-local archive helper, contract, and self-test packet explicit from the scripts root beside that same shipped Lane 05 local-first archive path",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`zigux/Makefile`",
