@@ -47,7 +47,7 @@ Keep the approved formatting idiom bounded to the current landed reminder packet
 - `scripts/zigux/check-phase5-review-guide-surface.py`
 - `zigux/tests/README.md`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the bounded callback-focus companion is directly readable there too as reviewability help for the same anchor, `Documentation/zigux/phase5-trace-events-sample-survey.md` is directly readable again as a shared reminder surface, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is returned shared build-route evidence again rather than companion-only support, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
+The selected-string plus `iter=%d` cue remains the approved bounded formatting reminder while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the bounded callback-focus companion is directly readable there too as reviewability help for the same anchor, `Documentation/zigux/phase5-trace-events-sample-survey.md` is directly readable again as a shared reminder surface, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is returned shared build-route evidence again rather than companion-only support, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
 
 Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `"iter=12"` and keeps the sample in `.initialized`.
 
@@ -81,7 +81,7 @@ Those checks confirmed this current sample behavior:
 
 ## Review boundary
 
-Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample outside the bounded trace-events companion.
+Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample outside the bounded trace-events companion.
 Current `master` also still ships no standalone Phase 5 `samples/zigux/*string*`, `*kasprintf*`, `*strarray*`, `*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.
 Keep that no-extra-sample boundary separate from the bounded trace-events formatting companion so this note does not blur helper-family reminders into trace-events proof.
 
