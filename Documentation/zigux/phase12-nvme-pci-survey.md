@@ -16,6 +16,7 @@ This note restores the bounded survey packet for `drivers/nvme/host/pci.c` on cu
   - `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
   - `zigux/tests/phase12_nvme_pci_manifest.json`
   - `zigux/tests/phase12_nvme_pci_survey.zig`
+  - `zigux/tests/phase12_nvme_pci_survey_build.zig`
   - `zigux/tests/phase12_nvme_pci.zig`
 
 ## Current-master verification
@@ -24,8 +25,9 @@ This note restores the bounded survey packet for `drivers/nvme/host/pci.c` on cu
 - current `master` carries `drivers/nvme/host/pci_verify.zig`
 - current `master` carries `zigux/tests/phase12_nvme_pci_manifest.json`
 - current `master` carries `zigux/tests/phase12_nvme_pci_build.zig`
+- current `master` carries `zigux/tests/phase12_nvme_pci_survey_build.zig`
 - current `master` carries `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
-- the shared `zigux/tests/phase12_build.zig` route still stays virtio-net-only, so the bounded NVMe packet remains driver-local through the dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`; the dedicated survey gate still stays packet-local beside the manifest and survey note
+- the shared `zigux/tests/phase12_build.zig` route still stays virtio-net-only, so the bounded NVMe packet remains driver-local through the dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig` and the dedicated `phase12-nvme-pci-survey-test` route in `zigux/tests/phase12_nvme_pci_survey_build.zig`; the survey gate still stays packet-local beside the manifest and survey note
 - the truthful runtime boundary is still below live DMA mapping, PRP or SGL construction, blk-mq request ownership, interrupt completion, timeout recovery, and transport-backed queue execution
 
 ## Roadmap gap versus current packet
@@ -41,6 +43,7 @@ The current bounded packet only proves reviewability for:
 - dropped-backlog retirement review
 - rollback-gate review
 - one dedicated direct replay route for the bounded NVMe packet
+- one dedicated survey-build route for the bounded NVMe survey gate
 
 The current bounded packet still does not prove:
 
@@ -53,12 +56,12 @@ The current bounded packet still does not prove:
 
 ## Why this survey matters
 
-The manifest already claims that the survey note and dedicated survey gate are present. Keeping the note aligned with the still-dedicated direct replay and the live stale-PRP ownership vocabulary keeps the packet fail-closed again, so the roadmap gap stays explicit instead of splitting across stale shared-route wording.
+The manifest already claims that the survey note and dedicated survey gate are present. Keeping the note aligned with the still-dedicated direct replay, the new dedicated survey-build rerun, and the live stale-PRP ownership vocabulary keeps the packet fail-closed again, so the roadmap gap stays explicit instead of splitting across stale shared-route wording.
 
 ## Next bounded step
 
 If the NVMe packet moves again, keep the next step inside the same driver-local boundary:
 
 1. refresh the survey note, survey gate, and manifest together
-2. repair one bounded direct replay, dedicated build, or verifier drift if it appears
+2. repair one bounded direct replay, dedicated build, dedicated survey build, or verifier drift if it appears
 3. leave shared-route promotion, throughput evidence, and live transport execution to their own later Phase 12 follow-up lane
