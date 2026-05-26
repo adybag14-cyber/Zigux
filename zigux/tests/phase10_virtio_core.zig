@@ -82,6 +82,37 @@ test "phase10 virtio core queue bookkeeping replay keeps queue selection and con
     try std.testing.expect(queue.queue_bookkeeping_ready);
 }
 
+test "phase10 virtio core observed queue selection replay keeps valid and invalid queue bookkeeping explicit" {
+    var core = try virtio_core.VirtioCoreLab.init(0x1048, 2);
+
+    var queue = core.observeSelectedQueue(@as(?u16, 1));
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", queue.anchor);
+    try std.testing.expectEqual(@as(?u16, 1), queue.selected_queue);
+    try std.testing.expect(queue.selected_queue_valid);
+
+    var model = core.driverModelSummary();
+    try std.testing.expectEqual(virtio_core.DriverModelStage.queue_selected, model.stage);
+    try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, .acknowledge_missing), model.blocker);
+
+    core.setStatusBits(virtio_core.status_acknowledge | virtio_core.status_driver);
+    core.noteFeaturesNegotiated();
+    queue = core.observeSelectedQueue(@as(?u16, 3));
+    try std.testing.expectEqual(@as(?u16, 3), queue.selected_queue);
+    try std.testing.expect(!queue.selected_queue_valid);
+    try std.testing.expect(queue.queue_bookkeeping_ready);
+
+    const guard = core.lifecycleGuardSummary();
+    try std.testing.expect(guard.queue_selected);
+    try std.testing.expect(!guard.queue_selected_valid);
+    try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, .queue_selection_invalid), guard.blocker);
+
+    model = core.driverModelSummary();
+    try std.testing.expectEqual(virtio_core.DriverModelStage.features_negotiated, model.stage);
+    try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, .queue_selection_invalid), model.blocker);
+    try std.testing.expect(!model.queue_registration_ready);
+    try std.testing.expect(!model.driver_ready);
+}
+
 test "phase10 virtio core driver model replay keeps wrapper stages reviewable" {
     var core = try virtio_core.VirtioCoreLab.init(0x1043, 2);
 
