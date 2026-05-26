@@ -25,9 +25,37 @@ pub fn build(b: *std.Build) void {
     const run_nvme_pci_tests = b.addRunArtifact(nvme_pci_tests);
     run_nvme_pci_tests.setCwd(b.path("../.."));
 
+    const nvme_pci_verify_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/nvme/host/pci_verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const nvme_pci_verify_tests = b.addTest(.{
+        .name = "phase12-nvme-pci-verify-test",
+        .root_module = nvme_pci_verify_module,
+    });
+
+    const run_nvme_pci_verify_tests = b.addRunArtifact(nvme_pci_verify_tests);
+
+    const nvme_pci_replay_wrapper_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/nvme/host/pci_replay_reserved_io_queues_test.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const nvme_pci_replay_wrapper_tests = b.addTest(.{
+        .name = "phase12-nvme-pci-replay-wrapper-test",
+        .root_module = nvme_pci_replay_wrapper_module,
+    });
+
+    const run_nvme_pci_replay_wrapper_tests = b.addRunArtifact(nvme_pci_replay_wrapper_tests);
+
     const direct_test_step = b.step(
         "phase12-nvme-pci-direct-test",
-        "Run the direct Phase 12 NVMe PCI replay in isolation",
+        "Run the direct Phase 12 NVMe PCI replay, helper-local wrapper proof, and driver-local verifier in isolation",
     );
     direct_test_step.dependOn(&run_nvme_pci_tests.step);
+    direct_test_step.dependOn(&run_nvme_pci_verify_tests.step);
+    direct_test_step.dependOn(&run_nvme_pci_replay_wrapper_tests.step);
 }
