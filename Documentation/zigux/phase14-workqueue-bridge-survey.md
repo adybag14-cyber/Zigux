@@ -36,11 +36,13 @@ Current direct-readback evidence for the workqueue anchor includes:
   * `Documentation/zigux/phase14-productization-gap-survey.md`
   * `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`
   * `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`
+  * `Documentation/zigux/phase14-compile-shard-matrix-survey.md`
   * `Documentation/zigux/review-checklist.md`
   * `Documentation/zigux/freeze-map.md`
   * `Documentation/zigux/phase15-study-only-anchor-accounting.md`
   * `scripts/zigux/check-phase14-shared-smoke-route.py`
   * `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`
+  * `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`
   * `scripts/zigux/validate-phase14.py`
   * `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
   * `zigux/Makefile`
@@ -50,8 +52,8 @@ Those directly readable surfaces agree on the same bounded message:
   * `kernel/workqueue.c` remains `Study / Boundary Only`
   * the current bridge-local slice is `phase14-workqueue-scheduler-visible-worker-state-refinement`
   * `zigux/tests/phase14_workqueue_reviewability.zig` is the bridge-local reviewability check
-  * the broader shared Phase 14 smoke packet should keep the workqueue boundary shard, the directly readable route checker, the directly readable tests-root reminder checker, the directly readable validator surface, the directly readable release-boundary exact-count guard, and the readable current `zigux/Makefile` posture explicit without overstating bridge-local ownership
-  * the bridge-local trusted rerun stays limited to `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while the broader shared Phase 14 smoke packet now keeps `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and `make -C zigux phase14-validate` explicit as shared packet-local validation rather than direct bridge-local trust gates; the missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers still do not count as current proof
+  * the broader shared Phase 14 smoke packet should keep the workqueue boundary shard, the directly readable route checker, the directly readable tests-root reminder checker, the directly readable rollback-threshold sequencing guard, the directly readable compile-shard matrix survey, the directly readable validator surface, the directly readable release-boundary exact-count guard, and the readable current `zigux/Makefile` posture explicit without overstating bridge-local ownership
+  * the bridge-local trusted rerun stays limited to `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while the broader shared Phase 14 smoke packet now keeps `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and `make -C zigux phase14-validate` explicit as shared packet-local validation rather than direct bridge-local trust gates; the missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers still do not count as current proof
 
 ## Roadmap and freeze-map alignment
 
@@ -115,7 +117,7 @@ The packet is still blocked from claiming:
 The workqueue-local packet should stay aligned with the shared Phase 14 smoke packet on these points:
 
   * the workqueue anchor remains the non-frozen study-only foothold inside Phase 14
-  * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
+  * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `Documentation/zigux/phase14-compile-shard-matrix-survey.md`, `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
   * the bridge-local trusted rerun stays limited to the direct Zig test, while the broader `make -C zigux phase14-validate` route and its shared checker chain remain shared packet-local validation rather than bridge-local trust gates
   * any future same-lane reminder repair should keep the workqueue packet explicit without presenting missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers as current proof unless a fresh reread shows they returned
   * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey until the bridge-local blocked-maintenance handoff is aligned again; leave broader `phase14_build` rerun vocabulary to the shared Phase 14 smoke packet as shared-packet evidence rather than a bridge-local trust promotion signal
