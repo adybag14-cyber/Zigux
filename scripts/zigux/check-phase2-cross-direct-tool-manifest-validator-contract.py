@@ -22,13 +22,36 @@ REQUIRED_PATHS = (
     WORKFLOW_ALIGNMENT,
 )
 
-REQUIRED_VALIDATE_MARKERS = (
+PATH_PRECEDING_MARKER = '    "scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py",'
+PATH_DIRECT_MARKERS = (
     '    "scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py",',
     '    "scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py",',
+)
+PATH_FOLLOWING_MARKER = '    "scripts/zigux/check-phase2-cross-validate-shared-surface.py",'
+WORKFLOW_PRECEDING_MARKER = (
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py",'
+)
+WORKFLOW_DIRECT_MARKERS = (
     '    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py --self-test",',
     '    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py",',
     '    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py --self-test",',
     '    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py",',
+)
+WORKFLOW_FOLLOWING_MARKER = (
+    '    "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test",'
+)
+
+REQUIRED_VALIDATE_MARKERS = (
+    *PATH_DIRECT_MARKERS,
+    *WORKFLOW_DIRECT_MARKERS,
+)
+ORDER_MARKERS = (
+    PATH_PRECEDING_MARKER,
+    *PATH_DIRECT_MARKERS,
+    PATH_FOLLOWING_MARKER,
+    WORKFLOW_PRECEDING_MARKER,
+    *WORKFLOW_DIRECT_MARKERS,
+    WORKFLOW_FOLLOWING_MARKER,
 )
 
 
@@ -56,6 +79,16 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == normalized_marker)
 
 
+def line_index_map(text: str, markers: tuple[str, ...]) -> dict[str, int]:
+    normalized_markers = {marker.strip() for marker in markers}
+    indices: dict[str, int] = {}
+    for index, line in enumerate(text.splitlines()):
+        stripped = line.strip()
+        if stripped in normalized_markers and stripped not in indices:
+            indices[stripped] = index
+    return indices
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
@@ -75,6 +108,21 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_VALIDATE_MARKER", marker))
         elif count != 1:
             issues.append(("DUPLICATE_VALIDATE_MARKER", f"{marker}:count={count}"))
+
+    for anchor in (PATH_PRECEDING_MARKER, PATH_FOLLOWING_MARKER, WORKFLOW_PRECEDING_MARKER, WORKFLOW_FOLLOWING_MARKER):
+        count = count_exact_lines(validate_text, anchor)
+        if count == 0:
+            issues.append(("MISSING_ORDER_ANCHOR", anchor))
+        elif count != 1:
+            issues.append(("DUPLICATE_ORDER_ANCHOR", f"{anchor}:count={count}"))
+
+    if issues:
+        return issues
+
+    index_map = line_index_map(validate_text, ORDER_MARKERS)
+    order_positions = [index_map[marker.strip()] for marker in ORDER_MARKERS]
+    if order_positions != sorted(order_positions):
+        issues.append(("INVALID_VALIDATE_MARKER_ORDER", ",".join(ORDER_MARKERS)))
 
     return issues
 
@@ -96,13 +144,24 @@ def run_check(root: Path) -> int:
         "PHASE2_CROSS_DIRECT_TOOL_MANIFEST_VALIDATOR_CONTRACT_MARKER_COUNT="
         f"{len(REQUIRED_VALIDATE_MARKERS)}"
     )
+    print(
+        "PHASE2_CROSS_DIRECT_TOOL_MANIFEST_VALIDATOR_CONTRACT_ORDER_MARKER_COUNT="
+        f"{len(ORDER_MARKERS)}"
+    )
     return 0
 
 
 def build_sample_root(root: Path) -> None:
-    validate_lines = ["CHECKS = ("]
-    validate_lines.extend(REQUIRED_VALIDATE_MARKERS)
-    validate_lines.append(")")
+    validate_lines = [
+        "CHECKS = (",
+        PATH_PRECEDING_MARKER,
+        *PATH_DIRECT_MARKERS,
+        PATH_FOLLOWING_MARKER,
+        WORKFLOW_PRECEDING_MARKER,
+        *WORKFLOW_DIRECT_MARKERS,
+        WORKFLOW_FOLLOWING_MARKER,
+        ")",
+    ]
     write_text(resolve_path(root, VALIDATE), "\n".join(validate_lines) + "\n")
     write_text(resolve_path(root, WORKFLOW_CHECKER), "# present\n")
     write_text(resolve_path(root, WORKFLOW_ALIGNMENT), "# present\n")
@@ -129,9 +188,27 @@ def run_self_test() -> int:
         write_text(
             validate_path,
             "CHECKS = (\n"
-            + "\n".join(REQUIRED_VALIDATE_MARKERS + (REQUIRED_VALIDATE_MARKERS[0],))
+            + "\n".join((PATH_PRECEDING_MARKER, *PATH_DIRECT_MARKERS, PATH_DIRECT_MARKERS[0]))
             + "\n)\n",
         )
+        assert run_check(root) == 1
+        checks += 1
+
+        build_sample_root(root)
+        validate_path = resolve_path(root, VALIDATE)
+        lines = validate_path.read_text(encoding="utf-8").splitlines()
+        moved = lines.pop(lines.index(PATH_DIRECT_MARKERS[0]))
+        lines.insert(lines.index(PATH_FOLLOWING_MARKER), moved)
+        write_text(validate_path, "\n".join(lines) + "\n")
+        assert run_check(root) == 1
+        checks += 1
+
+        build_sample_root(root)
+        validate_path = resolve_path(root, VALIDATE)
+        lines = validate_path.read_text(encoding="utf-8").splitlines()
+        moved = lines.pop(lines.index(WORKFLOW_DIRECT_MARKERS[-1]))
+        lines.insert(lines.index(WORKFLOW_PRECEDING_MARKER), moved)
+        write_text(validate_path, "\n".join(lines) + "\n")
         assert run_check(root) == 1
         checks += 1
 
