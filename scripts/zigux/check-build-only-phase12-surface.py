@@ -215,6 +215,7 @@ REQUIRED_MARKERS = {
         '"phase12_virtio_net_throughput_parity.zig"',
         '"phase12_virtio_net_survey.zig"',
         '"phase12-virtio-net-survey-tests"',
+        '"phase12-virtio-net-throughput-parity"',
         "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);",
@@ -227,8 +228,10 @@ REQUIRED_MARKERS = {
         "test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);",
         "test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
         "test_step.dependOn(&run_virtio_net_survey_tests.step);",
+        "throughput_parity_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
         "throughput-parity, and survey-gate smoke tests",
         "throughput-parity, and survey-gate tests",
+        "throughput-parity replay in isolation",
     ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 12 build-only surface checker",
@@ -268,7 +271,7 @@ PHASE12_BUILD_EXACT_COUNTS = {
     "b.addRunArtifact(": 6,
     "smoke_step.dependOn(": 6,
     "test_step.dependOn(": 6,
-    "b.step(": 2,
+    "b.step(": 3,
 }
 
 FORBIDDEN_MARKERS = {
@@ -493,6 +496,12 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
     test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
     test_step.dependOn(&run_virtio_net_survey_tests.step);
+
+    const throughput_parity_step = b.step(
+        \"phase12-virtio-net-throughput-parity\",
+        \"Run the Phase 12 virtio_net throughput-parity replay in isolation\",
+    );
+    throughput_parity_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
 }
 """
 
