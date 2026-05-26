@@ -58,6 +58,25 @@ The current parked slice covers:
 - a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector, including the C helper's legacy post-fetch `MAX_ARGS` overflow guard where a terminating null that lands in slot `MAX_ARGS` still fails, plus its required trailing null terminator, without claiming any direct process-launch behavior
 - `buildDeferredExeclCall()` plus the tiny `DeferredExecCall` carrier so the `execl_cmd()` path can now hand off one fully prepared future `execvp()` argv packet without launching a process, waiting for completion, or claiming any queue ownership
 
+## Current roadmap gap
+
+Against the Phase 8 roadmap, the current slice is a helper-first deferred-execution foothold, not a complete tooling-substrate delivery.
+
+What is landed today is the argument and environment preparation packet plus the launch-free deferred carriers.
+What remains intentionally outside this slice is the work needed to turn those carriers into live execution behavior.
+
+The still-open gap stays bounded and explicit:
+
+- no direct `execvp()` parity, child launch, exit-status collection, or process waiting
+- no retry scheduling, timer-backed backoff, timeout handling, or poll-loop ownership around deferred execution
+- no file-descriptor, token, or environment-lifetime ownership beyond the helper-local preparation packet
+- no queue ownership, wakeup routing, worker-pool control, or scheduler-visible execution substrate
+- no handoff into `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other Phase 14 core-adjacent study-only anchor
+
+That comparison is the lane guardrail: the current Phase 8 packet proves Zigux can prepare and carry deferred execution inputs inside repo-hosted tooling, but it does not yet prove that Zigux owns a deferred-execution runtime, a broader task queue, or any workqueue-style execution substrate.
+
+Future follow-up in this lane should therefore stay inside `tools/lib/subcmd/*.zig` reviewability, shared reminder truthfulness, or other helper-first Phase 8 tooling surfaces unless the roadmap explicitly promotes a larger execution owner.
+
 ## Non-goals
 
 This slice still does not claim:
