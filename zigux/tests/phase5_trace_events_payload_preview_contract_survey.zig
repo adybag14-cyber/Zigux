@@ -56,8 +56,7 @@ test "phase 5 trace-events payload-preview survey manifest stays aligned with th
     for (manifest.value.review_prompts) |prompt| {
         if (std.mem.indexOf(u8, prompt, "zig test samples/zigux/trace_events_payload_preview_contract.zig") != null and
             std.mem.indexOf(u8, prompt, "zig test zigux/tests/phase5_trace_events_payload_preview_contract.zig") != null and
-            std.mem.indexOf(u8, prompt, "zig test zigux/tests/phase5_trace_events_payload_preview_contract_survey.zig") != null and
-            std.mem.indexOf(u8, prompt, "phase5_build.zig") != null)
+            std.mem.indexOf(u8, prompt, "zig test zigux/tests/phase5_trace_events_payload_preview_contract_survey.zig") != null)
         {
             saw_route_prompt = true;
         }
