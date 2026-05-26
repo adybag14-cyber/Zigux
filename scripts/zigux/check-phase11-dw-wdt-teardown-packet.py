@@ -356,6 +356,7 @@ def run_self_test() -> None:
             ("restart", RESTART_MARKERS[1]),
             ("restart", RESTART_MARKERS[5]),
             ("verify", VERIFY_MARKERS[2]),
+            ("verify", VERIFY_MARKERS[4]),
             ("pm", PM_MARKERS[8]),
             ("pm", PM_MARKERS[13]),
             ("pm_scaffold", PM_SCAFFOLD_MARKERS[1]),
