@@ -39,6 +39,10 @@ PERF_BUFFER_POLL_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer
 PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
 READY_BUFFER_FD_LOOKUP_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
+ONLINE_CPU_ROUTING_MASK_BRIDGE_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing_mask_bridge.zig")
+ONLINE_CPU_ROUTING_MASK_BRIDGE_VERIFY_SEGMENT = Path(
+    "tools/lib/bpf/zigux_segments/online_cpu_routing_mask_bridge_verify.zig"
+)
 PIN_PATH_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path.zig")
 LOGGING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging_verify.zig")
 ONLINE_CPU_ROUTING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig")
@@ -101,6 +105,8 @@ REQUIRED_FILES = (
     PERF_BUFFER_READY_WINDOW_SEGMENT,
     READY_BUFFER_FD_LOOKUP_SEGMENT,
     ONLINE_CPU_ROUTING_SEGMENT,
+    ONLINE_CPU_ROUTING_MASK_BRIDGE_SEGMENT,
+    ONLINE_CPU_ROUTING_MASK_BRIDGE_VERIFY_SEGMENT,
     PIN_PATH_SEGMENT,
     LOGGING_VERIFY_SEGMENT,
     ONLINE_CPU_ROUTING_VERIFY_SEGMENT,
