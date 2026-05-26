@@ -83,4 +83,4 @@ Current `master` keeps this MMIO lane reviewable through these bounded surfaces:
 These gates should be read as helper-local review evidence, direct lab-driver validation, and shared packet reminders only, not as proof of a transport-backed MMIO driver or a dedicated MMIO lifecycle replay.
 
 ## Next bounded step
-Keep the broader Phase 10 MMIO lane parked unless fresh repo inspection finds one directly coupled follow-through. The next honest same-lane step is to realign `zigux/tests/README.md` with the already-landed `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig` packet while lifecycle-and-IRQ transport work stays blocked.
+Keep the broader Phase 10 MMIO lane parked unless fresh repo inspection finds one directly coupled follow-through. After the tests-root reminder realignment landed, the next honest same-lane step is to compare `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, and `scripts/zigux/check-phase10-mmio-packet.py` for the next equally small reminder-surface or checker truthfulness gap while lifecycle-and-IRQ transport work stays blocked.
