@@ -26,6 +26,17 @@ const PseudoHeaderCase = struct {
     proto: u8,
 };
 
+const Carry16Case = struct {
+    name: []const u8,
+    sum: u16,
+    addend: u16,
+};
+
+const FastPathCase = struct {
+    name: []const u8,
+    header: []const u8,
+};
+
 const compute_cases = [_]ComputeCase{
     .{ .name = "empty", .bytes = "" },
     .{ .name = "two-byte word", .bytes = &[_]u8{ 0x00, 0x01 } },
@@ -55,9 +66,58 @@ const pseudo_header_cases = [_]PseudoHeaderCase{
     .{ .name = "udp pseudo header", .payload = "zigux checksum", .saddr = 0xc0a8_0001, .daddr = 0xc0a8_00c7, .proto = 17 },
 };
 
+const carry16_cases = [_]Carry16Case{
+    .{ .name = "zero-plus-zero", .sum = 0x0000, .addend = 0x0000 },
+    .{ .name = "saturated-plus-one", .sum = 0xffff, .addend = 0x0001 },
+    .{ .name = "halfword-wrap", .sum = 0x7fff, .addend = 0x8000 },
+    .{ .name = "near-wrap-plus-three", .sum = 0xfffe, .addend = 0x0003 },
+};
+
+const fast_path_cases = [_]FastPathCase{
+    .{ .name = "IPV4_20B", .header = &[_]u8{
+        0x45, 0x00, 0x00, 0x3c,
+        0x1c, 0x46, 0x40, 0x00,
+        0x40, 0x06, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x01,
+        0xc0, 0xa8, 0x00, 0xc7,
+    } },
+    .{ .name = "IPV4_20B_UPDATED", .header = &[_]u8{
+        0x45, 0x00, 0x00, 0x40,
+        0x1c, 0x46, 0x40, 0x00,
+        0x3f, 0x11, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x02,
+        0xc0, 0xa8, 0x00, 0xc7,
+    } },
+    .{ .name = "IPV4_24B", .header = &[_]u8{
+        0x46, 0x00, 0x00, 0x30,
+        0x12, 0x34, 0x20, 0x00,
+        0x40, 0x11, 0x00, 0x00,
+        0xc0, 0xa8, 0x01, 0x01,
+        0xc0, 0xa8, 0x01, 0x02,
+        0x01, 0x01, 0x00, 0x00,
+    } },
+    .{ .name = "IPV4_60B", .header = &[_]u8{
+        0x4f, 0x00, 0x00, 0x3c,
+        0xbe, 0xef, 0x40, 0x00,
+        0x40, 0x11, 0x00, 0x00,
+        0xc0, 0x00, 0x02, 0x01,
+        0xc6, 0x33, 0x64, 0x07,
+        0x01, 0x01, 0x94, 0x04,
+        0xde, 0xad, 0xbe, 0xef,
+        0xca, 0xfe, 0xba, 0xbe,
+        0x11, 0x22, 0x33, 0x44,
+        0x55, 0x66, 0x77, 0x88,
+        0x99, 0xaa, 0xbb, 0xcc,
+        0xdd, 0xee, 0xf0, 0x0d,
+        0x10, 0x20, 0x30, 0x40,
+        0x50, 0x60, 0x70, 0x80,
+        0x90, 0xa0, 0xb0, 0xc0,
+    } },
+};
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
-    var stdout_buffer: [2048]u8 = undefined;
+    var stdout_buffer: [4096]u8 = undefined;
     var stdout = std.Io.File.stdout().writer(io, &stdout_buffer);
     const writer = &stdout.interface;
 
@@ -82,6 +142,17 @@ pub fn main(init: std.process.Init) !void {
             "tcpudp-nofold\t{s}\t0x{x:0>8}\n",
             .{ case.name, checksum.tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto) },
         );
+    }
+
+    for (carry16_cases) |case| {
+        try writer.print("add16\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.add16(case.sum, case.addend) });
+        try writer.print("sub16\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.sub16(case.sum, case.addend) });
+    }
+
+    for (fast_path_cases) |case| {
+        const ihl_words: usize = case.header[0] & 0x0f;
+        try writer.print("ip-fast-csum\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.ipFastCsum(case.header) });
+        try writer.print("ip-fast-csum-ihl\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.ipFastCsumIhl(case.header, ihl_words) });
     }
 
     const negate_cases = [_]struct {
