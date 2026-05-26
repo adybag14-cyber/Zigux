@@ -13,14 +13,14 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=1dd8abd8d83aedbfbbae0fc3b1fa6eee5edd047d`
 - `PHASE3_UNSAFE_POLICY_PATH=zigux/helpers/unsafe_policy.zig`
 - `PHASE3_UNSAFE_POLICY_SCOPE=helper-local-unsafe-scope-relay-over-the-shared-narrow-decoder-plus-access-boundary-surface-and-permit-audit-aliases`
-- `PHASE3_UNSAFE_POLICY_BLOB_SHA=ce85af3902cd3aaaa4e88419a66fbd0561b3a364`
+- `PHASE3_UNSAFE_POLICY_BLOB_SHA=243c023c99d186ca0395d0f34c2d6258e3417bb9`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=c779a8a00c34a41ae8be67c12504eb0ca9ea4978`
+- `PHASE3_MMIO_BLOB_SHA=44c6072aec0eda7f405be84f619f5d16307923eb`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
 - `PHASE3_UNSAFE_BLOB_SHA=0a2bfa31a3fc061f9ec24bc0975cde8ce41e1f62`
 - `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=51dd9f90c5a1d9943a86ba72f252adc2e241f4e0`
-- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=03f2858f0694b2f1813b5b5cdb3d2e36d4e6fe34`
+- `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=04fb3b0ee90b0610fee58509c457d0c1c6370c51`
 - `PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py`
 - `PHASE3_POLICY_PACKET_TEST_GATE=zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
