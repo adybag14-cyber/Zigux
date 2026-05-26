@@ -279,6 +279,30 @@ jobs:
       - name: Run current Phase 2 fixdep make route
         run: make -C zigux phase2-fixdep
 
+      - name: Self-test current Phase 2 cross validate-contract checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-contract.py --self-test
+
+      - name: Check current Phase 2 cross validate-contract packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-contract.py
+
+      - name: Self-test current Phase 2 cross validate-contract selftest alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-contract-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 cross validate-contract selftest alignment packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-contract-selftest-alignment.py
+
+      - name: Self-test current Phase 2 cross route-policy checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-route-policy.py --self-test
+
+      - name: Check current Phase 2 cross route-policy packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-route-policy.py
+
+      - name: Self-test current Phase 2 cross route-policy selftest alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 cross route-policy selftest alignment packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py
+
       - name: Run current Phase 2 cross make route
         run: make -C zigux phase2-cross
 
@@ -323,6 +347,54 @@ jobs:
 
       - name: Run current Phase 2 genksyms make route
         run: make -C zigux phase2-genksyms
+
+      - name: Self-test current Phase 2 cross shared-surface checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test
+
+      - name: Check current Phase 2 cross shared-surface packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py
+
+      - name: Self-test current Phase 2 cross shared-surface selftest alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 cross shared-surface selftest alignment packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py
+
+      - name: Self-test current Phase 2 cross workflow-order checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order.py --self-test
+
+      - name: Check current Phase 2 cross workflow-order packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order.py
+
+      - name: Self-test current Phase 2 cross workflow-order selftest alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 cross workflow-order selftest alignment packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-workflow-order-selftest-alignment.py
+
+      - name: Self-test current Phase 2 cross makefile-order checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order.py --self-test
+
+      - name: Check current Phase 2 cross makefile-order packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order.py
+
+      - name: Self-test current Phase 2 cross makefile-order selftest alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 cross makefile-order selftest alignment packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-makefile-order-selftest-alignment.py
+
+      - name: Self-test current Phase 2 cross validator-order checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-validator-order.py --self-test
+
+      - name: Check current Phase 2 cross validator-order packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-validator-order.py
+
+      - name: Self-test current Phase 2 cross validator-order selftest alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-validate-validator-order-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 cross validator-order selftest alignment packet
+        run: python3 scripts/zigux/check-phase2-cross-validate-validator-order-selftest-alignment.py
 
       - name: Run current Phase 2 validate make route
         run: make -C zigux phase2-validate
