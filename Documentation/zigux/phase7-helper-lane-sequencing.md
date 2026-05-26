@@ -6,6 +6,7 @@ This note keeps the current Phase 7 helper packet reviewable without letting sha
 
 - shared control-surface packet, lane `P7-Y05`:
   - `Documentation/zigux/phase7-helper-lane-sequencing.md`
+  - `Documentation/zigux/phase7-runtime-workspace-bootstrap-gap-survey.md`
   - `Documentation/zigux/phase7-shared-control-review-checkpoint.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
