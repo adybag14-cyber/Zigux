@@ -56,6 +56,7 @@
       "kconfig": "Kconfig",
       "config": "build/.config",
       "arch": "arm64",
+      "allconfig": "mini-all.config",
       "expected": "alldefconfig_expected.json"
     },
     {
