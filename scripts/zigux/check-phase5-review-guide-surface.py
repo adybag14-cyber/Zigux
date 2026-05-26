@@ -132,6 +132,7 @@ MARKERS = {
         "the current trace-events packet split: the bounded formatting companion stays directly readable through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, and the shared Phase 5 reminder surfaces; authenticated contents reread in this run also directly returned `zigux/tests/phase5_build.zig`; the broader sample-local companions `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` still depend on fresh public GitHub blob or tree fallback in this runtime, so keep those four broader trace-events companions explicit as public-tree-backed or shared-reminder evidence rather than direct authenticated proof, and keep the returned `zigux/tests/phase5_build.zig` route framed separately as the shared rerun handle rather than sample-local proof",
         "Keep the returned runtime bitmap reminder packet separate too: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` are current direct sample-root evidence for the separate Phase 9 runtime bitmap family, not extra Phase 5 sample proof.",
         "Keep `samples/zigux/kretprobe_example_instance_budget_contract.zig` and `zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig` explicit too as the current direct sample-root companion and focused replay for the bounded kretprobe instance-budget packet, so the shared lane note reflects that shipped reviewability surface already on `master`.",
+        "there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`",
     ),
     SAMPLE_ROOT_PATH: (
         "Current `master` keeps the roadmap-backed `kobject` packet split explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract_survey.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are the current direct reminder or replay surfaces, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed owner-plus-companion evidence until a fresh authenticated reread returns that owner-side trio directly again.",
@@ -152,7 +153,21 @@ FORBIDDEN_GUIDE_TEXT = (
 )
 
 FORBIDDEN_SAMPLE_ROOT_TEXT = (
-    "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed…136 tokens truncated… -> str:
+    "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime:",
+)
+
+
+def read_text(root: Path, path: Path) -> str:
+    return (root / path).read_text(encoding="utf-8")
+
+
+def write_text(root: Path, path: Path, text: str) -> None:
+    full_path = root / path
+    full_path.parent.mkdir(parents=True, exist_ok=True)
+    full_path.write_text(text, encoding="utf-8")
+
+
+def placeholder(path: Path) -> str:
     lines = [f"# {path.name}"]
     lines.extend(MARKERS[path])
     if path == GUIDE_PATH:
@@ -178,11 +193,13 @@ FORBIDDEN_SAMPLE_ROOT_TEXT = (
         )
     return "\n\n".join(lines) + "\n"
 
+
 def strip_standalone_path(text: str, rel: str) -> str:
     standalone = f"\n\n`{rel}`"
     if standalone in text:
         return text.replace(standalone, "", 1)
     return text
+
 
 def seed(root: Path) -> None:
     tracked = set(MARKERS)
@@ -195,6 +212,7 @@ def seed(root: Path) -> None:
         if rel_path in tracked:
             continue
         write_text(root, rel_path, "present\n")
+
 
 def collect_failures(root: Path) -> list[str]:
     texts = {path: read_text(root, path) for path in MARKERS}
@@ -239,13 +257,15 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(f"sample_root:forbidden_text:{forbidden}")
     return failures
 
+
 def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
     if failures != expected:
         raise AssertionError(f"{label}: expected {expected}, got {failures}")
 
+
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 45
+    expected_case_count = 46
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -315,6 +335,11 @@ def run_self_test() -> int:
         seed(mutated)
         write_text(mutated, LANE_SEQUENCING_PATH, placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][6], ""))
         expect_exact("missing lane sequencing kretprobe companion marker", collect_failures(mutated), [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][6]}"])
+        checks_run += 1
+        mutated = root / "missing_lane_sequencing_rbtree_boundary_marker"
+        seed(mutated)
+        write_text(mutated, LANE_SEQUENCING_PATH, placeholder(LANE_SEQUENCING_PATH).replace(MARKERS[LANE_SEQUENCING_PATH][7], ""))
+        expect_exact("missing lane sequencing rbtree boundary marker", collect_failures(mutated), [f"{LANE_SEQUENCING_PATH}:missing_text:{MARKERS[LANE_SEQUENCING_PATH][7]}"])
         checks_run += 1
         mutated = root / "missing_sample_root_marker"
         seed(mutated)
@@ -483,6 +508,7 @@ def run_self_test() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_SELF_TEST_CASES={checks_run}")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT.parent.parent, help="repository root to validate")
@@ -501,6 +527,7 @@ def main() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_COMPANION_PATH_COUNT={len(PUBLIC_TREE_COMPANION_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_KOBJECT_DIRECT_PATH_COUNT={len(KOBJECT_DIRECT_PACKET_PATHS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
