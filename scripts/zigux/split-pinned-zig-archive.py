@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")
-DEFAULT_CHUNK_BYTES = 786_432
+DEFAULT_CHUNK_BYTES = 1_048_576
 EXPECTED_ARCHIVE_SIZES = {
     "x86_64-linux": 58_159_088,
 }
@@ -293,6 +293,7 @@ def run_self_test() -> int:
         EXPECTED_ARCHIVE_SIZES["x86_64-linux"] = size
 
     payload = (b"lane05-archive-payload-" * 64)[:4097]
+    full_archive_size = 58_159_088
     with tempfile.TemporaryDirectory(prefix="split_archive_pass_") as tmp_dir:
         root, source = write_fixture(Path(tmp_dir), payload)
         expected_sha = hashlib.sha256(payload).hexdigest()
@@ -312,6 +313,30 @@ def run_self_test() -> int:
         rebuilt = reconstruct_archive(output_dir, root / "rebuilt.tar.xz")
         assert (root / "rebuilt.tar.xz").read_bytes() == payload
         assert rebuilt["sha256"] == expected_sha
+        case_count += 1
+
+    with tempfile.TemporaryDirectory(prefix="split_archive_default_chunk_size_") as tmp_dir:
+        root = Path(tmp_dir)
+        (root / "scripts" / "zigux").mkdir(parents=True, exist_ok=True)
+        source = root / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+        EXPECTED_ARCHIVE_SIZES["x86_64-linux"] = full_archive_size
+        source.write_bytes(b"\x00" * full_archive_size)
+        expected_sha = hashlib.sha256(source.read_bytes()).hexdigest()
+        write_policy(root, expected_sha, full_archive_size)
+        metadata = load_policy(root)
+        output_dir = root / "out"
+        part_count, manifest_path = split_archive(
+            source,
+            output_dir,
+            expected_size=int(metadata["size"]),
+            expected_sha=str(metadata["sha256"]),
+            filename=str(metadata["filename"]),
+            chunk_bytes=DEFAULT_CHUNK_BYTES,
+        )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        assert part_count == 56
+        assert manifest["chunk_bytes"] == DEFAULT_CHUNK_BYTES
+        assert manifest["part_count"] == 56
         case_count += 1
 
     def expect_split_failure(mutator, expected_substring: str) -> None:
