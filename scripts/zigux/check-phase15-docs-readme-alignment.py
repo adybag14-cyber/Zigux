@@ -13,24 +13,27 @@ LANE_SEQ_NOTE_PATH = Path("Documentation/zigux/phase15-governance-lane-sequencin
 DOCS_REQUIRED_MARKERS = (
     "Phase 14 notes",
     "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
-)
-
-DOCS_FORBIDDEN_MARKERS = (
     "Phase 15 notes",
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
-    "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+    "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+    "`Documentation/zigux/phase15-shared-summary-gap.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
+    "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_build.zig`",
 )
 
+DOCS_FORBIDDEN_MARKERS = ()
+
 HANDOFF_REQUIRED_MARKERS = (
-    "`Documentation/zigux/README.md`, which still stops at Phase 14 on current `master` and should stay treated as an active shared-summary gap source until a dedicated Phase 15 docs-root reminder lands and aligns with `scripts/zigux/check-phase15-docs-readme-alignment.py` plus the directly materialized governance packet",
-    "keep the broad docs-root reminder surface `Documentation/zigux/README.md` in the shared-summary gap bucket until a dedicated Phase 15 reminder lands there, and only treat it as routine drift-follow-through after that wording exists and starts to diverge from the directly materialized governance packet",
+    "`Documentation/zigux/README.md`, which now carries a dedicated Phase 15 reminder and should be reread with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet whenever broad docs-root wording drifts",
+    "keep the landed docs-root Phase 15 reminder surface `Documentation/zigux/README.md` aligned with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet, and treat it as a shared-summary follow-through surface now that the dedicated wording exists there while wrapper-route and shared-CI gaps remain tracked separately",
 )
 
 SHARED_GAP_REQUIRED_MARKERS = (
     "## Current shared-summary watchpoints",
-    "`Documentation/zigux/README.md`",
+    "`Documentation/zigux/README.md` now carries the broad Phase 15 reminder surface and should be reread with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and the directly materialized governance packet whenever that docs-root summary drifts",
     "if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims",
 )
 
@@ -95,14 +98,24 @@ def _sample_docs_readme() -> str:
 
 Phase 14 notes
 - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+
+Phase 15 notes
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
+- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+- `Documentation/zigux/phase15-shared-summary-gap.md`
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+- `scripts/zigux/check-phase15-docs-readme-alignment.py`
+- `scripts/zigux/validate-phase15.py`
+- `zigux/tests/phase15_build.zig`
 """
 
 
 def _sample_handoff_note() -> str:
     return """# Phase 15 Handoff Next Steps Survey
 
-- `Documentation/zigux/README.md`, which still stops at Phase 14 on current `master` and should stay treated as an active shared-summary gap source until a dedicated Phase 15 docs-root reminder lands and aligns with `scripts/zigux/check-phase15-docs-readme-alignment.py` plus the directly materialized governance packet
-- keep the broad docs-root reminder surface `Documentation/zigux/README.md` in the shared-summary gap bucket until a dedicated Phase 15 reminder lands there, and only treat it as routine drift-follow-through after that wording exists and starts to diverge from the directly materialized governance packet
+- `Documentation/zigux/README.md`, which now carries a dedicated Phase 15 reminder and should be reread with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet whenever broad docs-root wording drifts
+- keep the landed docs-root Phase 15 reminder surface `Documentation/zigux/README.md` aligned with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet, and treat it as a shared-summary follow-through surface now that the dedicated wording exists there while wrapper-route and shared-CI gaps remain tracked separately
 """
 
 
@@ -111,7 +124,7 @@ def _sample_shared_gap_note() -> str:
 
 ## Current shared-summary watchpoints
 
-- `Documentation/zigux/README.md`
+- `Documentation/zigux/README.md` now carries the broad Phase 15 reminder surface and should be reread with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and the directly materialized governance packet whenever that docs-root summary drifts
 
 ## Recovery rule
 
@@ -135,7 +148,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase15_docs_readme_gap_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase15_docs_readme_landed_") as tmp_dir:
         root = Path(tmp_dir)
         _seed(root)
 
@@ -144,16 +157,16 @@ def run_self_test() -> int:
             raise AssertionError(f"baseline fixture should pass: {failures}")
         case_count += 1
 
-        unexpected_phase15_root = root / "unexpected_phase15"
-        _seed(unexpected_phase15_root)
+        missing_phase15_root = root / "missing_phase15"
+        _seed(missing_phase15_root)
         _write(
-            unexpected_phase15_root / DOCS_README_PATH,
-            _sample_docs_readme() + "Phase 15 notes\n",
+            missing_phase15_root / DOCS_README_PATH,
+            _sample_docs_readme().replace("- `Documentation/zigux/phase15-handoff-next-steps-survey.md`\n", "", 1),
         )
-        failures = collect_failures(unexpected_phase15_root)
-        expected = ["docs_readme:unexpected_phase15_marker:Phase 15 notes"]
+        failures = collect_failures(missing_phase15_root)
+        expected = ["docs_readme:missing:`Documentation/zigux/phase15-handoff-next-steps-survey.md`"]
         if failures != expected:
-            raise AssertionError(f"unexpected Phase 15 marker failure: {failures}")
+            raise AssertionError(f"unexpected missing Phase 15 marker failure: {failures}")
         case_count += 1
 
         missing_handoff_root = root / "missing_handoff"
@@ -176,10 +189,14 @@ def run_self_test() -> int:
         _seed(missing_shared_gap_root)
         _write(
             missing_shared_gap_root / SHARED_GAP_NOTE_PATH,
-            _sample_shared_gap_note().replace("`Documentation/zigux/README.md`\n", "", 1),
+            _sample_shared_gap_note().replace(
+                "- `Documentation/zigux/README.md` now carries the broad Phase 15 reminder surface and should be reread with `scripts/zigux/check-phase15-docs-readme-alignment.py`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, and the directly materialized governance packet whenever that docs-root summary drifts\n",
+                "",
+                1,
+            ),
         )
         failures = collect_failures(missing_shared_gap_root)
-        expected = ["shared_gap:missing:`Documentation/zigux/README.md`"]
+        expected = [f"shared_gap:missing:{SHARED_GAP_REQUIRED_MARKERS[1]}"]
         if failures != expected:
             raise AssertionError(f"unexpected shared-gap failure: {failures}")
         case_count += 1
