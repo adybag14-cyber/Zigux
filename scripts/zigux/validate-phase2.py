@@ -26,11 +26,11 @@ GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
 )
 KCONFIG_CONFDATA_REPLAY_MARKERS = (
-    "compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)",
-    "cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case[\"input\"]))]",
-    "actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding=\"utf-8\", newline=\"\\n\")",
-    "repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding=\"utf-8\", newline=\"\\n\")",
-    "check_repeatable_json_output(FIXTURE_DIR / str(case[\"expected\"]), actual, repeat)",
+    'compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',
+    'cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))]',
+    'actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\\n")',
+    'repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding="utf-8", newline="\\n")',
+    'check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)',
 )
 KCONFIG_BRIDGE_VALIDATOR_PATH = "scripts/zigux/check-kconfig-bridge.py"
 KCONFIG_CONF_EXPECTED_FIXTURES = (
@@ -482,6 +482,15 @@ def expect_issue(root: Path, expected: tuple[str, str]) -> None:
     assert expected in issues, (expected, issues)
 
 
+def expect_required_file_abort(root: Path, rel: str) -> None:
+    try:
+        collect_issues(root)
+    except SystemExit as exc:
+        assert f"required file missing: {root / rel}" in str(exc)
+    else:
+        raise AssertionError(f"missing file did not abort: {rel}")
+
+
 def run_self_test() -> int:
     expected_case_count = (
         1
@@ -494,7 +503,7 @@ def run_self_test() -> int:
         + len([rel for rel in REQUIRED_PATHS[:-1] if rel != KCONFIG_BRIDGE_VALIDATOR_PATH])
         + len(KCONFIG_CONFDATA_REPLAY_MARKERS)
         + len(KCONFIG_CONFDATA_REPLAY_MARKERS)
-        + 2
+        + 3
         + 2
     )
     checks = 0
@@ -568,16 +577,11 @@ def run_self_test() -> int:
             expect_issue(root, ("DUPLICATE_KCONFIG_CONFDATA_REPLAY_MARKER", f"{marker}:count=2"))
             checks += 1
 
-        for rel in (WORKFLOW, MAKEFILE):
+        for rel in (WORKFLOW, MAKEFILE, KCONFIG_BRIDGE_VALIDATOR_PATH):
             build_self_test_root(root)
             (root / rel).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                checks += 1
-            else:
-                raise AssertionError(f"missing file did not abort: {rel}")
+            expect_required_file_abort(root, rel)
+            checks += 1
 
         build_self_test_root(root)
         (root / ARCHIVE_PAYLOAD_PATH).unlink()
