@@ -12,6 +12,8 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 MARKER = "PHASE12_CHECK_PACKET=virtio_scsi_packet"
 
@@ -27,6 +29,9 @@ SURVEY_BUILD_PATH = "zigux/tests/phase12_virtio_scsi_survey_build.zig"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 SUPPORT_PACKET_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
+VALIDATOR_PACKET_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-virtio-scsi-validator-packet.py"
+)
 
 REQUIRED_FILES = [
     SLICE_PATH,
@@ -38,6 +43,7 @@ REQUIRED_FILES = [
     SURVEY_BUILD_PATH,
     PHASE12_BUILD_PATH,
     MAKEFILE_PATH,
+    VALIDATOR_PACKET_CHECKER_PATH,
 ]
 
 TEXT_MARKERS = {
@@ -197,6 +203,26 @@ def forbid_markers(errors: list[str], rel_path: str, text: str, markers: list[st
             errors.append(f"forbidden stale marker in {rel_path}: {marker}")
 
 
+def run_companion_checker(root: Path, rel_path: str) -> list[str]:
+    result = subprocess.run(
+        [sys.executable, str(root / rel_path), "--root", str(root)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return []
+
+    failures = [f"companion_checker_failed:{rel_path}:exit={result.returncode}"]
+    combined_output = [
+        line.strip()
+        for line in f"{result.stdout}\n{result.stderr}".splitlines()
+        if line.strip()
+    ]
+    failures.extend(f"companion_checker_output:{line}" for line in combined_output)
+    return failures
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
     for rel_path in REQUIRED_FILES:
@@ -304,6 +330,7 @@ def check(root: Path) -> list[str]:
     elif "survey-gate tests" not in build_gap.get("why_now", ""):
         errors.append("survey manifest phase12-build-gate why_now drift")
 
+    errors.extend(run_companion_checker(root, VALIDATOR_PACKET_CHECKER_PATH))
     return errors
 
 
