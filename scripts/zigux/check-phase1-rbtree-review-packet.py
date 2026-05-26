@@ -30,6 +30,17 @@ class DuplicateTrackingDict(dict[str, object]):
 
 
 EXPECTED_SOURCE_SYMBOLS = [
+    "pub fn rb_add(node: *Node, root: *Root, less: LessFn) void {",
+    "pub fn rb_find_add(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {",
+    "pub fn rb_find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
+    "pub fn rb_find_first(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {",
+    "pub fn rb_first(root: *const Root) ?*Node {",
+    "pub fn rb_last(root: *const Root) ?*Node {",
+    "pub fn rb_next(node: *const Node) ?*Node {",
+    "pub fn rb_prev(node: *const Node) ?*Node {",
+    "pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void {",
+    "pub fn rb_first_postorder(root: *const Root) ?*Node {",
+    "pub fn rb_next_postorder(node: ?*const Node) ?*Node {",
     "pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {",
@@ -87,7 +98,7 @@ EXPECTED_LANE_PARAGRAPH = (
     "keep both Linux-style alias proofs named explicitly inside that same helper-local packet instead "
     "of leaving either alias path implied only by the broader helper test list. Until another committed "
     "cached-root replay field lands, leave the remaining cached-root anchors helper-local and do not "
-    "batch a second widening into the same reopen step."
+    "batch a second widening into the same reopen step.`"
 )
 
 EXPECTED_CLOSURE_PARAGRAPH = (
@@ -518,24 +529,25 @@ def run_self_test() -> int:
                 insert_duplicate_json_line(root, target[1], target[2], target[3])
             elif isinstance(target, tuple) and target[0] == "invalid_json":
                 (root / target[1]).write_text("{\n", encoding="utf-8")
-            else:
+            elif isinstance(target, tuple) and target[0] == "missing_file":
                 (root / target[1]).unlink()
+            else:
+                raise AssertionError(f"unsupported mutation target: {target!r}")
 
             failures = collect_failures(root)
             if not failures:
-                print(f"self-test:{name}:expected_failure")
+                print(f"self-test:{name}:expected_failure_but_passed")
                 return 1
             case_count += 1
 
-    print("PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST=pass")
-    print(f"PHASE1_RBTREE_REVIEW_PACKET_SELF_TEST_CASE_COUNT={case_count}")
+    print(f"self-test:ok:{case_count}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", help="override the repository root for validation")
-    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
+    parser.add_argument("--root", help="Repository root to validate")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in negative coverage tests")
     args = parser.parse_args()
 
     if args.self_test:
@@ -543,17 +555,10 @@ def main() -> int:
 
     failures = collect_failures(repo_root(args.root))
     if failures:
-        for item in failures:
-            print(item)
+        for failure in failures:
+            print(failure)
         return 1
-
-    print("PHASE1_RBTREE_REVIEW_PACKET=pass")
-    print(f"PHASE1_RBTREE_REVIEW_PACKET_HELPER={HELPER_REL.as_posix()}")
-    print(f"PHASE1_RBTREE_REVIEW_PACKET_MANIFEST={MANIFEST_REL.as_posix()}")
-    print(f"PHASE1_RBTREE_REVIEW_PACKET_FIXTURE={FIXTURE_REL.as_posix()}")
-    print(f"PHASE1_RBTREE_REVIEW_PACKET_SMOKE={SMOKE_REL.as_posix()}")
-    print(f"PHASE1_RBTREE_REVIEW_PACKET_LANE_NOTE={LANE_NOTE_REL.as_posix()}")
-    print(f"PHASE1_RBTREE_REVIEW_PACKET_CLOSURE_NOTE={CLOSURE_NOTE_REL.as_posix()}")
+    print("phase1-rbtree-review-packet:ok")
     return 0
 
 
