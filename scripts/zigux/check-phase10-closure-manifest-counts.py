@@ -612,7 +612,6 @@ def fixture_manifest() -> dict:
             REQUIRED_MMIO_READY_TRANSPORT_PATH: REQUIRED_MMIO_READY_TRANSPORT_GAP,
         },
     }
-}
 
 
 def build_fixture_ledger(manifest: dict) -> str:
