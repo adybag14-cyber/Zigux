@@ -23,6 +23,11 @@ EXPECTED_EVIDENCE_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_EVIDENCE_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest only"
 EXPECTED_PARITY_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
+EXPECTED_PARITY_PURPOSE = (
+    "Record the current directly readable Phase 6 helper-parity packet without "
+    "overstating missing shared reminder, checker, or perf-note surfaces as "
+    "returned evidence."
+)
 EXPECTED_EVIDENCE_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
@@ -176,7 +181,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 55
+SELF_TEST_CASE_COUNT = 56
 
 
 class ValidationError(RuntimeError):
@@ -266,6 +271,8 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-parity surveyed_head drift")
     if parity.get("lane_scope") != EXPECTED_PARITY_LANE_SCOPE:
         raise ValidationError("phase6 helper-parity lane_scope drift")
+    if parity.get("purpose") != EXPECTED_PARITY_PURPOSE:
+        raise ValidationError("phase6 helper-parity purpose drift")
     if evidence.get("current_direct_readback_companions") != EXPECTED_EVIDENCE_DIRECT_COMPANIONS:
         raise ValidationError("phase6 helper-evidence direct companion mismatch")
     if evidence.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_COMPANIONS:
@@ -355,6 +362,7 @@ def scaffold_repo(root: Path) -> None:
                 "phase": EXPECTED_PHASE,
                 "surveyed_head": EXPECTED_PARITY_SURVEYED_HEAD,
                 "lane_scope": EXPECTED_PARITY_LANE_SCOPE,
+                "purpose": EXPECTED_PARITY_PURPOSE,
                 "shared_direct_evidence": EXPECTED_PARITY_DIRECT_EVIDENCE,
                 "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_COMPANIONS,
                 "coverage_verification_note": " ".join(REQUIRED_PARITY_COVERAGE_NOTE_SNIPPETS),
@@ -480,6 +488,8 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "current-master-readback-2026-05-21"})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"lane_scope": "shared helper-parity rows only"})))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"purpose": "purpose drift"})))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
