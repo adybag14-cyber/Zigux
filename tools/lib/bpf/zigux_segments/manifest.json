@@ -204,12 +204,12 @@
         "validateProcFdinfoRoot() proc-fdinfo root shape validation",
         "buildProcFdinfoPath() bounded /proc/.../fdinfo pathname shaping",
         "buildProcFdinfoPathReturn() errno-shaped pathname helper wrapper",
+        "parseFdinfoLine() bounded fdinfo field splitting and trimming",
         "summarizeReusedMapName() bounded reused-map name retention summary",
         "resolveReusedMapName() helper-only retained reused-map name copy",
         "resolveReusedMapNameReturn() errno-shaped reused-name helper wrapper"
       ],
       "queued_scope": [
-        "parseFdinfoLine() field splitting and trimming",
         "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
         "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
         "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
