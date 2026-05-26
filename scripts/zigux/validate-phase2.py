@@ -208,13 +208,13 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json",
     *GENKSYMS_PROCESS_OUTPUT_FIXTURES,
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/fixdep/cases.json",
     *FIXDEP_FIXTURE_FILES,
+    "scripts/zigux/check-phase2-closure-matrix.py",
     "scripts/zigux/validate-phase2-closure.py",
     MAKEFILE,
 )
@@ -455,19 +455,19 @@ def build_self_test_root(root: Path) -> None:
         root,
         MAKEFILE,
         "\n".join(
-            (\
-                "PYTHON ?= python3",\
-                "ZIG ?= zig",\
-                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",\
-                "ZIGUX_ROOT := ..",\
-                "",\
-                REQUIRED_PHASE2_PHONY_LINE,\
-                *REQUIRED_MAKEFILE_LINES,\
+            (
+                "PYTHON ?= python3",
+                "ZIG ?= zig",
+                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+                "ZIGUX_ROOT := ..",
+                "",
+                REQUIRED_PHASE2_PHONY_LINE,
+                *REQUIRED_MAKEFILE_LINES,
             )
         ) + "\n",
     )
     for rel in REQUIRED_PATHS:
-        if rel != MAKEFILE:\
+        if rel != MAKEFILE:
             write_text(root, rel, "present\n")
     write_text(
         root,
