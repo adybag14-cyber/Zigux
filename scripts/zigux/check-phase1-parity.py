@@ -8,13 +8,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve()
+ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 ARTIFACT_DIFF_REL = Path("scripts/zigux/artifact_diff.py")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 BLOCKERS_REL = Path("zigux/tests/fixtures/phase1_replay_blockers.json")
 REPLAY_REL = Path("zigux/tests/phase1_helpers.zig")
+REPLAY_BUILD_REL = Path("zigux/tests/phase1_helpers_build.zig")
 HARNESS_REL = Path("zigux/tests/fixtures/phase1_helpers_c_harness.c")
 
 EXPECTED_SECTIONS = (
@@ -94,6 +96,18 @@ EXPECTED_ANTI_OVERLAP_RULE = (
     "reopen only for their existing helper-local anchors or already-committed shared fixture keys."
 )
 
+EXPECTED_REPLAY_MARKERS = (
+    'test "phase 1 helper ports match committed parity fixture" {',
+    'const fixture_bytes = @embedFile("fixtures/phase1_helpers.json");',
+    'const Fixture = struct {',
+)
+
+EXPECTED_REPLAY_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase1_helpers.zig"),',
+    '.name = "phase1-helpers",',
+    '"Run the focused Phase 1 helper replay anchor from zigux/tests",',
+)
+
 
 class DuplicateTrackingDict(dict[str, object]):
     def __init__(self, pairs: list[tuple[str, object]]) -> None:
@@ -156,6 +170,12 @@ def ensure(condition: bool, issue: str, issues: list[str]) -> None:
         issues.append(issue)
 
 
+def ensure_exact_occurrence(text: str, label: str, marker: str, issues: list[str]) -> None:
+    count = text.count(marker)
+    if count != 1:
+        issues.append(f"{label}:expected=1:actual={count}")
+
+
 def check_artifact_diff(root: Path, issues: list[str]) -> None:
     artifact_diff = root / ARTIFACT_DIFF_REL
     result = run_python(artifact_diff, "--self-test")
@@ -191,14 +211,25 @@ def check_artifact_diff(root: Path, issues: list[str]) -> None:
             ensure("ARTIFACT_DIFF=pass" in result.stdout, f"artifact_diff:{name}:pass", issues)
 
 
+def check_replay_routes(root: Path, issues: list[str]) -> None:
+    replay_text = read_text(root / REPLAY_REL)
+    for marker in EXPECTED_REPLAY_MARKERS:
+        ensure_exact_occurrence(replay_text, f"replay:{marker}", marker, issues)
+
+    build_text = read_text(root / REPLAY_BUILD_REL)
+    for marker in EXPECTED_REPLAY_BUILD_MARKERS:
+        ensure_exact_occurrence(build_text, f"replay_build:{marker}", marker, issues)
+
+
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
-    for rel in (ARTIFACT_DIFF_REL, FIXTURE_REL, MANIFEST_REL, BLOCKERS_REL):
+    for rel in (ARTIFACT_DIFF_REL, FIXTURE_REL, MANIFEST_REL, BLOCKERS_REL, REPLAY_REL, REPLAY_BUILD_REL):
         ensure((root / rel).exists(), f"missing:{rel.as_posix()}", issues)
     if issues:
         return issues
 
     check_artifact_diff(root, issues)
+    check_replay_routes(root, issues)
 
     fixture_payload = read_json(root / FIXTURE_REL, "fixture", issues)
     if isinstance(fixture_payload, dict):
@@ -280,7 +311,7 @@ def run_check(root: Path) -> int:
     print("PHASE1_PARITY=pass")
     print(f"PHASE1_PARITY_SECTION_COUNT={len(EXPECTED_SECTIONS)}")
     print(f"PHASE1_PARITY_HELPER_COUNT={len(EXPECTED_HELPERS)}")
-    print("PHASE1_PARITY_REPLAY=" + ("present" if (root / REPLAY_REL).exists() else "parked"))
+    print("PHASE1_PARITY_REPLAY=present")
     print(f"PHASE1_PARITY_BLOCKER_COUNT={len(EXPECTED_REPLAY_BLOCKER_IDS)}")
     print("PHASE1_PARITY_BLOCKER_IDS=" + ",".join(EXPECTED_REPLAY_BLOCKER_IDS))
     return 0
@@ -295,36 +326,8 @@ def build_sample_root(root: Path) -> None:
     artifact_diff_text = """#!/usr/bin/env python3
 from __future__ import annotations
 
-import argparse
-import hashlib
-import json
-from pathlib import Path
-
-SELF_TEST_CASES = tuple(f"case_{index}" for index in range(23))
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mode")
-    parser.add_argument("--self-test", action="store_true")
-    parser.add_argument("expected", nargs="?")
-    parser.add_argument("actual", nargs="?")
-    args = parser.parse_args()
-    if args.self_test:
-        print("ARTIFACT_DIFF_SELF_TEST=pass")
-        print(f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
-        return 0
-    if args.mode == "json":
-        ok = json.loads(Path(args.expected).read_text(encoding="utf-8")) == json.loads(Path(args.actual).read_text(encoding="utf-8"))
-    elif args.mode in ("bytes", "sha256"):
-        ok = hashlib.sha256(Path(args.expected).read_bytes()).digest() == hashlib.sha256(Path(args.actual).read_bytes()).digest()
-    else:
-        ok = Path(args.expected).read_text(encoding="utf-8") == Path(args.actual).read_text(encoding="utf-8")
-    print("ARTIFACT_DIFF=pass" if ok else "ARTIFACT_DIFF=fail")
-    print("MODE=bytes" if args.mode == "sha256" else f"MODE={args.mode}")
-    return 0 if ok else 1
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+print(\"ARTIFACT_DIFF_SELF_TEST=pass\")
+print(\"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23\")
 """
     fixture_payload = {name: {} for name in EXPECTED_SECTIONS}
     fixture_payload["string"]["strtobool_invalid"] = 184
@@ -374,6 +377,8 @@ if __name__ == "__main__":
     write_text(root / FIXTURE_REL, json.dumps(fixture_payload, indent=2) + "\n")
     write_text(root / MANIFEST_REL, json.dumps(manifest_payload, indent=2) + "\n")
     write_text(root / BLOCKERS_REL, json.dumps(blockers_payload, indent=2) + "\n")
+    write_text(root / REPLAY_REL, "\n".join(EXPECTED_REPLAY_MARKERS) + "\n")
+    write_text(root / REPLAY_BUILD_REL, "\n".join(EXPECTED_REPLAY_BUILD_MARKERS) + "\n")
 
 
 def mutate_json(path: Path, mutate) -> None:
@@ -388,71 +393,36 @@ def insert_duplicate_json_line(path: Path, needle: str, duplicate_line: str) -> 
     write_text(path, text.replace(needle, duplicate_line + "\n" + needle, 1))
 
 
+def replace_first(path: Path, needle: str, replacement: str) -> None:
+    text = read_text(path)
+    write_text(path, text.replace(needle, replacement, 1))
+
+
 def run_self_test() -> int:
     cases: list[tuple[str, bool]] = []
     with tempfile.TemporaryDirectory(prefix="phase1_parity_selftest_") as tmp_dir:
         tmp = Path(tmp_dir)
 
-        good = tmp / "good"
-        build_sample_root(good)
-        cases.append(("good", run_check(good) == 0))
-
-        fixture_drift = tmp / "fixture_drift"
-        build_sample_root(fixture_drift)
-        mutate_json(fixture_drift / FIXTURE_REL, lambda payload: payload["string"].update({"strtobool_invalid": 22}))
-        cases.append(("fixture_drift", run_check(fixture_drift) != 0))
-
-        manifest_drift = tmp / "manifest_drift"
-        build_sample_root(manifest_drift)
-        mutate_json(manifest_drift / MANIFEST_REL, lambda payload: payload.update({"status": "open"}))
-        cases.append(("manifest_drift", run_check(manifest_drift) != 0))
-
-        blocker_drift = tmp / "blocker_drift"
-        build_sample_root(blocker_drift)
-        mutate_json(blocker_drift / BLOCKERS_REL, lambda payload: payload["replay"]["blockers"][0].update({"actual": True}))
-        cases.append(("blocker_drift", run_check(blocker_drift) != 0))
-
-        fixture_duplicate_key = tmp / "fixture_duplicate_key"
-        build_sample_root(fixture_duplicate_key)
-        insert_duplicate_json_line(
-            fixture_duplicate_key / FIXTURE_REL,
-            '    "tail_clamped_last": 67',
-            '    "tail_clamped_last": 0,',
-        )
-        cases.append(("fixture_duplicate_key", run_check(fixture_duplicate_key) != 0))
-
-        manifest_duplicate_key = tmp / "manifest_duplicate_key"
-        build_sample_root(manifest_duplicate_key)
-        insert_duplicate_json_line(
-            manifest_duplicate_key / MANIFEST_REL,
-            '  "status": "closed",',
-            '  "status": "open",',
-        )
-        cases.append(("manifest_duplicate_key", run_check(manifest_duplicate_key) != 0))
-
-        blocker_duplicate_key = tmp / "blocker_duplicate_key"
-        build_sample_root(blocker_duplicate_key)
-        insert_duplicate_json_line(
-            blocker_duplicate_key / BLOCKERS_REL,
-            '  "status": "parked",',
-            '  "status": "open",',
-        )
-        cases.append(("blocker_duplicate_key", run_check(blocker_duplicate_key) != 0))
-
-        fixture_invalid_json = tmp / "fixture_invalid_json"
-        build_sample_root(fixture_invalid_json)
-        write_text(fixture_invalid_json / FIXTURE_REL, "{\n")
-        cases.append(("fixture_invalid_json", run_check(fixture_invalid_json) != 0))
-
-        manifest_invalid_json = tmp / "manifest_invalid_json"
-        build_sample_root(manifest_invalid_json)
-        write_text(manifest_invalid_json / MANIFEST_REL, "{\n")
-        cases.append(("manifest_invalid_json", run_check(manifest_invalid_json) != 0))
-
-        blocker_invalid_json = tmp / "blocker_invalid_json"
-        build_sample_root(blocker_invalid_json)
-        write_text(blocker_invalid_json / BLOCKERS_REL, "{\n")
-        cases.append(("blocker_invalid_json", run_check(blocker_invalid_json) != 0))
+        for name, mutate in (
+            ("good", lambda root: None),
+            ("fixture_drift", lambda root: mutate_json(root / FIXTURE_REL, lambda payload: payload["string"].update({"strtobool_invalid": 22}))),
+            ("manifest_drift", lambda root: mutate_json(root / MANIFEST_REL, lambda payload: payload.update({"status": "open"}))),
+            ("blocker_drift", lambda root: mutate_json(root / BLOCKERS_REL, lambda payload: payload["replay"]["blockers"][0].update({"actual": True}))),
+            ("fixture_duplicate_key", lambda root: insert_duplicate_json_line(root / FIXTURE_REL, '    "tail_clamped_last": 67', '    "tail_clamped_last": 0,')),
+            ("manifest_duplicate_key", lambda root: insert_duplicate_json_line(root / MANIFEST_REL, '  "status": "closed",', '  "status": "open",')),
+            ("blocker_duplicate_key", lambda root: insert_duplicate_json_line(root / BLOCKERS_REL, '  "status": "parked",', '  "status": "open",')),
+            ("fixture_invalid_json", lambda root: write_text(root / FIXTURE_REL, "{\n")),
+            ("manifest_invalid_json", lambda root: write_text(root / MANIFEST_REL, "{\n")),
+            ("blocker_invalid_json", lambda root: write_text(root / BLOCKERS_REL, "{\n")),
+            ("missing_replay", lambda root: (root / REPLAY_REL).unlink()),
+            ("missing_replay_build", lambda root: (root / REPLAY_BUILD_REL).unlink()),
+            ("replay_marker_drift", lambda root: replace_first(root / REPLAY_REL, EXPECTED_REPLAY_MARKERS[0], 'test "phase 1 helper ports drifted" {')),
+            ("replay_build_marker_drift", lambda root: replace_first(root / REPLAY_BUILD_REL, EXPECTED_REPLAY_BUILD_MARKERS[1], '.name = "phase1-helper-drift",')),
+        ):
+            case_root = tmp / name
+            build_sample_root(case_root)
+            mutate(case_root)
+            cases.append((name, run_check(case_root) == (0 if name == "good" else 1)))
 
     failed = [name for name, ok in cases if not ok]
     if failed:
