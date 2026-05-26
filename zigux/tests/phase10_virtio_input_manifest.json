@@ -164,7 +164,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input_registration_preflight.zig",
-      "why_now": "The focused replay keeps the ready transition and blocker tags machine-checkable without claiming live registration lifecycle behavior."
+      "why_now": "The focused replay keeps the ready transition, reset-local readiness revocation, and blocker tags machine-checkable without claiming live registration lifecycle behavior."
     },
     {
       "id": "phase10-virtio-input-status-drain-helper",
