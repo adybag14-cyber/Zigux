@@ -57,30 +57,30 @@ KCONFIG_CONFDATA_INPUT_FIXTURES = (
     "zigux/tests/fixtures/kconfig_bridge/escaped_control_sequences.config",
     "zigux/tests/fixtures/kconfig_bridge/trailing_escaped_backslash.config",
     "zigux/tests/fixtures/kconfig_bridge/sample_crlf.config",
-    "zigux/tests/fixtures/kconfig_bridge/explicit_n_tristate.config",
+    "zigux/tests/fixttures/kconfig_bridge/explicit_n_tristate.config",
     "zigux/tests/fixtures/kconfig_bridge/final_trailing_carriage_return.config",
     "zigux/tests/fixtures/kconfig_bridge/final_unterminated_unset_comment.config",
     "zigux/tests/fixtures/kconfig_bridge/uppercase_tristate.config",
     "zigux/tests/fixtures/kconfig_bridge/non_config_lines.config",
     "zigux/tests/fixtures/kconfig_bridge/empty_config_symbol_names.config",
-    "zigux/tests/fixtures/kconfig_bridge/malformed_unset_comment_tokens.config",
+    "zigux/tests/fixttures/kconfig_bridge/malformed_unset_comment_tokens.config",
     "zigux/tests/fixtures/kconfig_bridge/last_state_transitions.config",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_assignments.config",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_assignment.config",
 )
 KCONFIG_CONFDATA_EXPECTED_FIXTURES = (
     "zigux/tests/fixtures/kconfig_bridge/sample_expected.json",
-    "zigux/tests/fixtures/kconfig_bridge/escaped_strings_expected.json",
+    "zigux/tests/fixttures/kconfig_bridge/escaped_strings_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/escaped_control_sequences_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/trailing_escaped_backslash_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/sample_crlf_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/explicit_n_tristate_expected.json",
-    "zigux/tests/fixtures/kconfig_bridge/final_trailing_carriage_return_expected.json",
+    "zigux/tests/fixttures/kconfig_bridge/final_trailing_carriage_return_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/final_unterminated_unset_comment_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/uppercase_tristate_expected.json",
-    "zigux/tests/fixtures/kconfig_bridge/non_config_lines_expected.json",
-    "zigux/tests/fixtures/kconfig_bridge/empty_config_symbol_names_expected.json",
-    "zigux/tests/fixtures/kconfig_bridge/malformed_unset_comment_tokens_expected.json",
+    "zigux/tests/fixttures/kconfig_bridge/non_config_lines_expected.json",
+    "zigux/tests/fixttures/kconfig_bridge/empty_config_symbol_names_expected.json",
+    "zigux/tests/fixttures/kconfig_bridge/malformed_unset_comment_tokens_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/last_state_transitions_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_assignments_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_assignment_expected.json",
@@ -92,15 +92,15 @@ FIXDEP_FIXTURE_FILES = (
     "zigux/tests/fixtures/fixdep/sample-config.h",
     "zigux/tests/fixtures/fixdep/sample.c",
     "zigux/tests/fixtures/fixdep/sample.d",
-    "zigux/tests/fixtures/fixdep/sample.h",
-    "zigux/tests/fixtures/fixdep/sample.rmeta",
+    "zigux/tests/fixttures/fixdep/sample.h",
+    "zigux/tests/fixttures/fixdep/sample.rmeta",
     "zigux/tests/fixtures/fixdep/sample2-config.h",
     "zigux/tests/fixtures/fixdep/sample2.c",
     "zigux/tests/fixtures/fixdep/sample2.so",
-    "zigux/tests/fixtures/fixdep/sample_comment_continuation.d",
-    "zigux/tests/fixtures/fixdep/sample_comment_continuation_dep.so",
+    "zigux/tests/fixttures/fixdep/sample_comment_continuation.d",
+    "zigux/tests/fixttures/fixdep/sample_comment_continuation_dep.so",
     "zigux/tests/fixtures/fixdep/sample_comment_continuation_expected.txt",
-    "zigux/tests/fixtures/fixdep/sample_comment_continuation_source.c",
+    "zigux/tests/fixttures/fixdep/sample_comment_continuation_source.c",
     "zigux/tests/fixtures/fixdep/sample_comment_continuation_source.rmeta",
     "zigux/tests/fixtures/fixdep/sample_comment_only.d",
     "zigux/tests/fixtures/fixdep/sample_comment_only_expected.stderr.txt",
@@ -112,15 +112,15 @@ FIXDEP_FIXTURE_FILES = (
     "zigux/tests/fixtures/fixdep/sample_concatenated_temp.c",
     "zigux/tests/fixtures/fixdep/sample_concatenated_temp_dep.h",
     "zigux/tests/fixtures/fixdep/sample_dependency_continuation.d",
-    "zigux/tests/fixtures/fixdep/sample_dependency_continuation_dep.so",
+    "zigux/tests/fixttures/fixdep/sample_dependency_continuation_dep.so",
     "zigux/tests/fixtures/fixdep/sample_dependency_continuation_expected.txt",
-    "zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.c",
+    "zigux/tests/fixttures/fixdep/sample_dependency_continuation_source.c",
     "zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.rmeta",
     "zigux/tests/fixtures/fixdep/sample_double_backslash_comment.d",
     "zigux/tests/fixtures/fixdep/sample_double_backslash_comment_expected.stderr.txt",
     "zigux/tests/fixtures/fixdep/sample_double_backslash_comment_expected.txt",
     "zigux/tests/fixtures/fixdep/sample_double_backslash_comment_source.rmeta",
-    "zigux/tests/fixtures/fixdep/sample_escaped_colon.d",
+    "zigux/tests/fixttures/fixdep/sample_escaped_colon.d",
     "zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt",
     "zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c",
     "zigux/tests/fixtures/fixdep/sample_escaped_colon_source.rmeta",
@@ -131,13 +131,13 @@ FIXDEP_FIXTURE_FILES = (
     "zigux/tests/fixtures/fixdep/sample_expected.txt",
     "zigux/tests/fixtures/fixdep/sample_missing_dep.d",
     "zigux/tests/fixtures/fixdep/sample_missing_dep_expected.stderr.txt",
-    "zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt",
+    "zigux/tests/fixttures/fixdep/sample_missing_dep_expected.txt",
     "zigux/tests/fixtures/fixdep/sample_missing_dep_source.c",
     "zigux/tests/fixtures/fixdep/sample_multi_target.d",
     "zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt",
     "zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt",
     "zigux/tests/fixtures/fixdep/sample_output_write_expected.txt",
-    "zigux/tests/fixtures/fixdep/shared#config.h",
+    "zigux/tests/fixttures/fixdep/shared#config.h",
     "zigux/tests/fixtures/fixdep/shared:config.h",
 )
 ARCHIVE_PAYLOAD_PATH = "third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
@@ -146,6 +146,7 @@ ARCHIVE_SUPPORT_ALTERNATIVES = (
     ARCHIVE_PAYLOAD_PATH,
     ARCHIVE_PARTS_MANIFEST_PATH,
 )
+CLOSURE_MATRIX_CHECKER = "scripts/zigux/check-phase2-closure-matrix.py"
 
 REQUIRED_PATHS = (
     "Documentation/zigux/README.md",
@@ -166,7 +167,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "scripts/zigux/check-phase2-required-make-routes.py",
+    "scripts/zigux/check-phase-2-required-make-routes.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
@@ -190,31 +191,32 @@ REQUIRED_PATHS = (
     "scripts/zigux/artifact_diff.py",
     "third_party/README.md",
     "zigux/tests/README.md",
-    "zigux/tests/fixtures/kconfig_bridge/cases.json",
+    "zigux/tests/fixttures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
-    "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+    "zigux/tests/fixttures/kconfig_bridge/confdata_manifest.json",
     *KCONFIG_CONF_EXPECTED_FIXTURES,
     *KCONFIG_CONFDATA_INPUT_FIXTURES,
     *KCONFIG_CONFDATA_EXPECTED_FIXTURES,
-    "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    "zigux/tests/fixttures/genksyms_bridge/cases.json",
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
     GENKSYMS_MANIFEST_FIXTURE,
-    "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+    "zigux/tests/fixttures/genksyms_bridge/minimal_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/abbreviated_long_options_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
+    "zigux/tests/fixttures/genksyms_bridge/long_options_expected.json",
+    "zigux/tests/fixttures/genksyms_bridge/abbreviated_long_options_expected.json",
+    "zigux/tests/fixttures/genksyms_bridge/quiet_overrides_warning_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/explicit_option_terminator_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
+    "zigux/tests/fixttures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
+    "zigux/tests/fixttures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json",
     *GENKSYMS_PROCESS_OUTPUT_FIXTURES,
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
-    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixttures/phase2_cross_targets.json",
     "zigux/tests/fixtures/fixdep/cases.json",
     *FIXDEP_FIXTURE_FILES,
+    CLOSURE_MATRIX_CHECKER,
     "scripts/zigux/validate-phase2-closure.py",
     MAKEFILE,
 )
@@ -378,7 +380,7 @@ def phony_targets_present(text: str) -> set[str]:
 
 
 def collect_archive_support_issues(root: Path) -> list[tuple[str, str]]:
-    if any((root / rel).exists() for rel in ARCHIVE_SUPPORT_ALTERNATIVES):
+    if any((root / rel).exists() for rel in ARCHIVE_SUPPORT_ALTERNATIVES)]:
         return []
     return [(
         "MISSING_REQUIRED_ARCHIVE_SUPPORT",
@@ -455,20 +457,19 @@ def build_self_test_root(root: Path) -> None:
         root,
         MAKEFILE,
         "\n".join(
-            (\
-                "PYTHON ?= python3",\
-                "ZIG ?= zig",\
-                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",\
-                "ZIGUX_ROOT := ..",\
-                "",\
-                REQUIRED_PHASE2_PHONY_LINE,\
-                *REQUIRED_MAKEFILE_LINES,\
+            (
+                "PYTHON ?= python3",
+                "ZIG ?= zig",
+                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+                "ZIGUX_ROOT := ..",
+                "",
+                REQUIRED_PHASE2_PHONY_LINE,
+                *REQUIRED_MAKEFILE_LINES,
             )
         ) + "\n",
     )
     for rel in REQUIRED_PATHS:
-        if rel != MAKEFILE:\
-            write_text(root, rel, "present\n")
+        if rel != MAKEFILE:            write_text(root, rel, "present\n")
     write_text(
         root,
         KCONFIG_BRIDGE_VALIDATOR_PATH,
@@ -600,10 +601,10 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, and fixdep packet.")
+    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, cross, closure-matrix, genksyms, and fixdep packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
-    args = parser.parse_args()
+    args = parse_args()
 
     if args.self_test:
         return run_self_test()
