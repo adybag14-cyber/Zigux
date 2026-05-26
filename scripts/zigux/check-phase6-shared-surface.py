@@ -185,7 +185,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 57
+SELF_TEST_CASE_COUNT = 58
 
 
 class ValidationError(RuntimeError):
@@ -450,6 +450,8 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-perf-gate-survey.md")))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-base64-bsearch-perf-markers.py")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py")))
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
         cases_run += 1
