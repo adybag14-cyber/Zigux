@@ -79,7 +79,7 @@ test "phase 8 file-path-handle bridge helper stays wired into the Linux-style re
     try expectContains(makefile, "phase8-file-path-handle-bridge-test");
 }
 
-test "phase 8 file-path-handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {
+test "phase 8 file-path-handle bridge proof keeps the manifest-backed queued-helper and deferred bridge split explicit" {
     const manifest = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/zigux_segments/manifest.json",
@@ -89,19 +89,31 @@ test "phase 8 file-path-handle bridge proof keeps the manifest-backed helper and
 
     try expectContains(
         manifest,
-        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"starter_landed\"",
+        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"blocked_on_fdinfo_parser_materialization\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"starter_landed\"",
+        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"blocked_on_reuse_comparison_materialization\"",
+    );
+    try expectContains(
+        manifest,
+        "\"slug\": \"fdinfo-path-and-reuse-name-footholds\",\n      \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "The shared file-path bridge destination is now materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers are still queued, so this slice must stay explicit as partially landed rather than complete.",
+    );
+    try expectContains(
+        manifest,
+        "The shared bridge file now carries bounded reused-map name retention, but the helper-only compatibility observation, flag normalization, and mismatch reporting work remains queued, so the segment cannot yet be reported as fully landed on master.",
+    );
+    try expectContains(
+        manifest,
+        "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred.",
     );
     try expectContains(
         manifest,
         "\"slug\": \"file-path-and-handle-bridge\",\n      \"status\": \"deferred_high_risk\",\n      \"kind\": \"resource_boundary\"",
-    );
-    try expectContains(
-        manifest,
-        "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice",
     );
     try expectContains(manifest, "direct procfs reads and descriptor ownership flow");
     try expectContains(manifest, "token creation, bpffs reopen flow, and other fd-handle bridge side effects");
