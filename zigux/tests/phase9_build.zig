@@ -279,6 +279,22 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_kretprobe_sample_module,
     });
 
+    const runtime_kretprobe_loader_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_kretprobe_loader.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_kretprobe_loader_module.addImport(
+        "runtime_kretprobe_sample",
+        runtime_kretprobe_sample_module,
+    );
+    runtime_kretprobe_loader_module.addImport("runtime_loader", runtime_loader_module);
+
+    const runtime_kretprobe_loader_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-loader-tests",
+        .root_module = runtime_kretprobe_loader_module,
+    });
+
     const runtime_kretprobe_initialized_snapshot_guard_tests = b.addTest(.{
         .name = "phase9-runtime-kretprobe-initialized-snapshot-guard-tests",
         .root_module = b.createModule(.{
@@ -427,6 +443,9 @@ pub fn build(b: *std.Build) void {
     );
     const run_runtime_kretprobe_sample_tests = b.addRunArtifact(
         runtime_kretprobe_sample_tests,
+    );
+    const run_runtime_kretprobe_loader_tests = b.addRunArtifact(
+        runtime_kretprobe_loader_tests,
     );
     const run_runtime_kretprobe_initialized_snapshot_guard_tests = b.addRunArtifact(
         runtime_kretprobe_initialized_snapshot_guard_tests,
@@ -608,6 +627,12 @@ pub fn build(b: *std.Build) void {
     );
     phase9_runtime_kretprobe_sample.dependOn(&run_runtime_kretprobe_sample_tests.step);
 
+    const phase9_runtime_kretprobe_loader = b.step(
+        "phase9-runtime-kretprobe-loader-tests",
+        "Run the Phase 9 runtime kretprobe loader handoff and blocked shared-request tests.",
+    );
+    phase9_runtime_kretprobe_loader.dependOn(&run_runtime_kretprobe_loader_tests.step);
+
     const phase9_runtime_kretprobe_initialized_snapshot_guard = b.step(
         "phase9-runtime-kretprobe-initialized-snapshot-guard-tests",
         "Run the Phase 9 runtime kretprobe initialized-snapshot guard tests.",
@@ -638,9 +663,10 @@ pub fn build(b: *std.Build) void {
 
     const phase9_runtime_kretprobe = b.step(
         "phase9-runtime-kretprobe-tests",
-        "Run the Phase 9 runtime kretprobe sample, initialized-snapshot guard, registration-reentry gate, survey, and module lifecycle tests.",
+        "Run the Phase 9 runtime kretprobe sample, loader, initialized-snapshot guard, registration-reentry gate, survey, and module lifecycle tests.",
     );
     phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_sample_tests.step);
+    phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_loader_tests.step);
     phase9_runtime_kretprobe.dependOn(
         &run_runtime_kretprobe_initialized_snapshot_guard_tests.step,
     );
