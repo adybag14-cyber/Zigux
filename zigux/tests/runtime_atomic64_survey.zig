@@ -4,6 +4,7 @@ const survey_note_source = @embedFile("../../Documentation/zigux/phase9-runtime-
 const module_slice_note_source = @embedFile("../../Documentation/zigux/phase9-runtime-atomic64-module-slice.md");
 const docs_root_readme_source = @embedFile("../../Documentation/zigux/README.md");
 const samples_root_readme_source = @embedFile("../../samples/zigux/README.md");
+const phase9_build_source = @embedFile("phase9_build.zig");
 const tests_root_readme_source = @embedFile("README.md");
 
 const SurveySummary = struct {
@@ -427,4 +428,14 @@ test "phase 9 runtime atomic64 note family records the current shared-loader rem
     try expectContains(tests_root_readme_source, "zigux/tests/phase9_build.zig");
     try expectContains(tests_root_readme_source, "samples/zigux/runtime_bitmap_loader.zig");
     try expectContains(tests_root_readme_source, "phase9-runtime-loader-shared-tests");
+}
+
+test "phase 9 runtime atomic64 survey gate keeps the shared build bundle route names explicit" {
+    try expectContains(phase9_build_source, "phase9-runtime-atomic64-diff");
+    try expectContains(phase9_build_source, "phase9-runtime-atomic64-module-tests");
+    try expectContains(phase9_build_source, "phase9-runtime-atomic64-sample-tests");
+    try expectContains(phase9_build_source, "phase9-runtime-atomic64-tests");
+    try expectContains(phase9_build_source, "phase9-runtime-loader-allocator-init-flow-tests");
+    try expectContains(phase9_build_source, "phase9-runtime-loader-command-env-boundary-guard-tests");
+    try expectContains(phase9_build_source, "phase9-runtime-loader-shared-tests");
 }
