@@ -30,6 +30,12 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     );
     defer allocator.free(publish_readiness_file);
 
+    const registration_summary_file = try readRepoRelative(
+        allocator,
+        "drivers/virtio/virtio_ring_registration_summary.zig",
+    );
+    defer allocator.free(registration_summary_file);
+
     const registration_replay_file = try readRepoRelative(
         allocator,
         "zigux/tests/phase10_virtio_ring_registration_replay.zig",
@@ -41,13 +47,15 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_publish_readiness.zig");
+    try expectContains(survey_note, "drivers/virtio/virtio_ring_registration_summary.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_registration_replay.zig");
     try expectContains(
         survey_note,
-        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
     );
+    try expectContains(survey_note, "phase10-queue-registration-summary-helper");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_survey.zig");
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_ring_survey.zig");
     try expectContains(
@@ -75,6 +83,18 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
         "test \"phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity\" {",
     );
     try expectContains(
+        registration_summary_file,
+        "pub fn summarizeQueueRegistration(",
+    );
+    try expectContains(
+        registration_summary_file,
+        "test \"phase10 virtio ring registration-summary wrapper keeps definition discipline explicit\" {",
+    );
+    try expectContains(
+        registration_summary_file,
+        "test \"phase10 virtio ring registration-summary wrapper stays queue-local across noncontiguous queue definitions\" {",
+    );
+    try expectContains(
         registration_replay_file,
         "test \"phase10 virtio ring registration replay keeps noncontiguous queue registration counts explicit\" {",
     );
@@ -98,6 +118,37 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     try expectContains(build_file, "run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step");
     try expectContains(build_file, "run_phase10_virtio_ring_delayed_callback_budget_tests.step");
     try expectContains(build_file, "run_phase10_virtio_ring_survey_tests.step");
+}
+
+test "phase10 virtio ring registration-summary wrapper stays direct current-head evidence in the survey packet" {
+    const allocator = std.testing.allocator;
+
+    const survey_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-ring-survey.md",
+    );
+    defer allocator.free(survey_note);
+
+    const slice_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-ring-slice.md",
+    );
+    defer allocator.free(slice_note);
+
+    const manifest = try readRepoRelative(
+        allocator,
+        "zigux/tests/phase10_virtio_ring_manifest.json",
+    );
+    defer allocator.free(manifest);
+
+    try expectContains(survey_note, "drivers/virtio/virtio_ring_registration_summary.zig");
+    try expectContains(slice_note, "drivers/virtio/virtio_ring_registration_summary.zig");
+    try expectContains(manifest, "\"preexisting_ring_registration_summary_present\": true");
+    try expectContains(manifest, "\"id\": \"phase10-queue-registration-summary-helper\"");
+    try expectContains(
+        manifest,
+        "\"zigux_destination\": \"drivers/virtio/virtio_ring_registration_summary.zig\"",
+    );
 }
 
 test "phase10 virtio ring survey manifest keeps lane identity and freeze-boundary posture explicit" {
@@ -127,6 +178,7 @@ test "phase10 virtio ring survey manifest keeps lane identity and freeze-boundar
     try expectContains(manifest, "\"architecture_council_reopen_attached\": false");
     try expectContains(manifest, "\"freeze_boundary_owner_lane\": \"P10-L11\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-ring-survey-gate\"");
+    try expectContains(manifest, "\"id\": \"phase10-queue-registration-summary-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-queue-reset-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-queue-reset-readiness-helper\"");
     try expectContains(manifest, "\"status\": \"starter_landed\"");
@@ -143,11 +195,15 @@ test "phase10 virtio ring slice companions keep the notification-data replay, di
     defer allocator.free(slice_note);
 
     try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
+    try expectContains(slice_note, "drivers/virtio/virtio_ring_registration_summary.zig");
     try expectContains(
         slice_note,
         "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` now sits beside that queue-local helper ladder as direct current-head evidence in this slice",
     );
-    try expectContains(slice_note, "the notification-data replay and the dedicated survey gate are now landed review surfaces inside this slice");
+    try expectContains(
+        slice_note,
+        "the notification-data replay, the registration replay, the registration-summary wrapper, and the dedicated survey gate are now landed review surfaces inside this slice",
+    );
     try expectContains(slice_note, "zigux/tests/phase10_virtio_ring_survey.zig");
 }
 
