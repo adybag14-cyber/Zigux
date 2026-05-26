@@ -221,6 +221,28 @@ test "shared runtime loader surface rejects registration-summary bleed-through" 
     }
 }
 
+test "shared runtime loader surface rejects initcall metadata bleed-through" {
+    const contract_forbidden_field_decls = [_][]const u8{
+        "module_init:",
+        "module_exit:",
+        "initcall:",
+        "exitcall:",
+    };
+    const loader_forbidden_field_decls = [_][]const u8{
+        "module_init:",
+        "module_exit:",
+        "initcall:",
+        "exitcall:",
+    };
+
+    inline for (contract_forbidden_field_decls) |marker| {
+        try expectLacks(runtime_loader_contract_source, marker);
+    }
+    inline for (loader_forbidden_field_decls) |marker| {
+        try expectLacks(runtime_loader_source, marker);
+    }
+}
+
 test "shared runtime loader surface rejects live initcall and runtime registration bleed-through" {
     const contract_forbidden_markers = [_][]const u8{
         "module_init(",
