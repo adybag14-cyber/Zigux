@@ -66,7 +66,7 @@
     "shared_build_route_visibility"
   ],
   "non_goals": [
-    "loadable runtime bitmap module parity",
+    "loadable Phase 9 runtime bitmap pilot module parity",
     "shared runtime-loader command-name or argv-policy controls",
     "real runtime execution through a live substrate",
     "full lib/test_bitmap.c parity beyond the bounded starter packet"
