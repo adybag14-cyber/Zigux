@@ -11,6 +11,9 @@ from pathlib import Path
 CHECK_NAME = "PHASE12_CROSS_COMPILE_SMOKE"
 
 NOTE_PATH = Path("Documentation/zigux/phase12-cross-compile-smoke.md")
+COMPLEX_DRIVER_LANE_PATH = Path(
+    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+)
 VIRTIO_NET_SURVEY_PATH = Path("Documentation/zigux/phase12-virtio-net-survey.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
@@ -21,6 +24,7 @@ SYNTAX_LAB_BUILD_PATH = Path("zigux/tests/phase12_virtio_net_syntax_lab_build.zi
 
 REQUIRED_FILES = (
     NOTE_PATH,
+    COMPLEX_DRIVER_LANE_PATH,
     VIRTIO_NET_SURVEY_PATH,
     WORKFLOW_PATH,
     BUILD_PATH,
@@ -48,6 +52,11 @@ NOTE_MARKERS = (
     "substantive same-family lab progress has therefore landed since the earlier cross-note packet: the shared route is now the six-file split-helper smoke-and-test sextet with returned wrapper evidence rather than the older syntax-lab-era shape",
     "the shipped cross-compile checker now keeps that returned wrapper wording fail-closed across this note, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/phase12_build.zig`",
     "leave the next same-lane follow-through note-local and rerun `scripts/zigux/check-phase12-cross-compile-smoke.py` before widening compile-smoke claims again",
+)
+
+COMPLEX_DRIVER_LANE_MARKERS = (
+    "The note-local compile-smoke companion in this lane is `Documentation/zigux/phase12-cross-compile-smoke.md`, and its directly readable rerun handle is `python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test` plus `python3 scripts/zigux/check-phase12-cross-compile-smoke.py`; keep that narrower smoke packet explicit beside the broader validator-first support bundle without treating it as DMA, queue ownership, throughput, recovery, or driver-delivery proof.",
+    "If the compile-smoke companion drifts while the broader anti-overlap packet stays stable, reopen only for the smallest note-local repair across `Documentation/zigux/phase12-cross-compile-smoke.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/phase12_build.zig`.",
 )
 
 SURVEY_MARKERS = (
@@ -142,6 +151,11 @@ def check(root: Path) -> None:
     require_markers(note_text, NOTE_MARKERS, str(NOTE_PATH))
     require_absent(note_text, FORBIDDEN_NOTE_MARKERS, str(NOTE_PATH))
     require_markers(
+        read_text(root, COMPLEX_DRIVER_LANE_PATH),
+        COMPLEX_DRIVER_LANE_MARKERS,
+        str(COMPLEX_DRIVER_LANE_PATH),
+    )
+    require_markers(
         read_text(root, VIRTIO_NET_SURVEY_PATH),
         SURVEY_MARKERS,
         str(VIRTIO_NET_SURVEY_PATH),
@@ -164,6 +178,12 @@ def write_fixture(root: Path) -> None:
             "# Phase 12 Cross Compile Smoke",
             "",
             *NOTE_MARKERS,
+            "",
+        )),
+        COMPLEX_DRIVER_LANE_PATH: "\n".join((
+            "# Phase 12 Complex-Driver Lane Sequencing",
+            "",
+            *COMPLEX_DRIVER_LANE_MARKERS,
             "",
         )),
         VIRTIO_NET_SURVEY_PATH: "\n".join((
@@ -233,6 +253,17 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected syntax-lab note marker failure")
+
+        write_fixture(root)
+        (root / COMPLEX_DRIVER_LANE_PATH).write_text("broken\n", encoding="utf-8")
+        try:
+            check(root)
+        except CheckFailure as exc:
+            if "phase12-complex-driver-lane-sequencing.md" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected complex-driver companion marker failure")
 
         write_fixture(root)
         (root / VIRTIO_NET_SURVEY_PATH).write_text("broken\n", encoding="utf-8")
