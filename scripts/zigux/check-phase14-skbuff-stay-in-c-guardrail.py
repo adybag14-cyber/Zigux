@@ -23,7 +23,7 @@ REQUIRED_EVIDENCE_MARKERS = [
 RETURN_TO_BLOCKED_HEADING = "- automatic return-to-blocked triggers:"
 RETURN_TO_BLOCKED_MARKERS = [
     "- any `net/core/skbuff_bridge.zig` claim or status review that drops `phase14-skbuff-live-ownership-blocker`",
-    "- missing qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, or final sock-owned tail transfer wording in the active skbuff packet",
+    "- missing qdisc-facing publication, checksum ownership, segmentation metadata, zerocopy fragment orphaning, shared-frag ownership transfer, destructor ordering, or final sock-owned tail transfer wording in the active skbuff packet",
     "- any bridge-presence wording that upgrades the packet into parity, runtime ownership, or a freeze-map status change without the required reopen evidence",
 ]
 NEXT_STEP_COORDINATION_MARKERS = [
@@ -46,10 +46,10 @@ REQUIRED_MARKERS = [
     "`PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker`",
     "`PHASE14_POSTURE=boundary_map_only`",
     "current `master` ships the bounded skbuff anchor packet again through `net/core/skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, and `zigux/tests/phase14_build.zig`",
-    "explicit stay-in-C ownership for qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, segmentation metadata, and the final sock-owned tail transfer remains the Phase 14 boundary",
+    "explicit stay-in-C ownership for qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, segmentation metadata, zerocopy fragment orphaning, shared-frag ownership transfer, and the final sock-owned tail transfer remains the Phase 14 boundary",
     "`zigux/tests/phase14_build.zig` wires `../../net/core/skbuff_bridge.zig` and `phase14_skbuff_bridge.zig` into the dedicated Phase 14 build shard, so there is now a live skbuff-local review route on current `master`",
     "The live bridge packet therefore remains review-only boundary evidence, not a delivery, parity, or ownership-transfer claim.",
-    "`validate_xmit_skb_list()`, qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, `tail->next`, `segs->prev`, `skb_mark_not_on_list()`, and the final sock-owned tail transfer must remain named as C-owned review points",
+    "`validate_xmit_skb_list()`, qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, zerocopy fragment orphaning, `skb_orphan_frags()`, `skb_zerocopy_clone()`, `SKBFL_SHARED_FRAG`, `sock_wfree`, `tail->destructor`, `tail->sk`, `tail->next`, `segs->prev`, `skb_mark_not_on_list()`, `tail = skb->prev`, and the final sock-owned tail transfer must remain named as C-owned review points",
     "`phase14-skbuff-stay-in-c-guardrail`",
     GUARDRAIL_MARKER,
     "`scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py`",
@@ -97,7 +97,7 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 - current `master` ships the bounded skbuff anchor packet again through `net/core/skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, and `zigux/tests/phase14_build.zig`
 - `phase14-skbuff-live-ownership-blocker` is the live Phase 14 blocker: the review-only packet exists, but it still records explicit stay-in-C ownership rather than a parity or runtime-ownership transfer
 - the previous absent-anchor wording is no longer truthful on current `master` and must not be used as a substitute for reading the returned bridge-local packet
-- explicit stay-in-C ownership for qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, segmentation metadata, and the final sock-owned tail transfer remains the Phase 14 boundary
+- explicit stay-in-C ownership for qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, segmentation metadata, zerocopy fragment orphaning, shared-frag ownership transfer, and the final sock-owned tail transfer remains the Phase 14 boundary
 
 ## Boundary Reading
 The live bridge packet therefore remains review-only boundary evidence, not a delivery, parity, or ownership-transfer claim.
@@ -107,7 +107,7 @@ The live bridge packet therefore remains review-only boundary evidence, not a de
 
 ## Gates
 3. keep the blocked consumer-tail contract explicit
-   - `validate_xmit_skb_list()`, qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, `tail->next`, `segs->prev`, `skb_mark_not_on_list()`, and the final sock-owned tail transfer must remain named as C-owned review points
+   - `validate_xmit_skb_list()`, qdisc-facing publication, checksum ownership, segmentation metadata, destructor ordering, zerocopy fragment orphaning, `skb_orphan_frags()`, `skb_zerocopy_clone()`, `SKBFL_SHARED_FRAG`, `sock_wfree`, `tail->destructor`, `tail->sk`, `tail->next`, `segs->prev`, `skb_mark_not_on_list()`, `tail = skb->prev`, and the final sock-owned tail transfer must remain named as C-owned review points
 
 ## Stay-In-C Guardrail
 """ + GUARDRAIL_MARKER + """
