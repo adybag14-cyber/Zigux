@@ -154,7 +154,7 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("shared_ci_perf_promotion_status",), "pending"),
         (("local_only_posture_note",), EXPECTED_LOCAL_ONLY_POSTURE_NOTE),
         (
-            (("dedicated_local_survey_wrapper",),
+            ("dedicated_local_survey_wrapper",),
             "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
         ),
         (
