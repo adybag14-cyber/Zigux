@@ -137,7 +137,7 @@ REQUIRED_MARKERS = {
         "EXPECTED_DETERMINISM_LANE_KEY = \"P12-L17\"",
         "EXPECTED_DETERMINISM_TRACKED_PATHS = [",
         "    \"tools/lib/bpf/zigux_segments/pin_path.zig\",",
-        "SELF_TEST_CASE_COUNT = 29",
+        "SELF_TEST_CASE_COUNT = 30",
     ],
     SCRIPTS_README_PATH: [
         "- `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
