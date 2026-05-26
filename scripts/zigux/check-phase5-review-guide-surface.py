@@ -258,7 +258,7 @@ def expect_exact(label: str, failures: list[str], expected: list[str]) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 44
+    expected_case_count = 45
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         seed(root)
@@ -273,6 +273,11 @@ def run_self_test() -> int:
         seed(mutated)
         write_text(mutated, DOCS_ROOT_PATH, placeholder(DOCS_ROOT_PATH).replace(MARKERS[DOCS_ROOT_PATH][1], ""))
         expect_exact("missing docs-root marker", collect_failures(mutated), [f"{DOCS_ROOT_PATH}:missing_text:{MARKERS[DOCS_ROOT_PATH][1]}"])
+        checks_run += 1
+        mutated = root / "missing_docs_root_kobject_split_marker"
+        seed(mutated)
+        write_text(mutated, DOCS_ROOT_PATH, placeholder(DOCS_ROOT_PATH).replace(MARKERS[DOCS_ROOT_PATH][4], ""))
+        expect_exact("missing docs-root kobject split marker", collect_failures(mutated), [f"{DOCS_ROOT_PATH}:missing_text:{MARKERS[DOCS_ROOT_PATH][4]}"])
         checks_run += 1
         mutated = root / "missing_approved_idiom_marker"
         seed(mutated)
