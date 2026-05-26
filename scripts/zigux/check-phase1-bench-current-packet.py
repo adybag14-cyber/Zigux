@@ -98,6 +98,14 @@ EXPECTED_BLOCKS = {
             ")",
         ),
         (
+            "def duplicate_marker_labels(text: str, marker_set: dict[str, str]) -> list[str]:",
+            "duplicates: list[str] = []",
+            "for label, marker in marker_set.items():",
+            "if text.count(marker) > 1:",
+            "duplicates.append(label)",
+            "return duplicates",
+        ),
+        (
             "def validate_bench_source(text: str) -> tuple[str, object]:",
             "missing: list[str] = []",
             "for marker_set in SOURCE_MARKER_SETS:",
@@ -106,6 +114,9 @@ EXPECTED_BLOCKS = {
             "missing.append(label)",
             "if missing:",
             'return ("bench_source_missing_markers", missing)',
+            "duplicate_rbtree_markers = duplicate_marker_labels(text, RBTREE_REQUIRED_SOURCE_MARKERS)",
+            "if duplicate_rbtree_markers:",
+            'return ("bench_source_duplicate_rbtree_markers", duplicate_rbtree_markers)',
             'return ("pass", text)',
         ),
         (
