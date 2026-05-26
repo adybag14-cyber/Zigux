@@ -38,6 +38,16 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     defer std.testing.allocator.free(loader_file);
     const module_file = try readRepoFileAlloc("zigux/tests/runtime_kretprobe_module.zig", 64 * 1024);
     defer std.testing.allocator.free(module_file);
+    const survey_note = try readRepoFileAlloc(
+        "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+    const module_note = try readRepoFileAlloc(
+        "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(module_note);
     const initialized_guard_file = try readRepoFileAlloc(
         "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
         16 * 1024,
@@ -109,6 +119,14 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(
         module_file,
         "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary",
+    );
+    try expectContains(
+        survey_note,
+        "retargeted probe-symbol ownership explicit from `cold` through `initialized`, `selftest_complete`, and `exited`, and it rejects late `retargetSymbol()` attempts after arming",
+    );
+    try expectContains(
+        module_note,
+        "retargeted probe symbol now stays fixed from `cold` through `initialized`, `selftest_complete`, and `exited`, and late `retargetSymbol()` attempts are rejected after arming",
     );
 
     try expectContains(
