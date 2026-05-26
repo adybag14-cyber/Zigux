@@ -60,6 +60,11 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
 
     try expectContains(loader_file, "pub const LoaderStage = enum(u8)");
     try expectContains(loader_file, "pub const RuntimeKretprobeLoader = struct");
+    try expectContains(loader_file, "pub fn requestSharedRuntimeLoad(");
+    try expectContains(loader_file, "pub fn releaseSharedWithoutSubstrate(");
+    try expectContains(loader_file, "released_without_substrate");
+    try expectContains(loader_file, "waiting_on_runtime_substrate");
+    try expectContains(loader_file, "error.InvalidLoaderState");
     try expectContains(
         loader_file,
         "runtime kretprobe loader keeps initialized-stage shared contract plans explicit",
