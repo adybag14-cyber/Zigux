@@ -114,11 +114,15 @@ MANIFEST_MARKERS = [
     '"id": "phase10-mmio-config-write-plan-freshness-helper"',
     '"id": "phase10-mmio-config-write-disposition-helper"',
     '"id": "phase10-mmio-config-write-apply-observation-helper"',
+    '"id": "phase10-mmio-config-write-apply-observation-replay"',
+    '"zigux_destination": "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig"',
     '"id": "phase10-mmio-verify-replay"',
     '"id": "phase10-virtio-mmio-lab-gate"',
     '"zigux_destination": "zigux/tests/phase10_virtio_mmio.zig"',
     '"id": "phase10-virtio-mmio-survey-gate"',
     '"zigux_destination": "zigux/tests/phase10_virtio_mmio_survey.zig"',
+    '"id": "phase10-virtio-mmio-survey-note"',
+    '"zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md"',
     '"id": "phase10-virtio-mmio-config-write-disposition-note"',
     '"zigux_destination": "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md"',
     '"id": "phase10-virtio-mmio-slice-note"',
@@ -379,7 +383,11 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-config-write-plan-freshness-helper"', '"id": "phase10-mmio-config-write-plan-freshness-missing"', 'manifest:"id": "phase10-mmio-config-write-plan-freshness-helper"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-config-write-disposition-helper"', '"id": "phase10-mmio-config-write-disposition-missing"', 'manifest:"id": "phase10-mmio-config-write-disposition-helper"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-config-write-apply-observation-helper"', '"id": "phase10-mmio-config-write-apply-observation-missing"', 'manifest:"id": "phase10-mmio-config-write-apply-observation-helper"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-config-write-apply-observation-replay"', '"id": "phase10-mmio-config-write-apply-observation-replay-missing"', 'manifest:"id": "phase10-mmio-config-write-apply-observation-replay"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"zigux_destination": "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig"', '"zigux_destination": "zigux/tests/phase10_virtio_mmio_apply_observation_replay_missing.zig"', 'manifest:"zigux_destination": "zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-verify-replay"', '"id": "phase10-mmio-verify-missing"', 'manifest:"id": "phase10-mmio-verify-replay"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-virtio-mmio-survey-note"', '"id": "phase10-virtio-mmio-survey-note-missing"', 'manifest:"id": "phase10-virtio-mmio-survey-note"')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md"', '"zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey-missing.md"', 'manifest:"zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md"')
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "available_for_disposition = availability == .fresh,", "available_for_disposition = availability == .stale_generation,", "helper:available_for_disposition = availability == .fresh,")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "pub const ConfigWritePlanFreshnessSummary = struct {", "pub const ConfigWritePlanFreshnessMissing = struct {", "helper:pub const ConfigWritePlanFreshnessSummary = struct {")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "pub const ConfigWriteApplyObservationSummary = struct {", "pub const ConfigWriteApplyObservationMissing = struct {", "helper:pub const ConfigWriteApplyObservationSummary = struct {")
@@ -437,7 +445,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=96")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=100")
     return 0
 
 
