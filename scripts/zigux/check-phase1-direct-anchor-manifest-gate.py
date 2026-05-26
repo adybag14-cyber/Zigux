@@ -511,6 +511,25 @@ def run_self_test() -> None:
         write_sample_root(root)
         case_count += 1
 
+        write_failing_checker(
+            root,
+            FIND_BIT_REVIEW_CHECKER_REL,
+            "PHASE1_FIND_BIT_REVIEW_PACKET=fail",
+            "manifest:tail_inclusive_boundary_next:expected_current_packet",
+        )
+        assert run_checker(
+            root,
+            FIND_BIT_REVIEW_CHECKER_REL,
+            "find_bit_review_checker",
+            "phase1-find-bit-review-packet:ok",
+        ) == [
+            "find_bit_review_checker:exit=1",
+            "find_bit_review_checker:stdout:PHASE1_FIND_BIT_REVIEW_PACKET=fail",
+            "find_bit_review_checker:stderr:manifest:tail_inclusive_boundary_next:expected_current_packet",
+        ]
+        write_sample_root(root)
+        case_count += 1
+
         write_zero_exit_wrong_output_checker(
             root,
             STRING_REVIEW_CHECKER_REL,
