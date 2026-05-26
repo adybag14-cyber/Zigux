@@ -40,6 +40,7 @@ EXPECTED_SELF_TEST_CASES = (
     "round_trip",
     "survey_marker_drift",
     "survey_packet_drift",
+    "survey_exact_packet_drift",
     "review_checklist_drift",
     "note_marker_drift",
     "broader_note_marker_drift",
@@ -64,6 +65,24 @@ SURVEY_MARKERS = (
     "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=30`",
     "No remaining owner-and-rollback note readback caveat is left inside this lane on current `master`, so the same lane should stay parked unless the broader note or exact packet drifts again.",
     "this survey now treats `Documentation/zigux/artifact-diff.md` as direct current-head evidence on current `master`",
+)
+
+SURVEY_EXACT_PACKET_MARKERS = (
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=23`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_MODES=text,json,bytes`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_LEGACY_MODE_ALIASES=sha256->bytes`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_HELPER_SELF_TEST_CASE_COUNT=23`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=24`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=25`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=30`",
+    "`ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23`",
+    "`ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24`",
+    "`ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30`",
+    "`PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=12`",
+    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14`",
+    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT=7`",
+    "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT=14`",
 )
 
 NOTE_MARKERS = (
@@ -326,6 +345,7 @@ def check(root: Path) -> None:
     validator_text = read(root, VALIDATOR)
 
     require_markers(survey, SURVEY_MARKERS, SURVEY.as_posix())
+    require_markers(survey, SURVEY_EXACT_PACKET_MARKERS, SURVEY.as_posix())
     require_paths_listed(survey, CURRENT_DIRECT_PACKET, SURVEY.as_posix())
     require_paths_listed(survey, AUTH_MISSING_BROADER_COMPANIONS, SURVEY.as_posix())
     require_markers(note, NOTE_MARKERS, PHASE4_NOTE.as_posix())
@@ -400,7 +420,14 @@ def artifact_note_fixture_text() -> str:
 def fixture_root(root: Path) -> None:
     write(
         root / SURVEY,
-        "\n".join([*SURVEY_MARKERS, bullet_paths(CURRENT_DIRECT_PACKET), bullet_paths(AUTH_MISSING_BROADER_COMPANIONS)])
+        "\n".join(
+            [
+                *SURVEY_MARKERS,
+                *SURVEY_EXACT_PACKET_MARKERS,
+                bullet_paths(CURRENT_DIRECT_PACKET),
+                bullet_paths(AUTH_MISSING_BROADER_COMPANIONS),
+            ]
+        )
         + "\n",
     )
     write(root / PHASE4_NOTE, "\n".join(NOTE_MARKERS) + "\n")
@@ -453,6 +480,17 @@ def self_test() -> None:
             ),
         )
         covered.append(expect_failure(root, "survey_packet_drift"))
+
+        fixture_root(root)
+        write(
+            root / SURVEY,
+            read(root, SURVEY).replace(
+                "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14`",
+                "`PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=13`",
+                1,
+            ),
+        )
+        covered.append(expect_failure(root, "survey_exact_packet_drift"))
 
         fixture_root(root)
         write(
