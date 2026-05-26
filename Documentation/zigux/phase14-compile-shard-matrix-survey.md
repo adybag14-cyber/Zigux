@@ -27,6 +27,7 @@ The roadmap keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the s
 - checker: `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
 - skbuff compile-route checker: `scripts/zigux/check-phase14-skbuff-compile-route.py`
 - ring-buffer compile-route checker: `scripts/zigux/check-phase14-ring-buffer-compile-route.py`
+- rcu compile-route checker: `scripts/zigux/check-phase14-rcu-compile-route.py`
 - shared survey shard: `phase14-end-to-end-smoke-tests` (`focused_and_full_bundle`)
 
 ## Anchor coverage
@@ -43,7 +44,7 @@ The roadmap keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the s
   - the manifest-backed compile row is present, and `scripts/zigux/check-phase14-skbuff-compile-route.py` now fail-closes on the shared-manifest row, the dedicated build-shard wiring, and the survey note's live skbuff-local review-route wording without promoting the anchor beyond freeze-in-C posture
 - `kernel/rcu/tree.c` -> lane `P14-L16`
   - `phase14-rcu-tree-survey-tests`
-  - the manifest-backed compile row is present, but it still has no dedicated compile-route checker and the focused replay remains partial through this lane's exact contents path, so the anchor stays freeze-in-C initially
+  - the manifest-backed compile row is present, and `scripts/zigux/check-phase14-rcu-compile-route.py` now fail-closes on the shared-manifest row, the dedicated build-shard wiring, and the survey note's public-fallback replay wording while the anchor stays freeze-in-C initially
 
 ## Product reading
 
@@ -51,11 +52,11 @@ The compile-shard story is no longer an unknown-count placeholder.
 
 Current `master` now carries an exact six-row machine-readable matrix for the shared Phase 14 smoke packet. That improves reviewability, and the packet now records the one focused build-file smoke shard explicitly. The returned release-boundary exact-count checker now also rereads this survey and the shared smoke manifest together, so the six-row `6 / 1 / 5` split has a direct truthfulness guard instead of living only in prose.
 
-The skbuff compile-route packet is narrower but stronger too: the new dedicated skbuff compile-route checker now keeps the manifest-backed row, the build-file route, and the survey-note route wording aligned even while the direct skbuff Zig test body itself remains a separate anchor-local follow-up.
+The skbuff compile-route packet is narrower but stronger too: the dedicated skbuff compile-route checker keeps the manifest-backed row, the build-file route, and the survey-note route wording aligned even while the direct skbuff Zig test body itself remains a separate anchor-local follow-up.
 
-The ring-buffer row is stronger too: `scripts/zigux/check-phase14-ring-buffer-compile-route.py` now exact-requires the shared-manifest compile row for `phase14-ring-buffer-survey-tests` and the note's returned ring-buffer-local replay wording, so that anchor is no longer represented here as prose-only matrix evidence even though it remains study-only.
+The ring-buffer row is stronger too: `scripts/zigux/check-phase14-ring-buffer-compile-route.py` exact-requires the shared-manifest compile row for `phase14-ring-buffer-survey-tests` and the note's returned ring-buffer-local replay wording, so that anchor is no longer represented here as prose-only matrix evidence even though it remains study-only.
 
-RCU is still the thinnest compile row in the packet: the shared manifest counts it, but there is still no dedicated compile-route checker and the focused replay remains partial through this lane's exact contents path.
+RCU is no longer a manifest-only compile row in the packet: `scripts/zigux/check-phase14-rcu-compile-route.py` now cross-reads the shared-manifest row, the focused Phase 14 build shard, and the dedicated survey note's replay wording so compile-route drift can fail closed without softening the freeze-in-C boundary.
 
 That still does not reopen the broader Phase 14 Makefile wrapper family and it does not change the roadmap posture for any deep-core anchor.
 
@@ -68,10 +69,11 @@ The honest same-lane conclusion stays narrow:
 - keep the ring-buffer row framed as study-only coverage with a dedicated shared-manifest row guard, not a delivery claim
 - keep the ring-buffer compile-route checker explicit through `scripts/zigux/check-phase14-ring-buffer-compile-route.py`
 - keep the skbuff compile-route checker explicit through `scripts/zigux/check-phase14-skbuff-compile-route.py`
+- keep the rcu compile-route checker explicit through `scripts/zigux/check-phase14-rcu-compile-route.py`
 - keep workqueue framed as a study-only compile-adjacent foothold that still relies on shared bundle wiring plus reviewability evidence
 - keep skbuff framed as a manifest-backed compile row with dedicated route-check coverage that still does not justify a delivery claim or a freeze-map status change
-- keep RCU framed as a manifest-backed compile row that still lacks dedicated compile-route coverage and still does not justify a delivery claim or a freeze-map status change
+- keep RCU framed as a manifest-backed compile row with dedicated route-check coverage that still does not justify a delivery claim, a freeze-map status change, or a bridge-opening claim
 
 ## Next bounded step
 
-If current repo state drifts again, repair the smallest Phase 14 reminder or checker surface that undercounts this six-row matrix, its single focused build-file shard, the ring-buffer row guard posture, the skbuff compile-route packet, the RCU manifest-only posture, or the manifest-backed `6 / 1 / 5` split before widening any anchor-local work.
+If current repo state drifts again, repair the smallest Phase 14 reminder or checker surface that undercounts this six-row matrix, its single focused build-file shard, the ring-buffer row guard posture, the skbuff compile-route packet, the rcu compile-route packet, or the manifest-backed `6 / 1 / 5` split before widening any anchor-local work.
