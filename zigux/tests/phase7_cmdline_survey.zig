@@ -107,6 +107,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(sequencing_note, "  - `Documentation/zigux/phase7-cmdline-slice.md`");
     try expectContains(sequencing_note, "  - `samples/zigux/README.md`");
     try expectContains(sequencing_note, "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`");
+    try expectContains(sequencing_note, "Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.");
 
     try expectContains(helper, "pub fn parseOptionStr");
     try expectContains(helper, "pub const parse_option_str = parseOptionStr;");
