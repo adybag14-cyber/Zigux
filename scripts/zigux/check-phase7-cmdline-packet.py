@@ -65,7 +65,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "Documentation/zigux/phase7-cmdline-slice.md",
         "samples/zigux/README.md",
-        "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`",
+        "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample-boundary now directly materialize on current `master`",
         "Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
@@ -166,7 +166,7 @@ COUNTED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 53
+SELF_TEST_CASE_COUNT = 54
 
 
 def read_text(path: Path) -> str:
@@ -323,6 +323,7 @@ def run_self_test() -> None:
             ("Documentation/zigux/phase7-cmdline-slice.md", "`scripts/zigux/check-phase7-cmdline-packet.py`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track", ""),
+            ("Documentation/zigux/phase7-cmdline-slice.md", "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.", ""),
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
             ("lib/cmdline.zig", "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {", ""),
             ("lib/cmdline.zig", "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {", ""),
