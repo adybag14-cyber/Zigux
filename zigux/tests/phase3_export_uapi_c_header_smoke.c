@@ -203,6 +203,82 @@ static int check_boundary_header_relays(void)
     return 0;
 }
 
+static int check_interop_policy_relays(void)
+{
+    struct zigux_interop_policy safe = zigux_default_interop_policy();
+    struct zigux_interop_policy mmio = {
+        .panic_mode = ZIGUX_PANIC_BUG,
+        .allocator_mode = ZIGUX_ALLOC_KERNEL_HEAP,
+        .unsafe_scope = ZIGUX_UNSAFE_VOLATILE_MMIO,
+        .reserved = 0u,
+    };
+    struct zigux_interop_policy raw = {
+        .panic_mode = ZIGUX_PANIC_WARN,
+        .allocator_mode = ZIGUX_ALLOC_ARENA,
+        .unsafe_scope = ZIGUX_UNSAFE_RAW_POINTER_BRIDGE,
+        .reserved = 0u,
+    };
+    struct zigux_interop_policy reserved = raw;
+    struct zigux_interop_policy unknown = {
+        .panic_mode = 9u,
+        .allocator_mode = 9u,
+        .unsafe_scope = 9u,
+        .reserved = 0u,
+    };
+
+    reserved.reserved = 1u;
+
+    if (safe.panic_mode != ZIGUX_PANIC_ABORT)
+        return __LINE__;
+    if (safe.allocator_mode != ZIGUX_ALLOC_CALLER_PROVIDED)
+        return __LINE__;
+    if (safe.unsafe_scope != ZIGUX_UNSAFE_NONE)
+        return __LINE__;
+    if (safe.reserved != 0u)
+        return __LINE__;
+
+    if (!zigux_panic_mode_is_known(safe.panic_mode))
+        return __LINE__;
+    if (!zigux_allocator_mode_is_known(safe.allocator_mode))
+        return __LINE__;
+    if (!zigux_unsafe_scope_is_known(safe.unsafe_scope))
+        return __LINE__;
+    if (!zigux_interop_policy_reserved_clear(safe))
+        return __LINE__;
+    if (!zigux_interop_policy_is_recognized(safe))
+        return __LINE__;
+
+    if (!zigux_panic_mode_is_known(mmio.panic_mode))
+        return __LINE__;
+    if (!zigux_allocator_mode_is_known(mmio.allocator_mode))
+        return __LINE__;
+    if (!zigux_unsafe_scope_is_known(mmio.unsafe_scope))
+        return __LINE__;
+    if (!zigux_interop_policy_is_recognized(mmio))
+        return __LINE__;
+
+    if (!zigux_interop_policy_is_recognized(raw))
+        return __LINE__;
+    if (!zigux_interop_policy_reserved_clear(raw))
+        return __LINE__;
+
+    if (zigux_interop_policy_reserved_clear(reserved))
+        return __LINE__;
+    if (zigux_interop_policy_is_recognized(reserved))
+        return __LINE__;
+
+    if (zigux_panic_mode_is_known(unknown.panic_mode))
+        return __LINE__;
+    if (zigux_allocator_mode_is_known(unknown.allocator_mode))
+        return __LINE__;
+    if (zigux_unsafe_scope_is_known(unknown.unsafe_scope))
+        return __LINE__;
+    if (zigux_interop_policy_is_recognized(unknown))
+        return __LINE__;
+
+    return 0;
+}
+
 static int check_dev_t_relays(void)
 {
     struct zigux_dev_t_fields valid = zigux_dev_t_fields_make(11u, 29u);
@@ -271,6 +347,10 @@ int main(void)
         return rc;
 
     rc = check_boundary_header_relays();
+    if (rc != 0)
+        return rc;
+
+    rc = check_interop_policy_relays();
     if (rc != 0)
         return rc;
 
