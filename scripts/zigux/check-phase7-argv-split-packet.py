@@ -15,6 +15,12 @@ EXPECTED_MANIFEST_LANE_KEY = "P7-L09"
 EXPECTED_MANIFEST_PHASE = "Phase 7"
 EXPECTED_MANIFEST_ANCHOR = "lib/argv_split.c"
 EXPECTED_MANIFEST_STATE = "helper_slice_test_fixture_survey_manifest_anchor"
+EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (
+    "Keep same-lane follow-through limited to the returned fixture-backed helper-local "
+    "survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` "
+    "enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening "
+    "into any new vector-backed replay proof."
+)
 EXPECTED_REVIEW_SURFACES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
     "lib/argv_split.zig",
@@ -64,7 +70,7 @@ REQUIRED_MARKERS = {
         "`PHASE7_SLICE=argv-split-runtime-leaf`",
         "`zigux/tests/fixtures/phase7_argv_split_vectors.zig`",
         "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.",
-        "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.",
+        "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening into any new vector-backed replay proof.",
         "whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space",
         "leading-NUL input also reuses the canonical blank storage and exported argv sentinels without allocator space because `cStringPrefix()` stops before token counting or tokenization begins",
         "blank, whitespace-only, whitespace-before-first-NUL, and leading-NUL inputs all reuse the same shared empty storage, argv, and `cArgv()` views across calls, so blank-result teardown stays repeatable without hidden allocation churn",
@@ -78,11 +84,12 @@ REQUIRED_MARKERS = {
         "MISSING_PHASE7_ARGV_SPLIT_FILES_END",
         "MISSING_PHASE7_ARGV_SPLIT_MARKERS_START",
         "MISSING_PHASE7_ARGV_SPLIT_MARKERS_END",
-        "\\\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\\\",",
+        "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",",
         'EXPECTED_MANIFEST_LANE_KEY = "P7-L09"',
         'EXPECTED_MANIFEST_PHASE = "Phase 7"',
         'EXPECTED_MANIFEST_ANCHOR = "lib/argv_split.c"',
         'EXPECTED_MANIFEST_STATE = "helper_slice_test_fixture_survey_manifest_anchor"',
+        "EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (",
         "EXPECTED_REVIEW_SURFACES = [",
         "EXPECTED_COVERED_HELPERS = [",
         "EXPECTED_OWNERSHIP_FOCUS = [",
@@ -118,9 +125,9 @@ REQUIRED_MARKERS = {
         'test "phase 7 argv split companion replays caller-owned teardown and failure boundaries" {',
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
-        '\"anchor\": \"lib/argv_split.c\"',
-        '\"current_master_state\": \"helper_slice_test_fixture_survey_manifest_anchor\"',
-        '\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"',
+        '"anchor": "lib/argv_split.c"',
+        '"current_master_state": "helper_slice_test_fixture_survey_manifest_anchor"',
+        '"zigux/tests/fixtures/phase7_argv_split_vectors.zig"',
         "fixture-backed helper-local survey-manifest-checker truthfulness packet",
         "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL",
         "leading-NUL input also reuses the exported empty storage and argv sentinel views because cStringPrefix() stops before token counting or tokenization begins",
@@ -132,10 +139,10 @@ REQUIRED_MARKERS = {
         'try std.testing.expectEqualStrings("helper_slice_test_fixture_survey_manifest_anchor", manifest.current_master_state);',
         'const fixture_vectors = try readRepoFile(allocator, fixture_path);',
         'try std.testing.expect(!stringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md"));',
-        'try expectNotContains(checker, "\\\"Documentation/zigux/phase7-helper-lane-sequencing.md\\\",");',
-        'try expectContains(helper, "test \\\\\\\"argvSplit treats whitespace before the first NUL as blank input\\\\\\\" {");',
-        'try expectContains(helper, "test \\\\\\\"argvSplit reuses shared blank sentinel views without argc output\\\\\\\" {");',
-        'try expectContains(helper, "test \\\\\\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\\\\\" {");',
+        'try expectNotContains(checker, "\"Documentation/zigux/phase7-helper-lane-sequencing.md\",");',
+        'try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");',
+        'try expectContains(helper, "test \\\"argvSplit reuses shared blank sentinel views without argc output\\\" {");',
+        'try expectContains(helper, "test \\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\" {");',
         'try expectContains(helper_companion, "phase 7 argv split companion replays repeated blank-result sentinel reuse");',
         'try expectContains(helper_companion, "phase 7 argv split companion replays whitespace-before-first-NUL sentinel reuse");',
         'try expectContains(helper_companion, "phase 7 argv split companion replays fixture-backed leading-NUL ownership and quoted-token boundaries");',
@@ -165,7 +172,7 @@ COUNTED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 78
+SELF_TEST_CASE_COUNT = 80
 
 
 def read_text(path: Path) -> str:
@@ -225,6 +232,9 @@ def collect_missing_manifest_entries(manifest: dict[str, object]) -> list[str]:
     if missing_paths != []:
         missing.append("zigux/tests/phase7_argv_split_manifest.json: missing_paths")
 
+    if manifest.get("next_bounded_step") != EXPECTED_MANIFEST_NEXT_BOUNDED_STEP:
+        missing.append("zigux/tests/phase7_argv_split_manifest.json: next_bounded_step")
+
     return missing
 
 
@@ -278,7 +288,7 @@ def write_fixture_root(tmp_root: Path) -> None:
                 "covered_helpers": EXPECTED_COVERED_HELPERS,
                 "missing_paths": [],
                 "ownership_focus": EXPECTED_OWNERSHIP_FOCUS,
-                "next_bounded_step": "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.",
+                "next_bounded_step": EXPECTED_MANIFEST_NEXT_BOUNDED_STEP,
             },
             indent=2,
         )
@@ -328,7 +338,7 @@ def run_self_test() -> None:
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
         slice_text = read_text(slice_path)
-        slice_marker = "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof."
+        slice_marker = "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet, starting with exact `next_bounded_step` enforcement inside `scripts/zigux/check-phase7-argv-split-packet.py` before widening into any new vector-backed replay proof."
         slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_slice_fixture_packet_marker", tmp_root, f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}")
         cases_run += 1
@@ -391,6 +401,7 @@ def run_self_test() -> None:
                 'EXPECTED_MANIFEST_STATE = "helper_slice_test_fixture_survey_manifest_anchor"',
                 "missing_checker_expected_manifest_state",
             ),
+            ("EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (", "missing_checker_expected_manifest_next_bounded_step"),
             ("EXPECTED_OWNERSHIP_FOCUS = [", "missing_checker_expected_ownership_focus"),
             ("MISMATCHED_PHASE7_ARGV_SPLIT_COUNTS_START", "missing_checker_mismatched_counts_start_marker"),
             ("MISMATCHED_PHASE7_ARGV_SPLIT_COUNTS_END", "missing_checker_mismatched_counts_end_marker"),
@@ -490,6 +501,20 @@ def run_self_test() -> None:
             "manifest_missing_paths_must_stay_empty",
             tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json: missing_paths",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["next_bounded_step"] = (
+            "Keep same-lane follow-through limited to the returned fixture-backed helper-local "
+            "survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof."
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_next_bounded_step_truthfulness_guard",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json: next_bounded_step",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
