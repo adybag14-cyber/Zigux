@@ -21,6 +21,9 @@ pub const UNSAFE_NONE: u8 = 0;
 pub const UNSAFE_VOLATILE_MMIO: u8 = 1;
 pub const UNSAFE_RAW_POINTER_BRIDGE: u8 = 2;
 
+pub const RBTREE_ROOT_VIEW_FLAG_CACHED: u32 = 1;
+pub const RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID: u32 = 2;
+
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_DELIVERY_APPLIED: u32 = 1;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED: u32 = 1;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;
@@ -48,6 +51,12 @@ pub const InteropPolicy = extern struct {
     allocator_mode: u8,
     unsafe_scope: u8,
     reserved: u8,
+};
+
+pub const RbtreeRootView = extern struct {
+    root: usize,
+    cached_leftmost: usize,
+    flags: u32,
 };
 
 pub const Facility = enum(u16) {
@@ -102,6 +111,12 @@ pub const interop_policy_panic_mode_offset = @offsetOf(InteropPolicy, "panic_mod
 pub const interop_policy_allocator_mode_offset = @offsetOf(InteropPolicy, "allocator_mode");
 pub const interop_policy_unsafe_scope_offset = @offsetOf(InteropPolicy, "unsafe_scope");
 pub const interop_policy_reserved_offset = @offsetOf(InteropPolicy, "reserved");
+
+pub const rbtree_root_view_size = @sizeOf(RbtreeRootView);
+pub const rbtree_root_view_align = @alignOf(RbtreeRootView);
+pub const rbtree_root_view_root_offset = @offsetOf(RbtreeRootView, "root");
+pub const rbtree_root_view_cached_leftmost_offset = @offsetOf(RbtreeRootView, "cached_leftmost");
+pub const rbtree_root_view_flags_offset = @offsetOf(RbtreeRootView, "flags");
 
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView = extern struct {
     ack_window: u32,
@@ -262,6 +277,46 @@ pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
     var canonical = header;
     canonical.size = @as(u32, @intCast(boundary_header_size));
     canonical.abi_version = ABI_VERSION;
+    return canonical;
+}
+
+pub fn rbtreeRootViewIsCached(view: RbtreeRootView) bool {
+    return (view.flags & RBTREE_ROOT_VIEW_FLAG_CACHED) != 0;
+}
+
+pub fn rbtreeRootViewHasLeftmost(view: RbtreeRootView) bool {
+    return (view.flags & RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID) != 0;
+}
+
+pub fn rbtreeRootViewIsValid(view: RbtreeRootView) bool {
+    if (view.root == 0) return false;
+
+    const cached = rbtreeRootViewIsCached(view);
+    const has_leftmost_flag = rbtreeRootViewHasLeftmost(view);
+    const has_leftmost_addr = view.cached_leftmost != 0;
+
+    if (cached != has_leftmost_flag) return false;
+    if (cached != has_leftmost_addr) return false;
+
+    return true;
+}
+
+pub fn canonicalizeRbtreeRootView(view: RbtreeRootView) RbtreeRootView {
+    if (view.root == 0) {
+        return .{
+            .root = 0,
+            .cached_leftmost = 0,
+            .flags = 0,
+        };
+    }
+
+    var canonical = view;
+    if (canonical.cached_leftmost == 0) {
+        canonical.flags = 0;
+        return canonical;
+    }
+
+    canonical.flags = RBTREE_ROOT_VIEW_FLAG_CACHED | RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID;
     return canonical;
 }
 
@@ -606,9 +661,102 @@ test "abi binding enums stay aligned with exported constants" {
     try std.testing.expectEqual(@as(u8, UNSAFE_VOLATILE_MMIO), @intFromEnum(UnsafeScope.volatile_mmio));
     try std.testing.expectEqual(@as(u8, UNSAFE_RAW_POINTER_BRIDGE), @intFromEnum(UnsafeScope.raw_pointer_bridge));
 
+    try std.testing.expectEqual(@as(u32, RBTREE_ROOT_VIEW_FLAG_CACHED), @as(u32, 1));
+    try std.testing.expectEqual(@as(u32, RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID), @as(u32, 2));
+
     try std.testing.expectEqual(@as(u32, NOTIFIER_DONE), @intFromEnum(NotifierResult.done));
     try std.testing.expectEqual(@as(u32, NOTIFIER_OK), @intFromEnum(NotifierResult.ok));
     try std.testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
+}
+
+test "abi binding rbtree root view keeps the published layout" {
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), rbtree_root_view_align);
+    try std.testing.expectEqual(@as(usize, 0), rbtree_root_view_root_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), rbtree_root_view_cached_leftmost_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), rbtree_root_view_flags_offset);
+    try std.testing.expectEqual(rbtree_root_view_align, @alignOf(RbtreeRootView));
+    try std.testing.expectEqual(rbtree_root_view_size, @sizeOf(RbtreeRootView));
+}
+
+test "abi binding rbtree root view keeps cached-leftmost validity explicit" {
+    const uncached = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0,
+        .flags = 0,
+    };
+    const cached = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0x0800,
+        .flags = RBTREE_ROOT_VIEW_FLAG_CACHED | RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID,
+    };
+    const rootless_uncached = RbtreeRootView{
+        .root = 0,
+        .cached_leftmost = 0,
+        .flags = 0,
+    };
+    const cached_without_leftmost_addr = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0,
+        .flags = RBTREE_ROOT_VIEW_FLAG_CACHED | RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID,
+    };
+    const cached_without_leftmost_flag = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0x0800,
+        .flags = RBTREE_ROOT_VIEW_FLAG_CACHED,
+    };
+    const leftmost_without_cached_flag = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0x0800,
+        .flags = RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID,
+    };
+
+    try std.testing.expect(rbtreeRootViewIsValid(uncached));
+    try std.testing.expect(!rbtreeRootViewIsCached(uncached));
+    try std.testing.expect(!rbtreeRootViewHasLeftmost(uncached));
+
+    try std.testing.expect(rbtreeRootViewIsValid(cached));
+    try std.testing.expect(rbtreeRootViewIsCached(cached));
+    try std.testing.expect(rbtreeRootViewHasLeftmost(cached));
+
+    try std.testing.expect(!rbtreeRootViewIsValid(rootless_uncached));
+    try std.testing.expect(!rbtreeRootViewIsValid(cached_without_leftmost_addr));
+    try std.testing.expect(!rbtreeRootViewIsValid(cached_without_leftmost_flag));
+    try std.testing.expect(!rbtreeRootViewIsValid(leftmost_without_cached_flag));
+}
+
+test "abi binding rbtree root view canonicalization preserves valid shapes and clears malformed ones" {
+    const uncached = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0,
+        .flags = RBTREE_ROOT_VIEW_FLAG_CACHED,
+    };
+    const cached = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0x0800,
+        .flags = 0,
+    };
+    const rootless = RbtreeRootView{
+        .root = 0,
+        .cached_leftmost = 0x0800,
+        .flags = RBTREE_ROOT_VIEW_FLAG_CACHED | RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID,
+    };
+
+    const canonical_uncached = canonicalizeRbtreeRootView(uncached);
+    const canonical_cached = canonicalizeRbtreeRootView(cached);
+    const canonical_rootless = canonicalizeRbtreeRootView(rootless);
+
+    try std.testing.expectEqual(@as(u32, 0), canonical_uncached.flags);
+    try std.testing.expect(rbtreeRootViewIsValid(canonical_uncached));
+
+    try std.testing.expectEqual(
+        @as(u32, RBTREE_ROOT_VIEW_FLAG_CACHED | RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID),
+        canonical_cached.flags,
+    );
+    try std.testing.expect(rbtreeRootViewIsValid(canonical_cached));
+
+    try std.testing.expectEqual(@as(usize, 0), canonical_rootless.root);
+    try std.testing.expectEqual(@as(usize, 0), canonical_rootless.cached_leftmost);
+    try std.testing.expectEqual(@as(u32, 0), canonical_rootless.flags);
 }
 
 test "abi binding notifier result and hlist-first relays stay aligned with notifier helpers" {
