@@ -75,6 +75,7 @@ test "phase10 virtio core survey gate keeps verify, checker, driver-model, and f
     try expectContains(survey_note, "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig");
     try expectContains(survey_note, "driverModelSummary()");
     try expectContains(survey_note, "DriverModelStage");
+    try expectContains(survey_note, "phase10-driver-id-review-gate");
     try expectContains(survey_note, "phase10-core-probe-remove-lifecycle");
     try expectContains(core_file, "pub const DriverModelStage = enum {");
     try expectContains(core_file, "pub const DriverModelSummary = struct {");
