@@ -24,12 +24,7 @@ EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest
 EXPECTED_PARITY_LANE_SCOPE = "shared helper-parity rows and machine-readable manifest only"
 EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
-EXPECTED_PARITY_FOLLOW_THROUGH_GAPS = [
-    "Documentation/zigux/phase6-helper-evidence-catalog.md",
-    "zigux/tests/phase6_helper_evidence_manifest.json",
-    "scripts/zigux/README.md",
-    "zigux/tests/README.md",
-]
+EXPECTED_PARITY_FOLLOW_THROUGH_GAPS: list[str] = []
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_CURRENT_REPO_REALITY_GAPS = [
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
