@@ -45,6 +45,16 @@
     "zigux/tests/phase15_readiness_gate_manifest.json"
   ],
   "still_missing_broader_paths": [],
+  "blocked_broader_routes": {
+    "makefile_path": "zigux/Makefile",
+    "missing_make_targets": [
+      "phase15-validate",
+      "phase15-test",
+      "phase15"
+    ],
+    "workflow_path": ".github/workflows/zigux-bootstrap.yml",
+    "missing_workflow_phase15_route": true
+  },
   "repo_evidence": {
     "phase15_readiness_packet_checker_present": true,
     "phase15_validator_script_present": true,
