@@ -1,0 +1,53 @@
+{
+  "lane_key": "P5-L24",
+  "phase": "Phase 5",
+  "anchor": "samples/trace_events/trace-events-sample.c",
+  "sample_path": "samples/zigux/trace_events_payload_preview_contract.zig",
+  "validation_entrypoint": "zig test zigux/tests/phase5_trace_events_payload_preview_contract_survey.zig",
+  "review_prompts": [
+    "the payload-preview companion keeps the roadmap anchor explicit and stays a non-runtime trace-events companion instead of becoming a standalone helper or rbtree sample",
+    "the direct payload ladder remains reviewable through zig test samples/zigux/trace_events_payload_preview_contract.zig, zig test zigux/tests/phase5_trace_events_payload_preview_contract.zig, zig test zigux/tests/phase5_trace_events_payload_preview_contract_survey.zig, and the shared phase5_build.zig route",
+    "the companion preserves the exact focus order payload_shape,string_selection,formatted_message,conditional_event_families,function_callback_registration,ownership_and_lifetime rather than narrowing the trace-events anchor to formatting alone",
+    "the payload-preview cases keep the modulo-selected string cycle visible from Mother Goose through One ring to rule them all while the payload preview grows from zero through four elements and the sentinel stays zero",
+    "the bounded payload contract keeps conditional, vararg, and relative-location paths checked while preserving the initialized-stage review posture instead of implying runtime registration or module wiring",
+    "docs and tests keep standalone string, cmdline, argv, rbtree, bitmap, printf, vsprintf, broad format, and Phase 9 runtime claims out of this Phase 5 payload companion"
+  ],
+  "exact_checks": [
+    {
+      "id": "descriptor-anchor",
+      "kind": "anchor_shape",
+      "expected": "the payload-preview companion stays tied to samples/trace_events/trace-events-sample.c as a bounded non-runtime trace-events packet"
+    },
+    {
+      "id": "focus-order",
+      "kind": "review_surface",
+      "expected": "the companion keeps the exact focus order payload_shape,string_selection,formatted_message,conditional_event_families,function_callback_registration,ownership_and_lifetime"
+    },
+    {
+      "id": "event-family-counts",
+      "kind": "bounded_summary",
+      "expected": "the companion keeps six main-thread event families and two function-callback families explicit beside the payload review cues"
+    },
+    {
+      "id": "gandalf-preview",
+      "kind": "bounded_payload",
+      "expected": "the Gandalf case keeps selected_string_slot 2, payload preview 1,2, payload_len 2, zero sentinel, and iter=2 explicit"
+    },
+    {
+      "id": "largest-preview",
+      "kind": "bounded_payload",
+      "expected": "the largest bounded case keeps One ring to rule them all with selected_string_slot 4, payload preview 1,2,3,4, zero sentinel, and iter=4 explicit"
+    },
+    {
+      "id": "initialized-stage-posture",
+      "kind": "ownership_lifetime",
+      "expected": "the companion keeps the initialized-stage review posture together with conditional, vararg, and relative-location path checks without implying callback registration parity or runtime wiring"
+    }
+  ],
+  "non_goals": [
+    "standalone string-helper delivery",
+    "standalone rbtree sample delivery",
+    "tracepoint macro or CREATE_TRACE_POINTS parity",
+    "Phase 9 runtime registration or module wiring parity"
+  ]
+}
