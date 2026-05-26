@@ -579,7 +579,7 @@ def main() -> int:
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--source", type=Path, default=SURFACE_PATH)
     parser.add_argument("--tests-root-readme", type=Path, default=TESTS_ROOT_README_PATH)
-    parser.add_argument("--scripts-root-readme", type=Path, default=SCRIPTS_README_PATH)
+    parser.add_argument("--scripts-readme", type=Path, default=SCRIPTS_README_PATH)
     args = parser.parse_args()
 
     if args.self_test:
@@ -587,7 +587,7 @@ def main() -> int:
 
     check_companion_text(args.source.read_text(encoding="utf-8"))
     check_tests_root_readme(args.tests_root_readme.read_text(encoding="utf-8"))
-    check_scripts_readme(args.scripts_root_readme.read_text(encoding="utf-8"))
+    check_scripts_readme(args.scripts_readme.read_text(encoding="utf-8"))
     print("PHASE10_TESTS_ROOT_COMPANION_CHECK=pass")
     return 0
 
