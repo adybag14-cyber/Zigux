@@ -64,6 +64,7 @@ Keep the direct sample-owned validation cues explicit too:
 - `zig test samples/zigux/kobject_example.zig` stays the sample-owned self-check for the ownership-and-lifetime packet
 - `zig test --dep kobject_example_sample -Mroot=zigux/tests/phase5_kobject_example.zig -Mkobject_example_sample=samples/zigux/kobject_example.zig` stays the focused replay route for the same packet
 - `zig test zigux/tests/phase5_kobject_example_survey.zig` stays the survey-packet guard for the sample-owned replay, the public-tree-backed manifest-and-survey split, and the shared build-route companion in this runtime
+- `phase5-kobject-example-sample-selfcheck` stays explicit as the named shared build-step handle inside `zigux/tests/phase5_build.zig` for the sample-owned self-check while that broader file remains shared build-route companion evidence rather than sample-local proof
 
 Keep the direct attr-group validation cues explicit too:
 
@@ -77,6 +78,7 @@ Keep the direct attr-group validation cues explicit too:
 When a same-lane change touches this anchor or one of its shared reminder surfaces, keep these questions explicit:
 
 - does the note still treat `zigux/tests/phase5_build.zig` as the current directly readable shared build-route companion rather than parking it in the public-tree-backed bucket?
+- does the note still keep `phase5-kobject-example-sample-selfcheck` explicit as the named shared build-step handle for the sample-owned self-check inside `zigux/tests/phase5_build.zig` without turning that broader shared route into sample-local proof?
 - does the note still treat `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` as the current public-tree-backed owner-plus-companion set rather than direct readback proof in this runtime?
 - do shared reminder surfaces such as `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/check-phase5-review-guide-surface.py` now keep `Documentation/zigux/phase5-kobject-sample-survey.md` framed as current direct reminder evidence again while leaving only the sample-root owner plus the manifest-and-survey replay pair in the public-tree-backed bucket?
 - does the note still treat `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` as current direct evidence for the bounded attr-group companion packet?
