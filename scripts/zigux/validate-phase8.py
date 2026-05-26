@@ -223,6 +223,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:",
         "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
         "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
+        "`scripts/zigux/validate-phase8.py`",
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
