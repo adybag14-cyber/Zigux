@@ -121,6 +121,22 @@ pub const RegistrationPreflightSummary = struct {
     ready_for_registration: bool,
 };
 
+pub const RegistrationHandoffSummary = struct {
+    anchor: []const u8,
+    name: []const u8,
+    serial: []const u8,
+    phys: []const u8,
+    ids: DeviceIds,
+    event_queue_index: u16,
+    status_queue_index: u16,
+    event_descriptor_count: u16,
+    status_descriptor_count: u16,
+    queued_event_buffer_count: u16,
+    capability_setup_ready: bool,
+    multitouch_slots_ready: bool,
+    ready_for_registration: bool,
+};
+
 pub const QueueCallbackPreflightBlocker = enum {
     event_queue_unconfigured,
     status_queue_unconfigured,
@@ -466,6 +482,26 @@ pub const VirtioInputLab = struct {
         };
     }
 
+    pub fn registrationHandoffSummary(self: *const Self) RegistrationHandoffSummary {
+        const registration = self.registrationPreflightSummary();
+        const snapshot = self.configSnapshot();
+        return .{
+            .anchor = snapshot.anchor,
+            .name = snapshot.name,
+            .serial = snapshot.serial,
+            .phys = snapshot.phys,
+            .ids = snapshot.ids,
+            .event_queue_index = event_queue_index,
+            .status_queue_index = status_queue_index,
+            .event_descriptor_count = self.event_descriptor_count,
+            .status_descriptor_count = self.status_descriptor_count,
+            .queued_event_buffer_count = self.queued_event_buffer_count,
+            .capability_setup_ready = registration.capability_setup_ready,
+            .multitouch_slots_ready = registration.multitouch_slots_ready,
+            .ready_for_registration = registration.ready_for_registration,
+        };
+    }
+
     pub fn queueCallbackPreflightSummary(self: *const Self) QueueCallbackPreflightSummary {
         const event_queue_configured = self.event_descriptor_count != 0;
         const status_queue_configured = self.status_descriptor_count != 0;
@@ -681,6 +717,63 @@ test "phase10 virtio input registration preflight keeps non-multitouch devices b
     try std.testing.expect(summary.capability_setup_ready);
     try std.testing.expect(summary.multitouch_slots_ready);
     try std.testing.expect(summary.blocker == null);
+    try std.testing.expect(summary.ready_for_registration);
+}
+
+test "phase10 virtio input registration handoff summary carries identity and queue plan for ready plain devices" {
+    const ids = DeviceIds{
+        .vendor = 0x1af4,
+        .product = 0x1052,
+        .version = 9,
+    };
+    var device = try VirtioInputLab.init("virtio-tablet", "handoff-plain", 9, ids);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    try device.configureConfigBitmap(.ev_bits, 0x02, &[_]u16{ 0x00, 0x01 });
+
+    const summary = device.registrationHandoffSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expectEqualStrings("virtio-tablet", summary.name);
+    try std.testing.expectEqualStrings("handoff-plain", summary.serial);
+    try std.testing.expectEqualStrings("virtio9/input0", summary.phys);
+    try std.testing.expectEqualDeep(ids, summary.ids);
+    try std.testing.expectEqual(event_queue_index, summary.event_queue_index);
+    try std.testing.expectEqual(status_queue_index, summary.status_queue_index);
+    try std.testing.expectEqual(@as(u16, 8), summary.event_descriptor_count);
+    try std.testing.expectEqual(@as(u16, 4), summary.status_descriptor_count);
+    try std.testing.expectEqual(@as(u16, 8), summary.queued_event_buffer_count);
+    try std.testing.expect(summary.capability_setup_ready);
+    try std.testing.expect(summary.multitouch_slots_ready);
+    try std.testing.expect(summary.ready_for_registration);
+}
+
+test "phase10 virtio input registration handoff summary keeps multitouch slot planning explicit" {
+    var device = try VirtioInputLab.init("virtio-touch", "handoff-mt", 11, null);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    try device.configureConfigBitmap(.ev_bits, ev_abs, &[_]u16{abs_mt_slot});
+    try device.configureAbsInfo(abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 3,
+    });
+
+    var summary = device.registrationHandoffSummary();
+    try std.testing.expect(summary.capability_setup_ready);
+    try std.testing.expect(!summary.multitouch_slots_ready);
+    try std.testing.expect(!summary.ready_for_registration);
+    try std.testing.expectEqualStrings("virtio11/input0", summary.phys);
+
+    _ = try device.planMultitouchSlots();
+
+    summary = device.registrationHandoffSummary();
+    try std.testing.expect(summary.capability_setup_ready);
+    try std.testing.expect(summary.multitouch_slots_ready);
     try std.testing.expect(summary.ready_for_registration);
 }
 
