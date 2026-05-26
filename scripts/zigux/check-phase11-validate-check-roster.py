@@ -435,6 +435,52 @@ def run_self_test() -> int:
         expect_failure(wrong_inventory_gap, "deterministic_golden_output_gap mismatch")
         case_count += 1
 
+        missing_self_test_entry = tmpdir / "missing_self_test_entry"
+        build_fixture(missing_self_test_entry)
+        write(
+            missing_self_test_entry / VALIDATE_PATH,
+            read_text(missing_self_test_entry / VALIDATE_PATH).replace(
+                f'    CheckSpec("phase11-validate-check-roster-self-test", ("python", "{SELF_CHECK_PATH}", "--self-test")),\n',
+                "",
+                1,
+            ),
+        )
+        fixture = read_json(missing_self_test_entry / FIXTURE_PATH)
+        fixture["exact_checks"] = [
+            item
+            for item in fixture["exact_checks"]
+            if item.get("name") != "phase11-validate-check-roster-self-test"
+        ]
+        write(missing_self_test_entry / FIXTURE_PATH, json.dumps(fixture, indent=2) + "\n")
+        expect_failure(
+            missing_self_test_entry,
+            "validate-phase11 CHECKS is missing phase11-validate-check-roster-self-test",
+        )
+        case_count += 1
+
+        missing_live_entry = tmpdir / "missing_live_entry"
+        build_fixture(missing_live_entry)
+        write(
+            missing_live_entry / VALIDATE_PATH,
+            read_text(missing_live_entry / VALIDATE_PATH).replace(
+                f'    CheckSpec("phase11-validate-check-roster", ("python", "{SELF_CHECK_PATH}")),\n',
+                "",
+                1,
+            ),
+        )
+        fixture = read_json(missing_live_entry / FIXTURE_PATH)
+        fixture["exact_checks"] = [
+            item
+            for item in fixture["exact_checks"]
+            if item.get("name") != "phase11-validate-check-roster"
+        ]
+        write(missing_live_entry / FIXTURE_PATH, json.dumps(fixture, indent=2) + "\n")
+        expect_failure(
+            missing_live_entry,
+            "validate-phase11 CHECKS is missing phase11-validate-check-roster",
+        )
+        case_count += 1
+
         syntax_error = tmpdir / "syntax_error"
         write(syntax_error / VALIDATE_PATH, "CHECKS = (\n")
         write(syntax_error / FIXTURE_PATH, "{}\n")
