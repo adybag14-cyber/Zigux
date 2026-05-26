@@ -15,6 +15,7 @@ DOC_PATHS = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
     Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-abi-h-boundary-next-step.md"),
+    Path("Documentation/zigux/phase3-rbtree-gap-survey.md"),
     Path("Documentation/zigux/phase3-policy-slice.md"),
     Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"),
     Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
