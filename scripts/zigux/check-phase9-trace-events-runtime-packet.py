@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 SURVEY_NOTE_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
 MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"
+MODULE_WITNESS_PATH = "zigux/tests/runtime_trace_events_module.zig"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 MANIFEST_PATH = "zigux/tests/runtime_trace_events_manifest.json"
 SURVEY_GATE_PATH = "zigux/tests/runtime_trace_events_survey.zig"
@@ -101,6 +102,20 @@ FILE_MARKERS: dict[str, list[str]] = {
         "- `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.",
         "- Those earlier-phase anchors stay adjacent context for the narrow trace-events packet rather than shared runtime-pilot evidence.",
         "Do not invent `validate-phase9.py`",
+    ],
+    MODULE_WITNESS_PATH: [
+        'const sample = @import("runtime_trace_events_sample");',
+        'test "runtime trace-events sample advertises the bounded pilot-module contract" {',
+        'test "runtime trace-events sample keeps selftest summary replay explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps lifecycle summary replay explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps initialized-stage exit replay explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps rejected re-init rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps rejected re-selftest rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps rejected re-exit rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps direct-activity re-init and re-exit rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps duplicate registration and failed-exit rollback explicit at the module boundary" {',
+        'try std.testing.expect(descriptor.requires_runtime_substrate);',
+        'try std.testing.expect(descriptor.provides_selftest_hook);',
     ],
     SAMPLES_README_PATH: [
         "`samples/zigux/runtime_trace_events.zig`",
@@ -255,6 +270,16 @@ FILE_EXACT_ONCE_MARKERS: dict[str, list[str]] = {
     MODULE_SLICE_PATH: [
         "The same exit-rollback companion also keeps initialized-stage direct-activity failed-exit rollback explicit before selftest replay by proving `error.OutstandingRegistration` leaves one main replay plus one function-thread replay unchanged until unregister and the later `runSelftest()` replay succeeds without drift.",
         'Its paired initialized-direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.',
+    ],
+    MODULE_WITNESS_PATH: [
+        'test "runtime trace-events sample keeps selftest summary replay explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps lifecycle summary replay explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps initialized-stage exit replay explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps rejected re-init rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps rejected re-selftest rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps rejected re-exit rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps direct-activity re-init and re-exit rollback explicit at the module boundary" {',
+        'test "runtime trace-events sample keeps duplicate registration and failed-exit rollback explicit at the module boundary" {',
     ],
     SAMPLES_README_PATH: [
         "Keep `samples/zigux/runtime_trace_events.zig` explicit as the direct runtime sample, including the rejected re-selftest rollback proof that keeps both selftest-complete and exited summaries stable when `runSelftest()` is retried out of lifecycle order.",
