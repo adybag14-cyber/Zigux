@@ -32,7 +32,15 @@ fn successStrength(order: Ordering) ?u8 {
     };
 }
 
+pub fn compareExchangeSuccessOrderAllowed(order: Ordering) bool {
+    return switch (order) {
+        .monotonic, .acquire, .release, .acq_rel, .seq_cst => true,
+        .unordered => false,
+    };
+}
+
 pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {
+    if (!compareExchangeSuccessOrderAllowed(success)) return false;
     const failure_strength = failureStrength(failure) orelse return false;
     const success_strength = successStrength(success) orelse return false;
     return failure_strength <= success_strength;
@@ -262,6 +270,15 @@ pub fn fetchMax(
         return @atomicRmw(T, ptr, .Max, operand, order);
     }
     return error.InvalidRmwOrdering;
+}
+
+test "phase3 atomic helper keeps compare-exchange success ordering rules explicit" {
+    try std.testing.expect(compareExchangeSuccessOrderAllowed(.monotonic));
+    try std.testing.expect(compareExchangeSuccessOrderAllowed(.acquire));
+    try std.testing.expect(compareExchangeSuccessOrderAllowed(.release));
+    try std.testing.expect(compareExchangeSuccessOrderAllowed(.acq_rel));
+    try std.testing.expect(compareExchangeSuccessOrderAllowed(.seq_cst));
+    try std.testing.expect(!compareExchangeSuccessOrderAllowed(.unordered));
 }
 
 test "phase3 atomic helper keeps compare-exchange ordering rules explicit" {
