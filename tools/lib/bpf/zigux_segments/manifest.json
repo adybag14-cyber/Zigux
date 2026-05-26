@@ -214,7 +214,6 @@
         "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
         "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
         "mapReuseObservationFromFdinfo() helper-only conversion from parsed fdinfo metadata into a reusable comparison observation",
-        "resolveReusedMapName() object-name retention for truncated reused-map names",
         "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
         "summarizeMapReuseCompatibility() mismatch reporting for helper-only reused-map compatibility checks",
         "isMapReuseCompatible() helper-only reused-map compatibility comparison",
