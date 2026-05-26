@@ -1,6 +1,6 @@
 const std = @import("std");
 const base64 = @import("base64");
-const fixtures = @import("fixtures/phase6_base64_vectors.zig");
+const parity = @import("fixtures/phase6_base64_c_parity_vectors.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -10,7 +10,7 @@ pub fn main(init: std.process.Init) !void {
     var encode_buf: [128]u8 = undefined;
     var decode_buf: [128]u8 = undefined;
 
-    for (fixtures.c_parity_encode_cases) |case| {
+    for (parity.encode_cases) |case| {
         const written = try base64.encode(
             encode_buf[0..],
             case.input,
@@ -27,7 +27,7 @@ pub fn main(init: std.process.Init) !void {
         try writer.writeAll("\n");
     }
 
-    for (fixtures.c_parity_decode_cases) |case| {
+    for (parity.decode_cases) |case| {
         const written = try base64.decode(
             decode_buf[0..],
             case.input,
@@ -44,7 +44,7 @@ pub fn main(init: std.process.Init) !void {
         try writer.writeAll("\n");
     }
 
-    for (fixtures.c_parity_invalid_cases) |case| {
+    for (parity.invalid_cases) |case| {
         const variant = fixtureVariant(case.variant_name);
         const bytes_result = base64.bytes(case.input, case.padding, variant);
         const decode_result = base64.decode(decode_buf[0..], case.input, case.padding, variant);
