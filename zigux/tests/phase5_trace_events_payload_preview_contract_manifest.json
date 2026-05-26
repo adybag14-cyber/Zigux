@@ -6,7 +6,7 @@
   "validation_entrypoint": "zig test zigux/tests/phase5_trace_events_payload_preview_contract_survey.zig",
   "review_prompts": [
     "the payload-preview companion keeps the roadmap anchor explicit and stays a non-runtime trace-events companion instead of becoming a standalone helper or rbtree sample",
-    "the direct payload ladder remains reviewable through zig test samples/zigux/trace_events_payload_preview_contract.zig, zig test zigux/tests/phase5_trace_events_payload_preview_contract.zig, zig test zigux/tests/phase5_trace_events_payload_preview_contract_survey.zig, and the shared phase5_build.zig route",
+    "the direct payload ladder remains reviewable through zig test samples/zigux/trace_events_payload_preview_contract.zig, zig test zigux/tests/phase5_trace_events_payload_preview_contract.zig, and zig test zigux/tests/phase5_trace_events_payload_preview_contract_survey.zig",
     "the companion preserves the exact focus order payload_shape,string_selection,formatted_message,conditional_event_families,function_callback_registration,ownership_and_lifetime rather than narrowing the trace-events anchor to formatting alone",
     "the payload-preview cases keep the modulo-selected string cycle visible from Mother Goose through One ring to rule them all while the payload preview grows from zero through four elements and the sentinel stays zero",
     "the bounded payload contract keeps conditional, vararg, and relative-location paths checked while preserving the initialized-stage review posture instead of implying runtime registration or module wiring",
