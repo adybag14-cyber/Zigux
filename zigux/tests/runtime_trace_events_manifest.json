@@ -44,6 +44,7 @@
       "phase9-runtime-loader-allocator-init-flow-tests",
       "phase9-runtime-loader-command-env-boundary-guard-tests",
       "phase9-runtime-trace-events-loader-substrate-drift-tests",
+      "phase9-runtime-trace-events-module-tests",
       "phase9-runtime-trace-events-tests"
     ],
     "delivery_discipline_boundary": "Keeps the shipped trace-events make route, the adjacent shared loader-handoff make route, and the bounded trace-events rerun shard explicit without promoting broader shared runtime-loader completion into family-local trace-events proof."
