@@ -54,6 +54,7 @@ Fresh authenticated reread in this run still directly proves these current sampl
 
 - `samples/zigux/README.md`
 - `samples/zigux/bytestream_fifo.zig`
+- `samples/zigux/bytestream_fifo_window_contract.zig`
 - `samples/zigux/kobject_example_attr_group_contract.zig`
 - `samples/zigux/kretprobe_example.zig`
 - `samples/zigux/kretprobe_example_instance_budget_contract.zig`
@@ -70,7 +71,7 @@ Fresh authenticated reread in this run still directly proves these current sampl
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
-So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the restored bytestream port, the bounded kobject attr-group companion, the restored kretprobe port, the bounded kretprobe instance-budget companion, the bounded kretprobe probe-spec companion, the bounded trace-events formatting companion, and the bounded trace-events callback-focus companion.
+So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the restored bytestream port, the bounded bytestream window companion, the bounded kobject attr-group companion, the restored kretprobe port, the bounded kretprobe instance-budget companion, the bounded kretprobe probe-spec companion, the bounded trace-events formatting companion, and the bounded trace-events callback-focus companion.
 Treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proof for its approved anchor.
 Keep the bytestream queue-shape posture explicit too: the current direct replay packet now exact-checks `occupancySummary().queue_len`, `available`, and `wrapped` together with the visible-span and writable-span boundaries, so shared reminders should not collapse that packet back to queue length alone.
 Keep the direct rerun split explicit too: `samples/zigux/bytestream_fifo.zig` now carries four in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` carries five focused replay tests, `zigux/tests/phase5_bytestream_fifo_survey.zig` carries five survey-packet checks, and `zigux/tests/phase5_build.zig` is the shared rerun handle that replays those three bytestream surfaces together without turning the shared build route into sample-local proof.
