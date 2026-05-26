@@ -39,6 +39,7 @@ REQUIRED_PATHS = (
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_ring_publish_readiness.zig",
     "drivers/virtio/virtio_ring_registration_summary.zig",
+    "drivers/virtio/virtio_ring_reset_readiness.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_verify.zig",
     "scripts/zigux/README.md",
@@ -81,6 +82,7 @@ REQUIRED_PATHS = (
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_registration_replay.zig",
+    "zigux/tests/phase10_virtio_ring_reset_readiness.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
 )
@@ -247,6 +249,10 @@ def run_self_test() -> int:
             "missing_ring_registration_summary_path",
         )
         assert_missing_required_path(
+            "drivers/virtio/virtio_ring_reset_readiness.zig",
+            "missing_ring_reset_readiness_path",
+        )
+        assert_missing_required_path(
             "drivers/virtio/virtio_mmio_apply_observation.zig",
             "missing_mmio_apply_observation_path",
         )
@@ -268,7 +274,7 @@ def run_self_test() -> int:
         )
         assert_missing_required_path(
             "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
-            "missing_input_queue_callback_preflight_path",
+            "missing_input_queue_callback_preflight_test_path",
         )
         assert_missing_required_path(
             "zigux/tests/phase10_virtio_input_teardown_preflight.zig",
@@ -281,6 +287,10 @@ def run_self_test() -> int:
         assert_missing_required_path(
             "zigux/tests/phase10_virtio_ring_registration_replay.zig",
             "missing_ring_registration_replay_path",
+        )
+        assert_missing_required_path(
+            "zigux/tests/phase10_virtio_ring_reset_readiness.zig",
+            "missing_ring_reset_readiness_test_path",
         )
         assert_missing_required_path(
             "scripts/zigux/check-phase10-closure-manifest-counts.py",
@@ -359,7 +369,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=25")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
