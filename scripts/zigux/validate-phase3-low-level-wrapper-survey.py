@@ -24,6 +24,17 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 SELFTEST_SURFACE_PATH = Path("scripts/zigux/check-phase3-selftest-surface.py")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
+CURRENT_MANIFEST_SCOPE = (
+    "shared ABI bindings, directly coupled helper decoding, header-family "
+    "follow-through, notifier layouts, export-status layout, and "
+    "header-compatibility replay"
+)
+CURRENT_NEXT_SAFE_STEP = (
+    "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet "
+    "aligned with the dedicated replay routes and only reopen this manifest if the "
+    "checker, focused builds, or reminder surfaces drift again"
+)
+
 REQUIRED_MARKERS = {
     NOTE_PATH: (
         "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, one shared narrow-unsafe decoder plus directly readable interop-policy raw-pointer bridge entrypoints, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, one shared tests-root reminder, one workflow-backed replay route, and two returned shared Makefile replay gates",
@@ -267,6 +278,8 @@ REQUIRED_MANIFEST_FIELDS = {
     "lane": "abi-runtime",
     "slug": "phase3-abi-packet",
     "status": "shared_abi_and_header_family_binding_surface_present",
+    "scope": CURRENT_MANIFEST_SCOPE,
+    "next_safe_step": CURRENT_NEXT_SAFE_STEP,
 }
 
 REQUIRED_MANIFEST_PACKET_FILES = (
@@ -298,6 +311,11 @@ SELF_TEST_CASES = tuple(
     (relative_path, marker)
     for relative_path, markers in REQUIRED_MARKERS.items()
     for marker in markers
+)
+
+SELF_TEST_FIELD_CASES = (
+    ("scope", "stale-scope"),
+    ("next_safe_step", "stale-next-step"),
 )
 
 
@@ -411,11 +429,11 @@ def _populate_repo(root: Path) -> None:
         "lane": REQUIRED_MANIFEST_FIELDS["lane"],
         "slug": REQUIRED_MANIFEST_FIELDS["slug"],
         "status": REQUIRED_MANIFEST_FIELDS["status"],
-        "scope": "shared ABI bindings, directly coupled helper decoding, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+        "scope": CURRENT_MANIFEST_SCOPE,
         "packet_files": list(REQUIRED_MANIFEST_PACKET_FILES),
         "replay_routes": list(REQUIRED_MANIFEST_REPLAY_ROUTES),
         "repo_reality_gaps": [],
-        "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again",
+        "next_safe_step": CURRENT_NEXT_SAFE_STEP,
     }
     _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
 
@@ -440,6 +458,22 @@ def run_self_test() -> int:
             if expected not in issues:
                 print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
                 print(f"expected missing marker was not reported: {expected}")
+                return 1
+
+        for field, bad_value in SELF_TEST_FIELD_CASES:
+            _populate_repo(root)
+            manifest_path = root / MANIFEST_PATH
+            manifest = json.loads(_read(manifest_path))
+            manifest[field] = bad_value
+            _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+            issues = validate_repo(root)
+            expected = (
+                f"phase3_abi_manifest.json wrong {field}: "
+                f"{bad_value!r} != {REQUIRED_MANIFEST_FIELDS[field]!r}"
+            )
+            if expected not in issues:
+                print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+                print(f"expected manifest field drift was not reported: {expected}")
                 return 1
 
         _populate_repo(root)
@@ -591,7 +625,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
-    print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 13}")
+    print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + len(SELF_TEST_FIELD_CASES) + 13}")
     return 0
 
 
