@@ -37,6 +37,7 @@ EXPECTED_EXPLICIT_OVERRIDE_MODES = (
     "allmodconfig",
     "allnoconfig",
     "allyesconfig",
+    "alldefconfig",
     "randconfig",
 )
 EXPECTED_SELF_TEST_CASE_COUNT = 6
@@ -169,7 +170,7 @@ def build_self_test_root(root: Path) -> None:
     conf_cases = [
         {"name": "allnoconfig", "mode": "allnoconfig", "expected": "allnoconfig_expected.json", "allconfig": "mini.config"},
         {"name": "allmodconfig", "mode": "allmodconfig", "expected": "allmodconfig_expected.json", "allconfig": ""},
-        {"name": "alldefconfig", "mode": "alldefconfig", "expected": "alldefconfig_expected.json"},
+        {"name": "alldefconfig", "mode": "alldefconfig", "expected": "alldefconfig_expected.json", "allconfig": "mini-all.config"},
         {"name": "randconfig", "mode": "randconfig", "expected": "randconfig_expected.json"},
         {"name": "oldconfig", "mode": "oldconfig", "expected": "oldconfig_expected.json"},
     ]
@@ -182,7 +183,7 @@ def build_self_test_root(root: Path) -> None:
         json.dumps(
             {
                 "helper_local_allconfig_implicit_omission_modes": ["allmodconfig", "randconfig"],
-                "helper_local_allconfig_explicit_override_modes": ["allmodconfig", "allnoconfig", "allyesconfig", "randconfig"],
+                "helper_local_allconfig_explicit_override_modes": ["allmodconfig", "allnoconfig", "allyesconfig", "alldefconfig", "randconfig"],
             },
             indent=2,
         )
