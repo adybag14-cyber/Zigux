@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the current Phase 1 closure-note reminder packet."""
+"""Guard the current Phase 1 closure reminder packet."""
 
 from __future__ import annotations
 
@@ -23,11 +23,14 @@ DIRECT_PACKET_FILES = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-string-review-packet.py",
     "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-shared-reminder-packet.py",
     "scripts/zigux/validate-phase1-closure.py",
     "zigux/tests/README.md",
     "zigux/tests/build.zig",
+    "zigux/tests/phase1_helpers.zig",
+    "zigux/tests/phase1_helpers_build.zig",
     "zigux/tests/phase1_host_tools_smoke.zig",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
@@ -36,7 +39,6 @@ DIRECT_PACKET_FILES = (
 BROADER_COMPANION_GAPS = (
     "scripts/zigux/validate-phase1.py",
     "scripts/zigux/check-phase1-parity.py",
-    "zigux/tests/phase1_helpers.zig",
     "zigux/tests/phase1_bench.zig",
     "zigux/tests/fixtures/phase1_bench_expectations.json",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
@@ -46,24 +48,8 @@ REQUIRED_CLOSURE_LINES = (
     "- `PHASE1_STATUS=parked`",
     "- `PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
     "- `PHASE1_HELPER_COUNT=13`",
-    "- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "- `PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`",
-    "- `PHASE1_FIND_BIT_BENCH_GUARD=scripts/zigux/check-phase1-bench.py still hard-codes PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS=20000 and PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS=20000 and still requires PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM and PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM when the broader expectations packet returns`",
-    "- `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
-    "- `PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
-    "- `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-    "- `PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
-    "- `PHASE1_STRING_SYSFS_REVIEW=helper-local string sysfs newline-aware equality and lookup-order anchors stay explicit through the direct string tests and the Phase 1 helper manifest because the shared Phase 1 replay still carries no dedicated sysfs fixture keys`",
-    "- `PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific next_safe_step_note entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.`",
-)
-
-REQUIRED_CLOSURE_FRAGMENTS = (
-    "Current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane non-Phase-1 routes across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14.",
-    "It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`, so treat the returned file as current repo evidence while those older Phase 1 wrapper names remain historical packet members rather than active closure proof.",
-    "A current helper-family tie-breaker inside that packet is the `bitmap` direct-anchor route: keep `tools/lib/bitmap.zig` parked unless a fresh reread finds new direct-anchor drift inside the manifest-backed fill-tail clamp, copy-alias, cross-word `scnprintf()`, exact-word-boundary equality fast-path masking, empty-buffer, allocator-reset, zero-bit logical short-circuit, Linux-style alias mirror, caller-window or multiword-tail `xorBits()`/`orBits()` clamp witnesses, or weighted tail-count clamp, or drift in the already-committed bitmap replay fields summarized by the manifest; do not reopen older closure-side or validator-route cue names by default.",
-    "A current helper-family tie-breaker inside that packet is the `find_bit` direct-anchor route: keep `tools/lib/find_bit.zig` parked unless a fresh reread finds drift in the manifest-backed same-word start-mask, head-word or tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-`nbits`, `clump8`, `getValue8()`, `findLastBit()`, underscore-alias, Linux-style alias, or tail-word skip anchors, or drift in the already-committed tail-clamped or tail-inclusive-boundary replay fields, and do not reopen older validator-first cues or neighboring helper families by default.",
-    "A second current helper-family tie-breaker inside that packet is the `rbtree` direct-anchor route: keep `tools/lib/rbtree.zig` parked unless a fresh reread finds drift in the helper-local ordered Linux-style alias proof, the dedicated manifest-backed `low_level_alias_anchor`, the cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, or reseed anchors, or drift in the already-committed duplicate-search replay fields or exact `cached_leftmost_return_serials` witness.",
-    "A third current helper-family tie-breaker inside that packet is the `string` direct-anchor route: keep `tools/lib/string.zig` parked unless a fresh reread finds drift in the helper-local sysfs newline-aware equality or lookup-order anchors through `sysfsStreq()`, `sysfs_streq()`, `sysfsMatchString()`, and `sysfs_match_string()`, or unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names or widen back into the broader helper-local string anchor family by default.",
+    "- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_helpers_build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "- `PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`",
 )
 
 FORBIDDEN_MAKEFILE_LINES = (
@@ -108,23 +94,14 @@ def collect_failures(root: Path) -> list[str]:
     for marker in REQUIRED_CLOSURE_LINES:
         count = count_exact_line(closure_text, marker)
         if count != 1:
-            failures.append(
-                f"closure_line_count:{marker}:expected=1:actual={count}"
-            )
-
-    for fragment in REQUIRED_CLOSURE_FRAGMENTS:
-        count = closure_text.count(fragment)
-        if count != 1:
-            failures.append(
-                f"closure_fragment_count:{fragment}:expected=1:actual={count}"
-            )
+            failures.append(f"closure_line_count:{marker}:expected=1:actual={count}")
 
     makefile_text = read_text(root, MAKEFILE_REL)
-    phase1_route_summary_count = count_exact_line(makefile_text, "phase1-route-summary:")
-    if phase1_route_summary_count != 1:
+    route_summary_count = count_exact_line(makefile_text, "phase1-route-summary:")
+    if route_summary_count != 1:
         failures.append(
             "makefile_phase1_route_summary:expected=1:"
-            f"actual={phase1_route_summary_count}"
+            f"actual={route_summary_count}"
         )
 
     for marker in FORBIDDEN_MAKEFILE_LINES:
@@ -144,11 +121,7 @@ def write_text(root: Path, relative_path: str, content: str) -> None:
 def build_sample_repo(root: Path) -> None:
     for relative_path in DIRECT_PACKET_FILES:
         if relative_path == CLOSURE_NOTE_REL:
-            write_text(
-                root,
-                relative_path,
-                "\n".join(REQUIRED_CLOSURE_LINES + REQUIRED_CLOSURE_FRAGMENTS) + "\n",
-            )
+            write_text(root, relative_path, "\n".join(REQUIRED_CLOSURE_LINES) + "\n")
         else:
             write_text(root, relative_path, f"placeholder for {relative_path}\n")
     write_text(root, MAKEFILE_REL, "phase1-route-summary:\n")
@@ -176,14 +149,6 @@ def duplicate_exact_line(root: Path, relative_path: str, marker: str) -> None:
     raise ValueError(f"missing marker {marker!r} in {relative_path}")
 
 
-def remove_fragment(root: Path, relative_path: str, fragment: str) -> None:
-    path = root / relative_path
-    text = path.read_text(encoding="utf-8")
-    if fragment not in text:
-        raise ValueError(f"missing fragment {fragment!r} in {relative_path}")
-    path.write_text(text.replace(fragment, "", 1), encoding="utf-8")
-
-
 def run_self_test() -> int:
     cases: list[tuple[str, tuple[str, ...] | None]] = [("success", None)]
 
@@ -195,8 +160,6 @@ def run_self_test() -> int:
     for marker in REQUIRED_CLOSURE_LINES:
         cases.append((f"missing_line:{marker}", ("remove_line", CLOSURE_NOTE_REL, marker)))
         cases.append((f"duplicate_line:{marker}", ("duplicate_line", CLOSURE_NOTE_REL, marker)))
-    for fragment in REQUIRED_CLOSURE_FRAGMENTS:
-        cases.append((f"missing_fragment:{fragment}", ("remove_fragment", CLOSURE_NOTE_REL, fragment)))
     cases.append(("missing_route_summary", ("remove_line", MAKEFILE_REL, "phase1-route-summary:")))
     for marker in FORBIDDEN_MAKEFILE_LINES:
         cases.append((f"forbidden_makefile:{marker}", ("add_line", MAKEFILE_REL, marker)))
@@ -215,8 +178,6 @@ def run_self_test() -> int:
                     remove_exact_line(root, mutation[1], mutation[2])
                 elif kind == "duplicate_line":
                     duplicate_exact_line(root, mutation[1], mutation[2])
-                elif kind == "remove_fragment":
-                    remove_fragment(root, mutation[1], mutation[2])
                 elif kind == "add_line":
                     path = root / mutation[1]
                     text = path.read_text(encoding="utf-8")
@@ -269,10 +230,7 @@ def main() -> int:
     print("PHASE1_CLOSURE_PACKET=pass")
     print(f"PHASE1_CLOSURE_PACKET_DIRECT_FILE_COUNT={len(DIRECT_PACKET_FILES)}")
     print(f"PHASE1_CLOSURE_PACKET_BROADER_COMPANION_GAP_COUNT={len(BROADER_COMPANION_GAPS)}")
-    print(
-        "PHASE1_CLOSURE_PACKET_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_CLOSURE_LINES) + len(REQUIRED_CLOSURE_FRAGMENTS)}"
-    )
+    print(f"PHASE1_CLOSURE_PACKET_REQUIRED_MARKER_COUNT={len(REQUIRED_CLOSURE_LINES)}")
     return 0
 
 
