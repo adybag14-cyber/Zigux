@@ -11,6 +11,7 @@ DIRECT_PACKET_PATHS = (
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-deep-core-blocker-survey.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
@@ -20,33 +21,71 @@ DIRECT_PACKET_PATHS = (
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "Documentation/zigux/phase15-study-only-anchor-accounting.md",
     "Documentation/zigux/phase15-shared-summary-gap.md",
+    "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_parity_scorecard.json",
+    "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_architecture_council_review_process_build.zig",
+    "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
+    "zigux/tests/phase15_build.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
+    "scripts/zigux/check-phase15-readiness-gate-packet.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
+    "scripts/zigux/check-phase15-handoff-note-alignment.py",
+    "scripts/zigux/validate-phase15.py",
+)
+
+BROAD_REMINDER_PATHS = (
     "Documentation/zigux/README.md",
+    "scripts/zigux/README.md",
     "zigux/tests/README.md",
 )
 
-MISSING_HANDOFF_COMPANIONS = (
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
-    "zigux/tests/phase15_handoff_next_steps.zig",
-)
-
-REQUIRED_MARKERS = (
+STATUS_MARKERS = (
     "PHASE15_STATUS=handoff_next_steps_survey_landed",
-    "PHASE15_LANE_KEY=P15-L11",
+    "PHASE15_LANE_KEY=P15-L12",
     "PHASE15_SLICE=existing_governance_packet_handoff_inventory",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "surveyed against dated current-master readback marker `current-master-readback-2026-05-18`",
-    "the dedicated governance notes, the shared-gap guard, and the focused tests-root checker now define the tighter same-lane boundaries",
+)
+
+REQUIRED_TEXT_MARKERS = (
+    "surveyed against dated current-master readback marker `current-master-readback-2026-05-25`",
+    "The dedicated validator, the shared build companion, the governance-lane sequencing companions, and the directly materialized reminder-surface checkers now define the tighter same-lane boundaries, while the broader wrapper-route and shared-CI follow-through should only reopen when fresh drift actually appears.",
+    "The dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`.",
+    "The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.",
+    "Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `zigux/tests/phase15_build.zig` as the handoff-specific source of truth while the blocked route bodies and shared-CI route remain gap-tracked.",
+    "The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.",
+    "These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features.",
+    "keep the four freeze-in-C anchors parked: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`",
+    "keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
+    "no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`",
+    "no dedicated shared-CI Phase 15 validate, test, or aggregate route is materialized in `.github/workflows/zigux-bootstrap.yml` on current `master`",
+    "no Architecture Council approval is currently recorded for a freeze-map status change, so the packet remains in maintenance-mode blocker accounting rather than port-readiness",
+)
+
+BROAD_REMINDER_MARKERS = (
+    "`Documentation/zigux/README.md`, which still stops at Phase 14 on current `master` and should stay treated as an active shared-summary gap source until a dedicated Phase 15 docs-root reminder lands and aligns with `scripts/zigux/check-phase15-docs-readme-alignment.py` plus the directly materialized governance packet",
+    "`scripts/zigux/README.md`, which should be reread with `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet rather than being treated as a dedicated handoff-local truth source by default",
+    "`zigux/tests/README.md` reminder surface, which should be reread with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet instead of being carried here as an unlanded future target by default",
+)
+
+STALE_TEXT_MARKERS = (
+    "PHASE15_LANE_KEY=P15-L11",
+    "current-master-readback-2026-05-18",
     "no dedicated handoff-specific manifest or Zig replay is directly materialized on current `master`",
-    "keep the four freeze-in-C anchors parked",
-    "keep the two roadmap study-only anchors parked",
-    "do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged",
-    "if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts",
-    "This note does not claim:",
+    "## Missing dedicated handoff companions",
 )
 
 
@@ -59,14 +98,18 @@ def _read_text(path: Path) -> str:
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(text, encoding="utf-8", newline="\n")
 
 
 def collect_failures(root: Path) -> list[str]:
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
     failures: list[str] = []
 
-    for marker in REQUIRED_MARKERS:
+    for marker in STATUS_MARKERS:
+        if marker not in handoff_note:
+            failures.append(f"handoff_note:missing_status:{marker}")
+
+    for marker in REQUIRED_TEXT_MARKERS:
         if marker not in handoff_note:
             failures.append(f"handoff_note:missing_marker:{marker}")
 
@@ -76,144 +119,156 @@ def collect_failures(root: Path) -> list[str]:
         if not (root / rel).exists():
             failures.append(f"repo:missing_direct_path:{rel}")
 
-    for rel in MISSING_HANDOFF_COMPANIONS:
-        if f"`{rel}`" not in handoff_note:
-            failures.append(f"handoff_note:missing_gap_path:`{rel}`")
-        if (root / rel).exists():
-            failures.append(f"repo:gap_path_returned:{rel}")
+    for rel, marker in zip(BROAD_REMINDER_PATHS, BROAD_REMINDER_MARKERS):
+        if marker not in handoff_note:
+            failures.append(f"handoff_note:missing_broad_marker:{rel}")
+        if not (root / rel).exists():
+            failures.append(f"repo:missing_broad_path:{rel}")
+
+    for marker in STALE_TEXT_MARKERS:
+        if marker in handoff_note:
+            failures.append(f"handoff_note:stale_marker:{marker}")
 
     return failures
 
 
 def _sample_handoff_note() -> str:
-    direct_paths = "\n".join(f"- `{rel}`" for rel in DIRECT_PACKET_PATHS[:-2])
+    direct_docs = ", ".join(f"`{rel}`" for rel in DIRECT_PACKET_PATHS[:13])
+    direct_tests = ", ".join(f"`{rel}`" for rel in DIRECT_PACKET_PATHS[13:28])
+    direct_scripts = ", ".join(f"`{rel}`" for rel in DIRECT_PACKET_PATHS[28:])
     return f"""# Phase 15 Handoff Next Steps Survey
 
 ## Status
 
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L11`
+- `PHASE15_LANE_KEY=P15-L12`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
 
 ## Why this note exists
 
-the dedicated governance notes, the shared-gap guard, and the focused tests-root checker now define the tighter same-lane boundaries.
-no dedicated handoff-specific manifest or Zig replay is directly materialized on current `master`.
+The dedicated validator, the shared build companion, the governance-lane sequencing companions, and the directly materialized reminder-surface checkers now define the tighter same-lane boundaries, while the broader wrapper-route and shared-CI follow-through should only reopen when fresh drift actually appears.
+
+The dedicated governance-lane sequencing manifest `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, the focused governance-lane sequencing Zig replay `zigux/tests/phase15_governance_lane_sequencing.zig`, the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json`, and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`.
+
+The focused freeze-map governance replay `zigux/tests/phase15_freeze_map_governance.zig`, the focused parity-scorecard machine-readable companion `zigux/tests/phase15_parity_scorecard.json`, and the focused parity-scorecard Zig replay `zigux/tests/phase15_parity_scorecard.zig` are also directly materialized on current `master`.
+
+Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `zigux/tests/phase15_build.zig` as the handoff-specific source of truth while the blocked route bodies and shared-CI route remain gap-tracked.
 
 ## Current handed-off packet on current master
 
-{direct_paths}
-- `Documentation/zigux/README.md`, which should be treated as a shared-summary gap source only when fresh Phase 15 wording actually appears there
-- the broad `zigux/tests/README.md` reminder surface, which should be reread with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the dedicated Phase 15 governance packet instead of being carried here as an unlanded future target by default
-- no dedicated handoff-specific manifest or Zig replay is directly materialized on current `master`, so treat this note as the handoff-specific source of truth until those companions actually land
+- {direct_docs}
+- {direct_tests}
+- {direct_scripts}
+- the broad docs-root reminder surface `Documentation/zigux/README.md`, which still stops at Phase 14 on current `master` and should stay treated as an active shared-summary gap source until a dedicated Phase 15 docs-root reminder lands and aligns with `scripts/zigux/check-phase15-docs-readme-alignment.py` plus the directly materialized governance packet
+- the broad scripts-root reminder surface `scripts/zigux/README.md`, which should be reread with `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet rather than being treated as a dedicated handoff-local truth source by default
+- the broad `zigux/tests/README.md` reminder surface, which should be reread with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the directly materialized governance packet instead of being carried here as an unlanded future target by default
 
 ## Current governance posture to preserve
 
-- keep the four freeze-in-C anchors parked
-- keep the two roadmap study-only anchors parked
-- do not treat any direct Zig deep-core bridge as a next-phase commitment while the current blocker posture remains unchanged
+- keep the four freeze-in-C anchors parked: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c`
+- keep the two roadmap study-only anchors parked: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`
 
-## Handoff rules
+## Roadmap-backed open handoff gaps
 
-- if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused tests-readme checker, and the checker-backed shared-gap packet instead of carrying stale future-target language
+The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.
 
-## Non-goals
-
-This note does not claim:
-
-- that a dedicated handoff-specific manifest or Zig replay is already shipped on current `master`
-- that the broader Phase 15 validator-first route or dedicated Phase 15 Zig build routes are already shipped on current `master`
-
-## Missing dedicated handoff companions
-
-- `{MISSING_HANDOFF_COMPANIONS[0]}`
-- `{MISSING_HANDOFF_COMPANIONS[1]}`
+- no directly readable `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15` route body is materialized on current `master`
+- no dedicated shared-CI Phase 15 validate, test, or aggregate route is materialized in `.github/workflows/zigux-bootstrap.yml` on current `master`
+- no Architecture Council approval is currently recorded for a freeze-map status change, so the packet remains in maintenance-mode blocker accounting rather than port-readiness
+- These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features.
 """
 
 
 def _seed_repo(root: Path) -> None:
     _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-    for rel in DIRECT_PACKET_PATHS:
+    for rel in DIRECT_PACKET_PATHS + BROAD_REMINDER_PATHS:
         _write(root / rel, "present\n")
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase15_handoff_next_steps_") as tmpdir:
         root = Path(tmpdir)
         _seed_repo(root)
         failures = collect_failures(root)
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
+        case_count += 1
+
+        missing_status_root = root / "missing_status"
+        _seed_repo(missing_status_root)
+        _write(
+            missing_status_root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace("- `PHASE15_LANE_KEY=P15-L12`\n", "", 1),
+        )
+        failures = collect_failures(missing_status_root)
+        expected = ["handoff_note:missing_status:PHASE15_LANE_KEY=P15-L12"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-status failure: {failures}")
+        case_count += 1
 
         missing_marker_root = root / "missing_marker"
         _seed_repo(missing_marker_root)
         _write(
             missing_marker_root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
-                "the dedicated governance notes, the shared-gap guard, and the focused tests-root checker now define the tighter same-lane boundaries.\n",
+                "The dedicated validator, the shared build companion, the governance-lane sequencing companions, and the directly materialized reminder-surface checkers now define the tighter same-lane boundaries, while the broader wrapper-route and shared-CI follow-through should only reopen when fresh drift actually appears.\n\n",
                 "",
                 1,
             ),
         )
         failures = collect_failures(missing_marker_root)
         expected = [
-            "handoff_note:missing_marker:the dedicated governance notes, the shared-gap guard, and the focused tests-root checker now define the tighter same-lane boundaries"
+            "handoff_note:missing_marker:The dedicated validator, the shared build companion, the governance-lane sequencing companions, and the directly materialized reminder-surface checkers now define the tighter same-lane boundaries, while the broader wrapper-route and shared-CI follow-through should only reopen when fresh drift actually appears."
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-marker failure: {failures}")
+        case_count += 1
 
         missing_direct_root = root / "missing_direct"
         _seed_repo(missing_direct_root)
-        (missing_direct_root / "Documentation/zigux/phase15-governance-lane-sequencing.md").unlink()
+        (missing_direct_root / "zigux/tests/phase15_handoff_next_steps.zig").unlink()
         failures = collect_failures(missing_direct_root)
-        expected = ["repo:missing_direct_path:Documentation/zigux/phase15-governance-lane-sequencing.md"]
+        expected = ["repo:missing_direct_path:zigux/tests/phase15_handoff_next_steps.zig"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-direct failure: {failures}")
+        case_count += 1
 
-        missing_path_marker_root = root / "missing_path_marker"
-        _seed_repo(missing_path_marker_root)
+        missing_broad_root = root / "missing_broad"
+        _seed_repo(missing_broad_root)
         _write(
-            missing_path_marker_root / HANDOFF_NOTE_PATH,
+            missing_broad_root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
-                "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n",
+                "- the broad docs-root reminder surface `Documentation/zigux/README.md`, which still stops at Phase 14 on current `master` and should stay treated as an active shared-summary gap source until a dedicated Phase 15 docs-root reminder lands and aligns with `scripts/zigux/check-phase15-docs-readme-alignment.py` plus the directly materialized governance packet\n",
                 "",
                 1,
             ),
         )
-        failures = collect_failures(missing_path_marker_root)
+        failures = collect_failures(missing_broad_root)
+        expected = ["handoff_note:missing_broad_marker:Documentation/zigux/README.md"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-broad-marker failure: {failures}")
+        case_count += 1
+
+        stale_root = root / "stale"
+        _seed_repo(stale_root)
+        _write(
+            stale_root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace("PHASE15_LANE_KEY=P15-L12", "PHASE15_LANE_KEY=P15-L11", 1),
+        )
+        failures = collect_failures(stale_root)
         expected = [
-            "handoff_note:missing_path:`scripts/zigux/check-phase15-shared-summary-gap.py`"
+            "handoff_note:missing_status:PHASE15_LANE_KEY=P15-L12",
+            "handoff_note:stale_marker:PHASE15_LANE_KEY=P15-L11",
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected missing-path-marker failure: {failures}")
-
-        returned_gap_root = root / "returned_gap"
-        _seed_repo(returned_gap_root)
-        _write(returned_gap_root / MISSING_HANDOFF_COMPANIONS[0], "returned\n")
-        failures = collect_failures(returned_gap_root)
-        expected = [f"repo:gap_path_returned:{MISSING_HANDOFF_COMPANIONS[0]}"]
-        if failures != expected:
-            raise AssertionError(f"unexpected returned-gap failure: {failures}")
-
-        missing_gap_marker_root = root / "missing_gap_marker"
-        _seed_repo(missing_gap_marker_root)
-        _write(
-            missing_gap_marker_root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                f"- `{MISSING_HANDOFF_COMPANIONS[1]}`\n",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(missing_gap_marker_root)
-        expected = [f"handoff_note:missing_gap_path:`{MISSING_HANDOFF_COMPANIONS[1]}`"]
-        if failures != expected:
-            raise AssertionError(f"unexpected missing-gap-marker failure: {failures}")
+            raise AssertionError(f"unexpected stale-marker failure: {failures}")
+        case_count += 1
 
     print("PHASE15_HANDOFF_NEXT_STEPS_SURVEY_SELF_TEST=pass")
-    print("PHASE15_HANDOFF_NEXT_STEPS_SURVEY_SELF_TEST_CASES=5")
+    print(f"PHASE15_HANDOFF_NEXT_STEPS_SURVEY_SELF_TEST_CASES={case_count}")
     return 0
 
 
@@ -221,13 +276,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Verify that the Phase 15 handoff-next-steps note stays aligned with the current governance packet."
     )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=Path.cwd(),
-        help="repository root containing Documentation/zigux, scripts/zigux, and zigux/tests",
-    )
-    parser.add_argument("--self-test", action="store_true", help="run the built-in synthetic self-test")
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
