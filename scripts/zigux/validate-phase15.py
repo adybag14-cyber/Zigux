@@ -59,6 +59,12 @@ EXPECTED_DIRECT_PACKET_PATHS = [
     "zigux/tests/phase15_readiness_gate_manifest.json",
 ]
 EXPECTED_MISSING_BROADER_PATHS = []
+EXPECTED_BLOCKED_BROADER_ROUTES = {
+    "makefile_path": "zigux/Makefile",
+    "missing_make_targets": ["phase15-validate", "phase15-test", "phase15"],
+    "workflow_path": ".github/workflows/zigux-bootstrap.yml",
+    "missing_workflow_phase15_route": True,
+}
 EXPECTED_PHASE15_VALIDATE_CHECKERS = [
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
@@ -170,6 +176,8 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("direct_packet_paths")
     if manifest.get("still_missing_broader_paths") != EXPECTED_MISSING_BROADER_PATHS:
         failures.append("still_missing_broader_paths")
+    if manifest.get("blocked_broader_routes") != EXPECTED_BLOCKED_BROADER_ROUTES:
+        failures.append("blocked_broader_routes")
     if manifest.get("phase15_validate_checkers") != EXPECTED_PHASE15_VALIDATE_CHECKERS:
         failures.append("phase15_validate_checkers")
 
@@ -182,13 +190,10 @@ def collect_failures(root: Path) -> list[str]:
         if not (root / rel).exists():
             failures.append(f"missing_direct_packet_path:{rel}")
 
-    if _makefile_has_target(root, "phase15-validate"):
-        failures.append("unexpected_make_target:phase15-validate")
-    if _makefile_has_target(root, "phase15-test"):
-        failures.append("unexpected_make_target:phase15-test")
-    if _makefile_has_target(root, "phase15"):
-        failures.append("unexpected_make_target:phase15")
-    if _workflow_has_phase15_route(root):
+    for target in EXPECTED_BLOCKED_BROADER_ROUTES["missing_make_targets"]:
+        if _makefile_has_target(root, target):
+            failures.append(f"unexpected_make_target:{target}")
+    if _workflow_has_phase15_route(root) != (not EXPECTED_BLOCKED_BROADER_ROUTES["missing_workflow_phase15_route"]):
         failures.append("unexpected_workflow_route")
 
     for marker in REQUIRED_NOTE_MARKERS:
@@ -238,6 +243,7 @@ def _sample_manifest() -> str:
         "readiness_packet_checker": str(CHECKER_PATH),
         "direct_packet_paths": EXPECTED_DIRECT_PACKET_PATHS,
         "still_missing_broader_paths": EXPECTED_MISSING_BROADER_PATHS,
+        "blocked_broader_routes": EXPECTED_BLOCKED_BROADER_ROUTES,
         "repo_evidence": EXPECTED_REPO_EVIDENCE,
         "phase15_validate_checkers": EXPECTED_PHASE15_VALIDATE_CHECKERS,
     }
@@ -328,8 +334,29 @@ def run_self_test() -> int:
         if failures != ["phase15_validate_checkers"]:
             raise AssertionError(f"unexpected validate-checkers failure: {failures}")
 
+        blocked_routes_root = base / "blocked_routes"
+        write_fixture_root(blocked_routes_root)
+        _write(
+            blocked_routes_root / MANIFEST_PATH,
+            _sample_manifest().replace(
+                '    "missing_make_targets": [\n'
+                '      "phase15-validate",\n'
+                '      "phase15-test",\n'
+                '      "phase15"\n'
+                '    ],\n',
+                '    "missing_make_targets": [\n'
+                '      "phase15-validate",\n'
+                '      "phase15"\n'
+                '    ],\n',
+                1,
+            ),
+        )
+        failures = collect_failures(blocked_routes_root)
+        if failures != ["blocked_broader_routes"]:
+            raise AssertionError(f"unexpected blocked-route failure: {failures}")
+
     print("PHASE15_VALIDATION_SELF_TEST=pass")
-    print("PHASE15_VALIDATION_SELF_TEST_CASES=6")
+    print("PHASE15_VALIDATION_SELF_TEST_CASES=7")
     return 0
 
 
@@ -354,6 +381,7 @@ def main() -> int:
     print("PHASE15_VALIDATION=pass")
     print(f"PHASE15_VALIDATION_DIRECT_PATH_COUNT={len(EXPECTED_DIRECT_PACKET_PATHS)}")
     print(f"PHASE15_VALIDATION_BLOCKED_PATH_COUNT={len(EXPECTED_MISSING_BROADER_PATHS)}")
+    print(f"PHASE15_VALIDATION_BLOCKED_ROUTE_COUNT={len(EXPECTED_BLOCKED_BROADER_ROUTES['missing_make_targets']) + int(EXPECTED_BLOCKED_BROADER_ROUTES['missing_workflow_phase15_route'])}")
     return 0
 
 
