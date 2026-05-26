@@ -52,6 +52,8 @@ REQUIRED_MAKE_MARKERS = [
     "scripts/zigux/check-phase4-workflow-route-counts.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-validation-lane-sequencing.py --self-test",
+    "scripts/zigux/check-phase4-validation-lane-sequencing.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "phase4-artifact-diff-contract:",
     "scripts/zigux/artifact_diff.py --self-test",
@@ -92,6 +94,8 @@ REQUIRED_PHASE4_VALIDATE_COMMANDS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py",
 ]
 
@@ -218,6 +222,8 @@ SELFTEST_CASES = [
     "missing_make_remaining_gap_command",
     "missing_make_validator_replays_selftest_command",
     "missing_make_validator_replays_command",
+    "missing_make_validation_lane_sequencing_selftest_command",
+    "missing_make_validation_lane_sequencing_command",
     "missing_make_perf_baseline_command",
     "missing_workflow_validate_route",
     "missing_workflow_test_route",
@@ -256,6 +262,8 @@ phase4-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-workflow-route-counts.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-reversible-delivery-pins.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-perf-baseline-packet.py
 
 phase4-artifact-diff-contract:
@@ -802,6 +810,30 @@ def run_selftest() -> None:
         )
         expect_failure("missing validator-replays Makefile command", run_check)
         covered_cases.append("missing_make_validator_replays_command")
+
+        write_baseline()
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing validation-lane-sequencing self-test Makefile command", run_check)
+        covered_cases.append("missing_make_validation_lane_sequencing_selftest_command")
+
+        write_baseline()
+        makefile.write_text(
+            makefile.read_text(encoding="utf-8").replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-validation-lane-sequencing.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing validation-lane-sequencing Makefile command", run_check)
+        covered_cases.append("missing_make_validation_lane_sequencing_command")
 
         write_baseline()
         makefile.write_text(
