@@ -30,6 +30,7 @@ REQUIRED_MARKERS = {
         "zigux_boundary_header_is_canonical(",
         "zigux_boundary_header_extends_boundary(",
         "zigux_boundary_header_requested_extra_bytes(",
+        "if (zigux_boundary_header_requested_extra_bytes(compatible) != 8u)",
         "zigux_boundary_header_canonicalize(",
         "struct zigux_export_status stale_status =",
         "struct zigux_export_status uapi_undersized_status =",
@@ -37,6 +38,7 @@ REQUIRED_MARKERS = {
         "if (stale_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)",
         "if (uapi_undersized_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)",
         "if (uapi_stale_status.code != ZIGUX_UAPI_INVALID_ARGUMENT)",
+        "if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_compatible) != 12u)",
         "static int check_dev_t_relays(void)",
         "struct zigux_dev_t_fields invalid_major =",
         "struct zigux_dev_t_fields invalid_minor =",
@@ -897,6 +899,40 @@ def run_self_test() -> int:
             print("expected missing uapi boundary-header helper marker was not reported")
             return 1
 
+        _write(root / SMOKE_PATH, SELFTEST_SMOKE)
+        missing_extra_bytes_marker_text = _read(root / SMOKE_PATH).replace(
+            "if (zigux_boundary_header_requested_extra_bytes(compatible) != 8u)",
+            "",
+            1,
+        )
+        _write(root / SMOKE_PATH, missing_extra_bytes_marker_text)
+        issues = validate_repo(root, "cc")
+        expected_extra_bytes_marker = (
+            "missing zigux/tests/phase3_export_uapi_c_header_smoke.c marker: "
+            "if (zigux_boundary_header_requested_extra_bytes(compatible) != 8u)"
+        )
+        if expected_extra_bytes_marker not in issues:
+            print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=fail")
+            print("expected missing boundary-header extension accounting marker was not reported")
+            return 1
+
+        _write(root / SMOKE_PATH, SELFTEST_SMOKE)
+        missing_uapi_extra_bytes_marker_text = _read(root / SMOKE_PATH).replace(
+            "if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_compatible) != 12u)",
+            "",
+            1,
+        )
+        _write(root / SMOKE_PATH, missing_uapi_extra_bytes_marker_text)
+        issues = validate_repo(root, "cc")
+        expected_uapi_extra_bytes_marker = (
+            "missing zigux/tests/phase3_export_uapi_c_header_smoke.c marker: "
+            "if (zigux_uapi_boundary_header_requested_extra_bytes(uapi_compatible) != 12u)"
+        )
+        if expected_uapi_extra_bytes_marker not in issues:
+            print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=fail")
+            print("expected missing uapi boundary-header extension accounting marker was not reported")
+            return 1
+
         _write(root / LINUX_HEADER_PATH, SELFTEST_LINUX_HEADER)
         broken_header = _read(root / LINUX_HEADER_PATH).replace(
             "zigux_uapi_validate_dev_t_range(",
@@ -915,7 +951,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
