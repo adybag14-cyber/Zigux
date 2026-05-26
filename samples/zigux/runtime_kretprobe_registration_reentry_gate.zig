@@ -43,6 +43,19 @@ fn expectExitPreservesReplay(before_exit: LifecycleSnapshot, after_exit: Lifecyc
     try std.testing.expectEqual(before_exit.probe_registered, after_exit.probe_registered);
 }
 
+fn expectSnapshotStable(before: LifecycleSnapshot, after: LifecycleSnapshot) !void {
+    try std.testing.expectEqual(before.stage, after.stage);
+    try std.testing.expectEqual(before.init_runs, after.init_runs);
+    try std.testing.expectEqual(before.selftest_runs, after.selftest_runs);
+    try std.testing.expectEqual(before.exit_runs, after.exit_runs);
+    try std.testing.expectEqual(before.registration_runs, after.registration_runs);
+    try std.testing.expectEqual(before.unregistration_runs, after.unregistration_runs);
+    try std.testing.expectEqual(before.probe_registered, after.probe_registered);
+    try std.testing.expectEqual(before.active_instances, after.active_instances);
+    try std.testing.expectEqual(before.completed_instances, after.completed_instances);
+    try std.testing.expectEqual(before.last_retval, after.last_retval);
+}
+
 test "runtime kretprobe registration reentry stays reusable before selftest" {
     var module = RuntimeKretprobeSample{};
     try module.init();
@@ -110,4 +123,30 @@ test "runtime kretprobe registration reentry stays reusable after selftest" {
 
     try module.exit();
     try expectExitPreservesReplay(third_cycle, module.lifecycleSnapshot());
+}
+
+test "runtime kretprobe registration reentry stays fail-closed after exit" {
+    var module = RuntimeKretprobeSample{};
+    try module.init();
+    _ = try expectBalancedCycle(&module, .initialized, 1, 1, 1, 11);
+    try module.exit();
+
+    const exited_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, exited_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), exited_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.unregistration_runs);
+    try std.testing.expectEqual(@as(usize, 0), exited_snapshot.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 11), exited_snapshot.last_retval);
+    try std.testing.expect(!exited_snapshot.probe_registered);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerProbe());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.recordEntry());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.recordReturn(31));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterProbe());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+    try expectSnapshotStable(exited_snapshot, module.lifecycleSnapshot());
 }
