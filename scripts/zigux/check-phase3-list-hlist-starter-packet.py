@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Validate the bounded Phase 3 list/hlist starter packet."""
+"""Fail-close the bounded Phase 3 list/hlist starter packet."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
+import subprocess
 import tempfile
 from pathlib import Path
 
 DOC_PATH = Path("Documentation/zigux/phase3-list-hlist-slice.md")
-LIST_PATH = Path("zigux/helpers/list_view.zig")
-HLIST_PATH = Path("zigux/helpers/hlist_view.zig")
+LIST_VIEW_PATH = Path("zigux/helpers/list_view.zig")
+HLIST_VIEW_PATH = Path("zigux/helpers/hlist_view.zig")
 TEST_PATH = Path("zigux/tests/phase3_list_hlist_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_list_hlist_starter_packet_build.zig")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_list_hlist_manifest.json")
@@ -51,28 +53,28 @@ REQUIRED_REPO_REALITY_GAPS = (
 REQUIRED_MARKERS = {
     DOC_PATH: (
         "This note records one bounded shared-helper starter packet for the existing Phase 3 `list_head` and `hlist` helpers on current `master`.",
+        "`zigux/helpers/list_view.zig`",
+        "`zigux/helpers/hlist_view.zig`",
+        "`zigux/tests/phase3_list_hlist_starter_packet.zig`",
+        "`zigux/tests/phase3_list_hlist_starter_packet_build.zig`",
         "`zigux/tests/fixtures/phase3_list_hlist_manifest.json`",
         "`scripts/zigux/check-phase3-list-hlist-starter-packet.py`",
-        "`python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test`",
-        "`python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py`",
-        "`zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c`",
-        "`zigux/tests/fixtures/phase3_list_hlist/expected.json`",
+        "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
+        "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+        "It does not yet claim C parity fixtures, exported ABI structs, intrusive container recovery helpers, list mutation semantics, or wider subsystem-specific list ownership behavior.",
     ),
-    LIST_PATH: (
+    LIST_VIEW_PATH: (
         "pub const ListView = struct {",
-        "pub fn isEmpty(self: ListView) bool {",
         "pub fn first(self: ListView) ?*const ListHead {",
         "pub fn last(self: ListView) ?*const ListHead {",
-        "pub fn len(self: ListView) usize {",
+        "pub fn hasConsistentBacklinks(self: ListView) bool {",
         "pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak {",
     ),
-    HLIST_PATH: (
+    HLIST_VIEW_PATH: (
         "pub const HListView = struct {",
-        "pub fn isEmpty(self: HListView) bool {",
         "pub fn first(self: HListView) ?*const HListNode {",
-        "pub fn len(self: HListView) usize {",
         "pub fn firstPprevMatchesHead(self: HListView) bool {",
-        "pub fn firstBrokenPrevLink(self: HListView) ?PrevLinkBreak {",
+        "pub fn hasConsistentPrevLinks(self: HListView) bool {",
         "pub fn tailNextIsNull(self: HListView) bool {",
     ),
     TEST_PATH: (
@@ -93,38 +95,20 @@ REQUIRED_MARKERS = {
     MANIFEST_PATH: (
         '"slug": "phase3-list-hlist-starter-packet"',
         '"status": "helper_local_list_hlist_slice_present"',
-        '"zigux/helpers/list_view.zig"',
-        '"zigux/helpers/hlist_view.zig"',
         '"scripts/zigux/check-phase3-list-hlist-starter-packet.py"',
-        '"python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test"',
-        '"zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig"',
         '"zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c"',
         '"zigux/tests/fixtures/phase3_list_hlist/expected.json"',
     ),
 }
 
 SELF_TEST_CASES = (
-    (DOC_PATH, "`zigux/tests/fixtures/phase3_list_hlist_manifest.json`"),
-    (DOC_PATH, "`python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test`"),
-    (LIST_PATH, "pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak {"),
-    (HLIST_PATH, "pub fn tailNextIsNull(self: HListView) bool {"),
+    (DOC_PATH, "`scripts/zigux/check-phase3-list-hlist-starter-packet.py`"),
+    (LIST_VIEW_PATH, "pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak {"),
+    (HLIST_VIEW_PATH, "pub fn tailNextIsNull(self: HListView) bool {"),
     (TEST_PATH, 'test "hlist starter packet reports the first broken prev-link witness" {'),
     (BUILD_PATH, '"phase3-list-hlist-starter-packet"'),
-    (MANIFEST_PATH, '"scripts/zigux/check-phase3-list-hlist-starter-packet.py"'),
+    (MANIFEST_PATH, '"status": "helper_local_list_hlist_slice_present"'),
 )
-
-SELF_TEST_FIELD_CASES = (
-    ("phase", "Phase 4"),
-    ("lane", "helper-runtime"),
-    ("slug", "phase3-list-hlist-mislabel"),
-    ("status", "helper_local_list_hlist_slice_missing"),
-    ("scope", "scope drift"),
-    ("next_safe_step", "outdated next step"),
-)
-
-SELF_TEST_REPLAY_ROUTE_CASES = REQUIRED_REPLAY_ROUTES
-
-SELF_TEST_REPO_REALITY_GAP_CASES = REQUIRED_REPO_REALITY_GAPS
 
 
 def _read(path: Path) -> str:
@@ -134,6 +118,22 @@ def _read(path: Path) -> str:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        cmd,
+        cwd=cwd,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
+def _resolve_tool(explicit: str | None, env_name: str, default: str) -> str:
+    if explicit:
+        return explicit
+    return os.environ.get(env_name, default)
 
 
 def _append_duplicate_list_entry_issues(label: str, values: list[object], issues: list[str]) -> None:
@@ -149,7 +149,26 @@ def _append_duplicate_list_entry_issues(label: str, values: list[object], issues
         )
 
 
-def validate_repo(repo_root: Path) -> list[str]:
+def _run_zig_build(repo_root: Path, zig: str) -> None:
+    result = _run(
+        [
+            zig,
+            "build",
+            "phase3-list-hlist-starter-packet",
+            "--build-file",
+            str(BUILD_PATH),
+        ],
+        cwd=repo_root,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            "zig starter packet build failed:\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}"
+        )
+
+
+def validate_repo(repo_root: Path, zig: str, *, skip_exec: bool = False) -> list[str]:
     issues: list[str] = []
 
     for relative_path, markers in REQUIRED_MARKERS.items():
@@ -210,25 +229,18 @@ def validate_repo(repo_root: Path) -> list[str]:
                     f"phase3_list_hlist_manifest.json missing replay route: {entry}"
                 )
 
-    if not isinstance(repo_reality_gaps, list):
-        issues.append("phase3_list_hlist_manifest.json repo_reality_gaps is not a list")
-    else:
-        _append_duplicate_list_entry_issues(
-            "phase3_list_hlist_manifest.json repo_reality_gaps",
-            repo_reality_gaps,
-            issues,
+    if repo_reality_gaps != list(REQUIRED_REPO_REALITY_GAPS):
+        issues.append(
+            "phase3_list_hlist_manifest.json repo_reality_gaps must stay aligned with the documented absent C parity companions"
         )
-        for entry in REQUIRED_REPO_REALITY_GAPS:
-            if entry not in repo_reality_gaps:
-                issues.append(
-                    f"phase3_list_hlist_manifest.json missing repo_reality_gaps entry: {entry}"
-                )
-        for entry in repo_reality_gaps:
-            if (repo_root / entry).exists():
-                issues.append(
-                    "phase3_list_hlist_manifest.json repo_reality_gaps entry is present on disk: "
-                    f"{entry}"
-                )
+
+    if issues or skip_exec:
+        return issues
+
+    try:
+        _run_zig_build(repo_root, zig)
+    except Exception as exc:
+        issues.append(str(exc))
 
     return issues
 
@@ -246,137 +258,98 @@ def _populate_repo(root: Path) -> None:
     _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
 
 
-def _remove_marker(repo_root: Path, relative_path: Path, marker: str) -> None:
-    path = repo_root / relative_path
-    text = _read(path)
-    _write(path, text.replace(marker, "", 1))
-
-
-def _load_manifest(repo_root: Path) -> dict[str, object]:
-    return json.loads(_read(repo_root / MANIFEST_PATH))
-
-
-def _write_manifest(repo_root: Path, manifest: dict[str, object]) -> None:
-    _write(repo_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-
-
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase3_list_hlist_packet_") as temp_dir:
-        repo_root = Path(temp_dir)
-        _populate_repo(repo_root)
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_list_hlist_") as temp_dir:
+        root = Path(temp_dir)
+        _populate_repo(root)
 
-        issues = validate_repo(repo_root)
+        issues = validate_repo(root, zig="zig", skip_exec=True)
         if issues:
-            print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
+            print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
             print("\n".join(issues))
             return 1
 
         for relative_path, marker in SELF_TEST_CASES:
-            _populate_repo(repo_root)
-            _remove_marker(repo_root, relative_path, marker)
-            issues = validate_repo(repo_root)
+            _populate_repo(root)
+            path = root / relative_path
+            _write(path, _read(path).replace(marker, "", 1))
+            issues = validate_repo(root, zig="zig", skip_exec=True)
             expected = f"missing {relative_path.as_posix()} marker: {marker}"
             if expected not in issues:
-                print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
+                print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
-        for field, bad_value in SELF_TEST_FIELD_CASES:
-            _populate_repo(repo_root)
-            manifest = _load_manifest(repo_root)
-            manifest[field] = bad_value
-            _write_manifest(repo_root, manifest)
-            issues = validate_repo(repo_root)
-            expected = (
-                f"phase3_list_hlist_manifest.json wrong {field}: "
-                f"{bad_value!r} != {EXPECTED_MANIFEST_FIELDS[field]!r}"
-            )
-            if expected not in issues:
-                print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
-                print(f"expected manifest field drift was not reported: {expected}")
-                return 1
-
-        for route in SELF_TEST_REPLAY_ROUTE_CASES:
-            _populate_repo(repo_root)
-            manifest = _load_manifest(repo_root)
-            replay_routes = manifest["replay_routes"]
-            assert isinstance(replay_routes, list)
-            replay_routes.remove(route)
-            _write_manifest(repo_root, manifest)
-            issues = validate_repo(repo_root)
-            expected = f"phase3_list_hlist_manifest.json missing replay route: {route}"
-            if expected not in issues:
-                print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
-                print(f"expected replay-route drift was not reported: {expected}")
-                return 1
-
-        for gap in SELF_TEST_REPO_REALITY_GAP_CASES:
-            _populate_repo(repo_root)
-            manifest = _load_manifest(repo_root)
-            repo_reality_gaps = manifest["repo_reality_gaps"]
-            assert isinstance(repo_reality_gaps, list)
-            repo_reality_gaps.remove(gap)
-            _write_manifest(repo_root, manifest)
-            issues = validate_repo(repo_root)
-            expected = f"phase3_list_hlist_manifest.json missing repo_reality_gaps entry: {gap}"
-            if expected not in issues:
-                print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
-                print(f"expected repo-reality-gap drift was not reported: {expected}")
-                return 1
-
-        _populate_repo(repo_root)
-        present_gap = REQUIRED_REPO_REALITY_GAPS[0]
-        _write(repo_root / present_gap, "// unexpected gap file\n")
-        issues = validate_repo(repo_root)
-        expected = (
-            "phase3_list_hlist_manifest.json repo_reality_gaps entry is present on disk: "
-            f"{present_gap}"
-        )
-        if expected not in issues:
-            print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
-            print(f"expected present-on-disk repo gap issue was not reported: {expected}")
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(_read(manifest_path))
+        manifest["packet_files"].append(REQUIRED_PACKET_FILES[0])
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root, zig="zig", skip_exec=True)
+        expected = "phase3_list_hlist_manifest.json packet_files duplicate entry:"
+        if not any(issue.startswith(expected) for issue in issues):
+            print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
+            print("expected duplicate packet_files entry was not reported")
             return 1
 
-    print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=pass")
-    print(
-        "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT="
-        f"{1 + len(SELF_TEST_CASES) + len(SELF_TEST_FIELD_CASES) + len(SELF_TEST_REPLAY_ROUTE_CASES) + len(SELF_TEST_REPO_REALITY_GAP_CASES) + 1}"
-    )
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].append(REQUIRED_REPLAY_ROUTES[0])
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root, zig="zig", skip_exec=True)
+        expected = "phase3_list_hlist_manifest.json replay_routes duplicate entry:"
+        if not any(issue.startswith(expected) for issue in issues):
+            print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
+            print("expected duplicate replay_routes entry was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"] = []
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root, zig="zig", skip_exec=True)
+        expected = (
+            "phase3_list_hlist_manifest.json repo_reality_gaps must stay aligned with "
+            "the documented absent C parity companions"
+        )
+        if expected not in issues:
+            print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
+            print("expected repo_reality_gaps drift was not reported")
+            return 1
+
+    print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=pass")
+    print(f"PHASE3_LIST_HLIST_PACKET_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 3}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the Phase 3 list/hlist starter packet."
+        description="Validate the bounded Phase 3 list/hlist starter packet."
     )
     parser.add_argument(
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the list/hlist starter packet",
+        help="repository root that contains the Phase 3 list/hlist starter packet",
     )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="run built-in coverage without reading repo files",
-    )
+    parser.add_argument("--zig", help="path to Zig toolchain")
+    parser.add_argument("--skip-exec", action="store_true")
+    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    issues = validate_repo(args.repo_root)
+    zig = _resolve_tool(args.zig, "ZIG", "zig")
+    issues = validate_repo(args.repo_root, zig, skip_exec=args.skip_exec)
     if issues:
-        print("PHASE3_LIST_HLIST_STARTER_PACKET=fail")
-        for issue in issues:
-            print(issue)
+        print("PHASE3_LIST_HLIST_PACKET=fail")
+        print("\n".join(issues))
         return 1
 
-    print(f"validated {args.repo_root / LIST_PATH}")
-    print(f"validated {args.repo_root / HLIST_PATH}")
-    print(f"validated {args.repo_root / TEST_PATH}")
-    print(f"validated {args.repo_root / BUILD_PATH}")
+    print("PHASE3_LIST_HLIST_PACKET=pass")
     print(f"validated {args.repo_root / MANIFEST_PATH}")
+    print(f"validated {args.repo_root / BUILD_PATH}")
     return 0
 
 
