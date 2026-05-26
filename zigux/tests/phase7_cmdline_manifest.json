@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L08",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-26T11:17:01Z",
+  "verified_on_utc": "2026-05-26T14:06:28Z",
   "anchor": "lib/cmdline.c",
   "current_master_state": "helper_slice_test_survey_manifest_checker_anchor",
   "review_surfaces": [
@@ -29,6 +29,7 @@
   "ownership_focus": [
     "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix",
     "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior",
+    "the dedicated `get_option` alias replay keeps leading-plus and range-style cursor movement explicit beside the primary `getOption()` entry point",
     "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
     "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
     "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
