@@ -5,7 +5,7 @@ This note records the current bounded Phase 8 userspace-adjacent bridge boundary
 ## Status
 - `PHASE8_STATUS=parked`
 - `PHASE8_SURVEY=userspace-kernel-bridge-boundary-readback`
-- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-25
+- survey checkpoint: refreshed against inspected current `master` readback on 2026-05-26
 - roadmap anchor: `tools/lib/bpf/libbpf.c`
 - intended Zigux destination family: `tools/lib/bpf/zigux_segments/`
 - scope: helper-local bridge reviewability and deferred interrupt-routing boundary truthfulness only
@@ -26,11 +26,13 @@ That narrower split is therefore packet role rather than fetchability: the bridg
 
 That packet stays smaller than live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior.
 
-Within that bounded packet, the already-landed planning helpers still keep `resolveReusePinnedMapAttempt()` and `planTokenPreparation()` explicit as side-effect-free bridge intent summaries: they describe pinned-map reuse and token-readiness decisions without claiming direct procfs reads, bpffs opens, token materialization, or descriptor ownership behavior.
+Within that bounded packet, current `master` keeps `validateProcFdinfoRoot()`, `buildProcFdinfoPath()`, `parseFdinfoLine()`, `summarizeReusedMapName()`, and `resolveReusedMapName()` explicit as side-effect-free bridge-adjacent helpers. They keep pathname shaping, line splitting, and retained-name summaries reviewable without claiming direct procfs reads, bpffs opens, token materialization, or descriptor ownership behavior.
 
-The landed `fdinfo-map-info-helpers` slice therefore still mirrors the manifest rationale exactly: The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.
+The landed `fdinfo-path-and-reuse-name-footholds` slice therefore now mirrors the manifest rationale exactly: This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, full fdinfo map-info parsing, and reuse comparison logic deferred.
 
-The sibling `map-reuse-compatibility` slice likewise still mirrors the manifest rationale exactly: The shared bridge surface now already carries the reused-map-name chooser, truncated-name retention through `resolveReusedMapName()`, devmap readonly-prog flag normalization through `normalizeObservedReuseMapFlags()`, and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.
+The neighboring `fdinfo-map-info-helpers` slice now stays explicit as queued groundwork rather than landed bridge proof: the shared bridge destination is materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers still need their own follow-through before that slice can be reported as fully landed.
+
+The sibling `map-reuse-compatibility` slice likewise stays explicit as queued groundwork rather than landed bridge proof: current helper source retains reused-map names, but helper-only compatibility observation, flag normalization, and mismatch reporting still need follow-through before that slice can be reported as fully landed.
 
 ## Helper-local online-CPU routing evidence
 Current `master` also keeps bounded helper-local online-CPU routing evidence explicit through `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_mask_bridge.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_mask_bridge_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`, `zigux/tests/phase8_verify_routing_gap.zig`, and `zigux/tests/phase8_verify_routing_gap_only_build.zig`.
@@ -63,6 +65,6 @@ This survey does not yet claim:
 - any direct Zig port of the full `tools/lib/bpf/libbpf.c` bridge-heavy setup path
 
 ## Next bounded step
-Keep this bridge-boundary survey parked unless a future reread finds drift between this note, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_verify_routing_gap.zig`, or `zigux/tests/phase8_verify_routing_gap_only_build.zig` around the mixed-source bridge packet, the helper-local routing markers, or the deferred setup-side routing boundary.
+Keep this bridge-boundary survey parked unless a future reread finds drift between this note, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_verify_routing_gap.zig`, or `zigux/tests/phase8_verify_routing_gap_only_build.zig` around the mixed-source bridge packet, the landed foothold, the queued helper groundwork, or the deferred setup-side routing boundary.
 
 If it reopens, reread those eight surfaces together first and keep the next repair note-local or checker-local rather than widening into helper semantics, validator ownership, or setup-side routing delivery.
