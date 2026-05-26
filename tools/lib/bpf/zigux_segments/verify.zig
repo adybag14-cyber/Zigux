@@ -11,6 +11,7 @@ const online_cpu_routing_verify = @import("online_cpu_routing_verify.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const perf_buffer_poll_verify = @import("perf_buffer_poll_verify.zig");
 const perf_buffer_ready_window = @import("perf_buffer_ready_window.zig");
+const file_path_handle_bridge_verify = @import("file_path_handle_bridge_verify.zig");
 const pin_path = @import("pin_path.zig");
 const pin_path_verify = @import("pin_path_verify.zig");
 const ready_buffer_attempt_verify = @import("ready_buffer_attempt_verify.zig");
@@ -63,6 +64,7 @@ test "materialized tools/lib/bpf Zigux segments compile together and keep their 
     std.testing.refAllDecls(perf_buffer_poll);
     std.testing.refAllDecls(perf_buffer_poll_verify);
     std.testing.refAllDecls(perf_buffer_ready_window);
+    std.testing.refAllDecls(file_path_handle_bridge_verify);
     std.testing.refAllDecls(pin_path);
     std.testing.refAllDecls(pin_path_verify);
     std.testing.refAllDecls(ready_buffer_attempt_verify);
