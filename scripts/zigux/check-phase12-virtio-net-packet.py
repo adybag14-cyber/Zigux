@@ -99,6 +99,14 @@ WORKFLOW_MARKERS = (
     "run: make -C zigux phase12",
 )
 
+SELF_SOURCE_MARKERS = (
+    'write_text("broken\\n", encoding="utf-8")',
+)
+
+FORBIDDEN_SELF_SOURCE_MARKERS = (
+    'writeText("broken\\n", encoding="utf-8")',
+)
+
 
 class CheckError(RuntimeError):
     pass
@@ -168,6 +176,14 @@ def run_check(root: Path) -> None:
     require_markers(require_file(root, "zigux/tests/phase12_virtio_net_survey.zig"), SURVEY_GATE_MARKERS)
     require_markers(require_file(root, "zigux/Makefile"), MAKEFILE_MARKERS)
     require_markers(require_file(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS)
+
+    self_text = Path(__file__).read_text(encoding="utf-8")
+    for marker in SELF_SOURCE_MARKERS:
+        if marker not in self_text:
+            raise CheckError(f"{Path(__file__).name}: missing self-source marker {marker!r}")
+    for marker in FORBIDDEN_SELF_SOURCE_MARKERS:
+        if marker in self_text:
+            raise CheckError(f"{Path(__file__).name}: forbidden self-source marker {marker!r}")
 
 
 def make_fixture_tree(root: Path) -> None:
