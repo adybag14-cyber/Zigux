@@ -13,14 +13,14 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - `scripts/zigux/check-phase8-help-kallsyms-packet.py` through authenticated GitHub contents readback
   - `tools/lib/subcmd/help.zig` through authenticated GitHub contents readback
   - `zigux/tests/phase8_help_kallsyms_only_build.zig` through authenticated GitHub contents readback
+  - `zigux/tests/phase8_help_only_build.zig` and `zigux/tests/phase8_help.zig` through authenticated GitHub contents readback on current `master`
   - `zigux/Makefile` through authenticated GitHub contents readback
-  - `zigux/tests/phase8_help_only_build.zig` and `zigux/tests/phase8_help.zig` through current public default-branch raw readback only
   - `make -C zigux phase8-help-test`
   - `make -C zigux phase8-help-kallsyms-test`
 - current degraded readback for the dedicated help lane:
-  - authenticated GitHub contents reads from this environment still flap or return missing for `zigux/tests/phase8_help_only_build.zig` and `zigux/tests/phase8_help.zig`
+  - authenticated GitHub contents reads still lag on some broader Phase 8 files from this environment, but the dedicated help note, helper, focused replay, focused build shard, and `zigux/Makefile` now read directly on current `master`
   - the mixed `zigux/tests/phase8_help_kallsyms_only_build.zig` shard remains shared validation overlap only and does not transfer help-lane ownership into the dedicated symbol lane
-  - current public raw reread shows `zigux/tests/phase8_help.zig` now directly embeds this slice note and exercises the shipped helper surface through `CommandNames`, `trimCommandPrefix`, `computePrettyLayout`, `renderPrettyStringList`, and `renderCommandSections`, so the dedicated help replay is again honest same-lane evidence even while authenticated contents reads still flap here
+  - current authenticated contents readback shows `zigux/tests/phase8_help.zig` now directly embeds this slice note and exercises the shipped helper surface through `CommandNames`, `trimCommandPrefix`, `computePrettyLayout`, `renderPrettyStringList`, and `renderCommandSections`, so the dedicated help replay is again honest same-source evidence even while neighboring broader Phase 8 files still need mixed-source rereads here
 
 ## Why this slice exists
 
@@ -36,11 +36,11 @@ This run could verify that:
 
 - `tools/lib/subcmd/help.zig` is directly readable through authenticated GitHub contents readback on current `master`
 - `zigux/tests/phase8_help_kallsyms_only_build.zig` is directly readable through authenticated GitHub contents readback on current `master`
-- `zigux/tests/phase8_help_only_build.zig` and `zigux/tests/phase8_help.zig` are readable through current public raw default-branch readback even though authenticated contents reads still fail here
+- `zigux/tests/phase8_help_only_build.zig` and `zigux/tests/phase8_help.zig` are directly readable through authenticated GitHub contents readback on current `master`
 - `zigux/Makefile` keeps both `make -C zigux phase8-help-test` and `make -C zigux phase8-help-kallsyms-test` explicit on current `master`
 - the live help helper keeps the stable output-local packet explicit through `trimCommandPrefix()`, `computePrettyLayout()`, `renderPrettyStringList()`, and `renderCommandSections()`
 - the live help helper still keeps the stable pretty-printer and heading contract reviewable through the existing `renderPrettyStringList` and `renderCommandSections` tests
-- the current public raw `zigux/tests/phase8_help.zig` replay now matches that shipped helper surface through direct `@embedFile()` note binding plus helper-local command-set, pretty-layout, and section-rendering checks, so it is honest same-source proof for the parked help packet again even while authenticated contents reads still lag
+- the current authenticated contents `zigux/tests/phase8_help.zig` replay now matches that shipped helper surface through direct `@embedFile()` note binding plus helper-local command-set, pretty-layout, and section-rendering checks, so it is honest same-source proof for the parked help packet again while the neighboring broader Phase 8 packet still needs mixed-source rereads
 - the mixed `help+kallsyms` build shard is still shared validation overlap only, not a help-lane ownership handoff
 
 ## Current parity surface
@@ -52,14 +52,14 @@ The current readable packet now covers:
 - one directly readable validator entrypoint in `scripts/zigux/validate-phase8.py`
 - one directly readable shared Phase 8 checker in `scripts/zigux/check-phase8-help-kallsyms-packet.py`
 - one directly readable shared build shard in `zigux/tests/phase8_help_kallsyms_only_build.zig`
-- one current public-tree dedicated replay in `zigux/tests/phase8_help.zig`
+- one directly readable dedicated replay in `zigux/tests/phase8_help.zig`
+- one directly readable dedicated build shard in `zigux/tests/phase8_help_only_build.zig`
 - the dedicated `make -C zigux phase8-help-test` route
 - the shared-overlap `make -C zigux phase8-help-kallsyms-test` route
 - the parked help-and-kallsyms packet reviewable through this dedicated note plus the shared reminder surfaces
 
 The current packet does not yet provide:
 
-- one single exact-write-capable source that cleanly rereads `Documentation/zigux/phase8-help-slice.md`, `zigux/tests/phase8_help.zig`, and `zigux/tests/phase8_help_only_build.zig` together from this environment
 - a fresh local replay of the dedicated help-only shard from a writable authoritative checkout
 - any reason to widen the packet into exec-cmd ownership, symbol-lane parser behavior, or bridge-heavy libbpf work
 
@@ -76,4 +76,4 @@ This slice does not yet claim:
 
 Keep the lane narrow.
 
-The next help-local reopen step is now specific: reread `Documentation/zigux/phase8-help-slice.md`, `tools/lib/subcmd/help.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, and `make -C zigux phase8-help-test` from one exact-write-capable source, then land the smallest help-local reminder, helper, or focused-test follow-through that the same-source reread actually proves without widening into exec-cmd ownership, symbol-lane parser behavior, or bridge-heavy libbpf routing.
+The next help-local reopen step is now specific: reread `Documentation/zigux/phase8-help-slice.md`, `tools/lib/subcmd/help.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, and `make -C zigux phase8-help-test` from the same current-`master` authenticated contents packet, then land the smallest help-local reminder, helper, or focused-test follow-through that the same reread actually proves without widening into exec-cmd ownership, symbol-lane parser behavior, or bridge-heavy libbpf routing.
