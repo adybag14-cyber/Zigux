@@ -1,0 +1,26 @@
+{
+  "phase": "Phase 3",
+  "lane": "abi-runtime",
+  "slug": "phase3-rbtree-root-starter-packet",
+  "status": "helper_local_rbtree_root_slice_present",
+  "scope": "helper-local rbtree root cached-leftmost and canonicalization replay",
+  "packet_files": [
+    "Documentation/zigux/phase3-rbtree-root-slice.md",
+    "zigux/bindings/rbtree_root.zig",
+    "zigux/helpers/rbtree_root_view.zig",
+    "zigux/tests/phase3_rbtree_root_starter_packet.zig",
+    "zigux/tests/phase3_rbtree_root_starter_packet_build.zig",
+    "zigux/tests/fixtures/phase3_rbtree_root_manifest.json",
+    "scripts/zigux/check-phase3-rbtree-root-starter-packet.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-rbtree-root-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-rbtree-root-starter-packet.py",
+    "zig build phase3-rbtree-root-starter-packet --build-file zigux/tests/phase3_rbtree_root_starter_packet_build.zig"
+  ],
+  "repo_reality_gaps": [
+    "zigux/tests/fixtures/phase3_rbtree_root/phase3_rbtree_root_c_harness.c",
+    "zigux/tests/fixtures/phase3_rbtree_root/expected.json"
+  ],
+  "next_safe_step": "if this slice needs parity expansion later, add the narrow C harness and expected fixture without widening beyond helper-local root view layout and cached-leftmost semantics"
+}
