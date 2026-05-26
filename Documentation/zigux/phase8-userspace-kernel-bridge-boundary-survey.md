@@ -33,13 +33,15 @@ The landed `fdinfo-map-info-helpers` slice therefore still mirrors the manifest 
 The sibling `map-reuse-compatibility` slice likewise still mirrors the manifest rationale exactly: The shared bridge surface now already carries the reused-map-name chooser, truncated-name retention through `resolveReusedMapName()`, devmap readonly-prog flag normalization through `normalizeObservedReuseMapFlags()`, and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.
 
 ## Helper-local online-CPU routing evidence
-Current `master` also keeps bounded helper-local online-CPU routing evidence explicit through `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`, `zigux/tests/phase8_verify_routing_gap.zig`, and `zigux/tests/phase8_verify_routing_gap_only_build.zig`.
+Current `master` also keeps bounded helper-local online-CPU routing evidence explicit through `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_mask_bridge.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_mask_bridge_verify.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig`, `zigux/tests/phase8_verify_routing_gap.zig`, and `zigux/tests/phase8_verify_routing_gap_only_build.zig`.
 
 That helper-local routing packet keeps `advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and `summarizeOnlineCpuRouting()` explicit as reviewable route-summary helpers below the riskier setup-side bridge.
 
+The paired mask-bridge helper now keeps `summarizeOnlineCpuRoutingFromString()` and `summarizeOnlineCpuRoutingFromReader()` explicit as cpumask-backed routing summaries, so the bridge packet records both direct mask-to-routing summaries and the narrower per-attempt route wrappers without claiming that the surrounding perf-event setup path is already ported.
+
 It records route selection, missing buffer-slot detection, missing buffer-fd detection, requested-subset summaries, and no-online-CPU summaries without claiming that the surrounding perf-event setup path is already ported.
 
-The dedicated verifier shard and focused verify-routing witness now also keep typed CPU-index wrappers, errno-shaped CPU-index wrappers, typed buffer-fd wrappers, errno-shaped buffer-fd wrappers, and the hand-built CPU-index overflow fail-closed output explicit without promoting the surrounding perf-event setup path into landed routing delivery.
+The dedicated verifier shards and focused verify-routing witness now also keep string-backed and reader-backed mask-to-routing summaries, typed CPU-index wrappers, errno-shaped CPU-index wrappers, typed buffer-fd wrappers, errno-shaped buffer-fd wrappers, and the hand-built CPU-index overflow fail-closed output explicit without promoting the surrounding perf-event setup path into landed routing delivery.
 
 ## Deferred interrupt-routing boundary
 It also does not claim the deferred `perf-buffer-online-cpu-routing` packet.
