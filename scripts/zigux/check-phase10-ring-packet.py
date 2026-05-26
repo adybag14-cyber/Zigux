@@ -51,6 +51,17 @@ EXPECTED_MANIFEST_FIELDS = {
         "net/core/skbuff.c",
     ],
 }
+EXPECTED_SURVEY_SUMMARY_FIELDS = {
+    "virtio_ring_c_lines": 3940,
+    "preexisting_phase10_test_files": 8,
+    "preexisting_virtio_core_zig_present": True,
+    "preexisting_phase10_build_present": True,
+    "preexisting_phase10_core_doc_present": False,
+    "preexisting_virtio_ring_zig_present": True,
+    "preexisting_virtio_ring_doc_present": True,
+    "preexisting_ring_verify_present": True,
+    "preexisting_ring_publish_readiness_present": True,
+}
 EXPECTED_GAP_METADATA = {
     "phase10-build-gate": ("validation", "starter_landed", "zigux/tests/phase10_build.zig"),
     "phase10-virtio-core-lab-starter": ("lab_driver_starter", "starter_landed", "drivers/virtio/virtio.zig"),
@@ -201,6 +212,16 @@ def validate_manifest_fields(root: Path) -> list[str]:
         problems.append(
             f"{MANIFEST_PATH}:freeze_boundary_owner_lane:{manifest.get('freeze_boundary_owner_lane')}"
         )
+    survey_summary = manifest.get("survey_summary")
+    if not isinstance(survey_summary, dict):
+        problems.append(f"{MANIFEST_PATH}:survey_summary:not_a_dict")
+    else:
+        for field_name, expected_value in EXPECTED_SURVEY_SUMMARY_FIELDS.items():
+            actual_value = survey_summary.get(field_name)
+            if actual_value != expected_value:
+                problems.append(
+                    f"{MANIFEST_PATH}:survey_summary:{field_name}:{actual_value}"
+                )
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
         return [f"{MANIFEST_PATH}:gaps:not_a_list"]
@@ -261,15 +282,7 @@ def fixture_manifest() -> dict[str, object]:
         "surveyed_commit": "fixture",
         "freeze_boundary_owner_lane": EXPECTED_FREEZE_BOUNDARY_OWNER,
         "survey_summary": {
-            "virtio_ring_c_lines": 3940,
-            "preexisting_phase10_test_files": 7,
-            "preexisting_virtio_core_zig_present": True,
-            "preexisting_phase10_build_present": True,
-            "preexisting_phase10_core_doc_present": False,
-            "preexisting_virtio_ring_zig_present": True,
-            "preexisting_virtio_ring_doc_present": True,
-            "preexisting_ring_verify_present": True,
-            "preexisting_ring_publish_readiness_present": True,
+            **EXPECTED_SURVEY_SUMMARY_FIELDS,
         },
         "gaps": gaps,
     }
@@ -464,6 +477,19 @@ def run_self_test() -> int:
             root,
             drift_freeze_in_c_anchors,
             f"{MANIFEST_PATH}:freeze_in_c_anchors:['kernel/sched/core.c', 'mm/page_alloc.c', 'kernel/rcu/tree.c']",
+        )
+        write_fixture(root)
+
+        def drift_survey_summary_preexisting_phase10_test_files(tmp_root: Path) -> None:
+            path = tmp_root / MANIFEST_PATH
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["survey_summary"]["preexisting_phase10_test_files"] = 7
+            path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+        expect_problem(
+            root,
+            drift_survey_summary_preexisting_phase10_test_files,
+            f"{MANIFEST_PATH}:survey_summary:preexisting_phase10_test_files:7",
         )
         write_fixture(root)
 
@@ -792,7 +818,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-ring-self-test:expected_missing=zigux/tests/phase10_virtio_ring_survey.zig:actual={actual}")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=34")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=35")
     return 0
 
 
