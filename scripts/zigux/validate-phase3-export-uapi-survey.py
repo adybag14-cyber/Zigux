@@ -10,6 +10,7 @@ from pathlib import Path
 SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 EXPORT_SHIM_PATH = Path("zigux/kernel/export_shim.zig")
+ABI_H_PATH = Path("include/zigux/abi.h")
 BINDING_VERSION_PATH = Path("zigux/bindings/version.zig")
 BINDING_DEV_T_PATH = Path("zigux/bindings/dev_t.zig")
 BINDING_HEADER_FAMILY_PATH = Path("zigux/bindings/header_family.zig")
@@ -41,6 +42,7 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
         "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
         "PHASE3_ABI_H_BOUNDARY_NOTE=Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+        "PHASE3_ABI_H_PATH=include/zigux/abi.h",
         "PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig",
         "PHASE3_BINDING_DEV_T_PATH=zigux/bindings/dev_t.zig",
         "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
@@ -85,6 +87,7 @@ REQUIRED_MARKERS = {
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
+        'ABI_H_PATH = Path("include/zigux/abi.h")',
         'BINDING_HEADER_FAMILY_PATH = Path("zigux/bindings/header_family.zig")',
         'EXPORT_SHIM_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_shim_build.zig")',
         'LAYOUT_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")',
@@ -97,6 +100,12 @@ REQUIRED_MARKERS = {
         "pub fn validateDeviceFields(fields: DevTFields) ExportStatus {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
         "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
+    ),
+    ABI_H_PATH: (
+        "#define ZIGUX_ABI_VERSION 1U",
+        "typedef struct zigux_boundary_header {",
+        "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
+        "static inline struct zigux_export_status zigux_ok_status(uint16_t facility)",
     ),
     BINDING_VERSION_PATH: (
         "pub fn current() Version {",
@@ -273,6 +282,11 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_ABI_H_PATH=include/zigux/abi.h",
+            "expected missing abi.h path marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig",
             "expected missing binding version path marker was not reported",
         ),
@@ -395,6 +409,11 @@ def run_self_test() -> int:
             SURVEY_PATH,
             "There is no remaining packet-local missing companion, missing focused export-shim replay handoff, missing dedicated layout-build handoff, or missing aggregate replay entrypoint left to close inside this survey.",
             "expected missing parked export/uapi next-step marker was not reported",
+        ),
+        (
+            ABI_H_PATH,
+            "#define ZIGUX_ABI_VERSION 1U",
+            "expected missing abi.h version marker was not reported",
         ),
         (
             TESTS_BUILD_PATH,
