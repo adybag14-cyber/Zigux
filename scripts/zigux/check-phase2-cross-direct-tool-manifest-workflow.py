@@ -20,6 +20,7 @@ TOOL_MANIFEST_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross-tool-manifest-contract-selftest-alignment.py",
 )
 CROSS_ROUTE = "run: make -C zigux phase2-cross"
+SHARED_SURFACE_START = "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test"
 VALIDATE_ROUTE = "run: make -C zigux phase2-validate"
 REQUIRED_PATHS = (
     WORKFLOW,
@@ -73,7 +74,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         return issues
 
     workflow_text = read_text(workflow_path)
-    required_lines = (CROSS_ROUTE, *TOOL_MANIFEST_WORKFLOW_LINES, VALIDATE_ROUTE)
+    required_lines = (
+        CROSS_ROUTE,
+        *TOOL_MANIFEST_WORKFLOW_LINES,
+        SHARED_SURFACE_START,
+        VALIDATE_ROUTE,
+    )
     for marker in required_lines:
         count = count_exact_lines(workflow_text, marker)
         if count == 0:
@@ -86,6 +92,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     index_map = line_index_map(workflow_text, required_lines)
     cross_index = index_map[CROSS_ROUTE]
+    shared_surface_index = index_map[SHARED_SURFACE_START]
     validate_index = index_map[VALIDATE_ROUTE]
     tool_manifest_positions = [index_map[line] for line in TOOL_MANIFEST_WORKFLOW_LINES]
 
@@ -95,8 +102,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_ROUTE_ANCHOR_ORDER", "phase2-cross,phase2-validate"))
     if tool_manifest_positions[0] != cross_index + 1:
         issues.append(("TOOL_MANIFEST_NOT_DIRECT_AFTER_CROSS", TOOL_MANIFEST_WORKFLOW_LINES[0]))
+    if shared_surface_index <= cross_index or shared_surface_index >= validate_index:
+        issues.append(("INVALID_SHARED_SURFACE_ANCHOR_PLACEMENT", SHARED_SURFACE_START))
+    if shared_surface_index != tool_manifest_positions[-1] + 1:
+        issues.append(("TOOL_MANIFEST_NOT_DIRECT_BEFORE_SHARED_SURFACE", SHARED_SURFACE_START))
     for position, marker in zip(tool_manifest_positions, TOOL_MANIFEST_WORKFLOW_LINES):
-        if position <= cross_index or position >= validate_index:
+        if position <= cross_index or position >= shared_surface_index:
             issues.append(("INVALID_TOOL_MANIFEST_PLACEMENT", marker))
 
     return issues
@@ -112,7 +123,7 @@ def run_check(root: Path) -> int:
 
     print("PHASE2_CROSS_DIRECT_TOOL_MANIFEST_WORKFLOW=pass")
     print(f"PHASE2_CROSS_DIRECT_TOOL_MANIFEST_WORKFLOW_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
-    print(f"PHASE2_CROSS_DIRECT_TOOL_MANIFEST_WORKFLOW_LINE_COUNT={len(TOOL_MANIFEST_WORKFLOW_LINES) + 2}")
+    print(f"PHASE2_CROSS_DIRECT_TOOL_MANIFEST_WORKFLOW_LINE_COUNT={len(TOOL_MANIFEST_WORKFLOW_LINES) + 3}")
     return 0
 
 
@@ -121,7 +132,7 @@ def build_sample_root(root: Path) -> None:
         "name: zigux-bootstrap",
         CROSS_ROUTE,
         *TOOL_MANIFEST_WORKFLOW_LINES,
-        "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test",
+        SHARED_SURFACE_START,
         VALIDATE_ROUTE,
     )
     write_text(resolve_path(root, WORKFLOW), "\n".join(workflow_lines) + "\n")
@@ -149,6 +160,7 @@ def run_self_test() -> int:
 
         build_sample_root(root)
         workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.writeText = None
         workflow_path.write_text(
             read_text(workflow_path) + TOOL_MANIFEST_WORKFLOW_LINES[0] + "\n",
             encoding="utf-8",
@@ -170,6 +182,19 @@ def run_self_test() -> int:
         checks += 1
 
         build_sample_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_lines = read_text(workflow_path).splitlines()
+        shared_surface_index = workflow_lines.index(SHARED_SURFACE_START)
+        last_tool_manifest_index = workflow_lines.index(TOOL_MANIFEST_WORKFLOW_LINES[-1])
+        workflow_lines[shared_surface_index], workflow_lines[last_tool_manifest_index] = (
+            workflow_lines[last_tool_manifest_index],
+            workflow_lines[shared_surface_index],
+        )
+        workflow_path.write_text("\n".join(workflow_lines) + "\n", encoding="utf-8")
+        assert run_check(root) == 1
+        checks += 1
+
+        build_sample_root(root)
         resolve_path(root, TOOL_MANIFEST_ALIGNMENT).unlink()
         assert run_check(root) == 1
         checks += 1
@@ -181,7 +206,10 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the Lane 21 direct tool-manifest workflow block anchored immediately after phase2-cross."
+        description=(
+            "Keep the Lane 21 direct tool-manifest workflow block anchored between "
+            "phase2-cross and the shared-surface checker block."
+        )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
