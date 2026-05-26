@@ -144,6 +144,17 @@ TERMINATION_OWNERSHIP_MARKER = (
     "stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix"
 )
 
+EXPECTED_MANIFEST_OWNERSHIP_FOCUS = [
+    TERMINATION_OWNERSHIP_MARKER,
+    CMDLINE_OWNERSHIP_MARKER,
+]
+EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (
+    "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed "
+    "on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons, "
+    "and reopen only when one of those helper-local non-goals lands or the no-sample boundary "
+    "drifts on current `master`."
+)
+
 MANIFEST_LANE_KEY_MARKER = '\"lane_key\": \"helper-local\"'
 MANIFEST_PHASE_MARKER = '\"phase\": \"Phase 7\"'
 MANIFEST_ANCHOR_MARKER = '\"anchor\": \"lib/string_helpers.c\"'
@@ -192,6 +203,8 @@ REQUIRED_MARKERS = {
         'EXPECTED_MANIFEST_PHASE = "Phase 7"',
         'EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"',
         'EXPECTED_MANIFEST_STATE = "expanded_starter_packet"',
+        "EXPECTED_MANIFEST_OWNERSHIP_FOCUS = [",
+        "EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (",
         "MISSING_PHASE7_STRING_HELPERS_FILES_START",
         "MISSING_PHASE7_STRING_HELPERS_FILES_END",
         "MISSING_PHASE7_STRING_HELPERS_MARKERS_START",
@@ -361,7 +374,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 70
+SELF_TEST_CASE_COUNT = 72
 
 
 def read_text(path: Path) -> str:
@@ -402,7 +415,7 @@ def write_fixture_root(tmp_root: Path) -> None:
             FORMAT_BOUNDARY_FOCUS,
             NO_EXTRA_SAMPLE_EXCLUSIONS_MARKER,
         ],
-        "next_bounded_step": NEXT_BOUNDED_STEP_MARKER,
+        "next_bounded_step": EXPECTED_MANIFEST_NEXT_BOUNDED_STEP,
     }
     write(
         tmp_root / "zigux/tests/phase7_string_helpers_manifest.json",
@@ -466,6 +479,17 @@ def collect_missing_manifest_entries(manifest: dict[str, object]) -> list[str]:
         for item in EXPECTED_COVERED_HELPERS:
             if item not in covered_helpers:
                 missing.append(f"zigux/tests/phase7_string_helpers_manifest.json: covered_helpers: {item}")
+
+    ownership_focus = manifest.get("ownership_focus")
+    if not isinstance(ownership_focus, list):
+        missing.append("zigux/tests/phase7_string_helpers_manifest.json: ownership_focus")
+    else:
+        for item in EXPECTED_MANIFEST_OWNERSHIP_FOCUS:
+            if item not in ownership_focus:
+                missing.append(f"zigux/tests/phase7_string_helpers_manifest.json: ownership_focus: {item}")
+
+    if manifest.get("next_bounded_step") != EXPECTED_MANIFEST_NEXT_BOUNDED_STEP:
+        missing.append("zigux/tests/phase7_string_helpers_manifest.json: next_bounded_step")
 
     return missing
 
@@ -765,6 +789,28 @@ def run_self_test() -> None:
         manifest_cmdline_ownership_marker = CMDLINE_OWNERSHIP_MARKER
         remove_once(manifest_path, manifest_cmdline_ownership_marker)
         expect_missing_marker("missing_manifest_cmdline_ownership_marker", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_cmdline_ownership_marker}")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"] = CMDLINE_OWNERSHIP_MARKER
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "missing_manifest_ownership_focus_type_marker",
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_manifest.json: ownership_focus",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["next_bounded_step"] = NEXT_BOUNDED_STEP_MARKER
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "missing_manifest_next_bounded_step_exact_marker",
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_manifest.json: next_bounded_step",
+        )
         cases_run += 1
         write_fixture_root(tmp_root)
 
