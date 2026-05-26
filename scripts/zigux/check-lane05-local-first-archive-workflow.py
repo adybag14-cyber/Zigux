@@ -21,6 +21,8 @@ SELF_TEST_STEP = "- name: Self-test current Lane 05 local-first archive checker"
 SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test"
 CHECK_STEP = "- name: Check current Lane 05 local-first archive packet"
 CHECK_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py"
+STAGE_HELPER_SELF_TEST_STEP = "- name: Self-test current staged pinned Zig archive helper"
+STAGE_HELPER_SELF_TEST_CMD = "python3 scripts/zigux/stage-pinned-zig-archive.py --self-test"
 NEXT_PHASE_STEP = "- name: Self-test current Zig installer helper"
 PHASE1_ROUTE_SUMMARY_SELF_TEST_STEP = "- name: Self-test current Phase 1 route summary checker"
 PHASE1_ROUTE_SUMMARY_CHECK_STEP = "- name: Check current Phase 1 route summary packet"
@@ -147,6 +149,8 @@ def check_workflow(text: str) -> None:
     require_marker(text, README_SELF_TEST_CMD, "workflow readme-checker self-test command")
     require_marker(text, README_CHECK_STEP, "workflow readme-checker step name")
     require_marker(text, README_CHECK_CMD, "workflow readme-checker command")
+    require_marker(text, STAGE_HELPER_SELF_TEST_STEP, "workflow staged-helper self-test step name")
+    require_marker(text, STAGE_HELPER_SELF_TEST_CMD, "workflow staged-helper self-test command")
     require_marker(text, NEXT_PHASE_STEP, "workflow next-step anchor")
     require_marker(text, THIRD_PARTY_PATH, "workflow third-party path filter")
 
@@ -168,11 +172,13 @@ def check_workflow(text: str) -> None:
     require_exact_line_count(text, f"run: {README_SELF_TEST_CMD}", 1, "workflow run line")
     require_exact_count(text, README_CHECK_STEP, 1, "workflow step name")
     require_exact_line_count(text, f"run: {README_CHECK_CMD}", 1, "workflow run line")
+    require_exact_count(text, STAGE_HELPER_SELF_TEST_STEP, 1, "workflow step name")
+    require_exact_line_count(text, f"run: {STAGE_HELPER_SELF_TEST_CMD}", 1, "workflow run line")
     require_exact_count(text, 'archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"', 1, "archive path marker")
     require_exact_count(text, 'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"', 1, "local archive path marker")
     require_exact_count(text, REPO_ARCHIVE_PARTS_DIR, 1, "archive parts-dir marker")
     require_exact_count(text, LOCAL_PARTS_GUARD, 1, "parts-dir guard")
-    require_exact_count(text, STAGE_HELPER_CMD, 1, "stage helper command")
+    require_exact_count(text, STAGE_HELPER_CMD, 2, "stage helper command")
     require_exact_count(text, STAGE_HELPER_ROOT_ARG, 1, "stage helper root arg")
     require_exact_count(text, STAGE_HELPER_PARTS_ARG, 1, "stage helper parts arg")
     require_exact_count(text, "try_local_archive() {", 1, "local archive helper definition")
@@ -191,7 +197,8 @@ def check_workflow(text: str) -> None:
     require_order(text, SELF_TEST_STEP, CHECK_STEP, "workflow step order")
     require_order(text, CHECK_STEP, README_SELF_TEST_STEP, "workflow step order")
     require_order(text, README_SELF_TEST_STEP, README_CHECK_STEP, "workflow step order")
-    require_order(text, README_CHECK_STEP, NEXT_PHASE_STEP, "workflow step order")
+    require_order(text, README_CHECK_STEP, STAGE_HELPER_SELF_TEST_STEP, "workflow step order")
+    require_order(text, STAGE_HELPER_SELF_TEST_STEP, NEXT_PHASE_STEP, "workflow step order")
     require_order(text, SCRIPTS_PATH, THIRD_PARTY_PATH, "workflow pull_request path order")
     require_order(text, THIRD_PARTY_PATH, TOOLS_PATH, "workflow pull_request path order")
 
@@ -307,6 +314,8 @@ def check_workflow(text: str) -> None:
         'if try_download "$ZIGUX_ZIG_URL"; then',
         "workflow mirrors before direct download order",
     )
+
+
 def run_self_test() -> int:
     good_workflow = """name: zigux-bootstrap
 jobs:
@@ -371,6 +380,8 @@ jobs:
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test
       - name: Check current Lane 05 local archive README packet
         run: python3 scripts/zigux/check-lane05-local-archive-readme.py
+      - name: Self-test current staged pinned Zig archive helper
+        run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
       - name: Self-test current Zig installer helper
         run: python3 scripts/zigux/install-zig.py --self-test
       - name: Self-test current Phase 1 route summary checker
@@ -481,6 +492,19 @@ jobs:
         case_count += 1
     else:
         raise AssertionError("expected missing stage helper call failure")
+
+    missing_stage_helper_self_test = good_workflow.replace(
+        f"      {STAGE_HELPER_SELF_TEST_STEP}\n        run: {STAGE_HELPER_SELF_TEST_CMD}\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_stage_helper_self_test)
+    except SystemExit as exc:
+        assert STAGE_HELPER_SELF_TEST_STEP in str(exc) or STAGE_HELPER_SELF_TEST_CMD in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing stage helper self-test failure")
 
     missing_local_validation = good_workflow.replace(
         'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
