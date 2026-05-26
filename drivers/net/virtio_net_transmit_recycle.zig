@@ -137,6 +137,29 @@ test "summarizeTransmitRecycle wakes a stopped queue once completions reach the 
     try std.testing.expectEqual(RecycleDisposition.wake_queue, summary.disposition);
 }
 
+test "summarizeTransmitRecycle wakes a stopped queue when new completions arrive after the wake budget was already restored" {
+    const summary = try summarizeTransmitRecycle(.{
+        .in_flight_descriptors = 4,
+        .free_descriptors_before = 3,
+        .completed_descriptors = 1,
+        .wake_threshold = 2,
+        .queue_stopped = true,
+    });
+
+    try std.testing.expectEqual(@as(u16, 3), summary.remaining_in_flight_descriptors);
+    try std.testing.expectEqual(@as(u16, 4), summary.free_descriptors_after);
+    try std.testing.expect(summary.frees_completed_buffers);
+    try std.testing.expect(summary.returns_completed_ownership_to_driver);
+    try std.testing.expectEqual(
+        CompletedOwnershipDisposition.driver_free_list,
+        summary.completed_ownership_after_recycle,
+    );
+    try std.testing.expect(summary.reaches_wake_threshold);
+    try std.testing.expect(summary.wakes_transmit_queue);
+    try std.testing.expect(!summary.keeps_queue_stopped);
+    try std.testing.expectEqual(RecycleDisposition.wake_queue, summary.disposition);
+}
+
 test "summarizeTransmitRecycle keeps a running queue running even above threshold" {
     const summary = try summarizeTransmitRecycle(.{
         .in_flight_descriptors = 8,
