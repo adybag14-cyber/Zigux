@@ -18,7 +18,7 @@ Phase 3 still treats `scripts/zigux/artifact_diff.py` as the stable comparison e
 
 Phase 4 keeps the host-side artifact-diff packet explicit through `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/validate-phase4.py`, `Documentation/zigux/phase4-validation-matrix.md`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/bitmap_diff.zig`, `zigux/tests/phase4_bitmap_diff_survey.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
 
-The helper now compares `text`, `json`, and `bytes` artifacts, keeps the legacy `sha256 -> bytes` alias for compatibility, and publishes a stable result surface with `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`.
+The helper now compares `text`, `json`, and `bytes` artifacts, keeps the legacy `sha256 -> bytes` alias for compatibility, and publishes a stable result surface with `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`; the bytes-drift fail path also emits `EXPECTED_SHA256=...` and `ACTUAL_SHA256=...` so the mismatch-side digest pair stays explicit instead of being folded into the pass-path `SHA256=...` marker.
 
 The current helper self-test families remain:
 - `ARTIFACT_DIFF_SELF_TEST_TEXT`
