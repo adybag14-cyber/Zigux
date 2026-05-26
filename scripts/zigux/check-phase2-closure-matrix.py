@@ -186,6 +186,22 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
+        payload = load_json(manifest_path)
+        del payload["repo_reality_gaps"]
+        write_json(manifest_path, payload)
+        assert_issue(module, root, ("UNEXPECTED_MANIFEST_GAPS", "None"))
+        checks_run += 1
+
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
+        payload = load_json(manifest_path)
+        payload["repo_reality_gaps"] = {}
+        write_json(manifest_path, payload)
+        assert_issue(module, root, ("UNEXPECTED_MANIFEST_GAPS", "{}"))
+        checks_run += 1
+
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
         write_json(manifest_path, [])
         assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "root"))
         checks_run += 1
