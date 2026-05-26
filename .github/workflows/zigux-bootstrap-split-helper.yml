@@ -21,16 +21,17 @@ jobs:
   split-helper:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-        with:
-          fetch-depth: 1
-          filter: blob:none
-          sparse-checkout: |
-            .github/workflows/zigux-bootstrap-split-helper.yml
-            scripts/zigux
-            third_party
-          sparse-checkout-cone-mode: false
+      - name: Checkout workspace snapshot
+        run: |
+          set -euxo pipefail
+          tmpdir="$(mktemp -d)"
+          archive="$tmpdir/source.tar.gz"
+          curl -L --fail "https://codeload.github.com/${GITHUB_REPOSITORY}/tar.gz/${GITHUB_SHA}" -o "$archive"
+          tar -xzf "$archive" -C "$tmpdir"
+          src_dir="$(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          find "$GITHUB_WORKSPACE" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          shopt -s dotglob
+          mv "$src_dir"/* "$GITHUB_WORKSPACE"/
 
       - name: Setup Python
         uses: actions/setup-python@v6.2.0
