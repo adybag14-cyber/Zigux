@@ -25,6 +25,7 @@ It is the current-master gap-note companion for the shipped NVMe foothold, not a
 - slice note: `Documentation/zigux/phase12-nvme-pci-slice.md`
 - survey note: `Documentation/zigux/phase12-nvme-pci-survey.md`
 - survey gate: `zigux/tests/phase12_nvme_pci_survey.zig`
+- survey-build route: `zigux/tests/phase12_nvme_pci_survey_build.zig`
 - manifest anchor: `zigux/tests/phase12_nvme_pci_manifest.json`
 - `zigux/tests/phase12_build.zig` still does not wire the bounded NVMe direct replay into the shared `phase12-smoke` or `phase12` routes
 
@@ -37,6 +38,7 @@ Base raw URL prefix:
 - verifier shard raw path: `drivers/nvme/host/pci_verify.zig`
 - direct replay raw path: `zigux/tests/phase12_nvme_pci.zig`
 - dedicated direct-build raw path: `zigux/tests/phase12_nvme_pci_build.zig`
+- survey-build raw path: `zigux/tests/phase12_nvme_pci_survey_build.zig`
 - slice note raw path: `Documentation/zigux/phase12-nvme-pci-slice.md`
 - survey note raw path: `Documentation/zigux/phase12-nvme-pci-survey.md`
 - survey gate raw path: `zigux/tests/phase12_nvme_pci_survey.zig`
@@ -46,8 +48,8 @@ Base raw URL prefix:
 
 ## Current-Master Evidence Snapshot
 
-- exact coverage evidence refreshed on `2026-05-24` against live current `master`
-- current `master` still carries `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_build.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
+- exact coverage evidence refreshed on `2026-05-26` against live current `master`
+- current `master` still carries `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_build.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_nvme_pci_survey_build.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json`
 - current `master` also directly reads the packet-local checker and shared support bundle through `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-nvme-pci-packet.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase12_build.zig`
 - current `zigux/Makefile` now exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again
 - current authoritative packet truth therefore stays split: this NVMe note is the bounded current-master gap-note companion for the driver-local foothold, while the shared release packet and degraded-read support bundle stay owned by the Phase 12 release companions listed above
@@ -74,6 +76,6 @@ It still does not claim live DMA mapping, PRP or SGL construction, blk-mq submis
 ## Review Use
 
 - reread this note beside `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` whenever shared fallback wording changes
-- reread it beside `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` before widening any driver-local PMO wording
+- reread it beside `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_nvme_pci_survey_build.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` before widening any driver-local PMO wording
 - compare it beside contents-bridge reads of `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-nvme-pci-packet.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and `zigux/tests/phase12_build.zig` before widening fallback claims or shared-route wording
 - keep this file bounded as the current-master gap-note companion only; do not promote it into a commit-pinned replay artifact or a shared build-route proof
