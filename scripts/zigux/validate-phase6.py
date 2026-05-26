@@ -226,7 +226,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 27
+SELF_TEST_CASE_COUNT = 28
 
 
 class ValidationError(RuntimeError):
@@ -829,6 +829,29 @@ def run_self_test() -> None:
                                 "shared_direct_evidence"
                             ]
                             if item != "scripts/zigux/check-phase6-hexdump-route.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "helpers": [
+                            helper
+                            if helper.get("key") != "bsearch"
+                            else {
+                                **helper,
+                                "checker_surfaces": [
+                                    "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
+                                ],
+                            }
+                            for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
                         ],
                     },
                     indent=2,
