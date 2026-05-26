@@ -71,6 +71,17 @@ EXPECTED_SURVEY_PROVENANCE = {
     },
 }
 
+EXPECTED_READY_TRANSPORT_FOLLOWUPS = {
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+}
+
+EXPECTED_BLOCKED_TRANSPORT_GAPS = {
+    "zigux/tests/phase10_virtio_core_manifest.json": "phase10-core-probe-remove-lifecycle",
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+}
+
 CLOSURE_ALLOWED_ROADMAP_DESTINATIONS = [
     "drivers/virtio/*.zig",
     "zigux/kernel/",
@@ -249,6 +260,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "closure_manifest:architecture_council_reopen_attached="
             + repr(closure_manifest.get("architecture_council_reopen_attached"))
         )
+    if closure_manifest.get("ready_transport_followups") != EXPECTED_READY_TRANSPORT_FOLLOWUPS:
+        missing_markers.append("closure_manifest:ready_transport_followups")
+    if closure_manifest.get("blocked_transport_gaps") != EXPECTED_BLOCKED_TRANSPORT_GAPS:
+        missing_markers.append("closure_manifest:blocked_transport_gaps")
     if closure_manifest.get("freeze_in_c_anchors") != FREEZE_IN_C_ANCHORS:
         missing_markers.append("closure_manifest:freeze_in_c_anchors")
     if closure_manifest.get("study_only_anchors") != STUDY_ONLY_ANCHORS:
@@ -320,6 +335,8 @@ def build_fixture_manifest() -> str:
             "forbidden_transport_claims": CLOSURE_FORBIDDEN_TRANSPORT_CLAIMS,
             "architecture_council_reopen_required": True,
             "architecture_council_reopen_attached": False,
+            "ready_transport_followups": EXPECTED_READY_TRANSPORT_FOLLOWUPS,
+            "blocked_transport_gaps": EXPECTED_BLOCKED_TRANSPORT_GAPS,
             "freeze_in_c_anchors": FREEZE_IN_C_ANCHORS,
             "study_only_anchors": STUDY_ONLY_ANCHORS,
             "phase14_study_only_boundary": {
@@ -601,6 +618,26 @@ def run_self_test() -> int:
 
         run_manifest_case(
             root,
+            "ready_transport_followups",
+            {
+                "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle"
+            },
+            "closure_manifest:ready_transport_followups",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
+            "blocked_transport_gaps",
+            {
+                "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
+            },
+            "closure_manifest:blocked_transport_gaps",
+        )
+        reset_fixture(root)
+
+        run_manifest_case(
+            root,
             "freeze_in_c_anchors",
             FREEZE_IN_C_ANCHORS[:-1],
             "closure_manifest:freeze_in_c_anchors",
@@ -704,7 +741,7 @@ def run_self_test() -> int:
         reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=30")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
@@ -727,7 +764,7 @@ if missing_markers:
     print("MISSING_PHASE10_SHARED_FREEZE_MARKERS_END")
     sys.exit(1)
 
-total_manifest_checks = 18 + sum(
+total_manifest_checks = 20 + sum(
     len(fields) for fields in EXPECTED_DRIVER_MANIFEST_FIELDS.values()
 )
 
