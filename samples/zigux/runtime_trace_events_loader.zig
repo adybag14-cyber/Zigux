@@ -189,6 +189,64 @@ test "runtime trace-events loader keeps selftest-complete shared requests stable
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
 }
 
+test "runtime trace-events loader rejects prepared shared init-flow count drift before handoff and release" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    try module.runSelftest();
+
+    var prepare_loader = RuntimeTraceEventsLoader{};
+    var prepare_request = try prepare_loader.prepareSharedRequest(&module);
+    const prepared_plan = prepare_request.plan;
+
+    prepare_request.plan.init_flow.init_runs = 2;
+    try std.testing.expectError(
+        error.PreparedPlanDrift,
+        prepare_loader.requestSharedRuntimeLoad(&prepare_request),
+    );
+    try std.testing.expectEqual(LoaderStage.prepared, prepare_loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, prepare_request.state);
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        prepare_request.prepared_plan,
+        prepared_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        prepare_request.plan,
+        prepared_plan,
+    ));
+
+    var release_loader = RuntimeTraceEventsLoader{};
+    var release_request = try release_loader.prepareSharedRequest(&module);
+    const release_prepared_plan = release_request.plan;
+    const pending_plan = try release_loader.requestSharedRuntimeLoad(&release_request);
+
+    release_request.plan = pending_plan;
+    release_request.plan.init_flow.exit_runs = 1;
+    try std.testing.expectError(
+        error.PreparedPlanDrift,
+        release_loader.releaseSharedWithoutSubstrate(&release_request),
+    );
+    try std.testing.expectEqual(
+        LoaderStage.waiting_on_runtime_substrate,
+        release_loader.stage(),
+    );
+    try std.testing.expectEqual(
+        runtime_loader.RequestState.waiting_on_runtime_substrate,
+        release_request.state,
+    );
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        release_request.prepared_plan,
+        release_prepared_plan,
+    ));
+    try std.testing.expect(runtime_loader.keepsLoadPlanExplicit(
+        pending_plan,
+        release_prepared_plan,
+    ));
+    try std.testing.expect(!runtime_loader.keepsLoadPlanExplicit(
+        release_request.plan,
+        release_prepared_plan,
+    ));
+}
+
 test "runtime trace-events loader keeps initialized-stage shared requests blocked by the current loader family contract" {
     var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
     try module.init();
