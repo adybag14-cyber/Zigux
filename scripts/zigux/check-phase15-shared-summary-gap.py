@@ -23,6 +23,7 @@ MATERIALIZED_GOVERNANCE_PATHS = (
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "Documentation/zigux/phase15-deep-core-blocker-survey.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.json",
