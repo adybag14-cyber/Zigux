@@ -35,7 +35,7 @@
 - `zigux/tests/phase6_helper_parity_manifest.json`
 - `zigux/tests/phase6_helper_evidence_manifest.json`
 
-The review packet keeps the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface beside the focused helper replay, the perf replay, the exact perf-matrix preflight, and the route guards that keep the shared build and Makefile packet aligned.
+The review packet keeps the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, `bin2hexUpper`/`bin2HexUpper`, and `hexDumpLineLength` helper parity surface beside the focused helper replay, the perf replay, the exact perf-matrix preflight, and the route guards that keep the shared build and Makefile packet aligned.
 
 This slice stays bounded because focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable without widening this lane into checksum, base64, bsearch, threshold retuning beyond the documented cases, or broader Phase 6 reminder churn.
 
