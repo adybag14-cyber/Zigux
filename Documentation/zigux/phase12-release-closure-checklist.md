@@ -55,11 +55,14 @@ If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-firs
 
 1. `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
 2. `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
-3. `python3 scripts/zigux/validate-phase12.py`
-4. shipped wrapper evidence on current `master`: `make -C zigux phase12-validate`
-5. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
-6. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-test ZIG=<attached-zig-path>`
-7. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12 ZIG=<attached-zig-path>`
+3. `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`
+4. `python3 scripts/zigux/check-phase12-libbpf-lane-marker.py --self-test`
+5. `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test`
+6. `python3 scripts/zigux/validate-phase12.py`
+7. shipped wrapper evidence on current `master`: `make -C zigux phase12-validate`
+8. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+9. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12-test ZIG=<attached-zig-path>`
+10. attached-Zig rerun vocabulary for the same shipped route: `make -C zigux phase12 ZIG=<attached-zig-path>`
 
 Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.
 
