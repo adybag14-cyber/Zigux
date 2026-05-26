@@ -27,6 +27,7 @@ DIRECT_PACKET_PATHS = (
     "Documentation/zigux/review-checklist.md",
     "samples/zigux/README.md",
     "samples/zigux/bytestream_fifo.zig",
+    "samples/zigux/bytestream_fifo_window_contract.zig",
     "samples/zigux/kobject_example.zig",
     "samples/zigux/kobject_example_attr_group_contract.zig",
     "samples/zigux/kretprobe_example.zig",
@@ -151,21 +152,7 @@ FORBIDDEN_GUIDE_TEXT = (
 )
 
 FORBIDDEN_SAMPLE_ROOT_TEXT = (
-    "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed companion evidence until a fresh authenticated reread returns those three routes directly.",
-)
-
-def read_text(root: Path, path: Path) -> str:
-    try:
-        return (root / path).read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise SystemExit(f"required file missing: {path}") from exc
-
-def write_text(root: Path, path: Path, text: str) -> None:
-    full = root / path
-    full.parent.mkdir(parents=True, exist_ok=True)
-    full.write_text(text, encoding="utf-8")
-
-def placeholder(path: Path) -> str:
+    "Keep the kobject anchor framed as a roadmap-backed Phase 5 target with the current mixed packet explicit in this runtime: `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_build.zig` are direct authenticated reminder or packet evidence again, while `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` remain current public-tree-backed…136 tokens truncated… -> str:
     lines = [f"# {path.name}"]
     lines.extend(MARKERS[path])
     if path == GUIDE_PATH:
