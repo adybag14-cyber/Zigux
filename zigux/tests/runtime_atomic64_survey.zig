@@ -246,12 +246,12 @@ test "phase 9 runtime atomic64 survey manifest records the visible shared-loader
     try std.testing.expect(hasOwnership(
         manifest.ownership_map,
         "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
-        "P9-L11",
+        "P9-L13",
     ));
     try std.testing.expect(hasOwnership(
         manifest.ownership_map,
         "zigux/tests/phase9_build.zig",
-        "P9-L11",
+        "P9-L13",
     ));
 
     const survey_entry = findOwnership(
