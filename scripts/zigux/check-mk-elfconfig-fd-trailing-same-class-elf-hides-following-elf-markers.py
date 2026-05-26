@@ -72,7 +72,6 @@ def run_self_test() -> None:
             raise AssertionError("expected duplicate-marker self-test failure")
 
         reordered_path = tmp_root / "reordered.zig"
-        reordered_path.writeText = None
         reordered_path.write_text(
             "\n".join(
                 [
