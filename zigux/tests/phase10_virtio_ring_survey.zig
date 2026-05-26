@@ -43,6 +43,7 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     try expectContains(survey_note, "drivers/virtio/virtio_ring_publish_readiness.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig");
+    try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_registration_replay.zig");
     try expectContains(
         survey_note,
         "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
