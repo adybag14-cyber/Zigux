@@ -53,6 +53,10 @@ def parse_validate_phase11(validate_path: Path) -> tuple[tuple[str, ...], dict[s
     return required_paths, manifest_expectations
 
 
+def is_phase11_manifest_path(path: str) -> bool:
+    return path.startswith("zigux/tests/phase11_") and path.endswith("_manifest.json")
+
+
 def run_check(root: Path) -> tuple[int, int]:
     validate_path = root / TARGET_PATH
     required_paths, manifest_expectations = parse_validate_phase11(validate_path)
@@ -64,6 +68,17 @@ def run_check(root: Path) -> tuple[int, int]:
             + ", ".join(missing_manifest_paths)
         )
 
+    missing_expectation_paths = sorted(
+        path
+        for path in required_paths
+        if is_phase11_manifest_path(path) and path not in manifest_expectations
+    )
+    if missing_expectation_paths:
+        raise CheckError(
+            "required Phase 11 manifest paths missing from MANIFEST_EXPECTATIONS: "
+            + ", ".join(missing_expectation_paths)
+        )
+
     return len(required_paths), len(manifest_expectations)
 
 
@@ -72,7 +87,7 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def build_fixture(root: Path, *, include_drift: bool) -> None:
+def build_fixture(root: Path, *, include_drift: bool, include_orphan_required_manifest: bool = False) -> None:
     manifest_lines = [
         '    "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L10",',
     ]
@@ -82,6 +97,10 @@ def build_fixture(root: Path, *, include_drift: bool) -> None:
     if include_drift:
         manifest_lines.append(
             '    "zigux/tests/phase11_hvc_console_manifest.json": "P11-L16",'
+        )
+    if include_orphan_required_manifest:
+        required_paths.append(
+            '    "zigux/tests/phase11_gpio_wdt_manifest.json",'
         )
 
     text = "\n".join(
@@ -125,6 +144,13 @@ def run_self_test() -> int:
             "manifest expectations missing from REQUIRED_PATHS",
         )
 
+        orphan_required_manifest = tempdir / "orphan_required_manifest"
+        build_fixture(orphan_required_manifest, include_drift=False, include_orphan_required_manifest=True)
+        expect_failure(
+            orphan_required_manifest,
+            "required Phase 11 manifest paths missing from MANIFEST_EXPECTATIONS",
+        )
+
         syntax_error = tempdir / "syntax_error"
         write(syntax_error / TARGET_PATH, "REQUIRED_PATHS = (\n")
         expect_failure(syntax_error, "invalid Python")
@@ -148,7 +174,7 @@ def run_self_test() -> int:
         expect_failure(wrong_manifest_type, "MANIFEST_EXPECTATIONS must be a dict")
 
         print("PHASE11_VALIDATE_MANIFEST_ROSTER_SELF_TEST=pass")
-        print("PHASE11_VALIDATE_MANIFEST_ROSTER_SELF_TEST_CASE_COUNT=6")
+        print("PHASE11_VALIDATE_MANIFEST_ROSTER_SELF_TEST_CASE_COUNT=7")
         print(f"PHASE11_VALIDATE_MANIFEST_ROSTER_FIXTURE_REQUIRED_PATH_COUNT={required_path_count}")
         return 0
     finally:
