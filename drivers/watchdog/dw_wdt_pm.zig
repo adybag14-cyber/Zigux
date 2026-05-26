@@ -73,6 +73,7 @@ pub const PmResumeRequest = struct {
     reset_control_available: bool,
     stop_on_reboot_registered: bool,
     restart_priority_registered: bool,
+    pretimeout_irq_present: bool = false,
     keeps_live_pm_execution_out_of_scope: bool = true,
 };
 
@@ -84,6 +85,7 @@ pub const PmResumeSummary = struct {
     imported_running_state: bool,
     restore_stop_on_reboot_requested: bool,
     restore_restart_priority_requested: bool,
+    pretimeout_restore_requested: bool,
     keeps_live_pm_execution_out_of_scope: bool,
     blocked_on_live_mmio: bool,
 };
@@ -98,6 +100,7 @@ pub fn summarizePmResume(request: PmResumeRequest) PmResumeSummary {
             .imported_running_state = false,
             .restore_stop_on_reboot_requested = false,
             .restore_restart_priority_requested = false,
+            .pretimeout_restore_requested = false,
             .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
             .blocked_on_live_mmio = false,
         };
@@ -112,6 +115,7 @@ pub fn summarizePmResume(request: PmResumeRequest) PmResumeSummary {
             .imported_running_state = true,
             .restore_stop_on_reboot_requested = request.stop_on_reboot_registered,
             .restore_restart_priority_requested = request.restart_priority_registered,
+            .pretimeout_restore_requested = request.pretimeout_irq_present,
             .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
             .blocked_on_live_mmio = false,
         };
@@ -126,6 +130,7 @@ pub fn summarizePmResume(request: PmResumeRequest) PmResumeSummary {
             .imported_running_state = false,
             .restore_stop_on_reboot_requested = request.stop_on_reboot_registered,
             .restore_restart_priority_requested = request.restart_priority_registered,
+            .pretimeout_restore_requested = false,
             .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
             .blocked_on_live_mmio = false,
         };
@@ -140,6 +145,7 @@ pub fn summarizePmResume(request: PmResumeRequest) PmResumeSummary {
             .imported_running_state = false,
             .restore_stop_on_reboot_requested = false,
             .restore_restart_priority_requested = false,
+            .pretimeout_restore_requested = false,
             .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
             .blocked_on_live_mmio = true,
         };
@@ -153,6 +159,7 @@ pub fn summarizePmResume(request: PmResumeRequest) PmResumeSummary {
         .imported_running_state = false,
         .restore_stop_on_reboot_requested = request.stop_on_reboot_registered,
         .restore_restart_priority_requested = request.restart_priority_registered,
+        .pretimeout_restore_requested = request.pretimeout_irq_present,
         .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
         .blocked_on_live_mmio = false,
     };
@@ -312,6 +319,34 @@ test "phase11 dw_wdt pm resume keeps imported-running handoff explicit" {
     try std.testing.expect(summary.imported_running_state);
     try std.testing.expect(summary.restore_stop_on_reboot_requested);
     try std.testing.expect(summary.restore_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_restore_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm resume restores pretimeout hook after imported-running handoff" {
+    const summary = summarizePmResume(.{
+        .drvdata_published = true,
+        .hardware_running = true,
+        .timeout_programmed = false,
+        .imported_running = true,
+        .reset_control_available = true,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = true,
+        .pretimeout_irq_present = true,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(
+        PmResumeState.import_running_state_then_restore_hooks,
+        summary.state,
+    );
+    try std.testing.expect(summary.reset_release_ready);
+    try std.testing.expect(!summary.timeout_reprogram_requested);
+    try std.testing.expect(summary.imported_running_state);
+    try std.testing.expect(summary.restore_stop_on_reboot_requested);
+    try std.testing.expect(summary.restore_restart_priority_requested);
+    try std.testing.expect(summary.pretimeout_restore_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
@@ -337,6 +372,7 @@ test "phase11 dw_wdt pm resume keeps imported-running precedence explicit over i
     try std.testing.expect(summary.imported_running_state);
     try std.testing.expect(!summary.restore_stop_on_reboot_requested);
     try std.testing.expect(!summary.restore_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_restore_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
@@ -359,6 +395,7 @@ test "phase11 dw_wdt pm resume keeps idle restore path explicit" {
     try std.testing.expect(!summary.imported_running_state);
     try std.testing.expect(summary.restore_stop_on_reboot_requested);
     try std.testing.expect(summary.restore_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_restore_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
@@ -393,6 +430,7 @@ test "phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idl
     try std.testing.expect(!blocked.imported_running_state);
     try std.testing.expect(!blocked.restore_stop_on_reboot_requested);
     try std.testing.expect(!blocked.restore_restart_priority_requested);
+    try std.testing.expect(!blocked.pretimeout_restore_requested);
     try std.testing.expect(!blocked.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(blocked.blocked_on_live_mmio);
 
@@ -402,8 +440,35 @@ test "phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idl
     try std.testing.expect(!restored.imported_running_state);
     try std.testing.expect(restored.restore_stop_on_reboot_requested);
     try std.testing.expect(restored.restore_restart_priority_requested);
+    try std.testing.expect(!restored.pretimeout_restore_requested);
     try std.testing.expect(restored.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!restored.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm resume keeps timeout reprogram blocker ahead of pretimeout restore" {
+    const summary = summarizePmResume(.{
+        .drvdata_published = true,
+        .hardware_running = true,
+        .timeout_programmed = false,
+        .imported_running = false,
+        .reset_control_available = true,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = true,
+        .pretimeout_irq_present = true,
+    });
+
+    try std.testing.expectEqual(
+        PmResumeState.blocked_live_mmio_timeout_reprogram,
+        summary.state,
+    );
+    try std.testing.expect(summary.reset_release_ready);
+    try std.testing.expect(summary.timeout_reprogram_requested);
+    try std.testing.expect(!summary.imported_running_state);
+    try std.testing.expect(!summary.restore_stop_on_reboot_requested);
+    try std.testing.expect(!summary.restore_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_restore_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(summary.blocked_on_live_mmio);
 }
 
 test "phase11 dw_wdt pm resume keeps running ready-to-restore path explicit when timeout is already programmed" {
@@ -424,6 +489,52 @@ test "phase11 dw_wdt pm resume keeps running ready-to-restore path explicit when
     try std.testing.expect(!summary.imported_running_state);
     try std.testing.expect(summary.restore_stop_on_reboot_requested);
     try std.testing.expect(!summary.restore_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_restore_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm resume restores pretimeout hook once timeout image is ready" {
+    const summary = summarizePmResume(.{
+        .drvdata_published = true,
+        .hardware_running = true,
+        .timeout_programmed = true,
+        .imported_running = false,
+        .reset_control_available = false,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = false,
+        .pretimeout_irq_present = true,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(PmResumeState.restore_idle_hooks, summary.state);
+    try std.testing.expect(!summary.reset_release_ready);
+    try std.testing.expect(!summary.timeout_reprogram_requested);
+    try std.testing.expect(!summary.imported_running_state);
+    try std.testing.expect(summary.restore_stop_on_reboot_requested);
+    try std.testing.expect(!summary.restore_restart_priority_requested);
+    try std.testing.expect(summary.pretimeout_restore_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm resume keeps idle restore path free of fabricated pretimeout work" {
+    const summary = summarizePmResume(.{
+        .drvdata_published = true,
+        .hardware_running = false,
+        .timeout_programmed = true,
+        .imported_running = false,
+        .reset_control_available = true,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = true,
+        .pretimeout_irq_present = true,
+    });
+
+    try std.testing.expectEqual(PmResumeState.restore_idle_hooks, summary.state);
+    try std.testing.expect(!summary.imported_running_state);
+    try std.testing.expect(summary.restore_stop_on_reboot_requested);
+    try std.testing.expect(summary.restore_restart_priority_requested);
+    try std.testing.expect(!summary.pretimeout_restore_requested);
     try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!summary.blocked_on_live_mmio);
 }
