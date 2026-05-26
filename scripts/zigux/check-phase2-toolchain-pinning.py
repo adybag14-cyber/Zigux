@@ -39,6 +39,18 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-local-archive-readme.py",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-install-zig-archive-verification.py",
+    "run: python3 scripts/zigux/install-zig.py --self-test",
+    "run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-contract.py",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py --self-test",
+    "run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
@@ -81,6 +93,11 @@ WORKFLOW_LINES = (
 
 SURFACE_PATHS = (
     "scripts/zigux/check-zig-toolchain.py",
+    "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+    "scripts/zigux/check-lane05-local-archive-readme.py",
+    "scripts/zigux/check-lane05-install-zig-archive-verification.py",
+    "scripts/zigux/check-lane05-stage-helper-contract.py",
+    "scripts/zigux/check-lane05-stage-helper-selftest.py",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
@@ -178,7 +195,7 @@ MANIFEST_CHECKS = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 99
+EXPECTED_SELF_TEST_CASE_COUNT = 123
 
 
 def read(path: Path) -> str:
