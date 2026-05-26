@@ -584,6 +584,19 @@ def run_self_test() -> int:
             )
             cases += 1
 
+        broken_workflow_step = temp_dir / "broken_workflow_step"
+        shutil.copytree(fixture, broken_workflow_step, dirs_exist_ok=True)
+        expect_failure(
+            broken_workflow_step,
+            lambda root: write_text(
+                root,
+                WORKFLOW_PATH,
+                read_text(root, WORKFLOW_PATH).replace(PHASE11_VALIDATE_STEP, "", 1),
+            ),
+            PHASE11_VALIDATE_STEP,
+        )
+        cases += 1
+
         broken_workflow_marker = temp_dir / "broken_workflow_marker"
         shutil.copytree(fixture, broken_workflow_marker, dirs_exist_ok=True)
         expect_failure(
