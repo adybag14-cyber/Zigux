@@ -15,8 +15,22 @@ EXPECTED_REVIEW_SURFACES = (
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase2-closure.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
     "zigux/tests/README.md",
 )
+
+
+class DuplicateKeyError(ValueError):
+    """Raised when a manifest JSON object repeats a key."""
+
+
+def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise DuplicateKeyError(f"duplicate json key: {key}")
+        payload[key] = value
+    return payload
 
 
 def _write(path: Path, text: str) -> None:
@@ -29,9 +43,7 @@ def _sample_manifest(entries: list[str] | None = None) -> str:
         "phase": "Phase 2",
         "status": "active",
         "present_surfaces": {
-            "review_surfaces": list(
-                EXPECTED_REVIEW_SURFACES if entries is None else entries
-            ),
+            "review_surfaces": list(EXPECTED_REVIEW_SURFACES if entries is None else entries),
         },
     }
     return json.dumps(payload, indent=2) + "\n"
@@ -41,15 +53,27 @@ def count_exact_entries(entries: list[str], marker: str) -> int:
     return sum(1 for entry in entries if entry == marker)
 
 
+def load_manifest(manifest_path: Path) -> dict[str, object]:
+    try:
+        return json.loads(
+            manifest_path.read_text(encoding="utf-8"),
+            object_pairs_hook=_reject_duplicate_keys,
+        )
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid manifest json: {exc.msg}") from exc
+    except DuplicateKeyError as exc:
+        raise ValueError(str(exc)) from exc
+
+
 def validate(repo_root: Path) -> list[str]:
     manifest_path = repo_root / MANIFEST_PATH
     if not manifest_path.is_file():
         return [f"missing manifest file: {MANIFEST_PATH.as_posix()}"]
 
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        return [f"invalid manifest json: {exc.msg}"]
+        manifest = load_manifest(manifest_path)
+    except ValueError as exc:
+        return [str(exc)]
 
     if not isinstance(manifest, dict):
         return ["invalid manifest root object"]
@@ -94,8 +118,12 @@ def validate(repo_root: Path) -> list[str]:
     for entry in string_entries:
         if entry not in EXPECTED_REVIEW_SURFACES:
             issues.append(f"unexpected review_surfaces entry: {entry}")
-        elif not (repo_root / entry).exists():
-            issues.append(f"missing review_surfaces path: {entry}")
+        else:
+            entry_path = repo_root / entry
+            if not entry_path.exists():
+                issues.append(f"missing review_surfaces path: {entry}")
+            elif not entry_path.is_file():
+                issues.append(f"non-file review_surfaces path: {entry}")
 
     return issues
 
@@ -131,6 +159,14 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
+        _write(root / MANIFEST_PATH, '{"phase":"Phase 2","phase":"Phase 3"}\n')
+        issues = validate(root)
+        if "duplicate json key: phase" not in issues:
+            print("PHASE2_REVIEW_SURFACES_SELF_TEST=fail")
+            print("expected duplicate json key was not reported")
+            return 1
+        case_count += 1
+
         _write(root / MANIFEST_PATH, "[]\n")
         issues = validate(root)
         if "invalid manifest root object" not in issues:
@@ -139,10 +175,15 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        _write(
-            root / MANIFEST_PATH,
-            '{"phase": "Phase 2", "present_surfaces": []}\n',
-        )
+        _write(root / MANIFEST_PATH, '{"phase":"Phase 2","present_surfaces":{"review_surfaces":[],"review_surfaces":[]}}\n')
+        issues = validate(root)
+        if "duplicate json key: review_surfaces" not in issues:
+            print("PHASE2_REVIEW_SURFACES_SELF_TEST=fail")
+            print("expected duplicate nested json key was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MANIFEST_PATH, '{"phase": "Phase 2", "present_surfaces": []}\n')
         issues = validate(root)
         if "invalid present_surfaces object" not in issues:
             print("PHASE2_REVIEW_SURFACES_SELF_TEST=fail")
@@ -150,10 +191,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        _write(
-            root / MANIFEST_PATH,
-            '{"phase": "Phase 2", "present_surfaces": {"review_surfaces": "bad"}}\n',
-        )
+        _write(root / MANIFEST_PATH, '{"phase": "Phase 2", "present_surfaces": {"review_surfaces": "bad"}}\n')
         issues = validate(root)
         if "invalid review_surfaces list" not in issues:
             print("PHASE2_REVIEW_SURFACES_SELF_TEST=fail")
@@ -161,10 +199,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        _write(
-            root / MANIFEST_PATH,
-            _sample_manifest(list(EXPECTED_REVIEW_SURFACES[:-1])),
-        )
+        _write(root / MANIFEST_PATH, _sample_manifest(list(EXPECTED_REVIEW_SURFACES[:-1])))
         issues = validate(root)
         missing_issue = "missing review_surfaces entry: zigux/tests/README.md"
         if missing_issue not in issues:
@@ -177,7 +212,7 @@ def run_self_test() -> int:
             root / MANIFEST_PATH,
             '{"phase": "Phase 2", "present_surfaces": {"review_surfaces": ['
             '"Documentation/zigux/README.md", 7, '
-            '"Documentation/zigux/review-checklist.md", "zigux/tests/README.md"]}}\n',
+            '"Documentation/zigux/review-checklist.md", "scripts/zigux/README.md", "zigux/tests/README.md"]}}\n',
         )
         issues = validate(root)
         if "invalid review_surfaces entry at index 1: 7" not in issues:
@@ -190,10 +225,7 @@ def run_self_test() -> int:
         duplicate_entries[-1] = EXPECTED_REVIEW_SURFACES[-2]
         _write(root / MANIFEST_PATH, _sample_manifest(duplicate_entries))
         issues = validate(root)
-        duplicate_issue = (
-            "duplicate review_surfaces entry: "
-            "Documentation/zigux/review-checklist.md:count=2"
-        )
+        duplicate_issue = "duplicate review_surfaces entry: scripts/zigux/README.md:count=2"
         if duplicate_issue not in issues:
             print("PHASE2_REVIEW_SURFACES_SELF_TEST=fail")
             print("expected duplicate review_surfaces entry was not reported")
@@ -201,10 +233,7 @@ def run_self_test() -> int:
         case_count += 1
 
         reordered_entries = list(EXPECTED_REVIEW_SURFACES)
-        reordered_entries[0], reordered_entries[1] = (
-            reordered_entries[1],
-            reordered_entries[0],
-        )
+        reordered_entries[0], reordered_entries[1] = reordered_entries[1], reordered_entries[0]
         _write(root / MANIFEST_PATH, _sample_manifest(reordered_entries))
         issues = validate(root)
         order_issue = (
@@ -229,8 +258,24 @@ def run_self_test() -> int:
         case_count += 1
 
         _write(root / MANIFEST_PATH, _sample_manifest())
+        non_file_path = root / EXPECTED_REVIEW_SURFACES[-1]
+        non_file_path.unlink()
+        non_file_path.mkdir()
+        issues = validate(root)
+        non_file_issue = "non-file review_surfaces path: zigux/tests/README.md"
+        if non_file_issue not in issues:
+            print("PHASE2_REVIEW_SURFACES_SELF_TEST=fail")
+            print("expected non-file review_surfaces path was not reported")
+            return 1
+        case_count += 1
+
+        _write(root / MANIFEST_PATH, _sample_manifest())
         missing_path = root / EXPECTED_REVIEW_SURFACES[-1]
-        missing_path.unlink()
+        if missing_path.exists():
+            if missing_path.is_dir():
+                missing_path.rmdir()
+            else:
+                missing_path.unlink()
         issues = validate(root)
         missing_path_issue = "missing review_surfaces path: zigux/tests/README.md"
         if missing_path_issue not in issues:
