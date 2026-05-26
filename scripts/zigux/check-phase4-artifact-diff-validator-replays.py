@@ -108,10 +108,28 @@ EXPECTED_SELF_TEST_CASES = [
 ]
 
 
+def count_marker_occurrences(text: str, marker: str) -> int:
+    if "\n" in marker:
+        return text.count(marker)
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
 def assert_markers(text: str, markers: list[str], label: str) -> None:
-    missing = [marker for marker in markers if marker not in text]
-    if missing:
-        raise AssertionError(f"{label} markers missing: {missing}")
+    missing = []
+    duplicates = []
+    for marker in markers:
+        count = count_marker_occurrences(text, marker)
+        if count == 0:
+            missing.append(marker)
+        elif count != 1:
+            duplicates.append(f"{marker}:count={count}")
+    if missing or duplicates:
+        issues: list[str] = []
+        if missing:
+            issues.append(f"missing={missing}")
+        if duplicates:
+            issues.append(f"duplicates={duplicates}")
+        raise AssertionError(f"{label} markers invalid: {'; '.join(issues)}")
 
 
 def read_text(root: Path, rel: Path, *, missing_label: str) -> str:
@@ -263,7 +281,8 @@ def run_self_test() -> int:
             raise AssertionError("expected validator_helper_marker_drift to fail closed")
 
         make_validator_fixture(root)
-        write(root / VALIDATOR_REL, EXPECTED_VALIDATOR_REPLAY_MARKERS[0] + "\n")
+        validator_text = (root / VALIDATOR_REL).read_text(encoding="utf-8")
+        write(root / VALIDATOR_REL, validator_text + EXPECTED_VALIDATOR_REPLAY_MARKERS[0] + "\n")
         try:
             check(root)
         except AssertionError:
@@ -346,7 +365,8 @@ def run_self_test() -> int:
             raise AssertionError("expected workflow_make_route_marker_drift to fail closed")
 
         make_repo_reality_handoff_fixture(root)
-        write(root / WORKFLOW_REL, EXPECTED_WORKFLOW_REPLAY_MARKERS[0] + "\n")
+        workflow_text = (root / WORKFLOW_REL).read_text(encoding="utf-8")
+        write(root / WORKFLOW_REL, workflow_text + EXPECTED_WORKFLOW_REPLAY_MARKERS[0] + "\n")
         try:
             check(root)
         except AssertionError:
