@@ -304,7 +304,7 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--write-sample-root", type=Path)
-    args = parse_args()
+    args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
