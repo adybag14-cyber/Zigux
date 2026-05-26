@@ -52,6 +52,26 @@ That is enough to keep the workqueue anchor reviewable as a bounded boundary-stu
 
 The current roadmap-aligned gap is therefore narrow and explicit: the boundary-map foothold is landed, but it is intentionally small. Every other named workqueue bridge area stays in the stay-in-C audit packet until the freeze-map posture changes or genuinely narrower evidence appears.
 
+## ZAR runtime research absorption
+
+The attached `ZAR-Zig-Agent-Runtime-main (11).zip` now contributes bounded Phase 14 context here as research input rather than as port-ready workqueue code.
+
+Archive readback in this run shows a broad probe corpus around the same classes of runtime behavior that keep the workqueue anchor in study-only posture:
+
+  * `64` scheduler probe scripts
+  * `97` timer probe scripts
+  * `85` wake-queue probe scripts
+  * `62` interrupt-timeout probe scripts
+  * representative archive members include `scripts/baremetal-qemu-scheduler-disable-enable-probe-check.ps1`, `scripts/baremetal-qemu-scheduler-wake-timer-clear-probe-check.ps1`, `scripts/baremetal-qemu-periodic-timer-probe-check.ps1`, `scripts/baremetal-qemu-timer-cancel-task-interrupt-timeout-probe-check.ps1`, `scripts/baremetal-qemu-wake-queue-fifo-probe-check.ps1`, and `scripts/baremetal-qemu-wake-queue-reason-vector-pop-probe-check.ps1`
+
+That research is useful to Zigux in a narrow, roadmap-aligned way:
+
+  * it reinforces why delayed-work timer expiry, delayed requeue governance, cancellation completion, and scheduler-visible worker-state transitions stay explicit concurrency-audit checkpoints instead of being promoted into live wrapper ownership
+  * it strengthens the stay-in-C rationale for callback dispatch, rescuer execution, hotplug topology rebinding, runtime `max_active` retuning, and other worker-pool behaviors whose correctness depends on coupled scheduler, timer, and wakeup interactions
+  * it gives the bridge-local packet a clearer explanation for why Phase 14 absorbs ZAR runtime work as probe discipline and negative-boundary evidence, not as direct implementation provenance or a near-term delivery commitment
+
+This is the product-facing absorption boundary the roadmap allows: research improves the audit map and the non-goal language, but it does not reopen the freeze posture or widen the boundary-map-only foothold.
+
 ## Reviewability contract
 
 Keep the following facts aligned across the bridge packet, manifest, reviewability test, the shared review checklist, and the directly coupled slice and survey notes:
