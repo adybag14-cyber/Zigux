@@ -16,6 +16,12 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 EXPECTED_LANE_KEY = "P15-L04"
 EXPECTED_PHASE = "Phase 15"
+EXPECTED_BLOCKED_BROADER_ROUTES = {
+    "makefile_path": "zigux/Makefile",
+    "missing_make_targets": ["phase15-validate", "phase15-test", "phase15"],
+    "workflow_path": ".github/workflows/zigux-bootstrap.yml",
+    "missing_workflow_phase15_route": True,
+}
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=readiness_gate_survey_landed",
@@ -114,6 +120,8 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("readiness note is missing the manifest surveyed_commit marker")
     if manifest["readiness_packet_checker"] != str(SELF_PATH):
         failures.append("readiness manifest does not point at the focused readiness-packet checker")
+    if manifest.get("blocked_broader_routes") != EXPECTED_BLOCKED_BROADER_ROUTES:
+        failures.append("readiness manifest blocked broader-route evidence drifted from the current validator-first packet")
     if f"`{manifest['readiness_packet_checker']}`" not in note:
         failures.append("readiness note is missing the focused readiness-packet checker marker")
 
@@ -135,12 +143,14 @@ def collect_failures(root: Path) -> list[str]:
         if (root / rel).exists():
             failures.append(f"readiness note still treats materialized broader path as blocked: {marker}")
 
+    blocked_routes = manifest["blocked_broader_routes"]
     phase15_validate_target_present = _makefile_has_target(root, "phase15-validate")
     phase15_test_target_present = _makefile_has_target(root, "phase15-test")
     phase15_aggregate_target_present = _makefile_has_target(root, "phase15")
     shared_ci_phase15_present = _workflow_has_phase15_route(root)
 
-    for target, marker in BLOCKED_ROUTE_MARKERS.items():
+    for target in blocked_routes["missing_make_targets"]:
+        marker = BLOCKED_ROUTE_MARKERS[target]
         target_present = {
             "phase15-validate": phase15_validate_target_present,
             "phase15-test": phase15_test_target_present,
@@ -151,10 +161,11 @@ def collect_failures(root: Path) -> list[str]:
         elif target_present:
             failures.append(f"readiness note still treats materialized Phase 15 make route as blocked: `make -C zigux {target}`")
 
-    if WORKFLOW_BLOCKED_MARKER not in note:
-        failures.append(f"readiness note is missing blocked workflow marker: {WORKFLOW_BLOCKED_MARKER}")
-    elif shared_ci_phase15_present:
-        failures.append("readiness note still treats a materialized Phase 15 workflow route as absent from `.github/workflows/zigux-bootstrap.yml`")
+    if blocked_routes["missing_workflow_phase15_route"]:
+        if WORKFLOW_BLOCKED_MARKER not in note:
+            failures.append(f"readiness note is missing blocked workflow marker: {WORKFLOW_BLOCKED_MARKER}")
+        elif shared_ci_phase15_present:
+            failures.append("readiness note still treats a materialized Phase 15 workflow route as absent from `.github/workflows/zigux-bootstrap.yml`")
 
     repo_evidence = manifest["repo_evidence"]
     observed = {
@@ -198,6 +209,7 @@ This note says the governance packet is materially landed and reviewable, the de
 
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `scripts/zigux/validate-phase15.py`
+- `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
@@ -226,6 +238,7 @@ def _sample_manifest() -> str:
             "zigux/tests/phase15_readiness_gate_manifest.json"
         ],
         "still_missing_broader_paths": [],
+        "blocked_broader_routes": EXPECTED_BLOCKED_BROADER_ROUTES,
         "repo_evidence": {
             "phase15_readiness_packet_checker_present": True,
             "phase15_validator_script_present": True,
@@ -321,6 +334,28 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected direct-path failure: {failures}")
+
+        blocked_routes_root = root / "blocked_routes"
+        _seed_repo(blocked_routes_root)
+        _write(
+            blocked_routes_root / MANIFEST_PATH,
+            _sample_manifest().replace(
+                '    "missing_make_targets": [\n'
+                '      "phase15-validate",\n'
+                '      "phase15-test",\n'
+                '      "phase15"\n'
+                '    ],\n',
+                '    "missing_make_targets": [\n'
+                '      "phase15-validate",\n'
+                '      "phase15"\n'
+                '    ],\n',
+                1,
+            ),
+        )
+        failures = collect_failures(blocked_routes_root)
+        expected = ["readiness manifest blocked broader-route evidence drifted from the current validator-first packet"]
+        if failures != expected:
+            raise AssertionError(f"unexpected blocked-route failure: {failures}")
 
     print("PHASE15_READINESS_GATE_PACKET_SELF_TEST=pass")
     return 0
