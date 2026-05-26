@@ -46,7 +46,8 @@
     "preexisting_virtio_ring_zig_present": true,
     "preexisting_virtio_ring_doc_present": true,
     "preexisting_ring_verify_present": true,
-    "preexisting_ring_publish_readiness_present": true
+    "preexisting_ring_publish_readiness_present": true,
+    "preexisting_ring_registration_summary_present": true
   },
   "gaps": [
     {
@@ -139,6 +140,13 @@
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring_publish_readiness.zig",
       "why_now": "The publish-readiness helper is directly readable again through the dedicated queue-local wrapper that keeps publish capacity, blockers, and broken-queue fencing explicit in memory."
+    },
+    {
+      "id": "phase10-queue-registration-summary-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring_registration_summary.zig",
+      "why_now": "The registration-summary wrapper keeps queue-definition discipline and registered-queue counts explicit beside the broader registration replay without widening into transport-backed execution."
     },
     {
       "id": "phase10-queue-reset-helper",
