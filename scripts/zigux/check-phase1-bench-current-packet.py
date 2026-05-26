@@ -144,13 +144,13 @@ EXPECTED_BLOCKS = {
             "return (reason, key)",
         ),
         (
-            "with tempfile.TemporaryDirectory(prefix=\"phase1-bench-source-\") as tmp:",
+            'with tempfile.TemporaryDirectory(prefix="phase1-bench-source-") as tmp:',
             'source_path = Path(tmp) / "phase1_bench.zig"',
             "kind, payload = load_runtime_bench_source(source_path)",
             'assert_case(kind == "missing_bench_source_file", "missing bench source", (kind, payload))',
         ),
         (
-            "with tempfile.TemporaryDirectory(prefix=\"phase1-bench-root-\") as tmp:",
+            'with tempfile.TemporaryDirectory(prefix="phase1-bench-root-") as tmp:',
             "root = Path(tmp)",
             "source_path = bench_source_path(root)",
             "expectations_file = expectations_path(root)",
@@ -245,6 +245,22 @@ def section_contains_expected_lines(section: list[str], expected_lines: tuple[st
     return expected_index == len(expected_lines)
 
 
+def collect_expected_line_count_issues(
+    relative_path: str,
+    first_line: str,
+    section: list[str],
+    expected_lines: tuple[str, ...],
+) -> list[str]:
+    issues: list[str] = []
+    for expected_line in expected_lines[1:]:
+        count = section.count(expected_line)
+        if count != 1:
+            issues.append(
+                f"{relative_path}:section_line_count:{first_line}:{expected_line}:expected=1:actual={count}"
+            )
+    return issues
+
+
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
     for relative_path in REQUIRED_FILES:
@@ -282,6 +298,10 @@ def collect_issues(root: Path) -> list[str]:
             actual_section = extract_section(text, first_line)
             if not section_contains_expected_lines(actual_section, expected_block):
                 issues.append(f"{relative_path}:assert_block:{first_line}:{actual_section!r}")
+                continue
+            issues.extend(
+                collect_expected_line_count_issues(relative_path, first_line, actual_section, expected_block)
+            )
 
     return issues
 
@@ -364,6 +384,27 @@ def mutate_assert_section_insert_after(
     return updated_section
 
 
+def mutate_assert_section_duplicate_line(
+    root: Path,
+    relative_path: str,
+    first_line: str,
+    duplicated_line: str,
+) -> None:
+    path = root / relative_path
+    text = path.read_text(encoding="utf-8")
+    actual_section = extract_section(text, first_line)
+    duplicate_index = actual_section.index(duplicated_line)
+    updated_section = (
+        actual_section[: duplicate_index + 1]
+        + [duplicated_line]
+        + actual_section[duplicate_index + 1 :]
+    )
+    path.write_text(
+        text.replace("\n".join(actual_section), "\n".join(updated_section), 1),
+        encoding="utf-8",
+    )
+
+
 def expected_issue(relative_path: str, needle: str, operation: str, block: list[str] | None = None) -> str:
     if operation == "remove":
         return f"{relative_path}:marker_count:{needle}:expected=1:actual=0"
@@ -373,6 +414,9 @@ def expected_issue(relative_path: str, needle: str, operation: str, block: list[
         return f"missing_file:{relative_path}"
     if operation == "forbidden":
         return f"{relative_path}:forbidden:{needle}:actual=1"
+    if operation == "duplicate_section_line":
+        first_line = block[0] if block is not None else ""
+        return f"{relative_path}:section_line_count:{first_line}:{needle}:expected=1:actual=2"
     assert block is not None
     return f"{relative_path}:assert_block:{needle}:{block!r}"
 
@@ -426,6 +470,26 @@ def run_self_test() -> int:
             print(f"actual={issues!r}")
             return 1
 
+    with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-duplicate-section-line-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        first_line = "for reason, required_keys in exact_requirements:"
+        duplicated_line = "for key in sorted(required_keys):"
+        mutate_assert_section_duplicate_line(root, BENCH_CHECKER_REL, first_line, duplicated_line)
+        issues = collect_issues(root)
+        expected = expected_issue(
+            BENCH_CHECKER_REL,
+            duplicated_line,
+            "duplicate_section_line",
+            [first_line],
+        )
+        if issues != [expected]:
+            print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
+            print("case=duplicate_section_line")
+            print(f"expected={expected}")
+            print(f"actual={issues!r}")
+            return 1
+
     cases: list[tuple[str, str, str, str]] = []
     for relative_path, markers in MARKERS.items():
         for marker in markers:
@@ -465,7 +529,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=pass")
-    print(f"PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT={len(cases) + 3}")
+    print(f"PHASE1_BENCH_CURRENT_PACKET_SELF_TEST_CASE_COUNT={len(cases) + 4}")
     return 0
 
 
