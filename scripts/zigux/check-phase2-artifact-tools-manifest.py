@@ -524,6 +524,10 @@ def main() -> int:
         return emit_issues(issues)
     print("PHASE2_ARTIFACT_TOOLS_MANIFEST=pass")
     print(f"PHASE2_ARTIFACT_TOOLS_MANIFEST_REQUIRED_NOTE_COUNT={len(REQUIRED_NOTE_MARKERS)}")
+    print(
+        "PHASE2_ARTIFACT_TOOLS_MANIFEST_REQUIRED_TOOL_PATH_COUNT="
+        f"{len(REQUIRED_TOOLING['primary']) + len(REQUIRED_TOOLING['consumers']) + len(REQUIRED_TOOLING['checkers'])}"
+    )
     return 0
 
 
