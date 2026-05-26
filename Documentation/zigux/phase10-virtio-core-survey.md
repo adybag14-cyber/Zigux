@@ -42,26 +42,29 @@ The bootstrap ledger still stops earlier in the commit train and does not yet re
 Fresh repo inspection keeps the roadmap-facing core packet concrete through these narrower same-lane results:
 
 - the landed `phase10-build-gate`
-- the landed `phase10-virtio-core-lab-helper`
+- the landed `phase10-virtio-core-lab-starter`
 - the landed `phase10-virtio-core-lab-gate`
-- the landed `phase10-core-slice-note`
-- the landed `phase10-core-survey-gate`
+- the landed `phase10-virtio-core-reset-queue-gate`
+- the landed `phase10-virtio-core-slice-note`
+- the landed `phase10-virtio-core-survey-gate`
+- the landed `phase10-virtio-core-survey-note`
+- the landed `phase10-virtio-core-verify-replay`
+- the landed `phase10-queue-shape-bookkeeping-helper`
+- the landed `phase10-config-generation-bookkeeping-helper`
+- the landed `phase10-interrupt-ack-bookkeeping-helper`
+- the landed `phase10-lifecycle-guard-bookkeeping-helper`
+- the landed `phase10-driver-validation-narrowing-helper`
 - the landed `phase10-core-attribute-summary-helper`
-- the landed `phase10-core-attribute-summary-replay`
-- the landed `phase10-core-feature-summary-replay`
-- the landed `phase10-core-driver-model-summary-helper`
-- the landed `phase10-core-driver-model-summary-replay`
-- the landed `phase10-core-interrupt-compound-ack-gate`
-- the landed `phase10-core-reset-queue-gate`
+- the landed `phase10-reset-replay-bookkeeping-helper`
+- the landed `phase10-core-lab-validation-evidence`
 - the landed `phase10-driver-id-helper`
 - the landed `phase10-driver-id-coverage-disposition-helper`
-- the landed `phase10-driver-id-gate`
-- the landed `phase10-core-verify-replay`
-- the landed `phase10-core-packet-checker`
+- the landed `phase10-driver-id-review-gate`
+- the landed `phase10-interrupt-compound-ack-gate`
 - the still-blocked `phase10-core-dual-implementation-bridge`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
-That scoreboard keeps the current helper, replay, checker, survey-gate, and shared-build evidence tied directly to the roadmap's Phase 10 lab-driver posture without overstating transport-backed lifecycle parity or pretending the bootstrap ledger already closes a dedicated Phase 10 core tranche.
+That scoreboard now mirrors the live manifest IDs directly, keeping the helper, replay, checker, survey-gate, and shared-build evidence tied to the roadmap's Phase 10 lab-driver posture without overstating transport-backed lifecycle parity or pretending the bootstrap ledger already closes a dedicated Phase 10 core tranche.
 
 ## Recorded gaps
 
@@ -69,7 +72,7 @@ Current `master` keeps one same-lane roadmap gap explicit:
 
 - still-blocked transport-facing bridge: `phase10-core-dual-implementation-bridge` and `phase10-core-probe-remove-lifecycle` remain outside the allowed Phase 10 core packet until a fresh Architecture Council reopen request attaches new evidence
 
-Within this survey packet itself, the current `master` readback on `2026-05-25` is still aligned: `lifecycleGuardSummary()`, `driverModelSummary()`, and `DriverModelStage` keep the wrapper-discipline evidence explicit beside the driver-id helper pair, the dedicated core survey gate, the dedicated core-packet checker, the shared validator, the shared tests-root build route, the shared Phase 10 build route, and the roadmap helper parity scoreboard above, while transport-backed probe, remove, and reset lifecycle work remains intentionally outside this lane.
+Within this survey packet itself, the current `master` readback on `2026-05-25` is still aligned: `lifecycleGuardSummary()`, `driverModelSummary()`, and `DriverModelStage` keep the wrapper-discipline evidence explicit beside the manifest-backed scoreboard above, the driver-id helper pair, the dedicated core survey gate, the dedicated core-packet checker, the shared validator, the shared tests-root build route, and the shared Phase 10 build route, while transport-backed probe, remove, and reset lifecycle work remains intentionally outside this lane.
 
 ## Non-goals
 
@@ -110,12 +113,16 @@ The honest current lane checks are direct repository readback plus the existing 
 - direct readback of `zigux/tests/phase10_closure_manifest.json`
 
 4. confirm the risky transport posture is still blocked and machine-readable
+- `phase10-build-gate`
 - `phase10-driver-id-helper`
 - `phase10-driver-id-coverage-disposition-helper`
 - `phase10-lifecycle-guard-bookkeeping-helper`
 - `phase10-reset-replay-bookkeeping-helper`
-- `phase10-core-slice-note`
+- `phase10-virtio-core-slice-note`
+- `phase10-virtio-core-survey-gate`
+- `phase10-virtio-core-survey-note`
 - `phase10-core-lab-validation-evidence`
+- `phase10-driver-id-review-gate`
 - `phase10-interrupt-compound-ack-gate`
 - `phase10-core-dual-implementation-bridge`
 - `phase10-core-probe-remove-lifecycle`
