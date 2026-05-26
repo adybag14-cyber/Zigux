@@ -49,7 +49,7 @@ test "phase 5 bytestream fifo manifest still records the bounded replay contract
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P5-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
