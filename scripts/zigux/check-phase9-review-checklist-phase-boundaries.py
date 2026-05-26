@@ -413,7 +413,7 @@ def run_self_test() -> int:
     )
     print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT="
-        f"{len(FORBIDDEN_MAKEFILE_ROUTE_COUNT)}"
+        f"{len(FORBIDDEN_PHASE9_MAKE_ROUTES)}"
     )
     return 0
 
