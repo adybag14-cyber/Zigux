@@ -30,6 +30,12 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     );
     defer allocator.free(publish_readiness_file);
 
+    const registration_replay_file = try readRepoRelative(
+        allocator,
+        "zigux/tests/phase10_virtio_ring_registration_replay.zig",
+    );
+    defer allocator.free(registration_replay_file);
+
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "lane: `P10-L10`");
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
@@ -67,11 +73,29 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
         publish_readiness_file,
         "test \"phase10 virtio ring publish-readiness wrapper blocks full queues until used chains return capacity\" {",
     );
+    try expectContains(
+        registration_replay_file,
+        "test \"phase10 virtio ring registration replay keeps noncontiguous queue registration counts explicit\" {",
+    );
+    try expectContains(
+        registration_replay_file,
+        "test \"phase10 virtio ring registration replay keeps failed definitions from inflating queue counts\" {",
+    );
     try expectContains(build_file, "virtio_ring_publish_readiness_module");
     try expectContains(build_file, "phase10_virtio_ring_survey_module");
+    try expectContains(build_file, "\"phase10-virtio-ring-registration-replay-tests\"");
     try expectContains(build_file, "\"phase10-virtio-ring-publish-readiness-tests\"");
+    try expectContains(build_file, "\"phase10-virtio-ring-prepare-kick-idempotent-tests\"");
+    try expectContains(build_file, "\"phase10-virtio-ring-reset-reuse-tests\"");
+    try expectContains(build_file, "\"phase10-virtio-ring-broken-queue-queue-discipline-tests\"");
+    try expectContains(build_file, "\"phase10-virtio-ring-delayed-callback-budget-tests\"");
     try expectContains(build_file, "\"phase10-virtio-ring-survey-tests\"");
+    try expectContains(build_file, "run_phase10_virtio_ring_registration_replay_tests.step");
     try expectContains(build_file, "run_phase10_virtio_ring_publish_readiness_tests.step");
+    try expectContains(build_file, "run_phase10_virtio_ring_prepare_kick_idempotent_tests.step");
+    try expectContains(build_file, "run_phase10_virtio_ring_reset_reuse_tests.step");
+    try expectContains(build_file, "run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step");
+    try expectContains(build_file, "run_phase10_virtio_ring_delayed_callback_budget_tests.step");
     try expectContains(build_file, "run_phase10_virtio_ring_survey_tests.step");
 }
 
