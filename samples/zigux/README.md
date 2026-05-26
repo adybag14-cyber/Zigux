@@ -13,7 +13,6 @@ Fresh mixed readback on 2026-05-25 confirmed these current sample-root reminder-
 * `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/kretprobe_example_instance_budget_contract.zig`
-* `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_callback_focus_contract.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_atomic64.zig`
@@ -83,7 +82,7 @@ Current `master` also ships `samples/zigux/kretprobe_example_instance_budget_con
 Keep `zig test samples/zigux/kretprobe_example_instance_budget_contract.zig` explicit as the companion-only validation route for that bounded kretprobe packet while `zigux/tests/phase5_build.zig` stays the current directly readable shared build-route companion for the broader kretprobe packet.
 Keep `zig test --dep kretprobe_example_instance_budget_contract -Mroot=zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig -Mkretprobe_example_instance_budget_contract=samples/zigux/kretprobe_example_instance_budget_contract.zig` explicit as the focused replay route for that bounded kretprobe packet, while `zigux/tests/phase5_build.zig` keeps rerunning the sample-owned self-checks together with the focused replay, survey gate, and instance-budget companion checks for the broader kretprobe packet.
 
-Current `master` also keeps the bounded non-runtime trace-events packet visible through the broader sample-root companion `samples/zigux/trace_events_sample.zig`, the callback-focus companion `samples/zigux/trace_events_callback_focus_contract.zig`, the direct formatting companion `samples/zigux/trace_events_string_formatting_sample.zig`, and the shared Phase 5 reminder packet.
+Current `master` keeps the bounded non-runtime trace-events packet visible through the callback-focus companion `samples/zigux/trace_events_callback_focus_contract.zig`, the direct formatting companion `samples/zigux/trace_events_string_formatting_sample.zig`, and the shared Phase 5 reminder packet, while `samples/zigux/trace_events_sample.zig` stays historical or public-tree-backed companion evidence until a fresh authenticated reread returns it directly again.
 
 Keep that trace-events packet framed as the approved selected-string plus `iter=%d` formatting idiom for the Phase 5 anchor:
 
