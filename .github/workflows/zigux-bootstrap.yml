@@ -193,6 +193,12 @@ jobs:
       - name: Check current Lane 05 stage helper selftest packet
         run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
 
+      - name: Self-test current Lane 05 stage-helper workflow checker
+        run: python3 scripts/zigux/check-lane05-stage-helper-workflow.py --self-test
+
+      - name: Check current Lane 05 stage-helper workflow packet
+        run: python3 scripts/zigux/check-lane05-stage-helper-workflow.py
+
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
 
