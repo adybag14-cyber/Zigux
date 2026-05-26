@@ -1,0 +1,421 @@
+const std = @import("std");
+const argv_split = @import("argv_split");
+const cmdline = @import("cmdline");
+const bitmap = @import("bitmap");
+const ctype = @import("ctype");
+const find_bit = @import("find_bit");
+const hweight = @import("hweight");
+const list_sort = @import("list_sort");
+const rbtree = @import("rbtree");
+const slab = @import("slab");
+const str_error_r = @import("str_error_r");
+const string = @import("string");
+const vsprintf = @import("vsprintf");
+const zalloc = @import("zalloc");
+
+const fixture_bytes = @embedFile("fixtures/phase1_helpers.json");
+
+const Fixture = struct {
+    argv_split: struct {
+        argc: usize,
+        argv: []const []const u8,
+        blank_argc: usize,
+    },
+    cmdline: struct {
+        decimal_k: struct {
+            value: u64,
+            rest: []const u8,
+        },
+    },
+    ctype: struct {
+        isalpha_z: bool,
+        isdigit_7: bool,
+        tolower_A: u8,
+        toupper_z: u8,
+    },
+    hweight: struct {
+        w32: u32,
+        w64: u64,
+        wlong: usize,
+    },
+    list_sort: struct {
+        tri_sorted_keys: []const i32,
+        tri_sorted_ordinals: []const usize,
+    },
+    bitmap: struct {
+        weight: usize,
+        scnprintf: []const u8,
+        range_after_set: []const u64,
+        range_after_clear: []const u64,
+        full_after_fill: bool,
+        empty_after_zero: bool,
+    },
+    find_bit: struct {
+        bits_per_long: usize,
+        first: usize,
+        next_after_6: usize,
+        next_after_word: usize,
+        first_zero: usize,
+        next_zero: usize,
+        first_and: usize,
+        next_and: usize,
+        last: usize,
+    },
+    string: struct {
+        strtobool_y: bool,
+        strtobool_on: bool,
+        strtobool_zero: bool,
+        strtobool_off: bool,
+        strlcpy_len: usize,
+        strlcpy_buffer: []const u8,
+        skip_spaces: []const u8,
+        trim_spaces: []const u8,
+        remove_spaces: []const u8,
+        replace_char: []const u8,
+        replace_char_end: usize,
+        memchr_inv_index: usize,
+        memchr_inv_none: bool,
+    },
+    rbtree: struct {
+        empty_root: bool,
+        insert_order: []const i32,
+        reverse_order: []const i32,
+        find_found_key: i32,
+        find_missing: bool,
+        find_first_serial: usize,
+        next_match_serials: []const usize,
+        match_iterator_serials: []const usize,
+        cached_leftmost_return_serials: []const i32,
+    },
+    slab: struct {
+        alloc_count_after_kmalloc: isize,
+        zero_after_kmalloc: bool,
+        alloc_count_after_kmalloc_free: isize,
+    },
+    str_error_r: struct {
+        enoent: []const u8,
+    },
+    vsprintf: struct {
+        scnprintf_text: []const u8,
+        scnprintf_len: usize,
+        pad_text: []const u8,
+        pad_len: usize,
+    },
+    zalloc: struct {
+        zeroed: bool,
+        freed_is_null: bool,
+        value_zeroed: bool,
+        value_freed_is_null: bool,
+    },
+};
+
+const ListSortReplayEntry = struct {
+    key: i32,
+    ordinal: usize,
+    node: list_sort.ListHead = .{},
+};
+
+const RbtreeReplayEntry = struct {
+    key: i32,
+    serial: usize,
+    node: rbtree.Node = rbtree.Node.init(),
+
+    fn less(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+        const lhs_entry: *const RbtreeReplayEntry = @fieldParentPtr("node", lhs);
+        const rhs_entry: *const RbtreeReplayEntry = @fieldParentPtr("node", rhs);
+        if (lhs_entry.key != rhs_entry.key) {
+            return lhs_entry.key < rhs_entry.key;
+        }
+        return lhs_entry.serial < rhs_entry.serial;
+    }
+
+    fn cmp(key: *const anyopaque, node: *const rbtree.Node) i32 {
+        const wanted: *const i32 = @ptrCast(@alignCast(key));
+        const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", node);
+        if (wanted.* < entry.key) return -1;
+        if (wanted.* > entry.key) return 1;
+        return 0;
+    }
+};
+
+fn loadFixture() !std.json.Parsed(Fixture) {
+    return std.json.parseFromSlice(Fixture, std.testing.allocator, fixture_bytes, .{
+        .ignore_unknown_fields = true,
+    });
+}
+
+test "phase 1 helper ports match committed parity fixture" {
+    var parsed = try loadFixture();
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
+    var split = try argv_split.argv_split(std.testing.allocator, "alpha beta gamma");
+    defer argv_split.argv_free(&split);
+    try std.testing.expectEqual(fixture.argv_split.argc, split.argc());
+    for (fixture.argv_split.argv, 0..) |expected, idx| {
+        try std.testing.expectEqualStrings(expected, split.argv[idx]);
+    }
+
+    var blank_split = try argv_split.argv_split(std.testing.allocator, "   \t  ");
+    defer argv_split.argv_free(&blank_split);
+    try std.testing.expectEqual(fixture.argv_split.blank_argc, blank_split.argc());
+
+    const decimal_k = cmdline.memparse("64K rest");
+    try std.testing.expectEqual(fixture.cmdline.decimal_k.value, decimal_k.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.decimal_k.rest, decimal_k.rest);
+
+    try std.testing.expectEqual(fixture.ctype.isalpha_z, ctype.isalpha('z'));
+    try std.testing.expectEqual(fixture.ctype.isdigit_7, ctype.isdigit('7'));
+    try std.testing.expectEqual(fixture.ctype.tolower_A, ctype.fastTolower('A'));
+    try std.testing.expectEqual(fixture.ctype.toupper_z, ctype.toupper('z'));
+
+    try std.testing.expectEqual(fixture.hweight.w32, hweight.swHweight32(0xf0f0_f0f0));
+    try std.testing.expectEqual(fixture.hweight.w64, hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));
+    try std.testing.expectEqual(fixture.hweight.wlong, hweight.hweightLong(0xff));
+
+    var head: list_sort.ListHead = .{};
+    head.init();
+    var entries = [_]ListSortReplayEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    const cmp = struct {
+        fn less(_: ?*anyopaque, lhs: *const list_sort.ListHead, rhs: *const list_sort.ListHead) i32 {
+            const lhs_entry: *const ListSortReplayEntry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const ListSortReplayEntry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.less;
+    for (&entries) |*entry| {
+        list_sort.listAddTail(&entry.node, &head);
+    }
+    list_sort.listSort(null, &head, cmp);
+
+    var sorted_keys: [5]i32 = undefined;
+    var sorted_ordinals: [5]usize = undefined;
+    var count: usize = 0;
+    var current = head.next;
+    while (current != &head) : (current = current.?.next) {
+        const entry: *const ListSortReplayEntry = @fieldParentPtr("node", current.?);
+        sorted_keys[count] = entry.key;
+        sorted_ordinals[count] = entry.ordinal;
+        count += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.list_sort.tri_sorted_keys, sorted_keys[0..count]);
+    try std.testing.expectEqualSlices(usize, fixture.list_sort.tri_sorted_ordinals, sorted_ordinals[0..count]);
+
+    const nbits = fixture.find_bit.bits_per_long * 2 + 8;
+    const bitmap_a = [_]find_bit.Word{
+        (@as(find_bit.Word, 1) << 5) | (@as(find_bit.Word, 1) << 9),
+        (@as(find_bit.Word, 1) << 2) | (@as(find_bit.Word, 1) << 7),
+        0,
+    };
+    const bitmap_b = [_]find_bit.Word{
+        (~@as(find_bit.Word, 0)) ^ (@as(find_bit.Word, 1) << 3),
+        (~@as(find_bit.Word, 0)) ^ (@as(find_bit.Word, 1) << 4),
+        0,
+    };
+    const bitmap_and = [_]find_bit.Word{
+        (@as(find_bit.Word, 1) << 9),
+        (@as(find_bit.Word, 1) << 2),
+        0,
+    };
+    try std.testing.expectEqual(fixture.find_bit.first, find_bit.findFirstBit(&bitmap_a, nbits));
+    try std.testing.expectEqual(fixture.find_bit.next_after_6, find_bit.findNextBit(&bitmap_a, nbits, 6));
+    try std.testing.expectEqual(fixture.find_bit.next_after_word, find_bit.findNextBit(&bitmap_a, nbits, fixture.find_bit.bits_per_long));
+    try std.testing.expectEqual(fixture.find_bit.first_zero, find_bit.findFirstZeroBit(&bitmap_b, nbits));
+    try std.testing.expectEqual(fixture.find_bit.next_zero, find_bit.findNextZeroBit(&bitmap_b, nbits, fixture.find_bit.bits_per_long));
+    try std.testing.expectEqual(fixture.find_bit.first_and, find_bit.findFirstAndBit(&bitmap_a, &bitmap_and, nbits));
+    try std.testing.expectEqual(fixture.find_bit.next_and, find_bit.findNextAndBit(&bitmap_a, &bitmap_and, nbits, fixture.find_bit.bits_per_long));
+    try std.testing.expectEqual(fixture.find_bit.last, find_bit.findLastBit(&bitmap_a, nbits));
+
+    var bitmap_words = [_]find_bit.Word{ 0, 0, 0 };
+    bitmap.setRange(&bitmap_words, 1, 3);
+    bitmap.setRange(&bitmap_words, 66, 2);
+    try std.testing.expectEqual(@as(usize, fixture.bitmap.weight), bitmap.weight(&bitmap_words, 130));
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.range_after_set, &[_]u64{
+        @intCast(bitmap_words[0]),
+        @intCast(bitmap_words[1]),
+        @intCast(bitmap_words[2]),
+    });
+
+    var rendered: [32]u8 = undefined;
+    const rendered_len = bitmap.scnprintf(&bitmap_words, 130, &rendered);
+    try std.testing.expectEqualStrings(fixture.bitmap.scnprintf, rendered[0..rendered_len]);
+
+    bitmap.clearRange(&bitmap_words, 1, 3);
+    bitmap.clearRange(&bitmap_words, 66, 2);
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.range_after_clear, &[_]u64{
+        @intCast(bitmap_words[0]),
+        @intCast(bitmap_words[1]),
+        @intCast(bitmap_words[2]),
+    });
+    bitmap.fill(&bitmap_words, 130);
+    try std.testing.expectEqual(fixture.bitmap.full_after_fill, bitmap.full(&bitmap_words, 130));
+    bitmap.zero(&bitmap_words, 130);
+    try std.testing.expectEqual(fixture.bitmap.empty_after_zero, bitmap.empty(&bitmap_words, 130));
+
+    try std.testing.expectEqual(fixture.string.strtobool_y, try string.strtobool("y"));
+    try std.testing.expectEqual(fixture.string.strtobool_on, try string.strtobool("on"));
+    try std.testing.expectEqual(fixture.string.strtobool_zero, try string.strtobool("0"));
+    try std.testing.expectEqual(fixture.string.strtobool_off, try string.strtobool("off"));
+
+    var copied = [_]u8{ 0, 0, 0, 0 };
+    try std.testing.expectEqual(fixture.string.strlcpy_len, string.strlcpy(copied[0..], "hello"));
+    try std.testing.expectEqualStrings(fixture.string.strlcpy_buffer, copied[0 .. copied.len - 1]);
+    try std.testing.expectEqualStrings(fixture.string.skip_spaces, string.skipSpaces(" \t hello"));
+
+    var trim_buf = [_]u8{ ' ', 'h', 'i', ' ', 0 };
+    try std.testing.expectEqualStrings(fixture.string.trim_spaces, string.trimSpaces(trim_buf[0..]));
+
+    var remove_buf = [_]u8{ 'a', ' ', 'b', ' ', 'c', 0 };
+    try std.testing.expectEqualStrings(fixture.string.remove_spaces, string.removeSpaces(remove_buf[0..]));
+
+    var replace_buf = [_]u8{ 'a', '-', 'b', 0 };
+    try std.testing.expectEqual(fixture.string.replace_char_end, string.replaceChar(replace_buf[0..], '-', '_'));
+    try std.testing.expectEqualStrings(fixture.string.replace_char, replace_buf[0 .. replace_buf.len - 1]);
+    try std.testing.expectEqual(@as(?usize, fixture.string.memchr_inv_index), string.memchrInv(&[_]u8{ 'x', 'x', 'x', 'x', 'y' }, 'x'));
+    try std.testing.expectEqual(fixture.string.memchr_inv_none, string.memchrInv(&[_]u8{ 'x', 'x', 'x' }, 'x') == null);
+
+    slab.kmalloc_nr_allocated = 0;
+    const allocated = slab.kmallocBytes(4, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc, slab.kmalloc_nr_allocated);
+    if (fixture.slab.zero_after_kmalloc) {
+        for (allocated) |byte| {
+            try std.testing.expectEqual(@as(u8, 0), byte);
+        }
+    }
+    slab.kfree(allocated);
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_free, slab.kmalloc_nr_allocated);
+
+    var err_buf: [64]u8 = undefined;
+    try std.testing.expectEqualStrings(fixture.str_error_r.enoent, str_error_r.strErrorR(2, &err_buf));
+
+    var render_buf: [16]u8 = undefined;
+    const render_len = vsprintf.scnprintf(&render_buf, "{s}:{d}", .{ "zigux", 7 });
+    try std.testing.expectEqual(fixture.vsprintf.scnprintf_len, render_len);
+    try std.testing.expectEqualStrings(fixture.vsprintf.scnprintf_text, render_buf[0..render_len]);
+    var pad_buf: [12]u8 = undefined;
+    const pad_len = vsprintf.scnprintfPad(&pad_buf, 8, "id={d}", .{7});
+    try std.testing.expectEqual(fixture.vsprintf.pad_len, pad_len);
+    try std.testing.expectEqualStrings(fixture.vsprintf.pad_text, pad_buf[0..8]);
+
+    const allocator = std.testing.allocator;
+    var zeroed: ?[]u8 = try zalloc.zallocBytes(allocator, 6);
+    defer zalloc.zfreeBytes(allocator, &zeroed);
+    try std.testing.expectEqual(fixture.zalloc.zeroed, zeroed != null);
+    for (zeroed.?) |byte| {
+        try std.testing.expectEqual(@as(u8, 0), byte);
+    }
+    var freed_view = zeroed;
+    zalloc.zfreeBytes(allocator, &freed_view);
+    try std.testing.expectEqual(fixture.zalloc.freed_is_null, freed_view == null);
+
+    const ZeroValue = struct {
+        count: u32,
+        enabled: bool,
+    };
+    var zero_value: ?*ZeroValue = try zalloc.zallocValue(allocator, ZeroValue);
+    defer zalloc.zfreeValue(allocator, ZeroValue, &zero_value);
+    try std.testing.expectEqual(fixture.zalloc.value_zeroed, zero_value.?.count == 0 and zero_value.?.enabled == false);
+    var freed_value = zero_value;
+    zalloc.zfreeValue(allocator, ZeroValue, &freed_value);
+    try std.testing.expectEqual(fixture.zalloc.value_freed_is_null, freed_value == null);
+
+    var root = rbtree.Root.init();
+    try std.testing.expectEqual(fixture.rbtree.empty_root, root.node == null);
+    var tree_entries = [_]RbtreeReplayEntry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+        .{ .key = 25, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+        .{ .key = 10, .serial = 6 },
+    };
+    for (&tree_entries) |*entry| {
+        rbtree.add(&entry.node, &root, RbtreeReplayEntry.less);
+    }
+
+    var ordered: [5]i32 = undefined;
+    var ordered_count: usize = 0;
+    var node = rbtree.first(&root);
+    while (node) |current_node| : (node = rbtree.next(current_node)) {
+        const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", current_node);
+        if (entry.serial == 0 or entry.serial == 1 or entry.serial == 3 or entry.serial == 4 or entry.serial == 5) {
+            ordered[ordered_count] = entry.key;
+            ordered_count += 1;
+        }
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.insert_order, ordered[0..ordered_count]);
+
+    var reverse: [5]i32 = undefined;
+    var reverse_count: usize = 0;
+    node = rbtree.last(&root);
+    while (node) |current_node| : (node = rbtree.prev(current_node)) {
+        const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", current_node);
+        if (entry.serial == 0 or entry.serial == 1 or entry.serial == 3 or entry.serial == 4 or entry.serial == 5) {
+            reverse[reverse_count] = entry.key;
+            reverse_count += 1;
+        }
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.reverse_order, reverse[0..reverse_count]);
+
+    const duplicate_key = @as(i32, 10);
+    const found = rbtree.find(&duplicate_key, &root, RbtreeReplayEntry.cmp) orelse return error.TestUnexpectedResult;
+    const found_entry: *const RbtreeReplayEntry = @fieldParentPtr("node", found);
+    try std.testing.expectEqual(fixture.rbtree.find_found_key, found_entry.key);
+
+    const missing_key = @as(i32, 17);
+    try std.testing.expectEqual(fixture.rbtree.find_missing, rbtree.find(&missing_key, &root, RbtreeReplayEntry.cmp) == null);
+
+    const first_duplicate = rbtree.findFirst(&duplicate_key, &root, RbtreeReplayEntry.cmp) orelse return error.TestUnexpectedResult;
+    const first_duplicate_entry: *const RbtreeReplayEntry = @fieldParentPtr("node", first_duplicate);
+    try std.testing.expectEqual(fixture.rbtree.find_first_serial, first_duplicate_entry.serial);
+
+    var duplicate_serials: [3]usize = undefined;
+    var duplicate_count: usize = 0;
+    var iter = rbtree.matchIterator(&duplicate_key, &root, RbtreeReplayEntry.cmp);
+    while (iter.next()) |current_node| {
+        const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", current_node);
+        duplicate_serials[duplicate_count] = entry.serial;
+        duplicate_count += 1;
+    }
+    try std.testing.expectEqualSlices(usize, fixture.rbtree.match_iterator_serials, duplicate_serials[0..duplicate_count]);
+
+    duplicate_serials = undefined;
+    duplicate_count = 0;
+    var current_match: ?*rbtree.Node = first_duplicate;
+    while (current_match) |match_node| {
+        const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", match_node);
+        duplicate_serials[duplicate_count] = entry.serial;
+        duplicate_count += 1;
+        current_match = rbtree.nextMatch(&duplicate_key, match_node, RbtreeReplayEntry.cmp);
+    }
+    try std.testing.expectEqualSlices(usize, fixture.rbtree.next_match_serials, duplicate_serials[0..duplicate_count]);
+
+    var cached_entries = [_]RbtreeReplayEntry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 12, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+    };
+    var cached_root = rbtree.RootCached.init();
+    var return_serials: [4]i32 = undefined;
+    return_serials[0] = serialOrSentinel(rbtree.addCached(&cached_entries[0].node, &cached_root, RbtreeReplayEntry.less));
+    return_serials[1] = serialOrSentinel(rbtree.addCached(&cached_entries[1].node, &cached_root, RbtreeReplayEntry.less));
+    return_serials[2] = serialOrSentinel(rbtree.addCached(&cached_entries[2].node, &cached_root, RbtreeReplayEntry.less));
+    return_serials[3] = serialOrSentinel(rbtree.addCached(&cached_entries[3].node, &cached_root, RbtreeReplayEntry.less));
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.cached_leftmost_return_serials, &return_serials);
+}
+
+fn serialOrSentinel(node: ?*rbtree.Node) i32 {
+    const current = node orelse return -1;
+    const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", current);
+    return @as(i32, @intCast(entry.serial));
+}
