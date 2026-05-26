@@ -50,3 +50,28 @@ test "zalloc zeroes memory and zfree resets optionals" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zallocBytes supports zero-length slices and repeated zfreeBytes calls" {
+    const allocator = std.testing.allocator;
+
+    var empty: ?[]u8 = try zallocBytes(allocator, 0);
+    try std.testing.expect(empty != null);
+    try std.testing.expectEqual(@as(usize, 0), empty.?.len);
+
+    zfreeBytes(allocator, &empty);
+    try std.testing.expect(empty == null);
+
+    zfreeBytes(allocator, &empty);
+    try std.testing.expect(empty == null);
+}
+
+test "zfreeValue tolerates null optionals without mutation" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        a: u8,
+    };
+
+    var value: ?*Value = null;
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+}
