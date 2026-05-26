@@ -18,13 +18,19 @@ CATALOG_FILE = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 
 MAKEFILE_MARKERS = (
     "phase6-hexdump-review:",
+    "$(PYTHON) scripts/zigux/check-phase6-hexdump-packet.py",
     "$(PYTHON) scripts/zigux/check-phase6-hexdump-route.py",
     "$(ZIG) build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig --summary all",
     "phase6-hexdump-perf-matrix-test:",
     "$(ZIG) build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
+    "phase6-hexdump-test:",
+    "$(ZIG) build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig --summary all",
 )
 
 BUILD_MARKERS = (
+    'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
+    "hexdump_test_step.dependOn(&run_hexdump_tests.step);",
+    "hexdump_test_step.dependOn(&run_hexdump_perf_matrix_tests.step);",
     'const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");',
     'const hexdump_perf_matrix_test_step = b.step(',
     '"phase6-hexdump-perf-matrix-test",',
@@ -52,14 +58,17 @@ PERF_MATRIX_MARKERS = (
 )
 
 CATALOG_MARKERS = (
+    "- `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
     "- `python3 scripts/zigux/check-phase6-hexdump-route.py`",
     "- `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`",
     "- `make -C zigux phase6-hexdump-review`",
     "- `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`",
     "- `make -C zigux phase6-hexdump-perf-matrix-test`",
+    "- `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`",
+    "- `make -C zigux phase6-hexdump-test`",
 )
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 26
 
 
 def resolve(root: Path, relative: Path) -> Path:
@@ -73,11 +82,9 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"phase6 hexdump route checker missing required file: {path.as_posix()}") from exc
 
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 
 def require_markers(path: Path, text: str, markers: tuple[str, ...], label: str) -> None:
@@ -86,7 +93,6 @@ def require_markers(path: Path, text: str, markers: tuple[str, ...], label: str)
             raise SystemExit(
                 f"phase6 hexdump route checker missing {label} marker in {path.as_posix()}: {marker}"
             )
-
 
 
 def check_repo(root: Path) -> None:
@@ -102,14 +108,12 @@ def check_repo(root: Path) -> None:
     require_markers(resolve(root, CATALOG_FILE), read_text(resolve(root, CATALOG_FILE)), CATALOG_MARKERS, "catalog")
 
 
-
 def scaffold_repo(root: Path) -> None:
     write_text(resolve(root, MAKEFILE), "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(resolve(root, BUILD_FILE), "\n".join(BUILD_MARKERS) + "\n")
     write_text(resolve(root, PERF_FILE), "\n".join(PERF_MARKERS) + "\n")
     write_text(resolve(root, PERF_MATRIX_FILE), "\n".join(PERF_MATRIX_MARKERS) + "\n")
     write_text(resolve(root, CATALOG_FILE), "\n".join(CATALOG_MARKERS) + "\n")
-
 
 
 def expect_failure(root: Path, path: Path, marker: str) -> None:
@@ -128,7 +132,6 @@ def expect_failure(root: Path, path: Path, marker: str) -> None:
         write_text(path, original)
 
 
-
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase6_hexdump_route_") as tmp_dir:
         root = Path(tmp_dir)
@@ -142,18 +145,26 @@ def run_self_test() -> int:
             (resolve(root, MAKEFILE), MAKEFILE_MARKERS[2]),
             (resolve(root, MAKEFILE), MAKEFILE_MARKERS[3]),
             (resolve(root, MAKEFILE), MAKEFILE_MARKERS[4]),
+            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[5]),
+            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[6]),
+            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[7]),
             (resolve(root, BUILD_FILE), BUILD_MARKERS[0]),
             (resolve(root, BUILD_FILE), BUILD_MARKERS[1]),
             (resolve(root, BUILD_FILE), BUILD_MARKERS[2]),
             (resolve(root, BUILD_FILE), BUILD_MARKERS[3]),
             (resolve(root, BUILD_FILE), BUILD_MARKERS[4]),
+            (resolve(root, BUILD_FILE), BUILD_MARKERS[5]),
+            (resolve(root, BUILD_FILE), BUILD_MARKERS[6]),
+            (resolve(root, BUILD_FILE), BUILD_MARKERS[7]),
             (resolve(root, PERF_FILE), PERF_MARKERS[0]),
             (resolve(root, PERF_FILE), PERF_MARKERS[2]),
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[3]),
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[7]),
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[8]),
             (resolve(root, CATALOG_FILE), CATALOG_MARKERS[0]),
-            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[3]),
+            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[1]),
+            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[4]),
+            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[6]),
         ):
             expect_failure(root, path, marker)
             cases_run += 1
@@ -175,7 +186,6 @@ def run_self_test() -> int:
     print("PHASE6_HEXDUMP_ROUTE_SELF_TEST=pass")
     print(f"PHASE6_HEXDUMP_ROUTE_SELF_TEST_CASE_COUNT={cases_run}")
     return 0
-
 
 
 def main() -> int:
