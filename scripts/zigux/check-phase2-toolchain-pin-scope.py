@@ -96,8 +96,9 @@ MAKEFILE_MARKERS = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
-    "phase2-genksyms:",
-    "phase2-fixdep:",
+    "phase2-genksyms: phase2-toolchain",
+    "phase2-fixdep: phase2-toolchain",
+    "phase2-kconfig: phase2-toolchain",
 )
 
 MAKEFILE_VARIABLE_MARKERS = (
