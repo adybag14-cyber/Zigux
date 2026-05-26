@@ -62,6 +62,14 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(sample_file, "selftest_complete");
     try expectContains(sample_file, "pub fn runSelftest");
     try expectContains(sample_file, "pub fn exit");
+    try expectContains(
+        sample_file,
+        "try std.testing.expectEqualStrings(\"do_sys_openat2\", selftest.symbol_name);",
+    );
+    try expectContains(
+        sample_file,
+        "try std.testing.expectEqualStrings(\"do_sys_openat2\", exit_report.symbol_name);",
+    );
 
     try expectContains(loader_file, "pub const LoaderStage = enum(u8)");
     try expectContains(loader_file, "pub const RuntimeKretprobeLoader = struct");
@@ -114,6 +122,26 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(
         module_file,
         "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary",
+    );
+    try expectContains(
+        module_file,
+        "try std.testing.expectEqualStrings(\"do_sys_openat2\", initialized.symbol_name);",
+    );
+    try expectContains(
+        module_file,
+        "try std.testing.expectEqualStrings(\"do_sys_openat2\", selftest_summary.symbol_name);",
+    );
+    try expectContains(
+        module_file,
+        "try std.testing.expectEqualStrings(\"do_sys_openat2\", before_exit.symbol_name);",
+    );
+    try expectContains(
+        module_file,
+        "try std.testing.expectEqualStrings(\"do_sys_openat2\", exit_report.symbol_name);",
+    );
+    try expectContains(
+        module_file,
+        "try std.testing.expectEqualStrings(\"do_sys_openat2\", after_exit.symbol_name);",
     );
 
     try expectContains(
