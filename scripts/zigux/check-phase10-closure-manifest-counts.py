@@ -795,6 +795,34 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
 
+        broken = copy.deepcopy(original)
+        broken["ready_transport_followups"][REQUIRED_MMIO_READY_TRANSPORT_PATH] = (
+            "phase10-mmio-lifecycle-and-irq-paths-missing"
+        )
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "ready_transport_followups:"
+            "zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-lifecycle-and-irq-paths-missing'!='phase10-mmio-lifecycle-and-irq-paths'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = copy.deepcopy(original)
+        broken["blocked_transport_gaps"][REQUIRED_INPUT_READY_TRANSPORT_PATH] = (
+            "phase10-virtio-input-registration-lifecycle-missing"
+        )
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "blocked_transport_gaps:"
+            "zigux/tests/phase10_virtio_input_manifest.json:'phase10-virtio-input-registration-lifecycle-missing'!='phase10-virtio-input-registration-lifecycle'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
         write_ledger(
             original_ledger.replace(
                 "PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8",
