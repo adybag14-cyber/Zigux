@@ -108,11 +108,6 @@ MODULE_SLICE_REQUIRED_MARKERS = [
     "- Those earlier-phase anchors stay adjacent context for the narrow trace-events packet rather than shared runtime-pilot evidence.",
 ]
 
-SCRIPTS_README_REQUIRED_MARKERS = [
-    "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `samples/zigux/README.md`, and `zigux/tests/README.md` keep the shipped shared Phase 9 reminder packet explicit from the scripts root",
-    "- `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-shared-tests` and `phase9-runtime-loader-command-env-boundary-guard-tests` shards, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold keep the narrower shared runtime-loader allocator/init-flow and command/environment boundary packet explicit beside the still-blocked module-metadata, install-root, and depmod-publication boundary",
-]
-
 SAMPLES_README_REQUIRED_MARKERS = [
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
@@ -167,7 +162,6 @@ REQUIRED_MARKERS = {
     DOCS_README_PATH: DOCS_README_REQUIRED_MARKERS,
     LANE_SEQUENCING_PATH: LANE_SEQUENCING_REQUIRED_MARKERS,
     MODULE_SLICE_PATH: MODULE_SLICE_REQUIRED_MARKERS,
-    SCRIPTS_README_PATH: SCRIPTS_README_REQUIRED_MARKERS,
     SAMPLES_README_PATH: SAMPLES_README_REQUIRED_MARKERS,
     TESTS_README_PATH: TESTS_README_REQUIRED_MARKERS,
     CONTRACT_PATH: CONTRACT_REQUIRED_MARKERS,
@@ -185,6 +179,7 @@ CURRENT_PHASE9_MAKE_ROUTES = [
     "phase9-runtime-atomic64-test",
     "phase9-runtime-bitmap-test",
     "phase9-runtime-loader-shared-test",
+    "phase9-runtime-loader-command-env-boundary-guard-test",
     "phase9-runtime-trace-events-test",
     "phase9-runtime-kretprobe-test",
     "phase9-first-loadable-runtime-module-parity-test",
@@ -309,7 +304,7 @@ jobs:
 ZIG ?= zig
 ZIGUX_ROOT := ..
 
-.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
+.PHONY: phase8-test phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test phase9-test phase10-test phase12-test
 
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
@@ -323,6 +318,9 @@ phase9-runtime-bitmap-test:
 phase9-runtime-loader-shared-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all
 
+phase9-runtime-loader-command-env-boundary-guard-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig --summary all
+
 phase9-runtime-trace-events-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all
 
@@ -332,7 +330,7 @@ phase9-runtime-kretprobe-test:
 phase9-first-loadable-runtime-module-parity-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-survey-tests --build-file zigux/tests/phase9_build.zig --summary all
 
-phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
+phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
 
 phase10-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
