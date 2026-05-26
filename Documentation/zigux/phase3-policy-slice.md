@@ -30,9 +30,10 @@ This note records the current helper-local Phase 3 policy slice on `master`.
 - `zigux/Makefile`
 - `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-policy-starter-packet.py`
+- `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
+- `make -C zigux phase3-policy-starter-packet-test`
 - `python3 scripts/zigux/check-phase3-policy-dump.py --self-test`
 - `python3 scripts/zigux/check-phase3-policy-dump.py`
-- `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig`
 - `make -C zigux phase3-policy-dump`
 - `make -C zigux phase3`
@@ -45,4 +46,4 @@ That makes the slice a real review surface, not a completion claim. Current `mas
 
 ## Scope
 
-This note is limited to the focused policy helper family. It records the directly readable ABI bindings, the helper-local policy decoders, the reusable `layout_assert` guard, the bounded narrow-surface cross-check companion, the dedicated self-check replay route, the focused dump replay route, the dump expectation fixture, the shared Makefile wrapper for that dump replay, and the machine-readable manifest. It does not claim broader shared ABI replay, export-boundary, runtime-shim, or MMIO or wrapper completion. The dedicated routes here are only meant to keep the layout, panic, allocator, and unsafe helper contracts explicit while the wider Phase 3 packet remains unfinished.
+This note is limited to the focused policy helper family. It records the directly readable ABI bindings, the helper-local policy decoders, the reusable `layout_assert` guard, the bounded narrow-surface cross-check companion, the dedicated self-check replay route, the focused dump replay route, the dump expectation fixture, the shared Makefile wrappers for the starter-packet and dump replays, and the machine-readable manifest. It does not claim broader shared ABI replay, export-boundary, runtime-shim, or MMIO or wrapper completion. The dedicated routes here are only meant to keep the layout, panic, allocator, and unsafe helper contracts explicit while the wider Phase 3 packet remains unfinished.
