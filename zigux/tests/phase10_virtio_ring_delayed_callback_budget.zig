@@ -50,6 +50,19 @@ test "phase10 virtio ring delayed callback budget stays bounded to queue-local r
     try std.testing.expect(!summary.should_poll);
     try std.testing.expect(summary.settled);
 
+    try ring.recordUsedChains(7, 1);
+    summary = try ring.enableCallbackDelayed(7);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 3), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.delay_budget_count);
+    try std.testing.expectEqual(@as(u16, 3), summary.delayed_event_target_idx);
+    try std.testing.expect(!summary.delayed_event_target_wraps);
+    try std.testing.expectEqual(@as(u16, 1), summary.pending_used_chain_count);
+    try std.testing.expect(summary.should_poll);
+    try std.testing.expect(!summary.settled);
+
     _ = try ring.markBroken(7);
     try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));
 }
