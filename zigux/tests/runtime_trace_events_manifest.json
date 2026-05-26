@@ -71,7 +71,7 @@
       "surface": "zigux/tests/runtime_trace_events_survey.zig",
       "role": "survey_gate",
       "owner": "P9-L12",
-      "boundary": "Fail-closes on drift between the survey note, module-slice note, direct module-boundary witness, manifest, sequencing note, shared workflow guard, and surviving sample family."
+      "boundary": "Fail-closes on drift between the survey note, module-slice note, manifest, sequencing note, shared workflow guard, and surviving sample family while leaving the direct module-boundary witness as adjacent family-local review evidence."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
