@@ -210,6 +210,39 @@ Purpose
   * current public-tree rereads now rematerialize the broader help, kallsyms, and libbpf-segment companions on `master`, so treat those returned paths as public-tree-backed broader packet evidence rather than as part of the narrow direct-readback anchor set
   * if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`
 
+## Phase 9 runtime pilot packet
+
+  * current direct-readback Phase 9 reminder packet:
+  * `Documentation/zigux/freeze-map.md`
+  * `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+  * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `Documentation/zigux/README.md`
+  * `scripts/zigux/README.md`
+  * `samples/zigux/README.md`
+  * `zigux/tests/README.md`
+  * `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
+  * `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
+  * `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`
+  * `zigux/tests/phase9_build.zig`
+  * `zigux/tests/runtime_trace_events_manifest.json`
+  * `zigux/tests/runtime_trace_events_survey.zig`
+  * `zigux/tests/runtime_loader_allocator_init_flow.zig`
+  * `zigux/tests/runtime_bitmap_manifest.json`
+  * `zigux/tests/runtime_bitmap_survey.zig`
+  * `zigux/tests/runtime_bitmap_module.zig`
+  * `zigux/tests/runtime_bitmap_diff.zig`
+  * `zigux/tests/runtime_kretprobe_survey.zig`
+  * `zigux/tests/runtime_kretprobe_module.zig`
+  * `zigux/tests/runtime_first_loadable_parity_behavior.zig`
+  * keep the freeze-map boundary explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than runtime-substrate readiness proof in the tests root
+  * keep the narrow trace-events packet distinct too: `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`, `samples/zigux/runtime_trace_events_reinit_rollback_guard.zig`, `samples/zigux/runtime_trace_events_reinit_reexit_guard.zig`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` remain the current shipped runtime-pilot proof rather than a claim that broader runtime-loader or publication boundaries are solved
+  * keep the returned shared runtime-loader allocator/init-flow and command/environment boundary packet explicit as neighboring shared-owner evidence through `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/kernel/runtime_loader_command_env_boundary_guard.zig`, the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-loader-allocator-init-flow-tests`, `phase9-runtime-loader-shared-tests`, and `phase9-runtime-loader-command-env-boundary-guard-tests` routes, and the separate returned `samples/zigux/runtime_bitmap_loader.zig` scaffold without implying that blocked publication, install-root, or module-metadata surfaces are complete
+  * keep the bounded runtime bitmap reminder packet distinct from that returned loader shard too: `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_cold_stage_guard.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-bitmap-tests` plus `phase9-runtime-bitmap-cold-stage-guard-tests` routes are the current bitmap-side evidence packet, but they still must not be used to imply that the broader shared runtime-loader packet or blocked publication boundaries returned
+  * keep the returned runtime kretprobe pilot packet distinct from those shared loader and bitmap reminders too: `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig`, `samples/zigux/runtime_kretprobe_registration_reentry_gate.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_first_loadable_parity_behavior.zig`, and the bounded `zigux/tests/phase9_build.zig` `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-loader-tests`, `phase9-runtime-kretprobe-initialized-snapshot-guard-tests`, `phase9-runtime-kretprobe-registration-reentry-gate-tests`, `phase9-runtime-kretprobe-survey-tests`, `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-tests`, and `phase9-first-loadable-runtime-module-parity-behavior-tests` routes are current family-local pilot evidence, but they still must not be used to imply that the broader shared runtime-loader packet, blocked publication boundaries, or install-root surfaces are complete
+  * keep the bounded Phase 9 build bundle explicit as rerun vocabulary only: `zigux/tests/phase9_build.zig` now reruns the atomic64 diff shard, the runtime bitmap sample, survey, module, diff, loader, and top-bit companion packet members, the shared loader allocator/init-flow shard, the shared loader command/environment boundary guard, the shared trace-events loader-substrate-drift shard, the returned runtime kretprobe sample, loader, initialized-snapshot guard, registration-reentry companion, survey, and module shards, and the first-loadable parity-behavior handle, but that build bundle is still not proof that blocked publication boundaries, install-root surfaces, or broader shared runtime-loader completion returned
+  * keep the older `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `samples/zigux/runtime_trace_events_loader.zig` names framed as historical wider-family vocabulary rather than current direct-readback tests-root proof
+
 ## Phase 10 shared virtio closure packet
 
 Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit as the shared Phase 10 tests-root reminder packet.
