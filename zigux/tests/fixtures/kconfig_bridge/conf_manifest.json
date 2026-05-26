@@ -54,7 +54,8 @@
   ],
   "allconfig_sentinel_packet": [
     "allnoconfig_expected.json",
-    "allyesconfig_expected.json"
+    "allyesconfig_expected.json",
+    "alldefconfig_expected.json"
   ],
   "allconfig_override_packet": [
     "allmodconfig_expected.json",
