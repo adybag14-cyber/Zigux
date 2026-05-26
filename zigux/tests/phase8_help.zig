@@ -113,6 +113,34 @@ test "phase 8 help section rendering keeps stable main and fallback headings" {
     );
 }
 
+test "phase 8 help empty exec path keeps the stable heading unquoted" {
+    var main_cmds = help.CommandNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.add("annotate");
+    main_cmds.sort();
+
+    var other_cmds = help.CommandNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    const rendered = try help.renderCommandSections(
+        std.testing.allocator,
+        "subcommands",
+        "",
+        &main_cmds,
+        &other_cmds,
+        80,
+    );
+    defer std.testing.allocator.free(rendered);
+
+    try std.testing.expectEqualStrings(
+        "available subcommands\n" ++
+            "---------------------\n" ++
+            " annotate\n" ++
+            "\n",
+        rendered,
+    );
+}
+
 test "phase 8 help fallback-only packet suppresses the empty main heading" {
     var main_cmds = help.CommandNames.init(std.testing.allocator);
     defer main_cmds.deinit();
