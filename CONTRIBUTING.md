@@ -43,6 +43,15 @@ Every change should keep these explicit:
 
 If you update a shared reminder surface, reread the neighboring docs, scripts, and tests notes together so they keep describing the same shipped packet.
 
+## Phase 13 Shared-Helper Reminder Work
+
+If your change is shared Phase 13 contributor wording rather than helper-local proof, use this bounded loop:
+
+1. reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first
+2. keep `Documentation/zigux/phase13-release-coordination-matrix.md` and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` aligned as supporting coordination companions rather than the stable contributor-facing handle itself
+3. rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`, `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and `python3 scripts/zigux/validate-phase13-release.py`
+4. keep `zigux/Makefile` distinct from the still-missing `make -C zigux phase13-validate` and `make -C zigux phase13` routes
+
 ## Phase 13 Contributor Packet
 
 The current shared contributor-facing handle runs through:
