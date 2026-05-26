@@ -75,7 +75,7 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     "keep the Phase 8 command and environment ownership boundary explicit",
     "deferred `command_name`, exec-path, `PERF_EXEC_PATH`, and `PATH` cues stay with `tools/lib/subcmd/exec-cmd.zig`",
     "`LINES` and `COLUMNS` stay with `tools/lib/subcmd/help.zig`",
-    "### 4. The runtime kretprobe side returns a family-local pilot packet, but shared reminder surfaces still lag it",
+    "### 4. The runtime kretprobe side returns a family-local pilot packet, and shared reminder surfaces still need one-surface-at-a-time follow-through",
     "`samples/zigux/runtime_kretprobe.zig`",
     "`zigux/tests/runtime_kretprobe_module.zig`",
     "`zigux/tests/runtime_first_loadable_parity_behavior.zig`",
@@ -141,19 +141,19 @@ WORKFLOW_REQUIRED_MARKERS = [
 ]
 
 CONTRACT_REQUIRED_MARKERS = [
-    "test \\\"LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract\\\" {",
+    "test \"LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract\" {",
     "const blocked_publication_fields = [_][]const u8{",
-    "\\\"modinfo\\\",",
-    "\\\"module_alias\\\",",
-    "\\\"module_aliases\\\",",
-    "\\\"modules_alias_path\\\",",
-    "\\\"module_install_root\\\",",
-    "\\\"modules_order_path\\\",",
-    "\\\"modules_builtin_path\\\",",
-    "\\\"module_symvers_path\\\",",
-    "\\\"depmod_script\\\",",
-    "\\\"depmod_manifest\\\",",
-    "\\\"depmod_aliases\\\",",
+    "\"modinfo\",",
+    "\"module_alias\",",
+    "\"module_aliases\",",
+    "\"modules_alias_path\",",
+    "\"module_install_root\",",
+    "\"modules_order_path\",",
+    "\"modules_builtin_path\",",
+    "\"module_symvers_path\",",
+    "\"depmod_script\",",
+    "\"depmod_manifest\",",
+    "\"depmod_aliases\",",
     "try std.testing.expect(!@hasField(LoadPlan, field));",
 ]
 
@@ -413,7 +413,7 @@ def run_self_test() -> int:
     )
     print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT="
-        f"{len(FORBIDDEN_PHASE9_MAKE_ROUTES)}"
+        f"{len(FORBIDDEN_MAKEFILE_ROUTE_COUNT)}"
     )
     return 0
 
