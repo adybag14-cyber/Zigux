@@ -156,6 +156,16 @@ test "phase 8 exec-cmd focused helper packet covers deferred handoff boundaries"
     try std.testing.expectEqualStrings("record", deferred_execv.argv[1].?);
     try std.testing.expectEqualStrings("-a", deferred_execv.argv[2].?);
     try std.testing.expectEqual(@as(?[]const u8, null), deferred_execv.argv[3]);
+
+    var deferred_execv_command_only = try exec_cmd.buildDeferredExecvCall(
+        std.testing.allocator,
+        config,
+        &[_][]const u8{},
+    );
+    defer deferred_execv_command_only.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 2), deferred_execv_command_only.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred_execv_command_only.argv[0].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execv_command_only.argv[1]);
 }
 
 test "phase 8 exec-cmd shared witness keeps argv0 sentinel path shapes explicit" {
