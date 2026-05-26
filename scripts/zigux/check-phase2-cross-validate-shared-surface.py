@@ -31,6 +31,15 @@ DIRECT_WORKFLOW_ALIGNMENT = (
     / "zigux"
     / "check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py"
 )
+TOOL_MANIFEST_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-tool-manifest-contract.py"
+)
+TOOL_MANIFEST_ALIGNMENT = (
+    ROOT
+    / "scripts"
+    / "zigux"
+    / "check-phase2-cross-tool-manifest-contract-selftest-alignment.py"
+)
 WORKFLOW_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order.py"
 WORKFLOW_ORDER_ALIGNMENT = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order-selftest-alignment.py"
@@ -56,6 +65,8 @@ REQUIRED_PATHS = (
     SHARED_SURFACE_ALIGNMENT,
     DIRECT_WORKFLOW_CHECKER,
     DIRECT_WORKFLOW_ALIGNMENT,
+    TOOL_MANIFEST_CHECKER,
+    TOOL_MANIFEST_ALIGNMENT,
     WORKFLOW_ORDER_CHECKER,
     WORKFLOW_ORDER_ALIGNMENT,
     MAKEFILE_ORDER_CHECKER,
@@ -185,6 +196,10 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-validate-validator-order-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-tool-manifest-contract-selftest-alignment.py",
 )
 
 REQUIRED_CROSS_TARGET = "phase2-cross:"
@@ -418,8 +433,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate that the Lane 21 shared validation surfaces wire the full "
-            "cross validate-contract, direct workflow, workflow-order, makefile-order, "
-            "and validator-order checker packet."
+            "cross validate-contract, direct workflow, tool-manifest, workflow-order, "
+            "makefile-order, and validator-order checker packet."
         )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
