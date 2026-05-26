@@ -18,6 +18,7 @@ FIXTURES_PATH = Path("zigux/tests/fixtures/phase6_base64_vectors.zig")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_base64.zig")
 PERF_TEST_PATH = Path("zigux/tests/phase6_base64_perf.zig")
 C_PARITY_TEST_PATH = Path("zigux/tests/phase6_base64_c_parity.zig")
+C_HARNESS_PATH = Path("zigux/tests/fixtures/phase6_base64_c_harness.c")
 
 EXPECTED_COUNTS = {
     "standard_cases": 22,
@@ -32,6 +33,12 @@ EXPECTED_C_PARITY_COUNTS = {
     "c_parity_encode_cases": 17,
     "c_parity_decode_cases": 17,
     "c_parity_invalid_cases": 6,
+}
+
+EXPECTED_C_HARNESS_COUNTS = {
+    "encode_cases": 17,
+    "decode_cases": 17,
+    "invalid_cases": 6,
 }
 
 EXPECTED_PERF_LABELS = [
@@ -98,7 +105,20 @@ EXPECTED_C_PARITY_SNIPPETS = [
     'try writer.print("inv\\t{s}\\t{}\\t", .{ case.variant_name, @intFromBool(case.padding) });',
 ]
 
-SELF_TEST_CASES = 13
+EXPECTED_C_HARNESS_SNIPPETS = [
+    "static const unsigned char invalid_with_nul[] = { 'Z', 'g', 0, '=' };",
+    "{ BASE64_STD, true, empty_input, 0 },",
+    "{ BASE64_STD, false, foobar, 6 },",
+    "{ BASE64_STD, true, invalid_with_nul, sizeof(invalid_with_nul) },",
+    "{ BASE64_URLSAFE, false, variant_sample, sizeof(variant_sample) },",
+    "{ BASE64_URLSAFE, true, variant_two_byte, sizeof(variant_two_byte) },",
+    "{ BASE64_IMAP, false, variant_one_byte, sizeof(variant_one_byte) },",
+    "{ BASE64_IMAP, true, variant_two_byte, sizeof(variant_two_byte) },",
+    '{ BASE64_URLSAFE, false, (const unsigned char *)"Zg==", 4 },',
+    '{ BASE64_IMAP, false, (const unsigned char *)"Zg==", 4 },',
+]
+
+SELF_TEST_CASES = 15
 
 
 def read_text(path: Path) -> str:
@@ -146,12 +166,45 @@ def extract_array_body(content: str, name: str) -> str:
     )
 
 
+def extract_c_array_body(content: str, name: str) -> str:
+    marker = f"{name}[] = {{"
+    start = content.find(marker)
+    if start == -1:
+        raise ValidationError(
+            f"missing expected Phase 6 base64 harness array in {C_HARNESS_PATH.as_posix()}: {name}"
+        )
+
+    brace_start = content.find("{", start)
+    if brace_start == -1:
+        raise ValidationError(
+            f"missing opening brace for Phase 6 base64 harness array in {C_HARNESS_PATH.as_posix()}: {name}"
+        )
+
+    depth = 0
+    for idx in range(brace_start, len(content)):
+        char = content[idx]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return content[brace_start + 1 : idx]
+
+    raise ValidationError(
+        f"unterminated Phase 6 base64 harness array in {C_HARNESS_PATH.as_posix()}: {name}"
+    )
+
+
 def count_entries(body: str) -> int:
     return len(re.findall(r"\.\{", body))
 
 
 def count_c_parity_entries(body: str) -> int:
     return len(re.findall(r"\.input =", body))
+
+
+def count_c_harness_entries(body: str) -> int:
+    return len(re.findall(r"\{\s*BASE64_", body))
 
 
 def validate_fixture_counts(content: str) -> None:
@@ -171,6 +224,16 @@ def validate_c_parity_fixture_counts(content: str) -> None:
         if actual != expected:
             raise ValidationError(
                 f"{FIXTURES_PATH.as_posix()} {name} count drift: expected {expected}, found {actual}"
+            )
+
+
+def validate_c_harness_counts(content: str) -> None:
+    for name, expected in EXPECTED_C_HARNESS_COUNTS.items():
+        body = extract_c_array_body(content, name)
+        actual = count_c_harness_entries(body)
+        if actual != expected:
+            raise ValidationError(
+                f"{C_HARNESS_PATH.as_posix()} {name} count drift: expected {expected}, found {actual}"
             )
 
 
@@ -230,6 +293,14 @@ def validate(repo_root: Path) -> None:
                 f"missing expected Phase 6 base64 c-parity marker in {FIXTURES_PATH.as_posix()}: {snippet}"
             )
 
+    c_harness_content = read_text(repo_root / C_HARNESS_PATH)
+    validate_c_harness_counts(c_harness_content)
+    for snippet in EXPECTED_C_HARNESS_SNIPPETS:
+        if snippet not in c_harness_content:
+            raise ValidationError(
+                f"missing expected Phase 6 base64 harness marker in {C_HARNESS_PATH.as_posix()}: {snippet}"
+            )
+
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -258,6 +329,57 @@ def scaffold_repo(root: Path) -> None:
     write(
         root / C_PARITY_TEST_PATH,
         "\n".join(EXPECTED_C_PARITY_SNIPPETS) + "\n",
+    )
+    write(
+        root / C_HARNESS_PATH,
+        """static const unsigned char invalid_with_nul[] = { 'Z', 'g', 0, '=' };
+static const struct encode_case encode_cases[] = {
+    { BASE64_STD, true, empty_input, 0 },
+    { BASE64_STD, true, one_byte, 1 },
+    { BASE64_STD, true, two_bytes, 2 },
+    { BASE64_STD, false, foobar, 6 },
+    { BASE64_STD, true, hello_world, 13 },
+    { BASE64_URLSAFE, false, variant_sample, sizeof(variant_sample) },
+    { BASE64_URLSAFE, true, variant_sample, sizeof(variant_sample) },
+    { BASE64_URLSAFE, false, variant_one_byte, sizeof(variant_one_byte) },
+    { BASE64_URLSAFE, true, variant_one_byte, sizeof(variant_one_byte) },
+    { BASE64_URLSAFE, false, variant_two_byte, sizeof(variant_two_byte) },
+    { BASE64_URLSAFE, true, variant_two_byte, sizeof(variant_two_byte) },
+    { BASE64_IMAP, false, variant_sample, sizeof(variant_sample) },
+    { BASE64_IMAP, true, variant_sample, sizeof(variant_sample) },
+    { BASE64_IMAP, false, variant_one_byte, sizeof(variant_one_byte) },
+    { BASE64_IMAP, true, variant_one_byte, sizeof(variant_one_byte) },
+    { BASE64_IMAP, false, variant_two_byte, sizeof(variant_two_byte) },
+    { BASE64_IMAP, true, variant_two_byte, sizeof(variant_two_byte) },
+};
+static const struct decode_case decode_cases[] = {
+    { BASE64_STD, true, (const unsigned char *)"", 0 },
+    { BASE64_STD, true, (const unsigned char *)"Zg==", 4 },
+    { BASE64_STD, true, (const unsigned char *)"Zm8=", 4 },
+    { BASE64_STD, false, (const unsigned char *)"Zm9vYmFy", 8 },
+    { BASE64_STD, true, (const unsigned char *)"SGVsbG8sIHdvcmxkIQ==", 20 },
+    { BASE64_URLSAFE, false, (const unsigned char *)"APv_f4A", 7 },
+    { BASE64_URLSAFE, true, (const unsigned char *)"APv_f4A=", 8 },
+    { BASE64_URLSAFE, false, (const unsigned char *)"-w", 2 },
+    { BASE64_URLSAFE, true, (const unsigned char *)"-w==", 4 },
+    { BASE64_URLSAFE, false, (const unsigned char *)"__A", 3 },
+    { BASE64_URLSAFE, true, (const unsigned char *)"__A=", 4 },
+    { BASE64_IMAP, false, (const unsigned char *)"APv,f4A", 7 },
+    { BASE64_IMAP, true, (const unsigned char *)"APv,f4A=", 8 },
+    { BASE64_IMAP, false, (const unsigned char *)"+w", 2 },
+    { BASE64_IMAP, true, (const unsigned char *)"+w==", 4 },
+    { BASE64_IMAP, false, (const unsigned char *)",,A", 3 },
+    { BASE64_IMAP, true, (const unsigned char *)",,A=", 4 },
+};
+static const struct invalid_case invalid_cases[] = {
+    { BASE64_STD, true, (const unsigned char *)"Zg=!", 4 },
+    { BASE64_STD, true, (const unsigned char *)"Z===", 4 },
+    { BASE64_STD, false, (const unsigned char *)"Zm9v====", 8 },
+    { BASE64_STD, true, invalid_with_nul, sizeof(invalid_with_nul) },
+    { BASE64_URLSAFE, false, (const unsigned char *)"Zg==", 4 },
+    { BASE64_IMAP, false, (const unsigned char *)"Zg==", 4 },
+};
+""",
     )
     write(
         root / FIXTURES_PATH,
@@ -451,6 +573,18 @@ def run_self_test() -> None:
             FIXTURES_PATH,
             '    .{ .variant_name = variant_cases[14].variant_name, .padding = variant_cases[14].padding, .input = variant_cases[14].input },',
             '    .{ .variant_name = variant_cases[13].variant_name, .padding = variant_cases[13].padding, .input = variant_cases[13].input },',
+        )
+        expect_failure(
+            root,
+            C_HARNESS_PATH,
+            "static const struct encode_case encode_cases[] = {",
+            "static const struct encode_case encode_selection[] = {",
+        )
+        expect_failure(
+            root,
+            C_HARNESS_PATH,
+            '{ BASE64_IMAP, false, (const unsigned char *)"Zg==", 4 },',
+            '{ BASE64_IMAP, false, (const unsigned char *)"Zm9v", 4 },',
         )
 
     print("PHASE6_BASE64_CORPUS_DETERMINISM_SELF_TEST=pass")
