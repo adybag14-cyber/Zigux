@@ -86,6 +86,7 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectSliceContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectSliceContains(manifest.readable_non_owner_paths, "tools/lib/rbtree.zig");
     try expectSliceContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");
+    try expectSliceContains(manifest.readable_makefile_markers, "phase7-validate:");
     try std.testing.expectEqual(@as(usize, 0), manifest.public_fallback_non_owner_paths.len);
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree.json");
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
