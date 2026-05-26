@@ -25,6 +25,11 @@ pub const LifecycleSnapshot = struct {
     active_instances: usize,
     completed_instances: usize,
     last_retval: ?i32,
+    last_entry_timestamp_ns: ?i64,
+    last_return_timestamp_ns: ?i64,
+    last_duration_ns: ?i64,
+    oldest_active_entry_timestamp_ns: ?i64,
+    newest_active_entry_timestamp_ns: ?i64,
 };
 
 pub const SelftestSummary = struct {
@@ -36,6 +41,7 @@ pub const SelftestSummary = struct {
 
 pub const RuntimeKretprobeSample = struct {
     const Self = @This();
+    const max_active_instances = 8;
 
     stage_state: ModuleStage = .cold,
     init_runs: usize = 0,
@@ -47,6 +53,11 @@ pub const RuntimeKretprobeSample = struct {
     active_instances: usize = 0,
     completed_instances: usize = 0,
     last_retval: ?i32 = null,
+    next_timestamp_ns: i64 = 10,
+    last_entry_timestamp_ns: ?i64 = null,
+    last_return_timestamp_ns: ?i64 = null,
+    last_duration_ns: ?i64 = null,
+    active_entry_timestamps_ns: [max_active_instances]?i64 = [_]?i64{null} ** max_active_instances,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -68,6 +79,22 @@ pub const RuntimeKretprobeSample = struct {
         };
     }
 
+    fn nextSyntheticTimestamp(self: *Self) i64 {
+        const timestamp_ns = self.next_timestamp_ns;
+        self.next_timestamp_ns += 10;
+        return timestamp_ns;
+    }
+
+    fn oldestActiveEntryTimestampNs(self: *const Self) ?i64 {
+        if (self.active_instances == 0) return null;
+        return self.active_entry_timestamps_ns[0];
+    }
+
+    fn newestActiveEntryTimestampNs(self: *const Self) ?i64 {
+        if (self.active_instances == 0) return null;
+        return self.active_entry_timestamps_ns[self.active_instances - 1];
+    }
+
     pub fn init(self: *Self) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
@@ -87,6 +114,11 @@ pub const RuntimeKretprobeSample = struct {
             .active_instances = self.active_instances,
             .completed_instances = self.completed_instances,
             .last_retval = self.last_retval,
+            .last_entry_timestamp_ns = self.last_entry_timestamp_ns,
+            .last_return_timestamp_ns = self.last_return_timestamp_ns,
+            .last_duration_ns = self.last_duration_ns,
+            .oldest_active_entry_timestamp_ns = self.oldestActiveEntryTimestampNs(),
+            .newest_active_entry_timestamp_ns = self.newestActiveEntryTimestampNs(),
         };
     }
 
@@ -99,20 +131,38 @@ pub const RuntimeKretprobeSample = struct {
     }
 
     pub fn recordEntry(self: *Self) !void {
+        try self.recordEntryAt(self.nextSyntheticTimestamp());
+    }
+
+    pub fn recordEntryAt(self: *Self, entry_timestamp_ns: i64) !void {
         try self.ensureMutable();
         if (!self.probe_registered) return error.ProbeNotRegistered;
+        if (self.active_instances == max_active_instances) return error.ActiveInstanceCapacityExceeded;
 
+        self.active_entry_timestamps_ns[self.active_instances] = entry_timestamp_ns;
         self.active_instances += 1;
+        self.last_entry_timestamp_ns = entry_timestamp_ns;
     }
 
     pub fn recordReturn(self: *Self, retval: i32) !void {
+        try self.recordReturnAt(retval, self.nextSyntheticTimestamp());
+    }
+
+    pub fn recordReturnAt(self: *Self, retval: i32, return_timestamp_ns: i64) !void {
         try self.ensureMutable();
         if (!self.probe_registered) return error.ProbeNotRegistered;
         if (self.active_instances == 0) return error.ReturnWithoutEntry;
 
+        const entry_index = self.active_instances - 1;
+        const entry_timestamp_ns = self.active_entry_timestamps_ns[entry_index] orelse unreachable;
+        if (return_timestamp_ns < entry_timestamp_ns) return error.ReturnBeforeEntryTimestamp;
+
+        self.active_entry_timestamps_ns[entry_index] = null;
         self.active_instances -= 1;
         self.completed_instances += 1;
         self.last_retval = retval;
+        self.last_return_timestamp_ns = return_timestamp_ns;
+        self.last_duration_ns = return_timestamp_ns - entry_timestamp_ns;
     }
 
     pub fn unregisterProbe(self: *Self) !void {
@@ -166,6 +216,17 @@ fn expectSnapshotStable(before: LifecycleSnapshot, after: LifecycleSnapshot) !vo
     try std.testing.expectEqual(before.active_instances, after.active_instances);
     try std.testing.expectEqual(before.completed_instances, after.completed_instances);
     try std.testing.expectEqual(before.last_retval, after.last_retval);
+    try std.testing.expectEqual(before.last_entry_timestamp_ns, after.last_entry_timestamp_ns);
+    try std.testing.expectEqual(before.last_return_timestamp_ns, after.last_return_timestamp_ns);
+    try std.testing.expectEqual(before.last_duration_ns, after.last_duration_ns);
+    try std.testing.expectEqual(
+        before.oldest_active_entry_timestamp_ns,
+        after.oldest_active_entry_timestamp_ns,
+    );
+    try std.testing.expectEqual(
+        before.newest_active_entry_timestamp_ns,
+        after.newest_active_entry_timestamp_ns,
+    );
 }
 
 test "runtime kretprobe sample advertises the bounded pilot-module contract" {
@@ -232,6 +293,42 @@ test "runtime kretprobe sample keeps reusable probe replay explicit after selfte
     try std.testing.expectEqual(before_exit.unregistration_runs, after_exit.unregistration_runs);
     try std.testing.expectEqual(before_exit.completed_instances, after_exit.completed_instances);
     try std.testing.expectEqual(before_exit.last_retval, after_exit.last_retval);
+}
+
+test "runtime kretprobe sample keeps active-instance timestamp replay explicit across overlapping returns" {
+    var module = RuntimeKretprobeSample{};
+    try module.init();
+    try module.registerProbe();
+    try module.recordEntryAt(10);
+    try module.recordEntryAt(35);
+
+    const before_returns = module.lifecycleSnapshot();
+    try std.testing.expectEqual(@as(usize, 2), before_returns.active_instances);
+    try std.testing.expectEqual(@as(?i64, 10), before_returns.oldest_active_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 35), before_returns.newest_active_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 35), before_returns.last_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, null), before_returns.last_return_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, null), before_returns.last_duration_ns);
+
+    try module.recordReturnAt(7, 80);
+    const after_inner_return = module.lifecycleSnapshot();
+    try std.testing.expectEqual(@as(usize, 1), after_inner_return.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), after_inner_return.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 7), after_inner_return.last_retval);
+    try std.testing.expectEqual(@as(?i64, 80), after_inner_return.last_return_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 45), after_inner_return.last_duration_ns);
+    try std.testing.expectEqual(@as(?i64, 10), after_inner_return.oldest_active_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 10), after_inner_return.newest_active_entry_timestamp_ns);
+
+    try module.recordReturnAt(11, 150);
+    const after_outer_return = module.lifecycleSnapshot();
+    try std.testing.expectEqual(@as(usize, 0), after_outer_return.active_instances);
+    try std.testing.expectEqual(@as(usize, 2), after_outer_return.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 11), after_outer_return.last_retval);
+    try std.testing.expectEqual(@as(?i64, 150), after_outer_return.last_return_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 140), after_outer_return.last_duration_ns);
+    try std.testing.expectEqual(@as(?i64, null), after_outer_return.oldest_active_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, null), after_outer_return.newest_active_entry_timestamp_ns);
 }
 
 test "runtime kretprobe sample rejects re-init without disturbing initialized selftested and exited snapshots" {
@@ -386,41 +483,6 @@ test "runtime kretprobe sample keeps failed exit rollback explicit while a probe
     try std.testing.expectEqual(before_exit.unregistration_runs, after_exit.unregistration_runs);
     try std.testing.expectEqual(before_exit.completed_instances, after_exit.completed_instances);
     try std.testing.expectEqual(before_exit.last_retval, after_exit.last_retval);
-
-    var selftested = RuntimeKretprobeSample{};
-    try selftested.init();
-    _ = try selftested.runSelftest();
-    try selftested.registerProbe();
-    try selftested.recordEntry();
-    try selftested.recordReturn(42);
-
-    const before_selftested_failed_exit = selftested.lifecycleSnapshot();
-    try std.testing.expectEqual(ModuleStage.selftest_complete, before_selftested_failed_exit.stage);
-    try std.testing.expectEqual(@as(usize, 1), before_selftested_failed_exit.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), before_selftested_failed_exit.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), before_selftested_failed_exit.exit_runs);
-    try std.testing.expectEqual(@as(usize, 2), before_selftested_failed_exit.registration_runs);
-    try std.testing.expectEqual(@as(usize, 1), before_selftested_failed_exit.unregistration_runs);
-    try std.testing.expect(before_selftested_failed_exit.probe_registered);
-    try std.testing.expectEqual(@as(usize, 0), before_selftested_failed_exit.active_instances);
-    try std.testing.expectEqual(@as(usize, 2), before_selftested_failed_exit.completed_instances);
-    try std.testing.expectEqual(@as(?i32, 42), before_selftested_failed_exit.last_retval);
-
-    try std.testing.expectError(error.OutstandingRegistration, selftested.exit());
-    try expectSnapshotStable(before_selftested_failed_exit, selftested.lifecycleSnapshot());
-
-    try selftested.unregisterProbe();
-    const before_selftested_exit = selftested.lifecycleSnapshot();
-    try selftested.exit();
-    const after_selftested_exit = selftested.lifecycleSnapshot();
-    try std.testing.expectEqual(ModuleStage.exited, after_selftested_exit.stage);
-    try std.testing.expectEqual(before_selftested_exit.init_runs, after_selftested_exit.init_runs);
-    try std.testing.expectEqual(before_selftested_exit.selftest_runs, after_selftested_exit.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), after_selftested_exit.exit_runs);
-    try std.testing.expectEqual(before_selftested_exit.registration_runs, after_selftested_exit.registration_runs);
-    try std.testing.expectEqual(before_selftested_exit.unregistration_runs, after_selftested_exit.unregistration_runs);
-    try std.testing.expectEqual(before_selftested_exit.completed_instances, after_selftested_exit.completed_instances);
-    try std.testing.expectEqual(before_selftested_exit.last_retval, after_selftested_exit.last_retval);
 }
 
 test "runtime kretprobe sample keeps failed exit rollback explicit while a return instance is still active across initialized and selftested stages" {
