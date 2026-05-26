@@ -255,7 +255,7 @@ def run_self_test() -> int:
                 expected = f"{relative_path}:{marker}"
                 if expected not in result.missing_markers:
                     raise AssertionError(f"expected missing marker to be reported: {expected}")
-                path.writeText(original, encoding="utf-8")
+                path.write_text(original, encoding="utf-8")
                 case_count += 1
 
         for relative_path in REQUIRED_FILES:
