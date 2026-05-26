@@ -145,6 +145,7 @@ def run_self_test() -> int:
             (SURVEY_PATH, "cleanup-prerequisite parity note"),
             (SURVEY_PATH, "cleanup-prerequisite packet checker"),
             (MATRIX_PATH, "`Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md`"),
+            (MATRIX_PATH, "`scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`"),
             (MATRIX_PATH, "cleanup-prerequisite trigger split"),
             (MATRIX_PATH, "dedicated teardown-prerequisite reminder guard"),
             (DRIVER_PATH, "pub const CleanupTrigger = enum {"),
