@@ -604,6 +604,30 @@ def run_self_test() -> None:
         write_sample_root(root)
         case_count += 1
 
+        missing_bitmap_direct_checker = root / BITMAP_DIRECT_ANCHOR_CHECKER_REL
+        missing_bitmap_direct_checker.unlink()
+        missing_bitmap_direct_failures = run_checker(
+            root,
+            BITMAP_DIRECT_ANCHOR_CHECKER_REL,
+            "bitmap_direct_anchor_checker",
+            "PHASE1_BITMAP_DIRECT_ANCHORS=pass",
+        )
+        assert missing_bitmap_direct_failures[0] == "bitmap_direct_anchor_checker:exit=2"
+        write_sample_root(root)
+        case_count += 1
+
+        missing_find_bit_review_checker = root / FIND_BIT_REVIEW_CHECKER_REL
+        missing_find_bit_review_checker.unlink()
+        missing_find_bit_review_failures = run_checker(
+            root,
+            FIND_BIT_REVIEW_CHECKER_REL,
+            "find_bit_review_checker",
+            "phase1-find-bit-review-packet:ok",
+        )
+        assert missing_find_bit_review_failures[0] == "find_bit_review_checker:exit=2"
+        write_sample_root(root)
+        case_count += 1
+
         missing_rbtree_direct_checker = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
         missing_rbtree_direct_checker.unlink()
         missing_rbtree_direct_failures = run_checker(
