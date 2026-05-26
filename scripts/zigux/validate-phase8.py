@@ -25,6 +25,7 @@ LIBBPF_SHARD_ROUTES_CHECKER = Path("scripts/zigux/check-phase8-libbpf-shard-rout
 LIBBPF_SEGMENT_GATE_CHECKER = Path("scripts/zigux/check-phase8-libbpf-segment-gate.py")
 EXEC_CMD_PACKET_CHECKER = Path("scripts/zigux/check-phase8-exec-cmd-packet.py")
 VALIDATOR = Path("scripts/zigux/validate-phase8.py")
+BRIDGE_BOUNDARY_SURVEY = Path("Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md")
 LIBBPF_SEGMENT_SURVEY = Path("Documentation/zigux/phase8-libbpf-segment-survey.md")
 LIBBPF_SEGMENT_MANIFEST = Path("tools/lib/bpf/zigux_segments/manifest.json")
 EXEC_CMD_SLICE = Path("Documentation/zigux/phase8-exec-cmd-slice.md")
@@ -67,6 +68,7 @@ REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
     Path("Documentation/zigux/README.md"),
     EXEC_CMD_SLICE,
+    BRIDGE_BOUNDARY_SURVEY,
     LIBBPF_SEGMENT_SURVEY,
     LIBBPF_SEGMENT_MANIFEST,
     REVIEW_CHECKLIST,
@@ -140,6 +142,15 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "make -C zigux phase8-validate",
         "kernel/workqueue.c remains a Phase 14 boundary-study target",
     ),
+    BRIDGE_BOUNDARY_SURVEY: (
+        "`PHASE8_SURVEY=userspace-kernel-bridge-boundary-readback`",
+        "The separate Phase 8 command-side anchors under `tools/lib/subcmd/` and `tools/lib/symbol/` keep their own parked packets.",
+        "This survey stays limited to the libbpf-side syscall, descriptor, and routing boundary from `tools/lib/bpf/libbpf.c`.",
+        "The landed `fdinfo-path-and-reuse-name-footholds` slice therefore now mirrors the manifest rationale exactly: This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, full fdinfo map-info parsing, and reuse comparison logic deferred.",
+        "The neighboring `fdinfo-map-info-helpers` slice now stays explicit as queued groundwork rather than landed bridge proof: the shared bridge destination is materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers still need their own follow-through before that slice can be reported as fully landed.",
+        "The sibling `map-reuse-compatibility` slice likewise stays explicit as queued groundwork rather than landed bridge proof: current helper source retains reused-map names, but helper-only compatibility observation, flag normalization, and mismatch reporting still need follow-through before that slice can be reported as fully landed.",
+        "That broader deferred packet still includes `/sys/devices/system/cpu/online` reads, `libbpf_num_possible_cpus()`, online CPU filtering, per-CPU perf-event-array map updates, per-CPU `perf_event_open()` setup, `mmap()` setup, `PERF_EVENT_IOC_ENABLE` enablement, epoll-backed perf FD registration, and poll waits.",
+    ),
     LIBBPF_SEGMENT_SURVEY: (
         "Current helper-plus-build packet",
         "`tools/lib/bpf/zigux_segments/verify.zig`",
@@ -169,10 +180,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     LIBBPF_SEGMENT_MANIFEST: (
         '"lane_key": "P8-L13"',
         '"phase": "Phase 8"',
-        '"slug": "fdinfo-map-info-helpers", "status": "starter_landed"',
-        '"slug": "map-reuse-compatibility", "status": "starter_landed"',
+        '"slug": "fdinfo-map-info-helpers", "status": "blocked_on_fdinfo_parser_materialization"',
+        '"slug": "map-reuse-compatibility", "status": "blocked_on_reuse_comparison_materialization"',
         '"slug": "file-path-and-handle-bridge", "status": "deferred_high_risk", "kind": "resource_boundary"',
-        '"why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects."',
+        '"slug": "fdinfo-path-and-reuse-name-footholds", "status": "starter_landed"',
+        '"why_now": "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred."',
     ),
     REVIEW_CHECKLIST: (
         "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
