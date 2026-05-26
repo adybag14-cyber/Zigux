@@ -26,19 +26,18 @@ Authenticated contents readback in this run directly returned:
 - `zigux/tests/phase5_kobject_example.zig`
 - `zigux/tests/phase5_build.zig`
 
-The same-lane shared reminder packet on current `master` still keeps `samples/zigux/kobject_example.zig` explicit as the sample-root owner for this anchor even when this run's authenticated contents route flaked on that one path.
+The same-lane shared reminder packet on current `master` still keeps `samples/zigux/kobject_example.zig` explicit as the direct sample-root owner for this anchor even when this run's authenticated contents route flaked on that one path.
 
-Fresh public current-`master` fallback remains the honest owner-plus-companion path for the still-flaky side of the packet:
+Fresh public current-`master` fallback remains the honest companion path for the still-flaky companion set:
 
-- `samples/zigux/kobject_example.zig`
 - `zigux/tests/phase5_kobject_example_manifest.json`
 - `zigux/tests/phase5_kobject_example_survey.zig`
 
 That means the strongest current packet for this lane is:
 
 - the direct sample-owned replay, bounded attr-group companion, focused attr-group replay, attr-group survey guard, and shared build-route companion are current direct evidence again
-- the sample-root owner plus the dedicated manifest and survey replay remain current public-tree-backed companions in this runtime when the authenticated contents route flakes on them
-- connector-local `404` results on the owner-plus-companion paths are a readback limitation here, not proof that the packet vanished from `master`
+- the dedicated manifest and survey replay remain current public-tree-backed companions in this runtime when the authenticated contents route flakes on them
+- connector-local `404` results on the companion paths are a readback limitation here, not proof that the packet vanished from `master`
 
 ## Approved idiom
 
@@ -53,7 +52,6 @@ Keep these cues explicit:
 - `runRegisteredBoundaryReplay()` keeps the already-registered duplicate-registration and replay-restart rejection packet explicit while still proving the registered sample can accept a bounded `foo` write/read roundtrip afterward
 - `runInputValidationReplay()` keeps the shared `baz`/`bar` dispatch, invalid-integer rejection, and unknown-attribute rejection explicit while the sample remains in the `registered` stage
 - `ownershipSummary()` and sample-owned `runOwnershipReplay()` still keep the cold, initialized, registered, and exited lifecycle packet explicit
-- `runTeardownReplay()` keeps the registered teardown reset, the post-`exit()` show/store/replay rejection packet, and the `tore_down_registered_attributes` exit disposition explicit instead of leaving the exited-stage packet implied by code alone
 - the exit split stays explicit as `abandoned_before_registration` for the initialized-only exit path and `tore_down_registered_attributes` for the registered teardown path
 - `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` together keep the bounded `foo`/`baz`/`bar` attribute-group contract, shared `0664` mode cues, unnamed-group marker, NULL-terminated attribute-list slot, and shared build-route linkage explicit rather than turning that companion into a fifth Phase 5 sample
 
@@ -64,7 +62,6 @@ Keep the direct sample-owned validation cues explicit too:
 - `zig test samples/zigux/kobject_example.zig` stays the sample-owned self-check for the ownership-and-lifetime packet
 - `zig test --dep kobject_example_sample -Mroot=zigux/tests/phase5_kobject_example.zig -Mkobject_example_sample=samples/zigux/kobject_example.zig` stays the focused replay route for the same packet
 - `zig test zigux/tests/phase5_kobject_example_survey.zig` stays the survey-packet guard for the sample-owned replay, the public-tree-backed manifest-and-survey split, and the shared build-route companion in this runtime
-- `phase5-kobject-example-sample-selfcheck` stays explicit as the named shared build-step handle inside `zigux/tests/phase5_build.zig` for the sample-owned self-check while that broader file remains shared build-route companion evidence rather than sample-local proof
 
 Keep the direct attr-group validation cues explicit too:
 
@@ -78,13 +75,10 @@ Keep the direct attr-group validation cues explicit too:
 When a same-lane change touches this anchor or one of its shared reminder surfaces, keep these questions explicit:
 
 - does the note still treat `zigux/tests/phase5_build.zig` as the current directly readable shared build-route companion rather than parking it in the public-tree-backed bucket?
-- does the note still keep `phase5-kobject-example-sample-selfcheck` explicit as the named shared build-step handle for the sample-owned self-check inside `zigux/tests/phase5_build.zig` without turning that broader shared route into sample-local proof?
-- does the note still treat `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig` as the current public-tree-backed owner-plus-companion set rather than direct readback proof in this runtime?
-- do shared reminder surfaces such as `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/check-phase5-review-guide-surface.py` now keep `Documentation/zigux/phase5-kobject-sample-survey.md` framed as current direct reminder evidence again while leaving only the sample-root owner plus the manifest-and-survey replay pair in the public-tree-backed bucket?
+- does the note still treat `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` as the current public-tree-backed companion set rather than direct readback proof in this runtime?
 - does the note still treat `samples/zigux/kobject_example_attr_group_contract.zig`, `zigux/tests/phase5_kobject_attr_group_contract.zig`, and `zigux/tests/phase5_kobject_attr_group_contract_survey.zig` as current direct evidence for the bounded attr-group companion packet?
-- does the surrounding shared packet in `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the same mixed direct-versus-public-tree-backed split and keep the bounded attr-group companion explicit beside the broader ownership-and-lifetime sample?
-- do `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` keep `samples/zigux/kobject_example.zig` framed as the current sample-root owner carried by the shared reminder packet and public current-`master` fallback, rather than promoting it to direct authenticated proof while this lane's contents readback still flakes on that path?
-- do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, and the attr-group companion packet still describe the same bounded ownership-and-lifetime surface across the sample root, focused replay, companion survey guard, survey note, shared checklist, and shared build route?
+- does the surrounding shared packet in `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still describe the same mixed direct-versus-public-tree-backed split?
+- do `runPreRegistrationBoundaryReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, `runTeardownReplay()`, and the attr-group companion packet still describe the same bounded ownership-and-lifetime surface across the sample root, focused replay, companion survey guard, survey note, and shared build route?
 
 ## Non-goals
 
@@ -99,6 +93,4 @@ This note still does not claim:
 
 Leave this lane parked unless a fresh reread changes one bounded fact inside the same packet.
 
-Fresh 2026-05-26 repo-first reread confirms that the remaining mismatch is outside this per-sample survey note: `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` still frame `samples/zigux/kobject_example.zig` as current direct reminder evidence, while this note keeps that owner path in the public-tree-backed owner-plus-companion bucket for this runtime.
-
-If that shared split still needs repair, reopen the neighboring shared reminder-surface lane first rather than widening this per-sample survey lane.
+If the lane reopens soon, start with `Documentation/zigux/phase5-kobject-sample-survey.md`, compare `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and verify only whether the current sample-root owner, direct sample-owned replay, bounded attr-group companion, focused attr-group replay, dedicated attr-group survey guard, shared build-route companion, and public-tree-backed manifest-plus-survey companions still keep the same split before widening anything else.
