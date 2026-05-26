@@ -273,7 +273,6 @@ def fixture_manifest() -> dict[str, object]:
         },
         "gaps": gaps,
     }
-}
 
 
 def write_fixture(root: Path) -> None:
