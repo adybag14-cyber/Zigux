@@ -91,6 +91,7 @@ Keep the current direct-readback Phase 2 kconfig, genksyms, and fixdep packet:
 - `zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`
 - `zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`
@@ -134,7 +135,7 @@ Tests-root reviewer prompt:
 
 ## Phase 3 ABI substrate packet
 
-Keep the current bounded Phase 3 tests-root reminder explicit through `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `Documentation/zigux/phase3-validator-support-surface.md`, and `zigux/tests/README.md`.
+Keep the current bounded Phase 3 tests-root reminder explicit through `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, and `zigux/tests/README.md`.
 
 Keep the returned ABI header and binding boundary packet explicit through `include/linux/zigux.h`, `include/zigux/dev_t.h`, `include/zigux/abi.h`, `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/abi.zig`.
 
