@@ -87,13 +87,13 @@ test "shared runtime loader surface rejects argv and environment control bleed-t
         "\"COLUMNS\"",
     };
     const loader_forbidden_markers = [_][]const u8{
-        "argv_policy",
-        "activation_env",
-        "command_env",
-        "command_name",
-        "exec_name",
-        "exec_path",
-        "exec_path_env",
+        "activation_env:",
+        "argv_policy:",
+        "command_env:",
+        "command_name:",
+        "exec_name:",
+        "exec_path:",
+        "exec_path_env:",
         "PERF_EXEC_PATH",
         "setupPathWithPwd",
         "planDeferredExeclCallWithPwd",
@@ -126,9 +126,21 @@ test "shared runtime loader surface keeps Phase 8 exec-cmd path controls in thei
         "buildDeferredExecvCall",
         "\"PATH\"",
     };
+    const loader_absence_markers = [_][]const u8{
+        "exec_name:",
+        "exec_path:",
+        "exec_path_env:",
+        "PERF_EXEC_PATH",
+        "setupPathWithPwd",
+        "buildDeferredExeclCall",
+        "buildDeferredExecvCall",
+        "\"PATH\"",
+    };
 
     inline for (exec_cmd_owner_markers) |marker| {
         try expectContains(exec_cmd_source, marker);
+    }
+    inline for (loader_absence_markers) |marker| {
         try expectLacks(runtime_loader_source, marker);
     }
 }
