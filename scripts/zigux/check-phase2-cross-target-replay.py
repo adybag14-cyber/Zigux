@@ -488,7 +488,7 @@ def main() -> int:
     if args.all_targets:
         return run_all_targets(root, zig, args.timeout_seconds)
     if args.target:
-        return run_single_target(root, zig, target, args.timeout_seconds)
+        return run_single_target(root, zig, args.target, args.timeout_seconds)
 
     emit_summary("summary", load_targets(root))
     return 0
