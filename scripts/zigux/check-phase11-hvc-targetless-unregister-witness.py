@@ -525,6 +525,14 @@ def run_self_test() -> int:
                 "keeps_live_notifier_execution_out_of_scope: bool,",
             ),
             (
+                CLEANUP_CHECKER_PATH,
+                "check-phase11-hvc-targetless-unregister-witness.py",
+            ),
+            (
+                CLEANUP_CHECKER_PATH,
+                "phase11_hvc_targetless_unregister_gap_build.zig",
+            ),
+            (
                 WITNESS_PATH,
                 'try expectContains(companion, "separate failure-mode replay");',
             ),
