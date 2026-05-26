@@ -628,13 +628,13 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Fail-close the shared Phase 3 selftest reminder surface."
+        description="Validate the shared Phase 3 selftest reminder surface."
     )
     parser.add_argument(
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the documented Phase 3 reminder packet",
+        help="repository root that contains the shared Phase 3 reminder files",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -645,11 +645,11 @@ def main() -> int:
     issues = validate_repo(args.repo_root)
     if issues:
         print("PHASE3_SELFTEST_SURFACE=fail")
-        print("\n".join(issues))
+        for issue in issues:
+            print(issue)
         return 1
 
-    print("PHASE3_SELFTEST_SURFACE=pass")
-    print("PHASE3_SELFTEST_SCOPE=shared-phase3-selftest-reminder-surface")
+    print(f"validated {args.repo_root / SCRIPTS_README_PATH}")
     return 0
 
 
