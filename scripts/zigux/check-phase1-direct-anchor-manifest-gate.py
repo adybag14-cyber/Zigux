@@ -12,7 +12,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+BITMAP_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-bitmap-direct-anchors.py")
+FIND_BIT_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-find-bit-review-packet.py")
 RBTREE_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-rbtree-direct-anchors.py")
+STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -251,6 +254,33 @@ EXPECTED_REVIEW_FIELDS = {
     },
 }
 
+DELEGATED_CHECKERS = (
+    (
+        BITMAP_DIRECT_ANCHOR_CHECKER_REL,
+        "bitmap_direct_anchor_checker",
+        "PHASE1_BITMAP_DIRECT_ANCHORS=pass",
+        "PHASE1_BITMAP_DIRECT_ANCHOR_CHECKER=pass",
+    ),
+    (
+        FIND_BIT_REVIEW_CHECKER_REL,
+        "find_bit_review_checker",
+        "phase1-find-bit-review-packet:ok",
+        "PHASE1_FIND_BIT_REVIEW_CHECKER=pass",
+    ),
+    (
+        RBTREE_DIRECT_ANCHOR_CHECKER_REL,
+        "rbtree_direct_anchor_checker",
+        "PHASE1_RBTREE_DIRECT_ANCHORS=pass",
+        "PHASE1_RBTREE_DIRECT_ANCHOR_CHECKER=pass",
+    ),
+    (
+        STRING_REVIEW_CHECKER_REL,
+        "string_review_checker",
+        "phase1-string-review-packet:ok",
+        "PHASE1_STRING_REVIEW_CHECKER=pass",
+    ),
+)
+
 
 def repo_root(root_arg: str | None) -> Path:
     return Path(root_arg).resolve() if root_arg else DEFAULT_ROOT.resolve()
@@ -287,26 +317,31 @@ def write_manifest(root: Path, manifest: dict) -> None:
     path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
-def write_stub_checker(root: Path) -> None:
-    path = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
+def write_checker(root: Path, script_rel: Path, text: str) -> None:
+    path = root / script_rel
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        "#!/usr/bin/env python3\n"
-        "print('PHASE1_RBTREE_DIRECT_ANCHORS=pass')\n",
-        encoding="utf-8",
-    )
+    path.write_text(text, encoding="utf-8")
 
 
-def write_failing_checker(root: Path) -> None:
-    path = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
+def write_stub_checkers(root: Path) -> None:
+    for script_rel, _, success_stdout, _ in DELEGATED_CHECKERS:
+        write_checker(
+            root,
+            script_rel,
+            "#!/usr/bin/env python3\n"
+            f"print({success_stdout!r})\n",
+        )
+
+
+def write_failing_checker(root: Path, script_rel: Path, stdout_line: str, stderr_line: str) -> None:
+    write_checker(
+        root,
+        script_rel,
         "#!/usr/bin/env python3\n"
         "import sys\n"
-        "print('PHASE1_RBTREE_DIRECT_ANCHORS=fail')\n"
-        "print('cached_root_alias_anchor:expected=1:actual=0', file=sys.stderr)\n"
+        f"print({stdout_line!r})\n"
+        f"print({stderr_line!r}, file=sys.stderr)\n"
         "raise SystemExit(1)\n",
-        encoding="utf-8",
     )
 
 
@@ -328,7 +363,7 @@ def sample_manifest() -> dict:
 
 def write_sample_root(root: Path) -> None:
     write_manifest(root, sample_manifest())
-    write_stub_checker(root)
+    write_stub_checkers(root)
 
 
 def collect_issues(manifest: dict) -> list[str]:
@@ -490,22 +525,27 @@ def run_self_test() -> None:
         write_sample_root(root)
         case_count += 1
 
-        write_failing_checker(root)
-        checker_failures = run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker")
+        write_failing_checker(
+            root,
+            BITMAP_DIRECT_ANCHOR_CHECKER_REL,
+            "PHASE1_BITMAP_DIRECT_ANCHORS=fail",
+            "or_window_anchor:expected=1:actual=0",
+        )
+        checker_failures = run_checker(root, BITMAP_DIRECT_ANCHOR_CHECKER_REL, "bitmap_direct_anchor_checker")
         assert checker_failures == [
-            "rbtree_direct_anchor_checker:exit=1",
-            "rbtree_direct_anchor_checker:stdout:PHASE1_RBTREE_DIRECT_ANCHORS=fail",
-            "rbtree_direct_anchor_checker:stderr:cached_root_alias_anchor:expected=1:actual=0",
+            "bitmap_direct_anchor_checker:exit=1",
+            "bitmap_direct_anchor_checker:stdout:PHASE1_BITMAP_DIRECT_ANCHORS=fail",
+            "bitmap_direct_anchor_checker:stderr:or_window_anchor:expected=1:actual=0",
         ], checker_failures
         write_sample_root(root)
         case_count += 1
 
-        missing_checker_path = root / RBTREE_DIRECT_ANCHOR_CHECKER_REL
+        missing_checker_path = root / STRING_REVIEW_CHECKER_REL
         missing_checker_path.unlink()
-        checker_failures = run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker")
+        checker_failures = run_checker(root, STRING_REVIEW_CHECKER_REL, "string_review_checker")
         assert checker_failures == [
-            "rbtree_direct_anchor_checker:exit=2",
-            f"rbtree_direct_anchor_checker:stderr:{sys.executable}: can't open file '{missing_checker_path}': [Errno 2] No such file or directory",
+            "string_review_checker:exit=2",
+            f"string_review_checker:stderr:{sys.executable}: can't open file '{missing_checker_path}': [Errno 2] No such file or directory",
         ], checker_failures
         write_sample_root(root)
         case_count += 1
@@ -559,7 +599,8 @@ def main() -> int:
 
     issues = collect_issues(manifest)
     if not issues:
-        issues.extend(run_checker(root, RBTREE_DIRECT_ANCHOR_CHECKER_REL, "rbtree_direct_anchor_checker"))
+        for script_rel, label, _, _ in DELEGATED_CHECKERS:
+            issues.extend(run_checker(root, script_rel, label))
     if issues:
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=fail")
         print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE_ISSUES_START")
@@ -571,7 +612,9 @@ def main() -> int:
     print("PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=pass")
     print(f"PHASE1_DIRECT_ANCHOR_HELPER_COUNT={len(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS)}")
     print(f"PHASE1_DIRECT_ANCHOR_REVIEW_FIELD_COUNT={sum(len(fields) for fields in EXPECTED_REVIEW_FIELDS.values())}")
-    print("PHASE1_RBTREE_DIRECT_ANCHOR_CHECKER=pass")
+    print(f"PHASE1_DIRECT_ANCHOR_DELEGATED_CHECKER_COUNT={len(DELEGATED_CHECKERS)}")
+    for _, _, _, status_line in DELEGATED_CHECKERS:
+        print(status_line)
     return 0
 
 
