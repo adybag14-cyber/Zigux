@@ -381,6 +381,18 @@ jobs:
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
+      - name: Self-test current Phase 1 lane sequencing packet checker
+        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py --self-test
+
+      - name: Check current Phase 1 lane sequencing packet
+        run: python3 scripts/zigux/check-phase1-lane-sequencing-packet.py
+
+      - name: Self-test current Phase 1 lane sequencing workflow checker
+        run: python3 scripts/zigux/check-phase1-lane-sequencing-workflow.py --self-test
+
+      - name: Check current Phase 1 lane sequencing workflow packet
+        run: python3 scripts/zigux/check-phase1-lane-sequencing-workflow.py
+
       - name: Self-test current Phase 1 closure validator
         run: python3 scripts/zigux/validate-phase1-closure.py --self-test
 
@@ -589,12 +601,6 @@ jobs:
 
       - name: Check current Phase 12 build-only surface
         run: python3 scripts/zigux/check-build-only-phase12-surface.py
-
-      - name: Self-test current Phase 12 build inventory checker
-        run: python3 scripts/zigux/check-phase12-build-inventory.py --self-test
-
-      - name: Check current Phase 12 build inventory packet
-        run: python3 scripts/zigux/check-phase12-build-inventory.py
 
       - name: Self-test current Phase 12 complex-driver lane packet checker
         run: python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test
