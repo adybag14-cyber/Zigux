@@ -378,6 +378,21 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        write_text(
+            root,
+            WORKFLOW,
+            duplicate_exact_line(
+                read_text(root, WORKFLOW),
+                "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+            ),
+        )
+        assert (
+            "DUPLICATE_WORKFLOW_LINE",
+            "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:count=2",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), REQUIRED_WORKFLOW_LINES[-1]))
         assert ("DUPLICATE_WORKFLOW_LINE", f"{REQUIRED_WORKFLOW_LINES[-1]}:count=2") in collect_issues(root)
         checks += 1
@@ -396,6 +411,14 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        (root / "scripts/zigux/stage-pinned-zig-archive.py").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/stage-pinned-zig-archive.py",
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         (root / "scripts/zigux/check-lane05-stage-helper-selftest.py").unlink()
         assert (
             "MISSING_REQUIRED_PATH",
@@ -406,6 +429,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / "scripts/zigux/install-zig.py").unlink()
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/install-zig.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/zig-toolchain-policy.json").unlink()
+        assert (
+            "MISSING_REQUIRED_PATH",
+            "scripts/zigux/zig-toolchain-policy.json",
+        ) in collect_issues(root)
         checks += 1
 
     print("BOOTSTRAP_VALIDATION_SELF_TEST=pass")
