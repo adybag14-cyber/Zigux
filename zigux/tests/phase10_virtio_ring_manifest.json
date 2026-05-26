@@ -39,7 +39,7 @@
   ],
   "survey_summary": {
     "virtio_ring_c_lines": 3940,
-    "preexisting_phase10_test_files": 8,
+    "preexisting_phase10_test_files": 9,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": false,
@@ -70,6 +70,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_registration_replay.zig",
       "why_now": "The dedicated queue-registration replay now materializes on current master and keeps noncontiguous queue definitions, registration counts, and failed-definition accounting reviewable beside the other queue-local ring replays."
+    },
+    {
+      "id": "phase10-ring-reset-readiness-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_ring_reset_readiness.zig",
+      "why_now": "The dedicated reset-readiness replay now materializes on current master and keeps unpublished, outstanding, unpolled, and broken reset blockers reviewable beside the queue-local reset vocabulary."
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
