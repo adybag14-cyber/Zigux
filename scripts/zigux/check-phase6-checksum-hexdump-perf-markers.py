@@ -486,7 +486,7 @@ def run_self_test() -> None:
             (
                 PARITY_MANIFEST_PATH,
                 '"key": "hexdump",\n      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": [],',
-                '"key": "hexdump",\n      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": ["zigux/tests/phase6_hexdump_route_refresh.zig"]',
+                '"key": "hexdump",\n      "dedicated_slowdown_replay": "zigux/tests/phase6_hexdump_perf.zig",\n      "checker_surfaces": [\n        "scripts/zigux/check-phase6-hexdump-packet.py",\n        "scripts/zigux/check-phase6-hexdump-route.py"\n      ],\n      "still_missing_direct_companions": ["zigux/tests/phase6_hexdump_route_refresh.zig"],',
                 "hexdump parity still_missing_direct_companions drifted",
             ),
             (PARITY_MANIFEST_PATH, '"surveyed_head": "current-master-readback-2026-05-22"', '"surveyed_head": "current-master-readback-2026-05-21"', "helper-parity surveyed_head drifted"),
