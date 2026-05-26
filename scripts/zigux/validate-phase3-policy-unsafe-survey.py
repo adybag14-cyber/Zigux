@@ -64,6 +64,11 @@ REQUIRED_FILE_MARKERS = {
         "pub fn assertInteropPolicyLayout() LayoutError!void {",
         "pub fn assertPublishedAbiLayouts() LayoutError!void {",
         "pub fn assertInteropPolicyModeValues() void {",
+        "pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {",
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {",
+        "pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() LayoutError!void {",
+        "pub fn assertStatusAndFacilityValues() void {",
+        "pub fn assertNotifierResultValues() void {",
     ),
     PANIC_POLICY_PATH: (
         "pub const Escalation = enum {",
@@ -182,6 +187,18 @@ SELF_TEST_CASES = (
         "pub fn assertPublishedAbiLayouts() LayoutError!void {",
         "blob",
         "PHASE3_LAYOUT_ASSERT_BLOB_SHA",
+    ),
+    (
+        "layout assert notifier-result marker drift",
+        LAYOUT_ASSERT_PATH,
+        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][7],
+        "marker",
+    ),
+    (
+        "layout assert chrdev layout marker drift",
+        LAYOUT_ASSERT_PATH,
+        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][4],
+        "marker",
     ),
     (
         "unsafe policy volatile-mmio require alias drift",
