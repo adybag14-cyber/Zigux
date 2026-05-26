@@ -24,6 +24,9 @@
 #define ZIGUX_UNSAFE_VOLATILE_MMIO 1U
 #define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U
 
+#define ZIGUX_RBTREE_ROOT_VIEW_FLAG_CACHED 1U
+#define ZIGUX_RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID 2U
+
 #define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_DELIVERY_APPLIED 1U
 #define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED 1U
 #define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED 1U
@@ -59,6 +62,12 @@ struct zigux_interop_policy {
     uint8_t unsafe_scope;
     uint8_t reserved;
 };
+
+typedef struct zigux_rbtree_root_view {
+    uintptr_t root;
+    uintptr_t cached_leftmost;
+    uint32_t flags;
+} zigux_rbtree_root_view;
 
 struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view {
     uint32_t ack_window;
@@ -364,6 +373,50 @@ static inline zigux_boundary_header zigux_header_canonicalize(
     header.size = (uint32_t)sizeof(zigux_boundary_header);
     header.abi_version = (uint16_t)ZIGUX_ABI_VERSION;
     return header;
+}
+
+static inline int zigux_rbtree_root_view_is_cached(zigux_rbtree_root_view view)
+{
+    return (view.flags & (uint32_t)ZIGUX_RBTREE_ROOT_VIEW_FLAG_CACHED) != 0U;
+}
+
+static inline int zigux_rbtree_root_view_has_leftmost(zigux_rbtree_root_view view)
+{
+    return (view.flags & (uint32_t)ZIGUX_RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID) != 0U;
+}
+
+static inline int zigux_rbtree_root_view_is_valid(zigux_rbtree_root_view view)
+{
+    const int cached = zigux_rbtree_root_view_is_cached(view);
+    const int has_leftmost_flag = zigux_rbtree_root_view_has_leftmost(view);
+    const int has_leftmost_addr = view.cached_leftmost != (uintptr_t)0;
+
+    if (view.root == (uintptr_t)0)
+        return 0;
+    if (cached != has_leftmost_flag)
+        return 0;
+    if (cached != has_leftmost_addr)
+        return 0;
+    return 1;
+}
+
+static inline zigux_rbtree_root_view zigux_rbtree_root_view_canonicalize(
+    zigux_rbtree_root_view view)
+{
+    if (view.root == (uintptr_t)0) {
+        view.cached_leftmost = (uintptr_t)0;
+        view.flags = 0U;
+        return view;
+    }
+
+    if (view.cached_leftmost == (uintptr_t)0) {
+        view.flags = 0U;
+        return view;
+    }
+
+    view.flags = (uint32_t)(ZIGUX_RBTREE_ROOT_VIEW_FLAG_CACHED |
+        ZIGUX_RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID);
+    return view;
 }
 
 static inline struct zigux_interop_policy zigux_default_interop_policy(void)
