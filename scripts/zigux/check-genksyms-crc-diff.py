@@ -35,7 +35,7 @@ def required_paths(refresh: bool, zig_tool: Path, harness: Path, inputs: Path, e
 
 def ensure_required_files_exist(paths: tuple[Path, ...]) -> None:
     for path in paths:
-        if not path.exists():
+        if not path.is_file():
             raise SystemExit(f"missing required file: {path}")
 
 
@@ -253,6 +253,15 @@ def run_self_test() -> int:
         required_paths_tuple[-1].parent.mkdir(parents=True, exist_ok=True)
         required_paths_tuple[-1].write_text("{}\n", encoding="utf-8", newline="\n")
         ensure_required_files_exist(required_paths(False, *required_paths_tuple))
+
+        directory_placeholders_root = Path(required_files_tmp_dir_str) / "directory-placeholders"
+        directory_paths_tuple = fixture_paths(directory_placeholders_root)
+        for path in directory_paths_tuple:
+            path.mkdir(parents=True, exist_ok=True)
+        expect_system_exit_contains(
+            lambda: ensure_required_files_exist(required_paths(False, *directory_paths_tuple)),
+            f"missing required file: {directory_paths_tuple[0]}",
+        )
 
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_tools_") as tool_tmp_dir_str:
         tool_tmp_dir = Path(tool_tmp_dir_str)
