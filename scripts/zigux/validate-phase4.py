@@ -142,7 +142,7 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-repo-reality-warning": (("PHASE4_REPO_REALITY_WARNING", "PHASE4_REPO_REALITY_WARNING=pass"),),
     "phase4-reversible-delivery-pins-self-test": (
         ("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST", "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass"),
-        ("PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT", "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19"),
+        ("PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT", "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=20"),
     ),
     "phase4-reversible-delivery-pins": (("PHASE4_REVERSIBLE_DELIVERY_PINS", "PHASE4_REVERSIBLE_DELIVERY_PINS=pass"),),
     "phase4-tests-readme-packet-self-test": (
@@ -517,8 +517,8 @@ def configure_phase4_output_stubs(root: Path) -> None:
         root / "scripts/zigux/check-phase4-reversible-delivery-pins.py",
         self_test_stdout_lines=(
             "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass",
-            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=19",
-            "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES=19",
+            "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=20",
+            "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES=20",
         ),
         live_stdout_lines=("PHASE4_REVERSIBLE_DELIVERY_PINS=pass",),
     )
