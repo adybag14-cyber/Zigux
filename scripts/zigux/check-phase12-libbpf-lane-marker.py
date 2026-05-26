@@ -215,6 +215,19 @@ def run_self_test() -> int:
         build_self_test_tree(root)
         reviewability_path = root / REVIEWABILITY_GATE_REL_PATH
         reviewability_path.write_text(
+            reviewability_path.read_text(encoding="utf-8")
+            + REVIEWABILITY_GATE_NOTE_MARKER
+            + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"reviewability_gate_count:{REVIEWABILITY_GATE_NOTE_MARKER}:expected=1:actual=2",
+        )
+
+        build_self_test_tree(root)
+        reviewability_path = root / REVIEWABILITY_GATE_REL_PATH
+        reviewability_path.write_text(
             reviewability_path.read_text(encoding="utf-8").replace(
                 'try std.testing.expectEqualStrings("P12-L16", fixture.lane_key);\n',
                 "",
