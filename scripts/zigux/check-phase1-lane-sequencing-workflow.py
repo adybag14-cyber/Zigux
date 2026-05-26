@@ -12,7 +12,8 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
-CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-packet.py")
+PACKET_CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-packet.py")
+SELF_CHECKER_REL = Path("scripts/zigux/check-phase1-lane-sequencing-workflow.py")
 
 PACKET_SELF_TEST_STEP = "      - name: Self-test current Phase 1 lane sequencing packet checker"
 PACKET_SELF_TEST_RUN = (
@@ -78,8 +79,11 @@ def collect_failures(root: Path) -> list[str]:
     if not (root / WORKFLOW_REL).is_file():
         failures.append(f"missing_file:{WORKFLOW_REL.as_posix()}")
         return failures
-    if not (root / CHECKER_REL).is_file():
-        failures.append(f"missing_file:{CHECKER_REL.as_posix()}")
+    if not (root / PACKET_CHECKER_REL).is_file():
+        failures.append(f"missing_file:{PACKET_CHECKER_REL.as_posix()}")
+        return failures
+    if not (root / SELF_CHECKER_REL).is_file():
+        failures.append(f"missing_file:{SELF_CHECKER_REL.as_posix()}")
         return failures
 
     workflow_text = load_text(root, WORKFLOW_REL)
@@ -190,7 +194,8 @@ def sample_workflow() -> str:
 
 def build_sample_repo(root: Path) -> None:
     write_text(root / WORKFLOW_REL, sample_workflow())
-    write_text(root / CHECKER_REL, "#!/usr/bin/env python3\nprint('stub')\n")
+    write_text(root / PACKET_CHECKER_REL, "#!/usr/bin/env python3\nprint('stub')\n")
+    write_text(root / SELF_CHECKER_REL, "#!/usr/bin/env python3\nprint('stub')\n")
 
 
 def mutate_remove_line(root: Path, target_line: str) -> None:
@@ -291,7 +296,8 @@ def mutate_insert_gap_before_closure_check(root: Path) -> None:
 def run_self_test() -> int:
     cases: list[tuple[str, str, str | tuple[str, str] | None]] = [
         ("success", "noop", None),
-        ("missing_checker", "remove_file", CHECKER_REL.as_posix()),
+        ("missing_packet_checker", "remove_file", PACKET_CHECKER_REL.as_posix()),
+        ("missing_self_checker", "remove_file", SELF_CHECKER_REL.as_posix()),
         ("missing_before_step", "remove_line", BEFORE_STEP),
         ("duplicate_before_step", "duplicate_line", BEFORE_STEP),
         ("missing_before_run", "remove_line", BEFORE_RUN),
