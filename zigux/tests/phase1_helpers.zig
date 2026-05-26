@@ -45,6 +45,28 @@ const Fixture = struct {
     bitmap: struct {
         weight: usize,
         scnprintf: []const u8,
+        truncated_scnprintf_len: usize,
+        truncated_scnprintf: []const u8,
+        terminator_only_scnprintf_len: usize,
+        terminator_only_nul: u8,
+        zero_length_scnprintf_len: usize,
+        alloc_words: usize,
+        zalloc_words: usize,
+        zalloc_values: []const u64,
+        copy_values: []const u64,
+        copy_clear_tail_values: []const u64,
+        copy_and_extend_values: []const u64,
+        and_result: bool,
+        and_values: []const u64,
+        andnot_result: bool,
+        andnot_values: []const u64,
+        or_values: []const u64,
+        xor_values: []const u64,
+        partial_xor_nbits: usize,
+        partial_xor_masked_values: []const u64,
+        equal: bool,
+        intersects: bool,
+        subset: bool,
         range_after_set: []const u64,
         range_after_clear: []const u64,
         full_after_fill: bool,
@@ -247,6 +269,95 @@ test "phase 1 helper ports match committed parity fixture" {
     var rendered: [32]u8 = undefined;
     const rendered_len = bitmap.scnprintf(&bitmap_words, 130, &rendered);
     try std.testing.expectEqualStrings(fixture.bitmap.scnprintf, rendered[0..rendered_len]);
+
+    var truncated_rendered = [_]u8{0xaa} ** 8;
+    const truncated_len = bitmap.scnprintf(&bitmap_words, 130, &truncated_rendered);
+    try std.testing.expectEqual(fixture.bitmap.truncated_scnprintf_len, truncated_len);
+    try std.testing.expectEqualStrings(fixture.bitmap.truncated_scnprintf, truncated_rendered[0..truncated_len]);
+
+    var terminator_only = [_]u8{0xaa};
+    const terminator_only_len = bitmap.scnprintf(&bitmap_words, 130, terminator_only[0..1]);
+    try std.testing.expectEqual(fixture.bitmap.terminator_only_scnprintf_len, terminator_only_len);
+    try std.testing.expectEqual(fixture.bitmap.terminator_only_nul, terminator_only[0]);
+
+    var zero_length_backing = [_]u8{0xbb};
+    const zero_length_len = bitmap.scnprintf(&bitmap_words, 130, zero_length_backing[0..0]);
+    try std.testing.expectEqual(fixture.bitmap.zero_length_scnprintf_len, zero_length_len);
+
+    var plain_bitmap: ?[]find_bit.Word = try bitmap.bitmapAlloc(std.testing.allocator, 130);
+    defer bitmap.bitmapFree(std.testing.allocator, &plain_bitmap);
+    try std.testing.expectEqual(fixture.bitmap.alloc_words, plain_bitmap.?.len);
+
+    var zero_bitmap: ?[]find_bit.Word = try bitmap.bitmapZalloc(std.testing.allocator, 130);
+    defer bitmap.bitmapFree(std.testing.allocator, &zero_bitmap);
+    try std.testing.expectEqual(fixture.bitmap.zalloc_words, zero_bitmap.?.len);
+    try std.testing.expectEqual(fixture.bitmap.zalloc_values.len, zero_bitmap.?.len);
+    for (zero_bitmap.?, fixture.bitmap.zalloc_values) |actual, expected| {
+        try std.testing.expectEqual(expected, @as(u64, @intCast(actual)));
+    }
+
+    const copy_nbits = fixture.find_bit.bits_per_long + 5;
+    const copy_src = [_]find_bit.Word{ ~@as(find_bit.Word, 0), ~@as(find_bit.Word, 0), 0 };
+
+    var copy_dst = [_]find_bit.Word{ 0, 0 };
+    bitmap.copy(&copy_dst, copy_src[0..2], copy_nbits);
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.copy_values, &[_]u64{
+        @intCast(copy_dst[0]),
+        @intCast(copy_dst[1]),
+    });
+
+    var copy_clear_tail_dst = [_]find_bit.Word{ 0, 0 };
+    bitmap.copyClearTail(&copy_clear_tail_dst, copy_src[0..2], copy_nbits);
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.copy_clear_tail_values, &[_]u64{
+        @intCast(copy_clear_tail_dst[0]),
+        @intCast(copy_clear_tail_dst[1]),
+    });
+
+    var copy_and_extend_dst = [_]find_bit.Word{ 0, 0, 0 };
+    bitmap.copyAndExtend(&copy_and_extend_dst, copy_src[0..2], copy_nbits, fixture.find_bit.bits_per_long * 3);
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.copy_and_extend_values, &[_]u64{
+        @intCast(copy_and_extend_dst[0]),
+        @intCast(copy_and_extend_dst[1]),
+        @intCast(copy_and_extend_dst[2]),
+    });
+
+    const logic_lhs = [_]find_bit.Word{ 0b1110, 0 };
+    const logic_rhs = [_]find_bit.Word{ 0b1010, 0 };
+    var logic_dst = [_]find_bit.Word{ 0, 0 };
+
+    try std.testing.expectEqual(fixture.bitmap.and_result, bitmap.andBits(&logic_dst, &logic_lhs, &logic_rhs, 8));
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.and_values, &[_]u64{
+        @intCast(logic_dst[0]),
+        @intCast(logic_dst[1]),
+    });
+
+    try std.testing.expectEqual(fixture.bitmap.andnot_result, bitmap.andNotBits(&logic_dst, &logic_lhs, &logic_rhs, 8));
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.andnot_values, &[_]u64{
+        @intCast(logic_dst[0]),
+        @intCast(logic_dst[1]),
+    });
+
+    bitmap.orBits(&logic_dst, &logic_lhs, &logic_rhs, 8);
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.or_values, &[_]u64{
+        @intCast(logic_dst[0]),
+        @intCast(logic_dst[1]),
+    });
+
+    bitmap.xorBits(&logic_dst, &logic_lhs, &logic_rhs, 8);
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.xor_values, &[_]u64{
+        @intCast(logic_dst[0]),
+        @intCast(logic_dst[1]),
+    });
+
+    try std.testing.expectEqual(fixture.bitmap.equal, bitmap.equal(&logic_lhs, &[_]find_bit.Word{ 0b1110, 0 }, 8));
+    try std.testing.expectEqual(fixture.bitmap.intersects, bitmap.intersects(&logic_lhs, &logic_rhs, 8));
+    try std.testing.expectEqual(fixture.bitmap.subset, bitmap.subset(&logic_rhs, &logic_lhs, 8));
+
+    var partial_xor_dst = [_]find_bit.Word{0};
+    bitmap.xorBits(&partial_xor_dst, &[_]find_bit.Word{0b1_1111}, &[_]find_bit.Word{0b1_0001}, fixture.bitmap.partial_xor_nbits);
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.partial_xor_masked_values, &[_]u64{
+        @intCast(partial_xor_dst[0] & bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)),
+    });
 
     bitmap.clearRange(&bitmap_words, 1, 3);
     bitmap.clearRange(&bitmap_words, 66, 2);
