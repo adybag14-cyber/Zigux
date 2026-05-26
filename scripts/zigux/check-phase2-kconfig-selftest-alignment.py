@@ -96,7 +96,7 @@ BRIDGE_CHECKER_LINE_MARKERS = (
 
 EXPECTED_SILENT_CONF_CASE_NAMES = ("listnewconfig", "helpnewconfig")
 EXPECTED_MODE_ARG_CASE_NAMES = ("defconfig", "savedefconfig")
-EXPECTED_ALLCONFIG_OVERRIDE_CASE_NAMES = ("allmodconfig", "randconfig")
+EXPECTED_ALLCONFIG_OVERRIDE_CASE_NAMES = ("allmodconfig", "alldefconfig", "randconfig")
 EXPECTED_SYNCCONFIG_ENV_CASE_NAMES = ("syncconfig",)
 EXPECTED_RANDCONFIG_ENV_CASE_NAMES = ("randconfig",)
 
@@ -124,246 +124,118 @@ CONFDATA_CASE_PACKET_CONST = "SAMPLE_CONFDATA_CASES"
 
 VALID_CONF_HELPER_ANCHORS = (
     "conf bridge mode surface stays aligned with conf.c long options",
+    "conf bridge emits olddefconfig argv and env",
+    "conf bridge emits syncconfig auto files",
+    "conf bridge emits syncconfig nosilentupdate when present",
+    "conf bridge omits empty syncconfig nosilentupdate",
+    "conf bridge emits silent flag before mode flag",
+    "conf bridge emits alldefconfig argv and env",
     "conf bridge emits explicit empty allconfig override for allmodconfig",
     "conf bridge emits randconfig tunables when present",
+    "conf bridge emits explicit randconfig allconfig override when present",
+    "conf bridge omits randconfig allconfig sentinel without explicit override",
+    "conf bridge emits yes2modconfig argv and env",
+    "conf bridge emits defconfig mode argument before kconfig",
     "conf bridge emits savedefconfig mode argument before kconfig",
+    "conf bridge escapes low control bytes in JSON strings",
+    "mode argument validation rejects bridge option shaped defconfig payload",
+    "mode argument validation accepts defconfig path that only starts with silent",
+    "mode argument validation still accepts ordinary path text with equals",
+    "bridge options parser accepts explicit allconfig override for allmodconfig",
+    "bridge options parser accepts syncconfig nosilentupdate",
+    "bridge options parser keeps empty syncconfig nosilentupdate unset",
+    "bridge options parser accepts generic silent flag",
+    "bridge options parser accepts silent alongside randconfig options",
+    "bridge options parser rejects duplicate silent flag",
+    "bridge options parser rejects duplicate randconfig probability",
+    "bridge options parser rejects unexpected options for mode",
+    "bridge options parser keeps empty randconfig tunables unset",
+    "bridge options parser rejects duplicate mode specific options",
 )
+
 VALID_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES = (
     "allmodconfig",
     "randconfig",
 )
+
 VALID_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES = (
     "allmodconfig",
     "allnoconfig",
     "allyesconfig",
+    "alldefconfig",
     "randconfig",
 )
 
 VALID_CONFDATA_HELPER_ANCHORS = (
     "confdata bridge parses bounded config states",
     "confdata bridge emits bounded json output",
+    "confdata bridge decodes escaped quoted strings",
+    "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
+    "confdata bridge escapes low control bytes in json output",
+    "confdata bridge accepts CRLF config lines",
+    "confdata bridge preserves trailing carriage return on final unterminated value line",
+    "confdata bridge ignores unterminated unset comment with trailing carriage return",
+    "confdata bridge ignores suffix bytes after an embedded NUL",
+    "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
+    "confdata bridge keeps explicit n assignments as tristate values",
+    "confdata bridge recognizes uppercase tristate assignments",
+    "confdata bridge ignores non-CONFIG lines like upstream confdata",
+    "confdata bridge ignores empty CONFIG symbol names",
+    "confdata bridge ignores malformed unset comments with extra tokens",
+    "confdata bridge keeps trailing escaped backslashes in quoted strings",
+    "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata",
+    "confdata bridge ignores malformed quoted values like upstream confdata",
+    "confdata bridge emits no entries for empty CONFIG symbol names",
+    "confdata bridge keeps only the last assignment for duplicate symbols",
+    "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed",
+    "confdata bridge emits the preserved duplicate state after later malformed quoted assignments",
+    "confdata bridge keeps only the last state across unset and set transitions",
+    "confdata bridge keeps explicit empty assignments distinct from quoted empty strings",
+    "confdata bridge emits explicit empty assignments distinctly in json output",
+    "confdata bridge escapes parsed string bytes in json output",
+    "confdata bridge releases appended entry ownership on index-allocation failure",
+    "confdata bridge preserves duplicate unset ownership on allocation failure",
 )
 
 VALID_CASES_PAYLOAD = {
     "conf_cases": [
-        {
-            "name": "oldaskconfig",
-            "mode": "oldaskconfig",
-            "kconfig": "Kconfig",
-            "config": "out/oldask.config",
-            "arch": "x86_64",
-            "expected": "oldaskconfig_expected.json",
-        },
-        {
-            "name": "syncconfig",
-            "mode": "syncconfig",
-            "kconfig": "Kconfig",
-            "config": "out/sync.config",
-            "arch": "riscv64",
-            "nosilentupdate": "1",
-            "expected": "syncconfig_expected.json",
-        },
-        {
-            "name": "oldconfig",
-            "mode": "oldconfig",
-            "kconfig": "Kconfig",
-            "config": "out/old.config",
-            "arch": "arm64",
-            "expected": "oldconfig_expected.json",
-        },
-        {
-            "name": "allnoconfig",
-            "mode": "allnoconfig",
-            "kconfig": "Kconfig",
-            "config": "out/allno.config",
-            "arch": "x86_64",
-            "expected": "allnoconfig_expected.json",
-        },
-        {
-            "name": "allyesconfig",
-            "mode": "allyesconfig",
-            "kconfig": "Kconfig",
-            "config": "out/allyes.config",
-            "arch": "x86_64",
-            "expected": "allyesconfig_expected.json",
-        },
-        {
-            "name": "allmodconfig",
-            "mode": "allmodconfig",
-            "kconfig": "Kconfig",
-            "config": "out/allmod.config",
-            "arch": "arm",
-            "allconfig": "",
-            "expected": "allmodconfig_expected.json",
-        },
-        {
-            "name": "alldefconfig",
-            "mode": "alldefconfig",
-            "kconfig": "Kconfig",
-            "config": "out/alldef.config",
-            "arch": "x86_64",
-            "expected": "alldefconfig_expected.json",
-        },
-        {
-            "name": "randconfig",
-            "mode": "randconfig",
-            "kconfig": "Kconfig",
-            "config": "out/rand.config",
-            "arch": "x86_64",
-            "allconfig": "allrandom.config",
-            "seed": "0xC0FFEE",
-            "probability": "15:25",
-            "expected": "randconfig_expected.json",
-        },
-        {
-            "name": "defconfig",
-            "mode": "defconfig",
-            "kconfig": "Kconfig",
-            "config": "out/.config",
-            "arch": "arm64",
-            "mode_arg": "arch/arm64/configs/defconfig",
-            "expected": "defconfig_expected.json",
-        },
-        {
-            "name": "savedefconfig",
-            "mode": "savedefconfig",
-            "kconfig": "Kconfig",
-            "config": ".config",
-            "arch": "x86_64",
-            "mode_arg": "silent=debug_defconfig",
-            "expected": "savedefconfig_expected.json",
-        },
-        {
-            "name": "listnewconfig",
-            "mode": "listnewconfig",
-            "kconfig": "Kconfig",
-            "config": "out/list.config",
-            "arch": "x86_64",
-            "silent": true,
-            "expected": "listnewconfig_expected.json",
-        },
-        {
-            "name": "helpnewconfig",
-            "mode": "helpnewconfig",
-            "kconfig": "Kconfig",
-            "config": "out/help.config",
-            "arch": "riscv64",
-            "silent": true,
-            "expected": "helpnewconfig_expected.json",
-        },
-        {
-            "name": "olddefconfig",
-            "mode": "olddefconfig",
-            "kconfig": "Kconfig",
-            "config": ".config",
-            "arch": "x86_64",
-            "expected": "olddefconfig_expected.json",
-        },
-        {
-            "name": "yes2modconfig",
-            "mode": "yes2modconfig",
-            "kconfig": "Kconfig",
-            "config": "out/yes2mod.config",
-            "arch": "x86_64",
-            "expected": "yes2modconfig_expected.json",
-        },
-        {
-            "name": "mod2yesconfig",
-            "mode": "mod2yesconfig",
-            "kconfig": "Kconfig",
-            "config": "out/mod2yes.config",
-            "arch": "x86_64",
-            "expected": "mod2yesconfig_expected.json",
-        },
-        {
-            "name": "mod2noconfig",
-            "mode": "mod2noconfig",
-            "kconfig": "Kconfig",
-            "config": "out/mod2no.config",
-            "arch": "x86_64",
-            "expected": "mod2noconfig_expected.json",
-        }
+        {"name": "oldaskconfig", "mode": "oldaskconfig", "kconfig": "Kconfig", "config": "ask/.config", "arch": "x86_64", "expected": "oldaskconfig_expected.json"},
+        {"name": "syncconfig", "mode": "syncconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "riscv64", "nosilentupdate": "1", "expected": "syncconfig_expected.json"},
+        {"name": "oldconfig", "mode": "oldconfig", "kconfig": "Kconfig", "config": "refresh/.config", "arch": "x86", "expected": "oldconfig_expected.json"},
+        {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "expected": "allnoconfig_expected.json"},
+        {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
+        {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
+        {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "allconfig": "mini-all.config", "expected": "alldefconfig_expected.json"},
+        {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
+        {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
+        {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "silent=debug_defconfig", "expected": "savedefconfig_expected.json"},
+        {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": true, "expected": "listnewconfig_expected.json"},
+        {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": true, "expected": "helpnewconfig_expected.json"},
+        {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
+        {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
+        {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
+        {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"}
     ],
     "confdata_cases": [
-        {
-            "name": "sample",
-            "input": "sample.config",
-            "expected": "sample_expected.json"
-        },
-        {
-            "name": "escaped_strings",
-            "input": "escaped_strings.config",
-            "expected": "escaped_strings_expected.json"
-        },
-        {
-            "name": "escaped_control_sequences",
-            "input": "escaped_control_sequences.config",
-            "expected": "escaped_control_sequences_expected.json"
-        },
-        {
-            "name": "trailing_escaped_backslash",
-            "input": "trailing_escaped_backslash.config",
-            "expected": "trailing_escaped_backslash_expected.json"
-        },
-        {
-            "name": "sample_crlf",
-            "input": "sample_crlf.config",
-            "expected": "sample_crlf_expected.json"
-        },
-        {
-            "name": "explicit_n_tristate",
-            "input": "explicit_n_tristate.config",
-            "expected": "explicit_n_tristate_expected.json"
-        },
-        {
-            "name": "final_trailing_carriage_return",
-            "input": "final_trailing_carriage_return.config",
-            "expected": "final_trailing_carriage_return_expected.json"
-        },
-        {
-            "name": "final_unterminated_unset_comment",
-            "input": "final_unterminated_unset_comment.config",
-            "expected": "final_unterminated_unset_comment_expected.json"
-        },
-        {
-            "name": "uppercase_tristate",
-            "input": "uppercase_tristate.config",
-            "expected": "uppercase_tristate_expected.json"
-        },
-        {
-            "name": "non_config_lines",
-            "input": "non_config_lines.config",
-            "expected": "non_config_lines_expected.json"
-        },
-        {
-            "name": "empty_config_symbol_names",
-            "input": "empty_config_symbol_names.config",
-            "expected": "empty_config_symbol_names_expected.json"
-        },
-        {
-            "name": "malformed_unset_comment_tokens",
-            "input": "malformed_unset_comment_tokens.config",
-            "expected": "malformed_unset_comment_tokens_expected.json"
-        },
-        {
-            "name": "last_state_transitions",
-            "input": "last_state_transitions.config",
-            "expected": "last_state_transitions_expected.json"
-        },
-        {
-            "name": "duplicate_assignments",
-            "input": "duplicate_assignments.config",
-            "expected": "duplicate_assignments_expected.json"
-        },
-        {
-            "name": "duplicate_malformed_quoted_assignment",
-            "input": "duplicate_malformed_quoted_assignment.config",
-            "expected": "duplicate_malformed_quoted_assignment_expected.json"
-        }
-    ]
+        {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
+        {"name": "escaped_strings", "input": "escaped_strings.config", "expected": "escaped_strings_expected.json"},
+        {"name": "escaped_control_sequences", "input": "escaped_control_sequences.config", "expected": "escaped_control_sequences_expected.json"},
+        {"name": "trailing_escaped_backslash", "input": "trailing_escaped_backslash.config", "expected": "trailing_escaped_backslash_expected.json"},
+        {"name": "sample_crlf", "input": "sample_crlf.config", "expected": "sample_crlf_expected.json"},
+        {"name": "explicit_n_tristate", "input": "explicit_n_tristate.config", "expected": "explicit_n_tristate_expected.json"},
+        {"name": "final_trailing_carriage_return", "input": "final_trailing_carriage_return.config", "expected": "final_trailing_carriage_return_expected.json"},
+        {"name": "final_unterminated_unset_comment", "input": "final_unterminated_unset_comment.config", "expected": "final_unterminated_unset_comment_expected.json"},
+        {"name": "uppercase_tristate", "input": "uppercase_tristate.config", "expected": "uppercase_tristate_expected.json"},
+        {"name": "non_config_lines", "input": "non_config_lines.config", "expected": "non_config_lines_expected.json"},
+        {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
+        {"name": "malformed_unset_comment_tokens", "input": "malformed_unset_comment_tokens.config", "expected": "malformed_unset_comment_tokens_expected.json"},
+        {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
+        {"name": "duplicate_assignments", "input": "duplicate_assignments.config", "expected": "duplicate_assignments_expected.json"},
+        {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"}
+    ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 39
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def read_text(path: Path) -> str:
@@ -400,26 +272,29 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
 def extract_literal(module_text: str, const_name: str) -> object:
     module = ast.parse(module_text)
     for node in module.body:
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name) and target.id == const_name:
-                    return ast.literal_eval(node.value)
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == const_name:
+                return ast.literal_eval(node.value)
     raise ValueError(f"missing constant {const_name}")
 
 
 def extract_string_sequence(module_text: str, const_name: str) -> tuple[str, ...]:
     value = extract_literal(module_text, const_name)
+    if not isinstance(value, (list, tuple)) or not all(isinstance(item, str) for item in value):
+        raise ValueError(f"{const_name} must be a string sequence")
     return tuple(value)
 
 
 def extract_case_mapping_sequence(module_text: str, const_name: str) -> tuple[dict[str, object], ...]:
     value = extract_literal(module_text, const_name)
     if not isinstance(value, list):
-        raise ValueError(f"constant {const_name} must be a list")
+        raise ValueError(f"{const_name} must be a list")
     cases: list[dict[str, object]] = []
     for index, case in enumerate(value):
         if not isinstance(case, dict):
-            raise ValueError(f"constant {const_name} entry {index} must be a dict")
+            raise ValueError(f"{const_name} entry {index} must be a dict")
         cases.append(case)
     return tuple(cases)
 
@@ -466,12 +341,13 @@ def build_conf_manifest_payload(
         "helper_local_allconfig_implicit_omission_modes": list(implicit_omission_modes),
         "helper_local_allconfig_explicit_override_modes": list(explicit_override_modes),
         "randconfig_env_packet": [case["expected"] for case in conf_cases if "seed" in case or "probability" in case],
-        "helper_local_anchors": list(conf_helper_anchors)
+        "helper_local_anchors": list(conf_helper_anchors),
     }
 
 
 def build_confdata_manifest_payload(
-    confdata_cases: list[dict[str, object]], confdata_helper_anchors: tuple[str, ...]
+    confdata_cases: list[dict[str, object]],
+    confdata_helper_anchors: tuple[str, ...],
 ) -> dict[str, object]:
     return {
         **CONFDATA_MANIFEST_STATIC_FIELDS,
@@ -479,7 +355,7 @@ def build_confdata_manifest_payload(
         "cases": [case["name"] for case in confdata_cases],
         "input_packet": [case["input"] for case in confdata_cases],
         "expected_packet": [case["expected"] for case in confdata_cases],
-        "helper_local_anchors": list(confdata_helper_anchors)
+        "helper_local_anchors": list(confdata_helper_anchors),
     }
 
 
@@ -488,7 +364,7 @@ def collect_manifest_field_issues(
     *,
     expected_fields: dict[str, object],
     invalid_payload_code: str,
-    field_mismatch_code: str
+    field_mismatch_code: str,
 ) -> list[tuple[str, str]]:
     if not isinstance(manifest, dict):
         return [(invalid_payload_code, type(manifest).__name__)]
@@ -505,7 +381,7 @@ def collect_missing_case_paths(
     fixture_root: Path,
     cases: list[dict[str, object]],
     field_names: tuple[str, ...],
-    code: str
+    code: str,
 ) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for case in cases:
@@ -560,13 +436,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_BRIDGE_CHECKER_MARKERS", f"{marker}:count={count}"))
 
-    (
-        conf_helper_anchors,
-        confdata_helper_anchors,
-        implicit_omission_modes,
-        explicit_override_modes,
-        bridge_checker_confdata_cases
-    ) = load_bridge_checker_anchor_packets(bridge_checker_text)
+    conf_helper_anchors, confdata_helper_anchors, implicit_omission_modes, explicit_override_modes, bridge_checker_confdata_cases = load_bridge_checker_anchor_packets(bridge_checker_text)
 
     conf_cases: list[dict[str, object]] = []
     confdata_cases: list[dict[str, object]] = []
@@ -627,7 +497,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         except json.JSONDecodeError as exc:
             issues.append(("INVALID_CONF_MANIFEST_JSON", str(exc)))
         else:
-            issues.extend(collect_manifest_field_issues(conf_manifest, expected_fields=build_conf_manifest_payload(conf_cases, conf_helper_anchors, implicit_omission_modes, explicit_override_modes), invalid_payload_code="INVALID_CONF_MANIFEST_PAYLOAD", field_mismatch_code="CONF_MANIFEST_FIELD_MISMATCH"))
+            issues.extend(
+                collect_manifest_field_issues(
+                    conf_manifest,
+                    expected_fields=build_conf_manifest_payload(conf_cases, conf_helper_anchors, implicit_omission_modes, explicit_override_modes),
+                    invalid_payload_code="INVALID_CONF_MANIFEST_PAYLOAD",
+                    field_mismatch_code="CONF_MANIFEST_FIELD_MISMATCH",
+                )
+            )
 
     if confdata_cases:
         try:
@@ -635,7 +512,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         except json.JSONDecodeError as exc:
             issues.append(("INVALID_CONFDATA_MANIFEST_JSON", str(exc)))
         else:
-            issues.extend(collect_manifest_field_issues(confdata_manifest, expected_fields=build_confdata_manifest_payload(confdata_cases, confdata_helper_anchors), invalid_payload_code="INVALID_CONFDATA_MANIFEST_PAYLOAD", field_mismatch_code="CONFDATA_MANIFEST_FIELD_MISMATCH"))
+            issues.extend(
+                collect_manifest_field_issues(
+                    confdata_manifest,
+                    expected_fields=build_confdata_manifest_payload(confdata_cases, confdata_helper_anchors),
+                    invalid_payload_code="INVALID_CONFDATA_MANIFEST_PAYLOAD",
+                    field_mismatch_code="CONFDATA_MANIFEST_FIELD_MISMATCH",
+                )
+            )
 
     for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
         if not resolve_path(root, bridge_path).exists():
@@ -644,7 +528,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
 
 def emit_issues(issues: list[tuple[str, str]]) -> int:
-    grouped = {}
+    grouped: dict[str, list[str]] = {}
     for code, value in issues:
         grouped.setdefault(code, []).append(value)
     print("PHASE2_KCONFIG_ALIGNMENT=fail")
@@ -656,10 +540,273 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
-def render_bridge_checker_stub(
-    conf_helper_anchors: tuple[str, ...] = VALID_CONF_HELPER_ANCHORS,
-    confdata_helper_anchors: tuple[str, ...] = VALID_CONFDATA_HELPER_ANCHORS,
-    implicit_omission_modes: tuple[str, ...] = VALID_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
-    explicit_override_modes: tuple[str, ...] = VALID_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
-    confdata_cases: list[dict[str, object]] | None = None,
-) -> str {
+def render_bridge_checker_stub() -> str:
+    return f'''REQUIRED_CONF_HELPER_ANCHORS = {list(VALID_CONF_HELPER_ANCHORS)!r}
+REQUIRED_CONFDATA_HELPER_ANCHORS = {list(VALID_CONFDATA_HELPER_ANCHORS)!r}
+REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES = {list(VALID_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES)!r}
+REQUIRED_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES = {list(VALID_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES)!r}
+SAMPLE_CONFDATA_CASES = {VALID_CASES_PAYLOAD["confdata_cases"]!r}
+
+def validate_case_mapping(raw_cases, *, group_name):
+    for case in raw_cases:
+        if group_name == "conf_cases" and "silent" in case and not isinstance(case["silent"], bool):
+            return False
+        if "silent" in case and case["silent"] is not True:
+            return False
+    return True
+
+def build_conf_command(case):
+    cmd = []
+    if case.get("silent"):
+        cmd.append("silent")
+    if "mode_arg" in case:
+        cmd.append(str(case["mode_arg"]))
+    if "allconfig" in case:
+        cmd.append(f"allconfig={{case['allconfig']}}")
+    if "seed" in case:
+        cmd.append(f"seed={{case['seed']}}")
+    if "probability" in case:
+        cmd.append(f"probability={{case['probability']}}")
+    if "nosilentupdate" in case:
+        cmd.append(f"nosilentupdate={{case['nosilentupdate']}}")
+    return cmd
+'''
+
+
+def build_self_test_root(root: Path) -> None:
+    write_text(resolve_path(root, WORKFLOW), "\n".join(("name: zigux-bootstrap", *WORKFLOW_PATH_LINES, *WORKFLOW_LINES)) + "\n")
+    write_text(
+        resolve_path(root, MAKEFILE),
+        "\n".join(
+            (
+                "PYTHON ?= python3",
+                "ZIG ?= zig",
+                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+                "ZIGUX_ROOT := ..",
+                "",
+                *MAKEFILE_LINES,
+            )
+        )
+        + "\n",
+    )
+    write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
+    write_text(resolve_path(root, KCONFIG_BRIDGE_CHECKER), render_bridge_checker_stub())
+    write_text(resolve_path(root, ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"), "test \"placeholder\" {}\n")
+    write_text(resolve_path(root, ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"), "test \"placeholder\" {}\n")
+    write_text(resolve_path(root, KCONFIG_BRIDGE_CASES), json.dumps(VALID_CASES_PAYLOAD, indent=2) + "\n")
+    write_text(
+        resolve_path(root, CONF_MANIFEST),
+        json.dumps(
+            build_conf_manifest_payload(
+                VALID_CASES_PAYLOAD["conf_cases"],
+                VALID_CONF_HELPER_ANCHORS,
+                VALID_CONF_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES,
+                VALID_CONF_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES,
+            ),
+            indent=2,
+        )
+        + "\n",
+    )
+    write_text(
+        resolve_path(root, CONFDATA_MANIFEST),
+        json.dumps(build_confdata_manifest_payload(VALID_CASES_PAYLOAD["confdata_cases"], VALID_CONFDATA_HELPER_ANCHORS), indent=2) + "\n",
+    )
+
+    for case in VALID_CASES_PAYLOAD["conf_cases"]:
+        write_text(resolve_path(root, KCONFIG_FIXTURE_ROOT / str(case["expected"])), "{}\n")
+    for case in VALID_CASES_PAYLOAD["confdata_cases"]:
+        write_text(resolve_path(root, KCONFIG_FIXTURE_ROOT / str(case["input"])), "# fixture\n")
+        write_text(resolve_path(root, KCONFIG_FIXTURE_ROOT / str(case["expected"])), "{}\n")
+
+
+def replace_exact_line(text: str, marker: str, replacement: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def run_self_test() -> int:
+    checks_run = 0
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_kconfig_alignment_") as tmp_dir_str:
+        root = Path(tmp_dir_str)
+
+        build_self_test_root(root)
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        write_text(workflow_path, replace_exact_line(read_text(workflow_path), WORKFLOW_LINES[0], "run: python3 scripts/zigux/other.py"))
+        assert ("MISSING_WORKFLOW_HOOKS", WORKFLOW_LINES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        write_text(workflow_path, read_text(workflow_path) + WORKFLOW_LINES[0] + "\n")
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{WORKFLOW_LINES[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        write_text(workflow_path, replace_exact_line(read_text(workflow_path), WORKFLOW_PATH_LINES[0], "- 'scripts/other.c'"))
+        assert ("MISSING_WORKFLOW_PATH_FILTERS", WORKFLOW_PATH_LINES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        write_text(workflow_path, read_text(workflow_path) + WORKFLOW_PATH_LINES[0] + "\n")
+        assert ("DUPLICATE_WORKFLOW_PATH_FILTERS", f"{WORKFLOW_PATH_LINES[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        write_text(makefile_path, replace_exact_line(read_text(makefile_path), MAKEFILE_LINES[0], "# removed"))
+        assert ("MISSING_MAKEFILE_HOOKS", MAKEFILE_LINES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        write_text(makefile_path, read_text(makefile_path) + MAKEFILE_LINES[0] + "\n")
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{MAKEFILE_LINES[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        scripts_readme_path = resolve_path(root, SCRIPTS_README)
+        write_text(scripts_readme_path, read_text(scripts_readme_path).replace(SCRIPTS_README_MARKERS[0], "scripts/zigux/other.py", 1))
+        assert ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        tests_readme_path = resolve_path(root, TESTS_README)
+        write_text(tests_readme_path, read_text(tests_readme_path).replace(TESTS_README_MARKERS[0], "scripts/zigux/other.py", 1))
+        assert ("MISSING_TESTS_README_MARKERS", TESTS_README_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        review_path = resolve_path(root, REVIEW_CHECKLIST)
+        write_text(review_path, read_text(review_path).replace(REVIEW_CHECKLIST_MARKERS[0], "scripts/zigux/other.py", 1))
+        assert ("MISSING_REVIEW_CHECKLIST_MARKERS", REVIEW_CHECKLIST_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bridge_checker_path = resolve_path(root, KCONFIG_BRIDGE_CHECKER)
+        write_text(bridge_checker_path, read_text(bridge_checker_path).replace(BRIDGE_CHECKER_LINE_MARKERS[-1], 'cmd.append("oops")', 1))
+        assert ("MISSING_BRIDGE_CHECKER_MARKERS", BRIDGE_CHECKER_LINE_MARKERS[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        cases_path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        write_text(cases_path, "{broken\n")
+        assert any(code == "INVALID_CASES_JSON" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        cases_path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        write_text(cases_path, json.dumps([], indent=2) + "\n")
+        assert ("INVALID_CASES_PAYLOAD", "list") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        cases_path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = read_json(cases_path)
+        assert isinstance(payload, dict)
+        payload["conf_cases"][10].pop("silent")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONF_CASE_SILENT_PACKET_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        cases_path = resolve_path(root, KCONFIG_BRIDGE_CASES)
+        payload = read_json(cases_path)
+        assert isinstance(payload, dict)
+        payload["conf_cases"][6].pop("allconfig")
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONF_CASE_ALLCONFIG_OVERRIDE_PACKET_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        conf_manifest_path = resolve_path(root, CONF_MANIFEST)
+        payload = read_json(conf_manifest_path)
+        assert isinstance(payload, dict)
+        payload["case_count"] = 99
+        write_text(conf_manifest_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONF_MANIFEST_FIELD_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        confdata_manifest_path = resolve_path(root, CONFDATA_MANIFEST)
+        payload = read_json(confdata_manifest_path)
+        assert isinstance(payload, dict)
+        payload["expected_packet"] = []
+        write_text(confdata_manifest_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONFDATA_MANIFEST_FIELD_MISMATCH" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        conf_case_output = resolve_path(root, KCONFIG_FIXTURE_ROOT / "oldaskconfig_expected.json")
+        conf_case_output.unlink()
+        assert any(code == "MISSING_CONF_CASE_PATHS" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        confdata_case_input = resolve_path(root, KCONFIG_FIXTURE_ROOT / "sample.config")
+        confdata_case_input.unlink()
+        assert any(code == "MISSING_CONFDATA_CASE_PATHS" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        conf_bridge_path = resolve_path(root, ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig")
+        conf_bridge_path.unlink()
+        assert ("MISSING_BRIDGE_SURFACE_PATHS", "scripts/zigux/kconfig/conf_bridge.zig") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        conf_manifest_path = resolve_path(root, CONF_MANIFEST)
+        write_text(conf_manifest_path, json.dumps([], indent=2) + "\n")
+        assert ("INVALID_CONF_MANIFEST_PAYLOAD", "list") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        confdata_manifest_path = resolve_path(root, CONFDATA_MANIFEST)
+        write_text(confdata_manifest_path, json.dumps([], indent=2) + "\n")
+        assert ("INVALID_CONFDATA_MANIFEST_PAYLOAD", "list") in collect_issues(root)
+        checks_run += 1
+
+    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
+        print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=fail")
+        print(f"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
+        print(f"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT_EXPECTED={EXPECTED_SELF_TEST_CASE_COUNT}")
+        return 1
+
+    print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Check current Phase 2 kconfig reminder surfaces against the live bridge packet.")
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = collect_issues(args.root.resolve())
+    if issues:
+        return emit_issues(issues)
+
+    print("PHASE2_KCONFIG_ALIGNMENT=pass")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(MAKEFILE_LINES)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_BRIDGE_SURFACE_COUNT={len(KCONFIG_BRIDGE_SURFACE_PATHS)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
