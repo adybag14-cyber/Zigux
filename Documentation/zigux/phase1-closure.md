@@ -43,6 +43,10 @@ For `tools/lib/bitmap.zig`, current `master` still justifies a parked helper-loc
 
 This helper should only reopen if a fresh reread finds drift in those direct anchors or in the committed shared bitmap parity fields carried by `zigux/tests/phase1_helpers.zig` and `zigux/tests/fixtures/phase1_helper_manifest.json`; do not widen this helper-local reminder into older closure-side validator names by default.
 
+For `tools/lib/find_bit.zig`, current `master` still justifies a parked helper-local follow-up rather than a reopened closure pass. The shipped direct anchors already cover same-word start-mask scans, head-word and tail-word inclusive-boundary starts, single-word tail inclusive-boundary reachability, zero-window and past-`nbits` short-circuit behavior, tail-word set, zero, and shared-bit skip behavior, byte-aligned `clump8` forward-skip behavior, final-word last-aligned-byte isolation for both `clump8` and `getValue8()`, `findLastBit()` tail clamping, and the public, Linux-style, and underscore alias surfaces including the shipped `andnot` scan entry points.
+
+This helper should only reopen if a fresh reread finds drift in those direct anchors or in the committed shared find-bit parity fields carried by `zigux/tests/phase1_helpers.zig` and `zigux/tests/fixtures/phase1_helper_manifest.json`; do not widen this helper-local reminder into older closure-side validator names by default.
+
 ## Broader Closure Companions
 
 The older validator-first and replay-side closure companions remain broader closure-stack references rather than active current reminder-packet proof.
