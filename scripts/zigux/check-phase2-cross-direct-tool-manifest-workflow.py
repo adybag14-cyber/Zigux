@@ -62,6 +62,11 @@ def line_index_map(text: str, markers: tuple[str, ...]) -> dict[str, int]:
     return indices
 
 
+def ordered_marker_sequence(text: str, markers: tuple[str, ...]) -> list[str]:
+    marker_set = set(markers)
+    return [line.strip() for line in text.splitlines() if line.strip() in marker_set]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for path in REQUIRED_PATHS:
@@ -91,10 +96,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         return issues
 
     index_map = line_index_map(workflow_text, required_lines)
-    cross_index = index_map[CROSS_ROUTE]
-    shared_surface_index = index_map[SHARED_SURFACE_START]
-    validate_index = index_map[VALIDATE_ROUTE]
-    tool_manifest_positions = [index_map[line] for line in TOOL_MANIFEST_WORKFLOW_LINES]
+    ordered_markers = ordered_marker_sequence(workflow_text, required_lines)
+    cross_index = ordered_markers.index(CROSS_ROUTE)
+    shared_surface_index = ordered_markers.index(SHARED_SURFACE_START)
+    validate_index = ordered_markers.index(VALIDATE_ROUTE)
+    tool_manifest_positions = [ordered_markers.index(line) for line in TOOL_MANIFEST_WORKFLOW_LINES]
 
     if tool_manifest_positions != sorted(tool_manifest_positions):
         issues.append(("INVALID_TOOL_MANIFEST_BLOCK_ORDER", ",".join(TOOL_MANIFEST_WORKFLOW_LINES)))
