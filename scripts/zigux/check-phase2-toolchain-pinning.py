@@ -23,7 +23,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-ARCHIVE_DIGEST = "3" * 64
+ARCHIVE_DIGEST = "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"
 
 WORKFLOW_SETUP = (
     "- name: Setup pinned Zig toolchain",
