@@ -54,40 +54,45 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = {
     COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
-        "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
-        "The active shared build packet is the returned five-file `virtio_net` quintet only:",
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`",
+        "shared replay wiring: `zigux/tests/phase12_build.zig` and `.github/workflows/zigux-bootstrap.yml`; `zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on `master`",
+        "The active shared build packet is the returned six-file `virtio_net` sextet only:",
         "`zigux/tests/phase12_virtio_net_queue_resume.zig`",
         "`zigux/tests/phase12_virtio_net_receive_refill_replay.zig`",
         "`zigux/tests/phase12_virtio_net_transmit_recycle.zig`",
         "`zigux/tests/phase12_virtio_net_post_reset_replay.zig`",
         "`zigux/tests/phase12_virtio_net_throughput_parity.zig`",
-        "commit-pinned direct replay catalog:",
-        "driver-local current-master gap inventory companion:",
-        "shared-tree-only anchors:",
-        "If `zig` is unavailable on `PATH`, keep the shipped degraded-workflow bundle plus that same validator-first then smoke-first order explicit, first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
+        "`zigux/tests/phase12_virtio_net_survey.zig`",
+        "`zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py` while keeping that storage-facing rollback-evidence packet and its dedicated survey-build rerun outside the shared `smoke` and `test` build route.",
+        "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and `scripts/zigux/validate-phase12.py` while also shipping the `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper set.",
     ],
     RELEASE_SEQUENCING_PATH: [
-        "Current repo-reality override: `zigux/Makefile` still omits `phase12-validate` on current `master`, but it now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` wrappers again.",
-        "readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "Current repo-reality override: the route story on current `master` is now fully returned rather than split. `zigux/Makefile` now exposes shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrappers again",
+        "The active smoke-first direct shard set on current `master` is `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig`",
+        "keep the shipped `make -C zigux phase12-validate` wrapper explicit ahead of the attached-Zig reruns",
     ],
     RELEASE_READINESS_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "That means the PMO release notes can treat `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again, while `make -C zigux phase12-validate` must stay reminder-only text until same-lane work rematerializes that wrapper.",
+        "The route story on current `master` is now fully returned rather than split: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again.",
+        "That means the PMO release notes can treat `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again",
     ],
     RELEASE_CLOSURE_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "The shared build-and-make replay path stays visible through `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`, while current `zigux/Makefile` now keeps `phase12-smoke`, `phase12-test`, and `phase12` explicit as shipped wrapper evidence and still omits `phase12-validate`.",
+        "The shared build-and-make replay path stays visible through `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`, while current `zigux/Makefile` now keeps `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` explicit as shipped wrapper evidence.",
+        "The active shared build packet on current `master` is the six-file `virtio_net` follow-up sextet wired through `zigux/tests/phase12_build.zig`",
     ],
     RAW_GITHUB_COVERAGE_PATH: [
-        "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
         "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, the contents-bridge-backed build-only anchor pair, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
+        "the directly readable `zigux/Makefile` blob `4d572bfda15dc6ae7cd419cc4c7f858d973cda26` still prefers the repo-local `.zig-toolchain` executable",
+        "before rerunning `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`.",
     ],
     COMPLEX_DRIVER_LANE_PATH: [
-        "Keep the shared validator-first then smoke-first packet wording explicit: current `zigux/Makefile` now ships `phase12-smoke`, `phase12-test`, and `phase12` again, while `phase12-validate` is still absent",
+        "Keep the shared validator-first then smoke-first packet wording explicit: current `zigux/Makefile` now ships `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`",
+        "The readable build file currently wires `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig`, and `zigux/tests/phase12_virtio_net_survey.zig` through the shared `smoke` and `test` steps",
     ],
     LIBBPF_LANE_PATH: [
-        "Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`",
+        "Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on current `master`",
+        "The shipped heavy-consumer guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the parked helper-first packet fail-closed beside the snapshot checker and shared validator entrypoint",
     ],
     FREEZE_MAP_PATH: [
         "- `net/core/skbuff.c`",
@@ -95,9 +100,10 @@ REQUIRED_MARKERS = {
         "- `kernel/trace/ring_buffer.c`",
     ],
     MAKEFILE_PATH: [
+        "phase12-validate:",
         "phase12-smoke:",
         "phase12-test:",
-        "phase12: phase12-smoke phase12-test",
+        "phase12: phase12-validate phase12-smoke phase12-test",
     ],
     PHASE12_BUILD_PATH: [
         "\"phase12_virtio_net_queue_resume.zig\"",
@@ -105,6 +111,20 @@ REQUIRED_MARKERS = {
         "\"phase12_virtio_net_transmit_recycle.zig\"",
         "\"phase12_virtio_net_post_reset_replay.zig\"",
         "\"phase12_virtio_net_throughput_parity.zig\"",
+        "\"phase12_virtio_net_survey.zig\"",
+        "\"phase12-virtio-net-survey-tests\"",
+        "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
+        "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
+        "smoke_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);",
+        "smoke_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);",
+        "smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
+        "smoke_step.dependOn(&run_virtio_net_survey_tests.step);",
+        "test_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
+        "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
+        "test_step.dependOn(&run_virtio_net_receive_refill_replay_tests.step);",
+        "test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);",
+        "test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);",
+        "test_step.dependOn(&run_virtio_net_survey_tests.step);",
     ],
     WORKFLOW_PATH: [
         "- name: Self-test current Phase 12 build-only surface checker",
@@ -123,9 +143,13 @@ REQUIRED_MARKERS = {
 }
 
 FORBIDDEN_MARKERS = {
+    COORDINATION_MATRIX_PATH: [
+        "reminder-only wrapper name `make -C zigux phase12-validate`",
+        "still omitting `phase12-validate`",
+        "returned five-file `virtio_net` quintet",
+    ],
     MAKEFILE_PATH: [
-        "phase12-validate:",
-        "phase12: phase12-validate phase12-smoke phase12-test",
+        "phase12: phase12-smoke phase12-test",
     ],
 }
 
@@ -181,15 +205,9 @@ def fixture_text(rel_path: str) -> str:
             COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex Driver Lane Sequencing",
             LIBBPF_LANE_PATH: "# Phase 12 Libbpf Heavy Consumer Lane Sequencing",
             FREEZE_MAP_PATH: "# Zigux Freeze Map",
-            MAKEFILE_PATH: "# Makefile",
-            PHASE12_BUILD_PATH: "# phase12_build",
             WORKFLOW_PATH: "name: zigux-bootstrap",
         }.get(rel_path, "# Fixture")
-        if rel_path == WORKFLOW_PATH:
-            return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
-        if rel_path == MAKEFILE_PATH:
-            return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
-        if rel_path == PHASE12_BUILD_PATH:
+        if rel_path in {MAKEFILE_PATH, PHASE12_BUILD_PATH, WORKFLOW_PATH}:
             return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
         return marker_fixture(title, REQUIRED_MARKERS[rel_path])
     if rel_path.endswith(".py"):
@@ -273,7 +291,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 release coordination matrix against the "
-            "shared PMO packet, shipped smoke-and-test wrapper split, and bounded "
+            "shared PMO packet, returned validator-first wrapper set, and bounded "
             "driver-family coordination wording."
         )
     )
