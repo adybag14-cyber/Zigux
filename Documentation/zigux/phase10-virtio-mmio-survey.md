@@ -18,6 +18,8 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
   - `Documentation/zigux/phase10-virtio-mmio-survey.md`
   - `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`
   - `Documentation/zigux/phase10-virtio-mmio-slice.md`
+  - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+  - `zigux/tests/README.md`
   - `zigux/tests/phase10_virtio_mmio_survey.zig`
   - `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`
   - `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`
@@ -43,6 +45,7 @@ This survey exists to make that current helper packet explicit and reviewable on
 - the helper-local tests inside `drivers/virtio/virtio_mmio.zig` cover zero-valued known feature words, shared-versus-mismatched feature bits, interrupt-ack disposition accounting, stale-plan invalidation after a config-generation bump, stale-plan invalidation after config-byte restaging, explicit plan-freshness availability classes, legacy guest-page-size probe gating, and non-mutating config-write disposition reporting.
 - `zigux/tests/phase10_virtio_mmio.zig` now gives the MMIO survey packet one dedicated MMIO lab replay for probe gating, queue readiness, interrupt-ack disposition, feature negotiation, config-write plan freshness, and config-write disposition below risky transport claims.
 - `zigux/tests/phase10_virtio_mmio_manifest.json` keeps the helper-local MMIO lab gate, dedicated apply-observation replay, dedicated survey gate, and blocked risky-transport posture explicit beside the helper and verify replay.
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` and `zigux/tests/README.md` remain the next shared reminder surfaces to realign: fresh current-`master` reread still omits `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig` there even though this survey note, the MMIO manifest, and the shared closure packet already keep that dedicated VM-friendly replay explicit.
 - `Documentation/zigux/phase10-virtio-mmio-slice.md` remains the packet-local slice companion for the broader MMIO wrapper ladder and should stay aligned with this survey note, the config-write companion, the manifest, and the dedicated survey gate.
 - `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig` now gives the MMIO lane one dedicated apply-observation replay that keeps changed-byte coverage, no-op planning, and stale-plan rejection explicit beside the helper-local MMIO lab replay without widening into transport-backed execution.
 - `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig` now gives that dedicated apply-observation replay a standalone build shard so the wrapper-local observation packet can be rerun without widening into the broader shared Phase 10 build graph.
@@ -80,4 +83,4 @@ Current `master` keeps this MMIO lane reviewable through these bounded surfaces:
 These gates should be read as helper-local review evidence, direct lab-driver validation, and shared packet reminders only, not as proof of a transport-backed MMIO driver or a dedicated MMIO lifecycle replay.
 
 ## Next bounded step
-Keep the broader Phase 10 MMIO lane parked unless fresh repo inspection finds one directly coupled follow-through. The next honest same-lane step is one additional checker-backed packet-local or shared reminder surface repair around the already-landed MMIO helper packet while lifecycle-and-IRQ transport work stays blocked.
+Keep the broader Phase 10 MMIO lane parked unless fresh repo inspection finds one directly coupled follow-through. The next honest same-lane step is to realign `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` and `zigux/tests/README.md` with the already-landed `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig` packet while lifecycle-and-IRQ transport work stays blocked.
