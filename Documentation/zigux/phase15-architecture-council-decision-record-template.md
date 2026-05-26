@@ -9,7 +9,7 @@ This is a review packet template, not approval by itself.
 - `DECISION_RECORD_ID=<replace-with-stable-id>`
 - decision record ID:
 - `PHASE=Phase 15`
-- `LANE_KEY=P15-L08`
+- `LANE_KEY=<replace-with-lane-key>`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`
 - exact-head provenance exception note:
