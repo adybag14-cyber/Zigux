@@ -78,6 +78,42 @@ REQUIRED_CONFDATA_CASES = [
     "duplicate_malformed_quoted_assignment",
 ]
 
+REQUIRED_CONFDATA_INPUT_PACKET = [
+    "sample.config",
+    "escaped_strings.config",
+    "escaped_control_sequences.config",
+    "trailing_escaped_backslash.config",
+    "sample_crlf.config",
+    "explicit_n_tristate.config",
+    "final_trailing_carriage_return.config",
+    "final_unterminated_unset_comment.config",
+    "uppercase_tristate.config",
+    "non_config_lines.config",
+    "empty_config_symbol_names.config",
+    "malformed_unset_comment_tokens.config",
+    "last_state_transitions.config",
+    "duplicate_assignments.config",
+    "duplicate_malformed_quoted_assignment.config",
+]
+
+REQUIRED_CONFDATA_EXPECTED_PACKET = [
+    "sample_expected.json",
+    "escaped_strings_expected.json",
+    "escaped_control_sequences_expected.json",
+    "trailing_escaped_backslash_expected.json",
+    "sample_crlf_expected.json",
+    "explicit_n_tristate_expected.json",
+    "final_trailing_carriage_return_expected.json",
+    "final_unterminated_unset_comment_expected.json",
+    "uppercase_tristate_expected.json",
+    "non_config_lines_expected.json",
+    "empty_config_symbol_names_expected.json",
+    "malformed_unset_comment_tokens_expected.json",
+    "last_state_transitions_expected.json",
+    "duplicate_assignments_expected.json",
+    "duplicate_malformed_quoted_assignment_expected.json",
+]
+
 REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge parses bounded config states",
     "confdata bridge emits bounded json output",
@@ -168,7 +204,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+EXPECTED_SELF_TEST_CASE_COUNT = 27
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
@@ -358,11 +394,18 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     if manifest_modes != expected_mode_order:
         issues.append(("CONF_CASE_MODE_ORDER_ACTUAL", ",".join(manifest_modes)))
         issues.append(("CONF_CASE_MODE_ORDER_EXPECTED", ",".join(expected_mode_order)))
-    confdata_case_names = [str(case["name"])
- for case in confdata_cases]
+    confdata_case_names = [str(case["name"]) for case in confdata_cases]
     if confdata_case_names != REQUIRED_CONFDATA_CASES:
         issues.append(("CONFDATA_CASE_ORDER_ACTUAL", ",".join(confdata_case_names)))
         issues.append(("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)))
+    confdata_input_packet = [str(case["input"]) for case in confdata_cases]
+    if confdata_input_packet != REQUIRED_CONFDATA_INPUT_PACKET:
+        issues.append(("CONFDATA_INPUT_PACKET_ACTUAL", ",".join(confdata_input_packet)))
+        issues.append(("CONFDATA_INPUT_PACKET_EXPECTED", ",".join(REQUIRED_CONFDATA_INPUT_PACKET)))
+    confdata_expected_packet = [str(case["expected"]) for case in confdata_cases]
+    if confdata_expected_packet != REQUIRED_CONFDATA_EXPECTED_PACKET:
+        issues.append(("CONFDATA_EXPECTED_PACKET_ACTUAL", ",".join(confdata_expected_packet)))
+        issues.append(("CONFDATA_EXPECTED_PACKET_EXPECTED", ",".join(REQUIRED_CONFDATA_EXPECTED_PACKET)))
     seen_names: set[str] = set()
     for case in [*conf_cases, *confdata_cases]:
         name = str(case["name"])
@@ -617,6 +660,20 @@ def run_self_test() -> int:
         payload["confdata_cases"][0]["name"] = "drifted"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         assert any(code == "CONFDATA_CASE_ORDER_ACTUAL" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][0]["input"] = "drifted.config"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONFDATA_INPUT_PACKET_ACTUAL" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][0]["expected"] = "drifted_expected.json"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "CONFDATA_EXPECTED_PACKET_ACTUAL" for code, _ in collect_manifest_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
