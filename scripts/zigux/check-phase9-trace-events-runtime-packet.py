@@ -51,7 +51,7 @@ FILE_MARKERS: dict[str, list[str]] = {
         "`scripts/zigux/check-phase9-trace-events-summary-preservation.py`",
         "The shared runtime-loader allocator/init-flow and command/environment boundary packet now survives as a narrower direct-readback shared-owner surface",
         "`phase9-runtime-loader-shared-tests`",
-        "current `master` therefore supports a partial runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet",
+        "the bitmap side keeps a broader direct packet on trusted rereads, so current `master` supports a bounded runtime bitmap reminder packet plus the returned shared allocator/init-flow and command/environment boundary packet",
     ],
     SURVEY_NOTE_PATH: [
         "`samples/zigux/runtime_trace_events.zig`",
