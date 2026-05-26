@@ -235,6 +235,19 @@ test "LoadPlan keeps blocked registration-summary surfaces out of the shared req
     }
 }
 
+test "LoadPlan keeps blocked initcall metadata surfaces out of the shared request contract" {
+    const blocked_initcall_fields = [_][]const u8{
+        "module_init",
+        "module_exit",
+        "initcall",
+        "exitcall",
+    };
+
+    inline for (blocked_initcall_fields) |field| {
+        try std.testing.expect(!@hasField(LoadPlan, field));
+    }
+}
+
 test "LoadPlan keeps blocked publication and depmod surfaces out of the shared request contract" {
     const blocked_publication_fields = [_][]const u8{
         "modinfo",
