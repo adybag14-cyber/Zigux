@@ -61,7 +61,7 @@ BRIDGE_CHECKER_HELPER_ANCHORS_CONST = "REQUIRED_CONF_HELPER_ANCHORS"
 
 SELF_TEST_IMPLICIT_MODES = ["allmodconfig", "randconfig"]
 SELF_TEST_EXPLICIT_MODES = ["allmodconfig", "allnoconfig", "allyesconfig", "alldefconfig", "randconfig"]
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(path: Path) -> str:
@@ -339,6 +339,25 @@ def run_self_test() -> int:
         phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
         write_text(phase2_closure_validate_path, REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[1] + "\n")
         assert ("MISSING_PHASE2_CLOSURE_VALIDATE_MARKER", REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        phase2_closure_validate_path = root / PHASE2_CLOSURE_VALIDATE.relative_to(ROOT)
+        write_text(
+            phase2_closure_validate_path,
+            "\n".join(
+                (
+                    REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0],
+                    REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0],
+                    *REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[1:],
+                )
+            )
+            + "\n",
+        )
+        assert (
+            "DUPLICATE_PHASE2_CLOSURE_VALIDATE_MARKER",
+            REQUIRED_PHASE2_CLOSURE_VALIDATE_MARKERS[0] + ":count=2",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
