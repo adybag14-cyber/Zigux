@@ -18,6 +18,17 @@ pub const ResetTeardownSummary = struct {
     selected_queue_cleared: bool,
     config_generation_advanced: bool,
 };
+pub const DriverReadinessReviewSummary = struct {
+    anchor: []const u8,
+    status_bits_ready: bool,
+    lifecycle_ready: bool,
+    queue_selected: bool,
+    queue_selected_valid: bool,
+    needs_reset: bool,
+    failed: bool,
+    blocker: ?DriverLifecycleBlocker,
+    config_generation: u8,
+};
 
 pub fn summarizeLifecycleGuard(core: *const virtio_core.VirtioCoreLab) LifecycleGuardSummary {
     return core.lifecycleGuardSummary();
@@ -25,6 +36,22 @@ pub fn summarizeLifecycleGuard(core: *const virtio_core.VirtioCoreLab) Lifecycle
 
 pub fn summarizeDriverModel(core: *const virtio_core.VirtioCoreLab) DriverModelSummary {
     return core.driverModelSummary();
+}
+
+pub fn summarizeDriverReadinessReview(core: *const virtio_core.VirtioCoreLab) DriverReadinessReviewSummary {
+    const status = core.statusSummary();
+    const guard = core.lifecycleGuardSummary();
+    return .{
+        .anchor = guard.anchor,
+        .status_bits_ready = status.driver_ready,
+        .lifecycle_ready = guard.driver_ready,
+        .queue_selected = guard.queue_selected,
+        .queue_selected_valid = guard.queue_selected_valid,
+        .needs_reset = guard.needs_reset,
+        .failed = guard.failed,
+        .blocker = guard.blocker,
+        .config_generation = guard.config_generation,
+    };
 }
 
 pub fn summarizeQueueBookkeeping(core: *const virtio_core.VirtioCoreLab) QueueBookkeepingSummary {
@@ -95,6 +122,50 @@ test "phase10 virtio core verify keeps lifecycle checkpoints explicit" {
     try std.testing.expect(guard.driver_ready);
     try std.testing.expect(model.driver_ready);
     try std.testing.expectEqualStrings("driver_ready", stageTag(model.stage));
+}
+
+test "phase10 virtio core verify keeps status-bit readiness separate from queue-gated lifecycle readiness" {
+    var core = try virtio_core.VirtioCoreLab.init(0x1045, 2);
+    core.setStatusBits(virtio_core.status_acknowledge | virtio_core.status_driver);
+    core.noteFeaturesNegotiated();
+    core.setStatusBits(virtio_core.status_driver_ok);
+
+    var summary = summarizeDriverReadinessReview(&core);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(summary.status_bits_ready);
+    try std.testing.expect(!summary.lifecycle_ready);
+    try std.testing.expect(!summary.queue_selected);
+    try std.testing.expect(!summary.queue_selected_valid);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .queue_selection_missing), summary.blocker);
+    try std.testing.expectEqual(@as(u8, 0), summary.config_generation);
+
+    _ = try core.selectQueue(1);
+    summary = summarizeDriverReadinessReview(&core);
+    try std.testing.expect(summary.status_bits_ready);
+    try std.testing.expect(summary.lifecycle_ready);
+    try std.testing.expect(summary.queue_selected);
+    try std.testing.expect(summary.queue_selected_valid);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, null), summary.blocker);
+}
+
+test "phase10 virtio core verify keeps readiness review blocked when reset becomes required" {
+    var core = try virtio_core.VirtioCoreLab.init(0x1046, 1);
+    core.setStatusBits(virtio_core.status_acknowledge | virtio_core.status_driver);
+    core.noteFeaturesNegotiated();
+    _ = try core.selectQueue(0);
+    core.setStatusBits(virtio_core.status_driver_ok);
+
+    var summary = summarizeDriverReadinessReview(&core);
+    try std.testing.expect(summary.status_bits_ready);
+    try std.testing.expect(summary.lifecycle_ready);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, null), summary.blocker);
+
+    core.setStatusBits(virtio_core.status_device_needs_reset);
+    summary = summarizeDriverReadinessReview(&core);
+    try std.testing.expect(!summary.status_bits_ready);
+    try std.testing.expect(!summary.lifecycle_ready);
+    try std.testing.expect(summary.needs_reset);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_needs_reset), summary.blocker);
 }
 
 test "phase10 virtio core verify keeps reset replay below transport lifecycle claims" {
