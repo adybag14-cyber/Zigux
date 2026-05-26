@@ -33,7 +33,7 @@ SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
     "`.github/workflows/zigux-bootstrap.yml`",
     "- `drivers/tty/hvc/hvc_console_verify.zig`",
-    "returned `drivers/tty/hvc/hvc_console_verify.zig` source plus",
+    "helper-local remove, notifier, sysrq fallback, and cleanup-trigger edges",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`Documentation/zigux/phase11-hvc-console-slice.md`",
@@ -54,7 +54,8 @@ SURVEY_FORBIDDEN_MARKERS = (
 
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
-    "`drivers/tty/hvc/hvc_console_verify.zig` and the verify boundary note stay explicit",
+    "`drivers/tty/hvc/hvc_console_verify.zig`",
+    "helper-local failure-mode",
     "`zigux/tests/phase11_hvc_console_manifest.json`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
@@ -96,7 +97,8 @@ MATRIX_MARKERS = (
     "`hvc_kick()` wakeup-cue",
     "notifier-irq",
     "modem-control helper summaries reviewable on current `master`",
-    "`drivers/tty/hvc/hvc_console_verify.zig` keeps helper-local remove, notifier, sysrq fallback, and cleanup-trigger summaries reviewable on current `master`.",
+    "helper-local remove, notifier,",
+    "sysrq fallback, and cleanup-trigger summaries reviewable on current `master`.",
 )
 
 MATRIX_FORBIDDEN_MARKERS = (
