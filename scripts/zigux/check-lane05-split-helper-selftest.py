@@ -16,10 +16,14 @@ EXPECTED_ARCHIVE_SIZES = {
 
 HELPER_MARKERS = (
     'TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")',
-    "DEFAULT_CHUNK_BYTES = 786_432",
+    "DEFAULT_CHUNK_BYTES = 1_048_576",
     '    "x86_64-linux": 58_159_088,',
     'with tempfile.TemporaryDirectory(prefix="split_archive_pass_") as tmp_dir:',
+    'with tempfile.TemporaryDirectory(prefix="split_archive_default_chunk_size_") as tmp_dir:',
     'assert part_count == math.ceil(len(payload) / 1024)',
+    'assert part_count == 56',
+    'assert manifest["chunk_bytes"] == DEFAULT_CHUNK_BYTES',
+    'assert manifest["part_count"] == 56',
     'assert (root / "rebuilt.tar.xz").read_bytes() == payload',
     "expect_split_failure(",
     '"output directory must be empty"',
@@ -39,6 +43,8 @@ EXACT_ONCE_MARKERS = (
 )
 
 ORDERED_MARKERS = (
+    ('with tempfile.TemporaryDirectory(prefix="split_archive_pass_") as tmp_dir:', 'with tempfile.TemporaryDirectory(prefix="split_archive_default_chunk_size_") as tmp_dir:'),
+    ('assert part_count == math.ceil(len(payload) / 1024)', 'assert part_count == 56'),
     ('"chunk_bytes must be positive"', '"missing expected shard"'),
     ('"missing expected shard"', '"expected invalid base64 failure"'),
     ('"expected invalid base64 failure"', '"expected sha mismatch failure"'),
@@ -193,7 +199,7 @@ def write_sample_root(root: Path) -> None:
         "\n".join(
             (
                 'TOOLCHAIN_POLICY = Path("scripts/zigux/zig-toolchain-policy.json")',
-                "DEFAULT_CHUNK_BYTES = 786_432",
+                "DEFAULT_CHUNK_BYTES = 1_048_576",
                 "EXPECTED_ARCHIVE_SIZES = {",
                 '    "x86_64-linux": 58_159_088,',
                 "}",
@@ -203,6 +209,10 @@ def write_sample_root(root: Path) -> None:
                 '        write_policy(root, expected_sha, len(payload))',
                 "        assert part_count == math.ceil(len(payload) / 1024)",
                 '        assert (root / "rebuilt.tar.xz").read_bytes() == payload',
+                '    with tempfile.TemporaryDirectory(prefix="split_archive_default_chunk_size_") as tmp_dir:',
+                '        assert part_count == 56',
+                '        assert manifest["chunk_bytes"] == DEFAULT_CHUNK_BYTES',
+                '        assert manifest["part_count"] == 56',
                 "",
                 "    expect_split_failure(",
                 '        lambda root, source, output_dir, metadata: output_dir.mkdir(parents=True, exist_ok=True),',
