@@ -199,7 +199,6 @@ TARGETLESS_WITNESS_CHECKER_MARKERS = (
     'try expectContains(companion, "separate failure-mode replay");',
     'try expectContains(matrix, "keep the targetless-unregister witness explicitly separate from the smaller proof-backed continuity packet");',
 )
-
 TARGETLESS_WITNESS_MARKERS = (
     'test "phase11 hvc notifier witness records current-head targetless unregister sanitizer" {',
     'const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");',
@@ -346,6 +345,7 @@ def run_self_test() -> int:
         cases = [
             (SURVEY_PATH, "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`"),
             (SURVEY_PATH, "`.github/workflows/zigux-bootstrap.yml`"),
+            (SURVEY_PATH, "`drivers/tty/hvc/hvc_console_verify.zig`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-teardown-note.md`"),
             (SURVEY_PATH, "`Documentation/zigux/phase11-hvc-console-slice.md`"),
             (SURVEY_PATH, "`scripts/zigux/check-phase11-build-inventory.py`"),
