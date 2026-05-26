@@ -147,10 +147,10 @@ REQUIRED_MARKERS = {
         "MISMATCHED_PHASE7_CMDLINE_COUNTS_END",
         "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",",
         "\\\"lib/cmdline.zig\\\",",
-        'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"',
-        'EXPECTED_MANIFEST_PHASE = "Phase 7"',
-        'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"',
-        'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"',
+        "EXPECTED_MANIFEST_LANE_KEY = \"P7-L08\"",
+        "EXPECTED_MANIFEST_PHASE = \"Phase 7\"",
+        "EXPECTED_MANIFEST_ANCHOR = \"lib/cmdline.c\"",
+        "EXPECTED_MANIFEST_STATE = \"helper_slice_test_survey_manifest_checker_anchor\"",
         "EXPECTED_MANIFEST_NEXT_BOUNDED_STEP = (",
         "EXPECTED_REVIEW_SURFACES = [",
         "EXPECTED_COVERED_HELPERS = [",
@@ -168,7 +168,7 @@ COUNTED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 56
+SELF_TEST_CASE_COUNT = 60
 
 
 def read_text(path: Path) -> str:
@@ -328,17 +328,17 @@ def run_self_test() -> None:
             ("Documentation/zigux/phase7-cmdline-slice.md", "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point", ""),
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
-            ("lib/cmdline.zig", "test \\\"nextArg keeps leading equals tokens as bare parameters\\\" {", ""),
-            ("lib/cmdline.zig", "test \\\"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\\\" {", ""),
-            ("lib/cmdline.zig", "test \\\"memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable\\\" {", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\\\" {", ""),
-            ("zigux/tests/phase7_cmdline.zig", "try std.testing.expectEqualStrings(\\\"2,9\\\", descending_rest);", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays get_option alias cursor parity\\\" {", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays borrowed nextArg suffix ownership\\\" {", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\\\"helper_slice_test_survey_manifest_checker_anchor\\\", manifest.current_master_state);", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \\\"PHASE7_CMDLINE_PACKET=pass\\\");", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(slice_note, \\\"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\\\");", ""),
-            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(sequencing_note, \\\"Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.\\\");", ""),
+            ("lib/cmdline.zig", "test \"nextArg keeps leading equals tokens as bare parameters\" {", ""),
+            ("lib/cmdline.zig", "test \"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\" {", ""),
+            ("lib/cmdline.zig", "test \"memparse keeps leading-plus incomplete hex and no-digit fallbacks reviewable\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays incomplete-hex, leading-plus parity, and descending-range boundaries\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "try std.testing.expectEqualStrings(\"2,9\", descending_rest);", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays get_option alias cursor parity\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays borrowed nextArg suffix ownership\" {", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try std.testing.expectEqualStrings(\"helper_slice_test_survey_manifest_checker_anchor\", manifest.current_master_state);", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(checker, \"PHASE7_CMDLINE_PACKET=pass\");", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(slice_note, \"including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs\");", ""),
+            ("zigux/tests/phase7_cmdline_survey.zig", "try expectContains(sequencing_note, \"Current lane evidence also keeps `P7-L10` inside that same helper-local cleanup family, so cmdline-local review-noise, survey-checker-manifest drift, and no-sample-boundary upkeep should stay inside the returned cmdline packet instead of being rerouted as a second helper owner or shared-control drift.\");", ""),
             ("samples/zigux/README.md", "Current `master` still ships no standalone Phase 5 sample-root files here for:", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "Documentation/zigux/phase7-cmdline-slice.md", ""),
             ("Documentation/zigux/phase7-helper-lane-sequencing.md", "samples/zigux/README.md", ""),
@@ -356,8 +356,8 @@ def run_self_test() -> None:
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISMATCHED_PHASE7_CMDLINE_COUNTS_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"lib/cmdline.zig\\\",", ""),
-            ("zigux/tests/phase7_cmdline.zig", "test \\\"phase 7 cmdline companion replays leading-plus fallback boundaries\\\" {", ""),
-            ("lib/cmdline.zig", "test \\\"memparse saturates signed overflow instead of trapping\\\" {", ""),
+            ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays leading-plus fallback boundaries\" {", ""),
+            ("lib/cmdline.zig", "test \"memparse saturates signed overflow instead of trapping\" {", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"', 'EXPECTED_MANIFEST_LANE_KEY = "P7-L07"'),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = "Phase 7"', 'EXPECTED_MANIFEST_PHASE = "Phase 8"'),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"', 'EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"'),
@@ -400,6 +400,45 @@ def run_self_test() -> None:
 
         manifest = json.loads(read_text(manifest_path))
         manifest["ownership_focus"].remove(
+            "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix"
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_parse_option_ownership_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(
+            "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior"
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_get_options_ownership_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(
+            "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary"
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_next_arg_ownership_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(
             "the dedicated `get_option` alias replay keeps leading-plus and range-style cursor movement explicit beside the primary `getOption()` entry point"
         )
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
@@ -420,6 +459,19 @@ def run_self_test() -> None:
             "manifest_suffix_cursor_ownership_guard",
             tmp_root,
             "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(
+            "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership"
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_memparse_ownership_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
