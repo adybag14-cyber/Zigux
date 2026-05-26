@@ -59,6 +59,18 @@ def assert_issue(module, root: Path, expected: tuple[str, str]) -> None:
         raise AssertionError(f"missing expected issue {expected!r}; saw {issues!r}")
 
 
+def assert_system_exit_contains(action, expected_substring: str) -> None:
+    try:
+        action()
+    except SystemExit as exc:
+        if expected_substring not in str(exc):
+            raise AssertionError(
+                f"expected SystemExit containing {expected_substring!r}; saw {exc!r}"
+            ) from exc
+        return
+    raise AssertionError(f"expected SystemExit containing {expected_substring!r}")
+
+
 def seed_materialized_root(module, root: Path, source_root: Path) -> None:
     paths_to_copy = {VALIDATOR_REL, *module.REQUIRED_FILES}
     for rel in paths_to_copy:
@@ -149,6 +161,14 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
+        payload = load_json(manifest_path)
+        payload["repo_reality_gaps"] = "drifted-gap"
+        write_json(manifest_path, payload)
+        assert_issue(module, root, ("UNEXPECTED_MANIFEST_GAPS", "'drifted-gap'"))
+        checks_run += 1
+
+        seed_root(root)
+        manifest_path = module.resolve(root, module.MANIFEST_REL)
         write_json(manifest_path, [])
         assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "root"))
         checks_run += 1
@@ -161,9 +181,34 @@ def run_matrix(module, seed_root) -> int:
         assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", "present_surfaces"))
         checks_run += 1
 
+        for rel in (
+            module.MANIFEST_REL,
+            module.KCONFIG_CASES_REL,
+            module.CONF_MANIFEST_REL,
+            module.CONFDATA_MANIFEST_REL,
+            module.GENKSYMS_CASES_REL,
+            module.GENKSYMS_MANIFEST_REL,
+        ):
+            seed_root(root)
+            path = module.resolve(root, rel)
+            path.write_text("{\n", encoding="utf-8")
+            assert_system_exit_contains(
+                lambda: module.collect_issues(root),
+                f"invalid json in required file: {path}:",
+            )
+            checks_run += 1
+
         seed_root(root)
         manifest_path = module.resolve(root, module.MANIFEST_REL)
         for key, expected in collect_manifest_surface_expectations(manifest_path):
+            seed_root(root)
+            manifest_path = module.resolve(root, module.MANIFEST_REL)
+            payload = load_json(manifest_path)
+            del payload["present_surfaces"][key]
+            write_json(manifest_path, payload)
+            assert_issue(module, root, ("INVALID_MANIFEST_SHAPE", key))
+            checks_run += 1
+
             seed_root(root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
             payload = load_json(manifest_path)
@@ -213,10 +258,22 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         conf_manifest_path = module.resolve(root, module.CONF_MANIFEST_REL)
+        write_json(conf_manifest_path, [])
+        assert_issue(module, root, ("CONF_MANIFEST_MISMATCH", "root"))
+        checks_run += 1
+
+        seed_root(root)
+        conf_manifest_path = module.resolve(root, module.CONF_MANIFEST_REL)
         payload = load_json(conf_manifest_path)
         payload["case_count"] = 999
         write_json(conf_manifest_path, payload)
         assert_issue(module, root, ("CONF_MANIFEST_MISMATCH", "root"))
+        checks_run += 1
+
+        seed_root(root)
+        confdata_manifest_path = module.resolve(root, module.CONFDATA_MANIFEST_REL)
+        write_json(confdata_manifest_path, [])
+        assert_issue(module, root, ("CONFDATA_MANIFEST_MISMATCH", "root"))
         checks_run += 1
 
         seed_root(root)
@@ -229,10 +286,22 @@ def run_matrix(module, seed_root) -> int:
 
         seed_root(root)
         genksyms_cases_path = module.resolve(root, module.GENKSYMS_CASES_REL)
+        write_json(genksyms_cases_path, {})
+        assert_issue(module, root, ("GENKSYMS_CASE_PACKET_MISMATCH", "cases"))
+        checks_run += 1
+
+        seed_root(root)
+        genksyms_cases_path = module.resolve(root, module.GENKSYMS_CASES_REL)
         payload = load_json(genksyms_cases_path)
         payload[0]["expected_file"] = "drifted.json"
         write_json(genksyms_cases_path, payload)
         assert_issue(module, root, ("GENKSYMS_CASE_PACKET_MISMATCH", "cases"))
+        checks_run += 1
+
+        seed_root(root)
+        genksyms_manifest_path = module.resolve(root, module.GENKSYMS_MANIFEST_REL)
+        write_json(genksyms_manifest_path, [])
+        assert_issue(module, root, ("GENKSYMS_MANIFEST_MISMATCH", "root"))
         checks_run += 1
 
         seed_root(root)
@@ -300,11 +369,11 @@ def resolve(root: Path, rel: Path) -> Path:
 
 def build_self_test_root(root: Path) -> None:
     resolve(root, PHASE2_CLOSURE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\n`marker-b`\n", encoding="utf-8")
+    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\\n`marker-b`\\n", encoding="utf-8")
     resolve(root, WORKFLOW_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, WORKFLOW_REL).write_text("run: alpha\nrun: beta\n", encoding="utf-8")
+    resolve(root, WORKFLOW_REL).write_text("run: alpha\\nrun: beta\\n", encoding="utf-8")
     resolve(root, MAKEFILE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, MAKEFILE_REL).write_text("phase2-a:\nphase2-b:\n", encoding="utf-8")
+    resolve(root, MAKEFILE_REL).write_text("phase2-a:\\nphase2-b:\\n", encoding="utf-8")
     resolve(root, MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, MANIFEST_REL).write_text(json.dumps({
         "repo_reality_gaps": [],
@@ -317,23 +386,29 @@ def build_self_test_root(root: Path) -> None:
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
             "policy": list(EXPECTED_MANIFEST_POLICY),
         },
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, KCONFIG_CASES_REL).write_text(json.dumps({
         "conf_cases": EXPECTED_CONF_CASE_DETAILS,
         "confdata_cases": EXPECTED_CONFDATA_CASE_DETAILS,
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\\n", encoding="utf-8")
     resolve(root, CONF_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\\n", encoding="utf-8")
     resolve(root, CONFDATA_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\\n", encoding="utf-8")
     resolve(root, GENKSYMS_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\n", encoding="utf-8")
+    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\\n", encoding="utf-8")
     resolve(root, GENKSYMS_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\n", encoding="utf-8")
+    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\\n", encoding="utf-8")
 
 def _count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+def _load_required_json(path: Path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
 
 def require_manifest_list(issues, manifest, key):
     surfaces = manifest.get("present_surfaces")
@@ -380,12 +455,12 @@ def collect_issues(root: Path):
     closure_text = resolve(root, PHASE2_CLOSURE_REL).read_text(encoding="utf-8")
     workflow_text = resolve(root, WORKFLOW_REL).read_text(encoding="utf-8")
     makefile_text = resolve(root, MAKEFILE_REL).read_text(encoding="utf-8")
-    manifest = json.loads(resolve(root, MANIFEST_REL).read_text(encoding="utf-8"))
-    kconfig_cases = json.loads(resolve(root, KCONFIG_CASES_REL).read_text(encoding="utf-8"))
-    conf_manifest = json.loads(resolve(root, CONF_MANIFEST_REL).read_text(encoding="utf-8"))
-    confdata_manifest = json.loads(resolve(root, CONFDATA_MANIFEST_REL).read_text(encoding="utf-8"))
-    genksyms_cases = json.loads(resolve(root, GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
-    genksyms_manifest = json.loads(resolve(root, GENKSYMS_MANIFEST_REL).read_text(encoding="utf-8"))
+    manifest = _load_required_json(resolve(root, MANIFEST_REL))
+    kconfig_cases = _load_required_json(resolve(root, KCONFIG_CASES_REL))
+    conf_manifest = _load_required_json(resolve(root, CONF_MANIFEST_REL))
+    confdata_manifest = _load_required_json(resolve(root, CONFDATA_MANIFEST_REL))
+    genksyms_cases = _load_required_json(resolve(root, GENKSYMS_CASES_REL))
+    genksyms_manifest = _load_required_json(resolve(root, GENKSYMS_MANIFEST_REL))
     if not isinstance(manifest, dict):
         issues.append(("INVALID_MANIFEST_SHAPE", "root"))
         return issues
