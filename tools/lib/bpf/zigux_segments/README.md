@@ -21,9 +21,10 @@ Each materialized slice is paired with focused `*_verify.zig` coverage so stable
 Current master now carries the shared bridge destination for two helper-only footholds:
 
 - bounded `/proc/.../fdinfo/<fd>` pathname shaping
+- bounded fdinfo line splitting and trimming
 - bounded reused-map name retention for NUL-terminated and fixed-width observations
 
-The remaining fdinfo text parser, numeric map-info decoder, reuse-compatibility summarizer, and token-planning helpers are still queued groundwork inside `file_path_handle_bridge.zig`, so fdinfo-map-info and map-reuse slices remain only partially landed.
+The remaining numeric map-info decoder, full fdinfo metadata parser, reuse-compatibility summarizer, and token-planning helpers are still queued groundwork inside `file_path_handle_bridge.zig`, so fdinfo-map-info and map-reuse slices remain only partially landed.
 
 ## Still Deferred
 
