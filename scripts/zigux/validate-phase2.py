@@ -25,6 +25,14 @@ GENKSYMS_PROCESS_OUTPUT_FIXTURES = (
     "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
 )
+KCONFIG_CONFDATA_REPLAY_MARKERS = (
+    "compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)",
+    "cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case[\"input\"]))]",
+    "actual.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding=\"utf-8\", newline=\"\\n\")",
+    "repeat.write_text(run(cmd, cwd=str(ROOT), capture_output=True).stdout, encoding=\"utf-8\", newline=\"\\n\")",
+    "check_repeatable_json_output(FIXTURE_DIR / str(case[\"expected\"]), actual, repeat)",
+)
+KCONFIG_BRIDGE_VALIDATOR_PATH = "scripts/zigux/check-kconfig-bridge.py"
 KCONFIG_CONF_EXPECTED_FIXTURES = (
     "zigux/tests/fixtures/kconfig_bridge/oldaskconfig_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/syncconfig_expected.json",
@@ -148,7 +156,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-zig-toolchain.py",
-    "scripts/zigux/check-kconfig-bridge.py",
+    KCONFIG_BRIDGE_VALIDATOR_PATH,
     "scripts/zigux/check-phase2-kbuild-routes.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
@@ -409,6 +417,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
 
+    kconfig_bridge_text = read_text(root, KCONFIG_BRIDGE_VALIDATOR_PATH)
+    for marker in KCONFIG_CONFDATA_REPLAY_MARKERS:
+        count = count_exact_lines(kconfig_bridge_text, marker)
+        if count == 0:
+            issues.append(("MISSING_KCONFIG_CONFDATA_REPLAY_MARKER", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_KCONFIG_CONFDATA_REPLAY_MARKER", f"{marker}:count={count}"))
+
     issues.extend(collect_archive_support_issues(root))
 
     return issues
@@ -439,21 +455,25 @@ def build_self_test_root(root: Path) -> None:
         root,
         MAKEFILE,
         "\n".join(
-            (
-                "PYTHON ?= python3",
-                "ZIG ?= zig",
-                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
-                "ZIGUX_ROOT := ..",
-                "",
-                REQUIRED_PHASE2_PHONY_LINE,
-                *REQUIRED_MAKEFILE_LINES,
+            (\
+                "PYTHON ?= python3",\
+                "ZIG ?= zig",\
+                "PHASE2_SCRIPT_ROOT := ../scripts/zigux",\
+                "ZIGUX_ROOT := ..",\
+                "",\
+                REQUIRED_PHASE2_PHONY_LINE,\
+                *REQUIRED_MAKEFILE_LINES,\
             )
-        )
-        + "\n",
+        ) + "\n",
     )
     for rel in REQUIRED_PATHS:
-        if rel != MAKEFILE:
+        if rel != MAKEFILE:\
             write_text(root, rel, "present\n")
+    write_text(
+        root,
+        KCONFIG_BRIDGE_VALIDATOR_PATH,
+        "\n".join(KCONFIG_CONFDATA_REPLAY_MARKERS) + "\n",
+    )
     write_text(root, ARCHIVE_PAYLOAD_PATH, "archive\n")
 
 
@@ -471,7 +491,9 @@ def run_self_test() -> int:
         + 1
         + len(REQUIRED_MAKEFILE_LINES)
         + len(REQUIRED_MAKEFILE_LINES)
-        + (len(REQUIRED_PATHS) - 1)
+        + len([rel for rel in REQUIRED_PATHS[:-1] if rel != KCONFIG_BRIDGE_VALIDATOR_PATH])
+        + len(KCONFIG_CONFDATA_REPLAY_MARKERS)
+        + len(KCONFIG_CONFDATA_REPLAY_MARKERS)
         + 2
         + 2
     )
@@ -519,9 +541,31 @@ def run_self_test() -> int:
             checks += 1
 
         for rel in REQUIRED_PATHS[:-1]:
+            if rel == KCONFIG_BRIDGE_VALIDATOR_PATH:
+                continue
             build_self_test_root(root)
             (root / rel).unlink()
             expect_issue(root, ("MISSING_REQUIRED_PATH", rel))
+            checks += 1
+
+        for marker in KCONFIG_CONFDATA_REPLAY_MARKERS:
+            build_self_test_root(root)
+            write_text(
+                root,
+                KCONFIG_BRIDGE_VALIDATOR_PATH,
+                replace_exact_line(read_text(root, KCONFIG_BRIDGE_VALIDATOR_PATH), marker, "# removed"),
+            )
+            expect_issue(root, ("MISSING_KCONFIG_CONFDATA_REPLAY_MARKER", marker))
+            checks += 1
+
+        for marker in KCONFIG_CONFDATA_REPLAY_MARKERS:
+            build_self_test_root(root)
+            write_text(
+                root,
+                KCONFIG_BRIDGE_VALIDATOR_PATH,
+                duplicate_exact_line(read_text(root, KCONFIG_BRIDGE_VALIDATOR_PATH), marker),
+            )
+            expect_issue(root, ("DUPLICATE_KCONFIG_CONFDATA_REPLAY_MARKER", f"{marker}:count=2"))
             checks += 1
 
         for rel in (WORKFLOW, MAKEFILE):
