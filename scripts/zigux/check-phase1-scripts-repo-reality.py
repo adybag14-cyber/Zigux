@@ -47,16 +47,28 @@ FORBIDDEN_README_MARKERS = [
 SELF_TEST_CASES = [
     "pass",
     "missing_readme",
+    "readme_not_file",
     "missing_required_marker",
     "forbidden_stale_marker",
     "missing_present_file",
+    "present_path_not_file",
     "unexpected_missing_file_returned",
+    "unexpected_missing_path_not_file",
 ]
 
 
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def replace_with_directory(path: Path) -> None:
+    if path.exists():
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    path.mkdir(parents=True, exist_ok=True)
 
 
 def build_readme(*, include_stale_install_marker: bool) -> str:
@@ -100,6 +112,8 @@ def validate(root: Path) -> tuple[str, object]:
     readme = root / README.relative_to(ROOT)
     if not readme.exists():
         return ("missing_readme", readme)
+    if not readme.is_file():
+        return ("readme_not_file", readme)
     text = readme.read_text(encoding="utf-8")
 
     missing_markers = [marker for marker in REQUIRED_README_MARKERS if marker not in text]
@@ -114,9 +128,17 @@ def validate(root: Path) -> tuple[str, object]:
     if missing_present_files:
         return ("missing_present_file", missing_present_files)
 
-    unexpected_present_missing_files = [str(rel) for rel in MISSING_FILES if (root / rel).exists()]
+    present_paths_not_file = [str(rel) for rel in PRESENT_FILES if (root / rel).exists() and not (root / rel).is_file()]
+    if present_paths_not_file:
+        return ("present_path_not_file", present_paths_not_file)
+
+    unexpected_present_missing_files = [str(rel) for rel in MISSING_FILES if (root / rel).is_file()]
     if unexpected_present_missing_files:
         return ("unexpected_missing_file_returned", unexpected_present_missing_files)
+
+    unexpected_present_missing_paths = [str(rel) for rel in MISSING_FILES if (root / rel).exists() and not (root / rel).is_file()]
+    if unexpected_present_missing_paths:
+        return ("unexpected_missing_path_not_file", unexpected_present_missing_paths)
 
     return ("pass", None)
 
@@ -140,6 +162,12 @@ def run_self_test() -> int:
         assert_case("missing_readme", validate(missing_readme_root))
         covered.append("missing_readme")
 
+        readme_not_file_root = root / "readme_not_file"
+        build_sample_root(readme_not_file_root)
+        replace_with_directory(readme_not_file_root / README.relative_to(ROOT))
+        assert_case("readme_not_file", validate(readme_not_file_root))
+        covered.append("readme_not_file")
+
         missing_marker_root = root / "missing_marker"
         build_sample_root(missing_marker_root)
         write(
@@ -160,11 +188,23 @@ def run_self_test() -> int:
         assert_case("missing_present_file", validate(missing_present_root))
         covered.append("missing_present_file")
 
+        present_path_not_file_root = root / "present_path_not_file"
+        build_sample_root(present_path_not_file_root)
+        replace_with_directory(present_path_not_file_root / PRESENT_FILES[0])
+        assert_case("present_path_not_file", validate(present_path_not_file_root))
+        covered.append("present_path_not_file")
+
         unexpected_missing_root = root / "unexpected_missing"
         build_sample_root(unexpected_missing_root)
         write(unexpected_missing_root / MISSING_FILES[0], "# unexpected\n")
         assert_case("unexpected_missing_file_returned", validate(unexpected_missing_root))
         covered.append("unexpected_missing_file_returned")
+
+        unexpected_missing_path_root = root / "unexpected_missing_path"
+        build_sample_root(unexpected_missing_path_root)
+        replace_with_directory(unexpected_missing_path_root / MISSING_FILES[0])
+        assert_case("unexpected_missing_path_not_file", validate(unexpected_missing_path_root))
+        covered.append("unexpected_missing_path_not_file")
 
     if covered != SELF_TEST_CASES:
         raise AssertionError(("case_coverage", covered))
