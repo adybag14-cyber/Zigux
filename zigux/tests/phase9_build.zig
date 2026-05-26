@@ -597,6 +597,7 @@ pub fn build(b: *std.Build) void {
         &run_runtime_trace_events_loader_substrate_drift_tests.step,
     );
     phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);
+    phase9_runtime_loader_shared.dependOn(&run_runtime_kretprobe_loader_tests.step);
 
     const phase9_runtime_trace_events = b.step(
         "phase9-runtime-trace-events-tests",
