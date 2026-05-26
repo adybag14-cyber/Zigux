@@ -28,6 +28,8 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase1-route-summary-counts.py",
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-phase2-bootstrap-preflight-sequence.py",
+    "scripts/zigux/check-phase2-bootstrap-make-route-sequence.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/validate-bootstrap.py",
     "scripts/zigux/zig-toolchain-policy.json",
@@ -100,6 +102,10 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "run: python3 scripts/zigux/check-phase2-bootstrap-preflight-sequence.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-bootstrap-preflight-sequence.py",
+    "run: python3 scripts/zigux/check-phase2-bootstrap-make-route-sequence.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-bootstrap-make-route-sequence.py",
     "run: make -C zigux phase2-toolchain",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
     "run: python3 scripts/zigux/check-phase1-route-summary-counts.py",
@@ -302,23 +308,19 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root, "scripts/zigux/check-zig-toolchain.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane01-bootstrap-charter-alignment.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-local-first-archive-workflow.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-local-archive-readme.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-install-zig-archive-verification.py", "present\n")
-    write_text(root, "scripts/zigux/install-zig.py", "present\n")
-    write_text(root, "scripts/zigux/stage-pinned-zig-archive.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-stage-helper-contract.py", "present\n")
-    write_text(root, "scripts/zigux/check-lane05-stage-helper-selftest.py", "present\n")
-    write_text(root, "scripts/zigux/check-phase1-route-summary-counts.py", "present\n")
-    write_text(root, "scripts/zigux/check-phase2-toolchain-pinning.py", "present\n")
-    write_text(root, "scripts/zigux/check-phase2-toolchain-pin-scope.py", "present\n")
-    write_text(root, "scripts/zigux/check-phase2-required-make-routes.py", "present\n")
-    write_text(root, "scripts/zigux/validate-bootstrap.py", "present\n")
-    write_text(root, "scripts/zigux/zig-toolchain-policy.json", "{}\n")
-    write_text(root, "third_party/README.md", "present\n")
-    write_text(root, "zigux/tests/README.md", "present\n")
+    for rel in REQUIRED_PATHS:
+        if rel in {
+            WORKFLOW,
+            "zigux-alpha/README.md",
+            "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
+            "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
+            "Documentation/zigux/README.md",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/freeze-map.md",
+            "scripts/zigux/README.md",
+        }:
+            continue
+        write_text(root, rel, "present\n")
     write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
 
 
@@ -422,6 +424,16 @@ def run_self_test() -> int:
         build_self_test_root(root)
         (root / "scripts/zigux/check-phase2-toolchain-pinning.py").unlink()
         assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-phase2-toolchain-pinning.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-bootstrap-preflight-sequence.py").unlink()
+        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-phase2-bootstrap-preflight-sequence.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-bootstrap-make-route-sequence.py").unlink()
+        assert ("MISSING_REQUIRED_PATH", "scripts/zigux/check-phase2-bootstrap-make-route-sequence.py") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
