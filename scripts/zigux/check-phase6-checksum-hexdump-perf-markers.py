@@ -146,7 +146,7 @@ EXPECTED_HEXDUMP_CASES = {
     "16B-ascii-g8": {"reps": 20000, "max_slowdown_pct": 600},
 }
 
-SELF_TEST_CASE_COUNT = 76
+SELF_TEST_CASE_COUNT = 77
 
 
 class ValidationError(RuntimeError):
@@ -469,6 +469,7 @@ def run_self_test() -> None:
             (EVIDENCE_MANIFEST_PATH, '"label": "IPV4_60B"', '"label": "IPV4_64B"', "checksum evidence ipv4 fast path perf case drift"),
             (EVIDENCE_MANIFEST_PATH, '"ipv4_fast_path_case_labels": [\n          "IPV4_20B",\n          "IPV4_20B_UPDATED",\n          "IPV4_24B",\n          "IPV4_60B"\n        ]', '"ipv4_fast_path_case_labels": ["IPV4_20B", "IPV4_24B", "IPV4_64B"]', "checksum evidence ipv4_fast_path_case_labels drifted"),
             (EVIDENCE_MANIFEST_PATH, '"reps": 10000', '"reps": 8000', "hexdump evidence 32B-ascii-g2 reps drifted"),
+            (PARITY_MANIFEST_PATH, '"packet": "phase6-helper-parity"', '"packet": "phase6-helper-evidence"', "unexpected packet id"),
             (PARITY_MANIFEST_PATH, '"phase": "Phase 6"', '"phase": "Phase 5"', "unexpected phase id"),
             (PARITY_MANIFEST_PATH, '"lane_scope": "shared helper-parity rows and machine-readable manifest only"', '"lane_scope": "shared helper-parity rows only"', "helper-parity lane_scope drifted"),
             (PARITY_MANIFEST_PATH, '"Documentation/zigux/phase6-perf-gate-survey.md"', '"Documentation/zigux/phase6-hexdump-slice.md"', "helper-parity shared_direct_evidence drifted: Documentation/zigux/phase6-perf-gate-survey.md"),
