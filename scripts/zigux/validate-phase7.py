@@ -151,7 +151,7 @@ REQUIRED_MAKEFILE_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 21
 
 
 class ValidationError(RuntimeError):
@@ -185,6 +185,19 @@ def run_checker(root: Path, checker_path: Path, root_flag: str = "--repo-root") 
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
         raise ValidationError(f"{checker_path.as_posix()} failed: {detail}")
+
+
+def run_checker_self_test(root: Path, checker_path: Path) -> None:
+    result = subprocess.run(
+        [sys.executable, str(root / checker_path), "--self-test"],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
+        raise ValidationError(f"{checker_path.as_posix()} self-test failed: {detail}")
 
 
 def validate(root: Path) -> None:
@@ -230,6 +243,7 @@ def validate(root: Path) -> None:
             raise ValidationError(f"phase7 make route count drift: {marker} ({count} != 1)")
 
     run_checker(root, CHECKER_PATH)
+    run_checker_self_test(root, BUILD_WIRING_CHECKER_PATH)
     run_checker(root, BUILD_WIRING_CHECKER_PATH)
     run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")
     run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)
@@ -408,7 +422,6 @@ def scaffold_repo(root: Path) -> None:
     )
     for checker_path, success_marker, root_flag in [
         (CHECKER_PATH, "PHASE7_SHARED_SURFACE=pass", "--repo-root"),
-        (BUILD_WIRING_CHECKER_PATH, "PHASE7_BUILD_WIRING=pass", "--repo-root"),
         (ARGV_SPLIT_PACKET_CHECKER_PATH, "PHASE7_ARGV_SPLIT_PACKET=pass", "--repo-root"),
         (STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET=pass", "--repo-root"),
     ]:
@@ -427,6 +440,26 @@ def scaffold_repo(root: Path) -> None:
             "if __name__ == '__main__':\n"
             "    raise SystemExit(main())\n",
         )
+    write(
+        root / BUILD_WIRING_CHECKER_PATH,
+        "#!/usr/bin/env python3\n"
+        "from __future__ import annotations\n"
+        "import argparse\n"
+        "from pathlib import Path\n\n"
+        "def main() -> int:\n"
+        "    parser = argparse.ArgumentParser()\n"
+        "    parser.add_argument('--repo-root', type=Path, default=Path('.'))\n"
+        "    parser.add_argument('--self-test', action='store_true')\n"
+        "    args = parser.parse_args()\n"
+        "    if args.self_test:\n"
+        "        print('PHASE7_BUILD_WIRING_SELF_TEST=pass')\n"
+        "        print('PHASE7_BUILD_WIRING_SELF_TEST_CASE_COUNT=1')\n"
+        "        return 0\n"
+        "    print('PHASE7_BUILD_WIRING=pass')\n"
+        "    return 0\n\n"
+        "if __name__ == '__main__':\n"
+        "    raise SystemExit(main())\n",
+    )
     write(
         root / MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
         "#!/usr/bin/env python3\n"
@@ -508,6 +541,7 @@ def run_self_test() -> None:
             (WORKFLOW_PATH, "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test\n", False),
             (WORKFLOW_PATH, "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py\n", False),
             (Path("scripts/zigux/validate-phase7.py"), 'run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")\n', False),
+            (BUILD_WIRING_CHECKER_PATH, "    parser.add_argument('--self-test', action='store_true')\n", False),
             (CHECKER_PATH, "", True),
             (BUILD_WIRING_CHECKER_PATH, "", True),
             (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "", True),
