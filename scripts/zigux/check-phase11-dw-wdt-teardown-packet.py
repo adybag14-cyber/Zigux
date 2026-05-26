@@ -414,6 +414,24 @@ def run_self_test() -> None:
         expect_failure(manifest_slice_note_flag_case, "manifest_flag:dw_wdt_slice_note_present:True")
         case_count += 1
 
+        manifest_pm_helper_flag_case = root / "manifest_pm_helper_flag_case"
+        shutil.copytree(fixture, manifest_pm_helper_flag_case)
+        manifest_path = manifest_pm_helper_flag_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["survey_summary"]["dw_wdt_pm_helper_present"] = False
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        expect_failure(manifest_pm_helper_flag_case, "manifest_flag:dw_wdt_pm_helper_present:False")
+        case_count += 1
+
+        manifest_restart_helper_flag_case = root / "manifest_restart_helper_flag_case"
+        shutil.copytree(fixture, manifest_restart_helper_flag_case)
+        manifest_path = manifest_restart_helper_flag_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["survey_summary"]["dw_wdt_restart_helper_present"] = False
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        expect_failure(manifest_restart_helper_flag_case, "manifest_flag:dw_wdt_restart_helper_present:False")
+        case_count += 1
+
         manifest_verify_flag_case = root / "manifest_verify_flag_case"
         shutil.copytree(fixture, manifest_verify_flag_case)
         manifest_path = manifest_verify_flag_case / REQUIRED_FILES["manifest"]
