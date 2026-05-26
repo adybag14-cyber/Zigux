@@ -27,11 +27,11 @@ pub fn build(b: *std.Build) void {
         .name = "phase1-bitmap-fixture-replay",
         .root_module = root_module,
     });
-    const run_tests = b.addRunArtifact(tests);
+    const run = b.addRunArtifact(tests);
 
-    const phase1_bitmap_fixture_replay = b.step(
-        "phase1-bitmap-fixture-replay",
-        "Run the focused Phase 1 bitmap fixture replay from zigux/tests",
+    const step = b.step(
+        "test",
+        "Run the focused Phase 1 bitmap fixture replay",
     );
-    phase1_bitmap_fixture_replay.dependOn(&run_tests.step);
+    step.dependOn(&run.step);
 }
