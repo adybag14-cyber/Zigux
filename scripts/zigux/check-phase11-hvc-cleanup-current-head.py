@@ -165,7 +165,9 @@ PROOF_MARKERS = (
     'try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");',
     'try expectContains(driver, "const targetless_hangup_short_circuit = request.notifier_registered and");',
     'try expectContains(driver, ".targetless_hangup_short_circuit = targetless_hangup_short_circuit,");',
+    'try expectContains(driver, "try std.testing.expect(!active.targetless_hangup_short_circuit);");',
     'try expectContains(driver, "try std.testing.expect(targetless.targetless_hangup_short_circuit);");',
+    'try expectContains(driver, "try std.testing.expect(!invalid.targetless_hangup_short_circuit);");',
 )
 
 MODEM_CONTROL_PROOF_MARKERS = (
