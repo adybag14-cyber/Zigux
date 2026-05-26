@@ -74,7 +74,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` plus `Documentation/zigux/phase14-rcu-tree-survey.md` keep the dedicated freeze-in-C RCU rollback posture explicit from the scripts root without promoting the still-partial RCU executable layer into a direct replay claim
 - shared reminder truthfulness around the returned study-only packet and the single `make -C zigux phase14-validate` gate
 - keep the directly readable dedicated skbuff stay-in-C, skbuff compile-route, and ring-buffer compile-route guards explicit from the scripts root too: `scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py`, `scripts/zigux/check-phase14-skbuff-compile-route.py`, and `scripts/zigux/check-phase14-ring-buffer-compile-route.py` keep those review-only rollback and compile-trigger surfaces visible beside the shared smoke packet instead of leaving them implicit in neighboring notes
-- keep the directly readable dedicated RCU rollback guard explicit from the scripts root too: `scripts/zigux/check-phase14-rcu-rollback-guardrail.py` plus `Documentation/zigux/phase14-rcu-tree-survey.md` keep the freeze-in-C rollback posture visible without promoting the still-partial RCU executable layer into direct replay proof
+- keep the directly readable dedicated RCU compile-route and rollback guards explicit from the scripts root too: `scripts/zigux/check-phase14-rcu-compile-route.py`, `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`, and `Documentation/zigux/phase14-rcu-tree-survey.md` keep the freeze-in-C compile-route and rollback posture visible without promoting the still-partial RCU executable layer into direct replay proof
 
 ## Phase 15
 
