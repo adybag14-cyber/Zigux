@@ -58,6 +58,7 @@ FIXDEP_REQUIRED_EXACT_LINES = (
     'test "dependency file reads beyond the legacy one mebibyte ceiling" {',
     'test "escaped hash dependency survives concatenated target comment path" {',
     'test "escaped colon dependency survives concatenated target comment path" {',
+    'test "escaped colon dependency survives concatenated target CRLF comment path" {',
 )
 
 FIXDEP_DIFF_REQUIRED_EXACT_LINES = (
@@ -591,6 +592,8 @@ def build_self_test_root(root: Path) -> None:
                 'test "escaped hash dependency survives concatenated target comment path" {',
                 "}",
                 'test "escaped colon dependency survives concatenated target comment path" {',
+                "}",
+                'test "escaped colon dependency survives concatenated target CRLF comment path" {',
                 "}",
             )
         )
