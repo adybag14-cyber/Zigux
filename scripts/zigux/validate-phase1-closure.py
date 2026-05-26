@@ -42,6 +42,8 @@ BITMAP_DIRECT_ANCHOR_CHECKER_REL = Path("scripts/zigux/check-phase1-bitmap-direc
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
+PHASE1_HELPERS_REPLAY_REL = Path("zigux/tests/phase1_helpers.zig")
+PHASE1_HELPERS_BUILD_REL = Path("zigux/tests/phase1_helpers_build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
@@ -69,6 +71,8 @@ REQUIRED_FILES = (
     SHARED_REMINDER_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
+    PHASE1_HELPERS_REPLAY_REL,
+    PHASE1_HELPERS_BUILD_REL,
     PHASE1_SMOKE_REL,
     WORKFLOW_REL,
     MANIFEST_REL,
@@ -130,8 +134,8 @@ EXPECTED_CLOSURE_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
     "helper_count": "`PHASE1_HELPER_COUNT=13`",
-    "reminder_packet": "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "gap_packet": "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    "reminder_packet": "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_helpers_build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "gap_packet": "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`",
     "closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "route_summary_guard": "`PHASE1_ROUTE_SUMMARY_GUARD=python3 scripts/zigux/check-phase1-route-summary-counts.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
