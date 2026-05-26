@@ -79,7 +79,7 @@ test "phase 8 file-path-handle bridge helper stays wired into the Linux-style re
     try expectContains(makefile, "phase8-file-path-handle-bridge-test");
 }
 
-test "phase 8 file-path-handle bridge proof keeps the manifest-backed queued-helper and deferred bridge split explicit" {
+test "phase 8 file-path handle bridge proof keeps the manifest-backed queued-helper and deferred bridge split explicit" {
     const manifest = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/zigux_segments/manifest.json",
@@ -89,11 +89,11 @@ test "phase 8 file-path-handle bridge proof keeps the manifest-backed queued-hel
 
     try expectContains(
         manifest,
-        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"blocked_on_fdinfo_parser_materialization\"",
+        "\"slug\": \"fdinfo-map-info-helpers\",\n      \"status\": \"starter_landed\"",
     );
     try expectContains(
         manifest,
-        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"blocked_on_reuse_comparison_materialization\"",
+        "\"slug\": \"map-reuse-compatibility\",\n      \"status\": \"starter_landed\"",
     );
     try expectContains(
         manifest,
@@ -101,11 +101,11 @@ test "phase 8 file-path-handle bridge proof keeps the manifest-backed queued-hel
     );
     try expectContains(
         manifest,
-        "The shared file-path bridge destination is now materialized for helper-only proc-fdinfo pathname shaping, but the fdinfo line parser, numeric map-info decoder, and completion summary helpers are still queued, so this slice must stay explicit as partially landed rather than complete.",
+        "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.",
     );
     try expectContains(
         manifest,
-        "The shared bridge file now carries bounded reused-map name retention, but the helper-only compatibility observation, flag normalization, and mismatch reporting work remains queued, so the segment cannot yet be reported as fully landed on master.",
+        "The shared bridge surface now already carries the reused-map-name chooser and compatibility comparison as landed helper-only behavior, and it should stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.",
     );
     try expectContains(
         manifest,
