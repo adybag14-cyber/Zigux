@@ -254,7 +254,7 @@ def run_self_test() -> None:
             ".github/workflows/zigux-bootstrap.yml",
         ):
             make_fixture_tree(base)
-            (base / rel).writeText("broken\n", encoding="utf-8")
+            (base / rel).write_text("broken\n", encoding="utf-8")
             try:
                 run_check(base)
             except CheckError:
