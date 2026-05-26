@@ -102,6 +102,7 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `zigux/tests/phase15_build.zig`
 - `scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate and the directly materialized `zigux/tests/phase15_build.zig` shared build companion explicit while the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes plus the shared-CI route remain the broader route-level gaps on current `master`
 - the landed `zigux/tests/README.md` Phase 15 governance section still needs rereads with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the rest of the directly materialized governance packet whenever that broad tests-root summary drifts
+- the docs-root reminder gap should stay distinct from the still-missing broader wrapper-route and shared-CI route vocabulary so lane follow-through can land the docs-root packet without implying those broader route bodies already returned
 - broader wrapper-route wording around `make -C zigux phase15-validate`, `make -C zigux phase15-test`, `make -C zigux phase15`, and the dedicated shared-CI Phase 15 route names
 
 These are the surfaces that should be reread together before claiming any new Phase 15 shared-summary drift.
@@ -115,7 +116,8 @@ Treat the current Phase 15 shared-summary state as a wording-and-alignment check
 - do not treat the parked make-route vocabulary or shared-CI route vocabulary as shipped evidence until direct current-tree reads recover them
 - do keep the landed tests-root Phase 15 reminder aligned with `scripts/zigux/check-phase15-tests-readme-alignment.py` and the rest of the directly materialized governance packet instead of letting that summary drift back into undercounted or implied-approval wording
 - do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves
-- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, the deep-core blocker survey, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+- keep the docs-root reminder gap distinct from the still-missing broader wrapper-route and shared-CI route vocabulary so lane follow-through can land the docs-root packet without implying those broader route bodies already returned
 - keep tests-root follow-through separate from review-process and parity-scorecard packet maintenance unless the same direct evidence forces them back together
 
 ## Non-goals
