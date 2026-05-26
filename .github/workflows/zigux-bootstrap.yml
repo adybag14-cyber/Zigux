@@ -49,6 +49,26 @@ jobs:
         uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            .github/workflows
+            Documentation/zigux
+            drivers/**/*.zig
+            include/linux/zigux.h
+            include/zigux
+            kernel/**/*.zig
+            lib/**/*.zig
+            net/**/*.zig
+            samples/zigux
+            scripts/basic/fixdep.c
+            scripts/include/xalloc.h
+            scripts/kconfig/conf.c
+            scripts/kconfig/confdata.c
+            scripts/zigux
+            third_party
+            tools/lib
+            zigux
+          sparse-checkout-cone-mode: false
 
       - name: Setup Python
         uses: actions/setup-python@v6.2.0
