@@ -102,7 +102,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`, and `zigux/tests/fixtures/phase6_bsearch_vectors.zig` still centralizes the representative `len15`, `len64`, and `len1024` perf cases together with deterministic seeded hit and miss queries that keep average and worst-case comparator work inside the current binary-search budget. The direct C parity spot check in `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`, and `scripts/zigux/check-phase6-bsearch-c-parity.py` now keeps 17 sorted lookup cases explicit across ascending and descending comparator-driven lookups, duplicate hits, heterogeneous string-key lookup, and mutable write-through behavior.
 - `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed payload threshold matrix (`64B`, `1501B`) and the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_20B_UPDATED`, `IPV4_24B`, `IPV4_60B`) still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`; the shared replay packet exposes that packet through `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-checksum-perf-matrix-test`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-perf`.
 - `hexdump` keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`, with the current fixture matrix in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still covering four formatting cases from `16B-plain-g1` through `16B-ascii-g8`, and the restored rationale pair `Documentation/zigux/phase6-hexdump-slice.md` plus `Documentation/zigux/phase6-hexdump-perf-refresh.md` now makes that grouped-threshold packet reviewable again through the shared route guards.
-- the remaining roadmap-aligned measurement risk is ordinary future drift between this catalog, `Documentation/zigux/phase6-perf-gate-survey.md`, the helper-local fixtures and perf harnesses, and the shared build or wrapper routes rather than a current helper-local replay gap.
+- the remaining roadmap-aligned measurement risk is ordinary future drift between this catalog, `Documentation/zigux/phase6-perf-gate-survey.md`, the helper-local fixtures and perf harnesses, the three dedicated perf-marker guard reruns, and the shared build or wrapper routes rather than a current helper-local replay gap.
 
 ## Current shared replay inventory
 
@@ -116,6 +116,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-bsearch-perf`
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`
+- `python3 scripts/zigux/check-phase6-base64-bsearch-perf-markers.py`
 - `zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-test`
 - `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`
@@ -124,6 +125,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `make -C zigux phase6-checksum-perf`
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 - `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`
+- `python3 scripts/zigux/check-phase6-perf-threshold-markers.py`
 - `python3 scripts/zigux/check-phase6-hexdump-packet.py`
 - `python3 scripts/zigux/check-phase6-hexdump-route.py`
 - `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`
