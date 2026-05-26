@@ -807,10 +807,22 @@ def run_self_test() -> int:
             print("expected missing list-hlist pass marker to fail the packet")
             return 1
 
+        _populate_repo(root)
+        missing_list_hlist_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-list-hlist-starter-packet.py")][0]
+        _write_synthetic_script(
+            missing_list_hlist_count_path,
+            "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing list-hlist count marker to fail the packet")
+            return 1
+
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 29}"
+        f"{len(missing_cases) + 30}"
     )
     return 0
 
