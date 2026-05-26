@@ -541,6 +541,53 @@ test "nvme pci recovery reservation replay debt summary keeps controller and pla
     try testing.expectEqual(@as(usize, 0), planner_full.planner_remaining_io_slots);
 }
 
+test "nvme pci recovery reservation replay debt summary keeps replay-ready stale reservation debt explicit before mutation" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(6, 6);
+    _ = try lab.planPrpMetadataBudget(4096 * 5, 0);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+
+    const debt = try lab.recoveryReservationReplayDebtSummary(.{
+        .cached_prp_metadata_generation = reservation.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", debt.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.running, debt.state);
+    try testing.expectEqual(@as(u32, 1), debt.reset_generation);
+    try testing.expectEqual(@as(usize, 6), debt.requested_reserved_io_queues);
+    try testing.expectEqual(@as(usize, 3), debt.controller_io_queue_limit);
+    try testing.expectEqual(@as(usize, 64), debt.planner_remaining_io_slots);
+    try testing.expectEqual(@as(usize, 3), debt.replayable_reserved_io_queues);
+    try testing.expectEqual(@as(?u16, 1), debt.first_queue_id);
+    try testing.expectEqual(@as(?u16, 3), debt.last_queue_id);
+    try testing.expectEqual(@as(?u16, 4), debt.next_io_queue_id_after_replay);
+    try testing.expect(debt.queue_numbering_would_restart);
+    try testing.expect(debt.controller_limited);
+    try testing.expect(!debt.planner_limited);
+    try testing.expect(!debt.queue_planning_blocked);
+    try testing.expect(!debt.queues_frozen);
+    try testing.expect(debt.has_queue_reservation_to_replay);
+    try testing.expect(!debt.queue_reservation_already_current);
+    try testing.expect(debt.cached_queue_reservation_stale);
+    try testing.expect(debt.cached_prp_metadata_stale);
+    try testing.expect(debt.descriptor_rebuild_required);
+    try testing.expect(!debt.admin_queue_must_be_replanned);
+    try testing.expectEqual(nvme_pci.RecoveryReservationReplayBlocker.none, debt.replay_blocker);
+    try testing.expect(debt.replay_preflight_ready);
+
+    const recovery = lab.recoverySummary();
+    try testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
+    try testing.expectEqual(@as(u16, 1), lab.next_io_queue_id);
+}
+
 test "nvme pci rollback gate keeps admin replay blocked even after queue and DMA parity recover" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     _ = try lab.planAdminQueue(48, 64, false);
