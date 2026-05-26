@@ -13,6 +13,7 @@ Fresh mixed readback on 2026-05-25 confirmed these current sample-root reminder-
 * `samples/zigux/kobject_example_attr_group_contract.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/kretprobe_example_instance_budget_contract.zig`
+* `samples/zigux/kretprobe_example_probe_spec.zig`
 * `samples/zigux/trace_events_callback_focus_contract.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_atomic64.zig`
