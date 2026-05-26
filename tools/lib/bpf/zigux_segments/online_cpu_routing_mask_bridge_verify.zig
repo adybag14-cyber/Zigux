@@ -7,6 +7,8 @@ const ReaderContext = struct {
     cursor: usize = 0,
 };
 
+const InjectedReadError = error{InjectedReadFailure};
+
 fn readCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
     const typed_context: *ReaderContext = @ptrCast(@alignCast(context.?));
     if (typed_context.cursor >= typed_context.input.len) return null;
@@ -16,6 +18,23 @@ fn readCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
     @memcpy(buffer[0..count], typed_context.input[typed_context.cursor .. typed_context.cursor + count]);
     typed_context.cursor += count;
     return count;
+}
+
+fn readZeroCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
+    _ = context;
+    _ = buffer;
+    return 0;
+}
+
+fn readTooManyCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
+    _ = context;
+    return buffer.len + 1;
+}
+
+fn readInjectedCpuMaskError(context: ?*anyopaque, buffer: []u8) InjectedReadError!?usize {
+    _ = context;
+    _ = buffer;
+    return error.InjectedReadFailure;
 }
 
 test "phase8 online-cpu routing mask bridge entrypoints stay explicit" {
@@ -120,6 +139,44 @@ test "phase8 online-cpu routing mask bridge keeps reader-backed summaries aligne
     try std.testing.expectEqual(
         online_cpu_routing.OnlineCpuRoutingDisposition.requested_subset,
         summary.disposition,
+    );
+}
+
+test "phase8 online-cpu routing mask bridge keeps reader-side failures fail-closed" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const empty_reader = bridge.ChunkReader{
+        .context = null,
+        .readFn = readZeroCpuMaskChunks,
+    };
+    var scratch: [2]u8 = undefined;
+    try std.testing.expectError(
+        error.EmptyReadBuffer,
+        bridge.summarizeOnlineCpuRoutingFromReader(allocator, scratch[0..0], empty_reader, 1, &.{ 11 }),
+    );
+    try std.testing.expectError(
+        error.EmptyReadChunk,
+        bridge.summarizeOnlineCpuRoutingFromReader(allocator, scratch[0..], empty_reader, 1, &.{ 11 }),
+    );
+
+    const invalid_count_reader = bridge.ChunkReader{
+        .context = null,
+        .readFn = readTooManyCpuMaskChunks,
+    };
+    try std.testing.expectError(
+        error.InvalidReadCount,
+        bridge.summarizeOnlineCpuRoutingFromReader(allocator, scratch[0..], invalid_count_reader, 1, &.{ 11 }),
+    );
+
+    const injected_reader = bridge.ChunkReader{
+        .context = null,
+        .readFn = readInjectedCpuMaskError,
+    };
+    try std.testing.expectError(
+        error.InjectedReadFailure,
+        bridge.summarizeOnlineCpuRoutingFromReader(allocator, scratch[0..], injected_reader, 1, &.{ 11 }),
     );
 }
 
