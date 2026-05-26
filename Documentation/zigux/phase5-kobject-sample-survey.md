@@ -26,7 +26,7 @@ Authenticated contents readback in this run directly returned:
 - `zigux/tests/phase5_kobject_example.zig`
 - `zigux/tests/phase5_build.zig`
 
-The same-lane shared reminder packet on current `master` still keeps `samples/zigux/kobject_example.zig` explicit as the direct sample-root owner for this anchor even when this run's authenticated contents route flaked on that one path.
+The same-lane shared reminder packet on current `master` still keeps `samples/zigux/kobject_example.zig` explicit as the sample-root owner for this anchor even when this run's authenticated contents route flaked on that one path, so that owner path stays shared-reminder-backed rather than direct authenticated proof in this runtime.
 
 Fresh public current-`master` fallback remains the honest companion path for the still-flaky companion set:
 
