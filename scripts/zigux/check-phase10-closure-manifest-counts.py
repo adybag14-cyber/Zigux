@@ -214,6 +214,9 @@ REQUIRED_FOCUSED_HARNESS_REPLAYS = {
     "drivers/virtio/virtio_ring_publish_readiness.zig": [
         "phase10 ring publish-readiness wrapper replay",
     ],
+    "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
+        "phase10 ring notification-data readiness replay",
+    ],
     "zigux/tests/phase10_virtio_mmio.zig": [
         "phase10 mmio lab replay",
     ],
@@ -765,6 +768,17 @@ def run_self_test() -> int:
         expect_contains(
             validate(root)[1],
             "survey_provenance:lane_keys:mmio:'P10-L12'!='P10-L11'",
+            "phase10-manifest-counts-self-test",
+        )
+        cases += 1
+        write_fixture(root)
+
+        broken = copy.deepcopy(original)
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_ring_notification_data_readiness.zig"] = []
+        write_manifest(broken)
+        expect_contains(
+            validate(root)[1],
+            "focused_harness_replays:zigux/tests/phase10_virtio_ring_notification_data_readiness.zig:missing",
             "phase10-manifest-counts-self-test",
         )
         cases += 1
