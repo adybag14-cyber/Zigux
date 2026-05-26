@@ -72,10 +72,24 @@ EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = (
 
 EXPECTED_FIXTURE_VALUES = {
     ("string", "strtobool_invalid"): 184,
+    ("string", "replace_char_cstr_end"): 2,
+    ("string", "replace_char_cstr_bytes"): [97, 95, 0, 45, 122],
     ("slab", "zero_after_kmalloc"): True,
     ("bitmap", "truncated_scnprintf_len"): 7,
+    ("bitmap", "truncated_scnprintf"): "1-3,7,1",
+    ("bitmap", "terminator_only_scnprintf_len"): 0,
+    ("bitmap", "zero_length_scnprintf_len"): 0,
+    ("bitmap", "copy_clear_tail_values"): [18446744073709551615, 31],
+    ("bitmap", "copy_and_extend_values"): [18446744073709551615, 31, 0],
+    ("find_bit", "inclusive_boundary_next"): 63,
+    ("find_bit", "inclusive_boundary_zero"): 63,
+    ("find_bit", "inclusive_boundary_and"): 63,
+    ("find_bit", "tail_clamped_first"): 67,
     ("find_bit", "tail_clamped_last"): 67,
+    ("find_bit", "tail_clamped_empty_last"): 69,
     ("rbtree", "cached_leftmost_return_serials"): [0, -1, 2, -1],
+    ("rbtree", "cached_root_transition_serials"): [0, 0, 4, 2],
+    ("rbtree", "next_match_terminal_null"): True,
     ("list_sort", "bool_sorted_ordinals"): [1, 3, 0, 2, 4],
 }
 
@@ -99,7 +113,7 @@ EXPECTED_ANTI_OVERLAP_RULE = (
 EXPECTED_REPLAY_MARKERS = (
     'test "phase 1 helper ports match committed parity fixture" {',
     'const fixture_bytes = @embedFile("fixtures/phase1_helpers.json");',
-    'const Fixture = struct {',
+    "const Fixture = struct {",
 )
 
 EXPECTED_REPLAY_BUILD_MARKERS = (
@@ -326,15 +340,34 @@ def build_sample_root(root: Path) -> None:
     artifact_diff_text = """#!/usr/bin/env python3
 from __future__ import annotations
 
-print(\"ARTIFACT_DIFF_SELF_TEST=pass\")
-print(\"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23\")
+import sys
+
+if "--self-test" in sys.argv:
+    print(\"ARTIFACT_DIFF_SELF_TEST=pass\")
+    print(\"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23\")
+else:
+    print(\"ARTIFACT_DIFF=pass\")
 """
     fixture_payload = {name: {} for name in EXPECTED_SECTIONS}
     fixture_payload["string"]["strtobool_invalid"] = 184
+    fixture_payload["string"]["replace_char_cstr_end"] = 2
+    fixture_payload["string"]["replace_char_cstr_bytes"] = [97, 95, 0, 45, 122]
     fixture_payload["slab"]["zero_after_kmalloc"] = True
     fixture_payload["bitmap"]["truncated_scnprintf_len"] = 7
+    fixture_payload["bitmap"]["truncated_scnprintf"] = "1-3,7,1"
+    fixture_payload["bitmap"]["terminator_only_scnprintf_len"] = 0
+    fixture_payload["bitmap"]["zero_length_scnprintf_len"] = 0
+    fixture_payload["bitmap"]["copy_clear_tail_values"] = [18446744073709551615, 31]
+    fixture_payload["bitmap"]["copy_and_extend_values"] = [18446744073709551615, 31, 0]
+    fixture_payload["find_bit"]["inclusive_boundary_next"] = 63
+    fixture_payload["find_bit"]["inclusive_boundary_zero"] = 63
+    fixture_payload["find_bit"]["inclusive_boundary_and"] = 63
+    fixture_payload["find_bit"]["tail_clamped_first"] = 67
     fixture_payload["find_bit"]["tail_clamped_last"] = 67
+    fixture_payload["find_bit"]["tail_clamped_empty_last"] = 69
     fixture_payload["rbtree"]["cached_leftmost_return_serials"] = [0, -1, 2, -1]
+    fixture_payload["rbtree"]["cached_root_transition_serials"] = [0, 0, 4, 2]
+    fixture_payload["rbtree"]["next_match_terminal_null"] = True
     fixture_payload["list_sort"]["bool_sorted_ordinals"] = [1, 3, 0, 2, 4]
 
     manifest_payload = {
