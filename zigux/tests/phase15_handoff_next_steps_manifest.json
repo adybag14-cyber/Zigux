@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L12",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-25",
+  "surveyed_commit": "current-master-readback-2026-05-26",
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
   "checker": "scripts/zigux/check-phase15-handoff-note-alignment.py",
   "present_paths": [
@@ -18,6 +18,8 @@
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "Documentation/zigux/phase15-study-only-anchor-accounting.md",
     "Documentation/zigux/phase15-shared-summary-gap.md",
+    "zigux-alpha/README.md",
+    "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.json",
     "zigux/tests/phase15_parity_scorecard.zig",
@@ -72,9 +74,11 @@
   ],
   "roadmap_alignment_markers": [
     "The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.",
+    "`zigux-alpha/README.md` and `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md` keep the bootstrap boundary explicit: the ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so later-lane Phase 15 status still has to be confirmed in the live product docs, current repo tree, and active lane notes.",
     "These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features."
   ],
   "pending_next_step_markers": [
+    "compare the live Phase 15 governance packet against the roadmap first and use the bootstrap ledger only as early-tranche context, because the ledger does not own later-lane status",
     "tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet",
     "reread this handoff note together with any newly landed dedicated `phase15*` wrapper or shared-CI route recovery before treating that broader replay surface as current evidence here",
     "revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves"
