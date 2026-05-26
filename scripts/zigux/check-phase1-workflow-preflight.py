@@ -19,9 +19,19 @@ PREFLIGHT_STEP = (
     "Preflight current Phase 1 workflow viability checker",
     "python3 scripts/zigux/check-phase1-workflow-preflight.py",
 )
-PREFLIGHT_ORDER = (
+VIABILITY_SELF_TEST_STEP = (
+    "Self-test current Phase 1 workflow viability checker",
+    "python3 scripts/zigux/check-phase1-workflow-viability.py --self-test",
+)
+VIABILITY_CHECK_STEP = (
+    "Check current Phase 1 workflow viability",
+    "python3 scripts/zigux/check-phase1-workflow-viability.py",
+)
+EARLY_SIGNAL_ORDER = (
     "Setup Python",
     "Preflight current Phase 1 workflow viability checker",
+    "Self-test current Phase 1 workflow viability checker",
+    "Check current Phase 1 workflow viability",
     "Setup pinned Zig toolchain",
 )
 
@@ -33,11 +43,12 @@ REQUIRED_FILES = (
 
 REQUIRED_NOTE_LINES = (
     "- `PHASE1_WORKFLOW_STATUS=active`",
-    "- `PHASE1_WORKFLOW_SCOPE=current bootstrap Phase 1 workflow preflight guard`",
+    "- `PHASE1_WORKFLOW_SCOPE=current bootstrap Phase 1 workflow preflight and early-signal guard`",
     "- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-preflight`",
-    "- `PHASE1_WORKFLOW_PREFLIGHT=Preflight current Phase 1 workflow viability checker after Setup Python and before Setup pinned Zig toolchain`",
-    "- `PHASE1_WORKFLOW_PREFLIGHT_ORDER=Setup Python,Preflight current Phase 1 workflow viability checker,Setup pinned Zig toolchain`",
-    "- `PHASE1_WORKFLOW_VIABILITY_NEXT_STEP=wire the lane-local workflow-viability self-test and packet-check pair after the current Phase 1 closure packet and before the current Phase 3 interop packet`",
+    "- `PHASE1_WORKFLOW_PREFLIGHT=Preflight current Phase 1 workflow viability checker after Setup Python and before the lane-local workflow viability pair`",
+    "- `PHASE1_WORKFLOW_EARLY_SIGNAL_ORDER=Setup Python,Preflight current Phase 1 workflow viability checker,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Setup pinned Zig toolchain`",
+    "- `PHASE1_WORKFLOW_VIABILITY_PAIR=Self-test current Phase 1 workflow viability checker plus Check current Phase 1 workflow viability before pinned Zig setup`",
+    "- `PHASE1_WORKFLOW_VIABILITY_NEXT_STEP=exact-reread the next zigux-bootstrap verdict now that the lane-local viability pair runs before pinned Zig setup`",
 )
 
 
@@ -81,15 +92,6 @@ def require_workflow_step(workflow_text: str, step_name: str, run_command: str) 
     return failures
 
 
-def require_adjacent_chain(workflow_text: str, step_names: tuple[str, ...]) -> list[str]:
-    names = workflow_step_names(workflow_text)
-    width = len(step_names)
-    for index in range(len(names) - width + 1):
-        if tuple(names[index : index + width]) == step_names:
-            return []
-    return [f"workflow_adjacent_chain:missing:{'->'.join(step_names)}"]
-
-
 def require_order(workflow_text: str, step_names: tuple[str, ...], label: str) -> list[str]:
     positions: list[int] = []
     for step_name in step_names:
@@ -116,7 +118,27 @@ def collect_failures(root: Path) -> list[str]:
         failures.extend(require_line_once(note_text, "note", note_line))
 
     failures.extend(require_workflow_step(workflow_text, PREFLIGHT_STEP[0], PREFLIGHT_STEP[1]))
-    failures.extend(require_order(workflow_text, PREFLIGHT_ORDER, "workflow_preflight_order"))
+    failures.extend(
+        require_workflow_step(
+            workflow_text,
+            VIABILITY_SELF_TEST_STEP[0],
+            VIABILITY_SELF_TEST_STEP[1],
+        )
+    )
+    failures.extend(
+        require_workflow_step(
+            workflow_text,
+            VIABILITY_CHECK_STEP[0],
+            VIABILITY_CHECK_STEP[1],
+        )
+    )
+    failures.extend(
+        require_order(
+            workflow_text,
+            EARLY_SIGNAL_ORDER,
+            "workflow_early_signal_order",
+        )
+    )
     return failures
 
 
@@ -126,9 +148,9 @@ def build_note_text() -> str:
             "# Phase 1 Workflow Viability",
             "",
             *REQUIRED_NOTE_LINES,
-            "- keep this packet scoped to the lightweight Lane 17 workflow preflight guard.",
-            "- run the preflight before pinned Zig setup so the lane still emits direct signal when the external archive path fails first.",
-            "- leave the lane-local workflow-viability self-test and packet-check pair as a separate follow-up until the surrounding closure-to-Phase-3 handoff is restacked safely.",
+            "- keep this packet scoped to the lightweight Lane 17 workflow preflight and early-signal guard.",
+            "- run the preflight plus the lane-local workflow viability pair before pinned Zig setup so the branch still emits Lane 17 signal when the external archive path fails first.",
+            "- keep the broader Phase 1 closure and Phase 3 interop workflow packet order unchanged after this early-signal insertion.",
             "",
         )
     )
@@ -147,6 +169,12 @@ def build_sample_workflow_text() -> str:
         "",
         f"      - name: {PREFLIGHT_STEP[0]}",
         f"        run: {PREFLIGHT_STEP[1]}",
+        "",
+        f"      - name: {VIABILITY_SELF_TEST_STEP[0]}",
+        f"        run: {VIABILITY_SELF_TEST_STEP[1]}",
+        "",
+        f"      - name: {VIABILITY_CHECK_STEP[0]}",
+        f"        run: {VIABILITY_CHECK_STEP[1]}",
         "",
         "      - name: Setup pinned Zig toolchain",
         "        run: printf 'pinned-zig\\n'",
@@ -178,7 +206,7 @@ def run_self_test() -> int:
         write_text(
             root,
             NOTE_REL,
-            note_text.replace(REQUIRED_NOTE_LINES[3] + "\n", "", 1),
+            note_text.replace(REQUIRED_NOTE_LINES[5] + "\n", "", 1),
         )
         failures = collect_failures(root)
         if "note:expected=1:actual=0" not in failures:
@@ -192,33 +220,33 @@ def run_self_test() -> int:
             root,
             WORKFLOW_REL,
             workflow_text.replace(
-                "      - name: Preflight current Phase 1 workflow viability checker\n",
+                "      - name: Self-test current Phase 1 workflow viability checker\n",
                 "",
                 1,
             ),
         )
         failures = collect_failures(root)
         if (
-            "workflow_step:Preflight current Phase 1 workflow viability checker:expected=1:actual=0"
+            "workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=0"
             not in failures
         ):
-            print("phase1-workflow-preflight-self-test:missing_preflight_step_not_detected")
+            print("phase1-workflow-preflight-self-test:missing_viability_selftest_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
 
         workflow_text = read_text(root, WORKFLOW_REL)
         duplicate = (
-            "      - name: Preflight current Phase 1 workflow viability checker\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-preflight.py\n"
+            "      - name: Check current Phase 1 workflow viability\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n"
         )
         write_text(root, WORKFLOW_REL, workflow_text + "\n" + duplicate)
         failures = collect_failures(root)
         if (
-            "workflow_step:Preflight current Phase 1 workflow viability checker:expected=1:actual=2"
+            "workflow_step:Check current Phase 1 workflow viability:expected=1:actual=2"
             not in failures
         ):
-            print("phase1-workflow-preflight-self-test:duplicate_preflight_step_not_detected")
+            print("phase1-workflow-preflight-self-test:duplicate_viability_check_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
@@ -229,26 +257,33 @@ def run_self_test() -> int:
             "        run: python3 --version\n\n"
             "      - name: Preflight current Phase 1 workflow viability checker\n"
             "        run: python3 scripts/zigux/check-phase1-workflow-preflight.py\n\n"
+            "      - name: Self-test current Phase 1 workflow viability checker\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n"
+            "      - name: Check current Phase 1 workflow viability\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n\n"
             "      - name: Setup pinned Zig toolchain\n"
             "        run: printf 'pinned-zig\\n'\n"
         )
         new = (
             "      - name: Setup Python\n"
             "        run: python3 --version\n\n"
+            "      - name: Preflight current Phase 1 workflow viability checker\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-preflight.py\n\n"
             "      - name: Setup pinned Zig toolchain\n"
             "        run: printf 'pinned-zig\\n'\n\n"
-            "      - name: Preflight current Phase 1 workflow viability checker\n"
-            "        run: python3 scripts/zigux/check-phase1-workflow-preflight.py\n"
+            "      - name: Self-test current Phase 1 workflow viability checker\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n"
+            "      - name: Check current Phase 1 workflow viability\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n"
         )
         write_text(root, WORKFLOW_REL, workflow_text.replace(old, new, 1))
         failures = collect_failures(root)
-        if "workflow_preflight_order:out_of_order" not in failures:
-            print("phase1-workflow-preflight-self-test:preflight_order_not_detected")
+        if "workflow_early_signal_order:out_of_order" not in failures:
+            print("phase1-workflow-preflight-self-test:early_signal_order_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
 
-        workflow_text = read_text(root, WORKFLOW_REL)
     print("PHASE1_WORKFLOW_PREFLIGHT_SELF_TEST=pass")
     print(f"PHASE1_WORKFLOW_PREFLIGHT_SELF_TEST_CASE_COUNT={case_count}")
     return 0
