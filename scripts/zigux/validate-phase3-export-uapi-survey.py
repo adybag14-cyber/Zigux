@@ -76,7 +76,7 @@ REQUIRED_MARKERS = {
         "PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts/zigux/check-phase3-dev-t-starter-packet.py",
         "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
         "PHASE3_DEV_T_STARTER_PACKET_RUN=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
-        "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, adjacent `abi.h` boundary note, aggregate `phase3-validate` and `phase3` make routes, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
+        "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, aggregate `phase3-validate` and `phase3` make routes, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
         "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
         "`zigux/tests/phase3_export_shim_build.zig` now carries the focused `phase3-export-shim-test` replay handoff",
         "the shared tests-root route in `zigux/tests/build.zig`, where `addPhase3ExportUapiLayout(...)` imports `header_family_binding`",
@@ -377,8 +377,18 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_C_HEADER_SMOKE_CHECK=scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+            "expected missing export/uapi c-header smoke checker path marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_C_HEADER_SMOKE_SELF_TEST=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test",
             "expected missing export/uapi c-header smoke self-test marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
+            "expected missing export/uapi c-header smoke replay marker was not reported",
         ),
         (
             SURVEY_PATH,
@@ -402,7 +412,7 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
-            "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, adjacent `abi.h` boundary note, aggregate `phase3-validate` and `phase3` make routes, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
+            "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, aggregate `phase3-validate` and `phase3` make routes, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
             "expected missing focused export-shim replay marker was not reported",
         ),
         (
