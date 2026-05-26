@@ -191,6 +191,23 @@ CONTRACT_SELF_TEST_CASES = (
     "contract_summary_case_order_drift",
 )
 
+VALIDATOR_REPLAYS_EXPECTED_SELF_TEST_CASES = (
+    "catalog_shape",
+    "validator_marker_round_trip",
+    "validator_helper_marker_drift",
+    "validator_marker_drift",
+    "validator_replay_marker_drift",
+    "repo_reality_handoff_round_trip",
+    "repo_reality_handoff_drift",
+    "repo_reality_handoff_note_missing",
+    "workflow_marker_round_trip",
+    "workflow_make_route_marker_drift",
+    "workflow_marker_drift",
+    "workflow_missing",
+    "artifact_diff_note_round_trip",
+    "artifact_diff_note_marker_drift",
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -267,6 +284,16 @@ def require_current_contract_checker(text: str) -> None:
         raise RuntimeError(f"{CONTRACT_CHECKER.as_posix()} must keep the current 24-case self-test catalog")
 
 
+def require_current_validator_replays_checker(text: str) -> None:
+    self_test_cases = tuple(
+        extract_literal_assignment(text, "EXPECTED_SELF_TEST_CASES", VALIDATOR_REPLAYS.as_posix())
+    )
+    if self_test_cases != VALIDATOR_REPLAYS_EXPECTED_SELF_TEST_CASES:
+        raise RuntimeError(
+            f"{VALIDATOR_REPLAYS.as_posix()} must keep the current 14-case self-test catalog"
+        )
+
+
 def require_current_repo_reality(root: Path) -> None:
     missing = [path for path in CURRENT_DIRECT_PACKET if not (root / Path(path)).exists()]
     if missing:
@@ -280,6 +307,7 @@ def check(root: Path) -> None:
     repo_warning = read(root, REPO_WARNING)
     helper_text = read(root, DIRECT_HELPER)
     contract_text = read(root, CONTRACT_CHECKER)
+    validator_replays_text = read(root, VALIDATOR_REPLAYS)
 
     require_markers(survey, SURVEY_MARKERS, SURVEY.as_posix())
     require_paths_listed(survey, CURRENT_DIRECT_PACKET, SURVEY.as_posix())
@@ -291,6 +319,7 @@ def check(root: Path) -> None:
     require_markers(repo_warning, REPO_WARNING_MARKERS, REPO_WARNING.as_posix())
     require_current_helper_contract(helper_text)
     require_current_contract_checker(contract_text)
+    require_current_validator_replays_checker(validator_replays_text)
     require_current_repo_reality(root)
 
 
@@ -329,6 +358,20 @@ def contract_fixture_text() -> str:
     return "\n".join(lines)
 
 
+def validator_replays_fixture_text() -> str:
+    cases = "\n".join(
+        f'    "{case}",' for case in VALIDATOR_REPLAYS_EXPECTED_SELF_TEST_CASES
+    )
+    return "\n".join(
+        [
+            "EXPECTED_SELF_TEST_CASES = (",
+            cases,
+            ")",
+            "",
+        ]
+    ) + "\n"
+
+
 def artifact_note_fixture_text() -> str:
     return "\n".join(ARTIFACT_DIFF_NOTE_MARKERS) + "\n"
 
@@ -344,7 +387,7 @@ def fixture_root(root: Path) -> None:
     write(root / REVIEW_CHECKLIST, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write(root / REPO_WARNING, "\n".join(REPO_WARNING_MARKERS) + "\n")
     write(root / PINS_CHECKER, "# pins checker placeholder\n")
-    write(root / VALIDATOR_REPLAYS, "# validator replay placeholder\n")
+    write(root / VALIDATOR_REPLAYS, validator_replays_fixture_text())
     write(root / VALIDATOR, "# validator placeholder\n")
     write(root / DIRECT_HELPER, helper_fixture_text())
     write(root / CONTRACT_CHECKER, contract_fixture_text())
