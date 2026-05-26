@@ -43,6 +43,12 @@ EXPECTED_CONSUMER_MARKERS = {
     "scripts/zigux/check-fixdep-diff.py": (
         'ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"',
         'run([sys.executable, str(ARTIFACT_DIFF), "--mode", "text", str(expected), str(actual)], cwd=str(ROOT))',
+        "diff_text(expected_stdout, zig_actual)",
+        "diff_text(expected_stdout, zig_repeat)",
+        "diff_text(zig_actual, zig_repeat)",
+        "diff_text(expected_stderr_path, zig_actual_stderr)",
+        "diff_text(expected_stderr_path, zig_repeat_stderr)",
+        "diff_text(zig_actual_stderr, zig_repeat_stderr)",
     ),
 }
 
@@ -300,7 +306,7 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    expected_case_count = 51
+    expected_case_count = 63
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_artifact_tools_manifest_") as tmp_dir:
         root = Path(tmp_dir)
@@ -518,10 +524,6 @@ def main() -> int:
         return emit_issues(issues)
     print("PHASE2_ARTIFACT_TOOLS_MANIFEST=pass")
     print(f"PHASE2_ARTIFACT_TOOLS_MANIFEST_REQUIRED_NOTE_COUNT={len(REQUIRED_NOTE_MARKERS)}")
-    print(
-        "PHASE2_ARTIFACT_TOOLS_MANIFEST_REQUIRED_TOOL_PATH_COUNT="
-        f"{len(REQUIRED_TOOLING['primary']) + len(REQUIRED_TOOLING['consumers']) + len(REQUIRED_TOOLING['checkers'])}"
-    )
     return 0
 
 
