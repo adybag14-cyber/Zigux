@@ -160,6 +160,8 @@ REQUIRED_PACKET_FILES = (
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "Documentation/zigux/phase3-bitmap-cpumask-slice.md",
     "zigux/helpers/bitmap_view.zig",
     "zigux/helpers/cpumask_view.zig",
