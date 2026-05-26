@@ -173,7 +173,7 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
-SELF_TEST_CASE_COUNT = 30
+SELF_TEST_CASE_COUNT = 31
 
 
 class ValidationError(RuntimeError):
@@ -522,6 +522,8 @@ def run_self_test() -> None:
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
+        cases_run += 1
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"current_repo_reality_gaps": EXPECTED_CURRENT_REPO_REALITY_GAPS[:-1]})))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0].update({"checker_surfaces": [EXPECTED_BASE64_CHECKER_SURFACES[0]]})))
         cases_run += 1
