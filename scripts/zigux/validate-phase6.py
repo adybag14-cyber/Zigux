@@ -226,7 +226,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 30
 
 
 class ValidationError(RuntimeError):
@@ -603,6 +603,21 @@ def run_self_test() -> None:
                 json.dumps(
                     {
                         **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "public_tree_backed_shared_companions": [
+                            "Documentation/zigux/phase6-perf-gate-survey.md"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
                         "helpers": [
                             helper
                             if helper.get("key") != "base64"
@@ -829,6 +844,21 @@ def run_self_test() -> None:
                                 "shared_direct_evidence"
                             ]
                             if item != "scripts/zigux/check-phase6-hexdump-route.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "public_tree_backed_shared_companions": [
+                            "Documentation/zigux/phase6-perf-gate-survey.md"
                         ],
                     },
                     indent=2,
