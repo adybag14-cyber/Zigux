@@ -113,11 +113,20 @@ SURFACE_PATHS = (
 )
 
 SCRIPTS_MARKERS = (
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`.github/workflows/zigux-bootstrap.yml`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
 )
-REVIEW_MARKERS = SCRIPTS_MARKERS + ("`make -C zigux phase2-fixdep`",)
+REVIEW_MARKERS = (
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`make -C zigux phase2-fixdep`",
+)
 PHASE2_CLOSURE_MARKERS = (
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
@@ -169,7 +178,7 @@ MANIFEST_CHECKS = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 97
+EXPECTED_SELF_TEST_CASE_COUNT = 99
 
 
 def read(path: Path) -> str:
@@ -440,6 +449,18 @@ def run_self_test() -> int:
         scripts_path = root / SCRIPTS_README
         scripts_path.write_text(read(scripts_path).replace(SCRIPTS_MARKERS[0], "", 1), encoding="utf-8")
         assert any(code == "MISSING_SCRIPTS_MARKERS" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        scripts_path = root / SCRIPTS_README
+        scripts_path.write_text(read(scripts_path).replace(SCRIPTS_MARKERS[1], "", 1), encoding="utf-8")
+        assert ("MISSING_SCRIPTS_MARKERS", SCRIPTS_MARKERS[1]) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        tests_path = root / TESTS_README
+        tests_path.write_text(read(tests_path).replace(SCRIPTS_MARKERS[3], "", 1), encoding="utf-8")
+        assert ("MISSING_TESTS_MARKERS", SCRIPTS_MARKERS[3]) in collect_issues(root)
         checks += 1
 
     assert checks == EXPECTED_SELF_TEST_CASE_COUNT
