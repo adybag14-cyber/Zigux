@@ -115,13 +115,14 @@ test "phase 15 freeze-map governance manifest records the current route-gap post
 
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-24", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-25", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try expectContains(manifest.surveyed_commit_mode_reason, "readiness-gate survey");
     try expectContains(manifest.surveyed_commit_mode_reason, "readiness-packet checker");
     try expectContains(manifest.surveyed_commit_mode_reason, "tests-root alignment guard");
     try expectContains(manifest.surveyed_commit_mode_reason, "lane-owner replay");
     try expectContains(manifest.surveyed_commit_mode_reason, "validator-first companion");
+    try expectContains(manifest.surveyed_commit_mode_reason, "shared Phase 15 build companion");
     try expectContains(manifest.surveyed_commit_mode_reason, "repo-reality gaps");
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
@@ -139,8 +140,7 @@ test "phase 15 freeze-map governance manifest records the current route-gap post
     try expectContains(manifest.maintenance_handoff.next_future_target, "check-phase15-review-checklist-study-only-alignment.py");
     try expectContains(manifest.maintenance_handoff.next_future_target, "check-phase15-tests-readme-alignment.py");
     try expectContains(manifest.maintenance_handoff.next_future_target, "check-phase15-readiness-gate-packet.py");
-    try expectContains(manifest.maintenance_handoff.next_future_target, "direct contents readback still resolves");
-    try expectContains(manifest.maintenance_handoff.next_future_target, "current direct reads still materialize scripts/zigux/validate-phase15.py");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "scripts/zigux/validate-phase15.py");
     try expectContains(manifest.maintenance_handoff.next_future_target, "zigux/tests/phase15_build.zig");
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15-validate, phase15-test, and phase15");
 
@@ -149,7 +149,7 @@ test "phase 15 freeze-map governance manifest records the current route-gap post
     try expectContains(rcu_survey.repo_reality, "P14-L16");
     try expectContains(rcu_survey.repo_reality, "phase14-rcu-tree-bridge-blocker");
     try expectContains(rcu_survey.repo_reality, "scripts/zigux/validate-phase15.py");
-    try expectContains(rcu_survey.repo_reality, "zigux/tests/phase15_build.zig still does not materialize");
+    try expectContains(rcu_survey.repo_reality, "zigux/tests/phase15_build.zig");
     try expectContains(rcu_survey.repo_reality, "scripts/zigux/check-phase15-tests-readme-alignment.py");
     try expectContains(rcu_survey.repo_reality, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectContains(rcu_survey.repo_reality, "zigux/Makefile still carries no phase15-validate, phase15-test, or phase15 routes");
@@ -185,9 +185,9 @@ test "phase 15 freeze-map governance manifest records the current route-gap post
     try expectContains(validator_gap.why_now, "Current direct reads now materialize scripts/zigux/validate-phase15.py");
 
     const build_gap = findGap(manifest.gaps, "phase15-shared-build-route-readback") orelse return error.MissingGap;
-    try std.testing.expectEqualStrings("repo_reality_gap_confirmed", build_gap.status);
-    try std.testing.expectEqualStrings("shared_route_gap", build_gap.kind);
-    try expectContains(build_gap.why_now, "still do not materialize zigux/tests/phase15_build.zig");
+    try std.testing.expectEqualStrings("materialized_in_contents_readback", build_gap.status);
+    try std.testing.expectEqualStrings("shared_route_presence", build_gap.kind);
+    try expectContains(build_gap.why_now, "Direct contents readback resolves zigux/tests/phase15_build.zig");
 }
 
 test "phase 15 freeze-map governance doc records the refreshed route classification honestly" {
@@ -197,10 +197,10 @@ test "phase 15 freeze-map governance doc records the refreshed route classificat
     const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 48 * 1024);
     defer std.testing.allocator.free(governance_note);
 
-    try expectContains(governance_note, "current-master-readback-2026-05-24");
+    try expectContains(governance_note, "current-master-readback-2026-05-25");
     try expectContains(governance_note, "the tests-root Phase 15 alignment checker `scripts/zigux/check-phase15-tests-readme-alignment.py`");
-    try expectContains(governance_note, "validator-first companion `scripts/zigux/validate-phase15.py` is directly readable again");
-    try expectContains(governance_note, "the same current read path still returns not-found for `zigux/tests/phase15_build.zig`");
+    try expectContains(governance_note, "direct contents readback resolves `scripts/zigux/validate-phase15.py`, so the validator-first companion stays adjacent direct-readback evidence");
+    try expectContains(governance_note, "direct contents readback resolves `zigux/tests/phase15_build.zig`, so the shared Phase 15 build companion stays adjacent direct-readback evidence");
     try expectContains(governance_note, "tests-root alignment guard");
     try expectContains(governance_note, "lane `P14-L16`");
     try expectContains(governance_note, "phase14-rcu-tree-bridge-blocker");
@@ -212,7 +212,7 @@ test "phase 15 freeze-map governance doc records the refreshed route classificat
     try expectContains(governance_note, "materialized_in_contents_readback `phase15-review-checklist-study-only-boundary-guard`");
     try expectContains(governance_note, "materialized_in_contents_readback `phase15-tests-readme-alignment-guard`");
     try expectContains(governance_note, "materialized_in_contents_readback `phase15-shared-validator-route-readback`");
-    try expectContains(governance_note, "repo_reality_gap_confirmed `phase15-shared-build-route-readback`");
+    try expectContains(governance_note, "materialized_in_contents_readback `phase15-shared-build-route-readback`");
     try expectContains(governance_note, "repo_reality_gap_confirmed `phase15-shared-wrapper-route-readback`");
     try expectContains(governance_note, "blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`");
 }
@@ -250,8 +250,8 @@ test "phase 15 freeze-map required terms and maintenance handoff stay aligned" {
         try expectGovernanceInventorySnippet(governance_note, blocker_ownership);
     }
     try expectContains(governance_note, "the tests-root Phase 15 alignment checker `scripts/zigux/check-phase15-tests-readme-alignment.py`");
-    try expectContains(governance_note, "validator-first companion `scripts/zigux/validate-phase15.py` is directly readable again");
-    try expectContains(governance_note, "the same current read path still returns not-found for `zigux/tests/phase15_build.zig`");
+    try expectContains(governance_note, "direct contents readback resolves `scripts/zigux/validate-phase15.py`, so the validator-first companion stays adjacent direct-readback evidence");
+    try expectContains(governance_note, "direct contents readback resolves `zigux/tests/phase15_build.zig`, so the shared Phase 15 build companion stays adjacent direct-readback evidence");
     try expectContains(governance_note, "still carries no `phase15-validate`, `phase15-test`, or `phase15`");
 }
 
@@ -262,7 +262,7 @@ test "phase 15 freeze-map linked blocker evidence stays explicit" {
     const rcu_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-rcu-tree-survey.md", 8 * 1024);
     defer std.testing.allocator.free(rcu_note);
     try expectContains(rcu_note, "PHASE14_LANE_KEY=P14-L16");
-    try expectContains(rcu_note, "blocked by `phase14-rcu-tree-bridge-blocker`");
+    try expectContains(rcu_note, "phase14-rcu-tree-bridge-blocker");
     try expectContains(rcu_note, "That is still a freeze-in-C posture, not a review-ready bridge seam.");
 
     const skbuff_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-skbuff-bridge-survey.md", 8 * 1024);
@@ -276,5 +276,5 @@ test "phase 15 freeze-map linked blocker evidence stays explicit" {
     defer std.testing.allocator.free(skbuff_traceability);
     try expectContains(skbuff_traceability, "`net/core/skbuff.c`: `Freeze In C Initially`");
     try expectContains(skbuff_traceability, "retained-in-C posture");
-    try expectContains(skbuff_traceability, "must not imply a live `net/core/skbuff_bridge.zig` helper or any skbuff-local compile route");
+    try expectContains(skbuff_traceability, "must not overstate that returned packet as shared-lane parity, ownership transfer");
 }
