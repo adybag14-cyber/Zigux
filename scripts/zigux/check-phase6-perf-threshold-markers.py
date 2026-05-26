@@ -18,6 +18,7 @@ EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json"
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 
 REQUIRED_SURVEY_SNIPPETS = [
+    "the exact posture below was re-read from current `master` on `2026-05-26`",
     "`iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
     "`len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 250`",
     "`query_count = 16`",
@@ -116,11 +117,12 @@ EXPECTED_HEXDUMP_CASES = [
     {"label": "16B-ascii-g8", "reps": 20000, "max_slowdown_pct": 600},
 ]
 
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 19
 
 
 class ValidationError(RuntimeError):
     """Raised when the Phase 6 perf-threshold packet drifts."""
+
 
 
 def read_text(path: Path) -> str:
@@ -130,6 +132,7 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
+
 def require_snippets(path: Path, snippets: list[str]) -> None:
     content = read_text(path)
     for snippet in snippets:
@@ -137,6 +140,7 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
             raise ValidationError(
                 f"missing expected Phase 6 perf-threshold marker in {path.as_posix()}: {snippet}"
             )
+
 
 
 def load_manifest(path: Path) -> dict[str, object]:
@@ -149,6 +153,7 @@ def load_manifest(path: Path) -> dict[str, object]:
     return manifest
 
 
+
 def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
     helpers = manifest.get("helpers")
     if not isinstance(helpers, list):
@@ -159,6 +164,7 @@ def get_helper(manifest: dict[str, object], key: str) -> dict[str, object]:
     raise ValidationError(f"missing helper row in manifest: {key}")
 
 
+
 def require_routes(routes: object, label: str, expected_routes: list[str]) -> None:
     if not isinstance(routes, list):
         raise ValidationError(f"{label} rerun routes missing")
@@ -167,9 +173,11 @@ def require_routes(routes: object, label: str, expected_routes: list[str]) -> No
             raise ValidationError(f"{label} rerun route missing {route}")
 
 
+
 def require_equal(actual: object, expected: object, label: str) -> None:
     if actual != expected:
         raise ValidationError(f"{label} drifted")
+
 
 
 def validate_manifest_common(manifest: dict[str, object], packet: str, lane_scope: str, path: Path) -> None:
@@ -177,6 +185,7 @@ def validate_manifest_common(manifest: dict[str, object], packet: str, lane_scop
     require_equal(manifest.get("phase"), "Phase 6", f"{path.as_posix()} phase")
     require_equal(manifest.get("surveyed_head"), EXPECTED_SURVEYED_HEAD, f"{path.as_posix()} surveyed_head")
     require_equal(manifest.get("lane_scope"), lane_scope, f"{path.as_posix()} lane_scope")
+
 
 
 def validate_base64_perf(perf: dict[str, object], label: str) -> None:
@@ -195,6 +204,7 @@ def validate_base64_perf(perf: dict[str, object], label: str) -> None:
     )
 
 
+
 def validate_bsearch_perf(perf: dict[str, object], label: str, *, bound_field: str) -> None:
     require_equal(perf.get("cases"), EXPECTED_BSEARCH_CASES, f"{label} cases")
     require_equal(perf.get("case_labels"), EXPECTED_BSEARCH_LABELS, f"{label} case_labels")
@@ -211,6 +221,7 @@ def validate_bsearch_perf(perf: dict[str, object], label: str, *, bound_field: s
     )
 
 
+
 def validate_checksum_perf(perf: dict[str, object], label: str) -> None:
     require_equal(perf.get("cases"), EXPECTED_CHECKSUM_CASES, f"{label} cases")
     require_equal(perf.get("ipv4_fast_path_cases"), EXPECTED_CHECKSUM_IPV4_CASES, f"{label} ipv4_fast_path_cases")
@@ -225,6 +236,7 @@ def validate_checksum_perf(perf: dict[str, object], label: str) -> None:
     )
 
 
+
 def validate_hexdump_perf(perf: dict[str, object], label: str) -> None:
     require_equal(perf.get("cases"), EXPECTED_HEXDUMP_CASES, f"{label} cases")
     require_routes(
@@ -236,6 +248,7 @@ def validate_hexdump_perf(perf: dict[str, object], label: str) -> None:
             "make -C zigux phase6-perf",
         ],
     )
+
 
 
 def validate_evidence_manifest(path: Path) -> None:
@@ -257,9 +270,9 @@ def validate_evidence_manifest(path: Path) -> None:
         "helper-evidence checksum",
     )
     validate_hexdump_perf(
-        get_helper(manifest, "hexdump").get("current_perf_evidence"),
-        "helper-evidence hexdump",
+        get_helper(manifest, "hexdump").get("current_perf_evidence"), "helper-evidence hexdump"
     )
+
 
 
 def validate_parity_manifest(path: Path) -> None:
@@ -281,9 +294,9 @@ def validate_parity_manifest(path: Path) -> None:
         "helper-parity checksum",
     )
     validate_hexdump_perf(
-        get_helper(manifest, "hexdump").get("current_perf_evidence"),
-        "helper-parity hexdump",
+        get_helper(manifest, "hexdump").get("current_perf_evidence"), "helper-parity hexdump"
     )
+
 
 
 def validate(repo_root: Path) -> None:
@@ -297,9 +310,11 @@ def validate(repo_root: Path) -> None:
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
 
 
+
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 
 def scaffold_manifest(packet: str, lane_scope: str, *, parity: bool) -> dict[str, object]:
@@ -370,6 +385,7 @@ def scaffold_manifest(packet: str, lane_scope: str, *, parity: bool) -> dict[str
     }
 
 
+
 def scaffold_repo(root: Path) -> None:
     write(root / SURVEY_PATH, "\n".join(REQUIRED_SURVEY_SNIPPETS) + "\n")
     write(root / BASE64_FIXTURES_PATH, "\n".join(REQUIRED_BASE64_FIXTURE_SNIPPETS) + "\n")
@@ -399,8 +415,10 @@ def scaffold_repo(root: Path) -> None:
     )
 
 
+
 def mutate_text(path: Path, old: str, new: str) -> None:
     write(path, read_text(path).replace(old, new, 1))
+
 
 
 def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
@@ -416,6 +434,7 @@ def expect_failure(root: Path, mutate, expected_fragment: str) -> None:
         raise AssertionError("expected validation failure")
 
 
+
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase6_perf_thresholds_") as tmpdir:
         root = Path(tmpdir)
@@ -425,6 +444,12 @@ def run_self_test() -> None:
         cases_run = 0
 
         cases = [
+            (
+                SURVEY_PATH,
+                "the exact posture below was re-read from current `master` on `2026-05-26`",
+                "the exact posture below was re-read from current `master` on `2026-05-25`",
+                "phase6-perf-gate-survey.md",
+            ),
             (
                 SURVEY_PATH,
                 "`std.math.log2_int_ceil(usize, case.len) + 1`",
@@ -557,11 +582,13 @@ def run_self_test() -> None:
     print(f"PHASE6_PERF_THRESHOLD_MARKERS_SELF_TEST_CASE_COUNT={cases_run}")
 
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
+
 
 
 def main() -> int:
