@@ -113,6 +113,65 @@ pub fn notificationDataUsesWrapBit(summary: NotificationDataSummary) bool {
     return (summary.encoded_next & virtio_ring.packed_notification_wrap_bit) != 0;
 }
 
+test "phase10 virtio ring verify keeps clearBroken debt-free reset handoff explicit" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(4, 8, .split, true, false);
+
+    var readiness = try summarizeResetReadiness(&ring, 4);
+    try std.testing.expect(readiness.reset_ready);
+    try std.testing.expect(readiness.blocker == null);
+    try std.testing.expect(readiness.callback_enabled);
+    try std.testing.expect(!queueNeedsResetPoll(readiness));
+
+    const marked_broken = try ring.markBroken(4);
+    try std.testing.expect(marked_broken.broken);
+    try std.testing.expect(queueHasBrokenCallbackFence(marked_broken));
+    try std.testing.expectEqual(@as(u16, 0), marked_broken.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), marked_broken.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), marked_broken.pending_used_chain_count);
+
+    readiness = try summarizeResetReadiness(&ring, 4);
+    try std.testing.expect(!readiness.reset_ready);
+    try std.testing.expectEqualStrings("queue_broken", @tagName(readiness.blocker.?));
+    try std.testing.expect(!readiness.callback_enabled);
+    try std.testing.expect(!queueNeedsResetPoll(readiness));
+    try std.testing.expectError(error.QueueResetWhileBroken, summarizeResetQueue(&ring, 4));
+
+    const cleared = try ring.clearBroken(4);
+    try std.testing.expect(!cleared.broken);
+    try std.testing.expect(brokenQueueNeedsCallbackReenable(cleared));
+    try std.testing.expectEqual(@as(u16, 0), cleared.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), cleared.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), cleared.pending_used_chain_count);
+
+    readiness = try summarizeResetReadiness(&ring, 4);
+    try std.testing.expect(readiness.reset_ready);
+    try std.testing.expect(readiness.blocker == null);
+    try std.testing.expect(!readiness.callback_enabled);
+    try std.testing.expect(!queueNeedsResetPoll(readiness));
+
+    const reset = try summarizeResetQueue(&ring, 4);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", reset.anchor);
+    try std.testing.expectEqual(@as(u16, 4), reset.queue_index);
+    try std.testing.expectEqual(@as(u16, 8), reset.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.split, reset.layout);
+    try std.testing.expect(reset.uses_event_idx);
+    try std.testing.expect(!reset.uses_indirect_descriptors);
+    try std.testing.expect(reset.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), reset.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), reset.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), reset.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), reset.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), reset.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), reset.pending_used_chain_count);
+    try std.testing.expectEqual(@as(usize, 0), reset.notification_count);
+
+    const post_reset = try summarizeBrokenQueue(&ring, 4);
+    try std.testing.expect(!post_reset.broken);
+    try std.testing.expect(!queueHasBrokenCallbackFence(post_reset));
+    try std.testing.expect(!brokenQueueNeedsCallbackReenable(post_reset));
+}
+
 test "phase10 virtio ring verify keeps queue-shape wrapper explicit across split and packed queues" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(0, 8, .split, true, false);
