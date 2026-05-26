@@ -25,7 +25,7 @@ EXPECTED_VALIDATE_ROUTE = "make -C zigux phase11-validate"
 EXPECTED_VALIDATE_SCRIPT = "scripts/zigux/validate-phase11.py"
 EXPECTED_PHASE = "Phase 11"
 EXPECTED_LANE_KEY = "P11-L15"
-EXPECTED_INVENTORY_DETERMINISTIC_LANE = "P11-L11"
+EXPECTED_INVENTORY_DETERMINISTIC_LANE = "P11-L07"
 EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES = [
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
