@@ -264,6 +264,14 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
     return ("pass", expectations)
 
 
+def duplicate_marker_labels(text: str, marker_set: dict[str, str]) -> list[str]:
+    duplicates: list[str] = []
+    for label, marker in marker_set.items():
+        if text.count(marker) > 1:
+            duplicates.append(label)
+    return duplicates
+
+
 def validate_bench_source(text: str) -> tuple[str, object]:
     missing: list[str] = []
     for marker_set in SOURCE_MARKER_SETS:
@@ -272,6 +280,9 @@ def validate_bench_source(text: str) -> tuple[str, object]:
                 missing.append(label)
     if missing:
         return ("bench_source_missing_markers", missing)
+    duplicate_rbtree_markers = duplicate_marker_labels(text, RBTREE_REQUIRED_SOURCE_MARKERS)
+    if duplicate_rbtree_markers:
+        return ("bench_source_duplicate_rbtree_markers", duplicate_rbtree_markers)
     return ("pass", text)
 
 
@@ -506,6 +517,23 @@ def run_self_test() -> None:
         kind, payload = load_runtime_bench_source(source_path)
         assert_case(kind == "bench_source_missing_markers", "missing rbtree marker", (kind, payload))
         assert_case(payload == ["rbtree_cached_print"], "missing rbtree marker payload", payload)
+        case_count += 1
+
+        source_path.write_text(
+            build_full_bench_source() + RBTREE_REQUIRED_SOURCE_MARKERS["rbtree_cached_print"] + "\n",
+            encoding="utf-8",
+        )
+        kind, payload = load_runtime_bench_source(source_path)
+        assert_case(
+            kind == "bench_source_duplicate_rbtree_markers",
+            "duplicate rbtree marker",
+            (kind, payload),
+        )
+        assert_case(
+            payload == ["rbtree_cached_print"],
+            "duplicate rbtree marker payload",
+            payload,
+        )
         case_count += 1
 
     with tempfile.TemporaryDirectory(prefix="phase1-bench-root-") as tmp:
