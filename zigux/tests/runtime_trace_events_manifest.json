@@ -36,17 +36,17 @@
   "delivery_route_summary": {
     "makefile_path": "zigux/Makefile",
     "shared_phase9_make_routes": [
-      "phase9-runtime-kretprobe-test",
-      "phase9-first-loadable-runtime-module-parity-test",
+      "phase9-runtime-loader-shared-test",
+      "phase9-runtime-trace-events-test",
       "phase9-test"
     ],
     "build_shard_routes": [
-      "phase9-runtime-kretprobe-sample-tests",
-      "phase9-runtime-kretprobe-module-tests",
-      "phase9-runtime-kretprobe-tests",
-      "phase9-first-loadable-runtime-module-parity-behavior-tests"
+      "phase9-runtime-loader-allocator-init-flow-tests",
+      "phase9-runtime-loader-command-env-boundary-guard-tests",
+      "phase9-runtime-trace-events-loader-substrate-drift-tests",
+      "phase9-runtime-trace-events-tests"
     ],
-    "delivery_discipline_boundary": "Keeps the returned kretprobe pilot and the bounded cross-family parity replay explicit as shipped rerun vocabulary without promoting broader shared runtime-loader completion."
+    "delivery_discipline_boundary": "Keeps the shipped trace-events make route, the adjacent shared loader-handoff make route, and the bounded trace-events rerun shard explicit without promoting broader shared runtime-loader completion into family-local trace-events proof."
   },
   "roadmap_gap_summary": {
     "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
@@ -95,7 +95,7 @@
       "surface": "zigux/Makefile",
       "role": "adjacent_shared_make_wrapper",
       "owner": "P9-L11",
-      "boundary": "Keeps `phase9-runtime-kretprobe-test`, `phase9-first-loadable-runtime-module-parity-test`, and aggregate `phase9-test` explicit as shipped delivery routes for the surviving shared runtime packet without widening this family-local survey lane into shared loader ownership."
+      "boundary": "Keeps `phase9-runtime-loader-shared-test`, `phase9-runtime-trace-events-test`, and aggregate `phase9-test` explicit as shipped delivery routes for the surviving shared runtime packet without widening this family-local survey lane into shared loader ownership."
     },
     {
       "surface": "zigux/kernel/runtime_loader_command_env_boundary_guard.zig",
