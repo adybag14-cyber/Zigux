@@ -22,6 +22,15 @@ SHARED_SURFACE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-valida
 SHARED_SURFACE_ALIGNMENT = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-shared-surface-selftest-alignment.py"
 )
+DIRECT_WORKFLOW_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-direct-tool-manifest-workflow.py"
+)
+DIRECT_WORKFLOW_ALIGNMENT = (
+    ROOT
+    / "scripts"
+    / "zigux"
+    / "check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py"
+)
 WORKFLOW_ORDER_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order.py"
 WORKFLOW_ORDER_ALIGNMENT = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-validate-workflow-order-selftest-alignment.py"
@@ -45,6 +54,8 @@ REQUIRED_PATHS = (
     ROUTE_POLICY_ALIGNMENT,
     SHARED_SURFACE_CHECKER,
     SHARED_SURFACE_ALIGNMENT,
+    DIRECT_WORKFLOW_CHECKER,
+    DIRECT_WORKFLOW_ALIGNMENT,
     WORKFLOW_ORDER_CHECKER,
     WORKFLOW_ORDER_ALIGNMENT,
     MAKEFILE_ORDER_CHECKER,
@@ -125,6 +136,10 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross-validate-route-policy.py",
     "run: python3 scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-validate-route-policy-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow.py",
+    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-direct-tool-manifest-workflow-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface.py",
     "run: python3 scripts/zigux/check-phase2-cross-validate-shared-surface-selftest-alignment.py --self-test",
@@ -397,8 +412,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate that the Lane 21 shared validation surfaces wire the full "
-            "cross validate-contract, workflow-order, makefile-order, and "
-            "validator-order checker packet."
+            "cross validate-contract, direct workflow, workflow-order, makefile-order, "
+            "and validator-order checker packet."
         )
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
