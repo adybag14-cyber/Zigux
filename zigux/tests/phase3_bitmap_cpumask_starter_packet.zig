@@ -53,6 +53,26 @@ test "bitmap starter packet keeps subset and overlap checks reusable across help
     try testing.expect(!base.intersects(disjoint));
 }
 
+test "bitmap starter packet can walk set and clear bits from a bounded start point" {
+    const words = [_]usize{
+        (@as(usize, 1) << 1) |
+            (@as(usize, 1) << 4) |
+            (@as(usize, 1) << 7),
+        std.math.maxInt(usize),
+    };
+    const view = bitmap_view.BitmapView.init(words[0..], 8);
+
+    try testing.expectEqual(@as(?usize, 1), view.nextSetBit(0));
+    try testing.expectEqual(@as(?usize, 4), view.nextSetBit(2));
+    try testing.expectEqual(@as(?usize, 7), view.nextSetBit(7));
+    try testing.expectEqual(@as(?usize, null), view.nextSetBit(8));
+
+    try testing.expectEqual(@as(?usize, 0), view.nextClearBit(0));
+    try testing.expectEqual(@as(?usize, 2), view.nextClearBit(2));
+    try testing.expectEqual(@as(?usize, 5), view.nextClearBit(5));
+    try testing.expectEqual(@as(?usize, null), view.nextClearBit(8));
+}
+
 test "cpumask starter packet keeps cpu membership and missing-cpu discovery explicit" {
     const words = [_]usize{
         (@as(usize, 1) << 0) |
@@ -95,4 +115,24 @@ test "cpumask starter packet keeps subset and overlap semantics inside the bound
     try testing.expect(!superset.isSubsetOf(base));
     try testing.expect(base.intersects(superset));
     try testing.expect(!base.intersects(disjoint));
+}
+
+test "cpumask starter packet can walk the next routable cpu inside the declared mask" {
+    const words = [_]usize{
+        (@as(usize, 1) << 1) |
+            (@as(usize, 1) << 4) |
+            (@as(usize, 1) << 7),
+        std.math.maxInt(usize),
+    };
+    const mask = cpumask_view.CpuMaskView.init(words[0..], 8);
+
+    try testing.expectEqual(@as(?usize, 1), mask.nextCpu(0));
+    try testing.expectEqual(@as(?usize, 4), mask.nextCpu(2));
+    try testing.expectEqual(@as(?usize, 7), mask.nextCpu(7));
+    try testing.expectEqual(@as(?usize, null), mask.nextCpu(8));
+
+    try testing.expectEqual(@as(?usize, 0), mask.nextMissingCpu(0));
+    try testing.expectEqual(@as(?usize, 2), mask.nextMissingCpu(2));
+    try testing.expectEqual(@as(?usize, 5), mask.nextMissingCpu(5));
+    try testing.expectEqual(@as(?usize, null), mask.nextMissingCpu(8));
 }
