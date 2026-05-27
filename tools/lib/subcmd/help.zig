@@ -149,6 +149,22 @@ pub const PrettyLayout = struct {
     space: usize,
 };
 
+pub const SearchPathEntryDisposition = enum {
+    scan,
+    skip_exec_path,
+    skip_empty,
+};
+
+pub const SearchPathEntry = struct {
+    path: []u8,
+    disposition: SearchPathEntryDisposition,
+
+    pub fn deinit(self: *SearchPathEntry, allocator: std.mem.Allocator) void {
+        allocator.free(self.path);
+        self.* = undefined;
+    }
+};
+
 pub fn hasExtension(filename: []const u8, ext: []const u8) bool {
     return filename.len > ext.len and std.mem.eql(u8, filename[filename.len - ext.len ..], ext);
 }
@@ -167,6 +183,62 @@ pub fn trimCommandPrefix(entry_name: []const u8, prefix: []const u8) ?[]const u8
     }
 
     return trimmed;
+}
+
+pub fn buildOtherCommandSearchPlan(
+    allocator: std.mem.Allocator,
+    env_path: ?[]const u8,
+    exec_path: ?[]const u8,
+) ![]SearchPathEntry {
+    const path_value = env_path orelse return allocator.alloc(SearchPathEntry, 0);
+
+    var entries = std.ArrayList(SearchPathEntry).empty;
+    errdefer {
+        for (entries.items) |*entry| {
+            entry.deinit(allocator);
+        }
+        entries.deinit(allocator);
+    }
+
+    var iter = std.mem.splitScalar(u8, path_value, ':');
+    while (iter.next()) |entry| {
+        const owned_path = try allocator.dupe(u8, entry);
+        errdefer allocator.free(owned_path);
+
+        const disposition: SearchPathEntryDisposition = if (entry.len == 0)
+            .skip_empty
+        else if (exec_path != null and std.mem.eql(u8, entry, exec_path.?))
+            .skip_exec_path
+        else
+            .scan;
+
+        try entries.append(allocator, .{
+            .path = owned_path,
+            .disposition = disposition,
+        });
+    }
+
+    return entries.toOwnedSlice(allocator);
+}
+
+pub fn freeOtherCommandSearchPlan(
+    allocator: std.mem.Allocator,
+    entries: []SearchPathEntry,
+) void {
+    for (entries) |*entry| {
+        entry.deinit(allocator);
+    }
+    allocator.free(entries);
+}
+
+pub fn countScannableSearchPathEntries(entries: []const SearchPathEntry) usize {
+    var count: usize = 0;
+    for (entries) |entry| {
+        if (entry.disposition == .scan) {
+            count += 1;
+        }
+    }
+    return count;
 }
 
 pub fn computePrettyLayout(command_count: usize, longest: usize, terminal_columns: usize) PrettyLayout {
@@ -308,6 +380,56 @@ test "trimCommandPrefix strips the prefix, optional exe suffix, and rejects empt
     try std.testing.expectEqual(@as(?[]const u8, null), trimCommandPrefix("perf-", default_command_prefix));
     try std.testing.expectEqual(@as(?[]const u8, null), trimCommandPrefix("perf-.exe", default_command_prefix));
     try std.testing.expectEqual(@as(?[]const u8, null), trimCommandPrefix("trace2html", default_command_prefix));
+}
+
+test "buildOtherCommandSearchPlan keeps PATH ordering while marking empty and exec-path entries" {
+    const plan = try buildOtherCommandSearchPlan(
+        std.testing.allocator,
+        ":/usr/libexec/perf-core:/bin::/usr/bin:",
+        "/usr/libexec/perf-core",
+    );
+    defer freeOtherCommandSearchPlan(std.testing.allocator, plan);
+
+    try std.testing.expectEqual(@as(usize, 6), plan.len);
+    try std.testing.expectEqualStrings("", plan[0].path);
+    try std.testing.expectEqual(SearchPathEntryDisposition.skip_empty, plan[0].disposition);
+    try std.testing.expectEqualStrings("/usr/libexec/perf-core", plan[1].path);
+    try std.testing.expectEqual(SearchPathEntryDisposition.skip_exec_path, plan[1].disposition);
+    try std.testing.expectEqualStrings("/bin", plan[2].path);
+    try std.testing.expectEqual(SearchPathEntryDisposition.scan, plan[2].disposition);
+    try std.testing.expectEqualStrings("", plan[3].path);
+    try std.testing.expectEqual(SearchPathEntryDisposition.skip_empty, plan[3].disposition);
+    try std.testing.expectEqualStrings("/usr/bin", plan[4].path);
+    try std.testing.expectEqual(SearchPathEntryDisposition.scan, plan[4].disposition);
+    try std.testing.expectEqualStrings("", plan[5].path);
+    try std.testing.expectEqual(SearchPathEntryDisposition.skip_empty, plan[5].disposition);
+    try std.testing.expectEqual(@as(usize, 2), countScannableSearchPathEntries(plan));
+}
+
+test "buildOtherCommandSearchPlan preserves duplicate and relative scan targets when they are not the exec path" {
+    const plan = try buildOtherCommandSearchPlan(
+        std.testing.allocator,
+        "tools/bin:/usr/bin:tools/bin",
+        "/usr/libexec/perf-core",
+    );
+    defer freeOtherCommandSearchPlan(std.testing.allocator, plan);
+
+    try std.testing.expectEqual(@as(usize, 3), plan.len);
+    for (plan) |entry| {
+        try std.testing.expectEqual(SearchPathEntryDisposition.scan, entry.disposition);
+    }
+    try std.testing.expectEqualStrings("tools/bin", plan[0].path);
+    try std.testing.expectEqualStrings("/usr/bin", plan[1].path);
+    try std.testing.expectEqualStrings("tools/bin", plan[2].path);
+    try std.testing.expectEqual(@as(usize, 3), countScannableSearchPathEntries(plan));
+}
+
+test "buildOtherCommandSearchPlan returns an empty plan when PATH is unavailable" {
+    const plan = try buildOtherCommandSearchPlan(std.testing.allocator, null, "/usr/libexec/perf-core");
+    defer freeOtherCommandSearchPlan(std.testing.allocator, plan);
+
+    try std.testing.expectEqual(@as(usize, 0), plan.len);
+    try std.testing.expectEqual(@as(usize, 0), countScannableSearchPathEntries(plan));
 }
 
 test "CommandNames sort and uniq keep the stable command set" {
