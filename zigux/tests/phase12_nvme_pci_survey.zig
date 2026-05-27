@@ -175,6 +175,8 @@ test "phase12 nvme pci survey note keeps the roadmap gap and dedicated-build spl
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_nvme_pci_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated `phase12-nvme-pci-survey-test` route in `zigux/tests/phase12_nvme_pci_survey_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12-nvme-pci-direct-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12-nvme-pci-survey-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase12_build.zig` route still stays virtio-net-only") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now wires the NVMe direct replay into the shared `phase12-smoke` and `phase12` routes") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey gate still stays packet-local") != null);
@@ -200,6 +202,8 @@ test "phase12 nvme pci reopen governance note keeps the dedicated direct replay 
         reopen_note,
         "dedicated `phase12-nvme-pci-survey-test` route in `zigux/tests/phase12_nvme_pci_survey_build.zig`",
     ) != null);
+    try std.testing.expect(std.mem.indexOf(u8, reopen_note, "make -C zigux phase12-nvme-pci-direct-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, reopen_note, "make -C zigux phase12-nvme-pci-survey-test") != null);
     try std.testing.expect(std.mem.indexOf(
         u8,
         reopen_note,
@@ -292,6 +296,8 @@ test "phase12 nvme pci survey gate keeps the make wrapper surface explicit" {
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-validate:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-smoke:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-nvme-pci-direct-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-nvme-pci-survey-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-validate phase12-smoke phase12-test") != null);
 }
 
