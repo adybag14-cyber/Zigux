@@ -18,6 +18,7 @@ EXPECTED_PACKET_FILES = (
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
     "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
     "Documentation/zigux/phase9-runtime-trace-events-survey.md",
@@ -70,6 +71,7 @@ EXPECTED_PACKET_FILES = (
     "samples/zigux/runtime_kretprobe_loader.zig",
     "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
     "samples/zigux/runtime_kretprobe_registration_reentry_gate.zig",
+    "samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig",
 )
 
 EXPECTED_REPLAY_ROUTES = (
@@ -252,14 +254,14 @@ def _manifest_payload() -> dict[str, object]:
         "lane_key": PHASE9_CATALOG_LANE,
         "slug": "phase9-runtime-pilot-shared-packet",
         "status": "shared_runtime_pilot_delivery_evidence_present",
-        "scope": "shared reminder, manifest, catalog, ownership, and validation surfaces for the atomic64 pilot packet, the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
+        "scope": "shared reminder, manifest, catalog, ownership, validation, and module-metadata boundary surfaces for the atomic64 pilot packet, the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
         "ownership_map_path": OWNERSHIP_MAP_PATH.as_posix(),
         "packet_files": list(EXPECTED_PACKET_FILES),
         "replay_routes": list(EXPECTED_REPLAY_ROUTES),
         "repo_reality_gaps": [
             "blocked publication and install-root vocabulary remains historical rather than direct shipped proof",
         ],
-        "next_safe_step": "keep the shared Phase 9 validator and runtime-loader shared checker aligned with the manifest and the existing loader packet without widening runtime behavior claims or pretending blocked publication surfaces returned",
+        "next_safe_step": "tighten one shared reminder surface at a time where current master still undercounts the blocked module-metadata and depmod bridge boundary before widening into runtime behavior or build wiring",
     }
 
 
