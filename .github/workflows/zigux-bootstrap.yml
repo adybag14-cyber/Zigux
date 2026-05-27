@@ -415,6 +415,12 @@ jobs:
       - name: Run current Phase 3 policy starter-packet replay
         run: make -C zigux phase3-policy-starter-packet-test
 
+      - name: Run current Phase 3 policy unsafe replay
+        run: zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig
+
+      - name: Run current Phase 3 policy unsafe make route
+        run: make -C zigux phase3-policy-unsafe-test
+
       - name: Run current Phase 3 policy dump replay
         run: zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig
 
