@@ -661,7 +661,7 @@ def run_self_test() -> int:
         check_only=False,
     )
     expect_failure(
-        mutator=lambda root, source, expected_sha, parts_dir: (parts_dir / "part-000.b64").writeText(
+        mutator=lambda root, source, expected_sha, parts_dir: (parts_dir / "part-000.b64").write_text(
             "not base64!\n",
             encoding="utf-8",
         ),
