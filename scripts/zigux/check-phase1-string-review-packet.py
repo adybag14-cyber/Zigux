@@ -161,6 +161,12 @@ EXPECTED_HELPER_TEST_ANCHORS = [
     'test "strchrNul and strchrnul return the first match or terminator boundary"',
 ]
 
+EXPECTED_HELPER_SOURCE_EQUIVALENT_ANCHORS = {
+    'test "strlcat appends within the destination size and reports the attempted length"': (
+        'test "strlcat appends only the C-string prefix from embedded-NUL sources"'
+    ),
+}
+
 EXPECTED_HELPER_LOCAL_ONLY_ANCHORS = [
     'test "memchrInv keeps non-zero scans stable across the fast-path cutoff"',
 ]
@@ -380,6 +386,25 @@ def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
 
+def require_anchor_occurrence(
+    text: str,
+    label: str,
+    marker: str,
+    equivalents: dict[str, str] | None = None,
+) -> list[str]:
+    equivalents = equivalents or {}
+    primary_count = text.count(marker)
+    if primary_count == 1:
+        return []
+    if primary_count == 0 and marker in equivalents:
+        equivalent = equivalents[marker]
+        equivalent_count = text.count(equivalent)
+        if equivalent_count == 1:
+            return []
+        return [f"{label}:expected=1:actual=0:equivalent_actual={equivalent_count}"]
+    return [f"{label}:expected=1:actual={primary_count}"]
+
+
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
 
@@ -446,7 +471,14 @@ def collect_failures(root: Path) -> list[str]:
 
     seen_helper_anchors: set[str] = set()
     for anchor in EXPECTED_HELPER_TEST_ANCHORS:
-        failures.extend(require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor))
+        failures.extend(
+            require_anchor_occurrence(
+                helper_text,
+                f"string_helper:{anchor}",
+                anchor,
+                EXPECTED_HELPER_SOURCE_EQUIVALENT_ANCHORS,
+            )
+        )
         seen_helper_anchors.add(anchor)
 
     for anchor in EXPECTED_HELPER_LOCAL_ONLY_ANCHORS:
@@ -538,7 +570,7 @@ def expect_failure_contains(root: Path, prefix: str) -> None:
 def run_self_test() -> int:
     cases = [
         "missing_file:tools/lib/string.zig",
-        'string_helper:test "strlcat appends within the destination size and reports the attempted length":expected=1:actual=0',
+        'string_helper:test "strlcat appends within the destination size and reports the attempted length":expected=1:actual=0:equivalent_actual=0',
         'string_helper:test "strcasecmp ignores ASCII case and preserves lexical ordering":expected=1:actual=0',
         'string_helper:test "strchrNul and strchrnul return the first match or terminator boundary":expected=1:actual=0',
         'string_helper_local:test "memchrInv keeps non-zero scans stable across the fast-path cutoff":expected=1:actual=0',
@@ -577,8 +609,17 @@ def run_self_test() -> int:
         if cases[1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-string-review:self-test:strlcat_anchor")
 
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(tmp_root)
+        build_sample_repo(tmp_root)
+        text = helper_path.read_text(encoding="utf-8").replace(
+            'test "strlcat appends within the destination size and reports the attempted length"\n',
+            'test "strlcat appends only the C-string prefix from embedded-NUL sources"\n',
+            1,
+        )
+        helper_path.write_text(text, encoding="utf-8")
+        if collect_failures(tmp_root):
+            raise SystemExit("phase1-string-review:self-test:strlcat_source_alias")
+
+        build_sample_repo(tmp_root)
         text = helper_path.read_text(encoding="utf-8").replace(
             'test "strcasecmp ignores ASCII case and preserves lexical ordering"\n',
             "",
