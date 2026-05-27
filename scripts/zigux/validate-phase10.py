@@ -35,6 +35,7 @@ REQUIRED_PATHS = (
     "drivers/virtio/virtio_input_verify.zig",
     "drivers/virtio/virtio_mmio.zig",
     "drivers/virtio/virtio_mmio_apply_observation.zig",
+    "drivers/virtio/virtio_mmio_config_write_plan_freshness.zig",
     "drivers/virtio/virtio_mmio_verify.zig",
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_ring_notification_data.zig",
@@ -263,6 +264,10 @@ def run_self_test() -> int:
             "missing_mmio_apply_observation_path",
         )
         assert_missing_required_path(
+            "drivers/virtio/virtio_mmio_config_write_plan_freshness.zig",
+            "missing_mmio_config_write_plan_freshness_path",
+        )
+        assert_missing_required_path(
             "zigux/tests/phase10_virtio_mmio_survey.zig",
             "missing_mmio_survey_path",
         )
@@ -383,7 +388,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=30")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
