@@ -26,7 +26,7 @@ ROUTES = (
 )
 
 NOTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in (*ROUTES, "phase2"))
-WORKFLOW_LINES = tuple(f"run: make -C zigux {route}" for route in ROUTES)
+WORKFLOW_LINES = tuple(f"run: make -C zigux {route}" for route in (*ROUTES, "phase2"))
 MAKEFILE_RULE_LINES = (
     *(f"{route}:" for route in ROUTES),
     "phase2: phase2-validate",
@@ -205,7 +205,7 @@ def run_self_test() -> int:
             assert any(marker in failure for failure in collect_failures(root))
             checks += 1
 
-        for workflow_line in (WORKFLOW_LINES[1], WORKFLOW_LINES[4], WORKFLOW_LINES[5]):
+        for workflow_line in (WORKFLOW_LINES[1], WORKFLOW_LINES[4], WORKFLOW_LINES[-1]):
             build_sample_root(root)
             workflow_path.write_text(remove_first(workflow_path.read_text(encoding="utf-8"), workflow_line), encoding="utf-8")
             assert any(workflow_line in failure for failure in collect_failures(root))
