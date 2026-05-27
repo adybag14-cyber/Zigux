@@ -89,9 +89,11 @@ def write(path: Path, text: str) -> None:
 
 def build_fixture(root: Path, *, include_drift: bool, include_orphan_required_manifest: bool = False) -> None:
     manifest_lines = [
+        '    "zigux/tests/phase11_bcm2835_wdt_manifest.json": "P11-L08",',
         '    "zigux/tests/phase11_dw_wdt_manifest.json": "P11-L10",',
     ]
     required_paths = [
+        '    "zigux/tests/phase11_bcm2835_wdt_manifest.json",',
         '    "zigux/tests/phase11_dw_wdt_manifest.json",',
     ]
     if include_drift:
@@ -134,7 +136,7 @@ def run_self_test() -> int:
         passing = tempdir / "passing"
         build_fixture(passing, include_drift=False)
         required_path_count, manifest_count = run_check(passing)
-        if manifest_count != 1:
+        if manifest_count != 2:
             raise AssertionError(f"unexpected manifest count: {manifest_count}")
 
         missing = tempdir / "missing"
