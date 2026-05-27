@@ -22,6 +22,16 @@ The active Phase 10 closure packet therefore stays aligned only when it keeps:
 - `scripts/zigux/check-phase10-shared-freeze-boundary.py` explicit as the fail-closed review gate for freeze-boundary drift
 - the returned ring, input, and MMIO survey notes explicit as bounded Phase 10 evidence rather than transport-ready claims
 
+## Current Exact Evidence
+
+Direct current-`master` readback now shows the freeze boundary through the shared Phase 10 packet itself rather than through reminder prose alone:
+- `zigux/tests/phase10_closure_manifest.json` records `freeze_map = Documentation/zigux/freeze-map.md`, `freeze_boundary_status = aligned`, `freeze_status_change_claimed = false`, `risky_transport_posture = blocked_on_risky_transport`, `architecture_council_reopen_required = true`, and `architecture_council_reopen_attached = false`
+- that same manifest keeps `study_only_anchors = kernel/workqueue.c, kernel/trace/ring_buffer.c`, `freeze_in_c_anchors = kernel/sched/core.c, mm/page_alloc.c, kernel/rcu/tree.c, net/core/skbuff.c`, and `phase14_study_only_boundary.status = separate_phase14_lane`
+- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md` keeps the shared reminder lane on `Documentation/zigux/phase10-freeze-boundary-gap-survey.md` and `scripts/zigux/check-phase10-shared-freeze-boundary.py`, while the queue-local ring packet stays on lane `P10-L10` and the adjacent freeze-boundary owner stays on `P10-L11`
+- `zigux/tests/phase10_virtio_ring_manifest.json` keeps the ring-side freeze boundary explicit through `freeze_boundary_owner_lane = P10-L11`, `freeze_boundary_status = aligned`, `freeze_status_change_claimed = false`, and the still-blocked gap `phase10-ring-lab-driver-bridge`
+- current ring-side evidence remains bounded to queue-local and wrapper-facing surfaces such as `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `zigux/tests/phase10_virtio_ring_reset_readiness.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`; none of those paths claim queue setup or reset execution, IRQ parity, DMA, or lifecycle closure
+- the shared enforcement path stays replayable through `python3 scripts/zigux/check-phase10-shared-freeze-boundary.py`, `python3 scripts/zigux/validate-phase10-closure.py`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` as listed in `zigux/tests/phase10_closure_manifest.json`
+
 ## Freeze-Boundary Inventory
 
 Freeze-in-C anchors that remain outside Phase 10 delivery:
