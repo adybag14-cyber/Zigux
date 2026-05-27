@@ -98,8 +98,10 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
     try expectSliceContains(manifest.ownership_focus, "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence");
     try expectSliceContains(manifest.ownership_focus, "fixture truthfulness now also keeps the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed boundaries explicit across the returned JSON fixture, returned C harness, dedicated survey, and dedicated replay");
+    try expectSliceContains(manifest.ownership_focus, "legacy runtime-family truthfulness must keep `tools/lib/rbtree.zig` readable on the same reverse-traversal alias, postorder alias, and plain erase-init markers that the direct helper packet treats as current product-facing evidence");
     try expectContains(manifest.next_bounded_step, "including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases");
     try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectContains(manifest.next_bounded_step, "tools/lib/rbtree.zig");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");
     try expectContains(manifest.next_bounded_step, "phase7-test:");
@@ -110,12 +112,14 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectContains(slice_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
     try expectContains(slice_note, "non-leftmost cached erase, singleton cached erase, and plain erase-init reseed ownership boundaries");
     try expectContains(slice_note, "public-fallback provenance stays explicit");
+    try expectContains(slice_note, "the readable legacy companion at `tools/lib/rbtree.zig` now stays reviewable only while its reverse-traversal alias, postorder alias, and plain erase-init markers remain readable beside the direct helper packet");
 
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
     try expectContains(direct_anchor_note, "non-leftmost cached erase, singleton cached erase, and plain erase-init reseed scenarios");
     try expectContains(direct_anchor_note, "phase7-rbtree-test:");
     try expectContains(direct_anchor_note, "phase7-rbtree-survey:");
+    try expectContains(direct_anchor_note, "`tools/lib/rbtree.zig` now must stay readable on the same reverse-traversal alias, postorder alias, and plain erase-init markers that the direct helper packet treats as current runtime-family evidence");
     try expectNotContains(direct_anchor_note, "still returned `404` for this dedicated companion surface");
 
     try expectContains(checker, "PHASE7_RBTREE_PARITY=pass");
@@ -127,6 +131,9 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectContains(helper, "pub fn rb_prev");
     try expectContains(helper, "pub fn rb_next_postorder");
     try expectContains(legacy_helper, "pub fn rb_find_add_cached");
+    try expectContains(legacy_helper, "pub fn eraseInit(node: *Node, root: *Root) void {");
+    try expectContains(legacy_helper, "pub fn rb_prev");
+    try expectContains(legacy_helper, "pub fn rb_next_postorder");
     try expectContains(helper_companion, "phase 7 rbtree companion replays ordered traversal and duplicate-range helpers");
     try expectContains(helper_companion, "phase 7 rbtree companion replays cached-leftmost promotion and erase-init ownership boundaries");
     try expectContains(helper_companion, "phase 7 rbtree companion replays non-leftmost cached erase ownership boundaries");
