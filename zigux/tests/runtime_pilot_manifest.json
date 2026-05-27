@@ -61,7 +61,8 @@
     "samples/zigux/runtime_kretprobe.zig",
     "samples/zigux/runtime_kretprobe_loader.zig",
     "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
-    "samples/zigux/runtime_kretprobe_registration_reentry_gate.zig"
+    "samples/zigux/runtime_kretprobe_registration_reentry_gate.zig",
+    "samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase9-catalog-selftest.py --self-test",
@@ -88,5 +89,5 @@
   "repo_reality_gaps": [
     "blocked publication and install-root vocabulary remains historical rather than direct shipped proof"
   ],
-  "next_safe_step": "keep the shared Phase 9 validator and runtime-loader shared checker aligned with the manifest and the existing loader packet without widening runtime behavior claims or pretending blocked publication surfaces returned"
+  "next_safe_step": "tighten one shared reminder surface at a time where current master still undercounts the returned kretprobe packet, starting with Documentation/zigux/README.md before widening into runtime behavior or build wiring"
 }
