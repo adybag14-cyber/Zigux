@@ -139,6 +139,14 @@ pub const ManagedArchPhysWcAddPlan = struct {
     should_release_on_detach: bool,
 };
 
+pub const ManagedArchPhysWcDetachCleanupPlan = struct {
+    anchor: []const u8,
+    returned_token: ?i32,
+    had_detach_cleanup_owner: bool,
+    generates_cleanup_plan: bool,
+    removes_wc_token: bool,
+};
+
 pub const DevresHelperLab = struct {
     const ReleaseDisposition = struct {
         releases_from_devres: bool,
@@ -367,6 +375,18 @@ pub const DevresHelperLab = struct {
             .release_record_retained = lifetime.release_record_retained,
             .release_record_freed = lifetime.release_record_freed,
             .should_release_on_detach = lifetime.should_release_on_detach,
+        };
+    }
+
+    pub fn planManagedArchPhysWcDetachCleanup(add_plan: ManagedArchPhysWcAddPlan) ManagedArchPhysWcDetachCleanupPlan {
+        const had_detach_cleanup_owner = add_plan.should_release_on_detach and add_plan.returned_token != null;
+
+        return .{
+            .anchor = add_plan.anchor,
+            .returned_token = add_plan.returned_token,
+            .had_detach_cleanup_owner = had_detach_cleanup_owner,
+            .generates_cleanup_plan = had_detach_cleanup_owner,
+            .removes_wc_token = had_detach_cleanup_owner,
         };
     }
 };
@@ -802,4 +822,32 @@ test "arch phys wc add planning requires a release record" {
         .release_record_allocated = false,
         .returned_token = 3,
     }));
+}
+
+test "arch phys wc detach cleanup removes the retained token" {
+    const add_plan = try DevresHelperLab.planManagedArchPhysWcAdd(.{
+        .release_record_allocated = true,
+        .returned_token = 11,
+    });
+    const cleanup = DevresHelperLab.planManagedArchPhysWcDetachCleanup(add_plan);
+
+    try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+    try std.testing.expectEqual(@as(?i32, 11), cleanup.returned_token);
+    try std.testing.expect(cleanup.had_detach_cleanup_owner);
+    try std.testing.expect(cleanup.generates_cleanup_plan);
+    try std.testing.expect(cleanup.removes_wc_token);
+}
+
+test "arch phys wc detach cleanup stays inert when no token was retained" {
+    const add_plan = try DevresHelperLab.planManagedArchPhysWcAdd(.{
+        .release_record_allocated = true,
+        .returned_token = null,
+    });
+    const cleanup = DevresHelperLab.planManagedArchPhysWcDetachCleanup(add_plan);
+
+    try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+    try std.testing.expectEqual(@as(?i32, null), cleanup.returned_token);
+    try std.testing.expect(!cleanup.had_detach_cleanup_owner);
+    try std.testing.expect(!cleanup.generates_cleanup_plan);
+    try std.testing.expect(!cleanup.removes_wc_token);
 }
