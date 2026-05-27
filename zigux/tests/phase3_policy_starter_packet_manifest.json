@@ -6,6 +6,7 @@
   "scope": "layout, panic, allocator, and unsafe interop policy decoding replay",
   "packet_files": [
     "Documentation/zigux/phase3-policy-slice.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
@@ -23,6 +24,7 @@
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-policy-dump.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "zigux/Makefile"
   ],
   "replay_routes": [
@@ -33,12 +35,14 @@
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
-    "make -C zigux phase3-policy-dump"
+    "make -C zigux phase3-policy-dump",
+    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"
   ],
   "repo_reality_gaps": [
     "broader shared ABI, export or UAPI, and runtime-core delivery remain outside this focused policy slice",
     "mmio, low-level-wrapper, and shared runtime-shim widening remain unfinished relative to the Phase 3 roadmap",
-    "this packet proves bounded policy decoding and dump replay only, not permanent-boundary completion"
+    "this packet proves bounded policy decoding, survey gating, and dump replay only, not permanent-boundary completion"
   ],
-  "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
+  "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, dedicated policy-unsafe survey gating, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
