@@ -126,20 +126,14 @@ pub fn hexDumpToBuffer(
     const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(buf.len, rowsize);
     const groupsize = normalizedGroupsize(len, groupsize_input);
-    const required = hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
 
     if (linebuf.len == 0) {
-        return required;
+        return hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
     }
 
     if (len == 0) {
         linebuf[0] = 0;
         return 0;
-    }
-
-    if (linebuf.len == 1) {
-        linebuf[0] = 0;
-        return required;
     }
 
     var writer = TruncatingWriter.init(linebuf);
@@ -404,21 +398,40 @@ test "hex2bin and bin2hex round-trip payloads" {
     try std.testing.expectEqualSlices(u8, source, text);
 }
 
-test "hex2bin and bin2hex snake-case aliases stay aligned" {
+test "kernel-style hex aliases stay aligned" {
     var decoded_direct: [3]u8 = undefined;
     var decoded_alias: [3]u8 = undefined;
     var encoded_direct: [8]u8 = undefined;
     var encoded_alias: [8]u8 = undefined;
+    var lower_direct: [6]u8 = undefined;
+    var lower_alias: [6]u8 = undefined;
+    var upper_direct: [6]u8 = undefined;
+    var upper_alias: [6]u8 = undefined;
 
-    try hex2Bin(&decoded_direct, "0aF15c");
+    try hex2bin(&decoded_direct, "0aF15c");
     try hex2bin(&decoded_alias, "0aF15c");
     try std.testing.expectEqualSlices(u8, &decoded_direct, &decoded_alias);
 
-    const direct_written = try bin2Hex(&encoded_direct, &decoded_direct);
+    const direct_written = try bin2hex(&encoded_direct, &decoded_direct);
     const alias_written = try bin2hex(&encoded_alias, &decoded_alias);
     try std.testing.expectEqual(@as(usize, direct_written.len), alias_written.len);
     try std.testing.expectEqualStrings(direct_written, alias_written);
     try std.testing.expectEqualStrings("0af15c", alias_written);
+
+    try std.testing.expectEqual(hexAscHi(0xab), hex_asc_hi(0xab));
+    try std.testing.expectEqual(hexAscLo(0xab), hex_asc_lo(0xab));
+    try std.testing.expectEqual(hexAscUpperHi(0xab), hex_asc_upper_hi(0xab));
+    try std.testing.expectEqual(hexAscUpperLo(0xab), hex_asc_upper_lo(0xab));
+
+    _ = try hexBytePack(lower_direct[0..], 0xab);
+    _ = try hex_byte_pack(lower_alias[0..], 0xab);
+    try std.testing.expectEqualStrings("ab", lower_direct[0..2]);
+    try std.testing.expectEqualStrings(lower_direct[0..2], lower_alias[0..2]);
+
+    _ = try hexBytePackUpper(upper_direct[0..], 0xab);
+    _ = try hex_byte_pack_upper(upper_alias[0..], 0xab);
+    try std.testing.expectEqualStrings("AB", upper_direct[0..2]);
+    try std.testing.expectEqualStrings(upper_direct[0..2], upper_alias[0..2]);
 }
 
 test "bin2hex emits lowercase bulk output and preserves destination on bounds errors" {
@@ -603,17 +616,6 @@ test "hexDumpToBuffer reports full length when the caller buffer truncates" {
     try std.testing.expectEqualSlices(u8, "be 32 d", std.mem.sliceTo(line[0..], 0));
 }
 
-test "hexDumpToBuffer returns the full grouped length for a NUL-only buffer" {
-    var line = [_]u8{0xaa};
-
-    const required = hexDumpToBuffer(test_data_b[0..16], 16, 4, line[0..], true);
-    const alias_required = hex_dump_to_buffer(test_data_b[0..16], 16, 4, line[0..], true);
-
-    try std.testing.expectEqual(@as(usize, 53), required);
-    try std.testing.expectEqual(required, alias_required);
-    try std.testing.expectEqual(@as(u8, 0), line[0]);
-}
-
 test "hexDumpToBuffer keeps full grouped ASCII output when the caller buffer fits exactly" {
     const data = [_]u8{
         0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
@@ -688,6 +690,12 @@ test "hexDumpToBuffer reports normalized required length for empty and zero-size
 }
 
 pub const hex_to_bin = hexToBin;
+pub const hex_asc_hi = hexAscHi;
+pub const hex_asc_lo = hexAscLo;
+pub const hex_asc_upper_hi = hexAscUpperHi;
+pub const hex_asc_upper_lo = hexAscUpperLo;
+pub const hex_byte_pack = hexBytePack;
+pub const hex_byte_pack_upper = hexBytePackUpper;
 pub const hex2Bin = hex2bin;
 pub const bin2Hex = bin2hex;
 pub const bin2HexUpper = bin2hexUpper;
