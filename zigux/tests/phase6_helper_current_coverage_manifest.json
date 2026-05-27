@@ -1,0 +1,96 @@
+{
+  "packet": "phase6-helper-parity-current-coverage",
+  "phase": "Phase 6",
+  "surveyed_head": "current-master-readback-2026-05-27",
+  "lane_scope": "exact helper coverage verification for the current Phase 6 parity packet",
+  "parent_parity_catalog": "Documentation/zigux/phase6-helper-parity-catalog.md",
+  "coverage_verdict": "All four roadmap-backed Phase 6 helper destinations are present on current master, each helper body carries embedded tests, and each helper keeps a focused replay plus a dedicated parity, perf, or route-check companion.",
+  "roadmap_anchors": [
+    "lib/base64.c",
+    "lib/bsearch.c",
+    "lib/checksum.c",
+    "lib/hexdump.c"
+  ],
+  "helpers": [
+    {
+      "key": "base64",
+      "roadmap_anchor": "lib/base64.c",
+      "zig_helper": "lib/base64.zig",
+      "helper_blob_sha": "844a091999aab9a1d78f90d7719450b4e590e962",
+      "embedded_helper_test_count": 20,
+      "selected_embedded_tests": [
+        "variant-pinned convenience helpers mirror the generic api",
+        "encode and decode sweep every one-byte and two-byte tail across variants and padding modes",
+        "decode reverse maps classify every byte across all variants"
+      ],
+      "focused_replay": "zigux/tests/phase6_base64.zig",
+      "exact_companions": [
+        "zigux/tests/phase6_base64_perf.zig",
+        "zigux/tests/phase6_base64_c_parity.zig",
+        "zigux/tests/fixtures/phase6_base64_c_harness.c",
+        "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+        "zigux/tests/phase6_base64_c_casegen.zig",
+        "scripts/zigux/check-phase6-base64-c-parity.py"
+      ]
+    },
+    {
+      "key": "bsearch",
+      "roadmap_anchor": "lib/bsearch.c",
+      "zig_helper": "lib/bsearch.zig",
+      "helper_blob_sha": "916a87eb91c0c3e620cf6e85c018180cdf772e58",
+      "embedded_helper_test_count": 11,
+      "selected_embedded_tests": [
+        "typed and raw searches support duplicate spans and descending C ABI pointers",
+        "native std.math.Order comparator pointers keep duplicate spans and insertion points aligned",
+        "mutable wrappers keep write-through aliases with runtime-selected c abi comparator pointers"
+      ],
+      "focused_replay": "zigux/tests/phase6_bsearch.zig",
+      "exact_companions": [
+        "zigux/tests/phase6_bsearch_perf.zig",
+        "zigux/tests/phase6_bsearch_c_parity.zig",
+        "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+        "zigux/tests/phase6_bsearch_c_abi_budget.zig",
+        "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
+        "scripts/zigux/check-phase6-bsearch-c-parity.py"
+      ]
+    },
+    {
+      "key": "checksum",
+      "roadmap_anchor": "lib/checksum.c",
+      "zig_helper": "lib/checksum.zig",
+      "helper_blob_sha": "1cda59b1bd4e5d4e9989d2b9f4e84be62b8ccb7e",
+      "embedded_helper_test_count": 12,
+      "selected_embedded_tests": [
+        "partial and compute match reference accumulation across seeded odd payloads",
+        "pseudo-header helpers match direct checksum recomputation over pseudo-header bytes and payload",
+        "ipFastCsum stays aligned with compute across aligned IPv4 headers"
+      ],
+      "focused_replay": "zigux/tests/phase6_checksum.zig",
+      "exact_companions": [
+        "zigux/tests/phase6_checksum_perf.zig",
+        "zigux/tests/phase6_checksum_c_parity.zig",
+        "zigux/tests/fixtures/phase6_checksum_c_harness.c",
+        "scripts/zigux/check-phase6-checksum-c-parity.py"
+      ]
+    },
+    {
+      "key": "hexdump",
+      "roadmap_anchor": "lib/hexdump.c",
+      "zig_helper": "lib/hexdump.zig",
+      "helper_blob_sha": "0fc9534ddf7e020ab00f981d5762b1703430170c",
+      "embedded_helper_test_count": 17,
+      "selected_embedded_tests": [
+        "hexDumpToBuffer matches the kernel-style 16-byte line output",
+        "hexDumpToBuffer uses native-endian grouping for 2, 4, and 8 byte groups",
+        "hexDumpToBuffer follows kernel fixture normalization cases"
+      ],
+      "focused_replay": "zigux/tests/phase6_hexdump.zig",
+      "exact_companions": [
+        "zigux/tests/phase6_hexdump_perf.zig",
+        "zigux/tests/phase6_hexdump_perf_matrix.zig",
+        "scripts/zigux/check-phase6-hexdump-packet.py",
+        "scripts/zigux/check-phase6-hexdump-route.py"
+      ]
+    }
+  ]
+}
