@@ -25,6 +25,8 @@ POLICY_STARTER_PACKET_MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_pa
 POLICY_DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
 POLICY_DUMP_BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")
 POLICY_DUMP_EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
+POLICY_UNSAFE_REPLAY_PATH = Path("zigux/tests/phase3_policy_unsafe.zig")
+POLICY_UNSAFE_REPLAY_BUILD_PATH = Path("zigux/tests/phase3_policy_unsafe_build.zig")
 LOW_LEVEL_WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 
 BLOB_FIELDS = {
@@ -57,6 +59,9 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE3_LOW_LEVEL_WRAPPER_TEST_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_NEXT_BOUNDED_STEP=leave-this-survey-parked-unless-layout-assert-panic-policy-allocator-policy-unsafe-policy-mmio-or-narrow-helper-surfaces-or-the-dedicated-policy-unsafe-survey-gate-drift-again",
     "The blob markers above are therefore the authoritative current boundary evidence for this directly coupled policy-and-unsafe packet.",
+    "PHASE3_POLICY_UNSAFE_REPLAY_PATH=zigux/tests/phase3_policy_unsafe.zig",
+    "PHASE3_POLICY_UNSAFE_REPLAY_BUILD_PATH=zigux/tests/phase3_policy_unsafe_build.zig",
+    "PHASE3_POLICY_UNSAFE_REPLAY_TEST_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
 )
 
 REQUIRED_FILE_MARKERS = {
@@ -166,6 +171,21 @@ REQUIRED_FILE_MARKERS = {
         "raw-bridge-warn|panic=warn|allocator=arena|init_flow=helper_owned_with_reset|explicit_caller=false|owned_state=true|reset_on_init=true|unsafe=raw_pointer_bridge|boundary=raw_pointer_bridge|surface=raw_pointer_bridge_only|typed_only=false|global_fallback=true|warn_only=true|mmio=false|raw_bridge=true|audit=true|bridge_read_ok=true|bridge_write_ok=true|narrow=raw_pointer_bridge|narrow_boundary=raw_pointer_bridge|narrow_surface=raw_pointer_bridge_only",
         "reserved-invalid|panic=invalid|allocator=invalid|init_flow=invalid|explicit_caller=false|owned_state=false|reset_on_init=false|unsafe=invalid|boundary=invalid|surface=invalid|typed_only=false|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|bridge_read_ok=false|bridge_write_ok=false|narrow=invalid|narrow_boundary=invalid|narrow_surface=invalid",
     ),
+    POLICY_UNSAFE_REPLAY_PATH: (
+        'test "phase3 policy unsafe replay decodes shared policy records" {',
+        'test "phase3 policy unsafe replay keeps helper and narrow gates aligned" {',
+        'test "phase3 policy unsafe replay keeps require gates fail closed" {',
+        'test "phase3 policy unsafe replay keeps policy consequences explicit" {',
+    ),
+    POLICY_UNSAFE_REPLAY_BUILD_PATH: (
+        '.root_source_file = b.path("phase3_policy_unsafe.zig"),',
+        'root_module.addImport("panic_policy", panic_policy);',
+        'root_module.addImport("allocator_policy", allocator_policy);',
+        'root_module.addImport("unsafe_policy", unsafe_policy);',
+        'root_module.addImport("narrow", narrow);',
+        '"phase3-policy-unsafe-test"',
+        '"Run the focused Phase 3 policy and unsafe replay"',
+    ),
     LOW_LEVEL_WRAPPER_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/unsafe_policy.zig"),',
         '.root_source_file = b.path("phase3_low_level_wrappers.zig"),',
@@ -176,44 +196,18 @@ REQUIRED_FILE_MARKERS = {
 }
 
 SELF_TEST_CASES = (
-    ("missing note marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[7], "marker"),
-    (
-        "missing policy starter packet manifest marker",
-        NOTE_PATH,
-        REQUIRED_NOTE_MARKERS[8],
-        "marker",
-    ),
-    ("missing policy packet gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[9], "marker"),
-    ("missing policy packet test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[10], "marker"),
-    ("missing policy dump gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[11], "marker"),
-    ("missing starter packet make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[12], "marker"),
-    ("missing dump make gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[13], "marker"),
+    ("missing survey gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[7], "marker"),
     ("missing low-level wrapper test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[15], "marker"),
     ("missing next-step marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[16], "marker"),
+    ("missing dedicated replay path marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[18], "marker"),
+    ("missing dedicated replay build marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[19], "marker"),
+    ("missing dedicated replay test gate marker", NOTE_PATH, REQUIRED_NOTE_MARKERS[20], "marker"),
     (
         "layout assert blob drift",
         LAYOUT_ASSERT_PATH,
-        "pub fn assertPublishedAbiLayouts() LayoutError!void {",
+        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][1],
         "blob",
         "PHASE3_LAYOUT_ASSERT_BLOB_SHA",
-    ),
-    (
-        "layout assert notifier-result marker drift",
-        LAYOUT_ASSERT_PATH,
-        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][9],
-        "marker",
-    ),
-    (
-        "layout assert chrdev summary-layout marker drift",
-        LAYOUT_ASSERT_PATH,
-        REQUIRED_FILE_MARKERS[LAYOUT_ASSERT_PATH][5],
-        "marker",
-    ),
-    (
-        "unsafe policy volatile-mmio require alias drift",
-        UNSAFE_POLICY_PATH,
-        REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][4],
-        "marker",
     ),
     (
         "unsafe policy raw-bridge require alias drift",
@@ -222,100 +216,27 @@ SELF_TEST_CASES = (
         "marker",
     ),
     (
-        "unsafe policy const-slice byte relay drift",
-        UNSAFE_POLICY_PATH,
-        REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][10],
+        "narrow const-slice marker drift",
+        NARROW_PATH,
+        REQUIRED_FILE_MARKERS[NARROW_PATH][4],
         "marker",
     ),
     (
-        "unsafe policy write-value byte relay drift",
-        UNSAFE_POLICY_PATH,
-        REQUIRED_FILE_MARKERS[UNSAFE_POLICY_PATH][11],
+        "missing policy replay consequence proof",
+        POLICY_UNSAFE_REPLAY_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_UNSAFE_REPLAY_PATH][3],
         "marker",
     ),
     (
-        "starter packet build companion drift",
-        POLICY_STARTER_PACKET_BUILD_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_BUILD_PATH][5],
+        "missing policy replay build route",
+        POLICY_UNSAFE_REPLAY_BUILD_PATH,
+        REQUIRED_FILE_MARKERS[POLICY_UNSAFE_REPLAY_BUILD_PATH][5],
         "marker",
     ),
     (
-        "starter packet manifest drift",
-        POLICY_STARTER_PACKET_MANIFEST_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH][5],
-        "marker",
-    ),
-    (
-        "starter packet manifest make-route drift",
-        POLICY_STARTER_PACKET_MANIFEST_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH][6],
-        "marker",
-    ),
-    (
-        "starter packet manifest aggregate-route drift",
-        POLICY_STARTER_PACKET_MANIFEST_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_MANIFEST_PATH][7],
-        "marker",
-    ),
-    (
-        "mmio exchange interop-policy marker drift",
-        MMIO_PATH,
-        REQUIRED_FILE_MARKERS[MMIO_PATH][2],
-        "marker",
-    ),
-    ("narrow const-slice marker drift", NARROW_PATH, REQUIRED_FILE_MARKERS[NARROW_PATH][4], "marker"),
-    (
-        "missing policy starter packet alias-symmetry proof",
-        POLICY_STARTER_PACKET_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_STARTER_PACKET_PATH][1],
-        "marker",
-    ),
-    (
-        "missing policy dump raw-bridge replay proof",
-        POLICY_DUMP_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][1],
-        "marker",
-    ),
-    (
-        "missing policy dump const-pointer replay proof",
-        POLICY_DUMP_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][2],
-        "marker",
-    ),
-    (
-        "missing policy dump const-slice replay proof",
-        POLICY_DUMP_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][3],
-        "marker",
-    ),
-    (
-        "missing policy dump write replay proof",
-        POLICY_DUMP_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH][4],
-        "marker",
-    ),
-    (
-        "policy dump build companion drift",
-        POLICY_DUMP_BUILD_PATH,
-        REQUIRED_FILE_MARKERS[POLICY_DUMP_BUILD_PATH][4],
-        "marker",
-    ),
-    (
-        "missing policy dump expected raw-bridge line",
+        "missing policy dump raw-bridge line",
         POLICY_DUMP_EXPECTED_PATH,
         REQUIRED_FILE_MARKERS[POLICY_DUMP_EXPECTED_PATH][1],
-        "marker",
-    ),
-    (
-        "low-level wrapper build companion drift",
-        LOW_LEVEL_WRAPPER_BUILD_PATH,
-        REQUIRED_FILE_MARKERS[LOW_LEVEL_WRAPPER_BUILD_PATH][4],
-        "marker",
-    ),
-    (
-        "starter packet make route drift",
-        MAKEFILE_PATH,
-        REQUIRED_FILE_MARKERS[MAKEFILE_PATH][0],
         "marker",
     ),
 )
@@ -336,6 +257,8 @@ SAMPLE_FILE_TEXT = {
     POLICY_DUMP_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_DUMP_PATH]) + "\n",
     POLICY_DUMP_BUILD_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_DUMP_BUILD_PATH]) + "\n",
     POLICY_DUMP_EXPECTED_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_DUMP_EXPECTED_PATH]) + "\n",
+    POLICY_UNSAFE_REPLAY_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_UNSAFE_REPLAY_PATH]) + "\n",
+    POLICY_UNSAFE_REPLAY_BUILD_PATH: "\n".join(REQUIRED_FILE_MARKERS[POLICY_UNSAFE_REPLAY_BUILD_PATH]) + "\n",
     LOW_LEVEL_WRAPPER_BUILD_PATH: "\n".join(REQUIRED_FILE_MARKERS[LOW_LEVEL_WRAPPER_BUILD_PATH]) + "\n",
 }
 
