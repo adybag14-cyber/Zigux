@@ -28,6 +28,8 @@ REQUIRED_FILES = (
     "scripts/zigux/validate-phase1-closure.py",
     "zigux/tests/README.md",
     "zigux/tests/build.zig",
+    "zigux/tests/phase1_helpers.zig",
+    "zigux/tests/phase1_helpers_build.zig",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
     "zigux/Makefile",
     "zigux/tests/phase1_host_tools_smoke.zig",
@@ -45,7 +47,7 @@ MARKERS = {
     "Documentation/zigux/phase1-closure.md": (
         "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
         "- `scripts/zigux/check-phase1-direct-anchor-manifest-gate.py`",
-        "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
+        "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-direct-anchor-manifest-gate.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_helpers_build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
         "Current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane non-Phase-1 routes across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14. It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`, so treat the returned file as current repo evidence while those older Phase 1 wrapper names remain historical packet members rather than active closure proof.",
         "`PHASE1_DIRECT_ANCHOR_MANIFEST_GATE=python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py exact-checks the current direct-anchor helper manifest packet for bitmap, find_bit, rbtree, and string and then reruns the dedicated rbtree direct-anchor checker`",
         "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
@@ -74,7 +76,7 @@ MARKERS = {
         "`scripts/zigux/check-phase1-route-summary-counts.py`, `make -C zigux phase1-route-summary`, and `.github/workflows/zigux-bootstrap.yml` keep the adjacent Phase 1 route-summary guard explicit beside the narrower reminder packet, so scripts-root follow-through can verify the returned non-Phase-1 Makefile route inventory without promoting the older Phase 1 wrappers back into shipped proof",
         "`python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the shipped bounded Phase 1 reminder checks",
         "`zigux/Makefile` is current repo evidence again from the scripts root too, because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded returned `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so keep that returned route summary aligned here while the older Phase 1 wrapper names stay historical reminder vocabulary",
-        "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
+        "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` reminder evidence",
     ),
     "scripts/zigux/check-phase1-bench.py": (
         "RBTREE_REQUIRED_EXACT_CHECKSUMS = {",
@@ -122,7 +124,7 @@ MARKERS = {
         "- `scripts/zigux/check-phase1-direct-anchor-manifest-gate.py`",
         "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
         "`zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-        "broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
+        "broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
     ),
     "zigux/tests/build.zig": (
         'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
@@ -135,6 +137,13 @@ MARKERS = {
         'root_module.addImport("vsprintf", vsprintf_module);',
         'root_module.addImport("zalloc", zalloc_module);',
         '.name = "phase1-host-tools-smoke",',
+    ),
+    "zigux/tests/phase1_helpers.zig": (
+        'test "phase 1 helper ports match committed parity fixture" {',
+    ),
+    "zigux/tests/phase1_helpers_build.zig": (
+        '.name = "phase1-helpers",',
+        'root_source_file = b.path("phase1_helpers.zig"),',
     ),
     "zigux/tests/fixtures/phase1_helper_manifest.json": (
         '"lane_sequencing": {',
@@ -198,7 +207,7 @@ FORBIDDEN_FRAGMENTS = (
     "python3 scripts/zigux/check-phase1-parity.py",
     "python3 scripts/zigux/validate-phase1.py --self-test",
     "python3 scripts/zigux/validate-phase1.py",
-    "repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    "repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
     "`zigux/Makefile` is current repo evidence again because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12.",
     "C-string list lookup anchors through `matchString()` and `match_string()`, counted-search anchors through `strpbrk()`, `strcspn()`, `strnchr()`, `strnchrNul()` or `strnchrnul()`, and `strspn()`",
     "keep `zigux/Makefile` explicit as current repo evidence for the returned non-Phase-1 route families, while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?`",
@@ -206,14 +215,18 @@ FORBIDDEN_FRAGMENTS = (
     "`zigux/Makefile` is current repo evidence again from the scripts root too, because its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded later-lane route families across Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14, so keep that returned route summary aligned here while the older Phase 1 wrapper names stay historical reminder vocabulary",
 )
 
+
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
+
 
 def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
+
 def collect_missing_files(root: Path) -> list[str]:
     return [relative_path for relative_path in REQUIRED_FILES if not (root / relative_path).exists()]
+
 
 def collect_exact_markers(text: str, label: str, markers: tuple[str, ...]) -> list[str]:
     issues: list[str] = []
@@ -222,6 +235,7 @@ def collect_exact_markers(text: str, label: str, markers: tuple[str, ...]) -> li
         if count != 1:
             issues.append(f"{label}:{marker}:expected=1:actual={count}")
     return issues
+
 
 def collect_stripped_line_markers(text: str, label: str, markers: tuple[str, ...]) -> list[str]:
     issues: list[str] = []
@@ -232,6 +246,7 @@ def collect_stripped_line_markers(text: str, label: str, markers: tuple[str, ...
             issues.append(f"{label}:{marker}:expected=1:actual={count}")
     return issues
 
+
 def collect_forbidden_fragments(text: str, label: str) -> list[str]:
     issues: list[str] = []
     for fragment in FORBIDDEN_FRAGMENTS:
@@ -239,6 +254,7 @@ def collect_forbidden_fragments(text: str, label: str) -> list[str]:
         if count != 0:
             issues.append(f"{label}:forbidden:{fragment}:actual={count}")
     return issues
+
 
 def collect_missing_markers(root: Path) -> list[str]:
     issues = [f"missing_file:{relative_path}" for relative_path in collect_missing_files(root)]
@@ -254,10 +270,12 @@ def collect_missing_markers(root: Path) -> list[str]:
         issues.extend(collect_forbidden_fragments(text, relative_path))
     return issues
 
+
 def write_text(root: Path, relative_path: str, content: str) -> None:
     destination = root / relative_path
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(content, encoding="utf-8")
+
 
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
@@ -272,20 +290,24 @@ def build_sample_repo(root: Path) -> None:
         "\n".join(MARKERS["scripts/zigux/check-phase1-shared-reminder-packet.py"]) + "\n",
     )
 
+
 def mutate_remove_marker(root: Path, relative_path: str, marker: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
+
 
 def mutate_duplicate_marker(root: Path, relative_path: str, marker: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
+
 def mutate_append_fragment(root: Path, relative_path: str, fragment: str) -> None:
     target = root / relative_path
     text = target.read_text(encoding="utf-8")
     target.write_text(text + fragment + "\n", encoding="utf-8")
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-shared-reminder-success-") as tmpdir:
@@ -351,6 +373,7 @@ def run_self_test() -> int:
     print("PHASE1_SHARED_REMINDER_PACKET_SELF_TEST=pass")
     print(f"PHASE1_SHARED_REMINDER_PACKET_SELF_TEST_CASE_COUNT={len(cases)}")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
