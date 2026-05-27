@@ -6,8 +6,6 @@ import json
 import tempfile
 from pathlib import Path
 
-VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
-
 DOC_PATH = "Documentation/zigux/phase12-virtio-net-throughput-parity-slice.md"
 DRIVER_PATH = "drivers/net/virtio_net_throughput_parity.zig"
 TEST_PATH = "zigux/tests/phase12_virtio_net_throughput_parity.zig"
@@ -22,7 +20,6 @@ REQUIRED_FILES = [
     DRIVER_PATH,
     TEST_PATH,
     MANIFEST_PATH,
-    VALIDATOR_PATH,
     BUILD_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
@@ -34,10 +31,10 @@ EXPECTED_MANIFEST_FIELDS = {
     "phase": "Phase 12",
     "slug": "phase12-virtio-net-throughput-parity-packet",
     "anchor": "drivers/net/virtio_net.c",
-    "status": "throughput_parity_helper_present_direct_checker_and_shared_route_guard_present",
+    "status": "throughput_parity_helper_present_direct_checker_and_isolated_route_guard_present",
     "scope": (
         "review-only virtio_net throughput parity helper evidence plus the direct "
-        "shared-route guard around the isolated throughput replay"
+        "isolated-route guard around the dedicated throughput replay"
     ),
     "next_safe_step": (
         "keep future same-lane follow-through narrowed to measured transport "
@@ -86,18 +83,12 @@ BUILD_MARKERS = (
 
 MAKEFILE_MARKERS = (
     "phase12-validate:",
-    "$(PYTHON) scripts/zigux/validate-phase12.py",
     "phase12-virtio-net-throughput-parity-test:",
     "$(ZIG) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
 )
 
 WORKFLOW_MARKERS = (
-    "run: python3 scripts/zigux/validate-phase12.py",
     "Run current Phase 12 throughput-parity anchor",
-)
-
-VALIDATOR_MARKERS = (
-    "scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py",
 )
 
 
@@ -130,7 +121,6 @@ def run_check(root: Path) -> None:
     require_markers(require_file(root, BUILD_PATH), BUILD_MARKERS)
     require_markers(require_file(root, MAKEFILE_PATH), MAKEFILE_MARKERS)
     require_markers(require_file(root, WORKFLOW_PATH), WORKFLOW_MARKERS)
-    require_markers(require_file(root, VALIDATOR_PATH), VALIDATOR_MARKERS)
 
     manifest_path = require_file(root, MANIFEST_PATH)
     try:
@@ -160,8 +150,6 @@ def run_check(root: Path) -> None:
     if replay_routes != [
         "python3 scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py --self-test",
         "python3 scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py --root .",
-        "python3 scripts/zigux/validate-phase12.py",
-        "make -C zigux phase12-validate",
         "zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
         "make -C zigux phase12-virtio-net-throughput-parity-test",
     ]:
@@ -192,8 +180,6 @@ def fixture_manifest() -> str:
         "replay_routes": [
             "python3 scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py --self-test",
             "python3 scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py --root .",
-            "python3 scripts/zigux/validate-phase12.py",
-            "make -C zigux phase12-validate",
             "zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
             "make -C zigux phase12-virtio-net-throughput-parity-test",
         ],
@@ -211,7 +197,6 @@ def make_fixture_tree(root: Path) -> None:
         DRIVER_PATH: "\n".join(DRIVER_MARKERS) + "\n",
         TEST_PATH: "\n".join(TEST_MARKERS) + "\n",
         MANIFEST_PATH: fixture_manifest(),
-        VALIDATOR_PATH: "\n".join(VALIDATOR_MARKERS) + "\n",
         BUILD_PATH: "\n".join(BUILD_MARKERS) + "\n",
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
         WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
@@ -234,7 +219,6 @@ def run_self_test() -> None:
             DRIVER_PATH,
             TEST_PATH,
             MANIFEST_PATH,
-            VALIDATOR_PATH,
             BUILD_PATH,
             MAKEFILE_PATH,
             WORKFLOW_PATH,
@@ -252,6 +236,7 @@ def run_self_test() -> None:
         make_fixture_tree(base)
         payload = json.loads((base / MANIFEST_PATH).read_text(encoding="utf-8"))
         payload["repo_reality_gaps"] = []
+        (base / MANIFEST_PATH).writeText = None
         (base / MANIFEST_PATH).write_text(
             json.dumps(payload, indent=2) + "\n", encoding="utf-8"
         )
