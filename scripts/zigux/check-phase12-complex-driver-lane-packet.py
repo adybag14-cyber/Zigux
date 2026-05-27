@@ -15,6 +15,7 @@ NOTE_PATH = Path("Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
 SUPPORT_BUNDLE_MAP_PATH = Path(
     "Documentation/zigux/phase12-release-support-bundle-map.md"
 )
+SYNTAX_LAB_NOTE_PATH = Path("Documentation/zigux/phase12-virtio-net-syntax-lab.md")
 README_PATH = Path("scripts/zigux/README.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
@@ -26,6 +27,7 @@ VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH = Path(
 REQUIRED_FILES = (
     NOTE_PATH,
     SUPPORT_BUNDLE_MAP_PATH,
+    SYNTAX_LAB_NOTE_PATH,
     README_PATH,
     WORKFLOW_PATH,
     BUILD_PATH,
@@ -73,6 +75,20 @@ SUPPORT_BUNDLE_MAP_MARKERS = (
     "- `scripts/zigux/check-phase12-cross-compile-smoke.py`",
     "- `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py`",
     "Those wrappers are current release-planning evidence again, but they do not by themselves close the broader complex-driver tranche.",
+)
+
+SYNTAX_LAB_NOTE_MARKERS = (
+    "`PHASE12_STATUS=standalone-syntax-lab-smoke-present`",
+    "`PHASE12_LANE=P12-L06`",
+    "This bounded Phase 12 syntax lab keeps `virtio_net` reviewability focused on compile-smoke evidence built from the helper surfaces already present on current `master`.",
+    "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
+    "`zigux/tests/phase12_virtio_net_syntax_lab_build.zig`",
+    "`zig build smoke --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all`",
+    "`zig build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all`",
+    "`make -C zigux phase12-virtio-net-syntax-lab-test`",
+    "smoke remains the direct build-file route so the shared Phase 12 sextet stays unchanged.",
+    "transmit recycle and post-reset ownership remain review-only until probe replay clears",
+    "throughput parity stays in compile-smoke territory once the bounded replay cues line up",
 )
 
 README_MARKERS = (
@@ -211,6 +227,11 @@ def check(root: Path) -> None:
         SUPPORT_BUNDLE_MAP_MARKERS,
         SUPPORT_BUNDLE_MAP_PATH,
     )
+    require_markers(
+        read_text(root, SYNTAX_LAB_NOTE_PATH),
+        SYNTAX_LAB_NOTE_MARKERS,
+        SYNTAX_LAB_NOTE_PATH,
+    )
     require_markers(read_text(root, README_PATH), README_MARKERS, README_PATH)
     require_markers(read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS, WORKFLOW_PATH)
 
@@ -254,6 +275,7 @@ def write_fixture(root: Path) -> None:
     fixtures = {
         NOTE_PATH: "\n".join(NOTE_MARKERS) + "\n",
         SUPPORT_BUNDLE_MAP_PATH: "\n".join(SUPPORT_BUNDLE_MAP_MARKERS) + "\n",
+        SYNTAX_LAB_NOTE_PATH: "\n".join(SYNTAX_LAB_NOTE_MARKERS) + "\n",
         README_PATH: "\n".join(README_MARKERS) + "\n",
         WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
         BUILD_PATH: build_fixture_text(),
@@ -309,6 +331,11 @@ def run_self_test() -> int:
         write_fixture(root)
         (root / SUPPORT_BUNDLE_MAP_PATH).write_text("broken\n", encoding="utf-8")
         expect_failure(root, str(SUPPORT_BUNDLE_MAP_PATH))
+        cases += 1
+
+        write_fixture(root)
+        (root / SYNTAX_LAB_NOTE_PATH).write_text("broken\n", encoding="utf-8")
+        expect_failure(root, str(SYNTAX_LAB_NOTE_PATH))
         cases += 1
 
         write_fixture(root)
