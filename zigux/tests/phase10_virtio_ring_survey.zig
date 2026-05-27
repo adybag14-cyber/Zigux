@@ -21,6 +21,9 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     const build_file = try readRepoRelative(allocator, "zigux/tests/phase10_build.zig");
     defer allocator.free(build_file);
 
+    const shared_build_file = try readRepoRelative(allocator, "zigux/tests/build.zig");
+    defer allocator.free(shared_build_file);
+
     const verify_file = try readRepoRelative(allocator, "drivers/virtio/virtio_ring_verify.zig");
     defer allocator.free(verify_file);
 
@@ -136,6 +139,11 @@ test "phase10 virtio ring survey note keeps the broader replay explicit beside t
     try expectContains(build_file, "run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step");
     try expectContains(build_file, "run_phase10_virtio_ring_delayed_callback_budget_tests.step");
     try expectContains(build_file, "run_phase10_virtio_ring_survey_tests.step");
+    try expectContains(shared_build_file, "\"phase10-virtio-ring-survey\"");
+    try expectContains(shared_build_file, "\"phase10_virtio_ring_survey.zig\"");
+    try expectContains(shared_build_file, "phase10_ring_step.dependOn(&phase10_virtio_ring_survey.step);");
+    try expectContains(shared_build_file, "smoke_step.dependOn(&phase10_virtio_ring_survey.step);");
+    try expectContains(shared_build_file, "test_step.dependOn(&phase10_virtio_ring_survey.step);");
 }
 
 test "phase10 virtio ring registration-summary wrapper stays direct current-head evidence in the survey packet" {
