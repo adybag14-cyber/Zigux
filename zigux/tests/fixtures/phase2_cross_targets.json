@@ -17,6 +17,12 @@
       "review_status": "route contract only",
       "validation_mode": "route_contract_only",
       "route": "make -C zigux phase2-cross"
+    },
+    {
+      "target": "riscv64-linux",
+      "review_status": "route contract only",
+      "validation_mode": "route_contract_only",
+      "route": "make -C zigux phase2-cross"
     }
   ]
 }
