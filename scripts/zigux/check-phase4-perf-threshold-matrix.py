@@ -13,7 +13,7 @@ NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 LANE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
-EXPECTED_SELF_TEST_CASES = 18
+EXPECTED_SELF_TEST_CASES = 19
 
 SELF_TEST_MANIFEST = """{
   "atomic64": {
@@ -50,6 +50,7 @@ SELF_TEST_LANE = """- directly readable dedicated local-only perf packet that st
   - `zigux/tests/phase4_perf_baseline_manifest.json`
   - `zigux/tests/phase4_perf_baseline_survey.zig`
 - `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.
+Keep the Validation and Perf Team decision-owner and rollback-owner cue in the dedicated local-only perf packet, but leave the current cross-family coordination-owner split with the ABI and Runtime Team plus Shared Subsystems Pod in the shared exact-readback lane because that wording spans both landed rollback gates.
 """
 
 SELF_TEST_BUILD = """const phase4_perf_baseline_survey = @import("phase4_perf_baseline_survey.zig");
@@ -64,6 +65,7 @@ NOTE_MARKERS = (
 LANE_MARKERS = (
     "  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`",
     "`scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.",
+    "Keep the Validation and Perf Team decision-owner and rollback-owner cue in the dedicated local-only perf packet, but leave the current cross-family coordination-owner split with the ABI and Runtime Team plus Shared Subsystems Pod in the shared exact-readback lane because that wording spans both landed rollback gates.",
 )
 
 PHASE4_BUILD_MARKERS = (
@@ -290,6 +292,21 @@ def run_self_test() -> int:
         if not expect_failure(root, "lane_marker:  - `scripts/zigux/check-phase4-perf-threshold-matrix.py`"):
             print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
             print("lane checker drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            root / LANE,
+            replace_once(
+                read_text(root / LANE),
+                "Keep the Validation and Perf Team decision-owner and rollback-owner cue in the dedicated local-only perf packet, but leave the current cross-family coordination-owner split with the ABI and Runtime Team plus Shared Subsystems Pod in the shared exact-readback lane because that wording spans both landed rollback gates.\n",
+                "Keep the Validation and Perf Team decision-owner cue in the dedicated local-only perf packet, but leave the current cross-family coordination-owner split with the ABI and Runtime Team plus Shared Subsystems Pod in the shared exact-readback lane because that wording spans both landed rollback gates.\n",
+            ),
+        )
+        if not expect_failure(root, "lane_marker:Keep the Validation and Perf Team decision-owner and rollback-owner cue in the dedicated local-only perf packet"):
+            print("PHASE4_PERF_THRESHOLD_MATRIX_SELF_TEST=fail")
+            print("lane rollback-owner cue drift case did not fail closed")
             return 1
         cases += 1
 
