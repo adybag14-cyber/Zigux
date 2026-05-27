@@ -4,6 +4,6 @@
   "surveyed_commit": "current-master-readback-2026-05-27",
   "surveyed_commit_mode": "dated_master_readback",
   "decision_index_note": "Documentation/zigux/phase15-architecture-council-decision-index.md",
-  "checker": "scripts/zigux/check-phase15-decision-index-alignment.py",
+  "checker": "scripts/zigux/check-phase15-architecture-council-decision-index.py",
   "focused_replay": "zigux/tests/phase15_architecture_council_decision_index.zig"
 }
