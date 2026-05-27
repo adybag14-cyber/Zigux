@@ -16,6 +16,22 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectSnapshotStable(
+    before: sample.LifecycleSnapshot,
+    after: sample.LifecycleSnapshot,
+) !void {
+    try std.testing.expectEqual(before.stage, after.stage);
+    try std.testing.expectEqual(before.init_runs, after.init_runs);
+    try std.testing.expectEqual(before.selftest_runs, after.selftest_runs);
+    try std.testing.expectEqual(before.exit_runs, after.exit_runs);
+    try std.testing.expectEqual(before.registration_runs, after.registration_runs);
+    try std.testing.expectEqual(before.unregistration_runs, after.unregistration_runs);
+    try std.testing.expectEqual(before.probe_registered, after.probe_registered);
+    try std.testing.expectEqual(before.active_instances, after.active_instances);
+    try std.testing.expectEqual(before.completed_instances, after.completed_instances);
+    try std.testing.expectEqual(before.last_retval, after.last_retval);
+}
+
 test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and module packet" {
     const descriptor = sample.RuntimeKretprobeSample.descriptor();
     try std.testing.expectEqualStrings("runtime_kretprobe", descriptor.name);
@@ -213,4 +229,99 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         phase9_build,
         "Run the Phase 9 first-loadable runtime-module parity behavior tests.",
     );
+}
+
+test "phase9 runtime kretprobe survey keeps captured initialized snapshot replay explicit across later selftest and exit" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.init();
+
+    const initialized_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.unregistration_runs);
+    try std.testing.expect(!initialized_snapshot.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, null), initialized_snapshot.last_retval);
+
+    _ = try module.runSelftest();
+    try module.exit();
+
+    const exited_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try expectSnapshotStable(initialized_snapshot, .{
+        .stage = initialized_snapshot.stage,
+        .init_runs = initialized_snapshot.init_runs,
+        .selftest_runs = initialized_snapshot.selftest_runs,
+        .exit_runs = initialized_snapshot.exit_runs,
+        .registration_runs = initialized_snapshot.registration_runs,
+        .unregistration_runs = initialized_snapshot.unregistration_runs,
+        .probe_registered = initialized_snapshot.probe_registered,
+        .active_instances = initialized_snapshot.active_instances,
+        .completed_instances = initialized_snapshot.completed_instances,
+        .last_retval = initialized_snapshot.last_retval,
+        .last_entry_timestamp_ns = initialized_snapshot.last_entry_timestamp_ns,
+        .last_return_timestamp_ns = initialized_snapshot.last_return_timestamp_ns,
+        .last_duration_ns = initialized_snapshot.last_duration_ns,
+        .oldest_active_entry_timestamp_ns = initialized_snapshot.oldest_active_entry_timestamp_ns,
+        .newest_active_entry_timestamp_ns = initialized_snapshot.newest_active_entry_timestamp_ns,
+    });
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.unregistration_runs);
+    try std.testing.expect(!exited_snapshot.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), exited_snapshot.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), exited_snapshot.last_retval);
+}
+
+test "phase9 runtime kretprobe survey keeps captured initialized direct-activity snapshot replay explicit across later selftest and exit" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.init();
+    try module.registerProbe();
+    try module.recordEntry();
+    try module.recordReturn(13);
+    try module.unregisterProbe();
+
+    const initialized_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.unregistration_runs);
+    try std.testing.expect(!initialized_snapshot.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 13), initialized_snapshot.last_retval);
+
+    _ = try module.runSelftest();
+    try module.exit();
+
+    const exited_snapshot = module.lifecycleSnapshot();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_snapshot.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.unregistration_runs);
+    try std.testing.expect(!initialized_snapshot.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), initialized_snapshot.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), initialized_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 13), initialized_snapshot.last_retval);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_snapshot.exit_runs);
+    try std.testing.expectEqual(@as(usize, 2), exited_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 2), exited_snapshot.unregistration_runs);
+    try std.testing.expect(!exited_snapshot.probe_registered);
+    try std.testing.expectEqual(@as(usize, 0), exited_snapshot.active_instances);
+    try std.testing.expectEqual(@as(usize, 2), exited_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), exited_snapshot.last_retval);
 }
