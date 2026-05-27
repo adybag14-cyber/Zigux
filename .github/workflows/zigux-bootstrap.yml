@@ -361,6 +361,12 @@ jobs:
       - name: Check current Phase 1 direct-anchor manifest gate
         run: python3 scripts/zigux/check-phase1-direct-anchor-manifest-gate.py
 
+      - name: Self-test current Phase 1 parity checker
+        run: python3 scripts/zigux/check-phase1-parity.py --self-test
+
+      - name: Check current Phase 1 parity packet
+        run: python3 scripts/zigux/check-phase1-parity.py
+
       - name: Self-test current Phase 1 string review checker
         run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test
 
