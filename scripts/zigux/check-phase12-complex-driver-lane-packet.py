@@ -300,7 +300,7 @@ def run_self_test() -> int:
 
         write_fixture(root)
         survey_build_marker = "`Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, and `scripts/zigux/check-phase12-virtio-scsi-packet.py`"
-        (root / NOTE_PATH).writeText(
+        (root / NOTE_PATH).write_text(
             read_text(root, NOTE_PATH).replace(
                 survey_build_marker,
                 survey_build_marker.replace(
