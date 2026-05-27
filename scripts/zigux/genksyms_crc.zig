@@ -336,7 +336,7 @@ test "runGenksymsCrc skips a NUL-prefixed visible continuation after an exact-bu
     const skipped_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("bc")});
     defer std.testing.allocator.free(skipped_crc);
 
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crf) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, skipped_crc) == null);
     try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 2);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
