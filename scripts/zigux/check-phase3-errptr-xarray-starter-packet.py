@@ -17,12 +17,18 @@ TEST_PATH = Path("zigux/tests/phase3_errptr_xarray_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_errptr_xarray_starter_packet_build.zig")
 MANIFEST_PATH = Path("zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json")
 
+STARTER_BUILD_ROUTE = (
+    "zig build phase3-errptr-xarray-starter-packet-test --build-file "
+    "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"
+)
+
 REQUIRED_MARKERS = {
     SLICE_PATH: (
         "zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json",
         "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
         "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+        STARTER_BUILD_ROUTE,
         "the highest tagged inline boundary still stays below the `err_ptr` floor",
         "It is one helper-local interop proof layered beside the existing `dev_t` starter packet.",
     ),
@@ -70,6 +76,7 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json"',
         '"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"',
+        STARTER_BUILD_ROUTE,
         '"repo_reality_gaps": []',
         '"next_safe_step": "keep the helper-local err_ptr/xarray packet honest with manifest-backed replay before widening into broader Phase 3 validator or export-boundary claims"',
     ),
@@ -89,42 +96,46 @@ REQUIRED_PACKET_FILES = (
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    STARTER_BUILD_ROUTE,
 )
 
 SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
-SAMPLE_FILES[MANIFEST_PATH] = """{
-  "phase": "Phase 3",
-  "lane": "helper-interop",
-  "slug": "phase3-errptr-xarray-starter-packet",
-  "status": "starter_packet_present",
-  "scope": "helper-local err_ptr and xarray inline-value boundary replay",
-  "packet_files": [
-    "Documentation/zigux/phase3-errptr-xarray-slice.md",
-    "Documentation/zigux/phase3-validator-support-surface.md",
-    "zigux/helpers/err_ptr.zig",
-    "zigux/helpers/xa_value.zig",
-    "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
-    "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
-    "zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json",
-    "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"
+SAMPLE_FILES[MANIFEST_PATH] = f"""{{
+  \"phase\": \"Phase 3\",
+  \"lane\": \"helper-interop\",
+  \"slug\": \"phase3-errptr-xarray-starter-packet\",
+  \"status\": \"starter_packet_present\",
+  \"scope\": \"helper-local err_ptr and xarray inline-value boundary replay\",
+  \"packet_files\": [
+    \"Documentation/zigux/phase3-errptr-xarray-slice.md\",
+    \"Documentation/zigux/phase3-validator-support-surface.md\",
+    \"zigux/helpers/err_ptr.zig\",
+    \"zigux/helpers/xa_value.zig\",
+    \"zigux/tests/phase3_errptr_xarray_starter_packet.zig\",
+    \"zigux/tests/phase3_errptr_xarray_starter_packet_build.zig\",
+    \"zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json\",
+    \"scripts/zigux/check-phase3-errptr-xarray-starter-packet.py\"
   ],
-  "replay_routes": [
-    "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"
+  \"replay_routes\": [
+    \"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test\",
+    \"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py\",
+    \"{STARTER_BUILD_ROUTE}\"
   ],
-  "repo_reality_gaps": [],
-  "next_safe_step": "keep the helper-local err_ptr/xarray packet honest with manifest-backed replay before widening into broader Phase 3 validator or export-boundary claims"
-}
+  \"repo_reality_gaps\": [],
+  \"next_safe_step\": \"keep the helper-local err_ptr/xarray packet honest with manifest-backed replay before widening into broader Phase 3 validator or export-boundary claims\"
+}}
 """
 
 SELF_TEST_CASES = (
     (SLICE_PATH, "zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json"),
+    (SLICE_PATH, STARTER_BUILD_ROUTE),
     (VALIDATOR_NOTE_PATH, "the manifest-backed starter packet"),
     (ERR_PTR_PATH, "pub fn isErrValue(raw: usize) bool {"),
     (XA_VALUE_PATH, "ValueWouldOverlapErrPtr"),
     (TEST_PATH, "try testing.expectEqual(err_ptr.err_floor, raw + 2);"),
     (BUILD_PATH, '"phase3-errptr-xarray-starter-packet-test"'),
     (MANIFEST_PATH, '"status": "starter_packet_present"'),
+    (MANIFEST_PATH, STARTER_BUILD_ROUTE),
 )
 
 
