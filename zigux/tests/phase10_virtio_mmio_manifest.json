@@ -39,6 +39,7 @@
     "preexisting_virtio_mmio_apply_observation_replay_present": true,
     "preexisting_virtio_mmio_apply_observation_replay_build_present": true,
     "preexisting_virtio_mmio_verify_present": true,
+    "preexisting_virtio_mmio_config_write_plan_freshness_present": true,
     "preexisting_mmio_companion_present": true
   },
   "gaps": [
@@ -102,8 +103,8 @@
       "id": "phase10-mmio-config-write-plan-freshness-helper",
       "status": "starter_landed",
       "kind": "mmio_wrapper",
-      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The config-write plan freshness summary keeps staged-plan availability and generation-rollover invalidation explicit without widening into config application."
+      "zigux_destination": "drivers/virtio/virtio_mmio_config_write_plan_freshness.zig",
+      "why_now": "The dedicated plan-freshness wrapper keeps staged-plan availability, reviewable offsets, and generation-rollover recovery explicit without widening into config application or transport-backed execution."
     },
     {
       "id": "phase10-mmio-config-write-disposition-helper",
