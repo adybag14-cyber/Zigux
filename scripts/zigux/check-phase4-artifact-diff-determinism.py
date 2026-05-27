@@ -124,6 +124,23 @@ REPO_WARNING_MARKERS = (
 
 HELPER_EXPECTED_MODE_CHOICES = ("text", "json", "bytes")
 HELPER_EXPECTED_LEGACY_MODE_ALIASES = {"sha256": "bytes"}
+HELPER_EXPECTED_RESULT_LINES = (
+    'print(f"ARTIFACT_DIFF={status}")',
+    'print(f"MODE={mode}")',
+    'print(f"EXPECTED={expected}")',
+    'print(f"ACTUAL={actual}")',
+)
+HELPER_EXPECTED_BYTES_PASS_DETAIL = 'f"SHA256={expected_digest}"'
+HELPER_EXPECTED_BYTES_FAIL_DETAILS = (
+    'f"EXPECTED_SHA256={expected_digest}"',
+    'f"ACTUAL_SHA256={actual_digest}"',
+)
+HELPER_EXPECTED_ERROR_DETAILS = (
+    'f"{side}_UTF8_ERROR={path}:{exc.start}: {exc.reason}"',
+    'f"{side}_JSON_ERROR={path}:{exc.lineno}:{exc.colno}: {exc.msg}"',
+    'f"EXPECTED_EXISTS={expected_exists}"',
+    'f"ACTUAL_EXISTS={actual_exists}"',
+)
 HELPER_EXPECTED_SELF_TEST_CASES = (
     "text_pass",
     "text_mismatch",
@@ -302,6 +319,16 @@ def require_current_helper_contract(text: str) -> None:
     self_test_cases = tuple(extract_literal_assignment(text, "SELF_TEST_CASES", DIRECT_HELPER.as_posix()))
     if self_test_cases != HELPER_EXPECTED_SELF_TEST_CASES:
         raise RuntimeError(f"{DIRECT_HELPER.as_posix()} must keep the current 23-case self-test catalog")
+    require_markers(text, HELPER_EXPECTED_RESULT_LINES, DIRECT_HELPER.as_posix())
+    require_markers(
+        text,
+        (
+            HELPER_EXPECTED_BYTES_PASS_DETAIL,
+            *HELPER_EXPECTED_BYTES_FAIL_DETAILS,
+            *HELPER_EXPECTED_ERROR_DETAILS,
+        ),
+        DIRECT_HELPER.as_posix(),
+    )
 
 
 def require_current_contract_checker(text: str) -> None:
@@ -378,6 +405,31 @@ def helper_fixture_text() -> str:
             "SELF_TEST_CASES = [",
             cases,
             "]",
+            "",
+            "def format_utf8_error(path, *, side, exc):",
+            '    return f"{side}_UTF8_ERROR={path}:{exc.start}: {exc.reason}"',
+            "",
+            "def format_json_error(path, *, side, exc):",
+            '    return f"{side}_JSON_ERROR={path}:{exc.lineno}:{exc.colno}: {exc.msg}"',
+            "",
+            "def missing_lines(expected_exists, actual_exists):",
+            "    return [",
+            '        f"EXPECTED_EXISTS={expected_exists}",',
+            '        f"ACTUAL_EXISTS={actual_exists}",',
+            "    ]",
+            "",
+            "def compare_bytes(expected_digest, actual_digest):",
+            "    return [",
+            '        f"SHA256={expected_digest}",',
+            '        f"EXPECTED_SHA256={expected_digest}",',
+            '        f"ACTUAL_SHA256={actual_digest}",',
+            "    ]",
+            "",
+            "def emit_result(status, mode, expected, actual):",
+            '    print(f"ARTIFACT_DIFF={status}")',
+            '    print(f"MODE={mode}")',
+            '    print(f"EXPECTED={expected}")',
+            '    print(f"ACTUAL={actual}")',
             "",
         ]
     ) + "\n"
@@ -556,8 +608,8 @@ def self_test() -> None:
         write(
             root / DIRECT_HELPER,
             read(root, DIRECT_HELPER).replace(
-                'MODE_CHOICES = ("text", "json", "bytes")',
-                'MODE_CHOICES = ("text", "json")',
+                'print(f"MODE={mode}")',
+                'print(f"MODE_RESULT={mode}")',
                 1,
             ),
         )
