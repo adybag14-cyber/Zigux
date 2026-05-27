@@ -27,6 +27,7 @@ EXPECTED_MANIFEST = {
         "Documentation/zigux/phase11-shared-replay-contract.md",
         "Documentation/zigux/phase11-driver-lane-sequencing.md",
         "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
+        "Documentation/zigux/phase11-watchdog-lifecycle-parity-gap.md",
         "Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md",
     ],
     "shared_checkers": [
@@ -38,9 +39,12 @@ EXPECTED_MANIFEST = {
         "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
         "scripts/zigux/check-phase11-matrix-gap-survey.py",
         "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
+        "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py",
         "scripts/zigux/check-phase11-header-boundary-packet.py",
         "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+        "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py",
         "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+        "scripts/zigux/check-phase11-hvc-current-head-manifest.py",
         "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
         "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
         "scripts/zigux/check-phase11-shared-tooling-manifest.py",
@@ -87,9 +91,13 @@ REQUIRED_SURVEY_MARKERS = (
     "`PHASE11_TOOLING_GAP_STATUS=shared_packet_aggregate_surface_materialized`",
     "`scripts/zigux/check-phase11-shared-tooling-manifest.py`",
     "`zigux/tests/fixtures/phase11_shared_tooling_manifest.json`",
+    "`scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py`",
+    "`scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`",
+    "`scripts/zigux/check-phase11-hvc-current-head-manifest.py`",
     "distinguishes the narrower `zigux/tests/fixtures/phase11_build_inventory.json` HVC continuity packet from the broader shared `phase11-validate` checker stack and proof fan-out",
     "`scripts/zigux/check-phase11-shared-tooling-manifest.py` is already wired into `scripts/zigux/validate-phase11.py`",
     "`zigux/tests/fixtures/phase11_validate_checks.json` records both the shared tooling-manifest self-test and live validator entries",
+    "aggregate surface now also carries the shared watchdog lifecycle note plus the cleanup-prerequisite and current-head manifest guards that the validator route already ships",
 )
 
 FORBIDDEN_SURVEY_MARKERS = (
@@ -250,6 +258,17 @@ def write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def write_validate_fixture(path: Path, exact_checks: list[dict[str, object]]) -> None:
+    lines = ["{", '  "exact_checks": [']
+    for index, entry in enumerate(exact_checks):
+        suffix = "," if index + 1 < len(exact_checks) else ""
+        lines.append(
+            f'    {{"name": {json.dumps(entry["name"])}, "command": {json.dumps(entry["command"])}}}{suffix}'
+        )
+    lines.extend(["  ]", "}"])
+    write(path, "\n".join(lines) + "\n")
+
+
 def build_fixture(root: Path) -> None:
     write(root / MANIFEST_PATH, json.dumps(EXPECTED_MANIFEST, indent=2) + "\n")
     write(
@@ -261,9 +280,13 @@ def build_fixture(root: Path) -> None:
                 "- `PHASE11_TOOLING_GAP_STATUS=shared_packet_aggregate_surface_materialized`",
                 "- `scripts/zigux/check-phase11-shared-tooling-manifest.py`",
                 "- `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`",
+                "- `scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py`",
+                "- `scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py`",
+                "- `scripts/zigux/check-phase11-hvc-current-head-manifest.py`",
                 "- distinguishes the narrower `zigux/tests/fixtures/phase11_build_inventory.json` HVC continuity packet from the broader shared `phase11-validate` checker stack and proof fan-out",
                 "- `scripts/zigux/check-phase11-shared-tooling-manifest.py` is already wired into `scripts/zigux/validate-phase11.py`",
-                "- `zigux/tests/fixtures/phase11_validate_checks.json` records both the shared tooling-manifest self-test and live validator entries",
+                "- `zigux/tests/fixtures/phase11_validate_checks.json` records both the shared tooling-manifest self-test and live validator entries`",
+                "- aggregate surface now also carries the shared watchdog lifecycle note plus the cleanup-prerequisite and current-head manifest guards that the validator route already ships",
             )
         )
         + "\n",
@@ -280,19 +303,18 @@ def build_fixture(root: Path) -> None:
         )
         + "\n",
     )
-    write(
+    write_validate_fixture(
         root / VALIDATE_FIXTURE_PATH,
-        "\n".join(
-            (
-                "{",
-                '  "exact_checks": [',
-                '    {"name": "phase11-shared-tooling-manifest-self-test", "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py", "--self-test"]},',
-                '    {"name": "phase11-shared-tooling-manifest", "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"]}',
-                "  ]",
-                "}",
-            )
-        )
-        + "\n",
+        [
+            {
+                "name": "phase11-shared-tooling-manifest-self-test",
+                "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py", "--self-test"],
+            },
+            {
+                "name": "phase11-shared-tooling-manifest",
+                "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"],
+            },
+        ],
     )
     for path in (
         *EXPECTED_MANIFEST["shared_docs"],
@@ -367,8 +389,8 @@ def run_self_test() -> int:
         shutil.copytree(fixture, wrong_fixture_command, dirs_exist_ok=True)
         payload = read_json(wrong_fixture_command, VALIDATE_FIXTURE_PATH)
         payload["exact_checks"][0]["command"] = ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"]
-        write(wrong_fixture_command / VALIDATE_FIXTURE_PATH, json.dumps(payload, indent=2) + "\n")
-        expect_failure(wrong_fixture_command, "validate fixture entry mismatch for phase11-shared-tooling-manifest-self-test")
+        write_validate_fixture(wrong_fixture_command / VALIDATE_FIXTURE_PATH, payload["exact_checks"])
+        expect_failure(wrong_fixture_command, 'missing marker in phase11_validate_checks.json: "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py", "--self-test"]')
         case_count += 1
 
         duplicate_fixture_entry = tmpdir / "duplicate_fixture_entry"
@@ -380,7 +402,7 @@ def run_self_test() -> int:
                 "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"],
             }
         )
-        write(duplicate_fixture_entry / VALIDATE_FIXTURE_PATH, json.dumps(payload, indent=2) + "\n")
+        write_validate_fixture(duplicate_fixture_entry / VALIDATE_FIXTURE_PATH, payload["exact_checks"])
         expect_failure(duplicate_fixture_entry, "validate fixture entry mismatch for phase11-shared-tooling-manifest")
         case_count += 1
 
@@ -388,8 +410,22 @@ def run_self_test() -> int:
         shutil.copytree(fixture, out_of_order_fixture_entries, dirs_exist_ok=True)
         payload = read_json(out_of_order_fixture_entries, VALIDATE_FIXTURE_PATH)
         payload["exact_checks"] = list(reversed(payload["exact_checks"]))
-        write(out_of_order_fixture_entries / VALIDATE_FIXTURE_PATH, json.dumps(payload, indent=2) + "\n")
+        write_validate_fixture(out_of_order_fixture_entries / VALIDATE_FIXTURE_PATH, payload["exact_checks"])
         expect_failure(out_of_order_fixture_entries, "validate fixture tooling-manifest entries are out of order")
+        case_count += 1
+
+        missing_shared_packet_marker = tmpdir / "missing_shared_packet_marker"
+        shutil.copytree(fixture, missing_shared_packet_marker, dirs_exist_ok=True)
+        path = missing_shared_packet_marker / SURVEY_PATH
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "- `scripts/zigux/check-phase11-hvc-current-head-manifest.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(missing_shared_packet_marker, "`scripts/zigux/check-phase11-hvc-current-head-manifest.py`")
         case_count += 1
 
         stale_gap_claim = tmpdir / "stale_gap_claim"
