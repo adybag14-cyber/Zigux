@@ -12,6 +12,7 @@ This survey records the current Phase 3 export-shim and starter UAPI boundary ag
 - `PHASE3_ABI_H_PATH=include/zigux/abi.h`
 - `PHASE3_ABI_H_BOUNDARY_NOTE=Documentation/zigux/phase3-abi-h-boundary-next-step.md`
 - `PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h`
+- `PHASE3_LINUX_ZIGUX_H_STATUS_OK_RELAY=zigux_uapi_export_status_ok`
 - `PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - `PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig`
 - `PHASE3_BINDING_DEV_T_PATH=zigux/bindings/dev_t.zig`
@@ -34,6 +35,7 @@ The landed boundary is still narrow and reviewable:
 
 - `zigux/kernel/export_shim.zig` exposes boundary-header, version, and `dev_t` validation relays instead of widening into a larger runtime surface.
 - `include/zigux/abi.h` and `include/linux/zigux.h` hold the public C-facing header contract and the Linux-facing UAPI aliases for the same starter packet.
+- `include/linux/zigux.h` now includes the bounded `zigux_uapi_export_status_ok()` relay so Linux-side callers can check starter-packet success without stepping outside the UAPI namespace.
 - `zigux/uapi/version.zig`, `zigux/uapi/dev_t.zig`, `zigux/bindings/version.zig`, `zigux/bindings/dev_t.zig`, and `zigux/bindings/header_family.zig` provide the curated Zig-side view of that same boundary.
 - `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_export_shim_build.zig`, and `zigux/tests/phase3_export_uapi_c_header_smoke.c` keep the packet replayable from both Zig and C-facing entry points.
 
