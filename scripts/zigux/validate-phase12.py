@@ -39,6 +39,9 @@ RELEASE_READINESS_CHECKER_PATH = (
 COMPLEX_DRIVER_CHECKER_PATH = (
     "scripts/zigux/check-phase12-complex-driver-lane-packet.py"
 )
+NVME_PACKET_COHERENCE_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-nvme-packet-coherence.py"
+)
 CROSS_COMPILE_CHECKER_PATH = "scripts/zigux/check-phase12-cross-compile-smoke.py"
 VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH = (
     "scripts/zigux/check-phase12-virtio-scsi-rollback-coverage.py"
@@ -61,6 +64,7 @@ CHECKER_PATHS = (
     BUILD_INVENTORY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     COMPLEX_DRIVER_CHECKER_PATH,
+    NVME_PACKET_COHERENCE_CHECKER_PATH,
     CROSS_COMPILE_CHECKER_PATH,
     VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
@@ -192,9 +196,10 @@ REQUIRED_MARKERS = {
     ],
     VALIDATOR_PATH: [
         BUILD_INVENTORY_CHECKER_PATH,
+        NVME_PACKET_COHERENCE_CHECKER_PATH,
         VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
         VIRTIO_NET_FALLBACK_PATH,
-        "Validate the current Phase 12 shared PMO packet, fallback packet, current-master virtio_net fallback companion, scripts-root reminder, tests-root reminder, and returned wrapper contract.",
+        "Validate the current Phase 12 shared PMO packet, fallback packet, current-master virtio_net fallback companion, scripts-root reminder, tests-root reminder, driver-local NVMe boundary packet, and returned wrapper contract.",
     ],
 }
 
@@ -402,7 +407,7 @@ def main() -> int:
         description=(
             "Validate the current Phase 12 shared PMO packet, fallback packet, "
             "current-master virtio_net fallback companion, scripts-root reminder, "
-            "tests-root reminder, and returned wrapper contract."
+            "tests-root reminder, driver-local NVMe boundary packet, and returned wrapper contract."
         )
     )
     parser.add_argument(
