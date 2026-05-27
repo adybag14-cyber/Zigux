@@ -22,6 +22,11 @@ REQUIRED_MARKERS = {
         "6. if the change touches this guide or its contributor-entrypoint handoff, rerun `python3 scripts/zigux/check-developer-enablement-workflow.py`",
         "If no checker exists, keep the change docs-only unless adding a new checker is clearly the smallest honest way to keep the workflow trustworthy.",
     ],
+    "Documentation/zigux/contributor-workflow.md": [
+        "Use it with `CONTRIBUTING.md`, `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`, `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/contributor-entrypoints.md`, `Documentation/zigux/developer-enablement-contributor-workflow.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.",
+        "- for docs-only reminder, checklist, or contributor workflow guidance changes, rerun `python3 scripts/zigux/check-developer-enablement-workflow.py` so `Documentation/zigux/contributor-entrypoints.md`, `Documentation/zigux/developer-enablement-contributor-workflow.md`, and this workflow note keep the same docs-only handoff",
+        "- `Documentation/zigux/developer-enablement-contributor-workflow.md`: docs-only reminder, checklist, and contributor workflow guidance handoff",
+    ],
 }
 
 FORBIDDEN_MARKERS = (
@@ -132,6 +137,22 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "forbidden_marker:Documentation/zigux/developer-enablement-contributor-workflow.md:Matching guard: `make -C zigux developer-enablement`",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        path = tempdir / "Documentation/zigux/contributor-workflow.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "- `Documentation/zigux/developer-enablement-contributor-workflow.md`: docs-only reminder, checklist, and contributor workflow guidance handoff\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/contributor-workflow.md:- `Documentation/zigux/developer-enablement-contributor-workflow.md`: docs-only reminder, checklist, and contributor workflow guidance handoff",
         )
         checks_run += 1
     finally:
