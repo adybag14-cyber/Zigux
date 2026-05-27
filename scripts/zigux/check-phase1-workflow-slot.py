@@ -14,6 +14,7 @@ WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 ORDERED_STEPS = (
     "      - name: Run current Phase 2 validate make route",
+    "      - name: Validate current Phase 2 tool packet",
     "      - name: Self-test current Phase 1 direct-owner checker",
     "      - name: Check current Phase 1 direct-owner markers",
     "      - name: Self-test current Phase 1 direct-anchor manifest gate",
@@ -36,11 +37,14 @@ ORDERED_STEPS = (
     "      - name: Run current Phase 3 shared tests-root packet",
     "      - name: Run current Phase 1 shared tests-root smoke",
     "      - name: Self-test current Phase 4 repo-reality warning checker",
+    "      - name: Check current Phase 4 repo-reality warning packet",
 )
 
 EXACT_RUN_LINES = (
+    "        run: python3 scripts/zigux/validate-phase2.py",
     "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
     "        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
+    "        run: python3 scripts/zigux/check-phase4-repo-reality-warning.py",
 )
 
 FORBIDDEN_LINES = (
@@ -106,6 +110,8 @@ def build_sample_root(root: Path) -> None:
         "    steps:",
         "      - name: Run current Phase 2 validate make route",
         "        run: make -C zigux phase2-validate",
+        "      - name: Validate current Phase 2 tool packet",
+        "        run: python3 scripts/zigux/validate-phase2.py",
         "      - name: Self-test current Phase 1 direct-owner checker",
         "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
         "      - name: Check current Phase 1 direct-owner markers",
@@ -150,6 +156,8 @@ def build_sample_root(root: Path) -> None:
         "        run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig",
         "      - name: Self-test current Phase 4 repo-reality warning checker",
         "        run: python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test",
+        "      - name: Check current Phase 4 repo-reality warning packet",
+        "        run: python3 scripts/zigux/check-phase4-repo-reality-warning.py",
     ]
     write_text(root, WORKFLOW_REL, "\n".join(sample_lines) + "\n")
 
@@ -196,9 +204,11 @@ def run_self_test() -> int:
     cases: list[tuple[str, tuple[str, ...] | None]] = [
         ("success", None),
         ("missing_workflow", ("missing_file",)),
-        ("missing_phase1_smoke_step", ("remove", ORDERED_STEPS[-2])),
-        ("duplicate_route_summary_step", ("duplicate", ORDERED_STEPS[10])),
-        ("phase3_smoke_order_swap", ("swap", ORDERED_STEPS[20], ORDERED_STEPS[21])),
+        ("missing_phase2_validate_packet", ("remove", ORDERED_STEPS[1])),
+        ("missing_phase1_smoke_step", ("remove", ORDERED_STEPS[-3])),
+        ("missing_phase4_repo_reality_packet", ("remove", ORDERED_STEPS[-1])),
+        ("duplicate_route_summary_step", ("duplicate", ORDERED_STEPS[11])),
+        ("phase3_smoke_order_swap", ("swap", ORDERED_STEPS[21], ORDERED_STEPS[22])),
         ("forbidden_old_checker_step", ("forbidden", FORBIDDEN_LINES[0])),
         ("forbidden_bench_run_line", ("forbidden", FORBIDDEN_LINES[-1])),
     ]
