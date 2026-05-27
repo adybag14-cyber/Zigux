@@ -23,6 +23,7 @@ BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py")
+RBTREE_PARITY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-rbtree-parity.py")
 
 EXPECTED_PACKET = "phase7-leaf-library-evidence"
 EXPECTED_PHASE = "Phase 7"
@@ -36,6 +37,7 @@ EXPECTED_COMPANIONS = [
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
+    "scripts/zigux/check-phase7-rbtree-parity.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -64,6 +66,8 @@ EXPECTED_REPLAYS = [
     "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
     "python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
     "python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py --self-test",
+    "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+    "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
@@ -141,6 +145,7 @@ REQUIRED_FILES = [
     MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
     STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH,
+    RBTREE_PARITY_PACKET_CHECKER_PATH,
     Path("lib/string_helpers.zig"),
     Path("lib/cmdline.zig"),
     Path("lib/argv_split.zig"),
@@ -151,7 +156,7 @@ REQUIRED_MAKEFILE_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 24
 
 
 class ValidationError(RuntimeError):
@@ -248,6 +253,8 @@ def validate(root: Path) -> None:
     run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")
     run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)
     run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)
+    run_checker_self_test(root, RBTREE_PARITY_PACKET_CHECKER_PATH)
+    run_checker(root, RBTREE_PARITY_PACKET_CHECKER_PATH)
 
 
 def write(path: Path, content: str) -> None:
@@ -273,6 +280,7 @@ def scaffold_repo(root: Path) -> None:
                 "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
                 "- `scripts/zigux/check-phase7-argv-split-packet.py`",
                 "- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
+                "- `scripts/zigux/check-phase7-rbtree-parity.py`",
                 "- `scripts/zigux/validate-phase7.py`",
                 "- `scripts/zigux/README.md`",
                 "- `zigux/tests/README.md`",
@@ -295,6 +303,8 @@ def scaffold_repo(root: Path) -> None:
                 "- `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
                 "- `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
                 "- `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py --self-test`",
+                "- `python3 scripts/zigux/check-phase7-rbtree-parity.py`",
+                "- `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`",
                 "- `python3 scripts/zigux/validate-phase7.py`",
                 "- `python3 scripts/zigux/validate-phase7.py --self-test`",
                 "- `make -C zigux phase7-validate`",
@@ -309,7 +319,7 @@ def scaffold_repo(root: Path) -> None:
                 "- none currently",
                 "",
                 "## Review posture",
-                "- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the dedicated `argv_split` packet guard, the dedicated `string_helpers` format-boundary packet guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold",
+                "- keep the current Phase 7 packet bounded to returned leaf-library helper evidence, the shared docs-root, scripts-root, and tests-root reminder packet, the dedicated build-wiring guard, the dedicated `argv_split` packet guard, the dedicated `string_helpers` format-boundary packet guard, the dedicated `rbtree` parity guard, the make-wrapper self-test alignment guard, and one Makefile-backed validation foothold",
                 "- do not widen this packet into new helper semantics, workflow recovery claims, or deeper runtime-family validation routes",
             ]
         ) + "\n",
@@ -441,6 +451,25 @@ def scaffold_repo(root: Path) -> None:
             "    raise SystemExit(main())\n",
         )
     write(
+        root / RBTREE_PARITY_PACKET_CHECKER_PATH,
+        "#!/usr/bin/env python3\n"
+        "from __future__ import annotations\n"
+        "import argparse\n"
+        "from pathlib import Path\n\n"
+        "def main() -> int:\n"
+        "    parser = argparse.ArgumentParser()\n"
+        "    parser.add_argument('--repo-root', type=Path, default=Path('.'))\n"
+        "    parser.add_argument('--self-test', action='store_true')\n"
+        "    args = parser.parse_args()\n"
+        "    if args.self_test:\n"
+        "        print('PHASE7_RBTREE_PARITY_SELF_TEST=pass')\n"
+        "        return 0\n"
+        "    print('PHASE7_RBTREE_PARITY=pass')\n"
+        "    return 0\n\n"
+        "if __name__ == '__main__':\n"
+        "    raise SystemExit(main())\n",
+    )
+    write(
         root / BUILD_WIRING_CHECKER_PATH,
         "#!/usr/bin/env python3\n"
         "from __future__ import annotations\n"
@@ -528,6 +557,8 @@ def run_self_test() -> None:
         for rel_path, marker, delete_only in [
             (MANIFEST_PATH, '"lib/rbtree.zig"', False),
             (MANIFEST_PATH, '"zigux/tests/phase7_build.zig"', False),
+            (MANIFEST_PATH, '"scripts/zigux/check-phase7-rbtree-parity.py"', False),
+            (MANIFEST_PATH, '"python3 scripts/zigux/check-phase7-rbtree-parity.py"', False),
             (BUILD_PATH, "../../lib/rbtree.zig", False),
             (BUILD_PATH, "phase7-string-helpers-format-boundary", False),
             (BUILD_PATH, "string_helpers_format_boundary_step.dependOn(&run_string_helpers_format_boundary_tests.step)", False),
@@ -547,6 +578,7 @@ def run_self_test() -> None:
             (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "", True),
             (ARGV_SPLIT_PACKET_CHECKER_PATH, "", True),
             (STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "", True),
+            (RBTREE_PARITY_PACKET_CHECKER_PATH, "", True),
         ]:
             case_root = Path(tempfile.mkdtemp(prefix="zigux_phase7_validate_case_"))
             try:
