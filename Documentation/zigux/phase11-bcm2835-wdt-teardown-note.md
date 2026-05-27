@@ -3,14 +3,16 @@
 This note keeps the teardown-facing checkpoint for the bounded Phase 11
 `bcm2835_wdt` packet truthful on current `master`. It stays inside the
 simple-drivers lane and records the returned driver-plus-docs-plus-proof
-surfaces that already describe the host-free teardown and ownership packet.
+surfaces that already describe the host-free teardown and ownership packet,
+including the dedicated direct replay route for the bcm-owned and foreign-owned
+teardown split.
 
 ## Status
 
 - `PHASE11_BCM2835_WDT_TEARDOWN_STATUS=teardown_driver_docs_and_proof_packet`
 - teardown evidence remains bounded to the returned bcm2835 driver, direct
-  proofs, dedicated replay routes, manifest-backed closure, and coupled docs
-  packet
+  proofs, direct replay route, dedicated replay routes, manifest-backed
+  closure, and coupled docs packet
 - remaining follow-through is still wider slice recovery, live platform
   registration, watchdog-core registration, shared poweroff-handler
   installation, remove-time callback release, reboot-backed teardown
@@ -23,6 +25,7 @@ The current teardown-facing bcm2835 packet on `master` is:
 - `drivers/watchdog/bcm2835_wdt.zig`
 - `drivers/watchdog/bcm2835_wdt_verify.zig`
 - `zigux/tests/phase11_bcm2835_wdt.zig`
+- `zigux/tests/phase11_bcm2835_wdt_build.zig`
 - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
 - `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig`
 - `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig`
@@ -53,6 +56,9 @@ The current host-free teardown review packet keeps these handoffs explicit:
   keeps timeout constants, PM-base readiness, restart proof, stop proof,
   poweroff ownership, and teardown ownership explicit together instead of
   leaving the packet implied
+- `zigux/tests/phase11_bcm2835_wdt_build.zig` as the dedicated direct replay
+  route that keeps the bcm-owned and foreign-owned teardown ownership split
+  directly runnable beside the returned driver-local packet
 - `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig` and
   `zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig` as the
   dedicated reminder-packet route that keeps the coupled survey, validation
@@ -82,16 +88,16 @@ live remove-time callback release, or host-backed shutdown behavior.
 
 ## Bounded Meaning
 
-This note records the returned teardown summaries, direct proofs, manifest, and
-dedicated replay route only. It does not claim live platform registration,
-`devm_watchdog_register_device()` execution, `watchdog_stop_on_reboot()`
-execution, `pm_power_off` installation, remove-time callback release,
-reboot-backed teardown execution, or hardware-validated teardown parity. Those
-remain later same-lane follow-through steps rather than part of the
-already-landed packet.
+This note records the returned teardown summaries, direct proofs, direct replay
+route, manifest, and dedicated reminder route only. It does not claim live
+platform registration, `devm_watchdog_register_device()` execution,
+`watchdog_stop_on_reboot()` execution, `pm_power_off` installation,
+remove-time callback release, reboot-backed teardown execution, or
+hardware-validated teardown parity. Those remain later same-lane follow-through
+steps rather than part of the already-landed packet.
 
 ## Next Bounded Step
 
 The next honest bcm2835-only follow-through is one platform-registration or
 shared callback-ownership proof step that matches the returned driver,
-verify-helper, manifest, and validation matrix boundary.
+verify-helper, direct replay route, manifest, and validation matrix boundary.
