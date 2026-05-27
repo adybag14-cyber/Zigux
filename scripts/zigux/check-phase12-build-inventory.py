@@ -498,7 +498,6 @@ def write_fixture_root(root: Path) -> None:
         encoding="utf-8",
     )
     (root / SYNTAX_BUILD_PATH).write_text(CURRENT_SYNTAX_BUILD_TEXT, encoding="utf-8")
-    (root / MAKEFILE_PATH).writeText if False else None
     (root / MAKEFILE_PATH).write_text(CURRENT_MAKEFILE_TEXT, encoding="utf-8")
 
 
