@@ -66,6 +66,7 @@ pub const SysrqLiteralFallbackSummary = struct {
     target_present: bool,
     dispatch_allowed: bool,
     targetless_dispatch_without_notifier: bool,
+    targetless_dispatch_with_notifier_sanitized: bool,
     literal_fallback_required: bool,
     keeps_live_sysrq_execution_out_of_scope: bool,
 };
@@ -79,6 +80,8 @@ pub fn summarizeNotifierDispatch(
         request.sysrq_requested and request.notifier_registered and request.target_present;
     const targetless_dispatch_without_notifier =
         request.sysrq_requested and !request.notifier_registered and !request.target_present;
+    const targetless_dispatch_with_notifier_sanitized =
+        request.sysrq_requested and request.notifier_registered and !request.target_present;
 
     return .{
         .tty_registered = request.tty_registered,
@@ -86,6 +89,7 @@ pub fn summarizeNotifierDispatch(
         .target_present = request.target_present,
         .dispatch_allowed = dispatch_allowed,
         .targetless_dispatch_without_notifier = targetless_dispatch_without_notifier,
+        .targetless_dispatch_with_notifier_sanitized = targetless_dispatch_with_notifier_sanitized,
         .literal_fallback_required = request.sysrq_requested and !dispatch_allowed,
         .keeps_live_sysrq_execution_out_of_scope = true,
     };
@@ -180,6 +184,22 @@ test "phase11 hvc verify helper keeps targetless sysrq fallback reviewable" {
 
     try std.testing.expect(!summary.dispatch_allowed);
     try std.testing.expect(summary.targetless_dispatch_without_notifier);
+    try std.testing.expect(!summary.targetless_dispatch_with_notifier_sanitized);
+    try std.testing.expect(summary.literal_fallback_required);
+    try std.testing.expect(summary.keeps_live_sysrq_execution_out_of_scope);
+}
+
+test "phase11 hvc verify helper keeps registered targetless sysrq fallback sanitized" {
+    const summary = try summarizeNotifierDispatch(.{
+        .tty_registered = true,
+        .notifier_registered = true,
+        .target_present = false,
+        .sysrq_requested = true,
+    });
+
+    try std.testing.expect(!summary.dispatch_allowed);
+    try std.testing.expect(!summary.targetless_dispatch_without_notifier);
+    try std.testing.expect(summary.targetless_dispatch_with_notifier_sanitized);
     try std.testing.expect(summary.literal_fallback_required);
     try std.testing.expect(summary.keeps_live_sysrq_execution_out_of_scope);
 }
