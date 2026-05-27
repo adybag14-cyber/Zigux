@@ -117,6 +117,7 @@ These files are the returned family-local kretprobe packet and should not be pro
 - `zigux/tests/runtime_kretprobe_survey.zig`
 - `zigux/tests/runtime_kretprobe_module.zig`
 - `zigux/tests/runtime_first_loadable_parity_behavior.zig`
+- `scripts/zigux/check-phase9-kretprobe-runtime-packet.py`
 
 ## Historical Wider-Family Vocabulary
 
