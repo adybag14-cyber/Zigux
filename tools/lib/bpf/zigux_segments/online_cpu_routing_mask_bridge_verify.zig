@@ -67,6 +67,45 @@ test "phase8 online-cpu routing mask bridge keeps string-backed route-all summar
     );
 }
 
+test "phase8 online-cpu routing mask bridge keeps explicit plus-prefixed mask routing aligned" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const input = " +0,\t+2- 3,\n +5\r\n";
+    const direct = try bridge.summarizeOnlineCpuRoutingFromString(
+        allocator,
+        input,
+        3,
+        &.{ 31, 37, 41, 43 },
+    );
+    try std.testing.expectEqual(@as(usize, 4), direct.online_cpu_count);
+    try std.testing.expectEqual(@as(usize, 3), direct.selected_cpu_count);
+    try std.testing.expectEqual(@as(usize, 3), direct.routed_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 0), direct.first_routed_cpu_index);
+    try std.testing.expectEqual(@as(?usize, 5), direct.next_online_cpu_index);
+    try std.testing.expectEqual(@as(?usize, null), direct.missing_buffer_index);
+    try std.testing.expectEqual(
+        online_cpu_routing.OnlineCpuRoutingDisposition.requested_subset,
+        direct.disposition,
+    );
+
+    var scratch: [2]u8 = undefined;
+    var context = ReaderContext{ .input = input };
+    const reader = bridge.ChunkReader{
+        .context = &context,
+        .readFn = readCpuMaskChunks,
+    };
+    const chunked = try bridge.summarizeOnlineCpuRoutingFromReader(
+        allocator,
+        scratch[0..],
+        reader,
+        3,
+        &.{ 31, 37, 41, 43 },
+    );
+    try std.testing.expectEqualDeep(direct, chunked);
+}
+
 test "phase8 online-cpu routing mask bridge keeps requested subsets explicit from mask text" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
