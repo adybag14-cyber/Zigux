@@ -105,12 +105,19 @@ const Fixture = struct {
         empty_root: bool,
         insert_order: []const i32,
         reverse_order: []const i32,
+        replace_order: []const i32,
+        erase_init_order: []const i32,
+        postorder_count: usize,
+        erase_init_node_empty: bool,
+        cleared_node_empty: bool,
         find_found_key: i32,
         find_missing: bool,
         find_first_serial: usize,
         next_match_serials: []const usize,
         match_iterator_serials: []const usize,
         cached_leftmost_return_serials: []const i32,
+        cached_root_transition_serials: []const i32,
+        next_match_terminal_null: bool,
     },
     slab: struct {
         alloc_count_after_kmalloc: isize,
@@ -487,6 +494,65 @@ test "phase 1 helper ports match committed parity fixture" {
     }
     try std.testing.expectEqualSlices(i32, fixture.rbtree.reverse_order, reverse[0..reverse_count]);
 
+    var replace_entries = [_]RbtreeReplayEntry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 15, .serial = 3 },
+        .{ .key = 25, .serial = 4 },
+    };
+    var replacement = RbtreeReplayEntry{ .key = 10, .serial = 5 };
+    var replace_root = rbtree.Root.init();
+    for (&replace_entries) |*entry| {
+        rbtree.add(&entry.node, &replace_root, RbtreeReplayEntry.less);
+    }
+    rbtree.erase(&replace_entries[1].node, &replace_root);
+    rbtree.replaceNode(&replace_entries[0].node, &replacement.node, &replace_root);
+
+    var replace_order: [4]i32 = undefined;
+    var replace_count: usize = 0;
+    node = rbtree.first(&replace_root);
+    while (node) |current_node| : (node = rbtree.next(current_node)) {
+        const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", current_node);
+        replace_order[replace_count] = entry.key;
+        replace_count += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.replace_order, replace_order[0..replace_count]);
+
+    rbtree.eraseInit(&replacement.node, &replace_root);
+    try std.testing.expectEqual(fixture.rbtree.erase_init_node_empty, rbtree.emptyNode(&replacement.node));
+
+    var erase_init_order: [3]i32 = undefined;
+    var erase_init_count: usize = 0;
+    node = rbtree.first(&replace_root);
+    while (node) |current_node| : (node = rbtree.next(current_node)) {
+        const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", current_node);
+        erase_init_order[erase_init_count] = entry.key;
+        erase_init_count += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.erase_init_order, erase_init_order[0..erase_init_count]);
+
+    var detached = rbtree.Node.init();
+    rbtree.clearNode(&detached);
+    try std.testing.expectEqual(fixture.rbtree.cleared_node_empty, rbtree.emptyNode(&detached));
+
+    var postorder_entries = [_]RbtreeReplayEntry{
+        .{ .key = 2, .serial = 0 },
+        .{ .key = 1, .serial = 1 },
+        .{ .key = 3, .serial = 2 },
+    };
+    var postorder_root = rbtree.Root.init();
+    for (&postorder_entries) |*entry| {
+        rbtree.add(&entry.node, &postorder_root, RbtreeReplayEntry.less);
+    }
+    var postorder_count: usize = 0;
+    var postorder_node = rbtree.firstPostorder(&postorder_root);
+    while (postorder_node) |current_node| : (postorder_node = rbtree.nextPostorder(current_node)) {
+        _ = current_node;
+        postorder_count += 1;
+    }
+    try std.testing.expectEqual(fixture.rbtree.postorder_count, postorder_count);
+
     const duplicate_key = @as(i32, 10);
     const found = rbtree.find(&duplicate_key, &root, RbtreeReplayEntry.cmp) orelse return error.TestUnexpectedResult;
     const found_entry: *const RbtreeReplayEntry = @fieldParentPtr("node", found);
@@ -512,13 +578,16 @@ test "phase 1 helper ports match committed parity fixture" {
     duplicate_serials = undefined;
     duplicate_count = 0;
     var current_match: ?*rbtree.Node = first_duplicate;
+    var terminal_match: *rbtree.Node = first_duplicate;
     while (current_match) |match_node| {
         const entry: *const RbtreeReplayEntry = @fieldParentPtr("node", match_node);
         duplicate_serials[duplicate_count] = entry.serial;
         duplicate_count += 1;
+        terminal_match = match_node;
         current_match = rbtree.nextMatch(&duplicate_key, match_node, RbtreeReplayEntry.cmp);
     }
     try std.testing.expectEqualSlices(usize, fixture.rbtree.next_match_serials, duplicate_serials[0..duplicate_count]);
+    try std.testing.expectEqual(fixture.rbtree.next_match_terminal_null, rbtree.nextMatch(&duplicate_key, terminal_match, RbtreeReplayEntry.cmp) == null);
 
     var cached_entries = [_]RbtreeReplayEntry{
         .{ .key = 10, .serial = 0 },
@@ -533,6 +602,28 @@ test "phase 1 helper ports match committed parity fixture" {
     return_serials[2] = serialOrSentinel(rbtree.addCached(&cached_entries[2].node, &cached_root, RbtreeReplayEntry.less));
     return_serials[3] = serialOrSentinel(rbtree.addCached(&cached_entries[3].node, &cached_root, RbtreeReplayEntry.less));
     try std.testing.expectEqualSlices(i32, fixture.rbtree.cached_leftmost_return_serials, &return_serials);
+
+    var cached_transition_entries = [_]RbtreeReplayEntry{
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 20, .serial = 3 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var cached_replacement = RbtreeReplayEntry{ .key = 10, .serial = 4 };
+    var cached_new_leftmost = RbtreeReplayEntry{ .key = 3, .serial = 2 };
+    var cached_transition_root = rbtree.RootCached.init();
+    for (&cached_transition_entries) |*entry| {
+        _ = rbtree.addCached(&entry.node, &cached_transition_root, RbtreeReplayEntry.less);
+    }
+    var cached_transition_serials: [4]i32 = undefined;
+    cached_transition_serials[0] = serialOrSentinel(rbtree.firstCached(&cached_transition_root));
+    _ = rbtree.eraseCached(&cached_transition_entries[2].node, &cached_transition_root);
+    cached_transition_serials[1] = serialOrSentinel(rbtree.firstCached(&cached_transition_root));
+    rbtree.replaceNodeCached(&cached_transition_entries[1].node, &cached_replacement.node, &cached_transition_root);
+    cached_transition_serials[2] = serialOrSentinel(rbtree.firstCached(&cached_transition_root));
+    _ = rbtree.addCached(&cached_new_leftmost.node, &cached_transition_root, RbtreeReplayEntry.less);
+    cached_transition_serials[3] = serialOrSentinel(rbtree.firstCached(&cached_transition_root));
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.cached_root_transition_serials, &cached_transition_serials);
 }
 
 fn serialOrSentinel(node: ?*rbtree.Node) i32 {
