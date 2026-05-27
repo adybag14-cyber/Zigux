@@ -257,7 +257,6 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
         current = current.get(key)
     return current
 
-
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
 
@@ -495,7 +494,7 @@ def run_self_test() -> int:
         safe_name = name.replace("/", "_")
         with tempfile.TemporaryDirectory(prefix=f"phase1-rbtree-review-{safe_name}-") as tmpdir:
             root = Path(tmpdir)
-            build_sampleRepo(root)
+            build_sample_repo(root)
 
             if isinstance(target, tuple) and target[0] in {"helper_text", "smoke_text", "lane_text"}:
                 path_map = {
