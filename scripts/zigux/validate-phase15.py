@@ -18,7 +18,7 @@ WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_LANE_KEY = "P15-L04"
 EXPECTED_PHASE = "Phase 15"
-EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-25"
+EXPECTED_SURVEYED_COMMIT = "current-master-readback-2026-05-27"
 EXPECTED_DIRECT_PACKET_PATHS = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
@@ -26,6 +26,7 @@ EXPECTED_DIRECT_PACKET_PATHS = [
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+    "Documentation/zigux/phase15-architecture-council-decision-index.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-deep-core-blocker-survey.md",
     "Documentation/zigux/phase15-study-only-anchor-accounting.md",
@@ -233,7 +234,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=validator_first_readiness_packet`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-25`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-27`
 - role: keep the current Phase 15 governance packet honest now that the dedicated validator exists as a directly readable maintenance gate, the shared build companion is materialized, and the broader route and workflow companions still remain blocked on current `master`
 
 This survey keeps those four truths together:
