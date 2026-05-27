@@ -41,6 +41,7 @@ REQUIRED_PATHS = (
     "drivers/virtio/virtio_ring_notification_data.zig",
     "drivers/virtio/virtio_ring_publish_readiness.zig",
     "drivers/virtio/virtio_ring_registration_summary.zig",
+    "drivers/virtio/virtio_ring_used_buffer_poll.zig",
     "drivers/virtio/virtio_ring_reset_readiness.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "drivers/virtio/virtio_verify.zig",
@@ -256,6 +257,10 @@ def run_self_test() -> int:
             "missing_ring_registration_summary_path",
         )
         assert_missing_required_path(
+            "drivers/virtio/virtio_ring_used_buffer_poll.zig",
+            "missing_ring_used_buffer_poll_path",
+        )
+        assert_missing_required_path(
             "drivers/virtio/virtio_ring_reset_readiness.zig",
             "missing_ring_reset_readiness_path",
         )
@@ -388,7 +393,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=31")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
