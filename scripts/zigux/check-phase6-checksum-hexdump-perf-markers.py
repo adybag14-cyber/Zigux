@@ -15,6 +15,7 @@ EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json"
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
+CHECKSUM_PERF_PATH = Path("zigux/tests/phase6_checksum_perf.zig")
 CHECKER_PATH = Path("scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py")
 
 REQUIRED_SCRIPTS_SNIPPETS = [
@@ -63,6 +64,17 @@ REQUIRED_BUILD_SNIPPETS = [
     'const hexdump_perf_matrix_test_step = b.step(',
     '        "phase6-hexdump-perf-matrix-test",',
     'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");',
+]
+
+REQUIRED_CHECKSUM_PERF_SNIPPETS = [
+    "try validatePerfMatrix();",
+    "try validateFastPathMatrix();",
+    "PHASE6_CHECKSUM_PERF_CASE_COUNT",
+    "PHASE6_CHECKSUM_IP_FAST_CSUM_CASE_COUNT",
+    'std.debug.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+    'std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+    'std.debug.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
+    "error.ChecksumPerfRegression",
 ]
 
 REQUIRED_EVIDENCE_REPLAYS = [
@@ -371,6 +383,7 @@ def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SURVEY_PATH, REQUIRED_SURVEY_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(repo_root / PHASE6_BUILD_PATH, REQUIRED_BUILD_SNIPPETS)
+    require_snippets(repo_root / CHECKSUM_PERF_PATH, REQUIRED_CHECKSUM_PERF_SNIPPETS)
     validate_evidence_manifest(repo_root / EVIDENCE_MANIFEST_PATH)
     validate_parity_manifest(repo_root / PARITY_MANIFEST_PATH)
 
@@ -386,6 +399,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / SURVEY_PATH, "\n".join(REQUIRED_SURVEY_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
     write(root / PHASE6_BUILD_PATH, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
+    write(root / CHECKSUM_PERF_PATH, "\n".join(REQUIRED_CHECKSUM_PERF_SNIPPETS) + "\n")
     write(root / EVIDENCE_MANIFEST_PATH, json.dumps({
         "packet": "phase6-helper-evidence",
         "phase": "Phase 6",
@@ -413,6 +427,8 @@ def scaffold_repo(root: Path) -> None:
 
 def mutate_text(path: Path, old: str, new: str) -> None:
     content = read_text(path)
+    if old not in content:
+        raise AssertionError(f"self-test marker not found: {old}")
     write(path, content.replace(old, new, 1))
 
 
@@ -438,6 +454,9 @@ def run_self_test() -> None:
             (PHASE6_BUILD_PATH, 'const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");', 'const hexdump_review_step = b.step("phase6-hexdump-scan", "Run Phase 6 hexdump perf-matrix review preflight");', "phase6-hexdump-review"),
             (PHASE6_BUILD_PATH, '        "phase6-hexdump-perf-matrix-test",', '        "phase6-hexdump-perf-test",', "phase6-hexdump-perf-matrix-test"),
             (PHASE6_BUILD_PATH, 'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");', 'const hexdump_perf_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper perf gate");', "phase6-hexdump-perf"),
+            (CHECKSUM_PERF_PATH, "PHASE6_CHECKSUM_IP_FAST_CSUM_CASE_COUNT", "PHASE6_CHECKSUM_FAST_PATH_CASE_COUNT", "PHASE6_CHECKSUM_IP_FAST_CSUM_CASE_COUNT"),
+            (CHECKSUM_PERF_PATH, "error.ChecksumPerfRegression", "error.ChecksumPerfDrift", "error.ChecksumPerfRegression"),
+            (CHECKSUM_PERF_PATH, 'std.debug.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});', 'std.debug.print("PHASE6_CHECKSUM_GATE={s}\\n", .{if (failed) "fail" else "pass"});', "PHASE6_CHECKSUM_PERF={s}"),
             (EVIDENCE_MANIFEST_PATH, '"packet": "phase6-helper-evidence"', '"packet": "phase6-helper-parity"', "unexpected packet id"),
             (EVIDENCE_MANIFEST_PATH, '"phase": "Phase 6"', '"phase": "Phase 5"', "unexpected phase id"),
             (EVIDENCE_MANIFEST_PATH, '"lane_scope": "shared helper-evidence rows and machine-readable manifest only"', '"lane_scope": "shared helper-evidence rows only"', "helper-evidence lane_scope drifted"),
@@ -501,14 +520,11 @@ def run_self_test() -> None:
             (PARITY_MANIFEST_PATH, '"max_slowdown_pct": 600', '"max_slowdown_pct": 650', "hexdump 16B-ascii-g8 max_slowdown_pct drifted"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-checksum-perf-matrix-test"', '"make -C zigux phase6-checksum-test"', "phase6-checksum-perf-matrix-test"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-checksum-perf"', '"make -C zigux phase6-checksum-test"', "phase6-checksum-perf"),
-            (PARITY_MANIFEST_PATH, '"linux_style_rerun_routes": [\n          "make -C zigux phase6-checksum-perf-matrix-test",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-perf"\n        ]', '"linux_style_rerun_routes": [\n          "make -C zigux phase6-checksum-perf-matrix-test",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-perf"\n        ]', "duplicate rerun route: make -C zigux phase6-checksum-perf"),
             (PARITY_MANIFEST_PATH, '"linux_style_rerun_routes": [\n          "make -C zigux phase6-checksum-perf-matrix-test",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-perf"\n        ]', '"linux_style_rerun_routes": [\n          "make -C zigux phase6-checksum-perf-matrix-test",\n          "make -C zigux phase6-checksum-perf",\n          "make -C zigux phase6-checksum-test"\n        ]', "phase6-perf"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-hexdump-review"', '"make -C zigux phase6-hexdump-scan"', "phase6-hexdump-review"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf-matrix-test"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf-matrix-test"),
             (PARITY_MANIFEST_PATH, '"make -C zigux phase6-hexdump-perf"', '"make -C zigux phase6-hexdump-test"', "phase6-hexdump-perf"),
-            (PARITY_MANIFEST_PATH, '"linux_style_rerun_routes": [\n          "make -C zigux phase6-hexdump-review",\n          "make -C zigux phase6-hexdump-perf-matrix-test",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-perf"\n        ]', '"linux_style_rerun_routes": [\n          "make -C zigux phase6-hexdump-review",\n          "make -C zigux phase6-hexdump-perf-matrix-test",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-perf"\n        ]', "duplicate rerun route: make -C zigux phase6-hexdump-perf"),
             (PARITY_MANIFEST_PATH, '"linux_style_rerun_routes": [\n          "make -C zigux phase6-hexdump-review",\n          "make -C zigux phase6-hexdump-perf-matrix-test",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-perf"\n        ]', '"linux_style_rerun_routes": [\n          "make -C zigux phase6-hexdump-review",\n          "make -C zigux phase6-hexdump-perf-matrix-test",\n          "make -C zigux phase6-hexdump-perf",\n          "make -C zigux phase6-hexdump-test"\n        ]', "phase6-perf"),
-            (EVIDENCE_MANIFEST_PATH, '"packet": "phase6-helper-evidence"', '"packet": "phase6-helper-parity"', "unexpected packet id"),
             (SURVEY_PATH, "`IPV4_60B` with `iterations = 250_000` and `max_slowdown_pct = 100`", "`IPV4_60B` with `iterations = 200_000` and `max_slowdown_pct = 100`", "IPV4_60B"),
             (SURVEY_PATH, "`16B-plain-g1` at `reps = 40_000` with `max_slowdown_pct = 175`", "`16B-plain-g1` at `reps = 20_000` with `max_slowdown_pct = 175`", "16B-plain-g1"),
         ]
