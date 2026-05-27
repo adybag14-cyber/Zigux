@@ -20,6 +20,9 @@ Focused validation route:
 
 - `zig build smoke --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all`
 - `zig build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all`
+- `make -C zigux phase12-virtio-net-syntax-lab-test`
+
+Current `master` exposes only the dedicated standalone test wrapper; smoke remains the direct build-file route so the shared Phase 12 sextet stays unchanged.
 
 The shared `phase12` smoke-and-test sextet remains unchanged; this lab is a separate compile-smoke packet that proves three bounded properties:
 
