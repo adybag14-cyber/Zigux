@@ -322,6 +322,22 @@ def require_bitmap_manifest_alignment(root: Path, missing: list[str]) -> None:
         )
 
 
+def require_atomic64_manifest_alignment(root: Path, missing: list[str]) -> None:
+    manifest = json.loads(read_text(root / ATOMIC64_MANIFEST))
+    expected_note_path = NOTE.as_posix()
+    expected_phase4_build_blob = git_blob_sha(root / PHASE4_BUILD)
+    if manifest.get("phase4_gate_evidence_path") != expected_note_path:
+        missing.append(
+            "atomic64_manifest:phase4_gate_evidence_path:"
+            f"expected={expected_note_path}:actual={manifest.get('phase4_gate_evidence_path')}"
+        )
+    if manifest.get("phase4_build_blob_sha") != expected_phase4_build_blob:
+        missing.append(
+            "atomic64_manifest:phase4_build_blob_sha:"
+            f"expected={expected_phase4_build_blob}:actual={manifest.get('phase4_build_blob_sha')}"
+        )
+
+
 def required_files() -> tuple[Path, ...]:
     return (
         NOTE, MATRIX, DOCS_README, SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST,
@@ -373,7 +389,7 @@ def build_fixture_tree(root: Path) -> None:
         WORKFLOW_ROUTE_CHECKER.as_posix(): "workflow route checker placeholder\n",
         ATOMIC64_DIFF.as_posix(): "atomic64 diff placeholder\n",
         RUNTIME_ATOMIC64_DIFF.as_posix(): "runtime atomic64 diff placeholder\n",
-        ATOMIC64_MANIFEST.as_posix(): "runtime atomic64 manifest placeholder\n",
+        ATOMIC64_MANIFEST.as_posix(): "{\n  \"phase4_gate_evidence_path\": \"Documentation/zigux/phase4-gate-evidence.md\",\n  \"phase4_build_blob_sha\": \"__PHASE4_BUILD_BLOB_SHA__\"\n}\n",
         RUNTIME_ATOMIC64_SURVEY.as_posix(): "runtime atomic64 survey placeholder\n",
         BITMAP_MANIFEST.as_posix(): "{\n  \"shared_gate_evidence_path\": \"Documentation/zigux/phase4-gate-evidence.md\",\n  \"gate_evidence_path\": \"Documentation/zigux/phase4-gate-evidence.md\",\n  \"gate_evidence_blob_sha\": \"__GATE_EVIDENCE_BLOB_SHA__\"\n}\n",
         BITMAP_SURVEY.as_posix(): "bitmap survey placeholder\n",
@@ -387,6 +403,11 @@ def build_fixture_tree(root: Path) -> None:
     }
     for rel, content in fixtures.items():
         write_text(root / rel, content)
+    fixtures[ATOMIC64_MANIFEST.as_posix()] = fixtures[ATOMIC64_MANIFEST.as_posix()].replace(
+        "__PHASE4_BUILD_BLOB_SHA__",
+        git_blob_sha(root / PHASE4_BUILD),
+    )
+    write_text(root / ATOMIC64_MANIFEST, fixtures[ATOMIC64_MANIFEST.as_posix()])
     note_lines = ["# Phase 4 Gate Evidence", "", "## Status"]
     for marker_label, rel in BLOB_TARGETS:
         note_lines.append(f"  * `{marker_label}={git_blob_sha(root / rel)}`")
@@ -430,6 +451,7 @@ def validate_root(root: Path) -> list[str]:
     require_markers(note_text, NOTE_MARKERS, "note", missing)
     require_markers(note_text, ("`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",), "note", missing)
     require_blob_pins(root, note_text, missing)
+    require_atomic64_manifest_alignment(root, missing)
     require_bitmap_manifest_alignment(root, missing)
     for marker_label, expected in COUNT_MARKERS:
         require_exact_value(note_text, marker_label, expected, "note", missing)
@@ -460,7 +482,14 @@ def run_self_test() -> None:
             "missing_exact_readback_heading": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "## Exact Readback Evidence", "## Evidence")),
             "forbidden_gate_evidence_checker_self_pin": lambda r: write_text(r / NOTE, read_text(r / NOTE) + "  * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=duplicate`\n"),
             "validator_blob_pin_drift": lambda r: mutate_file(r, VALIDATOR),
-            "phase4_build_manifest_blob_pin_drift": lambda r: mutate_file(r, REVERSIBLE_DELIVERY_EVIDENCE),
+            "phase4_build_manifest_blob_pin_drift": lambda r: write_text(
+                r / ATOMIC64_MANIFEST,
+                replace_once(
+                    read_text(r / ATOMIC64_MANIFEST),
+                    git_blob_sha(r / PHASE4_BUILD),
+                    "0000000000000000000000000000000000000000",
+                ),
+            ),
             "phase4_build_survey_blob_pin_drift": lambda r: mutate_file(r, RUNTIME_ATOMIC64_SURVEY),
             "phase9_build_manifest_blob_pin_drift": lambda r: mutate_file(r, PHASE9_BUILD),
             "phase9_build_survey_blob_pin_drift": lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "phase4-runtime-atomic64-diff-survey-tests", "phase9-runtime-atomic64-diff-survey-tests")),
