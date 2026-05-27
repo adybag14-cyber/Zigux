@@ -706,6 +706,20 @@ fn addPhase3AbiDump(
     return b.addRunArtifact(exe);
 }
 
+fn addPhase7ArgvSplitSurvey(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    return addSurveyTest(
+        b,
+        "phase7-argv-split-survey",
+        "phase7_argv_split_survey.zig",
+        target,
+        optimize,
+    );
+}
+
 fn addPhase11GpioWatchdogVerify(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -780,6 +794,7 @@ pub fn build(b: *std.Build) void {
     const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
+    const phase7_argv_split_survey = addPhase7ArgvSplitSurvey(b, target, optimize);
     const phase10_virtio_core_survey = addSurveyTest(
         b,
         "phase10-virtio-core-survey",
@@ -905,6 +920,12 @@ pub fn build(b: *std.Build) void {
     );
     phase3_dump_step.dependOn(&phase3_abi_dump.step);
 
+    const phase7_step = b.step(
+        "phase7-argv-split-survey",
+        "Run the Phase 7 argv_split survey anchor from the shared tests root",
+    );
+    phase7_step.dependOn(&phase7_argv_split_survey.step);
+
     const phase10_step = b.step(
         "phase10-virtio-core-survey",
         "Run the Phase 10 virtio core survey anchor from the shared tests root",
@@ -936,6 +957,7 @@ pub fn build(b: *std.Build) void {
     );
     smoke_step.dependOn(&phase1_host_tools_smoke.step);
     smoke_step.dependOn(phase3_test_step);
+    smoke_step.dependOn(&phase7_argv_split_survey.step);
     smoke_step.dependOn(&phase10_virtio_core_survey.step);
     smoke_step.dependOn(&phase11_gpio_wdt_verify.step);
     smoke_step.dependOn(&phase12_virtio_net_survey.step);
@@ -947,6 +969,7 @@ pub fn build(b: *std.Build) void {
     );
     test_step.dependOn(&phase1_host_tools_smoke.step);
     test_step.dependOn(phase3_test_step);
+    test_step.dependOn(&phase7_argv_split_survey.step);
     test_step.dependOn(&phase10_virtio_core_survey.step);
     test_step.dependOn(&phase11_gpio_wdt_verify.step);
     test_step.dependOn(&phase12_virtio_net_survey.step);
