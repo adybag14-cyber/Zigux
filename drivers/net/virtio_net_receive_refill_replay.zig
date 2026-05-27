@@ -47,6 +47,9 @@ pub fn summarizeReceiveRefillReplay(
     if (request.receive_buffers_before_reset == 0) {
         return error.ReceiveBuffersBeforeResetMissing;
     }
+    if (request.descriptors_posted_after_restore > request.receive_buffers_after_restore) {
+        return error.DescriptorRepostOverflow;
+    }
 
     const queue_pairs_preserved =
         request.receive_queue_pairs_after_restore >= request.receive_queue_pairs_before_reset;
@@ -114,6 +117,18 @@ test "receive refill replay rejects missing pre-reset receive buffers" {
             .control_queue_restored = true,
         }),
     );
+}
+
+test "receive refill replay rejects repost counts larger than the restored receive budget" {
+    try std.testing.expectError(error.DescriptorRepostOverflow, summarizeReceiveRefillReplay(.{
+        .reset_generation = 2,
+        .receive_queue_pairs_before_reset = 2,
+        .receive_queue_pairs_after_restore = 2,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 96,
+        .descriptors_posted_after_restore = 97,
+        .control_queue_restored = true,
+    }));
 }
 
 test "receive refill replay keeps control queue restore ahead of later refill work" {
