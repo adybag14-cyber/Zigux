@@ -106,6 +106,8 @@
     "zigux/helpers/cpumask_view.zig",
     "zigux/tests/phase3_bitmap_cpumask_starter_packet.zig",
     "zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json",
     "zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json",
     "scripts/zigux/check-phase3-bitmap-cpumask.py",
     "Documentation/zigux/phase3-list-hlist-slice.md",
@@ -113,8 +115,13 @@
     "zigux/helpers/hlist_view.zig",
     "zigux/tests/phase3_list_hlist_starter_packet.zig",
     "zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "zigux/tests/phase3_list_hlist_dump.zig",
+    "zigux/tests/phase3_list_hlist_dump_build.zig",
+    "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
+    "zigux/tests/fixtures/phase3_list_hlist/expected.json",
     "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
-    "scripts/zigux/check-phase3-list-hlist-starter-packet.py"
+    "scripts/zigux/check-phase3-list-hlist-starter-packet.py",
+    "scripts/zigux/check-phase3-list-hlist.py"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
@@ -169,6 +176,8 @@
     "python3 scripts/zigux/check-phase3-bitmap-cpumask.py",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
+    "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
+    "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig",
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
@@ -194,7 +203,8 @@
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
     "zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
-    "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig"
+    "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"
   ],
   "repo_reality_gaps": [],
   "next_safe_step": "keep the shared Phase 3 policy, export/UAPI, and low-level wrapper packet aligned with the dedicated replay routes and only reopen this manifest if the checker, focused builds, or reminder surfaces drift again"
