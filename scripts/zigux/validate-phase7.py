@@ -76,7 +76,7 @@ EXPECTED_REPLAYS = [
     "make -C zigux phase7-validate",
 ]
 EXPECTED_GAPS = [
-    "shared `scripts/zigux/README.md` and `zigux/tests/README.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory"
+    "shared `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory"
 ]
 EXPECTED_HELPER_MARKERS = {
     Path("lib/string_helpers.zig"): [
