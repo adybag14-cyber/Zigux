@@ -27,6 +27,7 @@ EXPECTED_REVIEW_SURFACES = [
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/phase7_cmdline_manifest.json",
+    "zigux/tests/phase7_cmdline_survey_build.zig",
     "scripts/zigux/check-phase7-cmdline-packet.py",
     "samples/zigux/README.md",
 ]
@@ -48,6 +49,7 @@ EXPECTED_OWNERSHIP_FOCUS = [
     "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
     "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
     "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
+    "the dedicated `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig` route keeps this helper-local survey replay runnable without widening into shared Phase 7 tests-root ownership",
     "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders",
 ]
 
@@ -58,6 +60,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/phase7_cmdline_manifest.json",
+    "zigux/tests/phase7_cmdline_survey_build.zig",
     "scripts/zigux/check-phase7-cmdline-packet.py",
     "samples/zigux/README.md",
 ]
@@ -73,12 +76,14 @@ REQUIRED_MARKERS = {
         "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`",
         "`PHASE7_SLICE=cmdline-runtime-leaf`",
         "`PHASE7_LANE_KEY=P7-L08`",
+        "`zigux/tests/phase7_cmdline_survey_build.zig`",
         "`scripts/zigux/check-phase7-cmdline-packet.py`",
         "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.",
         "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.",
         "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs",
         "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track",
         "dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point",
+        "zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig",
     ],
     "lib/cmdline.zig": [
         "pub fn parseOptionStr",
@@ -129,10 +134,17 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
         "\"current_master_state\": \"helper_slice_test_survey_manifest_checker_anchor\"",
+        "\"zigux/tests/phase7_cmdline_survey_build.zig\"",
         "\"scripts/zigux/check-phase7-cmdline-packet.py\"",
         "\"parseOptionStr\"",
         "\"memparse\"",
         "helper-local survey-manifest-checker truthfulness packet",
+        "zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig",
+    ],
+    "zigux/tests/phase7_cmdline_survey_build.zig": [
+        "phase7_cmdline_survey.zig",
+        "phase7-cmdline-survey",
+        "Run the Phase 7 cmdline survey anchor from the shared tests root",
     ],
     "scripts/zigux/check-phase7-cmdline-packet.py": [
         "--self-test",
@@ -147,6 +159,7 @@ REQUIRED_MARKERS = {
         "MISMATCHED_PHASE7_CMDLINE_COUNTS_END",
         "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",",
         "\\\"lib/cmdline.zig\\\",",
+        "\\\"zigux/tests/phase7_cmdline_survey_build.zig\\\",",
         "EXPECTED_MANIFEST_LANE_KEY = \"P7-L08\"",
         "EXPECTED_MANIFEST_PHASE = \"Phase 7\"",
         "EXPECTED_MANIFEST_ANCHOR = \"lib/cmdline.c\"",
@@ -155,6 +168,7 @@ REQUIRED_MARKERS = {
         "EXPECTED_REVIEW_SURFACES = [",
         "EXPECTED_COVERED_HELPERS = [",
         "EXPECTED_OWNERSHIP_FOCUS = [",
+        "the dedicated `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig` route keeps this helper-local survey replay runnable without widening into shared Phase 7 tests-root ownership",
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -168,7 +182,7 @@ COUNTED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 63
+SELF_TEST_CASE_COUNT = 69
 
 
 def read_text(path: Path) -> str:
@@ -320,13 +334,21 @@ def run_self_test() -> None:
         cases_run += 1
         write_fixture_root(tmp_root)
 
+        survey_build_path = tmp_root / "zigux" / "tests" / "phase7_cmdline_survey_build.zig"
+        survey_build_path.unlink()
+        expect_missing_file("missing_survey_build_file", tmp_root, "zigux/tests/phase7_cmdline_survey_build.zig")
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
         mutations = [
             ("Documentation/zigux/phase7-cmdline-slice.md", "`PHASE7_STATUS=helper_local_test_survey_manifest_checker_anchor`", ""),
+            ("Documentation/zigux/phase7-cmdline-slice.md", "`zigux/tests/phase7_cmdline_survey_build.zig`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "`scripts/zigux/check-phase7-cmdline-packet.py`", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "including leading equals-prefixed bare tokens that must not be rewritten into synthetic key-value pairs", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "nextArg() also keeps `rest` and `remaining` as the same borrowed suffix view, including quoted-empty-value paths, so post-token cursor handling stays on one ownership track", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.", ""),
             ("Documentation/zigux/phase7-cmdline-slice.md", "dedicated `getOption()` and `get_option` cursor replay across leading-plus and range-style inputs so alias-only call sites stay reviewable beside the primary helper entry point", ""),
+            ("Documentation/zigux/phase7-cmdline-slice.md", "zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig", ""),
             ("lib/cmdline.zig", "pub const parse_option_str = parseOptionStr;", ""),
             ("lib/cmdline.zig", "test \"nextArg keeps leading equals tokens as bare parameters\" {", ""),
             ("lib/cmdline.zig", "test \"getOption preserves incomplete hex-prefix, leading-plus parity, and descending-range behavior\" {", ""),
@@ -356,8 +378,10 @@ def run_self_test() -> None:
             ("scripts/zigux/check-phase7-cmdline-packet.py", "MISMATCHED_PHASE7_CMDLINE_COUNTS_END", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"Documentation/zigux/phase7-cmdline-slice.md\\\",", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"lib/cmdline.zig\\\",", ""),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"zigux/tests/phase7_cmdline_survey_build.zig\\\",", ""),
             ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays leading-plus fallback boundaries\" {", ""),
             ("lib/cmdline.zig", "test \"memparse saturates signed overflow instead of trapping\" {", ""),
+            ("zigux/tests/phase7_cmdline_survey_build.zig", "phase7-cmdline-survey", ""),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = \\\"P7-L08\\\"', 'EXPECTED_MANIFEST_LANE_KEY = \\\"P7-L07\\\"'),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = \\\"Phase 7\\\"', 'EXPECTED_MANIFEST_PHASE = \\\"Phase 8\\\"'),
             ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = \\\"lib/cmdline.c\\\"', 'EXPECTED_MANIFEST_ANCHOR = \\\"lib/string_helpers.c\\\"'),
@@ -383,6 +407,17 @@ def run_self_test() -> None:
             "manifest_checker_path_guard",
             tmp_root,
             "zigux/tests/phase7_cmdline_manifest.json: review_surfaces: scripts/zigux/check-phase7-cmdline-packet.py",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"].remove("zigux/tests/phase7_cmdline_survey_build.zig")
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_survey_build_path_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: review_surfaces: zigux/tests/phase7_cmdline_survey_build.zig",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
@@ -505,6 +540,19 @@ def run_self_test() -> None:
             "manifest_memparse_ownership_guard",
             tmp_root,
             "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"].remove(
+            "the dedicated `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig` route keeps this helper-local survey replay runnable without widening into shared Phase 7 tests-root ownership"
+        )
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_survey_build_route_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: the dedicated `zig build phase7-cmdline-survey --build-file zigux/tests/phase7_cmdline_survey_build.zig` route keeps this helper-local survey replay runnable without widening into shared Phase 7 tests-root ownership",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
