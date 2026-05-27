@@ -39,7 +39,7 @@ That still matters because `fs/libfs.c` contains small VFS-adjacent helpers that
 
 The current lane state is:
 
-- helper-local governance for this family remains tracked under `P13-L01`, while the separate verification-only replay lane remains parked under `P13-L03`
+- helper-local governance for this family remains tracked under `P13-Y01`, while the separate verification-only replay lane remains parked under `P13-L03`
 - landed `phase13-libfs-helper-starter`
 - landed `phase13-libfs-offset-add-planner`
 - landed `phase13-libfs-offset-remove-planner`
