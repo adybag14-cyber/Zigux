@@ -90,6 +90,25 @@ test "bcm2835 verify helper keeps poweroff ownership conflict and PM-base blocke
     try std.testing.expect(blocked.blocked_on_live_platform_registration);
 }
 
+test "bcm2835 verify helper keeps detached parent from claiming PM-base ownership" {
+    const detached_parent = try bcm2835_wdt.summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .system_power_controller = true,
+        .poweroff_handler_present = false,
+        .parent_attached = false,
+        .pm_base_present = true,
+    });
+
+    try std.testing.expect(!detached_parent.parent_attached);
+    try std.testing.expect(!detached_parent.parent_supplies_pm_base);
+    try std.testing.expect(detached_parent.pm_base_required);
+    try std.testing.expect(!detached_parent.pm_base_handoff_ready);
+    try std.testing.expect(!detached_parent.register_device_requested);
+    try std.testing.expect(!detached_parent.poweroff_handler_claimed);
+    try std.testing.expect(!detached_parent.poweroff_handler_conflict);
+    try std.testing.expect(detached_parent.blocked_on_live_platform_registration);
+}
+
 test "bcm2835 verify helper keeps stop and poweroff snapshots reviewable" {
     var running = try bcm2835_wdt.Bcm2835WdtLab.init(8);
     running.start();
