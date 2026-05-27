@@ -100,19 +100,6 @@ pub fn summarizeNotifierDispatch(
     };
 }
 
-pub fn summarizeCleanupTrigger(
-    final_close_completed: bool,
-    hangup_completed: bool,
-) error{CleanupRequiresFinalCloseOrHangup}!hvc_console.CleanupPrerequisiteSummary {
-    return hvc_console.summarizeCleanupPrerequisite(.{
-        .final_close_completed = final_close_completed,
-        .hangup_completed = hangup_completed,
-        .tty_port_release_handoff = true,
-        .cleanup_time_tty_port_ownership = true,
-        .port_reference_drop_timing = true,
-    });
-}
-
 test "phase11 hvc verify helper keeps tty-already-absent remove handoff explicit" {
     const summary = summarizeRemoveHandoffWithoutBinding(.{
         .tty_already_absent = true,
@@ -141,17 +128,50 @@ test "phase11 hvc verify helper keeps detached binding remove handoff reviewable
 test "phase11 hvc verify helper keeps cleanup trigger prerequisites explicit" {
     try std.testing.expectError(
         error.CleanupRequiresFinalCloseOrHangup,
-        summarizeCleanupTrigger(false, false),
+        hvc_console.summarizeCleanupPrerequisite(.{
+            .final_close_completed = false,
+            .hangup_completed = false,
+            .tty_port_release_handoff = true,
+            .cleanup_time_tty_port_ownership = true,
+            .port_reference_drop_timing = true,
+        }),
     );
 
-    const hangup_only = try summarizeCleanupTrigger(false, true);
+    const hangup_only = try hvc_console.summarizeCleanupPrerequisite(.{
+        .final_close_completed = false,
+        .hangup_completed = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
     try std.testing.expectEqual(hvc_console.CleanupTrigger.hangup_only, hangup_only.trigger);
 
-    const combined = try summarizeCleanupTrigger(true, true);
+    const combined = try hvc_console.summarizeCleanupPrerequisite(.{
+        .final_close_completed = true,
+        .hangup_completed = true,
+        .tty_port_release_handoff = true,
+        .cleanup_time_tty_port_ownership = true,
+        .port_reference_drop_timing = true,
+    });
     try std.testing.expectEqual(
         hvc_console.CleanupTrigger.final_close_and_hangup,
         combined.trigger,
     );
+}
+
+test "phase11 hvc verify helper keeps cleanup ownership flags from drifting behind the real helper" {
+    const summary = try hvc_console.summarizeCleanupPrerequisite(.{
+        .final_close_completed = true,
+        .hangup_completed = false,
+        .tty_port_release_handoff = false,
+        .cleanup_time_tty_port_ownership = false,
+        .port_reference_drop_timing = true,
+    });
+
+    try std.testing.expectEqual(hvc_console.CleanupTrigger.final_close_only, summary.trigger);
+    try std.testing.expect(!summary.tty_port_release_handoff);
+    try std.testing.expect(!summary.cleanup_time_tty_port_ownership);
+    try std.testing.expect(summary.port_reference_drop_timing);
 }
 
 test "phase11 hvc verify helper keeps notifier prerequisite failures explicit" {
