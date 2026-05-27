@@ -13,6 +13,11 @@ pub const ExportStatus = abi.ExportStatus;
 pub const Facility = abi.Facility;
 pub const Version = version.Version;
 pub const DevTFields = dev_t.Fields;
+pub const InteropPolicy = abi.InteropPolicy;
+pub const PanicMode = abi.PanicMode;
+pub const AllocatorMode = abi.AllocatorMode;
+pub const UnsafeScope = abi.UnsafeScope;
+pub const RbtreeRootView = abi.RbtreeRootView;
 pub const abi_version: u16 = abi.ABI_VERSION;
 pub const header_size: u32 = version.header_size;
 
@@ -113,6 +118,52 @@ pub fn deviceFieldsAreValid(fields: DevTFields) bool {
     return dev_t.validate(fields);
 }
 
+pub fn defaultInteropPolicy() InteropPolicy {
+    return abi.defaultInteropPolicy();
+}
+
+pub fn panicModeFromInteropPolicy(policy: InteropPolicy) ?PanicMode {
+    return abi.panicModeFromInteropPolicy(policy);
+}
+
+pub fn allocatorModeFromInteropPolicy(policy: InteropPolicy) ?AllocatorMode {
+    return abi.allocatorModeFromInteropPolicy(policy);
+}
+
+pub fn unsafeScopeFromInteropPolicy(policy: InteropPolicy) ?UnsafeScope {
+    return abi.unsafeScopeFromInteropPolicy(policy);
+}
+
+pub fn interopPolicyIsRecognized(policy: InteropPolicy) bool {
+    return abi.interopPolicyIsRecognized(policy);
+}
+
+pub fn validateInteropPolicy(policy: InteropPolicy) ExportStatus {
+    if (interopPolicyIsRecognized(policy)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
+}
+
+pub fn rbtreeRootViewIsCached(view: RbtreeRootView) bool {
+    return abi.rbtreeRootViewIsCached(view);
+}
+
+pub fn rbtreeRootViewHasLeftmost(view: RbtreeRootView) bool {
+    return abi.rbtreeRootViewHasLeftmost(view);
+}
+
+pub fn rbtreeRootViewIsValid(view: RbtreeRootView) bool {
+    return abi.rbtreeRootViewIsValid(view);
+}
+
+pub fn canonicalizeRbtreeRootView(view: RbtreeRootView) RbtreeRootView {
+    return abi.canonicalizeRbtreeRootView(view);
+}
+
+pub fn validateRbtreeRootView(view: RbtreeRootView) ExportStatus {
+    if (rbtreeRootViewIsValid(view)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
+}
+
 pub fn deviceComponentsAreValid(major: u32, minor: u32) bool {
     return deviceFieldsAreValid(makeDevTFields(major, minor));
 }
@@ -134,6 +185,88 @@ pub fn deviceRangeIsValid(start: DevTFields, end: DevTFields) bool {
 pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {
     if (deviceRangeIsValid(start, end)) return okStatus(.kernel);
     return errorStatus(invalid_argument, .kernel);
+}
+
+test "export shim relays interop-policy recognition through runtime status helpers" {
+    const safe = defaultInteropPolicy();
+    const mmio = InteropPolicy{
+        .panic_mode = abi.PANIC_BUG,
+        .allocator_mode = abi.ALLOC_KERNEL_HEAP,
+        .unsafe_scope = abi.UNSAFE_VOLATILE_MMIO,
+        .reserved = 0,
+    };
+    const reserved = InteropPolicy{
+        .panic_mode = abi.PANIC_WARN,
+        .allocator_mode = abi.ALLOC_ARENA,
+        .unsafe_scope = abi.UNSAFE_RAW_POINTER_BRIDGE,
+        .reserved = 1,
+    };
+    const unknown = InteropPolicy{
+        .panic_mode = 9,
+        .allocator_mode = 9,
+        .unsafe_scope = 9,
+        .reserved = 0,
+    };
+
+    try testing.expectEqual(abi.defaultInteropPolicy(), safe);
+    try testing.expectEqual(abi.panicModeFromInteropPolicy(mmio), panicModeFromInteropPolicy(mmio));
+    try testing.expectEqual(abi.allocatorModeFromInteropPolicy(mmio), allocatorModeFromInteropPolicy(mmio));
+    try testing.expectEqual(abi.unsafeScopeFromInteropPolicy(mmio), unsafeScopeFromInteropPolicy(mmio));
+    try testing.expect(interopPolicyIsRecognized(safe));
+    try testing.expect(interopPolicyIsRecognized(mmio));
+    try testing.expect(!interopPolicyIsRecognized(reserved));
+    try testing.expect(!interopPolicyIsRecognized(unknown));
+
+    const valid = validateInteropPolicy(mmio);
+    const invalid_reserved = validateInteropPolicy(reserved);
+    const invalid_unknown = validateInteropPolicy(unknown);
+
+    try testing.expect(statusIsOk(valid));
+    try testing.expect(!statusIsOk(invalid_reserved));
+    try testing.expect(!statusIsOk(invalid_unknown));
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(i32, invalid_argument), invalid_reserved.code);
+    try testing.expectEqual(@as(i32, invalid_argument), invalid_unknown.code);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_reserved.flags);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_unknown.flags);
+}
+
+test "export shim relays rbtree cached-leftmost safety through runtime status helpers" {
+    const uncached = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0,
+        .flags = 0,
+    };
+    const cached = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0x0800,
+        .flags = abi.RBTREE_ROOT_VIEW_FLAG_CACHED | abi.RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID,
+    };
+    const malformed = RbtreeRootView{
+        .root = 0x1000,
+        .cached_leftmost = 0,
+        .flags = abi.RBTREE_ROOT_VIEW_FLAG_CACHED | abi.RBTREE_ROOT_VIEW_FLAG_LEFTMOST_VALID,
+    };
+
+    try testing.expectEqual(abi.rbtreeRootViewIsCached(cached), rbtreeRootViewIsCached(cached));
+    try testing.expectEqual(abi.rbtreeRootViewHasLeftmost(cached), rbtreeRootViewHasLeftmost(cached));
+    try testing.expectEqual(abi.rbtreeRootViewIsValid(uncached), rbtreeRootViewIsValid(uncached));
+    try testing.expectEqual(abi.rbtreeRootViewIsValid(cached), rbtreeRootViewIsValid(cached));
+    try testing.expectEqual(abi.rbtreeRootViewIsValid(malformed), rbtreeRootViewIsValid(malformed));
+    try testing.expect(rbtreeRootViewIsValid(uncached));
+    try testing.expect(rbtreeRootViewIsValid(cached));
+    try testing.expect(!rbtreeRootViewIsValid(malformed));
+
+    const canonical = canonicalizeRbtreeRootView(malformed);
+    try testing.expect(rbtreeRootViewIsValid(canonical));
+    try testing.expectEqual(@as(u32, 0), canonical.flags);
+
+    const valid = validateRbtreeRootView(cached);
+    const invalid = validateRbtreeRootView(malformed);
+    try testing.expect(statusIsOk(valid));
+    try testing.expect(!statusIsOk(invalid));
+    try testing.expectEqual(@as(i32, invalid_argument), invalid.code);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid.flags);
 }
 
 test "export shim preserves the canonical boundary header and version snapshot" {
