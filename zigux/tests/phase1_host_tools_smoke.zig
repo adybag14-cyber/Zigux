@@ -12,6 +12,11 @@ const slab = @import("slab");
 const str_error_r = @import("str_error_r");
 const vsprintf = @import("vsprintf");
 const zalloc = @import("zalloc");
+const phase1_find_bit_fixture_guard = @import("phase1_find_bit_fixture_guard.zig");
+
+comptime {
+    _ = phase1_find_bit_fixture_guard;
+}
 
 const ListSortSmokeEntry = struct {
     key: i32,
