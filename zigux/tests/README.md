@@ -133,6 +133,24 @@ Purpose
   * current `master` also directly materializes `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `make -C zigux phase2-fixdep`, and `zigux/tests/fixtures/fixdep/cases.json`, so keep that returned fixdep governance, parity, helper, wrapper, and fixture packet explicit here instead of leaving it outside the tests-root reminder
   * keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, helper-local kconfig allconfig, the survey-backed genksyms packet, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
 
+## Phase 4 rollback-ownership and lab-matrix packet
+
+  * current direct-readback Phase 4 shared handoff:
+  * `Documentation/zigux/phase4-reversible-delivery-evidence.md`
+  * `Documentation/zigux/README.md`
+  * `Documentation/zigux/review-checklist.md`
+  * `scripts/zigux/README.md`
+  * `scripts/zigux/check-phase4-repo-reality-warning.py`
+  * `scripts/zigux/check-phase4-tests-readme-packet.py`
+  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
+  * `zigux/tests/README.md`
+  * keep the directly readable local-only perf packet explicit through `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `make -C zigux phase4-perf-baseline-survey`
+  * keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, and `scripts/zigux/validate-phase4.py`
+  * keep the roadmap-backed direct differential pair explicit through `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
+  * keep the broader validator-plus-bitmap replay packet visible too: `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` remain part of the current Phase 4 review surface even while same-route authenticated blob refresh stays narrower than the rollback-owner packet itself
+  * keep the parked sample-gap packets explicit too: `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, `zigux/tests/phase4_kprobe_example_survey.zig`, `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`
+  * keep `Validation and Perf Team` as the decision owner for any shared-CI perf promotion, with `ABI and Runtime Team` plus `Shared Subsystems Pod` as coordination owners, while `Documentation/zigux/phase4-validation-matrix.md` remains the rollback-owner source for the landed atomic64 and bitmap gates
+
 ## Phase 7 leaf-library packet
 
   * current direct-readback Phase 7 leaf-library packet:
