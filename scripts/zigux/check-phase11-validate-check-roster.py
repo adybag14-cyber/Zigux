@@ -32,7 +32,7 @@ EXPECTED_INVENTORY_DETERMINISTIC_LANE = "P11-L07"
 EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES = [
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
-    "zigux/tests/phase11_dw_wdt_manifest.json",
+    "zigux/tests/fixtures/phase11_shared_tooling_manifest.json",
 ]
 EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS = [
     "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
@@ -42,10 +42,12 @@ EXPECTED_FOCUSED_TEARDOWN_FAILURE_MODE_BUILDS = [
 ]
 EXPECTED_DETERMINISTIC_GOLDEN_OUTPUT_GAP = (
     "phase11-validate now carries the dedicated golden-output fixture roster "
-    "`zigux/tests/fixtures/phase11_validate_checks.json` plus fail-closed "
-    "`scripts/zigux/check-phase11-validate-check-roster.py` and "
-    "`scripts/zigux/check-phase11-validate-route-alignment.py` guards; "
-    "keep future deterministic output drift inside that validator packet"
+    "`zigux/tests/fixtures/phase11_validate_checks.json`, the shared aggregate "
+    "manifest `zigux/tests/fixtures/phase11_shared_tooling_manifest.json`, plus "
+    "fail-closed `scripts/zigux/check-phase11-validate-check-roster.py`, "
+    "`scripts/zigux/check-phase11-validate-route-alignment.py`, and "
+    "`scripts/zigux/check-phase11-shared-tooling-manifest.py` guards; keep "
+    "future deterministic output drift inside that validator packet"
 )
 
 
@@ -193,6 +195,9 @@ def run_check(root: Path) -> tuple[int, int]:
             f"{INVENTORY_PATH}: expected {EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES!r}, "
             f"found {deterministic_surfaces!r}"
         )
+    for surface in deterministic_surfaces:
+        if not (root / surface).is_file():
+            raise CheckError(f"missing deterministic fixture surface: {surface}")
     teardown_builds = expect_string_list(
         "focused_teardown_failure_mode_builds",
         inventory.get("focused_teardown_failure_mode_builds"),
@@ -290,16 +295,16 @@ def build_fixture(
             "    command: tuple[str, ...]",
             "",
             "REQUIRED_PATHS = (",
-            *(f'    \"{path}\",' for path in required_paths),
+            *(f'    "{path}",' for path in required_paths),
             ")",
             "",
             "CHECKS = (",
-            '    CheckSpec(\"phase11-validation-self-test\", (\"python\", \"scripts/zigux/validate-phase11.py\", \"--self-test\")),',
-            f'    CheckSpec(\"phase11-validate-check-roster-self-test\", (\"python\", \"{SELF_CHECK_PATH}\", \"--self-test\")),',
-            f'    CheckSpec(\"phase11-validate-check-roster\", (\"python\", \"{SELF_CHECK_PATH}\")),',
-            f'    CheckSpec(\"phase11-shared-tooling-manifest-self-test\", (\"python\", \"{SHARED_TOOLING_CHECK_PATH}\", \"--self-test\")),',
-            f'    CheckSpec(\"phase11-shared-tooling-manifest\", (\"python\", \"{SHARED_TOOLING_CHECK_PATH}\")),',
-            '    CheckSpec(\"phase11-validation\", (\"python\", \"scripts/zigux/validate-phase11.py\")),',
+            '    CheckSpec("phase11-validation-self-test", ("python", "scripts/zigux/validate-phase11.py", "--self-test")),',
+            f'    CheckSpec("phase11-validate-check-roster-self-test", ("python", "{SELF_CHECK_PATH}", "--self-test")),',
+            f'    CheckSpec("phase11-validate-check-roster", ("python", "{SELF_CHECK_PATH}")),',
+            f'    CheckSpec("phase11-shared-tooling-manifest-self-test", ("python", "{SHARED_TOOLING_CHECK_PATH}", "--self-test")),',
+            f'    CheckSpec("phase11-shared-tooling-manifest", ("python", "{SHARED_TOOLING_CHECK_PATH}")),',
+            '    CheckSpec("phase11-validation", ("python", "scripts/zigux/validate-phase11.py")),',
             ")",
             "",
         ]
@@ -324,7 +329,7 @@ def build_fixture(
         json.dumps(
             {
                 "deterministic_tooling_lane": (
-                    "P11-L07" if wrong_inventory_lane else EXPECTED_INVENTORY_DETERMINISTIC_LANE
+                    "P11-L05" if wrong_inventory_lane else EXPECTED_INVENTORY_DETERMINISTIC_LANE
                 ),
                 "deterministic_fixture_surfaces": (
                     EXPECTED_INVENTORY_DETERMINISTIC_FIXTURE_SURFACES[:-1]
@@ -346,6 +351,7 @@ def build_fixture(
         )
         + "\n",
     )
+    write(root / SHARED_TOOLING_FIXTURE_PATH, "{\n  \"fixture\": \"phase11_shared_tooling_manifest\"\n}\n")
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -433,24 +439,30 @@ def run_self_test() -> int:
         expect_failure(wrong_validate_route, "validate_route mismatch")
         case_count += 1
 
-        wrong_inventory_lane = tmpdir / "wrong_inventory_lane"
-        build_fixture(wrong_inventory_lane, wrong_inventory_lane=True)
-        expect_failure(wrong_inventory_lane, "deterministic_tooling_lane mismatch")
+        wrong_inventory_lane_case = tmpdir / "wrong_inventory_lane"
+        build_fixture(wrong_inventory_lane_case, wrong_inventory_lane=True)
+        expect_failure(wrong_inventory_lane_case, "deterministic_tooling_lane mismatch")
         case_count += 1
 
-        wrong_inventory_surfaces = tmpdir / "wrong_inventory_surfaces"
-        build_fixture(wrong_inventory_surfaces, wrong_inventory_surfaces=True)
-        expect_failure(wrong_inventory_surfaces, "deterministic_fixture_surfaces mismatch")
+        wrong_inventory_surfaces_case = tmpdir / "wrong_inventory_surfaces"
+        build_fixture(wrong_inventory_surfaces_case, wrong_inventory_surfaces=True)
+        expect_failure(wrong_inventory_surfaces_case, "deterministic_fixture_surfaces mismatch")
         case_count += 1
 
-        wrong_teardown_builds = tmpdir / "wrong_teardown_builds"
-        build_fixture(wrong_teardown_builds, wrong_teardown_builds=True)
-        expect_failure(wrong_teardown_builds, "focused_teardown_failure_mode_builds mismatch")
+        wrong_teardown_builds_case = tmpdir / "wrong_teardown_builds"
+        build_fixture(wrong_teardown_builds_case, wrong_teardown_builds=True)
+        expect_failure(wrong_teardown_builds_case, "focused_teardown_failure_mode_builds mismatch")
         case_count += 1
 
-        wrong_inventory_gap = tmpdir / "wrong_inventory_gap"
-        build_fixture(wrong_inventory_gap, wrong_inventory_gap=True)
-        expect_failure(wrong_inventory_gap, "deterministic_golden_output_gap mismatch")
+        wrong_inventory_gap_case = tmpdir / "wrong_inventory_gap"
+        build_fixture(wrong_inventory_gap_case, wrong_inventory_gap=True)
+        expect_failure(wrong_inventory_gap_case, "deterministic_golden_output_gap mismatch")
+        case_count += 1
+
+        missing_shared_tooling_surface = tmpdir / "missing_shared_tooling_surface"
+        build_fixture(missing_shared_tooling_surface)
+        (missing_shared_tooling_surface / SHARED_TOOLING_FIXTURE_PATH).unlink()
+        expect_failure(missing_shared_tooling_surface, "missing deterministic fixture surface")
         case_count += 1
 
         missing_self_test_entry = tmpdir / "missing_self_test_entry"
@@ -458,7 +470,7 @@ def run_self_test() -> int:
         write(
             missing_self_test_entry / VALIDATE_PATH,
             read_text(missing_self_test_entry / VALIDATE_PATH).replace(
-                f'    CheckSpec(\"phase11-validate-check-roster-self-test\", (\"python\", \"{SELF_CHECK_PATH}\", \"--self-test\")),\n',
+                f'    CheckSpec("phase11-validate-check-roster-self-test", ("python", "{SELF_CHECK_PATH}", "--self-test")),\n',
                 "",
                 1,
             ),
@@ -481,7 +493,7 @@ def run_self_test() -> int:
         write(
             missing_live_entry / VALIDATE_PATH,
             read_text(missing_live_entry / VALIDATE_PATH).replace(
-                f'    CheckSpec(\"phase11-validate-check-roster\", (\"python\", \"{SELF_CHECK_PATH}\")),\n',
+                f'    CheckSpec("phase11-validate-check-roster", ("python", "{SELF_CHECK_PATH}")),\n',
                 "",
                 1,
             ),
