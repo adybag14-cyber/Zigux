@@ -54,6 +54,9 @@ REQUIRED_MARKERS = {
         "Keep `zigux/tests/phase13_landlock_syscalls_manifest.json` recorded as the remaining direct repo-reality gap instead of promoting the helper-local packet into a closed shared build handle.",
         "Current `master` now also materializes `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`, and `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, so keep the returned Landlock ruleset survey, syscall breadcrumb, and checker surfaces explicit beside the still-missing direct ruleset ownership and slice notes plus the remaining direct syscall manifest companion rather than listing those returned helper-local surfaces as release-facing gaps.",
         "Current `master` also now materializes `scripts/zigux/validate-phase13-release.py`, so keep that shared release-discipline validator explicit beside the shipped shared-summary guard, the stable contributor-facing handle, and the compact packet index while the remaining same-lane follow-through stays narrowed to still-missing direct companions or any future broader reminder drift.",
+        "## Exact Checks For This Bounded Step",
+        "For this bounded reminder-surface step, verify documentation behavior with these exact checks before treating a release-note refresh as truthful current-`master` evidence:",
+        "Those checks confirm the shared-summary surfaces, the tests-root reminder packet, and the release-discipline packet only. They do not turn `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, or `zigux/tests/phase13_build.zig` into shipped Phase 13 route evidence.",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "This note restores the roadmap-to-repo owner map for the active Phase 13 shared-helper packet on current `master`.",
