@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 POLICY_NOTE_PATH = Path("Documentation/zigux/phase3-policy-slice.md")
+POLICY_UNSAFE_SURVEY_NOTE_PATH = Path("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md")
 VALIDATOR_NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
 SHARED_REMINDER_GAP_PATH = Path("Documentation/zigux/phase3-shared-reminder-gap.md")
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
@@ -25,6 +26,7 @@ DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
 DUMP_BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")
 DUMP_EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
 DUMP_CHECKER_PATH = Path("scripts/zigux/check-phase3-policy-dump.py")
+POLICY_UNSAFE_SURVEY_CHECKER_PATH = Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
 
 EXPECTED_MANIFEST_FIELDS = {
@@ -33,11 +35,12 @@ EXPECTED_MANIFEST_FIELDS = {
     "slug": "phase3-policy-starter-packet",
     "status": "policy_slice_present",
     "scope": "layout, panic, allocator, and unsafe interop policy decoding replay",
-    "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families",
+    "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, dedicated policy-unsafe survey gating, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families",
 }
 
 REQUIRED_PACKET_FILES = (
     "Documentation/zigux/phase3-policy-slice.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
@@ -55,6 +58,7 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-policy-dump.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -65,6 +69,8 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-policy-dump.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
+    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
 )
 
 UPDATED_SHARED_REMINDER_MARKER = (
@@ -206,14 +212,18 @@ REQUIRED_MARKERS = {
     MANIFEST_PATH: (
         '"slug": "phase3-policy-starter-packet"',
         '"status": "policy_slice_present"',
+        '"Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"',
         '"zigux/helpers/layout_assert.zig"',
         '"zigux/unsafe/narrow.zig"',
         '"zigux/tests/phase3_policy_dump.zig"',
         '"zigux/tests/phase3_policy_dump_build.zig"',
         '"zigux/tests/fixtures/phase3_policy_dump_expected.txt"',
         '"scripts/zigux/check-phase3-policy-dump.py"',
+        '"scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-policy-dump.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
         '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
         '"make -C zigux phase3-policy-starter-packet-test"',
     ),
@@ -240,6 +250,9 @@ SELF_TEST_CASES = (
     (TEST_PATH, 'test "policy starter packet keeps panic and allocator byte guards explicit" {'),
     (BUILD_PATH, '"phase3-policy-starter-packet-test"'),
     (DUMP_CHECKER_PATH, 'EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")'),
+    (MANIFEST_PATH, '"Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"'),
+    (MANIFEST_PATH, '"scripts/zigux/validate-phase3-policy-unsafe-survey.py"'),
+    (MANIFEST_PATH, '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"'),
     (MANIFEST_PATH, '"zigux/tests/phase3_policy_dump.zig"'),
     (MANIFEST_PATH, '"make -C zigux phase3-policy-starter-packet-test"'),
 )
@@ -413,6 +426,7 @@ def main() -> int:
 
     print(f"validated {args.repo_root / MANIFEST_PATH}")
     print(f"validated {args.repo_root / DUMP_CHECKER_PATH}")
+    print(f"validated {args.repo_root / POLICY_UNSAFE_SURVEY_CHECKER_PATH}")
     print(f"validated {args.repo_root / TEST_PATH}")
     return 0
 
