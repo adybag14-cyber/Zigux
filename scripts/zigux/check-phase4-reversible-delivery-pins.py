@@ -25,6 +25,7 @@ PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT
 LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 32
 EXPECTED_PIN_SELF_TEST_CASES = 20
+VALIDATOR_MEMBER_LINE = "Current direct-readback shared validator member: `scripts/zigux/validate-phase4.py`."
 PERF_BASELINE_CHECKER_LINE = (
     "Current direct-readback dedicated local-only perf checkers: "
     "`scripts/zigux/check-phase4-perf-baseline-packet.py` and "
@@ -82,6 +83,7 @@ EXPECTED_RECOVERY_MARKERS = (
 )
 NOTE_MARKERS = (
     "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
+    VALIDATOR_MEMBER_LINE,
     PERF_BASELINE_CHECKER_LINE,
     "Current direct-readback dedicated local-only perf companion members:",
     "  * `zigux/tests/phase4_perf_baseline_manifest.json`",
@@ -200,6 +202,8 @@ def _baseline_note(root: Path) -> str:
         "  * `scripts/zigux/check-phase4-repo-reality-warning.py`",
         "  * `scripts/zigux/check-phase4-tests-readme-packet.py`",
         "  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`",
+        "",
+        VALIDATOR_MEMBER_LINE,
         "",
         PERF_BASELINE_CHECKER_LINE,
         "",
