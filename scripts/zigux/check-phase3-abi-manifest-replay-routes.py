@@ -179,6 +179,8 @@ REQUIRED_PACKET_FILES = (
     "zigux/helpers/cpumask_view.zig",
     "zigux/tests/phase3_bitmap_cpumask_starter_packet.zig",
     "zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json",
     "zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json",
     "scripts/zigux/check-phase3-bitmap-cpumask.py",
     "Documentation/zigux/phase3-list-hlist-slice.md",
