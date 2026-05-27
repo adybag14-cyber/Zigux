@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the rematerialized Phase 2 make-wrapper packet."""
+"""Guard the rematerialized Phase 2 make-wrapper packet and toolchain lane boundary."""
 
 from __future__ import annotations
 
@@ -40,6 +40,46 @@ CURRENT_REQUIRED_MAKE_ROUTES = (
 CURRENT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in CURRENT_REQUIRED_MAKE_ROUTES)
 CURRENT_WORKFLOW_ROUTE_LINES = tuple(f"run: make -C zigux {route}" for route in CURRENT_REQUIRED_MAKE_ROUTES)
 POLICY_SUMMARY_ANCHOR = "required Linux-style make routes"
+TOOLCHAIN_ROUTE = "phase2-toolchain"
+TOOLCHAIN_ALLOWED_RECIPE_LINES = (
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-first-archive-workflow.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-first-archive-workflow.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-local-archive-readme.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-install-zig-archive-verification.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/install-zig.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/stage-pinned-zig-archive.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-contract.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-lane05-stage-helper-selftest.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
+)
+TOOLCHAIN_OVERLAP_FRAGMENTS = (
+    "check-phase2-kbuild-routes.py",
+    "check-phase2-docs-shared-reminder.py",
+    "check-phase2-required-make-routes.py",
+    "check-phase2-artifact-tools-manifest.py",
+    "check-kconfig-bridge.py",
+    "check-phase2-kconfig-selftest-alignment.py",
+    "check-phase2-kconfig-allconfig-helper-packet.py",
+    "check-phase2-cross.py",
+    "check-phase2-cross-selftest-alignment.py",
+    "check-genksyms-bridge.py",
+    "check-phase2-genksyms-selftest-alignment.py",
+    "genksyms.zig",
+    "check-phase2-fixdep-gate.py",
+    "check-fixdep-diff.py",
+    "fixdep.zig",
+    "make -C zigux phase2-",
+)
 
 MAKEFILE_MARKERS = (
     "phase2-toolchain:",
@@ -114,6 +154,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
     + 1
     + len(CURRENT_REQUIRED_MAKE_ROUTES)
+    + 1
     + 12
 )
 
@@ -194,6 +235,23 @@ def count_target_definitions(text: str, route: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip().startswith(prefix))
 
 
+def collect_target_recipe_lines(text: str, route: str) -> list[str]:
+    target_prefix = format_makefile_target_line(route)
+    collecting = False
+    recipe_lines: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not collecting:
+            if stripped.startswith(target_prefix):
+                collecting = True
+            continue
+        if stripped and not line.startswith((" ", "\t")):
+            break
+        if line.startswith((" ", "\t")):
+            recipe_lines.append(stripped)
+    return recipe_lines
+
+
 def format_policy_summary_line(routes: tuple[str, ...] | list[str]) -> str:
     joined = ", ".join(routes)
     return f"policy note keeps {joined} as {POLICY_SUMMARY_ANCHOR} when those routes are rematerialized."
@@ -257,6 +315,28 @@ def collect_required_route_makefile_issues(
     return issues
 
 
+def collect_toolchain_route_boundary_issues(makefile_text: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    recipe_lines = collect_target_recipe_lines(makefile_text, TOOLCHAIN_ROUTE)
+    if not recipe_lines:
+        return issues
+
+    for marker in TOOLCHAIN_ALLOWED_RECIPE_LINES:
+        count = recipe_lines.count(marker)
+        if count == 0:
+            issues.append(("MISSING_TOOLCHAIN_ROUTE_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_TOOLCHAIN_ROUTE_LINE", f"{marker}:count={count}"))
+
+    for recipe_line in recipe_lines:
+        for fragment in TOOLCHAIN_OVERLAP_FRAGMENTS:
+            if fragment in recipe_line:
+                issues.append(("TOOLCHAIN_ROUTE_OVERLAP", recipe_line))
+                break
+
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     required_routes = load_required_make_routes(resolve_path(root, TOOLCHAIN_POLICY))
@@ -287,6 +367,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count={count}"))
     issues.extend(collect_required_route_makefile_issues(makefile_text, tuple(required_routes)))
+    issues.extend(collect_toolchain_route_boundary_issues(makefile_text))
 
     for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
         issues.extend(collect_surface_issues(root, path, gap_code, route_code, CURRENT_PACKET_ROUTE_MARKERS))
@@ -358,6 +439,15 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     for index, line in enumerate(lines):
         if line.strip() == marker:
             lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def insert_after_exact_line(text: str, marker: str, addition: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, addition)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
 
@@ -475,6 +565,22 @@ def run_self_test() -> int:
             assert ("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
+        build_self_test_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_path.write_text(
+            insert_after_exact_line(
+                makefile_path.read_text(encoding="utf-8"),
+                TOOLCHAIN_ALLOWED_RECIPE_LINES[-1],
+                "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "TOOLCHAIN_ROUTE_OVERLAP",
+            "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
+        ) in collect_issues(root)
+        checks_run += 1
+
         for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
             for marker in MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS:
                 build_self_test_root(root)
@@ -575,7 +681,7 @@ def run_self_test() -> int:
         makefile_text += f"{extra_route}:\n\t@true\n{extra_route}:\n\t@true\n"
         makefile_path.write_text(makefile_text, encoding="utf-8")
         issues = collect_issues(root)
-        assert ("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{extra_route}::count=2") in issues
+        assert ("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{extra_route}:count=2") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -667,6 +773,8 @@ def main() -> int:
     print(f"PHASE2_REQUIRED_MAKEFILE_PATH={resolve_path(root, MAKEFILE)}")
     print("PHASE2_REQUIRED_ROUTE_LIST=" + ",".join(required_routes))
     print(f"PHASE2_CURRENT_PACKET_ROUTE_COUNT={len(CURRENT_PACKET_ROUTE_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_ROUTE_RECIPE_COUNT={len(TOOLCHAIN_ALLOWED_RECIPE_LINES)}")
+    print("PHASE2_TOOLCHAIN_ROUTE_BOUNDARY=bounded")
     print("PHASE2_REQUIRED_ROUTE_STATUS=present")
     return 0
 
