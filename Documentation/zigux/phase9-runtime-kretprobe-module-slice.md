@@ -13,10 +13,11 @@ This note keeps the bounded runtime kretprobe pilot-module slice reviewable with
 - `samples/zigux/runtime_kretprobe_loader.zig` keeps the family-local shared-request plan reviewable without promoting that plan into shipped broader runtime-loader parity
 - `samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig` keeps captured initialized-state replay explicit across later selftest and exit activity
 - `samples/zigux/runtime_kretprobe_registration_reentry_gate.zig` keeps registration reuse and fail-closed post-exit behavior explicit
+- `samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig` keeps the paired rejected re-init and rejected re-exit rollback packet explicit after initialized direct activity and after selftest-ready replay
 - `zigux/tests/runtime_kretprobe_module.zig` keeps the descriptor, selftest summary, lifecycle snapshot, initialized-stage exit replay, rejected re-init and re-selftest rollback, duplicate-registration rollback, failed-exit rollback, failed-unregister rollback, rejected entry-without-registration rollback, and rejected return-without-entry rollback packet reviewable at the module boundary
 
 ## Build boundary
-- keep `zigux/tests/phase9_build.zig` explicit as the bounded rerun shard for `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-loader-tests`, `phase9-runtime-kretprobe-initialized-snapshot-guard-tests`, `phase9-runtime-kretprobe-registration-reentry-gate-tests`, `phase9-runtime-kretprobe-survey-tests`, and `phase9-runtime-kretprobe-module-tests`
+- keep `zigux/tests/phase9_build.zig` explicit as the bounded rerun shard for `phase9-runtime-kretprobe-sample-tests`, `phase9-runtime-kretprobe-loader-tests`, `phase9-runtime-kretprobe-initialized-snapshot-guard-tests`, `phase9-runtime-kretprobe-registration-reentry-gate-tests`, `phase9-runtime-kretprobe-reinit-reexit-guard-tests`, `phase9-runtime-kretprobe-survey-tests`, and `phase9-runtime-kretprobe-module-tests`
 - keep `zigux/Makefile` explicit only as the narrow wrapper rerun handle for `phase9-runtime-kretprobe-test`
 - keep `zigux/tests/runtime_first_loadable_parity_behavior.zig` adjacent as cross-family evidence rather than as family-local loader completion proof
 
