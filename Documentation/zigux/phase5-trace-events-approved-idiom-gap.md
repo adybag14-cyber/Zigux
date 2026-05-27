@@ -70,6 +70,7 @@ The exact checks that passed were:
 - `phase 5 trace-events formatting companion keeps the modulo-selected string cycle reviewable`
 - `phase 5 trace-events formatting companion keeps lifecycle boundaries explicit`
 - `phase 5 trace-events formatting companion keeps bounded destination failures explicit`
+- `phase 5 trace-events formatting companion keeps selected-string exact-fit boundaries explicit`
 - `phase 5 trace-events formatting companion keeps wrapped selected-string exact-fit boundaries explicit`
 
 Those checks confirmed this current sample behavior:
@@ -78,6 +79,7 @@ Those checks confirmed this current sample behavior:
 - `runStringFormattingCycleReplay()` now keeps the modulo-selected cycle directly reviewable too: it replays all five strings in order, renders `"iter=0"` through `"iter=4"`, stays in `.initialized`, and leaves `replay_runs` at `0`.
 - lifecycle boundaries still fail closed: replay before `init()` and `exit()` before initialization both reject with `error.InvalidLifecycleTransition`; negative replay input rejects with `error.InvalidIterationCount`; replay after `exit()` rejects again; the successful replay-plus-exit path leaves `init_runs`, `replay_runs`, and `exit_runs` at `1` each.
 - bounded destination behavior is now directly covered too: `formatIterationMessageInto(12, [5]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` returns `"iter=12"` and keeps the sample in the `.initialized` stage.
+- selected-string exact-fit boundaries are directly covered too: `formatSelectedIterationMessageInto(3, [11]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatSelectedIterationMessageInto(3, [12]u8)` returns `"Frodo iter=3"` and keeps the sample in `.initialized`.
 - wrapped selected-string exact-fit boundaries are directly covered too: `formatSelectedIterationMessageInto(9, [31]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatSelectedIterationMessageInto(9, [32]u8)` returns `"One ring to rule them all iter=9"` and keeps the sample in `.initialized`.
 
 ## Review boundary
