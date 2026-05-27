@@ -134,6 +134,7 @@ HV_OPS_FOLLOWUP_REQUIRED_MARKERS = (
     "`scripts/zigux/check-phase11-header-boundary-packet.py`",
     "adjacent proof-shard evidence",
     "shared manifest, survey source, and build route remain absent",
+    "fail-closes on the survey, validation matrix, checker-coverage note, and this follow-up note",
 )
 
 HV_OPS_FOLLOWUP_FORBIDDEN_MARKERS = (
@@ -254,6 +255,16 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(hv_ops_missing, HV_OPS_FOLLOWUP_REQUIRED_MARKERS[1])
+        case_count += 1
+
+        hv_ops_fail_close_missing = tmpdir / "hv_ops_fail_close_missing"
+        shutil.copytree(fixture_root, hv_ops_fail_close_missing, dirs_exist_ok=True)
+        path = hv_ops_fail_close_missing / HV_OPS_FOLLOWUP_PATH
+        path.write_text(
+            remove_marker(path.read_text(encoding="utf-8"), HV_OPS_FOLLOWUP_REQUIRED_MARKERS[-1]),
+            encoding="utf-8",
+        )
+        expect_failure(hv_ops_fail_close_missing, HV_OPS_FOLLOWUP_REQUIRED_MARKERS[-1])
         case_count += 1
 
         checker_forbidden = tmpdir / "checker_forbidden"
