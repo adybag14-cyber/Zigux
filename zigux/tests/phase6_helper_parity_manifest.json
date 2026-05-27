@@ -244,6 +244,12 @@
             "max_slowdown_pct": 600
           }
         ],
+        "case_labels": [
+          "16B-plain-g1",
+          "32B-ascii-g2",
+          "16B-ascii-g4",
+          "16B-ascii-g8"
+        ],
         "linux_style_rerun_routes": [
           "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
           "make -C zigux phase6-hexdump-review",
