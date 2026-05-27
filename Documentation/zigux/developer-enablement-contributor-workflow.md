@@ -4,6 +4,10 @@ This guide is the shared workflow note for reminder-surface maintenance in Zigux
 
 It is for docs-only and checklist-only follow-through. It does not authorize helper, driver, ABI, or runtime implementation work by itself.
 
+Use it with `Documentation/zigux/contributor-entrypoints.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
+
+Matching guard: `python3 scripts/zigux/check-developer-enablement-workflow.py`
+
 ## Use This Guide When
 
 - the change is limited to `Documentation/zigux/`
@@ -42,6 +46,7 @@ For a docs-and-checklist lane change, use this loop:
 3. update only the surface that is currently understated or missing
 4. verify that the new wording does not claim more than current `master` proves
 5. rerun the nearest checker or validator if one already exists for that packet
+6. if the change touches this guide or its contributor-entrypoint handoff, rerun `python3 scripts/zigux/check-developer-enablement-workflow.py`
 
 If no checker exists, keep the change docs-only unless adding a new checker is clearly the smallest honest way to keep the workflow trustworthy.
 
