@@ -20,6 +20,10 @@ SPLIT_HELPER_CHECKER_SELF_TEST_STEP = "- name: Self-test current Lane 05 split h
 SPLIT_HELPER_CHECKER_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test"
 SPLIT_HELPER_PACKET_STEP = "- name: Check current Lane 05 split helper selftest packet"
 SPLIT_HELPER_PACKET_CMD = "python3 scripts/zigux/check-lane05-split-helper-selftest.py"
+BOOTSTRAP_CHECKER_SELF_TEST_STEP = "- name: Self-test current Lane 05 bootstrap split-helper packet checker"
+BOOTSTRAP_CHECKER_SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-bootstrap-split-helper-packet.py --self-test"
+BOOTSTRAP_PACKET_STEP = "- name: Check current Lane 05 bootstrap split-helper packet"
+BOOTSTRAP_PACKET_CMD = "python3 scripts/zigux/check-lane05-bootstrap-split-helper-packet.py"
 NEXT_STEP = "- name: Self-test current Phase 2 fixdep gate checker"
 
 
@@ -63,6 +67,10 @@ def check_workflow(text: str) -> None:
         (SPLIT_HELPER_CHECKER_SELF_TEST_CMD, "split helper checker self-test command"),
         (SPLIT_HELPER_PACKET_STEP, "split helper packet step"),
         (SPLIT_HELPER_PACKET_CMD, "split helper packet command"),
+        (BOOTSTRAP_CHECKER_SELF_TEST_STEP, "bootstrap checker self-test step"),
+        (BOOTSTRAP_CHECKER_SELF_TEST_CMD, "bootstrap checker self-test command"),
+        (BOOTSTRAP_PACKET_STEP, "bootstrap packet step"),
+        (BOOTSTRAP_PACKET_CMD, "bootstrap packet command"),
         (NEXT_STEP, "next phase anchor"),
     ):
         require_marker(text, marker, label)
@@ -76,6 +84,11 @@ def check_workflow(text: str) -> None:
             "split helper checker self-test command",
         ),
         (f"run: {SPLIT_HELPER_PACKET_CMD}", "split helper packet command"),
+        (
+            f"run: {BOOTSTRAP_CHECKER_SELF_TEST_CMD}",
+            "bootstrap checker self-test command",
+        ),
+        (f"run: {BOOTSTRAP_PACKET_CMD}", "bootstrap packet command"),
     ):
         require_exact_line(text, line, label)
 
@@ -85,6 +98,8 @@ def check_workflow(text: str) -> None:
         (SPLIT_HELPER_SELF_TEST_STEP, "split helper self-test step"),
         (SPLIT_HELPER_CHECKER_SELF_TEST_STEP, "split helper checker self-test step"),
         (SPLIT_HELPER_PACKET_STEP, "split helper packet step"),
+        (BOOTSTRAP_CHECKER_SELF_TEST_STEP, "bootstrap checker self-test step"),
+        (BOOTSTRAP_PACKET_STEP, "bootstrap packet step"),
     ):
         require_exact_line(text, step, label)
 
@@ -92,7 +107,7 @@ def check_workflow(text: str) -> None:
         text,
         STAGE_HELPER_SELF_TEST_STEP,
         STAGE_HELPER_PACKET_STEP,
-        "lane05 anchor order",
+        "lane05 step order",
     )
     require_order(
         text,
@@ -112,7 +127,19 @@ def check_workflow(text: str) -> None:
         SPLIT_HELPER_PACKET_STEP,
         "lane05 step order",
     )
-    require_order(text, SPLIT_HELPER_PACKET_STEP, NEXT_STEP, "lane05 step order")
+    require_order(
+        text,
+        SPLIT_HELPER_PACKET_STEP,
+        BOOTSTRAP_CHECKER_SELF_TEST_STEP,
+        "lane05 step order",
+    )
+    require_order(
+        text,
+        BOOTSTRAP_CHECKER_SELF_TEST_STEP,
+        BOOTSTRAP_PACKET_STEP,
+        "lane05 step order",
+    )
+    require_order(text, BOOTSTRAP_PACKET_STEP, NEXT_STEP, "lane05 step order")
 
 
 def write_sample_root(root: Path) -> None:
@@ -125,17 +152,21 @@ def write_sample_root(root: Path) -> None:
                 "jobs:",
                 "  bootstrap:",
                 "    steps:",
-                "      - name: Self-test current staged pinned Zig archive helper",
-                "        run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test",
-                "      - name: Check current Lane 05 stage helper selftest packet",
-                "        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py",
-                "      - name: Self-test current split pinned Zig archive helper",
-                "        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test",
-                "      - name: Self-test current Lane 05 split helper selftest checker",
-                "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test",
-                "      - name: Check current Lane 05 split helper selftest packet",
-                "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py",
-                "      - name: Self-test current Phase 2 fixdep gate checker",
+                f"      {STAGE_HELPER_SELF_TEST_STEP}",
+                f"        run: {STAGE_HELPER_SELF_TEST_CMD}",
+                f"      {STAGE_HELPER_PACKET_STEP}",
+                f"        run: {STAGE_HELPER_PACKET_CMD}",
+                f"      {SPLIT_HELPER_SELF_TEST_STEP}",
+                f"        run: {SPLIT_HELPER_SELF_TEST_CMD}",
+                f"      {SPLIT_HELPER_CHECKER_SELF_TEST_STEP}",
+                f"        run: {SPLIT_HELPER_CHECKER_SELF_TEST_CMD}",
+                f"      {SPLIT_HELPER_PACKET_STEP}",
+                f"        run: {SPLIT_HELPER_PACKET_CMD}",
+                f"      {BOOTSTRAP_CHECKER_SELF_TEST_STEP}",
+                f"        run: {BOOTSTRAP_CHECKER_SELF_TEST_CMD}",
+                f"      {BOOTSTRAP_PACKET_STEP}",
+                f"        run: {BOOTSTRAP_PACKET_CMD}",
+                f"      {NEXT_STEP}",
                 "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
             )
         )
@@ -145,109 +176,98 @@ def write_sample_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    good_workflow = """name: zigux-bootstrap
-jobs:
-  bootstrap:
-    steps:
-      - name: Self-test current staged pinned Zig archive helper
-        run: python3 scripts/zigux/stage-pinned-zig-archive.py --self-test
-      - name: Check current Lane 05 stage helper selftest packet
-        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
-      - name: Self-test current split pinned Zig archive helper
-        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test
-      - name: Self-test current Lane 05 split helper selftest checker
-        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
-      - name: Check current Lane 05 split helper selftest packet
-        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
-      - name: Self-test current Phase 2 fixdep gate checker
-        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
-"""
-    check_workflow(good_workflow)
-    case_count = 1
-
-    for broken_text, expected in (
-        (
-            good_workflow.replace(
-                "      - name: Self-test current split pinned Zig archive helper\n"
-                "        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test\n",
-                "",
-                1,
-            ),
-            SPLIT_HELPER_SELF_TEST_STEP,
-        ),
-        (
-            good_workflow.replace(
-                "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test\n",
-                "",
-                1,
-            ),
-            SPLIT_HELPER_CHECKER_SELF_TEST_CMD,
-        ),
-        (
-            good_workflow.replace(
-                "      - name: Check current Lane 05 split helper selftest packet\n"
-                "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py\n",
-                "",
-                1,
-            ),
-            SPLIT_HELPER_PACKET_STEP,
-        ),
-        (
-            good_workflow.replace(
-                "      - name: Check current Lane 05 stage helper selftest packet\n"
-                "        run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py\n",
-                "",
-                1,
-            ),
-            STAGE_HELPER_PACKET_STEP,
-        ),
-    ):
-        try:
-            check_workflow(broken_text)
-        except SystemExit as exc:
-            assert expected in str(exc), str(exc)
-            case_count += 1
-        else:
-            raise AssertionError(f"expected failure for {expected}")
-
-    duplicate_step = good_workflow.replace(
-        "      - name: Self-test current split pinned Zig archive helper\n",
-        "      - name: Self-test current split pinned Zig archive helper\n"
-        "      - name: Self-test current split pinned Zig archive helper\n",
-        1,
-    )
-    try:
-        check_workflow(duplicate_step)
-    except SystemExit as exc:
-        assert SPLIT_HELPER_SELF_TEST_STEP in str(exc), str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected duplicate split helper step failure")
-
-    reordered_steps = good_workflow.replace(
-        "      - name: Self-test current split pinned Zig archive helper\n"
-        "        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test\n"
-        "      - name: Self-test current Lane 05 split helper selftest checker\n"
-        "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test\n",
-        "      - name: Self-test current Lane 05 split helper selftest checker\n"
-        "        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test\n"
-        "      - name: Self-test current split pinned Zig archive helper\n"
-        "        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test\n",
-        1,
-    )
-    try:
-        check_workflow(reordered_steps)
-    except SystemExit as exc:
-        assert "lane05 step order" in str(exc), str(exc)
-        case_count += 1
-    else:
-        raise AssertionError("expected reordered split-helper steps failure")
-
     with tempfile.TemporaryDirectory(prefix="lane05_bootstrap_split_helper_packet_") as tmp_dir:
         sample_root = Path(tmp_dir)
         write_sample_root(sample_root)
-        check_workflow((sample_root / WORKFLOW_PATH).read_text(encoding="utf-8"))
-        case_count += 1
+        good_workflow = (sample_root / WORKFLOW_PATH).read_text(encoding="utf-8")
+        check_workflow(good_workflow)
+        case_count = 1
+
+        for broken_text, expected in (
+            (
+                good_workflow.replace(
+                    f"      {SPLIT_HELPER_SELF_TEST_STEP}\n        run: {SPLIT_HELPER_SELF_TEST_CMD}\n",
+                    "",
+                    1,
+                ),
+                SPLIT_HELPER_SELF_TEST_STEP,
+            ),
+            (
+                good_workflow.replace(
+                    f"        run: {SPLIT_HELPER_CHECKER_SELF_TEST_CMD}\n",
+                    "",
+                    1,
+                ),
+                SPLIT_HELPER_CHECKER_SELF_TEST_CMD,
+            ),
+            (
+                good_workflow.replace(
+                    f"      {SPLIT_HELPER_PACKET_STEP}\n        run: {SPLIT_HELPER_PACKET_CMD}\n",
+                    "",
+                    1,
+                ),
+                SPLIT_HELPER_PACKET_STEP,
+            ),
+            (
+                good_workflow.replace(
+                    f"      {STAGE_HELPER_PACKET_STEP}\n        run: {STAGE_HELPER_PACKET_CMD}\n",
+                    "",
+                    1,
+                ),
+                STAGE_HELPER_PACKET_STEP,
+            ),
+            (
+                good_workflow.replace(
+                    f"      {BOOTSTRAP_CHECKER_SELF_TEST_STEP}\n        run: {BOOTSTRAP_CHECKER_SELF_TEST_CMD}\n",
+                    "",
+                    1,
+                ),
+                BOOTSTRAP_CHECKER_SELF_TEST_STEP,
+            ),
+            (
+                good_workflow.replace(
+                    f"      {BOOTSTRAP_PACKET_STEP}\n        run: {BOOTSTRAP_PACKET_CMD}\n",
+                    "",
+                    1,
+                ),
+                BOOTSTRAP_PACKET_STEP,
+            ),
+        ):
+            try:
+                check_workflow(broken_text)
+            except SystemExit as exc:
+                assert expected in str(exc), str(exc)
+                case_count += 1
+            else:
+                raise AssertionError(f"expected failure for {expected}")
+
+        duplicate_step = good_workflow.replace(
+            f"      {SPLIT_HELPER_SELF_TEST_STEP}\n",
+            f"      {SPLIT_HELPER_SELF_TEST_STEP}\n      {SPLIT_HELPER_SELF_TEST_STEP}\n",
+            1,
+        )
+        try:
+            check_workflow(duplicate_step)
+        except SystemExit as exc:
+            assert SPLIT_HELPER_SELF_TEST_STEP in str(exc), str(exc)
+            case_count += 1
+        else:
+            raise AssertionError("expected duplicate split helper step failure")
+
+        reordered_steps = good_workflow.replace(
+            f"      {SPLIT_HELPER_PACKET_STEP}\n        run: {SPLIT_HELPER_PACKET_CMD}\n"
+            f"      {BOOTSTRAP_CHECKER_SELF_TEST_STEP}\n        run: {BOOTSTRAP_CHECKER_SELF_TEST_CMD}\n",
+            f"      {BOOTSTRAP_CHECKER_SELF_TEST_STEP}\n        run: {BOOTSTRAP_CHECKER_SELF_TEST_CMD}\n"
+            f"      {SPLIT_HELPER_PACKET_STEP}\n        run: {SPLIT_HELPER_PACKET_CMD}\n",
+            1,
+        )
+        try:
+            check_workflow(reordered_steps)
+        except SystemExit as exc:
+            assert "lane05 step order" in str(exc), str(exc)
+            case_count += 1
+        else:
+            raise AssertionError("expected reordered bootstrap checker failure")
 
     print("LANE05_BOOTSTRAP_SPLIT_HELPER_PACKET_SELF_TEST=pass")
     print(f"LANE05_BOOTSTRAP_SPLIT_HELPER_PACKET_SELF_TEST_CASE_COUNT={case_count}")
