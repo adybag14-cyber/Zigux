@@ -24,6 +24,8 @@ BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 DUMP_PATH = Path("zigux/tests/phase3_policy_dump.zig")
 DUMP_BUILD_PATH = Path("zigux/tests/phase3_policy_dump_build.zig")
 DUMP_EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_policy_dump_expected.txt")
+POLICY_UNSAFE_REPLAY_PATH = Path("zigux/tests/phase3_policy_unsafe.zig")
+POLICY_UNSAFE_REPLAY_BUILD_PATH = Path("zigux/tests/phase3_policy_unsafe_build.zig")
 DUMP_CHECKER_PATH = Path("scripts/zigux/check-phase3-policy-dump.py")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
 POLICY_UNSAFE_SURVEY_CHECKER_PATH = Path(
@@ -57,6 +59,8 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase3_policy_dump.zig",
     "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
+    "zigux/tests/phase3_policy_unsafe.zig",
+    "zigux/tests/phase3_policy_unsafe_build.zig",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-policy-dump.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -74,6 +78,8 @@ REQUIRED_REPLAY_ROUTES = (
     "make -C zigux phase3-policy-dump",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+    "make -C zigux phase3-policy-unsafe-test",
     "make -C zigux phase3",
 )
 
@@ -222,6 +228,8 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase3_policy_dump.zig"',
         '"zigux/tests/phase3_policy_dump_build.zig"',
         '"zigux/tests/fixtures/phase3_policy_dump_expected.txt"',
+        '"zigux/tests/phase3_policy_unsafe.zig"',
+        '"zigux/tests/phase3_policy_unsafe_build.zig"',
         '"scripts/zigux/check-phase3-policy-dump.py"',
         '"scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
@@ -229,8 +237,9 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"',
         '"zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"',
+        '"zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig"',
         '"make -C zigux phase3-policy-starter-packet-test"',
-        '"make -C zigux phase3-policy-dump"',
+        '"make -C zigux phase3-policy-unsafe-test"',
         '"make -C zigux phase3"',
     ),
 }
@@ -240,7 +249,7 @@ SELF_TEST_CASES = (
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_SCOPE=this slice proves shared InteropPolicy layout assertions, panic escalation, allocator-init ownership, and unsafe-scope reviewability by cross-checking the helper-local decoder against zigux/unsafe/narrow.zig, including the newer whole-policy and byte-level review entry points, and by replaying one focused policy dump that now also proves raw-pointer bridge reads and writes over the same bounded records without widening into unsafe wrappers, runtime shims, or broader export-boundary claims"),
     (POLICY_NOTE_PATH, "zigux/tests/phase3_policy_dump.zig"),
     (POLICY_NOTE_PATH, "python3 scripts/zigux/check-phase3-policy-dump.py --self-test"),
-    (POLICY_NOTE_PATH, "Current `master` now separately serves the shared ABI core replay through `zigux/tests/phase3_abi.zig`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and the shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`"),
+    (POLICY_NOTE_PATH, "Current `master` now separately serves the shared ABI core replay through `zigux/tests/phase3_abi.zig`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and the shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`") ,
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
     (VALIDATOR_NOTE_PATH, "Current `master` also directly serves the same focused policy slice through the reviewer-readable dump route at `zigux/tests/phase3_policy_dump.zig`, `zigux/tests/phase3_policy_dump_build.zig`, `zigux/tests/fixtures/phase3_policy_dump_expected.txt`, and `scripts/zigux/check-phase3-policy-dump.py`, so the bounded policy packet now exposes both its starter replay and its focused dump companion without widening this note into MMIO, low-level-wrapper, or broader runtime-shim ownership."),
     (SHARED_REMINDER_GAP_PATH, UPDATED_SHARED_REMINDER_MARKER),
@@ -260,7 +269,10 @@ SELF_TEST_CASES = (
     (MANIFEST_PATH, '"scripts/zigux/validate-phase3-policy-unsafe-survey.py"'),
     (MANIFEST_PATH, '"python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"'),
     (MANIFEST_PATH, '"zigux/tests/phase3_policy_dump.zig"'),
+    (MANIFEST_PATH, '"zigux/tests/phase3_policy_unsafe.zig"'),
+    (MANIFEST_PATH, '"zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig"'),
     (MANIFEST_PATH, '"make -C zigux phase3-policy-starter-packet-test"'),
+    (MANIFEST_PATH, '"make -C zigux phase3-policy-unsafe-test"'),
     (MANIFEST_PATH, '"make -C zigux phase3"'),
 )
 
