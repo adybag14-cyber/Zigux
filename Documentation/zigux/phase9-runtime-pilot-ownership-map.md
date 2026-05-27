@@ -7,13 +7,14 @@ This note keeps the shared Phase 9 delivery packet explicit without widening cur
 - `PHASE9_RUNTIME_PILOT_MANIFEST=zigux/tests/runtime_pilot_manifest.json`
 - `PHASE9_RUNTIME_PILOT_CATALOG=scripts/zigux/phase9_catalog.py`
 - `PHASE9_RUNTIME_PILOT_CATALOG_SELFTEST=scripts/zigux/check-phase9-catalog-selftest.py`
+- `PHASE9_RUNTIME_PILOT_VALIDATOR=scripts/zigux/validate-phase9.py`
 - `PHASE9_RUNTIME_PILOT_SCRIPTS_ROOT=scripts/zigux/README.md`
 - `PHASE9_RUNTIME_PILOT_SHARED_NOTE=Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `PHASE9_RUNTIME_PILOT_SHARED_BUILD=zigux/tests/phase9_build.zig`
 
 ## Shared Owner Packet
 
-These files describe the shared reminder, review, and rerun surfaces for the whole Phase 9 runtime pilot lane:
+These files describe the shared reminder, review, rerun, and validation surfaces for the whole Phase 9 runtime pilot lane:
 
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `Documentation/zigux/phase9-runtime-pilot-ownership-map.md`
@@ -22,6 +23,7 @@ These files describe the shared reminder, review, and rerun surfaces for the who
 - `scripts/zigux/README.md`
 - `scripts/zigux/phase9_catalog.py`
 - `scripts/zigux/check-phase9-catalog-selftest.py`
+- `scripts/zigux/validate-phase9.py`
 - `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
 - `scripts/zigux/check-phase9-freeze-map-study-boundaries.py`
 - `zigux/tests/runtime_pilot_manifest.json`
