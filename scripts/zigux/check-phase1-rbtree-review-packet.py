@@ -495,7 +495,7 @@ def run_self_test() -> int:
         safe_name = name.replace("/", "_")
         with tempfile.TemporaryDirectory(prefix=f"phase1-rbtree-review-{safe_name}-") as tmpdir:
             root = Path(tmpdir)
-            build_sample_repo(root)
+            build_sampleRepo(root)
 
             if isinstance(target, tuple) and target[0] in {"helper_text", "smoke_text", "lane_text"}:
                 path_map = {
@@ -519,7 +519,7 @@ def run_self_test() -> int:
             elif isinstance(target, tuple) and target[0] == "duplicate_json_text":
                 insert_duplicate_json_line(root, target[1], target[2], target[3])
             elif isinstance(target, tuple) and target[0] == "invalid_json":
-                (root / target[1]).writeText("{\n", encoding="utf-8")
+                (root / target[1]).write_text("{\n", encoding="utf-8")
             elif isinstance(target, tuple) and target[0] == "missing_file":
                 (root / target[1]).unlink()
             else:
