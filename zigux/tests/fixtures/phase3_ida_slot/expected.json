@@ -1,0 +1,66 @@
+{
+  "word_bits": 64,
+  "inline_bit_capacity": 63,
+  "cases": [
+    {
+      "name": "empty",
+      "kind": "empty",
+      "raw_hex": "0x0",
+      "inline_mask": null,
+      "inline_bit_count": null,
+      "first_inline_bit": null,
+      "bitmap_pointer": null,
+      "unexpected_error": null
+    },
+    {
+      "name": "inline_one",
+      "kind": "inline_bits",
+      "raw_hex": "0x3",
+      "inline_mask": 1,
+      "inline_bit_count": 1,
+      "first_inline_bit": 0,
+      "bitmap_pointer": null,
+      "unexpected_error": null
+    },
+    {
+      "name": "inline_sparse",
+      "kind": "inline_bits",
+      "raw_hex": "0x425",
+      "inline_mask": 530,
+      "inline_bit_count": 3,
+      "first_inline_bit": 1,
+      "bitmap_pointer": null,
+      "unexpected_error": null
+    },
+    {
+      "name": "inline_top",
+      "kind": "inline_bits",
+      "raw_hex": "0x8000000000000001",
+      "inline_mask": 4611686018427387904,
+      "inline_bit_count": 1,
+      "first_inline_bit": 62,
+      "bitmap_pointer": null,
+      "unexpected_error": null
+    },
+    {
+      "name": "bitmap_pointer",
+      "kind": "bitmap_pointer",
+      "raw_hex": "0x4000",
+      "inline_mask": null,
+      "inline_bit_count": null,
+      "first_inline_bit": null,
+      "bitmap_pointer": 16384,
+      "unexpected_error": null
+    },
+    {
+      "name": "unexpected_err",
+      "kind": "unexpected_err",
+      "raw_hex": "0xffffffffffffffea",
+      "inline_mask": null,
+      "inline_bit_count": null,
+      "first_inline_bit": null,
+      "bitmap_pointer": null,
+      "unexpected_error": -22
+    }
+  ]
+}
