@@ -127,15 +127,15 @@ def run_self_test() -> int:
 
         guide.write_text(
             original.replace(
-                "python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py",
-                "python3 scripts/zigux/check-phase10-docs-readme-shared-packet-missing.py",
+                "python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py --self-test",
+                "python3 scripts/zigux/check-phase10-docs-readme-shared-packet-missing.py --self-test",
                 1,
             ),
             encoding="utf-8",
         )
         expect_contains(
             validate(root)[1],
-            "route:python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py",
+            "route:python3 scripts/zigux/check-phase10-docs-readme-shared-packet.py --self-test",
             "phase10-review-guide-self-test",
         )
         cases += 1
