@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L10",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-23",
+  "surveyed_commit": "master-readback-2026-05-27",
   "anchor": "security/landlock/ruleset.c",
   "roadmap_destinations": [
     "security/landlock/ruleset.zig",
@@ -12,7 +12,7 @@
     "current_phase13_build_present": false,
     "current_ruleset_zig_present": true,
     "current_phase13_landlock_ruleset_slice_present": false,
-    "current_phase13_landlock_ruleset_ownership_present": false,
+    "current_phase13_landlock_ruleset_ownership_present": true,
     "current_phase13_landlock_ruleset_survey_present": true,
     "current_phase13_landlock_ruleset_test_present": true,
     "current_landlock_ruleset_packet_checker_present": true,
@@ -24,7 +24,7 @@
       "status": "blocked_on_missing_shared_build_surface",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "Current master still does not materialize the older shared Phase 13 build packet, so the ruleset lane stays on the shipped helper-local survey, direct replay, manifest, and checker instead of pretending the wider shared replay surface is already back."
+      "why_now": "Current master still does not materialize the older shared Phase 13 build packet, so the ruleset lane stays on the shipped helper-local ownership note, survey, direct replay, manifest, and checker instead of pretending the wider shared replay surface is already back."
     },
     {
       "id": "phase13-landlock-ruleset-helper-starter",
@@ -34,11 +34,18 @@
       "why_now": "Current master ships a bounded Landlock ruleset helper lab for planRulesetCreation(), planRuleTreeSearch(), and planInsertRuleBranch(), keeping access-mask capture, search-path reviewability, fresh-insert planning, matched level-zero access-extension planning, and matched-rule layer-append planning explicit without claiming live rb-tree mutation or hierarchy ownership."
     },
     {
+      "id": "phase13-landlock-ruleset-ownership-note",
+      "status": "starter_landed",
+      "kind": "review_surface",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
+      "why_now": "Current master now materializes a helper-local ownership note so ruleset helper review boundaries stay explicit beside the survey, direct replay, manifest, and dedicated checker without pretending live rb-tree or hierarchy ownership moved into Zigux."
+    },
+    {
       "id": "phase13-landlock-ruleset-survey-note",
       "status": "starter_landed",
       "kind": "review_surface",
       "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-survey.md",
-      "why_now": "The shipped survey note keeps the ruleset helper packet rereadable as its own current-master review surface beside the direct replay, manifest, and dedicated checker without pretending the missing companion note pair has already returned."
+      "why_now": "The shipped survey note keeps the ruleset helper packet rereadable as its own current-master review surface beside the ownership note, direct replay, manifest, and dedicated checker without pretending the missing slice-note companion has already returned."
     },
     {
       "id": "phase13-landlock-ruleset-direct-test-gate",
@@ -52,7 +59,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
-      "why_now": "The current packet checker fail-closes on the helper, survey, direct replay, and manifest so the ruleset lane stays truthful even while the older slice-note and ownership-note companions remain absent on current master."
+      "why_now": "The current packet checker fail-closes on the helper, ownership note, survey, direct replay, and manifest so the ruleset lane stays truthful even while the older slice-note companion remains absent on current master."
     },
     {
       "id": "phase13-landlock-ruleset-slice-note",
@@ -60,13 +67,6 @@
       "kind": "review_surface",
       "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-slice.md",
       "why_now": "Current master does not materialize the older helper-local slice note, so the ruleset packet must not count it as shipped evidence."
-    },
-    {
-      "id": "phase13-landlock-ruleset-ownership-note",
-      "status": "blocked_on_missing_review_surface",
-      "kind": "review_surface",
-      "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
-      "why_now": "Current master does not materialize the older helper-local ownership note, so the ruleset packet must keep helper-versus-live-tree ownership truth inside the survey, manifest, and checker instead of overclaiming that companion."
     },
     {
       "id": "phase13-landlock-live-tree-state",
