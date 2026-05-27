@@ -30,7 +30,7 @@ Within that bounded packet, current `master` keeps `validateProcFdinfoRoot()`, `
 
 The planning-only bridge surface now also keeps the bounded reopen-intent and token-open-intent packet explicit: `resolveReusePinnedMapAttempt()` records when the helper-only packet is ready for a reopen attempt without performing one, and `planTokenPreparation()` records when the same bounded packet is ready for a token-open attempt without materializing a token.
 
-The landed `fdinfo-path-and-reuse-name-footholds` slice therefore now mirrors the manifest rationale exactly: This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, full fdinfo map-info parsing, and reuse comparison logic deferred.
+The landed `fdinfo-path-and-reuse-name-footholds` slice therefore now mirrors the manifest rationale exactly: This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while leaving direct procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, and descriptor ownership side effects to the deferred file-path-and-handle bridge boundary.
 
 The neighboring `fdinfo-map-info-helpers` slice now stays explicit as landed helper-only bridge proof rather than queued groundwork: current helper source already keeps proc-fdinfo pathname shaping, fdinfo line splitting, numeric map-info decoding, and compact completion summaries reviewable without crossing into direct procfs reads, descriptor ownership, or pinned-object reopen flow.
 
