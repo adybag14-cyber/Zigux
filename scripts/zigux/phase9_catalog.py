@@ -26,6 +26,7 @@ EXPECTED_PACKET_FILES = (
     "scripts/zigux/README.md",
     "scripts/zigux/phase9_catalog.py",
     "scripts/zigux/check-phase9-catalog-selftest.py",
+    "scripts/zigux/validate-phase9.py",
     "scripts/zigux/check-phase9-runtime-loader-shared-packet.py",
     "scripts/zigux/check-phase9-atomic64-runtime-packet.py",
     "scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
@@ -75,6 +76,8 @@ EXPECTED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase9-catalog-selftest.py --self-test",
     "python3 scripts/zigux/check-phase9-catalog-selftest.py",
     "python3 scripts/zigux/phase9_catalog.py --pretty",
+    "python3 scripts/zigux/validate-phase9.py --self-test",
+    "python3 scripts/zigux/validate-phase9.py",
     "python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py --self-test",
     "python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py",
     "python3 scripts/zigux/check-phase9-atomic64-runtime-packet.py --self-test",
@@ -249,15 +252,14 @@ def _manifest_payload() -> dict[str, object]:
         "lane_key": PHASE9_CATALOG_LANE,
         "slug": "phase9-runtime-pilot-shared-packet",
         "status": "shared_runtime_pilot_delivery_evidence_present",
-        "scope": "shared reminder, manifest, catalog, and ownership surfaces for the atomic64 pilot packet, the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
+        "scope": "shared reminder, manifest, catalog, ownership, and validation surfaces for the atomic64 pilot packet, the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
         "ownership_map_path": OWNERSHIP_MAP_PATH.as_posix(),
         "packet_files": list(EXPECTED_PACKET_FILES),
         "replay_routes": list(EXPECTED_REPLAY_ROUTES),
         "repo_reality_gaps": [
-            "no dedicated shared validate-phase9.py rerun path on current master",
             "blocked publication and install-root vocabulary remains historical rather than direct shipped proof",
         ],
-        "next_safe_step": "keep the dedicated runtime-loader shared checker aligned with the manifest and the existing loader packet without widening runtime behavior claims or pretending blocked publication surfaces returned",
+        "next_safe_step": "keep the shared Phase 9 validator and runtime-loader shared checker aligned with the manifest and the existing loader packet without widening runtime behavior claims or pretending blocked publication surfaces returned",
     }
 
 
