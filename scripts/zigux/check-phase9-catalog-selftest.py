@@ -56,6 +56,13 @@ README_MARKERS = (
     "python3 scripts/zigux/check-phase9-catalog-selftest.py --self-test",
     "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
     "zigux/tests/runtime_pilot_manifest.json",
+    "scripts/zigux/validate-phase9.py",
+    "python3 scripts/zigux/validate-phase9.py --self-test",
+    "python3 scripts/zigux/validate-phase9.py",
+)
+
+README_FORBIDDEN_MARKERS = (
+    "there is still no dedicated shared `validate-phase9.py` rerun path",
 )
 
 MANIFEST_MARKERS = (
@@ -108,6 +115,13 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+
+    readme_path = repo_root / README_PATH
+    if readme_path.is_file():
+        readme_text = _read(readme_path)
+        for marker in README_FORBIDDEN_MARKERS:
+            if marker in readme_text:
+                issues.append(f"stale {README_PATH.as_posix()} marker: {marker}")
     return issues
 
 
@@ -180,13 +194,27 @@ def run_self_test() -> int:
                 return 1
 
         _populate_repo(root)
+        readme_path = root / README_PATH
+        _write(
+            readme_path,
+            _read(readme_path)
+            + "there is still no dedicated shared `validate-phase9.py` rerun path\n",
+        )
+        expected_stale = (
+            "stale scripts/zigux/README.md marker: "
+            "there is still no dedicated shared `validate-phase9.py` rerun path"
+        )
+        if _expect_issue(root, expected_stale, "expected stale README validator denial was not reported") != 0:
+            return 1
+
+        _populate_repo(root)
         (root / MANIFEST_PATH).unlink()
         expected_missing = "missing repo file: zigux/tests/runtime_pilot_manifest.json"
         if _expect_issue(root, expected_missing, "expected missing manifest file was not reported") != 0:
             return 1
 
     print("PHASE9_CATALOG_PACKET_SELF_TEST=pass")
-    print("PHASE9_CATALOG_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE9_CATALOG_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
