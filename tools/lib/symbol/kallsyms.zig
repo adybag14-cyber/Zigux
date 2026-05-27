@@ -38,7 +38,10 @@ pub fn isFunction(symbol_type: u8) bool {
 }
 
 fn normalizeName(name: []const u8) []const u8 {
-    return if (name.len > KSYM_NAME_LEN) name[0..KSYM_NAME_LEN] else name;
+    var end = name.len;
+    while (end != 0 and name[end - 1] == '\r') : (end -= 1) {}
+    const trimmed = name[0..end];
+    return if (trimmed.len > KSYM_NAME_LEN) trimmed[0..KSYM_NAME_LEN] else trimmed;
 }
 
 pub fn parseLine(line: []const u8) ?ParsedSymbol {
@@ -197,29 +200,6 @@ pub fn forEachParsedFile(
     try forEachParsedReader(allocator, &adapter, scratch_buffer, process_context, process_symbol);
 }
 
-const CallbackState = struct {
-    context: ?*anyopaque,
-    process_symbol: ProcessSymbolFn,
-    result: i32 = 0,
-
-    fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
-        var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
-        @memcpy(name_buffer[0..symbol.name.len], symbol.name);
-        name_buffer[symbol.name.len] = 0;
-
-        const callback_result = self.process_symbol(
-            self.context,
-            name_buffer[0..symbol.name.len :0],
-            symbol.symbol_type,
-            symbol.start,
-        );
-        if (callback_result != 0) {
-            self.result = callback_result;
-            return error.StopParsing;
-        }
-    }
-};
-
 pub fn kallsymsParseFile(
     allocator: std.mem.Allocator,
     io: std.Io,
@@ -277,6 +257,29 @@ pub fn kallsymsParse(
     return kallsymsParseFile(allocator, io, file, &scratch_buffer, context, process_symbol);
 }
 
+const CallbackState = struct {
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+    result: i32 = 0,
+
+    fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
+        var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
+        @memcpy(name_buffer[0..symbol.name.len], symbol.name);
+        name_buffer[symbol.name.len] = 0;
+
+        const callback_result = self.process_symbol(
+            self.context,
+            name_buffer[0..symbol.name.len :0],
+            symbol.symbol_type,
+            symbol.start,
+        );
+        if (callback_result != 0) {
+            self.result = callback_result;
+            return error.StopParsing;
+        }
+    }
+};
+
 const ChunkFixtureState = struct {
     chunks: []const []const u8,
     index: usize = 0,
@@ -298,6 +301,8 @@ test "kallsyms helpers preserve classification and malformed-line behavior" {
     const parsed = parseLine("ffffffff81000000 T startup_64") orelse unreachable;
     try std.testing.expectEqual(@as(u64, 0xffffffff81000000), parsed.start);
     try std.testing.expectEqualStrings("startup_64", parsed.name);
+    const crlf_parsed = parseLine("ffffffff81000000 T startup_64\r") orelse unreachable;
+    try std.testing.expectEqualStrings("startup_64", crlf_parsed.name);
     try std.testing.expectEqual(@as(?ParsedSymbol, null), parseLine(""));
     try std.testing.expectEqual(@as(?ParsedSymbol, null), parseLine("not-hex T broken"));
 }
@@ -362,7 +367,7 @@ test "chunked parsing preserves split records and truncates oversized names" {
 
     try forEachParsedChunked(std.testing.allocator, &state, nextFixtureChunk, &parsed, Collector.append);
     try std.testing.expectEqual(@as(usize, 2), parsed.items.len);
-    try std.testing.expectEqualStrings("startup_64\r", parsed.items[0].name);
+    try std.testing.expectEqualStrings("startup_64", parsed.items[0].name);
     try std.testing.expectEqualStrings("weak_tail", parsed.items[1].name);
 
     for (parsed.items) |*symbol| symbol.deinit(std.testing.allocator);
@@ -435,7 +440,7 @@ test "chunked parsing bounds oversized line buffering to the current helper wind
     try std.testing.expectEqualStrings("done", parsed.items[1].name);
 }
 
-test "reader, path, and callback wrappers preserve raw carriage returns before newline" {
+test "reader, path, and callback wrappers normalize carriage returns before newline" {
     const SliceReader = struct {
         bytes: []const u8,
         index: usize = 0,
@@ -484,8 +489,8 @@ test "reader, path, and callback wrappers preserve raw carriage returns before n
 
     try forEachParsedReader(std.testing.allocator, &reader, &scratch_buffer, &parsed, Collector.append);
     try std.testing.expectEqual(@as(usize, 2), parsed.items.len);
-    try std.testing.expectEqualStrings("startup_64\r", parsed.items[0].name);
-    try std.testing.expectEqualStrings("weak_handler\r", parsed.items[1].name);
+    try std.testing.expectEqualStrings("startup_64", parsed.items[0].name);
+    try std.testing.expectEqualStrings("weak_handler", parsed.items[1].name);
 
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
@@ -513,8 +518,8 @@ test "reader, path, and callback wrappers preserve raw carriage returns before n
         Collector.append,
     );
     try std.testing.expectEqual(@as(usize, 2), parsed.items.len);
-    try std.testing.expectEqualStrings("startup_64\r", parsed.items[0].name);
-    try std.testing.expectEqualStrings("weak_handler\r", parsed.items[1].name);
+    try std.testing.expectEqualStrings("startup_64", parsed.items[0].name);
+    try std.testing.expectEqualStrings("weak_handler", parsed.items[1].name);
 
     const CallbackStateForTest = struct {
         names: std.ArrayList([]u8),
@@ -559,6 +564,6 @@ test "reader, path, and callback wrappers preserve raw carriage returns before n
     );
     try std.testing.expectEqual(@as(i32, 23), result);
     try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
-    try std.testing.expectEqualStrings("startup_64\r", callback_state.names.items[0]);
-    try std.testing.expectEqualStrings("weak_handler\r", callback_state.names.items[1]);
+    try std.testing.expectEqualStrings("startup_64", callback_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", callback_state.names.items[1]);
 }
