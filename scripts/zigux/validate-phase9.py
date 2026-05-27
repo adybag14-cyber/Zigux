@@ -16,6 +16,7 @@ ROOT = _FILE_PATH.parents[2] if len(_FILE_PATH.parents) > 2 else _FILE_PATH.pare
 LANE_NOTE_PATH = Path("Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md")
 OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")
 MODULE_METADATA_SURVEY_PATH = Path("Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md")
+README_PATH = Path("scripts/zigux/README.md")
 CATALOG_PATH = Path("scripts/zigux/phase9_catalog.py")
 CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase9-catalog-selftest.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase9.py")
@@ -41,6 +42,7 @@ REQUIRED_FILES = (
     LANE_NOTE_PATH,
     OWNERSHIP_MAP_PATH,
     MODULE_METADATA_SURVEY_PATH,
+    README_PATH,
     CATALOG_PATH,
     CATALOG_SELFTEST_PATH,
     VALIDATOR_PATH,
@@ -158,6 +160,16 @@ REQUIRED_OWNERSHIP_MARKERS = (
     "PHASE9_RUNTIME_PILOT_BLOCKED_DEPMOD_BRIDGE_SURVEY=Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
 )
 
+REQUIRED_README_MARKERS = (
+    "scripts/zigux/validate-phase9.py",
+    "python3 scripts/zigux/validate-phase9.py --self-test",
+    "python3 scripts/zigux/validate-phase9.py",
+)
+
+FORBIDDEN_README_MARKERS = (
+    "there is still no dedicated shared `validate-phase9.py` rerun path",
+)
+
 
 class ValidationError(RuntimeError):
     pass
@@ -228,6 +240,14 @@ def validate(root: Path) -> None:
     if MODULE_METADATA_SURVEY_PATH.as_posix() not in ownership_map:
         raise ValidationError("phase9 ownership-map module-metadata survey drift")
 
+    readme_text = _read(root / README_PATH)
+    for marker in REQUIRED_README_MARKERS:
+        if marker not in readme_text:
+            raise ValidationError(f"phase9 scripts README validator marker missing: {marker}")
+    for marker in FORBIDDEN_README_MARKERS:
+        if marker in readme_text:
+            raise ValidationError(f"phase9 scripts README stale validator denial: {marker}")
+
     catalog_result = _run_python(root, [str(root / CATALOG_PATH), "--pretty"])
     if catalog_result.returncode != 0:
         detail = catalog_result.stderr.strip() or catalog_result.stdout.strip() or f"exit {catalog_result.returncode}"
@@ -256,7 +276,17 @@ def _populate_fixture(root: Path) -> None:
         )
         + "\n",
     )
-    _write(root / CATALOG_PATH, "\n".join(("from __future__ import annotations", "print('{}')")) + "\n")
+    _write(
+        root / README_PATH,
+        "\n".join(
+            (
+                "scripts/zigux/validate-phase9.py",
+                "python3 scripts/zigux/validate-phase9.py --self-test",
+                "python3 scripts/zigux/validate-phase9.py",
+            )
+        )
+        + "\n",
+    )
     _write(
         root / MANIFEST_PATH,
         json.dumps(
@@ -390,6 +420,15 @@ def run_self_test() -> None:
             root / OWNERSHIP_MAP_PATH,
             "PHASE9_RUNTIME_PILOT_VALIDATOR=scripts/zigux/validate-phase9.py",
             "PHASE9_RUNTIME_PILOT_VALIDATOR=scripts/zigux/phase9_catalog.py",
+        )
+        _expect_failure(root)
+        case_count += 1
+
+        _populate_fixture(root)
+        _write(
+            root / README_PATH,
+            _read(root / README_PATH)
+            + "there is still no dedicated shared `validate-phase9.py` rerun path\n",
         )
         _expect_failure(root)
         case_count += 1
