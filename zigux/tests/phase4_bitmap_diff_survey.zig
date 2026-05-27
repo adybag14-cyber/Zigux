@@ -65,7 +65,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_bitmap_diff_present);
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.live_gate_path);
-    try std.testing.expectEqualStrings("3acfd7cc1fb871d695e9289bc0712de38abc7fad", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("7b802d3d710426c6369e73dbdeee568a8c045221", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("zigux/tests/phase4_bitmap_live_helper_replay.zig", manifest.helper_replay_path);
     try std.testing.expectEqualStrings("375f7f5ac9dfecee48500cf52a4edbcd7cd02e2f", manifest.helper_replay_blob_sha);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
