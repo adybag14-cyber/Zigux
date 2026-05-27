@@ -3,9 +3,12 @@ const std = @import("std");
 pub const max_errno: usize = 4095;
 pub const err_floor: usize = @bitCast(-@as(isize, @intCast(max_errno)));
 
+pub fn canRepresentErrorCode(code: isize) bool {
+    return code <= -1 and code >= -@as(isize, @intCast(max_errno));
+}
+
 pub fn fromErrorCode(code: isize) usize {
-    std.debug.assert(code <= -1);
-    std.debug.assert(code >= -@as(isize, @intCast(max_errno)));
+    std.debug.assert(canRepresentErrorCode(code));
     return @bitCast(code);
 }
 
@@ -24,6 +27,10 @@ pub fn isOkValue(raw: usize) bool {
 
 comptime {
     std.debug.assert(max_errno == 4095);
+    std.debug.assert(canRepresentErrorCode(-1));
+    std.debug.assert(canRepresentErrorCode(-@as(isize, @intCast(max_errno))));
+    std.debug.assert(!canRepresentErrorCode(0));
+    std.debug.assert(!canRepresentErrorCode(-@as(isize, @intCast(max_errno)) - 1));
     std.debug.assert(isErrValue(err_floor));
     std.debug.assert(isOkValue(err_floor - 1));
 }
@@ -50,4 +57,24 @@ test "non-error values stay outside the err_ptr band" {
     try std.testing.expect(isOkValue(1));
     try std.testing.expect(!isErrValue(0));
     try std.testing.expect(!isErrValue(1));
+}
+
+test "error-code representability stays explicit at the lane boundaries" {
+    try std.testing.expect(canRepresentErrorCode(-1));
+    try std.testing.expect(canRepresentErrorCode(-@as(isize, @intCast(max_errno))));
+    try std.testing.expect(!canRepresentErrorCode(0));
+    try std.testing.expect(!canRepresentErrorCode(1));
+    try std.testing.expect(!canRepresentErrorCode(-@as(isize, @intCast(max_errno)) - 1));
+}
+
+test "representable error codes round-trip through the raw err_ptr lane" {
+    const samples = [_]isize{ -1, -22, -512, -@as(isize, @intCast(max_errno)) };
+
+    for (samples) |code| {
+        try std.testing.expect(canRepresentErrorCode(code));
+
+        const raw = fromErrorCode(code);
+        try std.testing.expect(isErrValue(raw));
+        try std.testing.expectEqual(code, toErrorCode(raw));
+    }
 }
