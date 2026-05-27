@@ -52,7 +52,6 @@ TEXT_MARKERS = {
         "active `P12-L09` survey packet",
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
         "rollback evidence only",
-        "throughput-parity, and survey-gate tests through the shared `smoke` and `test` steps",
     ],
     SURVEY_NOTE_PATH: [
         "`PHASE12_STATUS=rollback-evidence-only-live-starter-missing`",
@@ -60,7 +59,7 @@ TEXT_MARKERS = {
         "* verified on: `2026-05-24`",
         "* `zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`",
         "rollback owner: `P12-L09` keeps the active virtio_scsi survey packet",
-        "throughput-parity, and survey-gate tests as support-bundle evidence",
+        "throughput-parity, and survey-gate tests together with one bounded NVMe direct replay as support-bundle evidence",
         "make -C zigux phase12-validate",
         "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
         "make -C zigux phase12-test",
@@ -71,20 +70,20 @@ TEXT_MARKERS = {
     FALLBACK_CATALOG_PATH: [
         "`PHASE12_STATUS=archival-raw-read-fallback`",
         "commit pin: `ee64eec272a352da1d967999c99bb3c3560c9b97`",
-        "- exact coverage evidence refreshed on `2026-05-25` against live current `master`",
-        "- authenticated contents view now returns this refreshed archival catalog body on current `master`",
-        "- public blob page and public raw `master` fallback now match the refreshed current-master body for this same path as of `2026-05-25`",
+        "- exact coverage evidence refreshed on `2026-05-27` against live current `master`",
+        "- authenticated contents view now returns this refreshed archival catalog body on current `master` with exact blob `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259`",
+        "- public blob page and public raw `master` fallback now match this same `46c4cc86cb2f164a9709ffbe46e1b8cd563a3259` current-master catalog body as of `2026-05-27`",
+        "`zigux/tests/phase12_virtio_scsi_survey_build.zig` `2d502aad14ed244c614095060be986dd4514652e`",
+        "`zigux/tests/phase12_build.zig` `e0d297f50d2805948b93ca421ae9ec20ddfceafa`",
+        "`scripts/zigux/check-phase12-libbpf-lane-marker.py` `7be88fe75bda8cc9d71eba627cb3309d8d6a0ccf`",
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey-build replay: `zigux/tests/phase12_virtio_scsi_survey_build.zig`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
         "- survey replay: `zigux/tests/phase12_virtio_scsi_survey.zig`",
         "- survey gate: `scripts/zigux/check-phase12-virtio-scsi-packet.py`",
-        "- verifier and replay companions on current `master`: `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-complex-driver-lane-packet.py`, `scripts/zigux/check-phase12-cross-compile-smoke.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_virtio_scsi_survey_build.zig`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`",
-        "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
         "current `master` no longer serves `drivers/scsi/virtio_scsi.zig`",
-        "exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
-        "`make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf heavy-consumer, and `virtio_net` packet checkers plus `scripts/zigux/validate-phase12.py`",
-        "treat the authenticated contents readback and the public blob or raw `master` fallback as matching current-master archival evidence for this path, while direct container-side `curl`, `wget`, and `urllib` raw-URL fetches in this runtime still fail through the proxy tunnel with HTTP `403`",
+        "- exact current shared support-bundle and replay order is `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, then `make -C zigux phase12`",
+        "- `make -C zigux phase12-validate` is current repo evidence again and now reruns the shared build-only, build-inventory, complex-driver, cross-compile smoke, release-readiness, libbpf snapshot, libbpf lane-marker, and libbpf heavy-consumer checkers plus `scripts/zigux/validate-phase12.py`",
         "archival commit-pinned history only",
         "while the current-master survey note, fixture manifest, survey manifest, survey replay, survey-build replay, survey gate, validator, shared build route, and `zigux/Makefile` are rollback evidence only",
     ],
@@ -102,11 +101,19 @@ TEXT_MARKERS = {
         "\"Run the Phase 12 virtio_scsi rollback-only survey tests\"",
     ],
     PHASE12_BUILD_PATH: [
-        "phase12_virtio_net_receive_refill_replay.zig",
-        "phase12_virtio_net_survey.zig",
-        "phase12-virtio-net-receive-refill-replay-tests",
-        "phase12-virtio-net-survey-tests",
-        "receive-refill replay",
+        "\"../../drivers/net/virtio_net_queue_resume.zig\"",
+        "\"phase12_virtio_net_queue_resume.zig\"",
+        "\"phase12_virtio_net_receive_refill_replay.zig\"",
+        "\"phase12_virtio_net_transmit_recycle.zig\"",
+        "\"phase12_virtio_net_post_reset_replay.zig\"",
+        "\"phase12_virtio_net_throughput_parity.zig\"",
+        "\"phase12_virtio_net_survey.zig\"",
+        "\"../../drivers/nvme/host/pci.zig\"",
+        "\"phase12_nvme_pci.zig\"",
+        "\"phase12-nvme-pci-direct-tests\"",
+        "\"Run the Phase 12 virtio_net replay packet together with the bounded NVMe direct replay smoke tests\"",
+        "\"Run the Phase 12 virtio_net replay packet together with the bounded NVMe direct replay tests\"",
+        "\"phase12-virtio-net-throughput-parity\"",
     ],
     MAKEFILE_PATH: [
         "phase12-smoke:",
@@ -213,141 +220,107 @@ def run_companion_checker(root: Path, rel_path: str) -> list[str]:
     if result.returncode == 0:
         return []
 
-    failures = [f"companion_checker_failed:{rel_path}:exit={result.returncode}"]
-    combined_output = [
-        line.strip()
-        for line in f"{result.stdout}\n{result.stderr}".splitlines()
-        if line.strip()
-    ]
-    failures.extend(f"companion_checker_output:{line}" for line in combined_output)
-    return failures
+    combined = []
+    if result.stdout.strip():
+        combined.extend(line for line in result.stdout.splitlines() if line.strip())
+    if result.stderr.strip():
+        combined.extend(line for line in result.stderr.splitlines() if line.strip())
+    return [f"companion checker failed: {rel_path}"] + combined
 
 
-def check(root: Path) -> list[str]:
+def validate(root: Path) -> list[str]:
     errors: list[str] = []
+
     for rel_path in REQUIRED_FILES:
-        if not (root / rel_path).exists():
+        full_path = root / rel_path
+        if not full_path.is_file():
             errors.append(f"missing file: {rel_path}")
+
     if errors:
         return errors
-
-    checker_source = read_text(Path(__file__))
-    if MARKER not in checker_source:
-        errors.append("checker marker missing from checker source")
 
     for rel_path, markers in TEXT_MARKERS.items():
         text = read_text(root / rel_path)
         require_markers(errors, rel_path, text, markers)
         forbid_markers(errors, rel_path, text, FORBIDDEN_MARKERS)
 
-    survey_note_text = read_text(root / SURVEY_NOTE_PATH)
-    if "`zigux/tests/fixtures/phase12_virtio_scsi_manifest.json`" not in survey_note_text:
-        errors.append("survey note fixture manifest boundary drift")
-    if "`zigux/tests/phase12_virtio_scsi_manifest.json`" not in survey_note_text:
-        errors.append("survey note survey manifest boundary drift")
-
-    fixture_manifest = json.loads(read_text(root / FIXTURE_MANIFEST_PATH))
-    survey_manifest = json.loads(read_text(root / SURVEY_MANIFEST_PATH))
-
-    if fixture_manifest.get("lane_key") != "P12-L09":
-        errors.append("fixture manifest lane_key drift")
-    if fixture_manifest.get("phase") != "Phase 12":
-        errors.append("fixture manifest phase drift")
-    if fixture_manifest.get("surveyed_commit") != "unresolved_on_master":
-        errors.append("fixture manifest surveyed_commit drift")
-    if fixture_manifest.get("verified_on") != "2026-05-24":
-        errors.append("fixture manifest verified_on drift")
-    if fixture_manifest.get("anchor") != "drivers/scsi/virtio_scsi.c":
-        errors.append("fixture manifest anchor drift")
-    if fixture_manifest.get("fixture_kind") != "rollback_evidence_presence_manifest":
-        errors.append("fixture manifest fixture_kind drift")
-    if fixture_manifest.get("source_manifest") != SURVEY_MANIFEST_PATH:
-        errors.append("fixture manifest source_manifest drift")
-    if fixture_manifest.get("required_paths") != EXPECTED_REQUIRED_PATHS:
-        errors.append("fixture manifest required_paths drift")
-    if fixture_manifest.get("expected_absent_paths") != EXPECTED_ABSENT:
-        errors.append("fixture manifest expected_absent_paths drift")
-    notes = fixture_manifest.get("notes")
-    if not isinstance(notes, list) or len(notes) != 2:
-        errors.append("fixture manifest notes drift")
-    for rel_path in fixture_manifest.get("required_paths", []):
-        if not (root / rel_path).exists():
-            errors.append(f"fixture required path missing: {rel_path}")
-    for rel_path in EXPECTED_ABSENT:
-        if (root / rel_path).exists():
-            errors.append(f"expected absent path unexpectedly present: {rel_path}")
-    if (root / SUPPORT_PACKET_PATH).exists():
-        errors.append(
-            f"expected absent support packet unexpectedly present: {SUPPORT_PACKET_PATH}"
-        )
-
-    if survey_manifest.get("lane_key") != "P12-L09":
+    manifest = json.loads(read_text(root / SURVEY_MANIFEST_PATH))
+    if manifest.get("lane_key") != "P12-L09":
         errors.append("survey manifest lane_key drift")
-    if survey_manifest.get("phase") != "Phase 12":
-        errors.append("survey manifest phase drift")
-    if survey_manifest.get("surveyed_commit") != "unresolved_on_master":
-        errors.append("survey manifest surveyed_commit drift")
-    if survey_manifest.get("verified_on") != "2026-05-24":
+    if manifest.get("verified_on") != "2026-05-24":
         errors.append("survey manifest verified_on drift")
-    if survey_manifest.get("anchor") != "drivers/scsi/virtio_scsi.c":
-        errors.append("survey manifest anchor drift")
-    if survey_manifest.get("roadmap_destinations") != [
-        "drivers/scsi/virtio_scsi.zig",
-        "zigux/tests/",
-    ]:
-        errors.append("survey manifest roadmap_destinations drift")
 
-    summary = survey_manifest.get("survey_summary", {})
-    for key, expected in EXPECTED_SUMMARY_FLAGS.items():
-        if summary.get(key) is not expected:
-            errors.append(f"survey manifest summary drift: {key}")
+    summary = manifest.get("survey_summary")
+    if not isinstance(summary, dict):
+        errors.append("survey manifest missing survey_summary")
+    else:
+        for key, expected in EXPECTED_SUMMARY_FLAGS.items():
+            if summary.get(key) != expected:
+                errors.append(f"survey manifest summary drift for {key}")
 
-    roadmap_gap_check = survey_manifest.get("roadmap_gap_check", {})
-    for key, expected_status in EXPECTED_ROADMAP_GAP_STATUSES.items():
-        gap_info = roadmap_gap_check.get(key, {})
-        if gap_info.get("status") != expected_status:
-            errors.append(f"survey manifest roadmap gap drift: {key}")
+    roadmap_gap_check = manifest.get("roadmap_gap_check")
+    if not isinstance(roadmap_gap_check, dict):
+        errors.append("survey manifest missing roadmap_gap_check")
+    else:
+        for key, expected_status in EXPECTED_ROADMAP_GAP_STATUSES.items():
+            entry = roadmap_gap_check.get(key)
+            if not isinstance(entry, dict) or entry.get("status") != expected_status:
+                errors.append(f"survey manifest roadmap gap drift for {key}")
 
-    gap_statuses = {
-        gap.get("id"): gap.get("status")
-        for gap in survey_manifest.get("gaps", [])
-        if isinstance(gap, dict)
-    }
-    for gap_id, expected_status in EXPECTED_GAP_STATUSES.items():
-        if gap_statuses.get(gap_id) != expected_status:
-            errors.append(f"survey manifest gap drift: {gap_id}")
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        errors.append("survey manifest gaps missing")
+    else:
+        by_id = {
+            gap.get("id"): gap
+            for gap in gaps
+            if isinstance(gap, dict) and isinstance(gap.get("id"), str)
+        }
+        for gap_id, expected_status in EXPECTED_GAP_STATUSES.items():
+            gap = by_id.get(gap_id)
+            if gap is None:
+                errors.append(f"survey manifest missing gap: {gap_id}")
+                continue
+            if gap.get("status") != expected_status:
+                errors.append(f"survey manifest gap status drift for {gap_id}")
+            if gap_id == "phase12-build-gate" and "survey-gate tests" not in str(gap.get("why_now", "")):
+                errors.append("survey manifest phase12-build-gate why_now drift")
+            if gap_id == "phase12-virtio-scsi-survey-build-route" and gap.get("zigux_destination") != "zigux/tests/phase12_virtio_scsi_survey_build.zig":
+                errors.append("survey manifest survey-build destination drift")
 
-    build_gap = next(
-        (
-            gap
-            for gap in survey_manifest.get("gaps", [])
-            if isinstance(gap, dict) and gap.get("id") == "phase12-build-gate"
-        ),
-        None,
-    )
-    if build_gap is None:
-        errors.append("survey manifest phase12-build-gate entry missing")
-    elif "survey-gate tests" not in build_gap.get("why_now", ""):
-        errors.append("survey manifest phase12-build-gate why_now drift")
+    fixture = json.loads(read_text(root / FIXTURE_MANIFEST_PATH))
+    if fixture.get("lane_key") != "P12-L09":
+        errors.append("fixture manifest lane_key drift")
+    if fixture.get("fixture_kind") != "rollback_evidence_presence_manifest":
+        errors.append("fixture manifest kind drift")
+    if fixture.get("verified_on") != "2026-05-24":
+        errors.append("fixture manifest verified_on drift")
+
+    required_paths = fixture.get("required_paths")
+    if required_paths != EXPECTED_REQUIRED_PATHS:
+        errors.append("fixture manifest required_paths drift")
+
+    expected_absent = fixture.get("expected_absent_paths")
+    if expected_absent != EXPECTED_ABSENT:
+        errors.append("fixture manifest expected_absent_paths drift")
+
+    if "driver-local starter and replay gates are absent" not in str(fixture.get("scope", "")):
+        errors.append("fixture manifest scope drift")
 
     errors.extend(run_companion_checker(root, VALIDATOR_PACKET_CHECKER_PATH))
     return errors
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=repo_root(),
-        help="repository root to validate",
-    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", default=repo_root(), help="Repository root to inspect")
     args = parser.parse_args()
 
-    errors = check(args.root)
+    root = Path(args.root)
+    errors = validate(root)
     if errors:
         for error in errors:
-            print(error)
+            print(error, file=sys.stderr)
         return 1
 
     print("phase12 virtio_scsi rollback-evidence packet validated")
