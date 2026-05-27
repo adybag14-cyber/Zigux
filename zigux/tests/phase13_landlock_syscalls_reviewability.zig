@@ -37,59 +37,75 @@ test "phase13 landlock syscalls helper keeps the planner-expanded syscall packet
     try requireContains(helper, "FMODE_CAN_WRITE");
 }
 
-test "phase13 landlock syscalls docs promote the reviewability companion into current packet truth" {
+test "phase13 landlock syscalls direct replay covers the current planner packet" {
+    const direct = try readRepoFile(std.testing.allocator, "zigux/tests/phase13_landlock_syscalls.zig");
+    defer std.testing.allocator.free(direct);
+
+    try requireContains(direct, "phase13 landlock syscalls create-handle path reuses the fd install planner");
+    try requireContains(direct, "phase13 landlock syscalls restrict-self planner keeps logging and tsync flags explicit");
+    try requireContains(direct, "phase13 landlock syscalls add-rule planner reuses fd lookup and delegated tree helpers");
+    try requireContains(direct, "phase13 landlock syscalls stub and release helpers stay planning-only");
+    try requireContains(direct, "planLandlockCreateRuleset");
+    try requireContains(direct, "planLandlockRestrictSelf");
+    try requireContains(direct, "planLandlockAddRule");
+    try requireContains(direct, "planRulesetFdStub");
+    try requireContains(direct, "planFopRulesetRelease");
+}
+
+test "phase13 landlock syscalls docs promote the direct replay and reviewability companions into current packet truth" {
     const slice = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-landlock-syscalls-slice.md");
     defer std.testing.allocator.free(slice);
+    try requireContains(slice, "`zigux/tests/phase13_landlock_syscalls.zig`");
     try requireContains(slice, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
-    try requireContains(slice, "active materialized helper-local and reviewability packet companions");
-    try requireContains(slice, "`zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps");
-    try requireDoesNotContain(slice, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps");
+    try requireContains(slice, "active materialized helper-local, direct replay, and reviewability packet companions");
+    try requireContains(slice, "`zigux/tests/phase13_landlock_syscalls_manifest.json` and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps");
+    try requireDoesNotContain(slice, "`zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps");
 
     const governance = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-landlock-syscalls-governance.md");
     defer std.testing.allocator.free(governance);
-    try requireContains(governance, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
-    try requireContains(governance, "helper-local packet plus the direct reviewability companion");
+    try requireContains(governance, "helper-local packet plus the direct replay and direct reviewability companions");
     try requireContains(governance, "`zigux/tests/phase13_landlock_syscalls.zig`");
+    try requireContains(governance, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
     try requireContains(governance, "`zigux/tests/phase13_landlock_syscalls_manifest.json`");
     try requireDoesNotContain(governance, "`zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and `zigux/tests/phase13_build.zig`");
 }
 
-test "phase13 landlock syscalls survey and breadcrumb narrow the remaining gaps after reviewability lands" {
+test "phase13 landlock syscalls survey and breadcrumb narrow the remaining gaps after the direct replay lands" {
     const survey = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-landlock-syscalls-survey.md");
     defer std.testing.allocator.free(survey);
-    try requireContains(survey, "Current `master` now materializes this helper-local and reviewability packet through:");
+    try requireContains(survey, "Current `master` now materializes this helper-local, direct replay, and reviewability packet through:");
+    try requireContains(survey, "`zigux/tests/phase13_landlock_syscalls.zig`");
     try requireContains(survey, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
     try requireContains(survey, "Current `master` still leaves these directly coupled companions absent:");
-    try requireContains(survey, "`zigux/tests/phase13_landlock_syscalls.zig`");
     try requireContains(survey, "`zigux/tests/phase13_landlock_syscalls_manifest.json`");
-    try requireDoesNotContain(survey, "- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
+    try requireDoesNotContain(survey, "Current `master` still leaves these directly coupled companions absent:\n- `zigux/tests/phase13_landlock_syscalls.zig`");
 
     const survey_gap = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-landlock-syscalls-survey-gap.md");
     defer std.testing.allocator.free(survey_gap);
+    try requireContains(survey_gap, "`zigux/tests/phase13_landlock_syscalls.zig` as a returned direct replay companion");
     try requireContains(survey_gap, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig` as a returned reviewability companion");
-    try requireContains(survey_gap, "`zigux/tests/phase13_landlock_syscalls.zig`");
     try requireContains(survey_gap, "`zigux/tests/phase13_landlock_syscalls_manifest.json`");
-    try requireDoesNotContain(survey_gap, "- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
+    try requireDoesNotContain(survey_gap, "The remaining directly coupled gaps stay outside this bounded helper-local step:\n- `zigux/tests/phase13_landlock_syscalls.zig`");
 }
 
-test "phase13 roadmap traceability keeps the shared-subsystems anchor map honest after reviewability returns" {
+test "phase13 roadmap traceability keeps the shared-subsystems anchor map honest after the direct replay returns" {
     const traceability = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-roadmap-traceability.md");
     defer std.testing.allocator.free(traceability);
 
+    try requireContains(traceability, "`zigux/tests/phase13_landlock_syscalls.zig`");
     try requireContains(traceability, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
-    try requireContains(traceability, "direct reviewability companion");
     try requireContains(traceability, "`zigux/tests/phase13_landlock_syscalls_manifest.json`");
-    try requireContains(traceability, "current `master` materializes the helper-local packet plus the direct reviewability companion");
-    try requireDoesNotContain(traceability, "- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
+    try requireContains(traceability, "current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions");
+    try requireDoesNotContain(traceability, "## Repo-Reality Gaps\n\nKeep the remaining current gaps explicit:\n- docs-root `Documentation/zigux/README.md` still lacks a dedicated Phase 13 reminder block\n- `make -C zigux phase13-validate`\n- `make -C zigux phase13`\n- `zigux/tests/phase13_build.zig`\n- `zigux/tests/phase13_devres.zig`\n- `zigux/tests/phase13_devres_reviewability.zig`\n- `zigux/tests/phase13_devres_boundary_evidence.zig`\n- `zigux/tests/phase13_devres_manifest.json`\n- `scripts/zigux/check-phase13-devres-packet.py`\n- `scripts/zigux/check-phase13-devres-packet-alignment.py`\n- `zigux/tests/phase13_landlock_syscalls.zig`");
 }
 
-test "phase13 landlock syscalls packet checker requires the reviewability companion" {
+test "phase13 landlock syscalls packet checker requires the direct replay companion" {
     const checker = try readRepoFile(std.testing.allocator, "scripts/zigux/check-phase13-landlock-syscalls-packet.py");
     defer std.testing.allocator.free(checker);
 
-    try requireContains(checker, "\"zigux/tests/phase13_landlock_syscalls_reviewability.zig\": [");
-    try requireContains(checker, "\"phase13 landlock syscalls docs promote the reviewability companion into current packet truth\"");
-    try requireContains(checker, "\"active materialized helper-local and reviewability packet companions\"");
-    try requireContains(checker, "\"Current `master` now materializes this helper-local and reviewability packet through:\"");
-    try requireContains(checker, "\"current `master` materializes the helper-local packet plus the direct reviewability companion\"");
+    try requireContains(checker, "\"zigux/tests/phase13_landlock_syscalls.zig\": [");
+    try requireContains(checker, "\"phase13 landlock syscalls direct replay covers the current planner packet\"");
+    try requireContains(checker, "\"active materialized helper-local, direct replay, and reviewability packet companions\"");
+    try requireContains(checker, "\"Current `master` now materializes this helper-local, direct replay, and reviewability packet through:\"");
+    try requireContains(checker, "\"current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions\"");
 }
