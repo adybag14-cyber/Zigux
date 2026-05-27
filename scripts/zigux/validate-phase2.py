@@ -67,7 +67,9 @@ KCONFIG_CONFDATA_INPUT_FIXTURES = (
     "zigux/tests/fixtures/kconfig_bridge/last_state_transitions.config",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_assignments.config",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_assignment.config",
+    "zigux/tests/fixtures/kconfig_bridge/explicit_empty_assignments.config",
 )
+
 KCONFIG_CONFDATA_EXPECTED_FIXTURES = (
     "zigux/tests/fixtures/kconfig_bridge/sample_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/escaped_strings_expected.json",
@@ -84,6 +86,7 @@ KCONFIG_CONFDATA_EXPECTED_FIXTURES = (
     "zigux/tests/fixtures/kconfig_bridge/last_state_transitions_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_assignments_expected.json",
     "zigux/tests/fixtures/kconfig_bridge/duplicate_malformed_quoted_assignment_expected.json",
+    "zigux/tests/fixtures/kconfig_bridge/explicit_empty_assignments_expected.json",
 )
 FIXDEP_FIXTURE_FILES = (
     "zigux/tests/fixtures/fixdep/dep:colon.so",
@@ -209,7 +212,6 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
-    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json",
     *GENKSYMS_PROCESS_OUTPUT_FIXTURES,
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
