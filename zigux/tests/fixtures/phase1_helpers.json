@@ -185,7 +185,8 @@
   },
   "str_error_r": {
     "enoent": "No such file or directory",
-    "unknown": "INTERNAL ERROR: strerror_r(4096, [buf], 64)=22"
+    "unknown": "INTERNAL ERROR: strerror_r(4096, [buf], 64)=22",
+    "tiny_unknown": "INTERNA"
   },
   "slab": {
     "null_without_reclaim": true,
