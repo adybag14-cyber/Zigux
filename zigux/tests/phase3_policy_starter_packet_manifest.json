@@ -37,7 +37,8 @@
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     "make -C zigux phase3-policy-dump",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
-    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py"
+    "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "make -C zigux phase3"
   ],
   "repo_reality_gaps": [
     "broader shared ABI, export or UAPI, and runtime-core delivery remain outside this focused policy slice",
