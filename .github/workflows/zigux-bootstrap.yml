@@ -546,6 +546,12 @@ jobs:
       - name: Check current Phase 9 trace-events summary-preservation packet
         run: python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py
 
+      - name: Self-test current Phase 9 shared loader packet checker
+        run: python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py --self-test
+
+      - name: Check current Phase 9 shared loader packet
+        run: python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py
+
       - name: Run current Phase 9 shared loader command-environment boundary guard tests
         run: zig build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig
 
