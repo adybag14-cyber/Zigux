@@ -40,6 +40,7 @@ SURVEY_REQUIRED_MARKERS = (
     "bounded thirteen-case external fixdep packet",
     "PermissionDenied",
     "Exact-path authenticated contents reads still return missing for `scripts/basic/fixdep.c`",
+    "Those same shared reminder surfaces still do not enumerate `Documentation/zigux/phase2-fixdep-dual-implementation-survey.md` alongside the genksyms survey",
 )
 
 FIXDEP_REQUIRED_EXACT_LINES = (
