@@ -9,6 +9,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const notifier_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/notifier_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    notifier_view.addImport("notifier_abi", notifier_abi);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_notifier_starter_packet.zig"),
@@ -16,6 +22,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     root_module.addImport("notifier_abi", notifier_abi);
+    root_module.addImport("notifier_view", notifier_view);
 
     const unit_tests = b.addTest(.{
         .root_module = root_module,
