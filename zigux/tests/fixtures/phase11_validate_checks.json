@@ -41,6 +41,14 @@
       "command": ["python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"]
     },
     {
+      "name": "phase11-closure-manifest-counts-self-test",
+      "command": ["python", "scripts/zigux/check-phase11-closure-manifest-counts.py", "--self-test"]
+    },
+    {
+      "name": "phase11-closure-manifest-counts",
+      "command": ["python", "scripts/zigux/check-phase11-closure-manifest-counts.py"]
+    },
+    {
       "name": "phase11-build-inventory-self-test",
       "command": ["python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"]
     },
