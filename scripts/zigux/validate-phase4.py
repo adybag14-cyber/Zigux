@@ -253,6 +253,10 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
         ("PHASE4_WORKFLOW_MARKER_COUNT", "PHASE4_WORKFLOW_MARKER_COUNT=20"),
         ("PHASE4_WORKFLOW_ORDER_MARKER_COUNT", "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10"),
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=7"),
+        (
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=",
+        ),
     ),
     "phase4-workflow-route-counts": (
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK", "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass"),
@@ -261,6 +265,10 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
         ("PHASE4_WORKFLOW_MARKER_COUNT", "PHASE4_WORKFLOW_MARKER_COUNT=20"),
         ("PHASE4_WORKFLOW_ORDER_MARKER_COUNT", "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10"),
         ("PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT", "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=7"),
+        (
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=",
+        ),
     ),
 }
 
@@ -451,6 +459,7 @@ def configure_workflow_route_stub(root: Path) -> None:
             "PHASE4_WORKFLOW_MARKER_COUNT=20",
             "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10",
             "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=7",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=fixture",
         ),
         live_stdout_lines=(
             "PHASE4_WORKFLOW_ROUTE_COUNTS_CHECK=pass",
@@ -459,6 +468,7 @@ def configure_workflow_route_stub(root: Path) -> None:
             "PHASE4_WORKFLOW_MARKER_COUNT=20",
             "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10",
             "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=7",
+            "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=fixture",
         ),
     )
 
@@ -748,9 +758,10 @@ def run_self_test() -> int:
                 "PHASE4_WORKFLOW_MARKER_COUNT=20",
                 "PHASE4_WORKFLOW_ORDER_MARKER_COUNT=10",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=7",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=fixture",
             ),
         )
-        if "output_marker_missing:phase4-workflow-route-counts-self-test:PHASE4_WORKFLOW_ROUTE_COUNT" not in collect_issues(root):
+        if "output_marker_missing:phase4-workflow-route-counts-self-test:PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT" not in collect_issues(root):
             print("PHASE4_VALIDATE_SELF_TEST=fail")
             print("workflow-route-count telemetry drift was not detected")
             return 1
