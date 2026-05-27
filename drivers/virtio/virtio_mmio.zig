@@ -6,6 +6,12 @@ pub const mmio_version_legacy: u32 = 1;
 pub const mmio_version_modern: u32 = 2;
 pub const default_vendor_id: u32 = 0x554d_4551;
 pub const mmio_window_bytes: u32 = 0x100;
+pub const status_acknowledge: u8 = 0x01;
+pub const status_driver: u8 = 0x02;
+pub const status_driver_ok: u8 = 0x04;
+pub const status_features_ok: u8 = 0x08;
+pub const status_device_needs_reset: u8 = 0x40;
+pub const status_failed: u8 = 0x80;
 
 const max_queue_count = 8;
 const max_config_bytes = 128;
@@ -17,6 +23,7 @@ pub const Register = enum {
     queue_ready,
     device_features_sel,
     driver_features_sel,
+    status,
     interrupt_ack,
     guest_page_size,
 };
@@ -118,6 +125,19 @@ pub const ProbePreflightSummary = struct {
     ready_for_probe_handoff: bool,
 };
 
+pub const StatusTransitionSummary = struct {
+    anchor: []const u8,
+    status: u8,
+    acknowledge_seen: bool,
+    driver_seen: bool,
+    features_ok_seen: bool,
+    driver_ok_seen: bool,
+    device_needs_reset: bool,
+    failed: bool,
+    status_progress_blocked: bool,
+    ready_for_driver_ok: bool,
+};
+
 pub const SelectedQueueReadinessSummary = struct {
     anchor: []const u8,
     selected_queue: u16,
@@ -151,6 +171,7 @@ pub const VirtioMmioLab = struct {
     version: u32 = mmio_version_modern,
     device_id: u32 = 0,
     vendor_id: u32 = default_vendor_id,
+    device_status: u8 = 0,
     interrupt_ack_mask: u32 = 0x3,
     interrupt_status: u32 = 0,
     legacy_guest_page_size: u32 = 0,
@@ -405,6 +426,28 @@ pub const VirtioMmioLab = struct {
         };
     }
 
+    pub fn statusTransitionSummary(self: *const Self) StatusTransitionSummary {
+        const acknowledge_seen = (self.device_status & status_acknowledge) != 0;
+        const driver_seen = (self.device_status & status_driver) != 0;
+        const features_ok_seen = (self.device_status & status_features_ok) != 0;
+        const driver_ok_seen = (self.device_status & status_driver_ok) != 0;
+        const device_needs_reset = (self.device_status & status_device_needs_reset) != 0;
+        const failed = (self.device_status & status_failed) != 0;
+        const status_progress_blocked = device_needs_reset or failed;
+        return .{
+            .anchor = anchor_path,
+            .status = self.device_status,
+            .acknowledge_seen = acknowledge_seen,
+            .driver_seen = driver_seen,
+            .features_ok_seen = features_ok_seen,
+            .driver_ok_seen = driver_ok_seen,
+            .device_needs_reset = device_needs_reset,
+            .failed = failed,
+            .status_progress_blocked = status_progress_blocked,
+            .ready_for_driver_ok = acknowledge_seen and driver_seen and features_ok_seen and !status_progress_blocked,
+        };
+    }
+
     pub fn writeRegister(self: *Self, register: Register, value: u32) !u32 {
         switch (register) {
             .queue_sel => {
@@ -433,6 +476,10 @@ pub const VirtioMmioLab = struct {
                 if (value >= self.driver_feature_words.len) return error.FeatureWordOutOfRange;
                 self.selected_driver_feature_word = value;
                 return value;
+            },
+            .status => {
+                self.device_status = @truncate(value);
+                return @as(u32, self.device_status);
             },
             .interrupt_ack => {
                 self.interrupt_ack_mask = value;
@@ -771,6 +818,81 @@ test "phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack b
     try std.testing.expect(summary.bounded_queue_register_window_ready);
     try std.testing.expect(summary.interrupt_ack_ready);
     try std.testing.expect(summary.ready_for_probe_handoff);
+}
+
+test "phase10 virtio mmio status transition summary keeps acknowledgement, feature, and driver handoff reviewable" {
+    var device = try VirtioMmioLab.init(81, &[_]u16{ 8, 16 });
+
+    var summary = device.statusTransitionSummary();
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(@as(u8, 0), summary.status);
+    try std.testing.expect(!summary.acknowledge_seen);
+    try std.testing.expect(!summary.driver_seen);
+    try std.testing.expect(!summary.features_ok_seen);
+    try std.testing.expect(!summary.driver_ok_seen);
+    try std.testing.expect(!summary.device_needs_reset);
+    try std.testing.expect(!summary.failed);
+    try std.testing.expect(!summary.status_progress_blocked);
+    try std.testing.expect(!summary.ready_for_driver_ok);
+
+    const acknowledged = status_acknowledge | status_driver;
+    _ = try device.writeRegister(.status, @as(u32, acknowledged));
+    summary = device.statusTransitionSummary();
+    try std.testing.expectEqual(acknowledged, summary.status);
+    try std.testing.expect(summary.acknowledge_seen);
+    try std.testing.expect(summary.driver_seen);
+    try std.testing.expect(!summary.features_ok_seen);
+    try std.testing.expect(!summary.driver_ok_seen);
+    try std.testing.expect(!summary.status_progress_blocked);
+    try std.testing.expect(!summary.ready_for_driver_ok);
+
+    const pre_driver_ok = status_acknowledge | status_driver | status_features_ok;
+    _ = try device.writeRegister(.status, @as(u32, pre_driver_ok));
+    summary = device.statusTransitionSummary();
+    try std.testing.expectEqual(pre_driver_ok, summary.status);
+    try std.testing.expect(summary.acknowledge_seen);
+    try std.testing.expect(summary.driver_seen);
+    try std.testing.expect(summary.features_ok_seen);
+    try std.testing.expect(!summary.driver_ok_seen);
+    try std.testing.expect(!summary.status_progress_blocked);
+    try std.testing.expect(summary.ready_for_driver_ok);
+
+    const driver_ok = status_acknowledge | status_driver | status_features_ok | status_driver_ok;
+    _ = try device.writeRegister(.status, @as(u32, driver_ok));
+    summary = device.statusTransitionSummary();
+    try std.testing.expectEqual(driver_ok, summary.status);
+    try std.testing.expect(summary.driver_ok_seen);
+    try std.testing.expect(!summary.status_progress_blocked);
+    try std.testing.expect(summary.ready_for_driver_ok);
+}
+
+test "phase10 virtio mmio status transition summary keeps reset and failure blockers explicit" {
+    var device = try VirtioMmioLab.init(82, &[_]u16{ 8, 16 });
+
+    const needs_reset = status_acknowledge | status_driver | status_features_ok | status_device_needs_reset;
+    _ = try device.writeRegister(.status, @as(u32, needs_reset));
+    var summary = device.statusTransitionSummary();
+    try std.testing.expectEqual(needs_reset, summary.status);
+    try std.testing.expect(summary.acknowledge_seen);
+    try std.testing.expect(summary.driver_seen);
+    try std.testing.expect(summary.features_ok_seen);
+    try std.testing.expect(summary.device_needs_reset);
+    try std.testing.expect(!summary.failed);
+    try std.testing.expect(summary.status_progress_blocked);
+    try std.testing.expect(!summary.ready_for_driver_ok);
+
+    const failed_status = status_acknowledge | status_failed;
+    _ = try device.writeRegister(.status, @as(u32, failed_status));
+    summary = device.statusTransitionSummary();
+    try std.testing.expectEqual(failed_status, summary.status);
+    try std.testing.expect(summary.acknowledge_seen);
+    try std.testing.expect(!summary.driver_seen);
+    try std.testing.expect(!summary.features_ok_seen);
+    try std.testing.expect(!summary.driver_ok_seen);
+    try std.testing.expect(!summary.device_needs_reset);
+    try std.testing.expect(summary.failed);
+    try std.testing.expect(summary.status_progress_blocked);
+    try std.testing.expect(!summary.ready_for_driver_ok);
 }
 
 test "phase10 virtio mmio interrupt-ack disposition keeps bounded queue and config bits explicit" {
