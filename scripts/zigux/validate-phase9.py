@@ -107,6 +107,7 @@ EXPECTED_PACKET_FILES = (
     "samples/zigux/runtime_kretprobe_loader.zig",
     "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
     "samples/zigux/runtime_kretprobe_registration_reentry_gate.zig",
+    "samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig",
 )
 
 EXPECTED_REPLAY_ROUTES = (
@@ -137,9 +138,9 @@ EXPECTED_GAPS = [
 ]
 
 EXPECTED_NEXT_SAFE_STEP = (
-    "keep the shared Phase 9 validator and runtime-loader shared checker aligned with "
-    "the manifest and the existing loader packet without widening runtime behavior claims "
-    "or pretending blocked publication surfaces returned"
+    "tighten one shared reminder surface at a time where current master still undercounts "
+    "the returned kretprobe packet, starting with Documentation/zigux/README.md before "
+    "widening into runtime behavior or build wiring"
 )
 
 REQUIRED_OWNERSHIP_MARKERS = (
