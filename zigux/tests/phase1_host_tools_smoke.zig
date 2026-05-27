@@ -272,6 +272,32 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     const empty_last_map = [_]find_bit.Word{ 0, 0 };
     try std.testing.expectEqual(nbits, find_bit.findLastBit(&empty_last_map, nbits));
 
+    const tail_clamped_set = [_]find_bit.Word{
+        0,
+        (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 7),
+    };
+    try std.testing.expectEqual(word_bits + 3, find_bit.findFirstBit(&tail_clamped_set, nbits));
+    try std.testing.expectEqual(nbits, find_bit.findNextBit(&tail_clamped_set, nbits, word_bits + 4));
+    try std.testing.expectEqual(word_bits + 3, find_bit.findLastBit(&tail_clamped_set, nbits));
+
+    const tail_zero_map = [_]find_bit.Word{
+        ~@as(find_bit.Word, 0),
+        bitmap.lastWordMask(nbits) | (@as(find_bit.Word, 1) << 7),
+    };
+    try std.testing.expectEqual(nbits, find_bit.findFirstZeroBit(&tail_zero_map, nbits));
+    try std.testing.expectEqual(nbits, find_bit.findNextZeroBit(&tail_zero_map, nbits, word_bits));
+
+    const tail_and_lhs = [_]find_bit.Word{
+        0,
+        (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 8),
+    };
+    const tail_and_rhs = [_]find_bit.Word{
+        0,
+        (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9),
+    };
+    try std.testing.expectEqual(word_bits + 3, find_bit.findFirstAndBit(&tail_and_lhs, &tail_and_rhs, nbits));
+    try std.testing.expectEqual(nbits, find_bit.findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, word_bits + 4));
+
     var rendered: [32]u8 = undefined;
     const bitmap_rendered_len = bitmap.scnprintf(&map, nbits, &rendered);
     var expected: [32]u8 = undefined;
