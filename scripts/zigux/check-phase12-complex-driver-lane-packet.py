@@ -332,7 +332,7 @@ def run_self_test() -> int:
         cases += 1
 
         write_fixture(root)
-        (root / SUPPORT_BUNDLE_MAP_PATH).writeText("broken\n", encoding="utf-8")
+        (root / SUPPORT_BUNDLE_MAP_PATH).write_text("broken\n", encoding="utf-8")
         expect_failure(root, str(SUPPORT_BUNDLE_MAP_PATH))
         cases += 1
 
