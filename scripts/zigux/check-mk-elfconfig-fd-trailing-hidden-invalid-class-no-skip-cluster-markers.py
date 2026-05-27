@@ -92,7 +92,6 @@ def run_self_test() -> None:
         duplicate_marker = EXPECTED_MARKERS[
             Path("scripts/zigux/mk_elfconfig_fd_invalid_class_trailing_hides_invalid_class_test.zig")
         ][0][1]
-        duplicate_path.writeText if False else None
         duplicate_path.write_text(
             "\n".join(
                 [
