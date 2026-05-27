@@ -732,11 +732,11 @@ pub fn build(b: *std.Build) void {
         &run_runtime_trace_events_module_tests.step,
     );
 
-    const phase9_first_loadable_runtime_module_parity = b.step(
+    const phase9_first_loadable_runtime_module_parity_survey = b.step(
         "phase9-first-loadable-runtime-module-parity-survey-tests",
         "Run the Phase 9 first-loadable runtime-module parity survey tests.",
     );
-    phase9_first_loadable_runtime_module_parity.dependOn(
+    phase9_first_loadable_runtime_module_parity_survey.dependOn(
         &run_runtime_first_loadable_parity_survey_tests.step,
     );
 
@@ -745,6 +745,17 @@ pub fn build(b: *std.Build) void {
         "Run the Phase 9 first-loadable runtime-module parity behavior tests.",
     );
     phase9_first_loadable_runtime_module_parity_behavior.dependOn(
+        &run_runtime_first_loadable_parity_behavior_tests.step,
+    );
+
+    const phase9_first_loadable_runtime_module_parity = b.step(
+        "phase9-first-loadable-runtime-module-parity-tests",
+        "Run the Phase 9 first-loadable runtime-module parity survey and behavior tests together.",
+    );
+    phase9_first_loadable_runtime_module_parity.dependOn(
+        &run_runtime_first_loadable_parity_survey_tests.step,
+    );
+    phase9_first_loadable_runtime_module_parity.dependOn(
         &run_runtime_first_loadable_parity_behavior_tests.step,
     );
 }
