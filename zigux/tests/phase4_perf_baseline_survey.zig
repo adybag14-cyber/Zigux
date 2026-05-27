@@ -16,6 +16,25 @@ fn requireMarkerCount(marker: []const u8, expected: usize) !void {
     try std.testing.expectEqual(expected, count);
 }
 
+fn requireOrderedMarkersInSection(
+    section_header: []const u8,
+    section_footer: []const u8,
+    expected_markers: []const []const u8,
+) !void {
+    const section_start = std.mem.indexOf(u8, baseline_packet, section_header) orelse
+        return error.MissingSectionHeader;
+    const section_end = std.mem.indexOfPos(u8, baseline_packet, section_start, section_footer) orelse
+        return error.MissingSectionFooter;
+    const section = baseline_packet[section_start..section_end];
+
+    var cursor: usize = 0;
+    for (expected_markers) |marker| {
+        const offset = std.mem.indexOfPos(u8, section, cursor, marker) orelse
+            return error.MissingOrderedMarker;
+        cursor = offset + marker.len;
+    }
+}
+
 test "phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit" {
     try requireMarkerCount("\"acceptable_limit_iterations\": 4", 2);
     try requireMarkerCount("\"acceptable_limit_sample_count\": 7", 2);
@@ -73,6 +92,32 @@ test "phase4 perf baseline survey keeps gate-surface threshold posture packet ex
     try requireMarker("\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"");
     try requireMarker("\"surface\": \"zigux/tests/bitmap_diff.zig\"");
     try requireMarker("\"threshold_posture\": \"threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks\"");
+}
+
+test "phase4 perf baseline survey keeps the atomic64 gate-surface and evidence packet aligned" {
+    try requireOrderedMarkersInSection(
+        "\"surface\": \"zigux/tests/atomic64_diff.zig\"",
+        "\"surface\": \"zigux/tests/bitmap_diff.zig\"",
+        &.{
+            "\"gate_owner\": \"ABI and Runtime Team\"",
+            "\"gate_rollback_owner\": \"ABI and Runtime Team\"",
+            "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
+        },
+    );
+    try requireOrderedMarkersInSection(
+        "\"atomic64\": {",
+        "\"bitmap\": {",
+        &.{
+            "\"gate_owner\": \"ABI and Runtime Team\"",
+            "\"gate_rollback_owner\": \"ABI and Runtime Team\"",
+            "\"benchmark_command\": \"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\"",
+            "\"acceptable_limit_status\": \"approved_local_only\"",
+            "\"acceptable_limit_metric\": \"median_elapsed_ns\"",
+            "\"acceptable_limit_iterations\": 4",
+            "\"acceptable_limit_sample_count\": 7",
+            "\"acceptable_limit_max_elapsed_ns\": 8192",
+        },
+    );
 }
 
 test "phase4 perf baseline survey keeps the dedicated packet contract reviewable" {
