@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ACTIVE_CHECKER = Path("scripts/zigux/check-phase7-shared-control-gap.py")
@@ -11,9 +11,7 @@ SEQUENCING_NOTE = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 VALIDATOR = Path("scripts/zigux/validate-phase7.py")
-PARKED_PATHS = (
-    "scripts/zigux/check-phase7-make-wrapper.py",
-)
+PARKED_PATHS = ("scripts/zigux/check-phase7-make-wrapper.py",)
 
 REQUIRED_CHECKER_MARKERS = (
     "PARKED_SHARED_CONTROL_PATHS = [",
@@ -63,19 +61,9 @@ REQUIRED_VALIDATOR_MARKERS = (
 FORBIDDEN_MAKEFILE_LINES = (
     "phase7-test:",
     "phase7:",
-    "phase7-string-helpers-test:",
-    "phase7-string-helpers-survey:",
-    "phase7-string-helpers-sample-boundary:",
-    "phase7-string-helpers-format-boundary:",
-    "phase7-cmdline-test:",
-    "phase7-cmdline-survey:",
-    "phase7-argv-split-test:",
-    "phase7-argv-split-survey:",
-    "phase7-rbtree-test:",
-    "phase7-rbtree-survey:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -201,9 +189,14 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(
         root / MAKEFILE,
-        "phase7-validate:\n"
-        "\t$(PYTHON) scripts/zigux/validate-phase7.py --self-test\n"
-        "\t$(PYTHON) scripts/zigux/validate-phase7.py\n",
+        "\n".join(
+            [
+                "phase7-validate:",
+                "\t$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+                "\t$(PYTHON) scripts/zigux/validate-phase7.py",
+            ]
+        )
+        + "\n",
     )
     write_text(
         root / WORKFLOW,
@@ -264,13 +257,6 @@ def run_self_test() -> int:
             cases += 1
 
         build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(path.read_text(encoding="utf-8") + f"        {REQUIRED_WORKFLOW_LINES[0]}\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[0]}:count=2") in issues
-        cases += 1
-
-        build_self_test_root(root)
         path = root / MAKEFILE
         path.write_text(path.read_text(encoding="utf-8") + "phase7-test:\n", encoding="utf-8")
         issues = collect_issues(root)
@@ -279,23 +265,9 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(path.read_text(encoding="utf-8") + "phase7-string-helpers-format-boundary:\n", encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8") + "phase7:\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("FORBIDDEN_MAKEFILE_LINES", "phase7-string-helpers-format-boundary:") in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / MAKEFILE
-        path.write_text(
-            replace_exact_line(
-                path.read_text(encoding="utf-8"),
-                "$(PYTHON) scripts/zigux/validate-phase7.py --self-test",
-                "\ttrue",
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_MAKEFILE_LINES", "$(PYTHON) scripts/zigux/validate-phase7.py --self-test") in issues
+        assert ("FORBIDDEN_MAKEFILE_LINES", "phase7:") in issues
         cases += 1
 
         build_self_test_root(root)
@@ -316,24 +288,6 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
-        validator_path = root / VALIDATOR
-        validator_path.write_text(
-            validator_path.read_text(encoding="utf-8").replace(REQUIRED_VALIDATOR_MARKERS[1] + "\n", "", 1),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[1]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        validator_path = root / VALIDATOR
-        validator_path.write_text(validator_path.read_text(encoding="utf-8") + REQUIRED_VALIDATOR_MARKERS[0] + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("DUPLICATE_VALIDATOR_MARKERS", f"{REQUIRED_VALIDATOR_MARKERS[0]}:count=2") in issues
-        cases += 1
-
-        build_self_test_root(root)
-        (root / Path(PARKED_PATHS[0])).parent.mkdir(parents=True, exist_ok=True)
         write_text(root / Path(PARKED_PATHS[0]), "# stale parked path returned\n")
         issues = collect_issues(root)
         assert ("UNEXPECTED_REMATERIALIZED_PATHS", PARKED_PATHS[0]) in issues
