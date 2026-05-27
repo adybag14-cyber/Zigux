@@ -228,7 +228,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 30
+SELF_TEST_CASE_COUNT = 29
 
 
 class ValidationError(RuntimeError):
@@ -928,6 +928,34 @@ def run_self_test() -> None:
                                 "checker_surfaces": [
                                     "scripts/zigux/check-phase6-hexdump-packet.py"
                                 ],
+                            }
+                            for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "helpers": [
+                            helper
+                            if helper.get("key") != "checksum"
+                            else {
+                                **helper,
+                                "current_perf_evidence": {
+                                    **helper["current_perf_evidence"],
+                                    "linux_style_rerun_routes": [
+                                        route
+                                        for route in helper["current_perf_evidence"]["linux_style_rerun_routes"]
+                                        if route != EXPECTED_SHARED_PERF_WRAPPER
+                                    ],
+                                },
                             }
                             for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
                         ],
