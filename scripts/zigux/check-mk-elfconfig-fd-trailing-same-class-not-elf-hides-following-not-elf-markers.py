@@ -59,7 +59,6 @@ def run_self_test() -> None:
             raise AssertionError("expected missing-marker self-test failure")
 
         duplicate_path = tmp_root / "duplicate.zig"
-        duplicate_path.writeText = None
         duplicate_path.write_text(
             "\n".join(
                 [
