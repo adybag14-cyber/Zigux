@@ -13,18 +13,18 @@ PHASE9_CATALOG_LANE = "P9-L11"
 EXPECTED_SLUG = "phase9-runtime-pilot-shared-packet"
 EXPECTED_STATUS = "shared_runtime_pilot_delivery_evidence_present"
 EXPECTED_SCOPE = (
-    "shared reminder, manifest, catalog, ownership, validation, and module-metadata "
-    "boundary surfaces for the atomic64 pilot packet, the shipped trace-events packet, "
-    "the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and "
-    "the returned runtime kretprobe packet without blocked publication claims"
+    "shared reminder, manifest, catalog, ownership, validation, and module-metadata and "
+    "depmod bridge boundary surfaces for the atomic64 pilot packet, the shipped trace-events "
+    "packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and "
+    "the returned runtime kretprobe packet without blocked publication or install-root completion claims"
 )
 EXPECTED_GAPS = [
-    "blocked publication and install-root vocabulary remains historical rather than direct shipped proof",
+    "blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof",
 ]
 EXPECTED_NEXT_SAFE_STEP = (
     "tighten one shared reminder surface at a time where current master still undercounts "
-    "the blocked module-metadata and depmod bridge boundary before widening into runtime behavior "
-    "or build wiring"
+    "the blocked module-metadata and depmod bridge boundary before widening into runtime behavior, "
+    "build wiring, or install-root claims"
 )
 MANIFEST_PATH = Path("zigux/tests/runtime_pilot_manifest.json")
 OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")
