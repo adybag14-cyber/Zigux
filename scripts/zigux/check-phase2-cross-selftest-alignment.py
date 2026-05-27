@@ -78,7 +78,7 @@ TESTS_ALIGNMENT_MARKERS = (
     '"keep the fixture-backed tool-manifest and artifact-tools-manifest guards, tool-manifest, artifact-tools, cross-target, kconfig bridge, genksyms bridge, and fixdep packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",',
 )
 
-SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux")
+SUPPORTED_CROSS_TARGETS = ("x86_64-linux", "aarch64-linux", "riscv64-linux")
 ROUTE = "make -C zigux phase2-cross"
 EXPECTED_REQUIRED_MAKE_ROUTES = (
     "phase2-toolchain",
@@ -364,6 +364,12 @@ def build_self_test_root(root: Path) -> None:
                         "validation_mode": "route_contract_only",
                         "route": ROUTE,
                     },
+                    {
+                        "target": "riscv64-linux",
+                        "review_status": "route contract only",
+                        "validation_mode": "route_contract_only",
+                        "route": ROUTE,
+                    },
                 ],
             },
             indent=2,
@@ -409,7 +415,7 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
-        + 19
+        + 20
         + 10
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
@@ -571,6 +577,21 @@ def run_self_test() -> int:
         payload = json.loads(policy_path.read_text(encoding="utf-8"))
         payload["upgrade_policy"]["archive_target_scope"] = ["riscv64-linux"]
         payload["archive_sha256"] = {"riscv64-linux": "3" * 64}
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        fixture_path = resolve_path(root, CROSS_TARGETS)
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["archive_target_scope"] = ["riscv64-linux"]
+        fixture["cross_targets"][0]["validation_mode"] = "route_contract_only"
+        fixture["cross_targets"][2]["validation_mode"] = "archive_required"
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert collect_issues(root) == []
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = ["broken-linux"]
+        payload["archive_sha256"] = {"broken-linux": "3" * 64}
         policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         try:
             collect_issues(root)
