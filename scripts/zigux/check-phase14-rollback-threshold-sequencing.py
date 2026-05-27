@@ -8,11 +8,11 @@ shared smoke reminder surfaces still agree on the current study-only rollback
 contract, on the returned route checker and tests-root reminder checker, on the
 returned rollback-threshold checker, dedicated skbuff stay-in-C guard,
 dedicated skbuff compile-route guard, dedicated ring-buffer compile-route
-guard, dedicated RCU rollback guard, ring-buffer survey companion, dedicated
-RCU survey companion, and shared smoke manifest, and on the current
-repo-reality split where the Makefile is readable, ships `phase14-validate`,
-and still does not ship the broader `phase14-smoke`, `phase14-test`, or
-`phase14` wrapper targets.
+guard, dedicated RCU compile-route guard, dedicated RCU rollback guard,
+ring-buffer survey companion, dedicated RCU survey companion, and shared smoke
+manifest, and on the current repo-reality split where the Makefile is readable,
+ships `phase14-validate`, and still does not ship the broader `phase14-smoke`,
+`phase14-test`, or `phase14` wrapper targets.
 """
 
 from __future__ import annotations
@@ -129,6 +129,7 @@ REQUIRED_MANIFEST_VALUES = {
 }
 REQUIRED_MANIFEST_SHARED_SMOKE_SURFACES = [
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "scripts/zigux/check-phase14-rcu-compile-route.py",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "Documentation/zigux/phase14-productization-gap-survey.md",
     "Documentation/zigux/phase14-release-boundary-survey.md",
@@ -136,11 +137,13 @@ REQUIRED_MANIFEST_SHARED_SMOKE_SURFACES = [
 ]
 REQUIRED_SURVEY_SUMMARY_FLAGS = {
     "phase14_validate_runs_rollback_threshold_sequencing": True,
+    "phase14_validate_runs_rcu_compile_route_checker": True,
     "review_checklist_has_rollback_threshold_prompt": True,
     "smoke_note_records_rollback_threshold": True,
     "scripts_readme_records_rollback_threshold": True,
     "phase14_make_target_present": True,
     "phase14_make_smoke_target_present": False,
+    "shared_manifest_records_rcu_compile_route_checker": True,
 }
 
 
@@ -430,11 +433,13 @@ def fixture_manifest() -> str:
         ],
         "survey_summary": {
             "phase14_validate_runs_rollback_threshold_sequencing": True,
+            "phase14_validate_runs_rcu_compile_route_checker": True,
             "review_checklist_has_rollback_threshold_prompt": True,
             "smoke_note_records_rollback_threshold": True,
             "scripts_readme_records_rollback_threshold": True,
             "phase14_make_target_present": True,
             "phase14_make_smoke_target_present": False,
+            "shared_manifest_records_rcu_compile_route_checker": True,
         },
     }
     return json.dumps(payload, indent=2) + "\n"
@@ -583,6 +588,17 @@ def run_self_test() -> int:
 
         write(root, MANIFEST_PATH, fixture_manifest())
         manifest = json.loads(fixture_manifest())
+        manifest["shared_smoke_surfaces"].remove(
+            "scripts/zigux/check-phase14-rcu-compile-route.py"
+        )
+        write_manifest_payload(root, manifest)
+        if "missing_shared_smoke_surface:scripts/zigux/check-phase14-rcu-compile-route.py" not in check(root):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected manifest RCU compile-route surface drift to fail")
+            return 1
+
+        write(root, MANIFEST_PATH, fixture_manifest())
+        manifest = json.loads(fixture_manifest())
         manifest["survey_summary"]["phase14_validate_runs_rollback_threshold_sequencing"] = False
         write_manifest_payload(root, manifest)
         if not any(
@@ -591,6 +607,30 @@ def run_self_test() -> int:
         ):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
             print("expected manifest survey-summary drift to fail")
+            return 1
+
+        write(root, MANIFEST_PATH, fixture_manifest())
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_validate_runs_rcu_compile_route_checker"] = False
+        write_manifest_payload(root, manifest)
+        if not any(
+            error.startswith("survey_summary_mismatch:phase14_validate_runs_rcu_compile_route_checker:")
+            for error in check(root)
+        ):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected manifest RCU compile-route survey-summary drift to fail")
+            return 1
+
+        write(root, MANIFEST_PATH, fixture_manifest())
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["shared_manifest_records_rcu_compile_route_checker"] = False
+        write_manifest_payload(root, manifest)
+        if not any(
+            error.startswith("survey_summary_mismatch:shared_manifest_records_rcu_compile_route_checker:")
+            for error in check(root)
+        ):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected manifest shared-manifest RCU compile-route summary drift to fail")
             return 1
 
         write(root, MANIFEST_PATH, fixture_manifest())
@@ -606,7 +646,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=23")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
