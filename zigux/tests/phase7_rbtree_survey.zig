@@ -87,16 +87,21 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectSliceContains(manifest.readable_non_owner_paths, "tools/lib/rbtree.zig");
     try expectSliceContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");
     try expectSliceContains(manifest.readable_makefile_markers, "phase7-validate:");
+    try expectSliceContains(manifest.readable_makefile_markers, "phase7-rbtree-test:");
+    try expectSliceContains(manifest.readable_makefile_markers, "phase7-rbtree-survey:");
     try std.testing.expectEqual(@as(usize, 0), manifest.public_fallback_non_owner_paths.len);
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree.json");
     try expectSliceNotContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
-    try expectSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");
+    try expectSliceContains(manifest.absent_makefile_markers, "phase7-test:");
     try expectSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
     try expectSliceContains(manifest.ownership_focus, "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence");
     try expectSliceContains(manifest.ownership_focus, "fixture truthfulness now also keeps the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed boundaries explicit across the returned JSON fixture, returned C harness, dedicated survey, and dedicated replay");
+    try expectContains(manifest.next_bounded_step, "including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases");
     try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");
+    try expectContains(manifest.next_bounded_step, "phase7-test:");
+    try expectContains(manifest.next_bounded_step, "phase7:");
 
     try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_fixture_harness_anchor`");
     try expectContains(slice_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
@@ -107,6 +112,8 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
     try expectContains(direct_anchor_note, "non-leftmost cached erase, singleton cached erase, and plain erase-init reseed scenarios");
+    try expectContains(direct_anchor_note, "phase7-rbtree-test:");
+    try expectContains(direct_anchor_note, "phase7-rbtree-survey:");
     try expectNotContains(direct_anchor_note, "still returned `404` for this dedicated companion surface");
 
     try expectContains(checker, "PHASE7_RBTREE_PARITY=pass");
@@ -127,7 +134,8 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectContains(build_file, "../../lib/rbtree.zig");
 
     try expectContains(makefile, "phase7-validate:");
-    try expectNotContains(makefile, "phase7-rbtree-test:");
+    try expectContains(makefile, "phase7-rbtree-test:");
+    try expectContains(makefile, "phase7-rbtree-survey:");
     try expectNotContains(workflow, "Validate Phase 7 runtime helper gates");
 
     try expectContains(fixture, "\"packet\": \"phase7-rbtree-parity-fixture\"");
