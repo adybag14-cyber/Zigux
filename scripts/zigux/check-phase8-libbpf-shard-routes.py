@@ -35,6 +35,7 @@ ONLINE_CPU_ROUTING_MASK_BRIDGE_VERIFY_PATH = "tools/lib/bpf/zigux_segments/onlin
 ONLINE_CPU_ROUTING_VERIFY_PATH = "tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig"
 PERF_BUFFER_POLL_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
 PERF_BUFFER_POLL_VERIFY_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig"
+PERF_BUFFER_WAIT_BUDGET_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig"
 PERF_BUFFER_READY_WINDOW_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig"
 PIN_PATH_PATH = "tools/lib/bpf/zigux_segments/pin_path.zig"
 PIN_PATH_VERIFY_PATH = "tools/lib/bpf/zigux_segments/pin_path_verify.zig"
@@ -73,6 +74,7 @@ REQUIRED_FILES = (
     ONLINE_CPU_ROUTING_VERIFY_PATH,
     PERF_BUFFER_POLL_PATH,
     PERF_BUFFER_POLL_VERIFY_PATH,
+    PERF_BUFFER_WAIT_BUDGET_PATH,
     PERF_BUFFER_READY_WINDOW_PATH,
     PIN_PATH_PATH,
     PIN_PATH_VERIFY_PATH,
@@ -95,6 +97,7 @@ REQUIRED_MARKERS = {
         'ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")',
         'ONLINE_CPU_ROUTING_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing_verify.zig")',
         'PERF_BUFFER_POLL_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig")',
+        'PERF_BUFFER_WAIT_BUDGET_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig")',
         'PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")',
         'PIN_PATH_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path.zig")',
         'PIN_PATH_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/pin_path_verify.zig")',
@@ -116,6 +119,7 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/pin_path.zig`",
         "`tools/lib/bpf/zigux_segments/pin_path_verify.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
+        "`tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
         "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
@@ -123,6 +127,7 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/ready_buffer_attempt_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_fd_verify.zig`",
         "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
+        "bounded wait-budget normalization",
         "`zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.",
         "`zigux/tests/phase8_libbpf_segments.zig` plus `zigux/tests/phase8_libbpf_segments_only_build.zig` now keep the shared stable-output verifier, mixed-source bridge, focused verify-routing, and no-timer poll-boundary packet explicit from the tests root beside that same helper-first shard packet.",
         "Current authenticated contents readback in this runtime now reaches the mixed-source bridge reminder packet more directly: the stable-output helper set above stays the exact authenticated helper anchor, while the same contents path now also serves `tools/lib/bpf/zigux_segments/manifest.json`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge.zig` on current `master`.",
@@ -199,6 +204,10 @@ REQUIRED_MARKERS = {
         "../../tools/lib/bpf/zigux_segments/verify.zig",
         "phase8_libbpf_segments.zig",
         "phase8_verify_routing_gap.zig",
+        "../../tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig",
+        'perf_buffer_wait_budget_module.addImport("perf_buffer_poll", perf_buffer_poll_module);',
+        "phase8-perf-buffer-wait-budget-tests",
+        "test_step.dependOn(&run_perf_buffer_wait_budget_tests.step);",
         "phase8-perf-buffer-ready-window-tests",
         "test_step.dependOn(&run_perf_buffer_ready_window_tests.step);",
         "phase8-file-path-handle-bridge-tests",
@@ -228,6 +237,9 @@ REQUIRED_MARKERS = {
     LIBBPF_SEGMENTS_TEST_PATH: (
         'test "phase 8 libbpf-segment compatibility witness keeps the focused verify-routing replay visible" {',
         'test "phase 8 libbpf-segment compatibility witness keeps the shared no-timer poll boundary explicit" {',
+        '`tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig`',
+        "phase8 perf-buffer wait budget normalizes bounded waits into ms and ns budgets",
+        "PERF_BUFFER_WAIT_BUDGET_SEGMENT = Path(",
         'test "phase 8 libbpf-segment compatibility witness keeps the mixed-source bridge packet visible" {',
         'test "phase 8 libbpf-segment compatibility witness keeps stable-output verifier shards visible" {',
     ),
@@ -369,6 +381,13 @@ REQUIRED_MARKERS = {
         'test "phase8 perf-buffer poll helper entrypoints stay explicit" {',
         "summarizePollExecutionResultFromWaitResult",
         'test "phase8 perf-buffer poll rejects impossible hand-built summaries and mismatched ready waits" {',
+    ),
+    PERF_BUFFER_WAIT_BUDGET_PATH: (
+        "pub const WaitBudgetSummary = struct {",
+        "pub fn summarizeWaitBudget(",
+        "pub fn summarizeWaitBudgetFromPollSummary(",
+        'test "phase8 perf-buffer wait budget normalizes bounded waits into ms and ns budgets" {',
+        'test "phase8 perf-buffer wait budget rejects invalid negative waits" {',
     ),
     PERF_BUFFER_READY_WINDOW_PATH: (
         "pub fn summarizeReadyBufferWindowLookupAtAttempt(",
