@@ -42,6 +42,7 @@ REQUIRED_MARKERS = {
         "active materialized helper-local, direct replay, and reviewability packet companions",
         "`zigux/tests/phase13_landlock_syscalls.zig`",
         "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "historical breadcrumb for older lane notes and review references, not as active packet evidence",
         "`zigux/tests/phase13_landlock_syscalls_manifest.json` and the older shared `zigux/tests/phase13_build.zig` companion remain repo-reality gaps",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-governance.md": [
@@ -54,6 +55,7 @@ REQUIRED_MARKERS = {
         "Current `master` now materializes this helper-local, direct replay, and reviewability packet through:",
         "`zigux/tests/phase13_landlock_syscalls.zig`",
         "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
+        "historical breadcrumb for older lane notes and review references, not as active packet evidence",
         "Current `master` still leaves these directly coupled companions absent:",
     ],
     "Documentation/zigux/phase13-landlock-syscalls-survey-gap.md": [
@@ -70,6 +72,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase13_landlock_syscalls_reviewability.zig": [
         "phase13 landlock syscalls direct replay covers the current planner packet",
         "active materialized helper-local, direct replay, and reviewability packet companions",
+        "historical breadcrumb for older lane notes and review references, not as active packet evidence",
         "Current `master` now materializes this helper-local, direct replay, and reviewability packet through:",
         "current `master` materializes the helper-local packet plus the direct replay and direct reviewability companions",
     ],
