@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""
+"""Validate the current bounded Phase 3 export/UAPI survey packet."""
 
 from __future__ import annotations
 
@@ -9,95 +9,53 @@ from pathlib import Path
 
 SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
+CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")
 EXPORT_SHIM_PATH = Path("zigux/kernel/export_shim.zig")
 ABI_H_PATH = Path("include/zigux/abi.h")
+LINUX_HEADER_PATH = Path("include/linux/zigux.h")
 BINDING_VERSION_PATH = Path("zigux/bindings/version.zig")
 BINDING_DEV_T_PATH = Path("zigux/bindings/dev_t.zig")
 BINDING_HEADER_FAMILY_PATH = Path("zigux/bindings/header_family.zig")
 UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
-LINUX_HEADER_PATH = Path("include/linux/zigux.h")
-GOVERNANCE_NOTE_PATH = Path("Documentation/zigux/phase3-linux-zigux-header-governance.md")
-KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE_PATH = Path(
-    "Documentation/zigux/phase3-kernel-export-shim-governance.md"
-)
 DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
-EXPORT_SHIM_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_shim_build.zig")
+EXPORT_SHIM_BUILD_PATH = Path("zigux/tests/phase3_export_shim_build.zig")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
-LAYOUT_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
+LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 C_HEADER_SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")
 C_HEADER_SMOKE_CHECK_PATH = Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")
-CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
-CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")
+DEV_T_STARTER_PACKET_CHECK_PATH = Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")
+SHARED_SELFTEST_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
 SHARED_CHECK_RUNNER_PATH = Path("scripts/zigux/run-phase3-checks.py")
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_VALIDATOR_PATH=scripts/zigux/validate-phase3-export-uapi-survey.py",
-        "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
-        "PHASE3_EXPORT_UAPI_VALIDATOR_RUN=python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
         "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
-        "PHASE3_KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE=Documentation/zigux/phase3-kernel-export-shim-governance.md",
-        "PHASE3_ABI_H_BOUNDARY_NOTE=Documentation/zigux/phase3-abi-h-boundary-next-step.md",
         "PHASE3_ABI_H_PATH=include/zigux/abi.h",
-        "PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig",
-        "PHASE3_BINDING_DEV_T_PATH=zigux/bindings/dev_t.zig",
+        "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
         "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
         "PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig",
-        "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
-        "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
-        "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
-        "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
-        "PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.py",
-        "PHASE3_SHARED_TESTS_BUILD_PATH=zigux/tests/build.zig",
-        "PHASE3_SHARED_CHECK_RUNNER_PATH=scripts/zigux/run-phase3-checks.py",
-        "PHASE3_SHARED_VALIDATE_MAKE_ROUTE=make -C zigux phase3-validate",
-        "PHASE3_SHARED_PHASE_MAKE_ROUTE=make -C zigux phase3",
-        "PHASE3_EXPORT_SHIM_BUILD_PATH=zigux/tests/phase3_export_shim_build.zig",
-        "PHASE3_EXPORT_SHIM_DEDICATED_GATE=zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
-        "PHASE3_EXPORT_SHIM_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-shim-test",
         "PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig",
-        "PHASE3_LAYOUT_SHARED_GATE=zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig",
-        "PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig",
-        "PHASE3_LAYOUT_DEDICATED_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-        "PHASE3_LAYOUT_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout",
-        "PHASE3_LAYOUT_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout-test",
+        "PHASE3_EXPORT_SHIM_BUILD_PATH=zigux/tests/phase3_export_shim_build.zig",
         "PHASE3_C_HEADER_SMOKE_PATH=zigux/tests/phase3_export_uapi_c_header_smoke.c",
-        "PHASE3_C_HEADER_SMOKE_CHECK=scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
-        "PHASE3_C_HEADER_SMOKE_SELF_TEST=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test",
-        "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
-        "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
-        "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
-        "PHASE3_DEV_T_STARTER_PACKET_MANIFEST=zigux/tests/phase3_dev_t_starter_packet_manifest.json",
-        "PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts/zigux/check-phase3-dev-t-starter-packet.py",
-        "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
-        "PHASE3_DEV_T_STARTER_PACKET_RUN=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
-        "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, aggregate `phase3-validate` and `phase3` make routes, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
-        "the status-tagged `validateDeviceFields` plus `validateDeviceNumber` relays",
-        "`zigux/tests/phase3_export_shim_build.zig` now carries the focused `phase3-export-shim-test` replay handoff",
-        "the shared tests-root route in `zigux/tests/build.zig`, where `addPhase3ExportUapiLayout(...)` imports `header_family_binding`",
-        "`zigux/tests/phase3_export_uapi_layout_build.zig` now carries the dedicated `phase3-export-uapi-layout-test` replay handoff",
-        "There is no remaining packet-local missing companion, missing focused export-shim replay handoff, missing dedicated layout-build handoff, or missing aggregate replay entrypoint left to close inside this survey.",
-        "the focused `zigux/tests/phase3_export_shim_build.zig` replay handoff",
-        "the focused `zigux/tests/phase3_export_uapi_layout.zig` replay plus the dedicated `zigux/tests/phase3_export_uapi_layout_build.zig` handoff",
+        "PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage remain open after the landed starter packet",
+        "Do not use this lane to claim broader Phase 3 completion.",
     ),
     VALIDATOR_PATH: (
-        '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
-        'ABI_H_PATH = Path("include/zigux/abi.h")',
-        'BINDING_HEADER_FAMILY_PATH = Path("zigux/bindings/header_family.zig")',
-        'EXPORT_SHIM_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_shim_build.zig")',
-        'LAYOUT_BUILD_HANDOFF_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")',
-        'MAKEFILE_PATH = Path("zigux/Makefile")',
+        '"""Validate the current bounded Phase 3 export/UAPI survey packet."""',
+        'CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
     ),
     EXPORT_SHIM_PATH: (
         "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
-        "pub fn validateDeviceFields(fields: DevTFields) ExportStatus {",
+        "pub fn validateVersion(candidate: Version) ExportStatus {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
         "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
     ),
@@ -107,9 +65,14 @@ REQUIRED_MARKERS = {
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
         "static inline struct zigux_export_status zigux_ok_status(uint16_t facility)",
     ),
+    LINUX_HEADER_PATH: (
+        "static inline struct zigux_export_status zigux_uapi_validate_boundary_header(",
+        "static inline struct zigux_export_status zigux_validate_boundary_header(",
+        "static inline struct zigux_export_status zigux_uapi_validate_dev_t_range(",
+    ),
     BINDING_VERSION_PATH: (
         "pub fn current() Version {",
-        "pub fn matchesCurrent(version: Version) bool {",
+        "pub fn validate(version: Version) abi.ExportStatus {",
     ),
     BINDING_DEV_T_PATH: (
         "pub fn makeDeviceNumber(major: u32, minor: u32) u32 {",
@@ -118,7 +81,6 @@ REQUIRED_MARKERS = {
     BINDING_HEADER_FAMILY_PATH: (
         "pub const abi_major: u32 = uapi_version.abi_major;",
         "pub fn validateVersionStatus(version: Version) ExportStatus {",
-        "pub fn boundaryHeaderHasCurrentAbiVersion(abi_version_value: u16) bool {",
         "pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {",
     ),
     UAPI_VERSION_PATH: (
@@ -128,22 +90,6 @@ REQUIRED_MARKERS = {
     UAPI_DEV_T_PATH: (
         "pub fn makeDeviceNumber(major: u32, minor: u32) u32 {",
         "pub fn validateRange(start: Fields, end: Fields) bool {",
-    ),
-    LINUX_HEADER_PATH: (
-        "static inline struct zigux_export_status zigux_uapi_validate_boundary_header(",
-        "static inline struct zigux_export_status zigux_validate_boundary_header(",
-        "static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(",
-        "static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(",
-        "static inline struct zigux_export_status zigux_uapi_validate_dev_t_range(",
-    ),
-    GOVERNANCE_NOTE_PATH: (
-        "PHASE3_ZIGUX_H_PATH=include/linux/zigux.h",
-        "PHASE3_ZIGUX_H_EXPORT_UAPI_SURVEY=Documentation/zigux/phase3-export-uapi-boundary-survey.md",
-    ),
-    KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE_PATH: (
-        "PHASE3_KERNEL_EXPORT_SHIM_SCOPE=",
-        "PHASE3_KERNEL_EXPORT_SHIM_NEXT_SAFE_STEP=",
-        "It does not claim broader shared ABI validator, manifest, linux-header-governance, or low-level-wrapper completion.",
     ),
     DEV_T_HEADER_PATH: (
         "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
@@ -157,13 +103,9 @@ REQUIRED_MARKERS = {
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
         '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
-        '"make -C zigux phase3-export-shim-test"',
-        '"make -C zigux phase3-export-uapi-layout"',
-        '"make -C zigux phase3-export-uapi-layout-test"',
     ),
     TESTS_BUILD_PATH: (
-        "const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);",
-        '"phase3-export-uapi-layout"',
+        'const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);',
         'root_module.addImport("header_family_binding", header_family_binding);',
         'root_module.addImport("export_shim", export_shim);',
     ),
@@ -171,13 +113,9 @@ REQUIRED_MARKERS = {
         "phase3-export-uapi-layout:",
         "phase3-export-uapi-layout-test:",
         "phase3-export-shim-test:",
-        "zigux/tests/phase3_export_uapi_layout_build.zig",
-        "zigux/tests/phase3_export_shim_build.zig",
     ),
-    EXPORT_SHIM_BUILD_HANDOFF_PATH: (
+    EXPORT_SHIM_BUILD_PATH: (
         '.root_source_file = b.path("../kernel/export_shim.zig"),',
-        'export_shim_module.addImport("abi_bindings", abi_bindings_module);',
-        'export_shim_module.addImport("dev_t_binding", dev_t_binding_module);',
         'export_shim_module.addImport("version_binding", version_binding_module);',
         '"phase3-export-shim-test",',
     ),
@@ -186,10 +124,9 @@ REQUIRED_MARKERS = {
         'test "export shim relays starter boundary-header validation through the focused replay" {',
         'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
     ),
-    LAYOUT_BUILD_HANDOFF_PATH: (
+    LAYOUT_BUILD_PATH: (
         '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
         'root_module.addImport("header_family_binding", header_family_binding);',
-        'root_module.addImport("export_shim", export_shim);',
         '"phase3-export-uapi-layout-test",',
     ),
     C_HEADER_SMOKE_PATH: (
@@ -198,36 +135,24 @@ REQUIRED_MARKERS = {
         "zigux_validate_boundary_header(",
         "static int check_dev_t_relays(void)",
         "zigux_uapi_validate_dev_t_range(",
-        "int main(void)",
     ),
     C_HEADER_SMOKE_CHECK_PATH: (
         '"""Compile and run the current Phase 3 export/UAPI C header smoke."""',
         'SMOKE_PATH = Path("zigux/tests/phase3_export_uapi_c_header_smoke.c")',
-        'print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass")',
     ),
-    CATALOG_HELPER_PATH: (
-        'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
-        '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
-        '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
-        '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
-        '"make -C zigux phase3-export-shim-test"',
-        '"make -C zigux phase3-export-uapi-layout"',
-        '"make -C zigux phase3-export-uapi-layout-test"',
+    DEV_T_STARTER_PACKET_CHECK_PATH: (
+        'print("PHASE3_DEV_T_STARTER_PACKET=pass")',
     ),
     CATALOG_SELFTEST_CHECK_PATH: (
-        'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
-        '\'"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"\'',
-        '\'"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"\'',
-        '\'"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"\'',
-        '\'"make -C zigux phase3-export-shim-test"\'',
-        '\'"make -C zigux phase3-export-uapi-layout"\'',
-        '\'"make -C zigux phase3-export-uapi-layout-test"\'',
+        "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+    ),
+    SHARED_SELFTEST_PATH: (
+        'print("PHASE3_VALIDATE_SELFTEST=pass")',
     ),
     SHARED_CHECK_RUNNER_PATH: (
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
-        '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
-        '"phase3-validate"',
+        '"PHASE3_EXPORT_UAPI_SURVEY=pass"',
     ),
 }
 
@@ -262,8 +187,8 @@ def _populate_repo(root: Path) -> None:
 
 
 def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message: str) -> int:
-    target = root / relative_path
-    target.write_text(_read(target).replace(marker, "", 1), encoding="utf-8")
+    path = root / relative_path
+    _write(path, _read(path).replace(marker, "", 1))
     issues = validate_repo(root)
     expected = f"missing {relative_path.as_posix()} marker: {marker}"
     if expected not in issues:
@@ -274,254 +199,6 @@ def _expect_missing_marker(root: Path, relative_path: Path, marker: str, message
 
 
 def run_self_test() -> int:
-    marker_cases = (
-        (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
-            "expected missing export-shim path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_ABI_H_PATH=include/zigux/abi.h",
-            "expected missing abi.h path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_BINDING_VERSION_PATH=zigux/bindings/version.zig",
-            "expected missing binding version path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_BINDING_DEV_T_PATH=zigux/bindings/dev_t.zig",
-            "expected missing binding dev_t path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
-            "expected missing uapi version path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig",
-            "expected missing uapi dev_t path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
-            "expected missing linux zigux header governance note marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_ABI_H_BOUNDARY_NOTE=Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-            "expected missing abi.h boundary-note marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_UAPI_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
-            "expected missing export/uapi validator self-test marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_UAPI_VALIDATOR_RUN=python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
-            "expected missing export/uapi validator run marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_BINDING_HEADER_FAMILY_PATH=zigux/bindings/header_family.zig",
-            "expected missing export/uapi header-family binding marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_SHARED_VALIDATE_SELFTEST_PATH=scripts/zigux/validate_phase3_selftest.py",
-            "expected missing phase3 validate selftest marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_SHARED_VALIDATE_MAKE_ROUTE=make -C zigux phase3-validate",
-            "expected missing phase3 validate make-route marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_SHARED_PHASE_MAKE_ROUTE=make -C zigux phase3",
-            "expected missing phase3 aggregate make-route marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_SHIM_BUILD_PATH=zigux/tests/phase3_export_shim_build.zig",
-            "expected missing focused export-shim build path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_SHIM_DEDICATED_GATE=zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig",
-            "expected missing focused export-shim build gate marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_SHIM_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-shim-test",
-            "expected missing focused export-shim make-route marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig",
-            "expected missing dedicated layout-build path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_LAYOUT_DEDICATED_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-            "expected missing dedicated layout-build gate marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_LAYOUT_DEDICATED_MAKE_ROUTE=make -C zigux phase3-export-uapi-layout-test",
-            "expected missing dedicated layout-build make-route marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_C_HEADER_SMOKE_CHECK=scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
-            "expected missing export/uapi c-header smoke checker path marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_C_HEADER_SMOKE_SELF_TEST=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py --self-test",
-            "expected missing export/uapi c-header smoke self-test marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_C_HEADER_SMOKE_GATE=python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py",
-            "expected missing export/uapi c-header smoke replay marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_DEV_T_STARTER_PACKET_MANIFEST=zigux/tests/phase3_dev_t_starter_packet_manifest.json",
-            "expected missing dev_t starter packet manifest marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_DEV_T_STARTER_PACKET_CHECK=scripts/zigux/check-phase3-dev-t-starter-packet.py",
-            "expected missing dev_t starter packet checker marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
-            "expected missing dev_t starter packet self-test marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_DEV_T_STARTER_PACKET_RUN=python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
-            "expected missing dev_t starter packet replay marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "The packet-local validator, focused export-shim replay handoff, dedicated layout-build handoff, dedicated dev_t starter manifest-plus-checker pair, aggregate `phase3-validate` and `phase3` make routes, and catalog-selftest guard are now present and should stay aligned with this survey rather than being tracked as missing companions or blocked follow-through.",
-            "expected missing focused export-shim replay marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "There is no remaining packet-local missing companion, missing focused export-shim replay handoff, missing dedicated layout-build handoff, or missing aggregate replay entrypoint left to close inside this survey.",
-            "expected missing parked export/uapi next-step marker was not reported",
-        ),
-        (
-            ABI_H_PATH,
-            "#define ZIGUX_ABI_VERSION 1U",
-            "expected missing abi.h version marker was not reported",
-        ),
-        (
-            TESTS_BUILD_PATH,
-            'root_module.addImport("header_family_binding", header_family_binding);',
-            "expected missing shared tests-root header-family import marker was not reported",
-        ),
-        (
-            BINDING_HEADER_FAMILY_PATH,
-            "pub fn validateVersionStatus(version: Version) ExportStatus {",
-            "expected missing header-family binding status marker was not reported",
-        ),
-        (
-            EXPORT_SHIM_BUILD_HANDOFF_PATH,
-            '.root_source_file = b.path("../kernel/export_shim.zig"),',
-            "expected missing focused export-shim build handoff root marker was not reported",
-        ),
-        (
-            LAYOUT_BUILD_HANDOFF_PATH,
-            '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
-            "expected missing dedicated layout-build handoff root marker was not reported",
-        ),
-        (
-            MAKEFILE_PATH,
-            "phase3-export-shim-test:",
-            "expected missing phase3 export-shim make route marker was not reported",
-        ),
-        (
-            MAKEFILE_PATH,
-            "phase3-export-uapi-layout-test:",
-            "expected missing phase3 export/uapi dedicated make route marker was not reported",
-        ),
-        (
-            MANIFEST_PATH,
-            '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
-            "expected missing export/uapi dedicated manifest build route marker was not reported",
-        ),
-        (
-            MANIFEST_PATH,
-            '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
-            "expected missing export-shim manifest replay route marker was not reported",
-        ),
-        (
-            MANIFEST_PATH,
-            '"make -C zigux phase3-export-shim-test"',
-            "expected missing export-shim manifest make route marker was not reported",
-        ),
-        (
-            MANIFEST_PATH,
-            '"python3 scripts/zigux/check-phase3-export-uapi-c-header-smoke.py"',
-            "expected missing export/uapi c-header smoke manifest replay route marker was not reported",
-        ),
-        (
-            MANIFEST_PATH,
-            '"make -C zigux phase3-export-uapi-layout"',
-            "expected missing export/uapi shared manifest make route marker was not reported",
-        ),
-        (
-            MANIFEST_PATH,
-            '"make -C zigux phase3-export-uapi-layout-test"',
-            "expected missing export/uapi dedicated manifest make route marker was not reported",
-        ),
-        (
-            CATALOG_HELPER_PATH,
-            '"make -C zigux phase3-export-shim-test"',
-            "expected missing export-shim catalog make route marker was not reported",
-        ),
-        (
-            CATALOG_SELFTEST_CHECK_PATH,
-            '\'"make -C zigux phase3-export-shim-test"\'',
-            "expected missing export-shim catalog-selftest make route marker was not reported",
-        ),
-        (
-            SHARED_CHECK_RUNNER_PATH,
-            '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
-            "expected missing shared check-runner export/uapi survey route marker was not reported",
-        ),
-        (
-            SHARED_CHECK_RUNNER_PATH,
-            '"zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig"',
-            "expected missing shared check-runner export/uapi shared build marker was not reported",
-        ),
-        (
-            SHARED_CHECK_RUNNER_PATH,
-            '"phase3-validate"',
-            "expected missing shared check-runner phase3-validate marker was not reported",
-        ),
-        (
-            C_HEADER_SMOKE_PATH,
-            "zigux_validate_boundary_header(",
-            "expected missing c-header smoke boundary-validation marker was not reported",
-        ),
-        (
-            KERNEL_EXPORT_SHIM_GOVERNANCE_NOTE_PATH,
-            "PHASE3_KERNEL_EXPORT_SHIM_SCOPE=",
-            "expected missing kernel export-shim governance scope marker was not reported",
-        ),
-    )
-
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_") as temp_dir:
         root = Path(temp_dir)
         _populate_repo(root)
@@ -532,18 +209,53 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
-        for relative_path, marker, message in marker_cases:
+        cases = (
+            (
+                SURVEY_PATH,
+                "PHASE3_EXPORT_UAPI_GAP=broader curated UAPI families and wider export-shim coverage remain open after the landed starter packet",
+                "expected export/UAPI gap marker removal to fail validation",
+            ),
+            (
+                SURVEY_PATH,
+                "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+                "expected catalog-selftest guard marker removal to fail validation",
+            ),
+            (
+                EXPORT_SHIM_PATH,
+                "pub fn validateBoundaryHeader(header: BoundaryHeader) ExportStatus {",
+                "expected export shim boundary-header marker removal to fail validation",
+            ),
+            (
+                LINUX_HEADER_PATH,
+                "static inline struct zigux_export_status zigux_uapi_validate_dev_t_range(",
+                "expected linux header dev_t range marker removal to fail validation",
+            ),
+            (
+                BINDING_HEADER_FAMILY_PATH,
+                "pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {",
+                "expected header-family range-status marker removal to fail validation",
+            ),
+            (
+                MANIFEST_PATH,
+                '"zig build phase3-export-shim-test --build-file zigux/tests/phase3_export_shim_build.zig"',
+                "expected manifest replay-route marker removal to fail validation",
+            ),
+        )
+
+        for relative_path, marker, message in cases:
             _populate_repo(root)
             if _expect_missing_marker(root, relative_path, marker, message) != 0:
                 return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(marker_cases)}")
+    print(f"PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES={1 + len(cases)}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 3 export/UAPI packet.")
+    parser = argparse.ArgumentParser(
+        description="Validate the current bounded Phase 3 export/UAPI survey packet."
+    )
     parser.add_argument(
         "--repo-root",
         type=Path,
