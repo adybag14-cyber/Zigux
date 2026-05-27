@@ -18,6 +18,7 @@ and still does not ship the broader `phase14-smoke`, `phase14-test`, or
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -31,6 +32,7 @@ RELEASE_BOUNDARY_PATH = Path("Documentation/zigux/phase14-release-boundary-surve
 PRODUCTIZATION_GAP_PATH = Path("Documentation/zigux/phase14-productization-gap-survey.md")
 CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
+MANIFEST_PATH = Path("zigux/tests/phase14_end_to_end_smoke_manifest.json")
 
 ROLLBACK_THRESHOLD_MARKER = (
     "  * rollback threshold: `0` tolerated same-packet drifts across the "
@@ -45,7 +47,7 @@ ROLLBACK_THRESHOLD_MARKER = (
     "the directly readable workqueue boundary shard, the directly readable "
     "ring-buffer survey companion, the directly readable dedicated RCU survey "
     "companion, the directly readable shared smoke manifest, and the "
-    "still-missing broader wrapper-backed rerun routes"
+    "still-missing broader wrapper-backed rerun routes`"
 )
 ROLLBACK_FALLBACK_MARKER = (
     "  * fallback path: keep this shared smoke lane aligned with the current "
@@ -119,6 +121,27 @@ MAKEFILE_ABSENT_ROUTE_MARKERS = [
     "phase14-test:",
     "phase14: phase14-validate phase14-smoke phase14-test",
 ]
+REQUIRED_MANIFEST_VALUES = {
+    ("smoke_commands",): ["make -C zigux phase14-validate"],
+    ("smoke_shard_commands",): [
+        "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
+    ],
+}
+REQUIRED_MANIFEST_SHARED_SMOKE_SURFACES = [
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/phase14-productization-gap-survey.md",
+    "Documentation/zigux/phase14-release-boundary-survey.md",
+    "zigux/Makefile",
+]
+REQUIRED_SURVEY_SUMMARY_FLAGS = {
+    "phase14_validate_runs_rollback_threshold_sequencing": True,
+    "review_checklist_has_rollback_threshold_prompt": True,
+    "smoke_note_records_rollback_threshold": True,
+    "scripts_readme_records_rollback_threshold": True,
+    "phase14_make_target_present": True,
+    "phase14_make_smoke_target_present": False,
+}
 
 
 def read_text(root: Path, rel: Path) -> str:
@@ -147,6 +170,63 @@ def require_absent(errors: list[str], rel: Path, text: str, markers: list[str]) 
             errors.append(f"unexpected stale marker in {rel.as_posix()}: {marker}")
 
 
+def lookup_path(payload: object, path: tuple[str, ...]) -> object:
+    current = payload
+    for key in path:
+        if not isinstance(current, dict) or key not in current:
+            raise KeyError(".".join(path))
+        current = current[key]
+    return current
+
+
+def require_manifest_values(errors: list[str], manifest: object) -> None:
+    for path, expected in REQUIRED_MANIFEST_VALUES.items():
+        try:
+            actual = lookup_path(manifest, path)
+        except KeyError:
+            errors.append(f"missing_manifest_key:{'.'.join(path)}")
+            continue
+        if actual != expected:
+            errors.append(
+                "manifest_value_mismatch:"
+                f"{'.'.join(path)}:expected={expected!r}:actual={actual!r}"
+            )
+
+
+def require_manifest_shared_smoke_surfaces(errors: list[str], manifest: object) -> None:
+    if not isinstance(manifest, dict):
+        errors.append("manifest_not_object")
+        return
+
+    shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
+    if not isinstance(shared_smoke_surfaces, list):
+        errors.append("missing_manifest_key:shared_smoke_surfaces")
+        return
+
+    for surface in REQUIRED_MANIFEST_SHARED_SMOKE_SURFACES:
+        if surface not in shared_smoke_surfaces:
+            errors.append(f"missing_shared_smoke_surface:{surface}")
+
+
+def require_manifest_survey_summary(errors: list[str], manifest: object) -> None:
+    if not isinstance(manifest, dict):
+        errors.append("manifest_not_object")
+        return
+
+    survey_summary = manifest.get("survey_summary")
+    if not isinstance(survey_summary, dict):
+        errors.append("missing_manifest_key:survey_summary")
+        return
+
+    for key, expected in REQUIRED_SURVEY_SUMMARY_FLAGS.items():
+        actual = survey_summary.get(key)
+        if actual != expected:
+            errors.append(
+                "survey_summary_mismatch:"
+                f"{key}:expected={expected!r}:actual={actual!r}"
+            )
+
+
 def check(root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -159,6 +239,7 @@ def check(root: Path) -> list[str]:
         PRODUCTIZATION_GAP_PATH,
         CHECKLIST_PATH,
         MAKEFILE_PATH,
+        MANIFEST_PATH,
     ]
     for rel in required_paths:
         if not (root / rel).exists():
@@ -219,6 +300,17 @@ def check(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     require_present(errors, MAKEFILE_PATH, makefile, MAKEFILE_PRESENT_ROUTE_MARKERS)
     require_absent(errors, MAKEFILE_PATH, makefile, MAKEFILE_ABSENT_ROUTE_MARKERS)
+
+    manifest_text = read_text(root, MANIFEST_PATH)
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        errors.append(f"invalid_json:{MANIFEST_PATH.as_posix()}:{exc.msg}")
+        return errors
+
+    require_manifest_values(errors, manifest)
+    require_manifest_shared_smoke_surfaces(errors, manifest)
+    require_manifest_survey_summary(errors, manifest)
 
     return errors
 
@@ -329,6 +421,29 @@ def fixture_makefile() -> str:
     )
 
 
+def fixture_manifest() -> str:
+    payload = {
+        "shared_smoke_surfaces": REQUIRED_MANIFEST_SHARED_SMOKE_SURFACES,
+        "smoke_commands": ["make -C zigux phase14-validate"],
+        "smoke_shard_commands": [
+            "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig"
+        ],
+        "survey_summary": {
+            "phase14_validate_runs_rollback_threshold_sequencing": True,
+            "review_checklist_has_rollback_threshold_prompt": True,
+            "smoke_note_records_rollback_threshold": True,
+            "scripts_readme_records_rollback_threshold": True,
+            "phase14_make_target_present": True,
+            "phase14_make_smoke_target_present": False,
+        },
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
+def write_manifest_payload(root: Path, payload: object) -> None:
+    write(root, MANIFEST_PATH, json.dumps(payload, indent=2) + "\n")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -337,6 +452,7 @@ def run_self_test() -> int:
         write(root, PRODUCTIZATION_GAP_PATH, fixture_productization_gap())
         write(root, CHECKLIST_PATH, fixture_checklist())
         write(root, MAKEFILE_PATH, fixture_makefile())
+        write(root, MANIFEST_PATH, fixture_manifest())
 
         if errors := check(root):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
@@ -454,8 +570,43 @@ def run_self_test() -> int:
             print("expected stale phase14 smoke route to fail")
             return 1
 
+        write(root, MAKEFILE_PATH, fixture_makefile())
+        manifest = json.loads(fixture_manifest())
+        manifest["shared_smoke_surfaces"].remove(
+            "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+        )
+        write_manifest_payload(root, manifest)
+        if "missing_shared_smoke_surface:scripts/zigux/check-phase14-rollback-threshold-sequencing.py" not in check(root):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected manifest shared-smoke surface drift to fail")
+            return 1
+
+        write(root, MANIFEST_PATH, fixture_manifest())
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_validate_runs_rollback_threshold_sequencing"] = False
+        write_manifest_payload(root, manifest)
+        if not any(
+            error.startswith("survey_summary_mismatch:phase14_validate_runs_rollback_threshold_sequencing:")
+            for error in check(root)
+        ):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected manifest survey-summary drift to fail")
+            return 1
+
+        write(root, MANIFEST_PATH, fixture_manifest())
+        manifest = json.loads(fixture_manifest())
+        manifest["smoke_commands"] = ["make -C zigux phase14-test"]
+        write_manifest_payload(root, manifest)
+        if not any(
+            error.startswith("manifest_value_mismatch:smoke_commands:")
+            for error in check(root)
+        ):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected manifest smoke-command drift to fail")
+            return 1
+
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=20")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
