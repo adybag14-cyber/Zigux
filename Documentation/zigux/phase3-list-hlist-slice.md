@@ -15,6 +15,7 @@ This note records one bounded shared-helper starter-plus-dump packet for the exi
 - `zigux/tests/fixtures/phase3_list_hlist/expected.json`
 - `zigux/tests/fixtures/phase3_list_hlist_manifest.json`
 - `scripts/zigux/check-phase3-list-hlist.py`
+- `zigux/Makefile`
 
 ## Bounded Contract
 
@@ -24,17 +25,20 @@ This note records one bounded shared-helper starter-plus-dump packet for the exi
 - `phase3_list_hlist_dump.zig` and `phase3_list_hlist_c_harness.c` replay the same bounded list and hlist witnesses through Zig and C so the helper-local answers stay parity-checked without widening into exported ABI structs or intrusive mutation coverage.
 - `expected.json` keeps the tiny parity packet directly readable through stable node-index and backlink-label summaries instead of address-specific dumps.
 - `zigux/tests/fixtures/phase3_list_hlist_manifest.json` keeps the bounded starter-plus-dump packet machine-readable through its packet files, replay routes, and explicit next safe step.
-- `scripts/zigux/check-phase3-list-hlist.py` fail-closes the helper-local packet so the slice note, helper files, starter replay, dump replay, C harness, expected fixture, and manifest stay aligned.
+- `zigux/Makefile` exposes bounded `phase3-list-hlist-starter-packet` and `phase3-list-hlist-dump` wrappers so the helper-local packet stays reachable through the shared Zigux rerun surface without widening into the aggregate Phase 3 lane.
+- `scripts/zigux/check-phase3-list-hlist.py` fail-closes the helper-local packet so the slice note, helper files, starter replay, dump replay, C harness, expected fixture, manifest, and wrapper surface stay aligned.
 
 ## Replay Route
 
 - `python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py`
 - `zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig`
+- `make -C zigux phase3-list-hlist-starter-packet`
 - `python3 scripts/zigux/check-phase3-list-hlist.py --self-test`
 - `python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc`
 - `zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig`
+- `make -C zigux phase3-list-hlist-dump`
 
 ## Scope
 
-This slice stays intentionally helper-local even after parity expansion. It does not claim exported ABI structs, intrusive container recovery helpers, list mutation semantics, or wider subsystem-specific list ownership behavior. Any future same-lane follow-through should stay narrowed to shared validator-entrypoint alignment or another explicitly bounded helper-local replay route after rereading current `master`.
+This slice stays intentionally helper-local even after parity expansion. It does not claim exported ABI structs, intrusive container recovery helpers, list mutation semantics, or wider subsystem-specific list ownership behavior. Any future same-lane follow-through should stay narrowed to shared validator-entrypoint alignment, the existing wrapper surface, or another explicitly bounded helper-local replay route after rereading current `master`.
