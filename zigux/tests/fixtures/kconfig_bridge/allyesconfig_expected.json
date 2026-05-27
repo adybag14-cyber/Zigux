@@ -1,1 +1,1 @@
-{"tool":"scripts/kconfig/conf","mode":"allyesconfig","argv":["scripts/kconfig/conf","--allyesconfig","Kconfig"],"env":{"ARCH":"arm64","KCONFIG_CONFIG":"yes/.config","KCONFIG_ALLCONFIG":""}}
+{"tool":"scripts/kconfig/conf","mode":"allyesconfig","argv":["scripts/kconfig/conf","--allyesconfig","Kconfig"],"allconfig_fallbacks":["allyes.config","all.config"],"env":{"ARCH":"arm64","KCONFIG_CONFIG":"yes/.config","KCONFIG_ALLCONFIG":"1"}}
