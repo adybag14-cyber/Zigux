@@ -72,7 +72,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     const review_process = try readRepoFile("Documentation/zigux/phase15-architecture-council-review-process.md", 24 * 1024);
     defer std.testing.allocator.free(review_process);
 
-    const decision_record_template = try readRepoFile("Documentation/zigux/phase15-architecture-council-decision-record-template.md", 24 * 1024);
+    const decision_record_template = try readRepoFile("Documentation/zigux/phase15-architecture-council-decision-record-template.md", 16 * 1024);
     defer std.testing.allocator.free(decision_record_template);
 
     const parity_scorecard = try readRepoFile("Documentation/zigux/phase15-parity-scorecard.md", 24 * 1024);
@@ -96,7 +96,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-26", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-27", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
@@ -105,7 +105,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
     try std.testing.expectEqual(@as(usize, 2), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/freeze-map.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/review-checklist.md");
@@ -120,19 +120,21 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
 
     try expectContains(policy_note, "PHASE15_STATUS=indefinite_c_policy_packet_landed");
     try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
-    try expectContains(policy_note, "current-master-readback-2026-05-26");
+    try expectContains(policy_note, "current-master-readback-2026-05-27");
     try expectContains(policy_note, "roadmap-required Phase 15 stay-in-C policy surface");
     try expectContains(policy_note, "the C implementation remains the source of truth");
     try expectContains(policy_note, "code that remains in C indefinitely");
     try expectContains(policy_note, "Roadmap gap versus current repo reality");
     try expectContains(policy_note, "the roadmap's indefinite-C policy requirement is satisfied by the direct policy packet");
-    try expectContains(policy_note, "`Documentation/zigux/README.md` still stops at Phase 14");
+    try expectContains(policy_note, "current shared reminder surfaces now directly materialize `Documentation/zigux/README.md`");
     try expectContains(policy_note, "`phase15-validate`, `phase15-test`, or `phase15` routes");
     try expectContains(policy_note, "evidence archive path");
     try expectContains(policy_note, "automatic return-to-blocked trigger");
     try expectContains(policy_note, "retired_from_active_discussion");
     try expectContains(policy_note, "trigger-specific evidence refresh");
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
+    try expectContains(policy_note, "exact-head provenance exception note");
+    try expectContains(policy_note, "dated master readback is insufficient");
     try expectContains(policy_note, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(policy_note, "same reviewable ownership vocabulary");
     try expectContains(policy_note, "governance lane sequencing link or explicit scope note");
@@ -143,6 +145,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(policy_note, "phase15-indefinite-c-review-process-companion-sync");
     try expectContains(policy_note, "phase15-indefinite-c-ownership-template-sync");
     try expectContains(policy_note, "phase15-indefinite-c-lane-owner-companion-sync");
+    try expectContains(policy_note, "phase15-indefinite-c-exact-head-exception-ownership-sync");
     try expectContains(policy_note, "phase15-indefinite-c-current-reread-refresh");
     try expectContains(policy_note, "blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`");
 
@@ -155,6 +158,9 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(decision_record_template, "rollback owner:");
     try expectContains(decision_record_template, "validation gate summary:");
     try expectContains(decision_record_template, "indefinite-C policy link or explicit non-applicability note:");
+    try expectContains(decision_record_template, "exact-head provenance exception note:");
+    try expectContains(decision_record_template, "dated master readback is insufficient");
+    try expectContains(decision_record_template, "required approver set explicit");
 
     try expectContains(parity_scorecard, "blocked status-change anchor count: `4`");
     try expectContains(parity_scorecard, "Architecture Council approvals recorded for status change: `0`");
@@ -191,10 +197,15 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("written rationale", recordkeeping.required_terms[21]);
 
     const exception_path = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-exception-path") orelse return error.MissingRequirement;
-    try std.testing.expectEqual(@as(usize, 3), exception_path.required_terms.len);
+    try std.testing.expectEqual(@as(usize, 8), exception_path.required_terms.len);
     try expectContains(exception_path.required_terms[0], "no silent exception path");
     try expectContains(exception_path.required_terms[1], "Architecture Council reopen request");
     try expectContains(exception_path.required_terms[2], "trigger-specific evidence refresh");
+    try expectContains(exception_path.required_terms[3], "exact-head provenance exception note");
+    try expectContains(exception_path.required_terms[4], "lane owner");
+    try expectContains(exception_path.required_terms[5], "rollback owner");
+    try expectContains(exception_path.required_terms[6], "required approver set");
+    try expectContains(exception_path.required_terms[7], "dated master readback is insufficient");
 
     const reopen_catalog = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-reopen-trigger-catalog") orelse return error.MissingRequirement;
     try std.testing.expectEqual(@as(usize, 3), reopen_catalog.required_terms.len);
@@ -224,12 +235,18 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig", lane_owner_sync.zigux_destination);
     try expectContains(lane_owner_sync.why_now, "lane-owner");
 
+    const exception_owner_sync = findGap(manifest.gaps, "phase15-indefinite-c-exact-head-exception-ownership-sync") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("landed", exception_owner_sync.status);
+    try std.testing.expectEqualStrings("companion_sync", exception_owner_sync.kind);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", exception_owner_sync.zigux_destination);
+    try expectContains(exception_owner_sync.why_now, "owner-trio");
+
     const current_reread_refresh = findGap(manifest.gaps, "phase15-indefinite-c-current-reread-refresh") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("landed", current_reread_refresh.status);
     try std.testing.expectEqualStrings("maintenance_reread", current_reread_refresh.kind);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", current_reread_refresh.zigux_destination);
-    try expectContains(current_reread_refresh.why_now, "2026-05-26");
-    try expectContains(current_reread_refresh.why_now, "roadmap");
+    try expectContains(current_reread_refresh.why_now, "2026-05-27");
+    try expectContains(current_reread_refresh.why_now, "docs-root reminder");
 
     const blocker_gap = findGap(manifest.gaps, "phase15-deep-core-status-change-blocker") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", blocker_gap.status);
