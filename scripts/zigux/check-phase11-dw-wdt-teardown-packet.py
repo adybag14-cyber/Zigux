@@ -348,6 +348,7 @@ def run_self_test() -> None:
             ("provenance", PROVENANCE_MARKERS[1]),
             ("provenance", PROVENANCE_MARKERS[3]),
             ("validation_matrix", VALIDATION_MATRIX_MARKERS[1]),
+            ("validation_matrix", VALIDATION_MATRIX_MARKERS[2]),
             ("validation_matrix", VALIDATION_MATRIX_MARKERS[5]),
             ("survey", SURVEY_MARKERS[2]),
             ("survey", SURVEY_MARKERS[8]),
