@@ -79,7 +79,7 @@ test "phase 8 file-path-handle bridge helper stays wired into the Linux-style re
     try expectContains(makefile, "phase8-file-path-handle-bridge-test");
 }
 
-test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {
+test "phase 8 file-path-handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {
     const manifest = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/zigux_segments/manifest.json",
