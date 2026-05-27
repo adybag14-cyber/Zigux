@@ -1,0 +1,21 @@
+{
+  "phase": "Phase 3",
+  "lane": "abi-runtime",
+  "slug": "phase3-rbtree-starter-packet",
+  "status": "helper_local_rbtree_boundary_surface_present",
+  "scope": "helper-local rbtree root and parent-color decoding with one focused starter replay packet",
+  "packet_files": [
+    "Documentation/zigux/phase3-rbtree-slice.md",
+    "zigux/helpers/rbtree_view.zig",
+    "zigux/tests/phase3_rbtree_starter_packet.zig",
+    "zigux/tests/phase3_rbtree_starter_packet_build.zig",
+    "zigux/tests/fixtures/phase3_rbtree_manifest.json",
+    "scripts/zigux/check-phase3-rbtree-starter-packet.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-rbtree-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-rbtree-starter-packet.py --repo-root .",
+    "zig build phase3-rbtree-starter-packet-test --build-file zigux/tests/phase3_rbtree_starter_packet_build.zig"
+  ],
+  "next_safe_step": "keep the helper-local rbtree starter packet aligned with its checker and focused build replay without widening into mutation or shared ABI catalog work"
+}
