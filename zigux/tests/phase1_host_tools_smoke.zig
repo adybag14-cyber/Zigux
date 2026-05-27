@@ -89,6 +89,18 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(u64, @intCast(std.math.maxInt(i64))), saturated.value);
     try std.testing.expectEqualStrings("", saturated.rest);
 
+    const hexadecimal = cmdline.memparse("0x20M");
+    try std.testing.expectEqual(@as(u64, 0x20 << 20), hexadecimal.value);
+    try std.testing.expectEqualStrings("", hexadecimal.rest);
+
+    const octal = cmdline.memparse("010K");
+    try std.testing.expectEqual(@as(u64, 8 << 10), octal.value);
+    try std.testing.expectEqualStrings("", octal.rest);
+
+    const invalid = cmdline.memparse("xyz");
+    try std.testing.expectEqual(@as(u64, 0), invalid.value);
+    try std.testing.expectEqualStrings("xyz", invalid.rest);
+
     try std.testing.expect(cmdline.parseOptionStr("rootwait,quiet", "quiet"));
     try std.testing.expect(cmdline.parseOptionStr(",quiet", ""));
     try std.testing.expect(cmdline.parseOptionStr("rootwait,,quiet", ""));
@@ -115,11 +127,23 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
     try std.testing.expectEqualStrings("", unterminated.remaining);
 
+    try std.testing.expectEqual(@as(u8, 0x41), ctype.mask('A'));
+    try std.testing.expectEqual(@as(u8, 0x42), ctype.mask('a'));
+    try std.testing.expectEqual(@as(u8, 0xa0), ctype.mask(' '));
+    try std.testing.expect(ctype.isalnum('A'));
     try std.testing.expect(ctype.isalpha('Q'));
     try std.testing.expect(ctype.isdigit('7'));
+    try std.testing.expect(ctype.isspace('\t'));
+    try std.testing.expect(ctype.isxdigit('f'));
+    try std.testing.expect(ctype.ispunct('!'));
+    try std.testing.expectEqual(@as(u8, 'a'), ctype.tolower('A'));
     try std.testing.expectEqual(@as(u8, 'm'), ctype.fastTolower('M'));
     try std.testing.expectEqual(@as(u8, 'Z'), ctype.toupper('z'));
+    try std.testing.expect(ctype.isodigit('7'));
+    try std.testing.expect(!ctype.isodigit('8'));
 
+    try std.testing.expectEqual(@as(u32, 4), hweight.swHweight8(0xf0));
+    try std.testing.expectEqual(@as(u32, 8), hweight.swHweight16(0xf0f0));
     try std.testing.expectEqual(@as(u32, 16), hweight.swHweight32(0xf0f0_f0f0));
     try std.testing.expectEqual(@as(u64, 32), hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));
     try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweight.hweightLong(0xf0f0));
@@ -135,6 +159,11 @@ test "phase1 host-tools smoke exercises live helper behavior" {
 
     var error_buffer: [32]u8 = undefined;
     try std.testing.expectEqualStrings("Permission denied", str_error_r.strErrorR(13, &error_buffer));
+    var unknown_error_buffer: [64]u8 = undefined;
+    try std.testing.expectEqualStrings(
+        "INTERNAL ERROR: strerror_r(4096, [buf], 64)=22",
+        str_error_r.strErrorR(4096, &unknown_error_buffer),
+    );
     var tiny_error_buffer: [8]u8 = undefined;
     try std.testing.expectEqualStrings("INTERNA", str_error_r.strErrorR(4096, &tiny_error_buffer));
 
@@ -191,6 +220,38 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     var sorted_count: usize = 0;
     var sorted_node = list_head.next;
     while (sorted_node != &list_head) : (sorted_node = sorted_node.?.next) {
+        const entry: *const ListSortSmokeEntry = @fieldParentPtr("node", sorted_node.?);
+        sorted_keys[sorted_count] = entry.key;
+        sorted_ordinals[sorted_count] = entry.ordinal;
+        sorted_count += 1;
+    }
+    try std.testing.expectEqualSlices(i32, &.{ 1, 1, 2, 3, 3 }, sorted_keys[0..sorted_count]);
+    try std.testing.expectEqualSlices(usize, &.{ 1, 3, 0, 2, 4 }, sorted_ordinals[0..sorted_count]);
+
+    var bool_head: list_sort.ListHead = .{};
+    bool_head.init();
+    var bool_entries = [_]ListSortSmokeEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    const bool_cmp = struct {
+        fn less(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const lhs: *const ListSortSmokeEntry = @fieldParentPtr("node", a);
+            const rhs: *const ListSortSmokeEntry = @fieldParentPtr("node", b);
+            return @intFromBool(lhs.key > rhs.key);
+        }
+    }.less;
+    for (&bool_entries) |*entry| {
+        list_sort.listAddTail(&entry.node, &bool_head);
+    }
+    list_sort.listSort(null, &bool_head, bool_cmp);
+
+    sorted_count = 0;
+    sorted_node = bool_head.next;
+    while (sorted_node != &bool_head) : (sorted_node = sorted_node.?.next) {
         const entry: *const ListSortSmokeEntry = @fieldParentPtr("node", sorted_node.?);
         sorted_keys[sorted_count] = entry.key;
         sorted_ordinals[sorted_count] = entry.ordinal;
