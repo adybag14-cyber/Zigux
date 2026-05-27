@@ -64,6 +64,7 @@ The current helper-local replay keeps these proofs explicit:
 - postorder aliases stay reviewable through `firstPostorder()`, `nextPostorder()`, and the dedicated replay's detached-node guards
 - duplicate-range matching stays reviewable through `findFirst()`, `nextMatch()`, and `matchIterator()`
 - cached-leftmost promotion, non-leftmost cached erase, singleton cached erase, and plain erase-init reseed ownership boundaries stay reviewable through the dedicated replay, the parity checker, the returned JSON fixture, and the returned C harness
+- the readable legacy companion at `tools/lib/rbtree.zig` now stays reviewable only while its reverse-traversal alias, postorder alias, and plain erase-init markers remain readable beside the direct helper packet
 - same-lane truthfulness stays rooted at the returned runtime-root helper, the returned notes, the returned survey, the returned manifest, the returned parity checker, the returned JSON fixture, and the returned C harness
 
 The current helper-local replay also keeps these ownership and boundary rules explicit:
@@ -85,4 +86,4 @@ This helper-local Phase 7 rbtree slice does not yet claim:
 
 ## Next Bounded Step
 
-Keep same-lane follow-through inside this slice-backed direct-helper packet by leaving `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` reviewable as returned parity evidence, including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases, while keeping the returned `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers aligned with `zigux/tests/phase7_build.zig`. Do not widen into workflow-recovery or broader shared-control lanes unless `phase7-test:` or aggregate `phase7:` surfaces actually return.
+Keep same-lane follow-through inside this slice-backed direct-helper packet by leaving `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` reviewable as returned parity evidence, including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases, while keeping the readable legacy `tools/lib/rbtree.zig` companion aligned on the reverse-traversal alias, postorder alias, and plain erase-init markers and keeping the returned `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers aligned with `zigux/tests/phase7_build.zig`. Do not widen into workflow-recovery or broader shared-control lanes unless `phase7-test:` or aggregate `phase7:` surfaces actually return.
