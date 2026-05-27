@@ -21,6 +21,17 @@ pub fn build(b: *std.Build) void {
         .root_module = perf_buffer_poll_root_module,
     });
 
+    const perf_buffer_wait_budget_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    perf_buffer_wait_budget_module.addImport("perf_buffer_poll", perf_buffer_poll_module);
+    const perf_buffer_wait_budget_tests = b.addTest(.{
+        .name = "phase8-perf-buffer-wait-budget-tests",
+        .root_module = perf_buffer_wait_budget_module,
+    });
+
     const ready_buffer_fd_lookup_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig"),
         .target = target,
@@ -42,11 +53,13 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_perf_buffer_poll_tests = b.addRunArtifact(perf_buffer_poll_tests);
+    const run_perf_buffer_wait_budget_tests = b.addRunArtifact(perf_buffer_wait_budget_tests);
     const run_ready_buffer_fd_lookup_tests = b.addRunArtifact(ready_buffer_fd_lookup_tests);
     const run_perf_buffer_poll_verify_tests = b.addRunArtifact(perf_buffer_poll_verify_tests);
 
     const test_step = b.step("test", "Run focused Phase 8 perf-buffer poll tests");
     test_step.dependOn(&run_perf_buffer_poll_tests.step);
+    test_step.dependOn(&run_perf_buffer_wait_budget_tests.step);
     test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);
     test_step.dependOn(&run_perf_buffer_poll_verify_tests.step);
     b.default_step.dependOn(test_step);
