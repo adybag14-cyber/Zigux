@@ -82,6 +82,7 @@ REQUIRED_PATHS = (
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+    "zigux/tests/phase10_virtio_ring_queue_build.zig",
     "zigux/tests/phase10_virtio_ring_queue_build_survey.zig",
     "zigux/tests/phase10_virtio_ring_registration_replay.zig",
     "zigux/tests/phase10_virtio_ring_reset_readiness.zig",
@@ -184,7 +185,6 @@ def run_check(root: Path) -> int:
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
 
 
 def build_stub_script(path: Path, *, exit_code: int = 0) -> None:
@@ -291,6 +291,10 @@ def run_self_test() -> int:
             "missing_input_survey_path",
         )
         assert_missing_required_path(
+            "zigux/tests/phase10_virtio_ring_queue_build.zig",
+            "missing_ring_queue_build_path",
+        )
+        assert_missing_required_path(
             "zigux/tests/phase10_virtio_ring_queue_build_survey.zig",
             "missing_ring_queue_build_survey_path",
         )
@@ -379,7 +383,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATE_SELF_TEST=pass")
-    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_VALIDATE_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
