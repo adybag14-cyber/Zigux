@@ -2,6 +2,7 @@ const std = @import("std");
 const Io = std.Io;
 
 const config_prefix = "CONFIG_";
+const max_config_bytes: usize = std.math.maxInt(usize);
 
 const EntryKind = enum {
     tristate,
@@ -36,6 +37,10 @@ fn deinitEntries(allocator: std.mem.Allocator, entries: []Entry) void {
         allocator.free(entry.name);
         allocator.free(entry.value);
     }
+}
+
+fn readConfigFile(allocator: std.mem.Allocator, io: std.Io, path: []const u8) ![]u8 {
+    return try Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(max_config_bytes));
 }
 
 fn writeHexLower(writer: anytype, value: u8) !void {
@@ -326,7 +331,7 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     }
 
-    const input = try Io.Dir.cwd().readFileAlloc(io, args[1], arena, .limited(1024 * 1024));
+    const input = try readConfigFile(arena, io, args[1]);
     var stdout_buffer: [2048]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     try runConfdataBridge(arena, input, &stdout_writer.interface);
@@ -645,6 +650,44 @@ test "confdata bridge escapes parsed string bytes in json output" {
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"value\":\"zigux\\\"bridge\\\\\"") != null);
+}
+
+test "confdata bridge file reader accepts config inputs beyond one mebibyte" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const header = "CONFIG_BIG=value\n# ";
+    const padding_len = (1024 * 1024) + 64;
+    var file_bytes = try std.ArrayList(u8).initCapacity(std.testing.allocator, header.len + padding_len + 1);
+    defer file_bytes.deinit(std.testing.allocator);
+    try file_bytes.appendSlice(std.testing.allocator, header);
+    try file_bytes.appendNTimes(std.testing.allocator, 'a', padding_len);
+    try file_bytes.append(std.testing.allocator, '\n');
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "large.config",
+        .data = file_bytes.items,
+    });
+
+    const config_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        ".zig-cache/tmp/{s}/large.config",
+        .{tmp.sub_path[0..]},
+    );
+    defer std.testing.allocator.free(config_path);
+
+    const input = try readConfigFile(std.testing.allocator, std.testing.io, config_path);
+    defer std.testing.allocator.free(input);
+
+    try std.testing.expect(input.len > 1024 * 1024);
+
+    var summary = try parseConfig(std.testing.allocator, input);
+    defer deinitSummary(std.testing.allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try expectEntry(summary, 0, "CONFIG_BIG", .value, "value");
 }
 
 test "confdata bridge releases appended entry ownership on index-allocation failure" {
