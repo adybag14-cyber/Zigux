@@ -43,6 +43,7 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "zigux/tests/phase15_build.zig",
+    "scripts/zigux/check-phase15-architecture-council-packet.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
@@ -57,7 +58,7 @@ ROUTE_GAP_MARKERS = (
 )
 
 VALIDATOR_WORDING_SPLIT_MARKER = (
-    "`scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate and the directly materialized `zigux/tests/phase15_build.zig` shared build companion explicit while the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes plus the shared-CI route remain the broader route-level gaps on current `master`"
+    "`scripts/zigux/README.md` now keeps the directly materialized `scripts/zigux/validate-phase15.py` maintenance gate, the directly materialized `scripts/zigux/check-phase15-architecture-council-packet.py` Architecture Council packet checker, and the directly materialized `zigux/tests/phase15_build.zig` shared build companion explicit while the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes plus the shared-CI route remain the broader route-level gaps on current `master`"
 )
 
 REQUIRED_NOTE_MARKERS = (
@@ -80,6 +81,7 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
     "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`",
     "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-architecture-council-packet.py`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
