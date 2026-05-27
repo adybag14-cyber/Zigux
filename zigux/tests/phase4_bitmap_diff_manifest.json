@@ -21,7 +21,7 @@
   "phase4_build_uses_bitmap_diff_survey": true,
   "phase4_build_blob_sha": "86f88d03cd82e2e11ea6ed4a02175b77b472fdb4",
   "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
-  "roadmap_gap_summary": "The roadmap-named bitmap rollback gate remains present, and the helper-backed replay is restored as the smallest same-lane validation companion for the bounded Phase 4 bitmap packet.",
+  "roadmap_gap_summary": "The roadmap-named bitmap rollback gate remains present, and the paired survey packet now tracks the current bitmap_diff.zig reviewability shape after the restored validator-marker follow-up so the same bounded Phase 4 packet stays measurable.",
   "reversible_delivery_evidence": "Keep zigux/tests/bitmap_diff.zig, zigux/tests/phase4_bitmap_live_helper_replay.zig, zigux/tests/phase4_bitmap_diff_survey.zig, scripts/zigux/validate-phase4.py, Documentation/zigux/phase4-validation-matrix.md, Documentation/zigux/phase4-gate-evidence.md, and zigux/tests/phase4_build.zig aligned so the bounded bitmap rollback packet stays measurable and reversible.",
-  "ready_next": "Park this lane unless the bitmap rollback gate, the helper replay, or the shared Phase 4 validator, matrix, gate-evidence note, or build wiring moves again."
+  "ready_next": "Park this lane unless the bitmap rollback gate, the paired survey packet, the helper replay, or the shared Phase 4 validator, matrix, gate-evidence note, or build wiring moves again."
 }
