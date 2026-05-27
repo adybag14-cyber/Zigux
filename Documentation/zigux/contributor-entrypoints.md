@@ -51,6 +51,10 @@ Supporting companions:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
+Matching guard:
+
+- `python3 scripts/zigux/check-developer-enablement-workflow.py`
+
 Keep this path scoped to reminder-surface maintenance: reread the owning packet first, update only the smallest understated shared surface, and leave absent routes, files, or wrappers framed as repo-reality gaps instead of shipped evidence.
 
 ### Samples And Reference Patterns
