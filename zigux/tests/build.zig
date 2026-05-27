@@ -819,6 +819,13 @@ pub fn build(b: *std.Build) void {
         target,
         optimize,
     );
+    const phase10_virtio_input_survey = addSurveyTest(
+        b,
+        "phase10-virtio-input-survey",
+        "phase10_virtio_input_survey.zig",
+        target,
+        optimize,
+    );
     const phase11_gpio_wdt_verify = addPhase11GpioWatchdogVerify(b, target, optimize);
     const phase12_virtio_net_throughput_parity = addPhase12VirtioNetThroughputParity(
         b,
@@ -955,6 +962,12 @@ pub fn build(b: *std.Build) void {
     );
     phase10_ring_step.dependOn(&phase10_virtio_ring_survey.step);
 
+    const phase10_input_step = b.step(
+        "phase10-virtio-input-survey",
+        "Run the Phase 10 virtio input survey anchor from the shared tests root",
+    );
+    phase10_input_step.dependOn(&phase10_virtio_input_survey.step);
+
     const phase11_step = b.step(
         "phase11-gpio-wdt-verify",
         "Run the Phase 11 gpio watchdog verification replay from the shared tests root",
@@ -983,6 +996,7 @@ pub fn build(b: *std.Build) void {
     smoke_step.dependOn(&phase7_argv_split_survey.step);
     smoke_step.dependOn(&phase10_virtio_core_survey.step);
     smoke_step.dependOn(&phase10_virtio_ring_survey.step);
+    smoke_step.dependOn(&phase10_virtio_input_survey.step);
     smoke_step.dependOn(&phase11_gpio_wdt_verify.step);
     smoke_step.dependOn(&phase12_virtio_net_survey.step);
     smoke_step.dependOn(&phase12_virtio_net_throughput_parity.step);
@@ -996,6 +1010,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&phase7_argv_split_survey.step);
     test_step.dependOn(&phase10_virtio_core_survey.step);
     test_step.dependOn(&phase10_virtio_ring_survey.step);
+    test_step.dependOn(&phase10_virtio_input_survey.step);
     test_step.dependOn(&phase11_gpio_wdt_verify.step);
     test_step.dependOn(&phase12_virtio_net_survey.step);
     test_step.dependOn(&phase12_virtio_net_throughput_parity.step);
