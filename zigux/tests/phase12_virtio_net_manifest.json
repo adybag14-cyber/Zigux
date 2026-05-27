@@ -43,7 +43,7 @@
     "queueing_correctness": {
       "required_by_roadmap": true,
       "status": "split_queue_resume_receive_refill_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present",
-      "current_surface": "The split queue-resume, receive-refill replay, transmit-recycle, post-reset replay, dedicated survey gate, standalone syntax-lab compile-smoke pair, and directly coupled test packet are present on current master, and the returned Phase 12 make entrypoints now keep the queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate sextet on the shared validate, smoke, and test routes.",
+      "current_surface": "The split queue-resume, receive-refill replay, transmit-recycle, post-reset replay, dedicated survey gate, standalone syntax-lab compile-smoke pair, directly coupled test packet, and returned dedicated `phase12-virtio-net-syntax-lab-test` make wrapper are present on current master, and the returned Phase 12 make entrypoints now keep the queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate sextet on the shared validate, smoke, and test routes.",
       "blocked_by": "Runtime queue execution, control-virtqueue command traffic, and interrupt-backed transmit completion handling still need later follow-up packets before broader queueing correctness can be treated as landed."
     },
     "throughput_and_recovery_parity": {
@@ -55,7 +55,7 @@
     "segmented_rollout": {
       "required_by_roadmap": true,
       "status": "split_helper_packet_direct_replays_and_survey_gate_present_shared_route_sextet_complete",
-      "current_surface": "The survey note, survey gate, split helper files, queue-resume replay, receive-refill replay, transmit-recycle replay, post-reset replay test, throughput-parity test, returned shared make entrypoints, shared Phase 12 validate, smoke, and test routes, and the separate syntax-lab compile-smoke pair are present on current master for the full queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate sextet.",
+      "current_surface": "The survey note, survey gate, split helper files, queue-resume replay, receive-refill replay, transmit-recycle replay, post-reset replay test, throughput-parity test, returned shared make entrypoints, returned dedicated `phase12-virtio-net-syntax-lab-test` make wrapper, shared Phase 12 validate, smoke, and test routes, and the separate syntax-lab compile-smoke pair are present on current master for the full queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate sextet.",
       "blocked_by": "Runtime queue execution and throughput evidence still need later follow-up packets before this packet can widen into the broader complex-driver validation bundle."
     }
   },
@@ -72,7 +72,7 @@
       "status": "survey_present_shared_route_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "The dedicated survey gate keeps the split helper packet, the absence of the older monolithic starter, the standalone syntax-lab compile-smoke pair that stays outside the shared build route, the shared queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate build route, the returned `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof, and the blocked runtime-data-path boundary explicit."
+      "why_now": "The dedicated survey gate keeps the split helper packet, the absence of the older monolithic starter, the standalone syntax-lab compile-smoke pair, the returned `phase12-virtio-net-syntax-lab-test` make wrapper, the fact that smoke still runs through the direct build-file command, the shared queue-resume, receive-refill replay, transmit-recycle, post-reset replay, throughput-parity, and survey-gate build route, the returned `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` wrapper proof, and the blocked runtime-data-path boundary explicit."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
