@@ -22,10 +22,13 @@ DIRECT_PACKET_FILES = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-string-review-packet.py",
     "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-shared-reminder-packet.py",
     "scripts/zigux/validate-phase1-closure.py",
     "zigux/tests/build.zig",
+    "zigux/tests/phase1_helpers.zig",
+    "zigux/tests/phase1_helpers_build.zig",
     "zigux/tests/phase1_host_tools_smoke.zig",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/fixtures/phase1_helper_manifest.json",
@@ -37,18 +40,30 @@ REQUIRED_FILES = DIRECT_PACKET_FILES + (MAKEFILE_REL,)
 BROADER_COMPANION_GAPS = (
     "scripts/zigux/validate-phase1.py",
     "scripts/zigux/check-phase1-parity.py",
-    "zigux/tests/phase1_helpers.zig",
     "zigux/tests/phase1_bench.zig",
     "zigux/tests/fixtures/phase1_bench_expectations.json",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
 )
 
 REQUIRED_LINES = (
-    "  * current direct-readback Phase 1 reminder packet:",
-    "  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-    "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
-    "  * broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
-    "  * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`",
+    "* current direct-readback Phase 1 reminder packet:",
+    "* current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+    "* current focused Phase 1 helper replay route: `zig build phase1-helpers --build-file zigux/tests/phase1_helpers_build.zig`",
+    "* current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, Phase 12, and Phase 14 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
+    "* broader Phase 1 closure companions stay outside the narrow direct-readback packet: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, but current public-tree readback does rematerialize that validator-first, bench, and replay family on `master`, so keep those paths framed as broader closure companions rather than as active tests-root proof inside this direct-readback reminder packet",
+    "* keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`",
+)
+
+REQUIRED_MAKEFILE_LINES = (
+    "phase1-route-summary:",
+    "phase3-validate:",
+    "phase3: phase3-validate phase3-export-uapi-layout phase3-export-shim-test phase3-low-level-wrappers phase3-policy-unsafe-test phase3-test phase3-policy-dump phase3-dump",
+    "phase4-validate:",
+    "phase6-validate:",
+    "phase8-validate:",
+    "phase10-validate:",
+    "phase12-validate:",
+    "phase14-validate",
 )
 
 FORBIDDEN_MAKEFILE_LINES = (
@@ -95,8 +110,6 @@ def collect_failures(root: Path) -> list[str]:
             )
 
     for relative_path in DIRECT_PACKET_FILES:
-        if relative_path == TESTS_README_REL:
-            continue
         marker = f"- `{relative_path}`"
         count = count_exact_line(tests_readme, marker)
         if count != 1:
@@ -105,12 +118,12 @@ def collect_failures(root: Path) -> list[str]:
             )
 
     makefile_text = read_text(root, MAKEFILE_REL)
-    phase1_route_summary_count = count_exact_line(makefile_text, "phase1-route-summary:")
-    if phase1_route_summary_count != 1:
-        failures.append(
-            "makefile_phase1_route_summary:expected=1:"
-            f"actual={phase1_route_summary_count}"
-        )
+    for marker in REQUIRED_MAKEFILE_LINES:
+        count = count_exact_line(makefile_text, marker)
+        if count != 1:
+            failures.append(
+                f"makefile_required_line:{marker}:expected=1:actual={count}"
+            )
 
     for marker in FORBIDDEN_MAKEFILE_LINES:
         count = count_exact_line(makefile_text, marker)
@@ -126,25 +139,27 @@ def write_text(root: Path, relative_path: str, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+
 def build_sample_repo(root: Path) -> None:
     tests_readme_lines = [
         "# zigux/tests",
         "",
         "## Phase 1 host-tools review packet",
         "",
-        *REQUIRED_LINES[:1],
-        *[f"- `{relative_path}`" for relative_path in DIRECT_PACKET_FILES if relative_path != TESTS_README_REL],
+        REQUIRED_LINES[0],
+        *[f"- `{relative_path}`" for relative_path in DIRECT_PACKET_FILES],
         REQUIRED_LINES[1],
         REQUIRED_LINES[2],
         REQUIRED_LINES[3],
         REQUIRED_LINES[4],
+        REQUIRED_LINES[5],
     ]
     for relative_path in DIRECT_PACKET_FILES:
         if relative_path == TESTS_README_REL:
             write_text(root, relative_path, "\n".join(tests_readme_lines) + "\n")
         else:
             write_text(root, relative_path, f"placeholder for {relative_path}\n")
-    write_text(root, MAKEFILE_REL, "phase1-route-summary:\n")
+    write_text(root, MAKEFILE_REL, "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
 
 
 def remove_exact_line(root: Path, relative_path: str, marker: str) -> None:
@@ -180,12 +195,12 @@ def run_self_test() -> int:
         cases.append((f"missing_line:{marker}", ("remove_line", TESTS_README_REL, marker)))
         cases.append((f"duplicate_line:{marker}", ("duplicate_line", TESTS_README_REL, marker)))
     for relative_path in DIRECT_PACKET_FILES:
-        if relative_path == TESTS_README_REL:
-            continue
         marker = f"- `{relative_path}`"
         cases.append((f"missing_entry:{relative_path}", ("remove_line", TESTS_README_REL, marker)))
         cases.append((f"duplicate_entry:{relative_path}", ("duplicate_line", TESTS_README_REL, marker)))
-    cases.append(("missing_route_summary", ("remove_line", MAKEFILE_REL, "phase1-route-summary:")))
+    for marker in REQUIRED_MAKEFILE_LINES:
+        cases.append((f"missing_makefile_line:{marker}", ("remove_line", MAKEFILE_REL, marker)))
+        cases.append((f"duplicate_makefile_line:{marker}", ("duplicate_line", MAKEFILE_REL, marker)))
     for marker in FORBIDDEN_MAKEFILE_LINES:
         cases.append((f"forbidden_makefile:{marker}", ("add_line", MAKEFILE_REL, marker)))
 
@@ -227,8 +242,17 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override repository root")
+    parser.add_argument(
+        "--write-sample-root",
+        help="write a current-like sample repo root instead of validating",
+    )
     parser.add_argument("--self-test", action="store_true", help="run built-in self-test")
     args = parser.parse_args()
+
+    if args.write_sample_root:
+        build_sample_repo(Path(args.write_sample_root).resolve())
+        print("PHASE1_TESTS_README_REPO_REALITY_SAMPLE_ROOT=written")
+        return 0
 
     if args.self_test:
         return run_self_test()
@@ -248,7 +272,7 @@ def main() -> int:
     )
     print(
         "PHASE1_TESTS_README_REPO_REALITY_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LINES) + len(DIRECT_PACKET_FILES) - 1}"
+        f"{len(REQUIRED_LINES) + len(DIRECT_PACKET_FILES)}"
     )
     return 0
 
