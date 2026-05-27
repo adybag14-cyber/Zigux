@@ -44,11 +44,13 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
     "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
     "Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md",
+    "Documentation/zigux/phase11-closure-evidence.md",
     "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/check-phase11-validate-manifest-roster.py",
     "scripts/zigux/check-phase11-validate-check-roster.py",
     "scripts/zigux/check-phase11-validate-route-alignment.py",
     "scripts/zigux/check-phase11-shared-tooling-manifest.py",
+    "scripts/zigux/check-phase11-closure-manifest-counts.py",
     "scripts/zigux/check-phase11-focused-direct-build-replays.py",
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
@@ -77,6 +79,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
     "zigux/tests/fixtures/phase11_shared_tooling_manifest.json",
+    "zigux/tests/phase11_closure_manifest.json",
     "zigux/tests/phase11_bcm2835_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt_survey.zig",
@@ -156,6 +159,14 @@ CHECKS = (
     CheckSpec(
         "phase11-shared-tooling-manifest",
         ("python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"),
+    ),
+    CheckSpec(
+        "phase11-closure-manifest-counts-self-test",
+        ("python", "scripts/zigux/check-phase11-closure-manifest-counts.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-closure-manifest-counts",
+        ("python", "scripts/zigux/check-phase11-closure-manifest-counts.py"),
     ),
     CheckSpec(
         "phase11-build-inventory-self-test",
@@ -465,6 +476,20 @@ def build_sample_repo(root: Path) -> None:
         if rel.startswith("scripts/zigux/") and rel.endswith(".py"):
             build_stub_script(path)
             continue
+        if rel == "zigux/tests/phase11_closure_manifest.json":
+            write_text(
+                path,
+                json.dumps(
+                    {
+                        "phase": "Phase 11",
+                        "lane_key": "P11-L17",
+                        "status": "closure_packet_materialized",
+                        "shared_validate_route": "make -C zigux phase11-validate",
+                    }
+                )
+                + "\n",
+            )
+            continue
         write_text(path, f"sample:{rel}\n")
 
 
@@ -485,8 +510,7 @@ def run_self_test() -> int:
                         shutil.rmtree(child)
                     else:
                         child.unlink()
-            build_sampleRepo = build_sample_repo
-            build_sampleRepo(root)
+            build_sample_repo(root)
             build_fake_zig(fake_zig, fail_build_file=fail_build_file)
 
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
@@ -512,6 +536,7 @@ def run_self_test() -> int:
             "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
             "Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md",
             "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+            "Documentation/zigux/phase11-closure-evidence.md",
             "drivers/tty/hvc/hvc_console.h",
             "drivers/tty/hvc/hvc_console.zig",
             "drivers/tty/hvc/hvc_console_verify.zig",
@@ -522,6 +547,8 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase11-validate-manifest-roster.py",
             "scripts/zigux/check-phase11-validate-check-roster.py",
             "scripts/zigux/check-phase11-validate-route-alignment.py",
+            "scripts/zigux/check-phase11-shared-tooling-manifest.py",
+            "scripts/zigux/check-phase11-closure-manifest-counts.py",
             "scripts/zigux/check-phase11-focused-direct-build-replays.py",
             "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
             "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py",
@@ -532,6 +559,7 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase11-hvc-current-head-manifest.py",
             "zigux/Makefile",
             "zigux/tests/fixtures/phase11_validate_checks.json",
+            "zigux/tests/phase11_closure_manifest.json",
             "zigux/tests/phase11_bcm2835_wdt.zig",
             "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig",
             "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig",
@@ -609,6 +637,8 @@ def run_self_test() -> int:
             ("scripts/zigux/check-phase11-validate-route-alignment.py", "phase11-validate-route-alignment"),
             ("scripts/zigux/check-phase11-shared-tooling-manifest.py", "phase11-shared-tooling-manifest-self-test"),
             ("scripts/zigux/check-phase11-shared-tooling-manifest.py", "phase11-shared-tooling-manifest"),
+            ("scripts/zigux/check-phase11-closure-manifest-counts.py", "phase11-closure-manifest-counts-self-test"),
+            ("scripts/zigux/check-phase11-closure-manifest-counts.py", "phase11-closure-manifest-counts"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
             ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays-self-test"),
