@@ -147,6 +147,8 @@ ARCHIVE_SUPPORT_ALTERNATIVES = (
     ARCHIVE_PARTS_MANIFEST_PATH,
 )
 
+CLOSURE_MATRIX_CHECKER = "scripts/zigux/check-phase2-closure-matrix.py"
+
 REQUIRED_PATHS = (
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase2-closure.md",
@@ -216,9 +218,9 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/fixdep/cases.json",
     *FIXDEP_FIXTURE_FILES,
+    CLOSURE_MATRIX_CHECKER,
     "scripts/zigux/validate-phase2-closure.py",
-    MAKEFILE,
-)
+    MAKEFILE,)
 
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
@@ -437,7 +439,6 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
         grouped.setdefault(code, []).append(value)
-
     print("PHASE2_VALIDATION=fail")
     for code, values in grouped.items():
         print(f"{code}_START")
@@ -607,7 +608,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, and fixdep packet.")
+    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, closure-matrix, kbuild, kconfig, genksyms, and fixdep packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
