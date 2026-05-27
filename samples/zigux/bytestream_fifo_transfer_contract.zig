@@ -1,4 +1,5 @@
 const std = @import("std");
+const sample = @import("bytestream_fifo.zig");
 
 pub const linux_anchor = "samples/kfifo/bytestream-example.c";
 
@@ -84,4 +85,46 @@ test "bytestream fifo transfer companion keeps helper and partial-enqueue bounda
     try std.testing.expect(contract.sample_remains_non_runtime);
     try std.testing.expect(contract.sample_provides_selfcheck);
     try std.testing.expect(contract.fixed_buffer_storage);
+}
+
+test "bytestream fifo transfer companion stays aligned with the shipped sample root replay" {
+    const contract = referencePattern();
+    var module = sample.BytestreamFifoSample{};
+
+    try module.init();
+    const replay = try module.runAnchorReplay();
+
+    try std.testing.expectEqualStrings(contract.anchor, sample.BytestreamFifoSample.descriptor().anchor);
+    try std.testing.expectEqualStrings(contract.anchor, replay.anchor);
+    try std.testing.expectEqual(contract.initial_string_copy_count, replay.initial_string_copy_count);
+    try std.testing.expectEqual(contract.len_after_initial_fill, replay.len_after_initial_fill);
+    try std.testing.expectEqualSlices(u8, contract.first_drain[0..], replay.first_out[0..]);
+    try std.testing.expectEqual(contract.first_drain_count, replay.first_drain_count);
+    try std.testing.expectEqualSlices(u8, contract.second_drain[0..], replay.second_out[0..]);
+    try std.testing.expectEqual(contract.second_drain_count, replay.second_drain_count);
+    try std.testing.expectEqual(contract.requeue_count, replay.requeue_count);
+    try std.testing.expectEqual(contract.skipped_byte, replay.skipped_byte);
+    try std.testing.expectEqual(contract.peek_value, replay.peek_value);
+    try std.testing.expectEqual(contract.preview_len, replay.preview_len);
+    try std.testing.expectEqual(contract.preview_total_visible, replay.preview_total_visible);
+    try std.testing.expectEqualSlices(u8, contract.preview_prefix[0..], replay.preview_prefix[0..]);
+    try std.testing.expect(contract.sample_remains_non_runtime);
+    try std.testing.expect(contract.sample_provides_selfcheck);
+    try std.testing.expect(contract.fixed_buffer_storage);
+    try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, sample.BytestreamFifoSample.descriptor().storage_backing);
+
+    module.reset();
+    try std.testing.expectEqual(@as(usize, 5), module.enqueueSlice("hello"));
+    var prefix: [3]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, prefix.len), module.drain(prefix[0..]));
+    try std.testing.expectEqualSlices(u8, contract.short_drain_prefix[0..], prefix[0..]);
+    var remainder: [2]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, remainder.len), module.dequeueSlice(remainder[0..]));
+    try std.testing.expectEqualSlices(u8, contract.short_drain_remainder[0..], remainder[0..]);
+
+    const partial = try module.runPartialEnqueueBoundaryReplay();
+    try std.testing.expectEqual(contract.partial_enqueue_requested_len, partial.requested_extra_len);
+    try std.testing.expectEqual(contract.partial_enqueue_copied_len, partial.copied_extra_len);
+    try std.testing.expectEqual(contract.partial_enqueue_dropped_len, partial.dropped_extra_len);
+    try std.testing.expectEqual(contract.full_queue_rejects_overflow, partial.occupancy_after_extra.full);
 }
