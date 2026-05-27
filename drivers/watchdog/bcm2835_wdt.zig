@@ -107,7 +107,7 @@ pub fn summarizePlatformHandoff(input: PlatformHandoffInput) !PlatformHandoffSum
         .pm_base_handoff_ready = pm_base_handoff_ready,
         .timeout_init_requested = true,
         .register_device_requested = pm_base_handoff_ready,
-        .stop_on_reboot_requested = true,
+        .stop_on_reboot_requested = pm_base_handoff_ready,
         .restart_priority_value = restart_priority,
         .poweroff_handler_claimed = can_consider_poweroff and !input.poweroff_handler_present,
         .poweroff_handler_conflict = can_consider_poweroff and input.poweroff_handler_present,
@@ -183,9 +183,9 @@ pub const Bcm2835WdtLab = struct {
             .full_reset_armed = self.isRunning(),
             .full_reset_armed_after_stop = false,
             .halt_partition_requested = hasHaltPartition(self.registers),
-            .reset_register_written = false,
+            .reset_register_written = owns_poweroff_handler,
             .programmed_ticks = self.registers.wdog & pm_wdog_time_set,
-            .restart_path_reused = true,
+            .restart_path_reused = owns_poweroff_handler,
             .registers = self.registers,
         };
     }
@@ -230,6 +230,71 @@ fn hasHaltPartition(registers: RegisterImage) bool {
 fn validateTimeout(timeout_sec: u32) !void {
     if (timeout_sec < min_timeout_sec) return error.TimeoutTooSmall;
     if (timeout_sec > max_timeout_sec) return error.TimeoutTooLarge;
+}
+
+test "bcm2835 platform handoff keeps missing pm base blocked without claiming reboot-stop glue" {
+    const summary = try summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .system_power_controller = true,
+        .poweroff_handler_present = false,
+        .parent_attached = true,
+        .pm_base_present = false,
+    });
+
+    try @import("std").testing.expectEqualStrings(anchor_path, summary.anchor);
+    try @import("std").testing.expect(summary.parent_attached);
+    try @import("std").testing.expect(!summary.parent_supplies_pm_base);
+    try @import("std").testing.expect(summary.pm_base_required);
+    try @import("std").testing.expect(!summary.pm_base_handoff_ready);
+    try @import("std").testing.expect(summary.timeout_init_requested);
+    try @import("std").testing.expect(!summary.register_device_requested);
+    try @import("std").testing.expect(!summary.stop_on_reboot_requested);
+    try @import("std").testing.expectEqual(restart_priority, summary.restart_priority_value);
+    try @import("std").testing.expect(!summary.poweroff_handler_claimed);
+    try @import("std").testing.expect(!summary.poweroff_handler_conflict);
+    try @import("std").testing.expect(summary.blocked_on_live_platform_registration);
+}
+
+test "bcm2835 platform handoff keeps foreign poweroff ownership visible when pm base is ready" {
+    const summary = try summarizePlatformHandoff(.{
+        .heartbeat_sec = 8,
+        .system_power_controller = true,
+        .poweroff_handler_present = true,
+        .parent_attached = true,
+        .pm_base_present = true,
+    });
+
+    try @import("std").testing.expect(summary.parent_attached);
+    try @import("std").testing.expect(summary.parent_supplies_pm_base);
+    try @import("std").testing.expect(summary.pm_base_handoff_ready);
+    try @import("std").testing.expect(summary.register_device_requested);
+    try @import("std").testing.expect(summary.stop_on_reboot_requested);
+    try @import("std").testing.expect(!summary.poweroff_handler_claimed);
+    try @import("std").testing.expect(summary.poweroff_handler_conflict);
+    try @import("std").testing.expect(summary.blocked_on_live_platform_registration);
+}
+
+test "bcm2835 poweroff reuses restart path only when bcm2835 owns the handler" {
+    var owned = try Bcm2835WdtLab.init(8);
+    const owned_poweroff = owned.poweroff(true);
+
+    try @import("std").testing.expectEqualStrings(anchor_path, owned_poweroff.anchor);
+    try @import("std").testing.expect(owned_poweroff.running_after_poweroff);
+    try @import("std").testing.expect(owned_poweroff.full_reset_armed);
+    try @import("std").testing.expect(owned_poweroff.halt_partition_requested);
+    try @import("std").testing.expect(owned_poweroff.reset_register_written);
+    try @import("std").testing.expectEqual(@as(u32, restart_timeout_ticks), owned_poweroff.programmed_ticks);
+    try @import("std").testing.expect(owned_poweroff.restart_path_reused);
+
+    var foreign = try Bcm2835WdtLab.init(8);
+    const foreign_poweroff = foreign.poweroff(false);
+
+    try @import("std").testing.expect(!foreign_poweroff.running_after_poweroff);
+    try @import("std").testing.expect(!foreign_poweroff.full_reset_armed);
+    try @import("std").testing.expect(!foreign_poweroff.halt_partition_requested);
+    try @import("std").testing.expect(!foreign_poweroff.reset_register_written);
+    try @import("std").testing.expectEqual(@as(u32, 0), foreign_poweroff.programmed_ticks);
+    try @import("std").testing.expect(!foreign_poweroff.restart_path_reused);
 }
 
 test "bcm2835 restart summary keeps restart timeout programming explicit" {
