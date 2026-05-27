@@ -1,0 +1,14 @@
+# Phase 13 libfs dcache cursor planner
+
+This bounded Phase 13 packet keeps `fs/libfs.c` attached to a helper-first `dcache_dir_open()` and `dcache_readdir()` precondition slice.
+
+Current repo reality for this packet is intentionally narrow:
+
+- `fs/libfs_dcache_cursor.zig` keeps the cursor packet helper-first and planning-only
+- `zigux/tests/phase13_libfs_dcache_cursor.zig` replays the open and readdir precondition surface without claiming live cursor dentries
+- `zigux/tests/phase13_libfs_dcache_cursor_manifest.json` records the landed helper packet, the still-missing shared Phase 13 build route, and the blocked live cursor traversal boundary
+- `scripts/zigux/check-phase13-libfs-dcache-cursor-packet.py` keeps the helper, replay, manifest, and doc note aligned
+
+This packet does not claim sibling traversal, cursor dentry mutation, lock ordering, live rename relocation, or broader VFS lifetime ownership.
+
+The next honest bounded step in this same family is the smallest `dcache_dir_close()` cursor release planner that keeps cursor teardown reviewable without claiming live cursor unlinking or lock ordering.
