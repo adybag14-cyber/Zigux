@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 DOCS_README_PATH = Path("Documentation/zigux/README.md")
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+SURVEY_PATH = Path("Documentation/zigux/phase6-runtime-command-environment-gap-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 BUILD_PATH = Path("zigux/tests/phase6_build.zig")
@@ -34,6 +35,7 @@ EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
+    "Documentation/zigux/phase6-runtime-command-environment-gap-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -76,6 +78,15 @@ EXPECTED_CATALOG_SNIPPETS = [
     "- surveyed head: `current-master-readback-2026-05-22`",
     "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`",
     "A targeted authenticated current-master reread on 2026-05-27 also directly recovered `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`, so the Phase 6 base64 packet no longer carries a known direct-readback generator gap.",
+]
+EXPECTED_SURVEY_SNIPPETS = [
+    "This note records the bounded control-surface gap between the Phase 6 Zigux roadmap packet and the much broader runtime command, session, and persisted environment surfaces described in the attached ZAR runtime references.",
+    "That is a runtime command substrate, not a Phase 6 leaf-helper replay.",
+    "Do not use it to claim that Zigux Phase 6 has already landed:",
+    "- shell execution semantics",
+    "- TTY session control",
+    "- runtime RPC/session control",
+    "- persisted workspace or app-runtime environment orchestration",
 ]
 REQUIRED_BUILD_SNIPPETS = [
     'const bsearch_perf_root_module = b.createModule(.{',
@@ -170,7 +181,7 @@ EXPECTED_HEXDUMP_SHARED_REPLAY_MARKERS = [
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
     "make -C zigux phase6-hexdump-perf",
 ]
-SELF_TEST_CASE_COUNT = 31
+SELF_TEST_CASE_COUNT = 32
 
 
 class ValidationError(RuntimeError):
@@ -221,6 +232,7 @@ def require_list_contains(values: object, expected_items: list[str], label: str)
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / DOCS_README_PATH, EXPECTED_DOCS_README_SNIPPETS)
     require_snippets(repo_root / CATALOG_PATH, EXPECTED_CATALOG_SNIPPETS)
+    require_snippets(repo_root / SURVEY_PATH, EXPECTED_SURVEY_SNIPPETS)
     require_snippets(repo_root / BUILD_PATH, REQUIRED_BUILD_SNIPPETS)
     require_snippets(repo_root / MAKEFILE_PATH, REQUIRED_MAKEFILE_SNIPPETS)
 
@@ -372,6 +384,7 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / DOCS_README_PATH, "\n".join(EXPECTED_DOCS_README_SNIPPETS) + "\n")
     write(root / CATALOG_PATH, "\n".join(EXPECTED_CATALOG_SNIPPETS) + "\n")
+    write(root / SURVEY_PATH, "\n".join(EXPECTED_SURVEY_SNIPPETS) + "\n")
     write(root / BUILD_PATH, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
     write(
@@ -510,13 +523,15 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, CATALOG_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_CATALOG_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
+        expect_failure(root, SURVEY_PATH, lambda path: write(path, read_text(path).replace(EXPECTED_SURVEY_SNIPPETS[3] + "\n", "", 1)))
+        cases_run += 1
         expect_failure(root, BUILD_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_BUILD_SNIPPETS[1] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, MAKEFILE_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_MAKEFILE_SNIPPETS[2] + "\n", "", 1)))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"surveyed_head": "current-master-readback-2026-05-21"})))
         cases_run += 1
-        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("scripts/zigux/check-phase6-perf-threshold-markers.py")))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["current_direct_readback_companions"].remove("Documentation/zigux/phase6-runtime-command-environment-gap-survey.md")))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
