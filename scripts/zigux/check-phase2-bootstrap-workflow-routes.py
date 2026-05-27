@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 HERE = Path(__file__).resolve()
-ROOT = HERE.parents[3] if len(HERE.parents) >= 4 else Path.cwd()
+ROOT = HERE.parents[2] if len(HERE.parents) >= 3 else Path.cwd()
 
 BOOTSTRAP_NOTES = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
