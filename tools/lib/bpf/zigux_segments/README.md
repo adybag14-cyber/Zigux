@@ -18,13 +18,15 @@ Each materialized slice is paired with focused `*_verify.zig` coverage so stable
 
 ## Current Repo Gap
 
-Current master now carries the shared bridge destination for two helper-only footholds:
+Current master now carries the shared bridge destination for the helper-only bridge packet around:
 
 - bounded `/proc/.../fdinfo/<fd>` pathname shaping
 - bounded fdinfo line splitting and trimming
-- bounded reused-map name retention for NUL-terminated and fixed-width observations
+- bounded fdinfo map-info numeric decoding and summary reporting
+- bounded reused-map name retention and helper-only compatibility summaries
+- planning-only pinned-map reopen and token-preparation decisions
 
-The remaining numeric map-info decoder, full fdinfo metadata parser, reuse-compatibility summarizer, and token-planning helpers are still queued groundwork inside `file_path_handle_bridge.zig`, so fdinfo-map-info and map-reuse slices remain only partially landed.
+The remaining gap in this bridge family is the still-deferred side-effect boundary around direct procfs reads, descriptor ownership, bpffs reopen flow, token creation, and other live handle-bridging behavior.
 
 ## Still Deferred
 
