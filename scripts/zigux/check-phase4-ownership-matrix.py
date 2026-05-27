@@ -13,7 +13,15 @@ ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json
 BITMAP_MANIFEST = Path("zigux/tests/phase4_bitmap_diff_manifest.json")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASES = 17
+EXPECTED_SELF_TEST_CASES = 22
+EXPECTED_PERF_COORDINATION_OWNERS = [
+    "ABI and Runtime Team",
+    "Shared Subsystems Pod",
+]
+EXPECTED_PROMOTION_STATUS = "shared CI perf promotion pending"
+EXPECTED_PERF_ROW_THRESHOLD = (
+    "approved_local_only_for_atomic64_and_bitmap_commands_shared_ci_perf_promotion_pending"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,6 +73,34 @@ def build_bitmap_matrix_line(bitmap_manifest: dict[str, object]) -> str:
     )
 
 
+def build_perf_matrix_line(perf_manifest: dict[str, object]) -> str:
+    owner = perf_manifest["owner"]
+    rollback_owner = perf_manifest["rollback_owner"]
+    replay = perf_manifest["dedicated_local_survey_wrapper"]
+    linux_wrapper = perf_manifest["dedicated_linux_style_survey_wrapper"]
+    return (
+        "`zigux/tests/phase4_perf_baseline_manifest.json` plus "
+        "`zigux/tests/phase4_perf_baseline_survey.zig` dedicated local-only perf-baseline "
+        "survey keeping the approved local benchmark commands and the approved local-only "
+        f"acceptable limits for both landed rollback gates machine-checked without promoting "
+        f"shared CI perf approval `{owner}` `{rollback_owner}` reviewability only; must stay "
+        f"outside the shared `phase4-test` entrypoint until any shared CI perf promotion is "
+        f"intentionally approved `{replay}` and `{linux_wrapper}` `{EXPECTED_PERF_ROW_THRESHOLD}`"
+    )
+
+
+def build_perf_promotion_owner_line(
+    decision_owner: str,
+    rollback_owner: str,
+    coordination_owners: list[str],
+) -> str:
+    return (
+        "any future shared CI perf-promotion claim must name the "
+        f"{decision_owner} as the decision owner and rollback owner, and the "
+        f"{coordination_owners[0]} plus {coordination_owners[1]} as coordination owners"
+    )
+
+
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
     matrix_path = root / MATRIX
@@ -96,11 +132,88 @@ def validate_root(root: Path) -> list[str]:
     matrix_text = read_text(matrix_path)
     atomic64_line = build_atomic64_matrix_line(atomic64_manifest)
     bitmap_line = build_bitmap_matrix_line(bitmap_manifest)
+    perf_line = build_perf_matrix_line(perf_manifest)
 
     if atomic64_line not in matrix_text:
         issues.append(f"matrix_line_missing:{atomic64_line}")
     if bitmap_line not in matrix_text:
         issues.append(f"matrix_line_missing:{bitmap_line}")
+    if perf_line not in matrix_text:
+        issues.append(f"matrix_line_missing:{perf_line}")
+
+    perf_owner = perf_manifest.get("owner")
+    perf_rollback_owner = perf_manifest.get("rollback_owner")
+    decision_owner = perf_manifest.get("decision_owner")
+    if perf_owner != "Validation and Perf Team":
+        issues.append(f"perf_manifest:owner:expected='Validation and Perf Team':actual={perf_owner!r}")
+    if perf_rollback_owner != "Validation and Perf Team":
+        issues.append(
+            "perf_manifest:rollback_owner:"
+            f"expected='Validation and Perf Team':actual={perf_rollback_owner!r}"
+        )
+    if decision_owner != "Validation and Perf Team":
+        issues.append(
+            "perf_manifest:decision_owner:"
+            f"expected='Validation and Perf Team':actual={decision_owner!r}"
+        )
+
+    coordination_owners = perf_manifest.get("coordination_owners")
+    if coordination_owners != EXPECTED_PERF_COORDINATION_OWNERS:
+        issues.append(
+            "perf_manifest:coordination_owners:"
+            f"expected={EXPECTED_PERF_COORDINATION_OWNERS!r}:actual={coordination_owners!r}"
+        )
+
+    promotion_decision = perf_manifest.get("promotion_decision")
+    if not isinstance(promotion_decision, dict):
+        issues.append("perf_manifest:promotion_decision:not_dict")
+        return issues
+
+    if promotion_decision.get("owner") != decision_owner:
+        issues.append(
+            "perf_manifest:promotion_decision.owner:"
+            f"expected={decision_owner!r}:actual={promotion_decision.get('owner')!r}"
+        )
+    if promotion_decision.get("rollback_owner") != perf_rollback_owner:
+        issues.append(
+            "perf_manifest:promotion_decision.rollback_owner:"
+            f"expected={perf_rollback_owner!r}:actual={promotion_decision.get('rollback_owner')!r}"
+        )
+    if promotion_decision.get("coordination_owners") != coordination_owners:
+        issues.append(
+            "perf_manifest:promotion_decision.coordination_owners:"
+            f"expected={coordination_owners!r}:actual={promotion_decision.get('coordination_owners')!r}"
+        )
+    if promotion_decision.get("status") != EXPECTED_PROMOTION_STATUS:
+        issues.append(
+            "perf_manifest:promotion_decision.status:"
+            f"expected={EXPECTED_PROMOTION_STATUS!r}:actual={promotion_decision.get('status')!r}"
+        )
+
+    perf_owner_line = build_perf_promotion_owner_line(
+        str(decision_owner),
+        str(perf_rollback_owner),
+        EXPECTED_PERF_COORDINATION_OWNERS,
+    )
+    if perf_owner_line not in matrix_text:
+        issues.append(f"matrix_marker_missing:{perf_owner_line}")
+
+    promotion_rollback_line = f"promotion rollback owner: `{perf_rollback_owner}`"
+    if promotion_rollback_line not in matrix_text:
+        issues.append(f"matrix_marker_missing:{promotion_rollback_line}")
+
+    gate_owners_line = (
+        f"gate owners: `{atomic64_manifest['owner']}` and `{bitmap_manifest['owner']}`"
+    )
+    if gate_owners_line not in matrix_text:
+        issues.append(f"matrix_marker_missing:{gate_owners_line}")
+
+    rollback_owners_line = (
+        f"rollback owners: `{atomic64_manifest['rollback_owner']}` and "
+        f"`{bitmap_manifest['rollback_owner']}`"
+    )
+    if rollback_owners_line not in matrix_text:
+        issues.append(f"matrix_marker_missing:{rollback_owners_line}")
 
     perf_gate_surfaces = perf_manifest.get("gate_surfaces")
     if not isinstance(perf_gate_surfaces, list):
@@ -169,6 +282,12 @@ def build_fixture_tree(root: Path) -> None:
         "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
     }
     perf_manifest = {
+        "owner": "Validation and Perf Team",
+        "rollback_owner": "Validation and Perf Team",
+        "decision_owner": "Validation and Perf Team",
+        "coordination_owners": list(EXPECTED_PERF_COORDINATION_OWNERS),
+        "dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+        "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey",
         "gate_surfaces": [
             {
                 "surface": "zigux/tests/atomic64_diff.zig",
@@ -182,7 +301,13 @@ def build_fixture_tree(root: Path) -> None:
                 "gate_rollback_owner": bitmap_manifest["rollback_owner"],
                 "threshold_posture": bitmap_manifest["threshold_posture"],
             },
-        ]
+        ],
+        "promotion_decision": {
+            "owner": "Validation and Perf Team",
+            "rollback_owner": "Validation and Perf Team",
+            "coordination_owners": list(EXPECTED_PERF_COORDINATION_OWNERS),
+            "status": EXPECTED_PROMOTION_STATUS,
+        },
     }
 
     write_text(root / ATOMIC64_MANIFEST, json.dumps(atomic64_manifest, indent=2) + "\n")
@@ -197,6 +322,13 @@ def build_fixture_tree(root: Path) -> None:
                 "## Lab And CI Matrix",
                 f"  * {build_atomic64_matrix_line(atomic64_manifest)}",
                 f"  * {build_bitmap_matrix_line(bitmap_manifest)}",
+                f"  * {build_perf_matrix_line(perf_manifest)}",
+                "",
+                "## Local-Only Perf Promotion",
+                f"  * {build_perf_promotion_owner_line('Validation and Perf Team', 'Validation and Perf Team', EXPECTED_PERF_COORDINATION_OWNERS)}",
+                "  * promotion rollback owner: `Validation and Perf Team`",
+                "  * gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+                "  * rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
                 "",
             ]
         ),
@@ -234,6 +366,11 @@ def run_self_test() -> int:
             (PERF_MANIFEST, "\"gate_rollback_owner\": \"Shared Subsystems Pod\"", "\"gate_rollback_owner\": \"Validation and Perf Team\"", "perf_manifest:gate_surfaces.1.gate_rollback_owner:"),
             (PERF_MANIFEST, "\"surface\": \"zigux/tests/bitmap_diff.zig\"", "\"surface\": \"zigux/tests/phase4_bitmap_diff_survey.zig\"", "perf_manifest:gate_surfaces.1.surface:"),
             (PERF_MANIFEST, "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"", "\"threshold_posture\": \"shared_ci_perf_promotion_pending\"", "perf_manifest:gate_surfaces.0.threshold_posture:"),
+            (PERF_MANIFEST, "\"decision_owner\": \"Validation and Perf Team\"", "\"decision_owner\": \"Shared Subsystems Pod\"", "perf_manifest:decision_owner:"),
+            (PERF_MANIFEST, "\"coordination_owners\": [\n    \"ABI and Runtime Team\",\n    \"Shared Subsystems Pod\"\n  ]", "\"coordination_owners\": [\n    \"ABI and Runtime Team\"\n  ]", "perf_manifest:coordination_owners:"),
+            (PERF_MANIFEST, "\"status\": \"shared CI perf promotion pending\"", "\"status\": \"shared CI perf promotion landed\"", "perf_manifest:promotion_decision.status:"),
+            (MATRIX, "promotion rollback owner: `Validation and Perf Team`", "promotion rollback owner: `Shared Subsystems Pod`", "matrix_marker_missing:promotion rollback owner: `Validation and Perf Team`"),
+            (MATRIX, "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`", "gate owners: `ABI and Runtime Team` and `Validation and Perf Team`", "matrix_marker_missing:gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`"),
         )
         for rel, old, new, expected_prefix in variants:
             build_fixture_tree(root)
@@ -279,8 +416,8 @@ def run_self_test() -> int:
             print("PHASE4_OWNERSHIP_MATRIX_SELF_TEST=fail")
             print("missing matrix file case did not fail closed")
             return 1
-        cases += 1
 
+        cases += 1
         if cases != EXPECTED_SELF_TEST_CASES:
             print("PHASE4_OWNERSHIP_MATRIX_SELF_TEST=fail")
             print(f"expected {EXPECTED_SELF_TEST_CASES} self-test cases, saw {cases}")
@@ -304,7 +441,7 @@ def main() -> int:
         return 1
 
     print("PHASE4_OWNERSHIP_MATRIX=pass")
-    print("PHASE4_OWNERSHIP_MATRIX_ROW_COUNT=2")
+    print("PHASE4_OWNERSHIP_MATRIX_ROW_COUNT=3")
     return 0
 
 
