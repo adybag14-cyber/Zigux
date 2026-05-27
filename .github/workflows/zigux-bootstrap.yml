@@ -203,6 +203,21 @@ jobs:
       - name: Check current Lane 05 stage helper selftest packet
         run: python3 scripts/zigux/check-lane05-stage-helper-selftest.py
 
+      - name: Self-test current split pinned Zig archive helper
+        run: python3 scripts/zigux/split-pinned-zig-archive.py --self-test
+
+      - name: Self-test current Lane 05 split helper selftest checker
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py --self-test
+
+      - name: Check current Lane 05 split helper selftest packet
+        run: python3 scripts/zigux/check-lane05-split-helper-selftest.py
+
+      - name: Self-test current Lane 05 bootstrap split-helper packet checker
+        run: python3 scripts/zigux/check-lane05-bootstrap-split-helper-packet.py --self-test
+
+      - name: Check current Lane 05 bootstrap split-helper packet
+        run: python3 scripts/zigux/check-lane05-bootstrap-split-helper-packet.py
+
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
 
