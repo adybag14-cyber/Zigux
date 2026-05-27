@@ -154,6 +154,21 @@ def sample_text(relative_path: Path) -> str:
     return "\n".join(lines) + "\n"
 
 
+def fragment_side_effect_failures(relative_path: Path, line: str, actual_delta: int) -> list[str]:
+    base_text = sample_text(relative_path)
+    failures: list[str] = []
+    for label, fragment in REQUIRED_SINGLE_OCCURRENCE_FRAGMENTS.get(relative_path, {}).items():
+        line_count = line.count(fragment)
+        if line_count == 0:
+            continue
+        actual = base_text.count(fragment) + (line_count * actual_delta)
+        if actual != 1:
+            failures.append(
+                f"{relative_path.as_posix()}:{label}:expected=1:actual={actual}"
+            )
+    return failures
+
+
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
         write_file(root, relative_path, sample_text(relative_path))
@@ -178,28 +193,28 @@ def mutate_append(root: Path, relative_path: Path, needle: str) -> None:
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, Path | None, str | None, str, list[str], str]] = [
-        ("success", None, None, "none", [], "exact"),
+    cases: list[tuple[str, Path | None, str | None, str, list[str]]] = [
+        ("success", None, None, "none", []),
         (
             "missing_phase1_closure",
             PHASE1_CLOSURE_REL,
             None,
             "missing_file",
             [f"missing_file:{PHASE1_CLOSURE_REL.as_posix()}"],
-            "exact",
         ),
     ]
 
     for relative_path, labels in REQUIRED_EXACT_LINES.items():
         for label, line in labels.items():
+            base_failure = f"{relative_path.as_posix()}:{label}"
             cases.append(
                 (
                     f"missing_{relative_path.name}_{label}",
                     relative_path,
                     line,
                     "remove",
-                    [f"{relative_path.as_posix()}:{label}:expected=1:actual=0"],
-                    "contains",
+                    [f"{base_failure}:expected=1:actual=0"]
+                    + fragment_side_effect_failures(relative_path, line, actual_delta=-1),
                 )
             )
             cases.append(
@@ -208,8 +223,8 @@ def run_self_test() -> int:
                     relative_path,
                     line,
                     "duplicate",
-                    [f"{relative_path.as_posix()}:{label}:expected=1:actual=2"],
-                    "contains",
+                    [f"{base_failure}:expected=1:actual=2"]
+                    + fragment_side_effect_failures(relative_path, line, actual_delta=1),
                 )
             )
 
@@ -222,11 +237,10 @@ def run_self_test() -> int:
                     fragment,
                     "append",
                     [f"{relative_path.as_posix()}:{label}:expected=1:actual=2"],
-                    "exact",
                 )
             )
 
-    for name, relative_path, needle, operation, expected_failures, expectation_mode in cases:
+    for name, relative_path, needle, operation, expected_failures in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-gap-packet-{name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
@@ -249,16 +263,9 @@ def run_self_test() -> int:
                     return 1
                 continue
 
-            if expectation_mode == "exact" and failures != expected_failures:
+            if failures != expected_failures:
                 print(f"self-test:{name}:unexpected_failures")
                 print(f"expected={expected_failures!r}")
-                print(f"actual={failures!r}")
-                return 1
-            if expectation_mode == "contains" and not all(
-                failure in failures for failure in expected_failures
-            ):
-                print(f"self-test:{name}:missing_expected_failures")
-                print(f"expected_subset={expected_failures!r}")
                 print(f"actual={failures!r}")
                 return 1
 
