@@ -1,6 +1,24 @@
 const std = @import("std");
 const virtio_ring = @import("virtio_ring");
 
+fn advanceUsedIndexNearWrap(ring: *virtio_ring.VirtioRingLab, queue_index: u16) !void {
+    for (0..8191) |_| {
+        for (0..8) |_| {
+            try ring.publishDescriptorChain(queue_index);
+        }
+        _ = try ring.prepareKick(queue_index);
+        try ring.recordUsedChains(queue_index, 8);
+        _ = try ring.pollUsedBuffers(queue_index);
+    }
+
+    for (0..5) |_| {
+        try ring.publishDescriptorChain(queue_index);
+    }
+    _ = try ring.prepareKick(queue_index);
+    try ring.recordUsedChains(queue_index, 5);
+    _ = try ring.pollUsedBuffers(queue_index);
+}
+
 test "phase10 virtio ring delayed callback budget stays bounded to queue-local replay state" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(7, 8, .packed_ring, true, true);
@@ -65,4 +83,44 @@ test "phase10 virtio ring delayed callback budget stays bounded to queue-local r
 
     _ = try ring.markBroken(7);
     try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));
+}
+
+test "phase10 virtio ring delayed callback budget reports wraparound targets when used indices approach u16 rollover" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .packed_ring, true, true);
+    try advanceUsedIndexNearWrap(&ring, 6);
+
+    try ring.publishDescriptorChain(6);
+    try ring.publishDescriptorChain(6);
+    try ring.publishDescriptorChain(6);
+    try ring.publishDescriptorChain(6);
+    _ = try ring.prepareKick(6);
+    try ring.recordUsedChains(6, 2);
+
+    var summary = try ring.enableCallbackDelayed(6);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 65535), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 65533), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.delay_budget_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.delayed_event_target_idx);
+    try std.testing.expect(summary.delayed_event_target_wraps);
+    try std.testing.expectEqual(@as(u16, 2), summary.pending_used_chain_count);
+    try std.testing.expect(summary.should_poll);
+    try std.testing.expect(!summary.settled);
+
+    const poll = try ring.pollUsedBuffers(6);
+    try std.testing.expectEqual(@as(u16, 2), poll.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), poll.outstanding_chain_count);
+
+    summary = try ring.enableCallbackDelayed(6);
+    try std.testing.expectEqual(@as(u16, 65535), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 65535), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.delay_budget_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.delayed_event_target_idx);
+    try std.testing.expect(summary.delayed_event_target_wraps);
+    try std.testing.expectEqual(@as(u16, 0), summary.pending_used_chain_count);
+    try std.testing.expect(!summary.should_poll);
+    try std.testing.expect(summary.settled);
 }
