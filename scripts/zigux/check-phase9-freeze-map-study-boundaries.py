@@ -24,6 +24,16 @@ ROADMAP_STUDY_ONLY_ANCHORS = (
     "kernel/trace/ring_buffer.c",
 )
 
+PHASE9_SHARED_VALIDATOR_MARKERS = (
+    "scripts/zigux/validate-phase9.py",
+    "python3 scripts/zigux/validate-phase9.py --self-test",
+    "python3 scripts/zigux/validate-phase9.py",
+)
+
+STALE_PHASE9_VALIDATOR_DENIAL = (
+    "there is still no dedicated shared `validate-phase9.py` rerun path"
+)
+
 PATH_REQUIREMENTS = {
     FREEZE_MAP_PATH: [
         "# Zigux Freeze Map",
@@ -88,6 +98,7 @@ PATH_REQUIREMENTS = {
         "keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness",
     ],
     SCRIPTS_README_PATH: [
+        *PHASE9_SHARED_VALIDATOR_MARKERS,
         "keep the freeze-map boundary explicit too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
     ],
     SAMPLES_README_PATH: [
@@ -116,6 +127,10 @@ PATH_REQUIREMENTS = {
         "zig test samples/zigux/runtime_trace_events.zig",
         "zig test zigux/tests/runtime_trace_events_survey.zig",
     ],
+}
+
+FORBIDDEN_PATH_MARKERS = {
+    SCRIPTS_README_PATH: [STALE_PHASE9_VALIDATOR_DENIAL],
 }
 
 CURRENT_PHASE9_MAKE_ROUTES = [
@@ -241,6 +256,12 @@ def validate(root: Path) -> list[str]:
             if marker not in text:
                 failures.append(f"missing_marker:{rel_path}:{marker}")
 
+    for rel_path, markers in FORBIDDEN_PATH_MARKERS.items():
+        text = read_text(root, rel_path)
+        for marker in markers:
+            if marker in text:
+                failures.append(f"unexpected_marker:{rel_path}:{marker}")
+
     freeze_map = read_text(root, FREEZE_MAP_PATH)
     validate_exact_study_only_anchor_inventory(
         failures, FREEZE_MAP_PATH, extract_freeze_map_study_only_anchors(freeze_map)
@@ -338,6 +359,7 @@ def build_lane_sequencing_fixture_text() -> str:
 def build_scripts_readme_fixture_text() -> str:
     return """# scripts/zigux
 
+- `scripts/zigux/validate-phase9.py`, `python3 scripts/zigux/validate-phase9.py --self-test`, and `python3 scripts/zigux/validate-phase9.py` keep the dedicated shared Phase 9 validator route explicit for the shared manifest, catalog, ownership, and bounded runtime-loader packet on current `master` without promoting family-local runtime packets or blocked publication boundaries into completion claims.
 - keep the freeze-map boundary explicit too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues
 """
 
@@ -460,6 +482,13 @@ def run_self_test() -> int:
                 write_text(base / rel_path, current.replace(marker, "", 1))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
+        for rel_path, markers in FORBIDDEN_PATH_MARKERS.items():
+            for marker in markers:
+                seed_fixture_tree(base)
+                current = read_text(base, rel_path)
+                write_text(base / rel_path, current + marker + "\n")
+                expect_failure(base, f"unexpected_marker:{rel_path}:{marker}")
+
         seed_fixture_tree(base)
         write_text(
             base / FREEZE_MAP_PATH,
@@ -510,6 +539,7 @@ def run_self_test() -> int:
     print("PHASE9_FREEZE_MAP_STUDY_BOUNDARIES_SELF_TEST=pass")
     print(f"PHASE9_ROADMAP_STUDY_ONLY_ANCHOR_COUNT={len(ROADMAP_STUDY_ONLY_ANCHORS)}")
     print(f"PHASE9_REQUIRED_PATH_COUNT={len(PATH_REQUIREMENTS) + 1}")
+    print(f"PHASE9_FORBIDDEN_PATH_MARKER_COUNT={sum(len(markers) for markers in FORBIDDEN_PATH_MARKERS.values())}")
     print(f"PHASE9_REQUIRED_MAKE_ROUTE_COUNT={len(CURRENT_PHASE9_MAKE_ROUTES)}")
     print(f"PHASE9_FORBIDDEN_MAKE_ROUTE_COUNT={len(FORBIDDEN_PHASE9_MAKE_ROUTES)}")
     print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(PATH_REQUIREMENTS[SAMPLES_README_PATH])}")
@@ -521,8 +551,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the Phase 9 freeze-map boundary packet keeps the roadmap-backed "
-            "study-only anchors, the reviewer-facing route-back wording, and the richer "
-            "current-master runtime reminder packet explicit together across shared docs."
+            "study-only anchors, the reviewer-facing route-back wording, the landed "
+            "shared validator route, and the richer current-master runtime reminder packet "
+            "explicit together across shared docs."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
@@ -540,6 +571,7 @@ def main() -> int:
 
     print(f"PHASE9_ROADMAP_STUDY_ONLY_ANCHOR_COUNT={len(ROADMAP_STUDY_ONLY_ANCHORS)}")
     print(f"PHASE9_REQUIRED_PATH_COUNT={len(PATH_REQUIREMENTS) + 1}")
+    print(f"PHASE9_FORBIDDEN_PATH_MARKER_COUNT={sum(len(markers) for markers in FORBIDDEN_PATH_MARKERS.values())}")
     print(f"PHASE9_REQUIRED_MAKE_ROUTE_COUNT={len(CURRENT_PHASE9_MAKE_ROUTES)}")
     print(f"PHASE9_FORBIDDEN_MAKE_ROUTE_COUNT={len(FORBIDDEN_PHASE9_MAKE_ROUTES)}")
     print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(PATH_REQUIREMENTS[SAMPLES_README_PATH])}")
