@@ -170,7 +170,7 @@
         "tools/lib/bpf/libbpf.c: reused-map name retention before compatibility comparison"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred."
+      "why_now": "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while leaving direct procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, and descriptor ownership side effects to the deferred file-path-and-handle bridge boundary."
     },
     {
       "id": "P8-L13-S14",
