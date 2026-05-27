@@ -21,6 +21,7 @@
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-architecture-council-packet.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-review-checklist-study-only-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
@@ -57,6 +58,7 @@
   },
   "repo_evidence": {
     "phase15_readiness_packet_checker_present": true,
+    "phase15_architecture_council_packet_checker_present": true,
     "phase15_validator_script_present": true,
     "phase15_docs_readme_checker_present": true,
     "phase15_scripts_readme_checker_present": true,
@@ -80,6 +82,7 @@
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-architecture-council-packet.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py"
   ]
