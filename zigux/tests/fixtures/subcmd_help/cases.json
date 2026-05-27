@@ -1,0 +1,17 @@
+[
+  {
+    "name": "search_plan",
+    "expected_file": "search_plan_expected.json",
+    "output_kind": "json"
+  },
+  {
+    "name": "main_and_other_sections",
+    "expected_file": "main_and_other_sections_expected.txt",
+    "output_kind": "text"
+  },
+  {
+    "name": "fallback_only_sections",
+    "expected_file": "fallback_only_sections_expected.txt",
+    "output_kind": "text"
+  }
+]
