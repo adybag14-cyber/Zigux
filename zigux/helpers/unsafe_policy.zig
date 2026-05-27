@@ -395,6 +395,65 @@ pub fn constSliceAtByte(
     return narrow.constSliceAtByte(T, address, len, scope);
 }
 
+pub fn readValueAtInteropPolicyBytes(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    scope: u8,
+    reserved: u8,
+) RawPointerBridgeError!T {
+    return narrow.readValueAtInteropPolicyBytes(T, address, byte_len, scope, reserved);
+}
+
+pub fn readValueAtInteropPolicy(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    policy: abi.InteropPolicy,
+) RawPointerBridgeError!T {
+    return narrow.readValueAtInteropPolicy(T, address, byte_len, policy);
+}
+
+pub fn readValueAtByte(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    scope: u8,
+) RawPointerBridgeError!T {
+    return narrow.readValueAtByte(T, address, byte_len, scope);
+}
+
+pub fn exchangeValueAtInteropPolicyBytes(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    value: T,
+    scope: u8,
+    reserved: u8,
+) RawPointerBridgeError!T {
+    return narrow.exchangeValueAtInteropPolicyBytes(T, address, byte_len, value, scope, reserved);
+}
+
+pub fn exchangeValueAtInteropPolicy(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    value: T,
+    policy: abi.InteropPolicy,
+) RawPointerBridgeError!T {
+    return narrow.exchangeValueAtInteropPolicy(T, address, byte_len, value, policy);
+}
+
+pub fn exchangeValueAtByte(
+    comptime T: type,
+    address: usize,
+    byte_len: usize,
+    value: T,
+    scope: u8,
+) RawPointerBridgeError!T {
+    return narrow.exchangeValueAtByte(T, address, byte_len, value, scope);
+}
+
 pub fn writeValueAtInteropPolicyBytes(
     comptime T: type,
     address: usize,
@@ -602,16 +661,27 @@ test "phase3 unsafe policy keeps raw-pointer bridge relays helper-local" {
     try std.testing.expectEqual(@as(u32, 61), mutable_byte_slice[0]);
     try std.testing.expectEqual(@as(u32, 83), mutable_byte_slice[1]);
 
-    try writeValueAtInteropPolicy(u32, second_addr, 73, raw);
+    try std.testing.expectEqual(@as(u32, 61), try readValueAtInteropPolicy(u32, first_addr, @sizeOf(u32), raw));
+    try std.testing.expectEqual(@as(u32, 83), try readValueAtInteropPolicyBytes(u32, second_addr, @sizeOf(u32), 2, 0));
+    try std.testing.expectEqual(@as(u32, 61), try readValueAtByte(u32, first_addr, @sizeOf(u32), 2));
+
+    try std.testing.expectEqual(@as(u32, 61), try exchangeValueAtInteropPolicy(u32, first_addr, @sizeOf(u32), 67, raw));
+    try std.testing.expectEqual(@as(u32, 67), bridge_words[0]);
+    try std.testing.expectEqual(@as(u32, 83), try exchangeValueAtInteropPolicyBytes(u32, second_addr, @sizeOf(u32), 71, 2, 0));
+    try std.testing.expectEqual(@as(u32, 71), bridge_words[1]);
+    try std.testing.expectEqual(@as(u32, 71), try exchangeValueAtByte(u32, second_addr, @sizeOf(u32), 73, 2));
     try std.testing.expectEqual(@as(u32, 73), bridge_words[1]);
+
+    try writeValueAtInteropPolicy(u32, second_addr, 79, raw);
+    try std.testing.expectEqual(@as(u32, 79), bridge_words[1]);
 
     const const_byte_slice = try constSliceAtByte(u32, first_addr, bridge_words.len, 2);
     try std.testing.expectEqual(@as(usize, bridge_words.len), const_byte_slice.len);
-    try std.testing.expectEqual(@as(u32, 61), const_byte_slice[0]);
-    try std.testing.expectEqual(@as(u32, 73), const_byte_slice[1]);
+    try std.testing.expectEqual(@as(u32, 67), const_byte_slice[0]);
+    try std.testing.expectEqual(@as(u32, 79), const_byte_slice[1]);
 
-    try writeValueAtInteropPolicyBytes(u32, second_addr, 79, 2, 0);
-    try std.testing.expectEqual(@as(u32, 79), bridge_words[1]);
+    try writeValueAtInteropPolicyBytes(u32, second_addr, 83, 2, 0);
+    try std.testing.expectEqual(@as(u32, 83), bridge_words[1]);
 
     try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicy(u32, first_addr, @sizeOf(u32), safe));
     try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicy(u32, first_addr, bridge_words.len, safe));
@@ -620,5 +690,7 @@ test "phase3 unsafe policy keeps raw-pointer bridge relays helper-local" {
     try std.testing.expectError(error.UnsafeScopeDenied, constPointerAtInteropPolicy(u32, second_addr, reserved));
     try std.testing.expectError(error.UnsafeScopeDenied, constSliceAtInteropPolicyBytes(u32, first_addr, bridge_words.len, 2, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, sliceAtByte(u32, first_addr, bridge_words.len, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, readValueAtByte(u32, first_addr, @sizeOf(u32), 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, exchangeValueAtByte(u32, second_addr, @sizeOf(u32), 89, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtByte(u32, second_addr, 83, 0));
 }
