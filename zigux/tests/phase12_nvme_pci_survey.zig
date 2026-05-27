@@ -174,6 +174,7 @@ test "phase12 nvme pci survey note keeps the roadmap gap and dedicated-build spl
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_nvme_pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase12_nvme_pci_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dedicated `phase12-nvme-pci-survey-test` route in `zigux/tests/phase12_nvme_pci_survey_build.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase12_build.zig` route still stays virtio-net-only") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now wires the NVMe direct replay into the shared `phase12-smoke` and `phase12` routes") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey gate still stays packet-local") != null);
@@ -193,6 +194,11 @@ test "phase12 nvme pci reopen governance note keeps the dedicated direct replay 
         u8,
         reopen_note,
         "dedicated `phase12-nvme-pci-direct-test` route in `zigux/tests/phase12_nvme_pci_build.zig`",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        reopen_note,
+        "dedicated `phase12-nvme-pci-survey-test` route in `zigux/tests/phase12_nvme_pci_survey_build.zig`",
     ) != null);
     try std.testing.expect(std.mem.indexOf(
         u8,
@@ -236,6 +242,7 @@ test "phase12 nvme pci survey gate keeps present packet files explicit" {
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-nvme-pci-survey.md"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_nvme_pci.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_nvme_pci_build.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_nvme_pci_survey_build.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_nvme_pci_manifest.json"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_nvme_pci_survey.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));
@@ -249,12 +256,17 @@ test "phase12 nvme pci survey gate keeps the dedicated direct route driver-local
     const direct_build = try readFileAlloc("zigux/tests/phase12_nvme_pci_build.zig", 16 * 1024);
     defer std.testing.allocator.free(direct_build);
 
+    const survey_build = try readFileAlloc("zigux/tests/phase12_nvme_pci_survey_build.zig", 16 * 1024);
+    defer std.testing.allocator.free(survey_build);
+
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_virtio_net_queue_resume.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_virtio_net_transmit_recycle.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_nvme_pci.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12-nvme-pci-direct-tests") == null);
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_nvme_pci_survey.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12_nvme_pci_survey_build.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12-nvme-pci-survey-tests") == null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, "phase12-nvme-pci-survey-test") == null);
     try std.testing.expectEqual(@as(usize, 11), std.mem.count(u8, shared_build, "b.createModule(.{"));
     try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, shared_build, ".addImport("));
     try std.testing.expectEqual(@as(usize, 6), std.mem.count(u8, shared_build, "b.addTest(.{"));
@@ -264,6 +276,13 @@ test "phase12 nvme pci survey gate keeps the dedicated direct route driver-local
 
     try std.testing.expect(std.mem.indexOf(u8, direct_build, "phase12_nvme_pci.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, direct_build, "phase12-nvme-pci-direct-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_build, "phase12_nvme_pci_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_build, "phase12-nvme-pci-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_build, "phase12-nvme-pci-survey-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_build, "run_tests.setCwd(b.path(\"../..\"));") != null);
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, survey_build, "b.addTest(.{"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, survey_build, "b.addRunArtifact("));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, survey_build, "test_step.dependOn("));
 }
 
 test "phase12 nvme pci survey gate keeps the make wrapper surface explicit" {
