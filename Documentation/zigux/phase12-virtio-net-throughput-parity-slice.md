@@ -20,8 +20,6 @@ This note records one bounded Validation and Perf packet for the current Phase 1
 
 - `python3 scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py --self-test`
 - `python3 scripts/zigux/check-phase12-virtio-net-throughput-parity-packet.py --root .`
-- `python3 scripts/zigux/validate-phase12.py`
-- `make -C zigux phase12-validate`
 - `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all`
 - `make -C zigux phase12-virtio-net-throughput-parity-test`
 
