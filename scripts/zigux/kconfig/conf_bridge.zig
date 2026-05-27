@@ -135,6 +135,24 @@ fn modeAcceptsAllConfigOverride(mode: Mode) bool {
     };
 }
 
+fn modeAllConfigFallbacks(mode: Mode) ?[]const []const u8 {
+    return switch (mode) {
+        .allnoconfig => &.{ "allno.config", "all.config" },
+        .allyesconfig => &.{ "allyes.config", "all.config" },
+        .allmodconfig => &.{ "allmod.config", "all.config" },
+        .alldefconfig => &.{ "alldef.config", "all.config" },
+        .randconfig => &.{ "allrandom.config", "all.config" },
+        else => null,
+    };
+}
+
+fn requestNeedsAllConfigFallbacks(request: Request) bool {
+    if (request.allconfig) |allconfig| {
+        return allconfig.len == 0 and modeAllConfigFallbacks(request.mode) != null;
+    }
+    return modeUsesAllConfigSentinel(request.mode);
+}
+
 const bridge_option_prefixes = [_][]const u8{
     "allconfig=",
     "seed=",
@@ -183,6 +201,19 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
         },
         else => try writer.writeByte(c),
     };
+}
+
+fn writeJsonStringArray(writer: anytype, values: []const []const u8) !void {
+    try writer.writeAll("[");
+    for (values, 0..) |value, index| {
+        if (index != 0) {
+            try writer.writeAll(",");
+        }
+        try writer.writeAll("\"");
+        try writeJsonEscaped(writer, value);
+        try writer.writeAll("\"");
+    }
+    try writer.writeAll("]");
 }
 
 fn parseBridgeOptions(mode: Mode, args: []const []const u8) ParseBridgeOptionsError!BridgeOptions {
@@ -254,7 +285,12 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     }
     try writer.writeAll(",\"");
     try writeJsonEscaped(writer, request.kconfig);
-    try writer.writeAll("\"],\"env\":{\"ARCH\":\"");
+    try writer.writeAll("\"]");
+    if (requestNeedsAllConfigFallbacks(request)) {
+        try writer.writeAll(",\"allconfig_fallbacks\":");
+        try writeJsonStringArray(writer, modeAllConfigFallbacks(request.mode).?);
+    }
+    try writer.writeAll(",\"env\":{\"ARCH\":\"");
     try writeJsonEscaped(writer, request.arch);
     try writer.writeAll("\",\"KCONFIG_CONFIG\":\"");
     try writeJsonEscaped(writer, request.config);
@@ -527,6 +563,7 @@ test "conf bridge emits alldefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"build/.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"arm64\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"allconfig_fallbacks\":[\"alldef.config\",\"all.config\"]") != null);
 }
 
 test "conf bridge emits explicit empty allconfig override for allmodconfig" {
@@ -542,8 +579,9 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
 
     try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"mode\":\"allmodconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"KCONFIG_ALLCONFIG\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"allconfig_fallbacks\"") == null);
 
-    var explicit_capture = try TestCapture.init(std.testing.allocator, 160);
+    var explicit_capture = try TestCapture.init(std.testing.allocator, 224);
     defer explicit_capture.deinit();
 
     try runConfBridge(&explicit_capture, .{
@@ -556,8 +594,9 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
 
     try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"mode\":\"allmodconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"allconfig_fallbacks\":[\"allmod.config\",\"all.config\"]") != null);
 
-    var default_no_capture = try TestCapture.init(std.testing.allocator, 192);
+    var default_no_capture = try TestCapture.init(std.testing.allocator, 224);
     defer default_no_capture.deinit();
 
     try runConfBridge(&default_no_capture, .{
@@ -569,6 +608,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
 
     try std.testing.expect(std.mem.indexOf(u8, default_no_capture.list.items, "\"mode\":\"allnoconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, default_no_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, default_no_capture.list.items, "\"allconfig_fallbacks\":[\"allno.config\",\"all.config\"]") != null);
 
     var path_capture = try TestCapture.init(std.testing.allocator, 192);
     defer path_capture.deinit();
@@ -584,8 +624,9 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"mode\":\"allnoconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"mini-all.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, path_capture.list.items, "\"allconfig_fallbacks\"") == null);
 
-    var default_yes_capture = try TestCapture.init(std.testing.allocator, 192);
+    var default_yes_capture = try TestCapture.init(std.testing.allocator, 224);
     defer default_yes_capture.deinit();
 
     try runConfBridge(&default_yes_capture, .{
@@ -597,8 +638,9 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
 
     try std.testing.expect(std.mem.indexOf(u8, default_yes_capture.list.items, "\"mode\":\"allyesconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, default_yes_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, default_yes_capture.list.items, "\"allconfig_fallbacks\":[\"allyes.config\",\"all.config\"]") != null);
 
-    var empty_capture = try TestCapture.init(std.testing.allocator, 192);
+    var empty_capture = try TestCapture.init(std.testing.allocator, 224);
     defer empty_capture.deinit();
 
     try runConfBridge(&empty_capture, .{
@@ -612,6 +654,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"mode\":\"allyesconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"allconfig_fallbacks\":[\"allyes.config\",\"all.config\"]") != null);
 
     var alldefconfig_path_capture = try TestCapture.init(std.testing.allocator, 224);
     defer alldefconfig_path_capture.deinit();
@@ -627,6 +670,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, alldefconfig_path_capture.list.items, "\"mode\":\"alldefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, alldefconfig_path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"mini-all.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, alldefconfig_path_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, alldefconfig_path_capture.list.items, "\"allconfig_fallbacks\"") == null);
 }
 
 test "conf bridge emits randconfig tunables when present" {
@@ -646,6 +690,7 @@ test "conf bridge emits randconfig tunables when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_PROBABILITY\":\"15:25\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"allconfig_fallbacks\"") == null);
 }
 
 test "conf bridge emits explicit randconfig allconfig override when present" {
@@ -663,8 +708,9 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"allrandom.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"allconfig_fallbacks\"") == null);
 
-    var empty_capture = try TestCapture.init(std.testing.allocator, 224);
+    var empty_capture = try TestCapture.init(std.testing.allocator, 256);
     defer empty_capture.deinit();
 
     try runConfBridge(&empty_capture, .{
@@ -680,6 +726,7 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
     try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, empty_capture.list.items, "\"allconfig_fallbacks\":[\"allrandom.config\",\"all.config\"]") != null);
 }
 
 test "conf bridge omits randconfig allconfig sentinel without explicit override" {
@@ -695,6 +742,7 @@ test "conf bridge omits randconfig allconfig sentinel without explicit override"
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"randconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"allconfig_fallbacks\"") == null);
 }
 
 test "conf bridge emits yes2modconfig argv and env" {
