@@ -181,3 +181,23 @@ test "phase 6 hexdump uppercase bulk parity and grouped-ascii exact-capacity buf
     );
     try std.testing.expectEqual(@as(u8, 0), truncated[truncated.len - 1]);
 }
+
+test "phase 6 hexdump zero-length caller buffers stay NUL terminated without touching trailing bytes" {
+    const fill = fixtures.fill_char;
+
+    var ascii_buf = [_]u8{fill} ** 4;
+    const ascii_required = hexdump.hexDumpToBuffer(fixtures.data_b[0..0], 32, 8, ascii_buf[0..], true);
+    try std.testing.expectEqual(@as(usize, 0), ascii_required);
+    try std.testing.expectEqual(@as(u8, 0), ascii_buf[0]);
+    for (ascii_buf[1..]) |byte| {
+        try std.testing.expectEqual(fill, byte);
+    }
+
+    var plain_buf = [_]u8{fill} ** 2;
+    const plain_required = hexdump.hexDumpToBuffer(fixtures.data_b[0..0], 16, 1, plain_buf[0..], false);
+    try std.testing.expectEqual(@as(usize, 0), plain_required);
+    try std.testing.expectEqual(@as(u8, 0), plain_buf[0]);
+    for (plain_buf[1..]) |byte| {
+        try std.testing.expectEqual(fill, byte);
+    }
+}
