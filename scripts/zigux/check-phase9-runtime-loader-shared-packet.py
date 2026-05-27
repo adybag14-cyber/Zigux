@@ -27,6 +27,7 @@ TRACE_EVENTS_PACKET = Path("scripts/zigux/check-phase9-trace-events-runtime-pack
 TRACE_EVENTS_DIRECT = Path("scripts/zigux/check-phase9-trace-events-direct-summary.py")
 TRACE_EVENTS_SUMMARY = Path("scripts/zigux/check-phase9-trace-events-summary-preservation.py")
 VALIDATOR = Path("scripts/zigux/check-phase9-runtime-loader-shared-packet.py")
+WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 README = Path("scripts/zigux/README.md")
 MANIFEST = Path("zigux/tests/runtime_pilot_manifest.json")
 OWNERSHIP_MAP = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")
@@ -47,6 +48,7 @@ REQUIRED_FILES = (
     LANE_NOTE,
     OWNERSHIP_MAP,
     README,
+    WORKFLOW,
     CATALOG,
     CATALOG_SELFTEST,
     ATOMIC64_PACKET,
@@ -73,6 +75,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py --self-test",
         "python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py",
         "the current scripts-root runtime-pilot reminder now keeps the dedicated shared `check-phase9-runtime-loader-shared-packet.py` rerun path explicit for this loader packet on current `master`",
+    ),
+    WORKFLOW: (
+        "python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py --self-test",
+        "python3 scripts/zigux/check-phase9-runtime-loader-shared-packet.py",
+        "Run current Phase 9 shared loader command-environment boundary guard tests",
+        "Run current Phase 9 shared loader allocator-init-flow packet",
     ),
     CATALOG: (
         '"scripts/zigux/check-phase9-runtime-loader-shared-packet.py"',
@@ -274,7 +282,7 @@ def run_self_test() -> int:
             root / CATALOG_SELFTEST,
             _failing_checker(
                 "PHASE9_CATALOG_PACKET",
-                "missing-marker:scripts/zigux/phase9_catalog.py:\"scripts/zigux/check-phase9-runtime-loader-shared-packet.py\"",
+                'missing-marker:scripts/zigux/phase9_catalog.py:"scripts/zigux/check-phase9-runtime-loader-shared-packet.py"',
             ),
         )
         failing_catalog = validate_root(root)
