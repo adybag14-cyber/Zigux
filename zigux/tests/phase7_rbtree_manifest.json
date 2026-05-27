@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-27T09:30:01Z",
+  "verified_on_utc": "2026-05-27T12:09:01Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
@@ -45,6 +45,7 @@
   "ownership_focus": [
     "the currently readable same-lane rbtree packet now includes the direct helper at `lib/rbtree.zig`, the dedicated slice note at `Documentation/zigux/phase7-rbtree-slice.md`, the direct-anchor note, the dedicated parity checker at `scripts/zigux/check-phase7-rbtree-parity.py`, the dedicated replay at `zigux/tests/phase7_rbtree.zig`, the returned survey and manifest, the returned `zigux/tests/fixtures/phase7_rbtree.json` parity companion, and the returned `zigux/tests/fixtures/phase7_rbtree_c_harness.c` companion, so same-lane truthfulness must keep those returned surfaces explicit",
     "path truthfulness must keep the currently returned helper rooted at `lib/rbtree.zig` explicit while `tools/lib/rbtree.zig` stays readable as legacy runtime-family companion evidence rather than helper-local ownership on current master",
+    "legacy runtime-family truthfulness must keep `tools/lib/rbtree.zig` readable on the same reverse-traversal alias, postorder alias, and plain erase-init markers that the direct helper packet treats as current product-facing evidence",
     "build-graph truthfulness must keep the split non-owner evidence explicit: `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` are readable",
     "positive shared build-route truthfulness must stay explicit too: `zigux/Makefile` now returns shared `phase7-validate` plus dedicated `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers, while `phase7-test:` and `phase7:` stay listed under `absent_makefile_markers` until broader shared-control routes really materialize",
     "build-surface provenance must stay explicit: in this runtime `zigux/tests/phase7_build.zig`, `tools/lib/rbtree.zig`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/validate-phase7.py`, `zigux/Makefile`, and the helper-local rbtree packet all rematerialized through authenticated rereads, so shared non-owner build evidence stays reviewable without public-fallback caveats on current master",
@@ -52,5 +53,5 @@
     "fixture truthfulness must keep `zigux/tests/fixtures/phase7_rbtree.json` and `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity evidence",
     "fixture truthfulness now also keeps the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed boundaries explicit across the returned JSON fixture, returned C harness, dedicated survey, and dedicated replay"
   ],
-  "next_bounded_step": "Stay in the same `kernel-leaf-libraries` lane and keep `zigux/tests/fixtures/phase7_rbtree.json` plus `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity companions, including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases, while keeping the returned `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers aligned with `zigux/tests/phase7_build.zig` so helper path, shared `phase7-validate` route, still-absent `phase7-test:` and `phase7:` markers, and legacy companion framing stay aligned without widening beyond the rbtree packet."
+  "next_bounded_step": "Stay in the same `kernel-leaf-libraries` lane and keep `zigux/tests/fixtures/phase7_rbtree.json` plus `zigux/tests/fixtures/phase7_rbtree_c_harness.c` explicit as returned parity companions, keep the readable legacy `tools/lib/rbtree.zig` companion aligned on the reverse-traversal alias, postorder alias, and plain erase-init markers, and keep the returned `phase7-rbtree-test:` and `phase7-rbtree-survey:` wrappers aligned with `zigux/tests/phase7_build.zig` so helper path, shared `phase7-validate` route, still-absent `phase7-test:` and `phase7:` markers, and legacy companion framing stay aligned without widening beyond the rbtree packet."
 }
