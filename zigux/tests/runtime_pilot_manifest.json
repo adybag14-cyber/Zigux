@@ -3,13 +3,14 @@
   "lane_key": "P9-L11",
   "slug": "phase9-runtime-pilot-shared-packet",
   "status": "shared_runtime_pilot_delivery_evidence_present",
-  "scope": "shared reminder, manifest, catalog, ownership, and validation surfaces for the atomic64 pilot packet, the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
+  "scope": "shared reminder, manifest, catalog, ownership, validation, and module-metadata boundary surfaces for the atomic64 pilot packet, the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
   "ownership_map_path": "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
   "packet_files": [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
     "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
     "Documentation/zigux/phase9-runtime-trace-events-survey.md",
@@ -89,5 +90,5 @@
   "repo_reality_gaps": [
     "blocked publication and install-root vocabulary remains historical rather than direct shipped proof"
   ],
-  "next_safe_step": "tighten one shared reminder surface at a time where current master still undercounts the returned kretprobe packet, starting with Documentation/zigux/README.md before widening into runtime behavior or build wiring"
+  "next_safe_step": "tighten one shared reminder surface at a time where current master still undercounts the blocked module-metadata and depmod bridge boundary before widening into runtime behavior or build wiring"
 }
