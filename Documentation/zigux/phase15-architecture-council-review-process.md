@@ -21,7 +21,7 @@ The Phase 15 roadmap keeps deep-core status changes under human governance, not 
 
 That means any request to move a freeze-in-C anchor out of its current blocked posture must arrive as an explicit Architecture Council review packet with named owners, named evidence, and an honest stay-in-C fallback when the evidence is incomplete.
 
-This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`.
+This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-architecture-council-decision-index.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`.
 
 ## Required review packet
 
@@ -118,6 +118,7 @@ The current honest packet is therefore docs-root governance plus gap tracking:
 - `scripts/zigux/check-phase15-tests-readme-alignment.py` is the focused guard for the landed tests-root Phase 15 governance reminder in `zigux/tests/README.md`; keep that tests-root surface aligned with `Documentation/zigux/phase15-shared-summary-gap.md` and this owner note while the broader validator-first and build-route companions remain gap-tracked
 - `Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit
 - `Documentation/zigux/phase15-architecture-council-decision-record-template.md` keeps the review record shape explicit for future Architecture Council requests, defaults that record to dated-master-readback provenance, and requires an explicit exception note before exact-head provenance is used
+- `Documentation/zigux/phase15-architecture-council-decision-index.md` keeps the current Architecture Council decision inventory explicit, recording that no freeze-map anchor has an approved status change or stay-in-C closeout record on current `master` until a future decision record lands
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json` keeps the dedicated review-packet field inventory machine-readable
 - `scripts/zigux/check-phase15-review-process-handoff.py` keeps the review-process packet, the maintenance handoff, and the shared-summary-gap dependency aligned
 - `zigux/tests/phase15_architecture_council_review_process.zig` keeps the focused review-process replay explicit beside the docs and manifest-backed packet
@@ -137,6 +138,7 @@ If a future lane reopens it, prefer one of these equally bounded follow-ups:
 - keep the shared study-only anchor summary in `Documentation/zigux/review-checklist.md` aligned with `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py`, `Documentation/zigux/freeze-map.md`, and `Documentation/zigux/phase15-study-only-anchor-accounting.md` before widening into broader Phase 15 prose
 - keep the landed shared tests-root Phase 15 governance reminder in `zigux/tests/README.md` aligned with `scripts/zigux/check-phase15-tests-readme-alignment.py`, this note, and `Documentation/zigux/phase15-shared-summary-gap.md` before widening into broader Phase 15 prose
 - keep `Documentation/zigux/phase15-architecture-council-decision-record-template.md` aligned with this note before widening into broader Phase 15 prose
+- keep `Documentation/zigux/phase15-architecture-council-decision-index.md` aligned with this note and the decision-record template before widening into broader Phase 15 prose
 - keep the dedicated review-process manifest, the focused Zig replay, the focused build-file replay, and the focused handoff checker aligned with this note before widening into broader Phase 15 prose
 - keep the restored dedicated indefinite-C policy companion aligned without widening into unrelated Phase 15 prose
 - if the broader validator-first packet truly lands later, align this note with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `zigux/tests/phase15_architecture_council_review_process_manifest.json` before claiming those broader surfaces as current evidence here
@@ -153,4 +155,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless fresh repo inspection shows a new same-packet field drift in the Architecture Council request inventory, the stay-in-C closeout rule, the reopen-evidence rule, the focused review-process replay, the focused build-file replay, the landed tests-root Phase 15 governance reminder, or the current shared-summary gap tracking for the broader validator-first surfaces.
+Keep this lane parked unless fresh repo inspection shows a new same-packet field drift in the Architecture Council request inventory, the stay-in-C closeout rule, the reopen-evidence rule, the decision index, the focused review-process replay, the focused build-file replay, the landed tests-root Phase 15 governance reminder, or the current shared-summary gap tracking for the broader validator-first surfaces.
