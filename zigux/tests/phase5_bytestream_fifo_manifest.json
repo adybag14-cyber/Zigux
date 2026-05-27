@@ -12,7 +12,7 @@
     "the manifest-backed contributor packet still keeps runAnchorReplay(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), the exact queue-order replay, the non-destructive snapshotInto() cue, the lifecycle boundary, the reinit-after-exit reuse cue, the short-drain \\\"hel\\\" plus queued \\\"lo\\\" helper boundary, and the remaining-capacity evidence explicit instead of leaving those review cues implied",
     "the approved in-memory FIFO idiom still keeps queue-shape evidence explicit so previewInto(), snapshotInto(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), available(), occupancySummary(), visibleSpanSummary(), writableSpanSummary(), and usesWrappedStorageWindow() stay aligned across the same cold, full, wrapped-window, and rollover boundaries that reviewers expect from a bounded ring sample",
     "the shipped companion still keeps the three named queue-window checkpoints explicit through checkpointName(), visibleWindowForCheckpoint(), writableWindowForCheckpoint(), and referencePattern() instead of leaving later focused replays coupled only to positional array indexes",
-    "the shared docs-root, sample-root, scripts-root, and tests-root contributor packet still points at this exact bytestream FIFO slice through the survey note, sample file, directly readable focused replay packet, directly readable manifest companion, directly readable survey gate, and the directly readable phase5_build.zig route instead of collapsing the review surface back to the sample file and survey note alone",
+    "the shared docs-root, sample-root, and tests-root contributor packet still points at this exact bytestream FIFO slice through the survey note, sample file, samples/zigux/bytestream_fifo_transfer_contract.zig, the directly readable focused replay packet, the directly readable manifest companion, the directly readable survey gate, and the directly readable phase5_build.zig route instead of collapsing the review surface back to the sample file and survey note alone",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample"
   ],
@@ -35,7 +35,7 @@
     {
       "id": "transfer-count-contract",
       "kind": "count_contract",
-      "expected": "initial string copy count is 5, first drain count is 5, second drain count is 2, and requeue count is 2 so the Linux-style transfer counts stay explicit instead of being inferred from the drained byte arrays alone"
+      "expected": "samples/zigux/bytestream_fifo_transfer_contract.zig keeps the Linux-style transfer counts explicit and sample-root-aligned: initial string copy count is 5, first drain count is 5, second drain count is 2, requeue count is 2, preview prefix stays [3,4,5,6,7,8,9,0], the short-drain helper boundary stays \\\"hel\\\" plus queued \\\"lo\\\", and partial enqueue still requests 4 bytes, copies 2, and drops 2 instead of leaving those transfer cues inferred from sample-owned replay code alone"
     },
     {
       "id": "skip-and-peek",
