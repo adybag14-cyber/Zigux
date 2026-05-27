@@ -17,7 +17,7 @@ SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 TEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process.zig")
 BUILD_GATE_PATH = Path("zigux/tests/phase15_architecture_council_review_process_build.zig")
-CURRENT_READBACK_MARKER = "current-master-readback-2026-05-23"
+CURRENT_READBACK_MARKER = "current-master-readback-2026-05-26"
 GOVERNANCE_SCOPE_FIELD = "governance lane sequencing link or explicit scope note"
 
 
@@ -294,6 +294,9 @@ def _sample_manifest() -> str:
                 "required approver set",
                 "rollback owner",
                 "evidence archive path",
+                "retained blocker posture",
+                "trigger-specific evidence refresh",
+                "return-to-blocked wording",
             ],
             "review_process_required_metadata_markers": [
                 "`PHASE15_PACKET_OWNER=Architecture Council`",
@@ -304,7 +307,7 @@ def _sample_manifest() -> str:
                 "`DECISION_RECORD_ID=<replace-with-stable-id>`",
                 "decision record ID:",
                 "`PHASE=Phase 15`",
-                "`LANE_KEY=P15-L08`",
+                "`LANE_KEY=<replace-with-lane-key>`",
                 "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
                 "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
                 "exact-head provenance exception note:",
