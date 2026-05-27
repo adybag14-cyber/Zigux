@@ -53,6 +53,18 @@ Keep that docs-root block aligned as the broader docs-root companion for this la
 
 Docs-root companion rule: because `Documentation/zigux/README.md` now carries a dedicated Phase 13 reminder block on current `master`, keep it aligned as broader docs-root support for the workflow-guide, scripts-root, and tests-root trio rather than treating it as missing or as the stable contributor-facing handle itself.
 
+## Degraded-Read Fallback
+
+When local checkout access or authenticated blob rereads are unavailable, keep shared Phase 13 workflow work bounded to the stable contributor-facing handle plus only the exact helper-local note you are touching.
+
+1. reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` first
+2. use authenticated GitHub reads for those three files plus the exact helper-local Phase 13 path you plan to change
+3. if authenticated reads degrade, fall back to the exact public GitHub page or raw GitHub URL for only those same paths
+4. keep `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `zigux/tests/phase13_build.zig`, and helper-local manifest gaps framed as repo-reality gaps unless the same run directly rereads them successfully
+5. if local reruns are unavailable after the reread, record validation as exact readback only instead of implying a shipped replay route
+
+Degraded-read fallback rule: if local checkout access or authenticated blob reads are unavailable, reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and only the exact helper-local Phase 13 note you are touching through authenticated GitHub reads first and raw GitHub fallback second, then keep any still-absent route or helper in the repo-reality-gap bucket instead of promoting it into shipped evidence.
+
 ## Contributor Quick Start
 
 If this is your first Phase 13 reminder-surface edit in a while, use this short loop before reading the longer packet details:
