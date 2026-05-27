@@ -14,7 +14,8 @@
   "review_prompts": [
     "Keep the runtime atomic64 family Phase 9 only; it is not a Phase 5 sample family.",
     "Treat this packet as bounded runtime lifecycle parity evidence for the lib/atomic64_test.c anchor rather than proof of broader shared runtime-loader, blocked publication, depmod, or install-root closure.",
-    "Keep the sample, loader, module, and diff witnesses aligned with the ownership map before widening any shared reminder surface."
+    "Keep the sample, loader, module, and diff witnesses aligned with the ownership map before widening any shared reminder surface.",
+    "Keep `kernel/workqueue.c` framed as a study-only freeze-map anchor; this packet stays review-only beside that boundary and is not runtime-substrate delivery evidence."
   ],
   "exact_checks": [
     "descriptor_and_anchor",
@@ -28,12 +29,14 @@
     "module_descriptor_and_boundary_replays",
     "diff_arithmetic_exchange_and_guard_paths",
     "diff_threshold_replay_determinism",
-    "ownership_map_alignment"
+    "ownership_map_alignment",
+    "freeze_map_study_boundary_governance_record"
   ],
   "non_goals": [
     "broader shared runtime-loader closure",
     "blocked publication and depmod completion",
     "install-root parity",
-    "full lib/atomic64_test.c parity beyond the bounded runtime pilot packet"
+    "full lib/atomic64_test.c parity beyond the bounded runtime pilot packet",
+    "workqueue-facing runtime-substrate delivery claims"
   ]
 }
