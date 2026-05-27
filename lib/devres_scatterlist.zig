@@ -2,6 +2,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_scatterlist_lifetime_planning: bool,
+    provides_scatterlist_table_teardown_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
 };
@@ -31,6 +32,25 @@ pub const ManagedScatterlistUnmapPlan = struct {
     candidate_mapped_entries: u32,
     release_matches: bool,
     warns_on_release_miss: bool,
+};
+
+pub const ManagedScatterlistTableTeardownInput = struct {
+    original_entries: u32,
+    mapped_entries: u32,
+    table_initialized: bool,
+    release_record_present: bool,
+};
+
+pub const ManagedScatterlistTableTeardownPlan = struct {
+    anchor: []const u8,
+    original_entries: u32,
+    mapped_entries: u32,
+    table_initialized: bool,
+    release_record_present: bool,
+    free_table_ready: bool,
+    requires_unmap_before_free: bool,
+    warns_on_missing_release_record: bool,
+    warns_on_overmapped_release: bool,
 };
 
 const ReleaseRecordOutcome = struct {
@@ -77,6 +97,7 @@ pub const DevresScatterlistHelper = struct {
             .name = "devres_scatterlist_helper",
             .anchor = "lib/devres.c",
             .provides_scatterlist_lifetime_planning = true,
+            .provides_scatterlist_table_teardown_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
         };
@@ -135,6 +156,33 @@ pub const DevresScatterlistHelper = struct {
             .candidate_mapped_entries = candidate_mapped_entries,
             .release_matches = release_matches,
             .warns_on_release_miss = !release_matches,
+        };
+    }
+
+    pub fn planManagedScatterlistTableTeardown(
+        input: ManagedScatterlistTableTeardownInput,
+    ) ManagedScatterlistTableTeardownPlan {
+        const count_consistent = input.original_entries > 0 and
+            input.mapped_entries <= input.original_entries;
+        const requires_unmap_before_free = input.table_initialized and
+            count_consistent and
+            input.mapped_entries > 0;
+        const free_table_ready = input.table_initialized and
+            input.release_record_present and
+            count_consistent and
+            input.mapped_entries == 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .original_entries = input.original_entries,
+            .mapped_entries = input.mapped_entries,
+            .table_initialized = input.table_initialized,
+            .release_record_present = input.release_record_present,
+            .free_table_ready = free_table_ready,
+            .requires_unmap_before_free = requires_unmap_before_free,
+            .warns_on_missing_release_record = input.table_initialized and !input.release_record_present,
+            .warns_on_overmapped_release = input.table_initialized and
+                input.mapped_entries > input.original_entries,
         };
     }
 };
