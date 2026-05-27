@@ -53,7 +53,7 @@ Those directly readable surfaces agree on the same bounded message:
   * `kernel/workqueue.c` remains `Study / Boundary Only`
   * the current bridge-local slice is `phase14-workqueue-scheduler-visible-worker-state-refinement`
   * `zigux/tests/phase14_workqueue_reviewability.zig` is the bridge-local reviewability check
-  * the broader shared Phase 14 smoke packet should keep the workqueue boundary shard, the directly readable route checker, the directly readable tests-root reminder checker, the directly readable rollback-threshold sequencing guard, the directly readable compile-shard matrix survey, the directly readable validator surface, the directly readable release-boundary exact-count guard, and the readable current `zigux/Makefile` posture explicit without overstating bridge-local ownership
+  * the broader shared Phase 14 smoke packet may summarize the workqueue anchor, but same-lane `P14-L04` follow-through still stays inside the bridge, dedicated tests, manifest, slice note, and survey note until the bridge-local blocked-maintenance handoff is aligned again
   * the bridge-local trusted rerun still stops at `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while `make -C zigux phase14-validate` remains the broader shared packet-local validation route rather than bridge-local proof; that `shared_packet_local_only` productization posture belongs to the manifest and must not be read as a promotion signal for the bridge-local packet
   * the missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers still do not count as current proof
 
@@ -118,7 +118,7 @@ The packet is still blocked from claiming:
 
 ## Shared-packet alignment
 
-The workqueue-local packet should stay aligned with the shared Phase 14 smoke packet on these points:
+The workqueue-local packet may still be summarized by the shared Phase 14 smoke packet, but same-lane follow-through should stay inside the bridge packet. Keep these points aligned:
 
   * the workqueue anchor remains the non-frozen study-only foothold inside Phase 14
   * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `Documentation/zigux/phase14-compile-shard-matrix-survey.md`, `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-workqueue-study-only-guardrail.py`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
