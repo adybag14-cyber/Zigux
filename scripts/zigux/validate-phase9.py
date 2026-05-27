@@ -15,6 +15,7 @@ ROOT = _FILE_PATH.parents[2] if len(_FILE_PATH.parents) > 2 else _FILE_PATH.pare
 
 LANE_NOTE_PATH = Path("Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md")
 OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")
+MODULE_METADATA_SURVEY_PATH = Path("Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md")
 CATALOG_PATH = Path("scripts/zigux/phase9_catalog.py")
 CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase9-catalog-selftest.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase9.py")
@@ -38,6 +39,7 @@ CHECKERS = (
 REQUIRED_FILES = (
     LANE_NOTE_PATH,
     OWNERSHIP_MAP_PATH,
+    MODULE_METADATA_SURVEY_PATH,
     CATALOG_PATH,
     CATALOG_SELFTEST_PATH,
     VALIDATOR_PATH,
@@ -55,6 +57,7 @@ EXPECTED_PACKET_FILES = (
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
     "Documentation/zigux/phase9-runtime-pilot-ownership-map.md",
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-survey.md",
     "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
     "Documentation/zigux/phase9-runtime-trace-events-survey.md",
@@ -139,8 +142,8 @@ EXPECTED_GAPS = [
 
 EXPECTED_NEXT_SAFE_STEP = (
     "tighten one shared reminder surface at a time where current master still undercounts "
-    "the returned kretprobe packet, starting with Documentation/zigux/README.md before "
-    "widening into runtime behavior or build wiring"
+    "the blocked module-metadata and depmod bridge boundary before widening into runtime behavior "
+    "or build wiring"
 )
 
 REQUIRED_OWNERSHIP_MARKERS = (
@@ -217,6 +220,8 @@ def validate(root: Path) -> None:
     for marker in REQUIRED_OWNERSHIP_MARKERS:
         if marker not in ownership_map:
             raise ValidationError(f"phase9 ownership-map marker missing: {marker}")
+    if MODULE_METADATA_SURVEY_PATH.as_posix() not in ownership_map:
+        raise ValidationError("phase9 ownership-map module-metadata survey drift")
 
     catalog_result = _run_python(root, [str(root / CATALOG_PATH), "--pretty"])
     if catalog_result.returncode != 0:
@@ -237,7 +242,14 @@ def _populate_fixture(root: Path) -> None:
 
     _write(
         root / OWNERSHIP_MAP_PATH,
-        "\n".join(REQUIRED_OWNERSHIP_MARKERS + ("## Shared Owner Packet",)) + "\n",
+        "\n".join(
+            REQUIRED_OWNERSHIP_MARKERS
+            + (
+                MODULE_METADATA_SURVEY_PATH.as_posix(),
+                "## Shared Owner Packet",
+            )
+        )
+        + "\n",
     )
     _write(root / CATALOG_PATH, "\n".join(("from __future__ import annotations", "print('{}')")) + "\n")
     _write(
@@ -356,6 +368,15 @@ def run_self_test() -> None:
             *EXPECTED_GAPS,
         ]
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        _expect_failure(root)
+        case_count += 1
+
+        _populate_fixture(root)
+        _replace_once(
+            root / OWNERSHIP_MAP_PATH,
+            MODULE_METADATA_SURVEY_PATH.as_posix(),
+            "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+        )
         _expect_failure(root)
         case_count += 1
 
