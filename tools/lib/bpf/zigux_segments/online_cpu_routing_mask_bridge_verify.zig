@@ -40,9 +40,256 @@ fn readInjectedCpuMaskError(context: ?*anyopaque, buffer: []u8) InjectedReadErro
 test "phase8 online-cpu routing mask bridge entrypoints stay explicit" {
     try std.testing.expect(@hasDecl(bridge, "ChunkReader"));
     try std.testing.expect(@hasDecl(bridge, "ParseCpuMaskError"));
+    try std.testing.expect(@hasDecl(bridge, "OnlineCpuRouteAttemptSummary"));
+    try std.testing.expect(@hasDecl(bridge, "OnlineCpuRouteBufferFdError"));
+    try std.testing.expect(@hasDecl(bridge, "OnlineCpuRouteCpuIndexError"));
     try std.testing.expect(@hasDecl(bridge, "OnlineCpuRoutingSummary"));
+    try std.testing.expect(@hasDecl(bridge, "summarizeNextOnlineCpuRouteFromString"));
+    try std.testing.expect(@hasDecl(bridge, "summarizeNextOnlineCpuRouteFromReader"));
     try std.testing.expect(@hasDecl(bridge, "summarizeOnlineCpuRoutingFromString"));
     try std.testing.expect(@hasDecl(bridge, "summarizeOnlineCpuRoutingFromReader"));
+    try std.testing.expect(@hasDecl(bridge, "resolveNextOnlineCpuRouteCpuIndexFromString"));
+    try std.testing.expect(@hasDecl(bridge, "resolveNextOnlineCpuRouteCpuIndexFromReader"));
+    try std.testing.expect(@hasDecl(bridge, "resolveNextOnlineCpuRouteCpuIndexReturnFromString"));
+    try std.testing.expect(@hasDecl(bridge, "resolveNextOnlineCpuRouteCpuIndexReturnFromReader"));
+    try std.testing.expect(@hasDecl(bridge, "resolveNextOnlineCpuRouteBufferFdFromString"));
+    try std.testing.expect(@hasDecl(bridge, "resolveNextOnlineCpuRouteBufferFdFromReader"));
+    try std.testing.expect(@hasDecl(bridge, "resolveNextOnlineCpuRouteBufferFdReturnFromString"));
+    try std.testing.expect(@hasDecl(bridge, "resolveNextOnlineCpuRouteBufferFdReturnFromReader"));
+}
+
+test "phase8 online-cpu routing mask bridge keeps string-backed next-route summaries stable" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const first = try bridge.summarizeNextOnlineCpuRouteFromString(
+        allocator,
+        "0-1,4\n",
+        0,
+        &.{ 11, 17, 21 },
+        0,
+    );
+    try std.testing.expectEqual(
+        online_cpu_routing.OnlineCpuRouteAttemptDisposition.routed_cpu,
+        first.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 0), first.cpu_index);
+    try std.testing.expectEqual(@as(?i32, 11), first.buffer_fd);
+    try std.testing.expectEqual(@as(usize, 1), first.next_scan_index);
+
+    const second = try bridge.summarizeNextOnlineCpuRouteFromString(
+        allocator,
+        "0-1,4\n",
+        2,
+        &.{ 11, 17, 21 },
+        2,
+    );
+    try std.testing.expectEqual(
+        online_cpu_routing.OnlineCpuRouteAttemptDisposition.routed_cpu,
+        second.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 4), second.cpu_index);
+    try std.testing.expectEqual(@as(?i32, 21), second.buffer_fd);
+    try std.testing.expectEqual(@as(usize, 1), second.skipped_offline_count);
+}
+
+test "phase8 online-cpu routing mask bridge keeps reader-backed next-route summaries aligned" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var scratch: [2]u8 = undefined;
+    var context = ReaderContext{ .input = "1,3-4\n" };
+    const reader = bridge.ChunkReader{
+        .context = &context,
+        .readFn = readCpuMaskChunks,
+    };
+
+    const summary = try bridge.summarizeNextOnlineCpuRouteFromReader(
+        allocator,
+        scratch[0..],
+        reader,
+        2,
+        &.{ 41, 43, 47 },
+        1,
+    );
+    try std.testing.expectEqual(
+        online_cpu_routing.OnlineCpuRouteAttemptDisposition.routed_cpu,
+        summary.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 3), summary.cpu_index);
+    try std.testing.expectEqual(@as(?i32, 43), summary.buffer_fd);
+    try std.testing.expectEqual(@as(usize, 4), summary.next_scan_index);
+}
+
+test "phase8 online-cpu routing mask bridge keeps typed direct wrappers stable" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        try bridge.resolveNextOnlineCpuRouteCpuIndexFromString(
+            allocator,
+            "1-2,5\n",
+            0,
+            &.{ 31, 37, 41 },
+            0,
+        ),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 37),
+        try bridge.resolveNextOnlineCpuRouteBufferFdFromString(
+            allocator,
+            "1-2,5\n",
+            2,
+            &.{ 31, 37, 41 },
+            1,
+        ),
+    );
+
+    var scratch: [2]u8 = undefined;
+    var context = ReaderContext{ .input = "1,3-4\n" };
+    const reader = bridge.ChunkReader{
+        .context = &context,
+        .readFn = readCpuMaskChunks,
+    };
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        try bridge.resolveNextOnlineCpuRouteCpuIndexFromReader(
+            allocator,
+            scratch[0..],
+            reader,
+            2,
+            &.{ 41, 43, 47 },
+            1,
+        ),
+    );
+}
+
+test "phase8 online-cpu routing mask bridge keeps route failures explicit across mask-backed wrappers" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    try std.testing.expectError(
+        error.MissingBufferSlot,
+        bridge.resolveNextOnlineCpuRouteCpuIndexFromString(
+            allocator,
+            "0,2-3\n",
+            2,
+            &.{11},
+            1,
+        ),
+    );
+    try std.testing.expectError(
+        error.MissingBufferFd,
+        bridge.resolveNextOnlineCpuRouteBufferFdFromString(
+            allocator,
+            "0,2-3\n",
+            2,
+            &.{ 11, null, 29 },
+            1,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        bridge.resolveNextOnlineCpuRouteCpuIndexReturnFromString(
+            allocator,
+            "0,2-3\n",
+            2,
+            &.{11},
+            1,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        bridge.resolveNextOnlineCpuRouteBufferFdReturnFromString(
+            allocator,
+            "0,2-3\n",
+            2,
+            &.{ 11, null, 29 },
+            1,
+        ),
+    );
+}
+
+test "phase8 online-cpu routing mask bridge keeps reader and parse failures fail-closed" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const empty_reader = bridge.ChunkReader{
+        .context = null,
+        .readFn = readZeroCpuMaskChunks,
+    };
+    var scratch: [2]u8 = undefined;
+    try std.testing.expectError(
+        error.EmptyReadBuffer,
+        bridge.summarizeNextOnlineCpuRouteFromReader(
+            allocator,
+            scratch[0..0],
+            empty_reader,
+            0,
+            &.{11},
+            0,
+        ),
+    );
+    try std.testing.expectError(
+        error.EmptyReadChunk,
+        bridge.resolveNextOnlineCpuRouteCpuIndexFromReader(
+            allocator,
+            scratch[0..],
+            empty_reader,
+            0,
+            &.{11},
+            0,
+        ),
+    );
+
+    const invalid_count_reader = bridge.ChunkReader{
+        .context = null,
+        .readFn = readTooManyCpuMaskChunks,
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        bridge.resolveNextOnlineCpuRouteBufferFdReturnFromReader(
+            allocator,
+            scratch[0..],
+            invalid_count_reader,
+            0,
+            &.{11},
+            0,
+        ),
+    );
+
+    const injected_reader = bridge.ChunkReader{
+        .context = null,
+        .readFn = readInjectedCpuMaskError,
+    };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.IO)),
+        bridge.resolveNextOnlineCpuRouteCpuIndexReturnFromReader(
+            allocator,
+            scratch[0..],
+            injected_reader,
+            0,
+            &.{11},
+            0,
+        ),
+    );
+
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        bridge.resolveNextOnlineCpuRouteCpuIndexReturnFromString(
+            allocator,
+            "0,+\n",
+            0,
+            &.{11},
+            0,
+        ),
+    );
 }
 
 test "phase8 online-cpu routing mask bridge keeps string-backed route-all summaries stable" {
@@ -139,44 +386,6 @@ test "phase8 online-cpu routing mask bridge keeps reader-backed summaries aligne
     try std.testing.expectEqual(
         online_cpu_routing.OnlineCpuRoutingDisposition.requested_subset,
         summary.disposition,
-    );
-}
-
-test "phase8 online-cpu routing mask bridge keeps reader-side failures fail-closed" {
-    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
-
-    const empty_reader = bridge.ChunkReader{
-        .context = null,
-        .readFn = readZeroCpuMaskChunks,
-    };
-    var scratch: [2]u8 = undefined;
-    try std.testing.expectError(
-        error.EmptyReadBuffer,
-        bridge.summarizeOnlineCpuRoutingFromReader(allocator, scratch[0..0], empty_reader, 1, &.{ 11 }),
-    );
-    try std.testing.expectError(
-        error.EmptyReadChunk,
-        bridge.summarizeOnlineCpuRoutingFromReader(allocator, scratch[0..], empty_reader, 1, &.{ 11 }),
-    );
-
-    const invalid_count_reader = bridge.ChunkReader{
-        .context = null,
-        .readFn = readTooManyCpuMaskChunks,
-    };
-    try std.testing.expectError(
-        error.InvalidReadCount,
-        bridge.summarizeOnlineCpuRoutingFromReader(allocator, scratch[0..], invalid_count_reader, 1, &.{ 11 }),
-    );
-
-    const injected_reader = bridge.ChunkReader{
-        .context = null,
-        .readFn = readInjectedCpuMaskError,
-    };
-    try std.testing.expectError(
-        error.InjectedReadFailure,
-        bridge.summarizeOnlineCpuRoutingFromReader(allocator, scratch[0..], injected_reader, 1, &.{ 11 }),
     );
 }
 
