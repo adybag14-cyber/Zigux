@@ -51,6 +51,8 @@ Current direct-readback packet members:
   * `scripts/zigux/check-phase4-tests-readme-packet.py`
   * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 
+Current direct-readback shared validator member: `scripts/zigux/validate-phase4.py`.
+
 Current direct-readback dedicated local-only perf checkers: `scripts/zigux/check-phase4-perf-baseline-packet.py` and `scripts/zigux/check-phase4-perf-threshold-matrix.py`.
 
 Current direct-readback dedicated local-only perf companion members:
