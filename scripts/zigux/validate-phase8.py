@@ -37,6 +37,7 @@ CPU_MASK_SEGMENT = Path("tools/lib/bpf/zigux_segments/cpu_mask.zig")
 CPU_MASK_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/cpu_mask_verify.zig")
 LOGGING_SEGMENT = Path("tools/lib/bpf/zigux_segments/logging.zig")
 PERF_BUFFER_POLL_VERIFY_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig")
+PERF_BUFFER_WAIT_BUDGET_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig")
 PERF_BUFFER_READY_WINDOW_SEGMENT = Path("tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig")
 READY_BUFFER_FD_LOOKUP_SEGMENT = Path("tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig")
 ONLINE_CPU_ROUTING_SEGMENT = Path("tools/lib/bpf/zigux_segments/online_cpu_routing.zig")
@@ -99,6 +100,7 @@ REQUIRED_FILES = (
     VERIFY_ROUTING_GAP_BUILD,
     Path("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
     Path("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
+    PERF_BUFFER_WAIT_BUDGET_SEGMENT,
     VERIFY_SEGMENT,
     CPU_MASK_SEGMENT,
     CPU_MASK_VERIFY_SEGMENT,
@@ -281,6 +283,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8_exec_cmd.zig",
         "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         "phase8_perf_buffer_poll.zig",
+        "../../tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig",
+        'perf_buffer_wait_budget_module.addImport("perf_buffer_poll", perf_buffer_poll_module);',
+        "phase8-perf-buffer-wait-budget-tests",
+        "test_step.dependOn(&run_perf_buffer_wait_budget_tests.step);",
         "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
         "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
         "phase8-ready-buffer-fd-lookup-tests",
