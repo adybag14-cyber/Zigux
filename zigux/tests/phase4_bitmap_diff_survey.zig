@@ -34,6 +34,7 @@ const bitmap_live_helper_replay_source = @embedFile("phase4_bitmap_live_helper_r
 const phase4_build_source = @embedFile("phase4_build.zig");
 const validator_source = @embedFile("../../scripts/zigux/validate-phase4.py");
 const validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
+const gate_evidence_source = @embedFile("../../Documentation/zigux/phase4-gate-evidence.md");
 
 fn gitBlobShaHex(source: []const u8) [40]u8 {
     var hasher = std.crypto.hash.Sha1.init(.{});
@@ -90,6 +91,8 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     );
     try std.testing.expectEqualStrings(&gitBlobShaHex(validator_source), manifest.shared_validator_blob_sha);
     try std.testing.expectEqualStrings(&gitBlobShaHex(validation_matrix_source), manifest.shared_matrix_blob_sha);
+    try std.testing.expectEqualStrings(&gitBlobShaHex(gate_evidence_source), manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings(&gitBlobShaHex(phase4_build_source), manifest.phase4_build_blob_sha);
 }
 
 test "phase 4 bitmap survey keeps the shared build route explicit" {
