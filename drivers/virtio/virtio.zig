@@ -104,6 +104,23 @@ pub const DriverModelSummary = struct {
     config_generation: u8,
 };
 
+pub const ProbeRemoveDispositionSummary = struct {
+    anchor: []const u8,
+    device_present: bool,
+    attached: bool,
+    features_negotiated: bool,
+    queue_selected: bool,
+    queue_selected_valid: bool,
+    pending_interrupts: u8,
+    needs_reset: bool,
+    failed: bool,
+    probe_preflight_ready: bool,
+    remove_review_required: bool,
+    reset_cleanup_required: bool,
+    blocker: ?DriverLifecycleBlocker,
+    config_generation: u8,
+};
+
 pub const DriverIdMatchRule = struct {
     device_id: u32,
     vendor_id: u32,
@@ -379,6 +396,33 @@ pub const VirtioCoreLab = struct {
         };
     }
 
+    pub fn probeRemoveDispositionSummary(self: *const Self) ProbeRemoveDispositionSummary {
+        const guard = self.lifecycleGuardSummary();
+        const tracked_driver_state = guard.attached or
+            guard.features_negotiated or
+            guard.queue_selected or
+            self.pending_interrupts != 0 or
+            self.driver_features != 0 or
+            self.negotiated_features != 0;
+
+        return .{
+            .anchor = anchor_path,
+            .device_present = guard.device_present,
+            .attached = guard.attached,
+            .features_negotiated = guard.features_negotiated,
+            .queue_selected = guard.queue_selected,
+            .queue_selected_valid = guard.queue_selected_valid,
+            .pending_interrupts = self.pending_interrupts,
+            .needs_reset = guard.needs_reset,
+            .failed = guard.failed,
+            .probe_preflight_ready = guard.device_present and !tracked_driver_state and !guard.needs_reset and !guard.failed,
+            .remove_review_required = tracked_driver_state or guard.needs_reset or guard.failed,
+            .reset_cleanup_required = guard.needs_reset or guard.failed or self.pending_interrupts != 0 or guard.queue_selected,
+            .blocker = guard.blocker,
+            .config_generation = guard.config_generation,
+        };
+    }
+
     pub fn driverIdMatchSummary(self: *const Self, rules: []const DriverIdMatchRule) DriverIdMatchSummary {
         for (rules, 0..) |rule, index| {
             const device_matches = rule.device_id == self.device_id or rule.device_id == any_id;
@@ -613,6 +657,36 @@ test "phase10 virtio core driver model summary lets reset and failed states over
     try std.testing.expectEqual(DriverModelStage.device_failed, summary.stage);
     try std.testing.expect(summary.failed);
     try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_failed), summary.blocker);
+}
+
+test "phase10 virtio core probe and remove disposition stays preflight-only" {
+    var core = try VirtioCoreLab.init(0x1047, 2);
+
+    var summary = core.probeRemoveDispositionSummary();
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expect(summary.probe_preflight_ready);
+    try std.testing.expect(!summary.remove_review_required);
+    try std.testing.expect(!summary.reset_cleanup_required);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .acknowledge_missing), summary.blocker);
+
+    core.setStatusBits(status_acknowledge | status_driver);
+    core.noteFeaturesNegotiated();
+    _ = try core.selectQueue(1);
+    summary = core.probeRemoveDispositionSummary();
+    try std.testing.expect(!summary.probe_preflight_ready);
+    try std.testing.expect(summary.remove_review_required);
+    try std.testing.expect(summary.reset_cleanup_required);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .driver_ok_missing), summary.blocker);
+
+    core.setStatusBits(status_driver_ok | status_device_needs_reset);
+    core.stageInterrupt(0b0100);
+    summary = core.probeRemoveDispositionSummary();
+    try std.testing.expect(!summary.probe_preflight_ready);
+    try std.testing.expect(summary.remove_review_required);
+    try std.testing.expect(summary.reset_cleanup_required);
+    try std.testing.expect(summary.needs_reset);
+    try std.testing.expectEqual(@as(u8, 0b0100), summary.pending_interrupts);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_needs_reset), summary.blocker);
 }
 
 test "phase10 virtio core driver id matching records exact first-match hits" {
