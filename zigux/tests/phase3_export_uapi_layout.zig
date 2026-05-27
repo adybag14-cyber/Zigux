@@ -195,6 +195,37 @@ test "header-family status wrappers stay aligned with export shim validation" {
     try testing.expectEqual(invalid, header_family.validateDevTRangeStatus(later, earlier));
 }
 
+test "export-status facility relays stay bounded and explicit" {
+    const ok = export_shim.okStatus(.helpers);
+    const err = export_shim.errorStatus(-22, .kernel);
+    const unknown = export_shim.ExportStatus{
+        .code = 0,
+        .facility = 9,
+        .flags = 0,
+    };
+
+    try testing.expectEqual(@as(?export_shim.Facility, .helpers), export_shim.facilityFromInt(ok.facility));
+    try testing.expectEqual(@as(?header_family.Facility, .helpers), header_family.facilityFromInt(ok.facility));
+    try testing.expectEqual(@as(?export_shim.Facility, .kernel), export_shim.facilityFromInt(err.facility));
+    try testing.expectEqual(@as(?header_family.Facility, .kernel), header_family.facilityFromInt(err.facility));
+
+    try testing.expect(export_shim.facilityIsKnown(ok.facility));
+    try testing.expect(export_shim.facilityIsKnown(err.facility));
+    try testing.expect(header_family.facilityIsKnown(ok.facility));
+    try testing.expect(header_family.facilityIsKnown(err.facility));
+    try testing.expect(export_shim.statusHasKnownFacility(ok));
+    try testing.expect(export_shim.statusHasKnownFacility(err));
+    try testing.expect(header_family.statusHasKnownFacility(ok));
+    try testing.expect(header_family.statusHasKnownFacility(err));
+
+    try testing.expectEqual(@as(?export_shim.Facility, null), export_shim.facilityFromInt(unknown.facility));
+    try testing.expectEqual(@as(?header_family.Facility, null), header_family.facilityFromInt(unknown.facility));
+    try testing.expect(!export_shim.facilityIsKnown(unknown.facility));
+    try testing.expect(!header_family.facilityIsKnown(unknown.facility));
+    try testing.expect(!export_shim.statusHasKnownFacility(unknown));
+    try testing.expect(!header_family.statusHasKnownFacility(unknown));
+}
+
 test "export shim relays version compatibility without widening the boundary" {
     const current = version.current();
     const stale_major = version.Version{
