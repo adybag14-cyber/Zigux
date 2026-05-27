@@ -88,6 +88,7 @@ const Fixture = struct {
         strtobool_on: bool,
         strtobool_zero: bool,
         strtobool_off: bool,
+        strtobool_invalid: u8,
         strlcpy_len: usize,
         strlcpy_buffer: []const u8,
         skip_spaces: []const u8,
@@ -95,6 +96,8 @@ const Fixture = struct {
         remove_spaces: []const u8,
         replace_char: []const u8,
         replace_char_end: usize,
+        replace_char_cstr_end: usize,
+        replace_char_cstr_bytes: []const u8,
         memchr_inv_index: usize,
         memchr_inv_none: bool,
     },
@@ -375,6 +378,8 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.string.strtobool_on, try string.strtobool("on"));
     try std.testing.expectEqual(fixture.string.strtobool_zero, try string.strtobool("0"));
     try std.testing.expectEqual(fixture.string.strtobool_off, try string.strtobool("off"));
+    try std.testing.expectError(error.Invalid, string.strtobool("maybe"));
+    try std.testing.expectEqual(fixture.string.strtobool_invalid, @as(u8, @intCast(@intFromError(error.Invalid))));
 
     var copied = [_]u8{ 0, 0, 0, 0 };
     try std.testing.expectEqual(fixture.string.strlcpy_len, string.strlcpy(copied[0..], "hello"));
@@ -390,6 +395,11 @@ test "phase 1 helper ports match committed parity fixture" {
     var replace_buf = [_]u8{ 'a', '-', 'b', 0 };
     try std.testing.expectEqual(fixture.string.replace_char_end, string.replaceChar(replace_buf[0..], '-', '_'));
     try std.testing.expectEqualStrings(fixture.string.replace_char, replace_buf[0 .. replace_buf.len - 1]);
+
+    var replace_cstr_buf = [_]u8{ 'a', '-', 0, '-', 'z' };
+    try std.testing.expectEqual(fixture.string.replace_char_cstr_end, string.replaceChar(replace_cstr_buf[0..], '-', '_'));
+    try std.testing.expectEqualSlices(u8, fixture.string.replace_char_cstr_bytes, replace_cstr_buf[0..]);
+
     try std.testing.expectEqual(@as(?usize, fixture.string.memchr_inv_index), string.memchrInv(&[_]u8{ 'x', 'x', 'x', 'x', 'y' }, 'x'));
     try std.testing.expectEqual(fixture.string.memchr_inv_none, string.memchrInv(&[_]u8{ 'x', 'x', 'x' }, 'x') == null);
 
