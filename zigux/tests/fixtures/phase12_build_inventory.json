@@ -5,8 +5,7 @@
     "phase12-virtio-net-receive-refill-replay-tests",
     "phase12-virtio-net-post-reset-replay-tests",
     "phase12-virtio-net-throughput-parity-tests",
-    "phase12-virtio-net-survey-tests",
-    "phase12-nvme-pci-direct-tests"
+    "phase12-virtio-net-survey-tests"
   ],
   "shared_smoke_depend_steps": [
     "run_virtio_net_queue_resume_tests",
@@ -14,8 +13,7 @@
     "run_virtio_net_receive_refill_replay_tests",
     "run_virtio_net_post_reset_replay_tests",
     "run_virtio_net_throughput_parity_tests",
-    "run_virtio_net_survey_tests",
-    "run_nvme_pci_direct_tests"
+    "run_virtio_net_survey_tests"
   ],
   "shared_test_depend_steps": [
     "run_virtio_net_queue_resume_tests",
@@ -23,47 +21,125 @@
     "run_virtio_net_receive_refill_replay_tests",
     "run_virtio_net_post_reset_replay_tests",
     "run_virtio_net_throughput_parity_tests",
-    "run_virtio_net_survey_tests",
-    "run_nvme_pci_direct_tests"
+    "run_virtio_net_survey_tests"
   ],
   "throughput_anchor_depend_steps": [
     "throughput_parity_tests"
   ],
   "module_root_source_files": [
-    {"module": "virtio_net_queue_resume_module", "path": "../../drivers/net/virtio_net_queue_resume.zig"},
-    {"module": "virtio_net_queue_resume_root_module", "path": "phase12_virtio_net_queue_resume.zig"},
-    {"module": "virtio_net_transmit_recycle_module", "path": "../../drivers/net/virtio_net_transmit_recycle.zig"},
-    {"module": "virtio_net_transmit_recycle_root_module", "path": "phase12_virtio_net_transmit_recycle.zig"},
-    {"module": "virtio_net_receive_refill_replay_module", "path": "../../drivers/net/virtio_net_receive_refill_replay.zig"},
-    {"module": "virtio_net_receive_refill_replay_root_module", "path": "phase12_virtio_net_receive_refill_replay.zig"},
-    {"module": "virtio_net_post_reset_replay_module", "path": "../../drivers/net/virtio_net_post_reset_replay.zig"},
-    {"module": "virtio_net_post_reset_replay_root_module", "path": "phase12_virtio_net_post_reset_replay.zig"},
-    {"module": "virtio_net_throughput_parity_module", "path": "../../drivers/net/virtio_net_throughput_parity.zig"},
-    {"module": "virtio_net_throughput_parity_root_module", "path": "phase12_virtio_net_throughput_parity.zig"},
-    {"module": "virtio_net_survey_root_module", "path": "phase12_virtio_net_survey.zig"},
-    {"module": "nvme_pci_module", "path": "../../drivers/nvme/host/pci.zig"},
-    {"module": "nvme_pci_root_module", "path": "phase12_nvme_pci.zig"}
+    {
+      "module": "virtio_net_queue_resume_module",
+      "path": "../../drivers/net/virtio_net_queue_resume.zig"
+    },
+    {
+      "module": "virtio_net_queue_resume_root_module",
+      "path": "phase12_virtio_net_queue_resume.zig"
+    },
+    {
+      "module": "virtio_net_transmit_recycle_module",
+      "path": "../../drivers/net/virtio_net_transmit_recycle.zig"
+    },
+    {
+      "module": "virtio_net_transmit_recycle_root_module",
+      "path": "phase12_virtio_net_transmit_recycle.zig"
+    },
+    {
+      "module": "virtio_net_receive_refill_replay_module",
+      "path": "../../drivers/net/virtio_net_receive_refill_replay.zig"
+    },
+    {
+      "module": "virtio_net_receive_refill_replay_root_module",
+      "path": "phase12_virtio_net_receive_refill_replay.zig"
+    },
+    {
+      "module": "virtio_net_post_reset_replay_module",
+      "path": "../../drivers/net/virtio_net_post_reset_replay.zig"
+    },
+    {
+      "module": "virtio_net_post_reset_replay_root_module",
+      "path": "phase12_virtio_net_post_reset_replay.zig"
+    },
+    {
+      "module": "virtio_net_throughput_parity_module",
+      "path": "../../drivers/net/virtio_net_throughput_parity.zig"
+    },
+    {
+      "module": "virtio_net_throughput_parity_root_module",
+      "path": "phase12_virtio_net_throughput_parity.zig"
+    },
+    {
+      "module": "virtio_net_survey_root_module",
+      "path": "phase12_virtio_net_survey.zig"
+    }
   ],
   "module_imports": [
-    {"module": "virtio_net_queue_resume_root_module", "import_name": "virtio_net_queue_resume", "imported_module": "virtio_net_queue_resume_module"},
-    {"module": "virtio_net_transmit_recycle_root_module", "import_name": "virtio_net_transmit_recycle", "imported_module": "virtio_net_transmit_recycle_module"},
-    {"module": "virtio_net_receive_refill_replay_root_module", "import_name": "virtio_net_receive_refill_replay", "imported_module": "virtio_net_receive_refill_replay_module"},
-    {"module": "virtio_net_post_reset_replay_root_module", "import_name": "virtio_net_post_reset_replay", "imported_module": "virtio_net_post_reset_replay_module"},
-    {"module": "virtio_net_throughput_parity_root_module", "import_name": "virtio_net_throughput_parity", "imported_module": "virtio_net_throughput_parity_module"},
-    {"module": "nvme_pci_root_module", "import_name": "nvme_pci", "imported_module": "nvme_pci_module"}
+    {
+      "module": "virtio_net_queue_resume_root_module",
+      "import_name": "virtio_net_queue_resume",
+      "imported_module": "virtio_net_queue_resume_module"
+    },
+    {
+      "module": "virtio_net_transmit_recycle_root_module",
+      "import_name": "virtio_net_transmit_recycle",
+      "imported_module": "virtio_net_transmit_recycle_module"
+    },
+    {
+      "module": "virtio_net_receive_refill_replay_root_module",
+      "import_name": "virtio_net_receive_refill_replay",
+      "imported_module": "virtio_net_receive_refill_replay_module"
+    },
+    {
+      "module": "virtio_net_post_reset_replay_root_module",
+      "import_name": "virtio_net_post_reset_replay",
+      "imported_module": "virtio_net_post_reset_replay_module"
+    },
+    {
+      "module": "virtio_net_throughput_parity_root_module",
+      "import_name": "virtio_net_throughput_parity",
+      "imported_module": "virtio_net_throughput_parity_module"
+    }
   ],
   "test_root_modules": [
-    {"test": "phase12-virtio-net-queue-resume-tests", "root_module": "virtio_net_queue_resume_root_module"},
-    {"test": "phase12-virtio-net-transmit-recycle-tests", "root_module": "virtio_net_transmit_recycle_root_module"},
-    {"test": "phase12-virtio-net-receive-refill-replay-tests", "root_module": "virtio_net_receive_refill_replay_root_module"},
-    {"test": "phase12-virtio-net-post-reset-replay-tests", "root_module": "virtio_net_post_reset_replay_root_module"},
-    {"test": "phase12-virtio-net-throughput-parity-tests", "root_module": "virtio_net_throughput_parity_root_module"},
-    {"test": "phase12-virtio-net-survey-tests", "root_module": "virtio_net_survey_root_module"},
-    {"test": "phase12-nvme-pci-direct-tests", "root_module": "nvme_pci_root_module"}
+    {
+      "test": "phase12-virtio-net-queue-resume-tests",
+      "root_module": "virtio_net_queue_resume_root_module"
+    },
+    {
+      "test": "phase12-virtio-net-transmit-recycle-tests",
+      "root_module": "virtio_net_transmit_recycle_root_module"
+    },
+    {
+      "test": "phase12-virtio-net-receive-refill-replay-tests",
+      "root_module": "virtio_net_receive_refill_replay_root_module"
+    },
+    {
+      "test": "phase12-virtio-net-post-reset-replay-tests",
+      "root_module": "virtio_net_post_reset_replay_root_module"
+    },
+    {
+      "test": "phase12-virtio-net-throughput-parity-tests",
+      "root_module": "virtio_net_throughput_parity_root_module"
+    },
+    {
+      "test": "phase12-virtio-net-survey-tests",
+      "root_module": "virtio_net_survey_root_module"
+    }
   ],
   "build_step_catalog": [
-    {"variable": "smoke_step", "step": "smoke", "description": "Run the Phase 12 virtio_net replay packet together with the bounded NVMe direct replay smoke tests"},
-    {"variable": "test_step", "step": "test", "description": "Run the Phase 12 virtio_net replay packet together with the bounded NVMe direct replay tests"},
-    {"variable": "throughput_parity_step", "step": "phase12-virtio-net-throughput-parity", "description": "Run the Phase 12 virtio_net throughput-parity replay in isolation"}
+    {
+      "variable": "smoke_step",
+      "step": "smoke",
+      "description": "Run the Phase 12 virtio_net replay packet smoke tests"
+    },
+    {
+      "variable": "test_step",
+      "step": "test",
+      "description": "Run the Phase 12 virtio_net replay packet tests"
+    },
+    {
+      "variable": "throughput_parity_step",
+      "step": "phase12-virtio-net-throughput-parity",
+      "description": "Run the Phase 12 virtio_net throughput-parity replay in isolation"
+    }
   ]
 }
