@@ -334,6 +334,10 @@
       "helper_test_anchors": [
         "test \"strtobool accepts common Linux forms\"",
         "test \"strlcpy copies and returns the source length\"",
+        "test \"strlcat appends within the destination size and reports the attempted length\"",
+        "test \"strlcat truncates with a terminator and keeps the full attempted length\"",
+        "test \"strlcat treats an unterminated destination as full\"",
+        "test \"strlcat handles a zero-length destination buffer\"",
         "test \"strscpy keeps NUL termination and reports truncation with -E2BIG\"",
         "test \"strscpyPad zero-pads the tail after a short source\"",
         "test \"strscpyPad stops at embedded NUL and pads the remaining tail\"",
@@ -413,6 +417,13 @@
         "test \"memparse applies suffixes before signed clamping\""
       ],
       "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation",
+      "strlcat_review_anchors": [
+        "test \"strlcat appends within the destination size and reports the attempted length\"",
+        "test \"strlcat truncates with a terminator and keeps the full attempted length\"",
+        "test \"strlcat treats an unterminated destination as full\"",
+        "test \"strlcat handles a zero-length destination buffer\""
+      ],
+      "strlcat_review_summary": "helper-local strlcat truncation and destination-boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strlcat() fixture keys, so append length reporting, truncation with a preserved terminator slot, unterminated-destination handling, and zero-length destination behavior remain review-visible at the helper surface",
       "copy_fill_review_anchors": [
         "test \"memcpyAndPad copies the requested prefix and pads the destination tail\"",
         "test \"memcpy_and_pad mirrors memcpyAndPad padding semantics\"",
@@ -481,7 +492,7 @@
         "test \"strnlen honors count and C-string boundaries\"",
         "test \"strchrNul and strchrnul return the first match or terminator boundary\""
       ],
-      "search_length_review_summary": "helper-local search-and-length boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated search-length fixture keys, so strchr() or strrchr() boundary scans, terminator-index searches, strlen() or strnlen() length boundaries, and strchrNul() or strchrnul() match-or-terminator behavior remain review-visible at the helper surface",
+      "search_length_review_summary": "helper-local search-and-length boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated search-length fixture keys, so strchr() or strrchr() boundary scans, terminator-index searches, strchrNul() or strchrnul() match-or-terminator boundaries, and strlen() or strnlen() length boundaries remain review-visible at the helper surface",
       "strnchr_review_anchor": "test \"strnchr honors count and C-string boundaries\"",
       "counted_search_review_anchors": [
         "test \"strchr mirrors full-length C-string searches\"",
@@ -491,10 +502,12 @@
         "test \"strcspn counts until the first rejected byte with C-string semantics\"",
         "test \"strnchr honors count and C-string boundaries\"",
         "test \"strnlen honors count and C-string boundaries\"",
-        "test \"strnchrNul returns the first match, NUL, or count boundary\""
+        "test \"strnchrNul returns the first match, NUL, or count boundary\"",
+        "test \"strchrNul and strchrnul return the first match or terminator boundary\""
       ],
       "strnchrnul_review_anchor": "test \"strnchrNul returns the first match, NUL, or count boundary\"",
-      "strnchr_review_summary": "the direct counted-search and C-string search-length follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, strspn() accepted-prefix scanning, strcspn() rejected-byte scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors",
+      "strchrnul_review_anchor": "test \"strchrNul and strchrnul return the first match or terminator boundary\"",
+      "strnchr_review_summary": "the direct counted-search and C-string search-length follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, strspn() accepted-prefix scanning, strcspn() rejected-byte scanning, strnchr() count-limited scanning, strnlen() count-clamped length, strnchrNul() or strnchrnul() match-or-NUL boundary behavior, and strchrNul() or strchrnul() match-or-terminator boundaries remain owned by the helper-local anchors",
       "basename_review_anchor": "test \"kbasename returns the final path component with C-string semantics\"",
       "basename_review_summary": "helper-local basename path-tail anchor stays explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated kbasename fixture keys, so final path-component extraction at the first C-string terminator remains review-visible at the helper surface",
       "trim_nul_review_anchor": "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
@@ -523,7 +536,7 @@
         "memchr_inv_index",
         "memchr_inv_none"
       ],
-      "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs, case-folded compare, and NUL-boundary search review anchors aligned across the string review packet and this lane note unless dedicated shared fixture keys land; do not reopen missing closure-side validator names by default."
+      "next_safe_step_note": "If this helper lane reopens, keep the helper-local strlcat, sysfs, case-insensitive compare, and match-or-terminator review anchors aligned across the string review packet and this lane note unless dedicated shared fixture keys land; do not reopen missing closure-side validator names by default."
     }
   }
 }
