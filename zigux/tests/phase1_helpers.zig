@@ -173,6 +173,8 @@ const Fixture = struct {
     },
     str_error_r: struct {
         enoent: []const u8,
+        unknown: []const u8,
+        tiny_unknown: []const u8,
     },
     vsprintf: struct {
         scnprintf_text: []const u8,
@@ -550,6 +552,10 @@ test "phase 1 helper ports match committed parity fixture" {
 
     var err_buf: [64]u8 = undefined;
     try std.testing.expectEqualStrings(fixture.str_error_r.enoent, str_error_r.strErrorR(2, &err_buf));
+    var unknown_error_buf: [64]u8 = undefined;
+    try std.testing.expectEqualStrings(fixture.str_error_r.unknown, str_error_r.strErrorR(4096, &unknown_error_buf));
+    var tiny_error_buf: [8]u8 = undefined;
+    try std.testing.expectEqualStrings(fixture.str_error_r.tiny_unknown, str_error_r.strErrorR(4096, &tiny_error_buf));
 
     var render_buf: [16]u8 = undefined;
     const render_len = vsprintf.scnprintf(&render_buf, "{s}:{d}", .{ "zigux", 7 });
