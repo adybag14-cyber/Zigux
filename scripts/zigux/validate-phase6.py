@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 HELPER_EVIDENCE_CATALOG = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 HELPER_PARITY_CATALOG = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
+RUNTIME_COMMAND_ENVIRONMENT_GAP_SURVEY = Path("Documentation/zigux/phase6-runtime-command-environment-gap-survey.md")
 HELPER_EVIDENCE_MANIFEST = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 HELPER_PARITY_MANIFEST = Path("zigux/tests/phase6_helper_parity_manifest.json")
 PHASE6_BUILD = Path("zigux/tests/phase6_build.zig")
@@ -56,6 +57,7 @@ CHECKER_INVOCATIONS = [
 REQUIRED_FILES = [
     HELPER_EVIDENCE_CATALOG,
     HELPER_PARITY_CATALOG,
+    RUNTIME_COMMAND_ENVIRONMENT_GAP_SURVEY,
     HELPER_EVIDENCE_MANIFEST,
     HELPER_PARITY_MANIFEST,
     PHASE6_BUILD,
@@ -76,6 +78,7 @@ EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS = [
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
+    "Documentation/zigux/phase6-runtime-command-environment-gap-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -228,7 +231,7 @@ EXPECTED_HEXDUMP_CHECKER_SURFACES = [
     "scripts/zigux/check-phase6-hexdump-route.py",
 ]
 
-SELF_TEST_CASE_COUNT = 29
+SELF_TEST_CASE_COUNT = 31
 
 
 class ValidationError(RuntimeError):
@@ -482,6 +485,7 @@ def make_checker_stub(expected_flag: str | None) -> str:
 def scaffold_repo(root: Path) -> None:
     write(root / HELPER_EVIDENCE_CATALOG, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
     write(root / HELPER_PARITY_CATALOG, "\n".join(REQUIRED_PARITY_CATALOG_SNIPPETS) + "\n")
+    write(root / RUNTIME_COMMAND_ENVIRONMENT_GAP_SURVEY, "# Phase 6 Runtime Command And Environment Gap Survey\n")
     write(root / HELPER_EVIDENCE_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_EVIDENCE_PACKET,
         "phase": EXPECTED_PHASE,
@@ -592,6 +596,25 @@ def run_self_test() -> None:
                                 "current_direct_readback_companions"
                             ]
                             if item != "scripts/zigux/check-phase6-perf-threshold-markers.py"
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_EVIDENCE_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_EVIDENCE_MANIFEST),
+                        "current_direct_readback_companions": [
+                            item
+                            for item in read_json(root / HELPER_EVIDENCE_MANIFEST)[
+                                "current_direct_readback_companions"
+                            ]
+                            if item != "Documentation/zigux/phase6-runtime-command-environment-gap-survey.md"
                         ],
                     },
                     indent=2,
@@ -1005,6 +1028,9 @@ def run_self_test() -> None:
                     REQUIRED_WORKFLOW_SNIPPETS[1] + "\n", "", 1
                 ),
             )
+        )
+        expect_mutation(
+            lambda: (root / RUNTIME_COMMAND_ENVIRONMENT_GAP_SURVEY).unlink()
         )
         expect_mutation(
             lambda: (root / CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER).unlink()
