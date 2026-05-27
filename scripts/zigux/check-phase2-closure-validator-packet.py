@@ -14,6 +14,7 @@ DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 VALIDATOR_REL = Path("scripts/zigux/validate-phase2-closure.py")
 CLOSURE_NOTE_REL = Path("Documentation/zigux/phase2-closure.md")
+PHASE2_BOOTSTRAP_NOTES_REL = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
@@ -23,6 +24,7 @@ MANIFEST_REL = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 REQUIRED_FILES = (
     VALIDATOR_REL,
     CLOSURE_NOTE_REL,
+    PHASE2_BOOTSTRAP_NOTES_REL,
     SCRIPTS_README_REL,
     TESTS_README_REL,
     WORKFLOW_REL,
@@ -33,6 +35,7 @@ REQUIRED_FILES = (
 REQUIRED_VALIDATOR_MARKERS = (
     'WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")',
     'PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")',
+    'PHASE2_BOOTSTRAP_NOTES_REL = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")',
     'PHASE2_VALIDATE_REL = Path("scripts/zigux/validate-phase2.py")',
     'PHASE2_CLOSURE_VALIDATE_REL = Path("scripts/zigux/validate-phase2-closure.py")',
     'MAKEFILE_REL = Path("zigux/Makefile")',
@@ -44,6 +47,7 @@ REQUIRED_VALIDATOR_MARKERS = (
 )
 
 REQUIRED_CLOSURE_MARKERS = (
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
     "`make -C zigux phase2-validate`",
@@ -75,7 +79,10 @@ EXPECTED_MANIFEST_VALIDATORS = (
     "scripts/zigux/validate-phase2-closure.py",
 )
 
-EXPECTED_MANIFEST_CLOSURE_NOTES = ("Documentation/zigux/phase2-closure.md",)
+EXPECTED_MANIFEST_CLOSURE_NOTES = (
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+)
 
 
 def resolve(root: Path, rel: Path) -> Path:
@@ -218,6 +225,7 @@ def build_self_test_root(root: Path) -> None:
         )
     )
     closure_body = "\n".join(("# Phase 2 Closure", *REQUIRED_CLOSURE_MARKERS, ""))
+    bootstrap_notes_body = "# Phase 2 Toolchain Bootstrap Notes\n"
     scripts_body = "\n".join(("# scripts/zigux", *REQUIRED_SCRIPTS_README_MARKERS, ""))
     tests_body = "\n".join(("# zigux/tests", *REQUIRED_TESTS_README_MARKERS, ""))
     workflow_body = "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES, "")) + "\n"
@@ -241,6 +249,7 @@ def build_self_test_root(root: Path) -> None:
 
     write_text(resolve(root, VALIDATOR_REL), validator_body)
     write_text(resolve(root, CLOSURE_NOTE_REL), closure_body)
+    write_text(resolve(root, PHASE2_BOOTSTRAP_NOTES_REL), bootstrap_notes_body)
     write_text(resolve(root, SCRIPTS_README_REL), scripts_body)
     write_text(resolve(root, TESTS_README_REL), tests_body)
     write_text(resolve(root, WORKFLOW_REL), workflow_body)
@@ -292,10 +301,10 @@ def run_self_test() -> int:
         build_self_test_root(root)
         closure_path = resolve(root, CLOSURE_NOTE_REL)
         closure_path.write_text(
-            replace_once(closure_path.read_text(encoding="utf-8"), REQUIRED_CLOSURE_MARKERS[1]),
+            replace_once(closure_path.read_text(encoding="utf-8"), REQUIRED_CLOSURE_MARKERS[0]),
             encoding="utf-8",
         )
-        assert ("MISSING_CLOSURE_MARKER", REQUIRED_CLOSURE_MARKERS[1]) in collect_issues(root)
+        assert ("MISSING_CLOSURE_MARKER", REQUIRED_CLOSURE_MARKERS[0]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -371,19 +380,19 @@ def run_self_test() -> int:
         build_self_test_root(root)
         manifest_path = resolve(root, MANIFEST_REL)
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-        payload["present_surfaces"]["closure_notes"] = []
+        payload["present_surfaces"]["closure_notes"] = ["Documentation/zigux/phase2-closure.md"]
         manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert (
             "MISSING_MANIFEST_SURFACE",
-            "closure_notes:Documentation/zigux/phase2-closure.md",
+            "closure_notes:Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
         ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        resolve(root, VALIDATOR_REL).unlink()
+        resolve(root, PHASE2_BOOTSTRAP_NOTES_REL).unlink()
         assert (
             "MISSING_REQUIRED_FILE",
-            VALIDATOR_REL.as_posix(),
+            PHASE2_BOOTSTRAP_NOTES_REL.as_posix(),
         ) in collect_issues(root)
         checks_run += 1
 
