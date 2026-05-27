@@ -165,6 +165,20 @@ pub fn listIsEmpty(head: ?*const ListHead) bool {
     return sentinel.next == sentinel_ptr and sentinel.prev == sentinel_ptr;
 }
 
+pub fn listLength(head: ?*const ListHead) usize {
+    const sentinel = head orelse return 0;
+    var count: usize = 0;
+    var cursor = listHeadFromRaw(sentinel.next);
+
+    while (cursor) |node| {
+        if (node == sentinel) break;
+        count += 1;
+        cursor = listHeadFromRaw(node.next);
+    }
+
+    return count;
+}
+
 pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {
     const sentinel = head orelse return null;
     var expected_prev = @intFromPtr(sentinel);
@@ -218,6 +232,18 @@ pub fn firstPprevMatchesHead(head: ?*const HListHead) bool {
     return first_node.pprev == @intFromPtr(&first_head.first);
 }
 
+pub fn hlistLength(head: ?*const HListHead) usize {
+    var count: usize = 0;
+    var cursor = hlistNodeFromRaw((head orelse return 0).first);
+
+    while (cursor) |node| {
+        count += 1;
+        cursor = hlistNodeFromRaw(node.next);
+    }
+
+    return count;
+}
+
 pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {
     const first_head = head orelse return null;
     var expected_pprev = @intFromPtr(&first_head.first);
@@ -243,6 +269,19 @@ pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {
 pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
     if (head == null) return false;
     return firstBrokenPrevLink(head) == null;
+}
+
+pub fn hlistTailNextIsNull(head: ?*const HListHead) bool {
+    const first_head = head orelse return false;
+    var cursor = hlistNodeFromRaw(first_head.first);
+    var tail: ?*const HListNode = null;
+
+    while (cursor) |node| {
+        tail = node;
+        cursor = hlistNodeFromRaw(node.next);
+    }
+
+    return if (tail) |node| node.next == 0 else true;
 }
 
 test "notifier result constants stay aligned with the exported ABI values" {
@@ -467,10 +506,12 @@ test "list emptiness helper accepts a sentinel-only list" {
     head.prev = @intFromPtr(&head);
 
     try std.testing.expect(listIsEmpty(&head));
+    try std.testing.expectEqual(@as(usize, 0), listLength(&head));
 }
 
 test "list emptiness helper treats a null head as absent rather than empty" {
     try std.testing.expect(!listIsEmpty(null));
+    try std.testing.expectEqual(@as(usize, 0), listLength(null));
 }
 
 test "list emptiness helper rejects a list with nodes or a broken sentinel" {
@@ -482,6 +523,7 @@ test "list emptiness helper rejects a list with nodes or a broken sentinel" {
     first.next = @intFromPtr(&head);
     first.prev = @intFromPtr(&head);
     try std.testing.expect(!listIsEmpty(&head));
+    try std.testing.expectEqual(@as(usize, 1), listLength(&head));
 
     head.next = @intFromPtr(&head);
     head.prev = 0;
@@ -518,6 +560,7 @@ test "list helper rejects a broken backlink" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), breakage.expected_prev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
     try std.testing.expect(!listHasConsistentBacklinks(&head));
+    try std.testing.expectEqual(@as(usize, 2), listLength(&head));
 }
 
 test "hlist helper accepts an empty head" {
@@ -526,12 +569,16 @@ test "hlist helper accepts an empty head" {
     try std.testing.expect(firstPprevMatchesHead(&head));
     try std.testing.expect(firstBrokenPrevLink(&head) == null);
     try std.testing.expect(hlistHasConsistentPrevLinks(&head));
+    try std.testing.expectEqual(@as(usize, 0), hlistLength(&head));
+    try std.testing.expect(hlistTailNextIsNull(&head));
 }
 
 test "hlist helper treats a null head as absent rather than consistent" {
     try std.testing.expect(!firstPprevMatchesHead(null));
     try std.testing.expect(firstBrokenPrevLink(null) == null);
     try std.testing.expect(!hlistHasConsistentPrevLinks(null));
+    try std.testing.expectEqual(@as(usize, 0), hlistLength(null));
+    try std.testing.expect(!hlistTailNextIsNull(null));
 }
 
 test "hlist helper accepts a bounded chain whose first pprev targets the head" {
@@ -547,6 +594,8 @@ test "hlist helper accepts a bounded chain whose first pprev targets the head" {
     try std.testing.expect(firstPprevMatchesHead(&head));
     try std.testing.expect(firstBrokenPrevLink(&head) == null);
     try std.testing.expect(hlistHasConsistentPrevLinks(&head));
+    try std.testing.expectEqual(@as(usize, 2), hlistLength(&head));
+    try std.testing.expect(hlistTailNextIsNull(&head));
 }
 
 test "hlist helper rejects a mismatched first-node pprev witness" {
@@ -563,6 +612,8 @@ test "hlist helper rejects a mismatched first-node pprev witness" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, 0), breakage.actual_pprev);
     try std.testing.expect(!hlistHasConsistentPrevLinks(&head));
+    try std.testing.expectEqual(@as(usize, 1), hlistLength(&head));
+    try std.testing.expect(hlistTailNextIsNull(&head));
 }
 
 test "hlist helper rejects a broken prev-link" {
@@ -580,4 +631,6 @@ test "hlist helper rejects a broken prev-link" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
     try std.testing.expect(!hlistHasConsistentPrevLinks(&head));
+    try std.testing.expectEqual(@as(usize, 2), hlistLength(&head));
+    try std.testing.expect(hlistTailNextIsNull(&head));
 }
