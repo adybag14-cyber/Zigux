@@ -304,6 +304,12 @@ jobs:
       - name: Check current Phase 2 required-make-routes packet
         run: python3 scripts/zigux/check-phase2-required-make-routes.py
 
+      - name: Self-test current Phase 2 bootstrap workflow-routes checker
+        run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py --self-test
+
+      - name: Check current Phase 2 bootstrap workflow-routes packet
+        run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py
+
       - name: Self-test current Phase 2 shared reminder checker
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test
 
