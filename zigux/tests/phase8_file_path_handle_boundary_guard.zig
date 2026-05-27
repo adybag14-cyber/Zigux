@@ -64,6 +64,16 @@ test "phase 8 file-path-handle boundary guard keeps landed helper slices distinc
     try expectContains(reuse_window, "reused-map-name chooser");
     try expectContains(reuse_window, "compatibility comparison");
 
+    const footholds_window = try segmentWindow(manifest_json, "\"slug\": \"fdinfo-path-and-reuse-name-footholds\"");
+    try expectContains(footholds_window, "\"status\": \"starter_landed\"");
+    try expectContains(footholds_window, "side-effect-free pathname shaping");
+    try expectContains(footholds_window, "bounded reused-map name retention");
+    try expectContains(footholds_window, "direct procfs reads");
+    try expectContains(footholds_window, "live bpffs opens");
+    try expectContains(footholds_window, "token materialization");
+    try expectContains(footholds_window, "`bpf_obj_get()` reopen flow");
+    try expectContains(footholds_window, "descriptor ownership side effects");
+
     const bridge_window = try segmentWindow(manifest_json, "\"slug\": \"file-path-and-handle-bridge\"");
     try expectContains(bridge_window, "\"status\": \"deferred_high_risk\"");
     try expectContains(bridge_window, "\"kind\": \"resource_boundary\"");
@@ -114,6 +124,7 @@ test "phase 8 file-path-handle boundary guard keeps landed helper slices distinc
     try expectContains(boundary_survey, "isMapReuseCompatible()");
     try expectContains(boundary_survey, "resolveReusePinnedMapAttempt()");
     try expectContains(boundary_survey, "planTokenPreparation()");
+    try expectContains(boundary_survey, "The landed `fdinfo-path-and-reuse-name-footholds` slice therefore now mirrors the manifest rationale exactly: This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while leaving direct procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, and descriptor ownership side effects to the deferred file-path-and-handle bridge boundary.");
     try expectContains(boundary_survey, "live procfs reads, live bpffs opens, token materialization, `bpf_obj_get()` reopen flow, descriptor replacement, or broader fd ownership behavior");
 
     try expectContains(shared_build, "phase8_file_path_handle_boundary_guard.zig");
