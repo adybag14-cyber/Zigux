@@ -26,10 +26,7 @@ EXPECTED_SURVEYED_HEAD = "current-master-readback-2026-05-22"
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_PARITY_FOLLOW_THROUGH_GAPS: list[str] = []
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
-EXPECTED_CURRENT_REPO_REALITY_GAPS = [
-    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
-    "zigux/tests/phase6_base64_c_casegen.zig",
-]
+EXPECTED_CURRENT_REPO_REALITY_GAPS: list[str] = []
 EXPECTED_PUBLIC_TREE_COMPANIONS: list[str] = []
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
@@ -78,7 +75,7 @@ EXPECTED_DOCS_README_SNIPPETS = [
 EXPECTED_CATALOG_SNIPPETS = [
     "- surveyed head: `current-master-readback-2026-05-22`",
     "Authenticated current-master rereads now directly recover `Documentation/zigux/phase6-perf-gate-survey.md`",
-    "A follow-up authenticated current-master readback on 2026-05-22 directly recovered `zigux/tests/phase6_base64_c_parity.zig`",
+    "A targeted authenticated current-master reread on 2026-05-27 also directly recovered `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`, so the Phase 6 base64 packet no longer carries a known direct-readback generator gap.",
 ]
 REQUIRED_BUILD_SNIPPETS = [
     'const bsearch_perf_root_module = b.createModule(.{',
@@ -523,7 +520,7 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"public_tree_backed_shared_companions": ["Documentation/zigux/phase6-perf-gate-survey.md"]})))
         cases_run += 1
-        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"current_repo_reality_gaps": EXPECTED_CURRENT_REPO_REALITY_GAPS[:-1]})))
+        expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"current_repo_reality_gaps": ["zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"]})))
         cases_run += 1
         expect_failure(root, MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][0].update({"checker_surfaces": [EXPECTED_BASE64_CHECKER_SURFACES[0]]})))
         cases_run += 1
