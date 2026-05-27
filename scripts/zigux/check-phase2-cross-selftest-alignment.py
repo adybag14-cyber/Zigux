@@ -402,6 +402,34 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def set_target_validation_mode(
+    fixture: dict[str, object], target_name: str, validation_mode: str
+) -> None:
+    cross_targets = fixture.get("cross_targets")
+    if not isinstance(cross_targets, list):
+        raise AssertionError("cross_targets must be a list")
+
+    for entry in cross_targets:
+        if isinstance(entry, dict) and entry.get("target") == target_name:
+            entry["validation_mode"] = validation_mode
+            return
+
+    raise AssertionError(f"target not found in cross_targets: {target_name}")
+
+
+def set_target_route(fixture: dict[str, object], target_name: str, route: str) -> None:
+    cross_targets = fixture.get("cross_targets")
+    if not isinstance(cross_targets, list):
+        raise AssertionError("cross_targets must be a list")
+
+    for entry in cross_targets:
+        if isinstance(entry, dict) and entry.get("target") == target_name:
+            entry["route"] = route
+            return
+
+    raise AssertionError(f"target not found in cross_targets: {target_name}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     expected_case_count = (
@@ -555,8 +583,8 @@ def run_self_test() -> int:
         fixture_path = resolve_path(root, CROSS_TARGETS)
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
         fixture["archive_target_scope"] = ["aarch64-linux"]
-        fixture["cross_targets"][0]["validation_mode"] = "route_contract_only"
-        fixture["cross_targets"][1]["validation_mode"] = "archive_required"
+        set_target_validation_mode(fixture, "x86_64-linux", "route_contract_only")
+        set_target_validation_mode(fixture, "aarch64-linux", "archive_required")
         fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert collect_issues(root) == []
         checks_run += 1
@@ -581,8 +609,8 @@ def run_self_test() -> int:
         fixture_path = resolve_path(root, CROSS_TARGETS)
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
         fixture["archive_target_scope"] = ["riscv64-linux"]
-        fixture["cross_targets"][0]["validation_mode"] = "route_contract_only"
-        fixture["cross_targets"][2]["validation_mode"] = "archive_required"
+        set_target_validation_mode(fixture, "x86_64-linux", "route_contract_only")
+        set_target_validation_mode(fixture, "riscv64-linux", "archive_required")
         fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert collect_issues(root) == []
         checks_run += 1
@@ -658,7 +686,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"][1]["validation_mode"] = ""
+        set_target_validation_mode(payload, "aarch64-linux", "")
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_ENTRY", "aarch64-linux:validation_mode") in collect_issues(root)
         checks_run += 1
@@ -666,7 +694,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"][0]["route"] = "make -C zigux phase2-toolchain"
+        set_target_route(payload, "x86_64-linux", "make -C zigux phase2-toolchain")
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_ROUTE", "x86_64-linux") in collect_issues(root)
         checks_run += 1
@@ -674,7 +702,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["cross_targets"][1]["validation_mode"] = "archive_required"
+        set_target_validation_mode(payload, "aarch64-linux", "archive_required")
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         assert any(code == "INVALID_CROSS_TARGET_MATRIX" for code, _ in issues)
