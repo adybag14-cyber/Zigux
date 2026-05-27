@@ -20,6 +20,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/phase11-shared-replay-contract.md",
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
+    "Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md",
     "Documentation/zigux/phase11-watchdog-lifecycle-parity-gap.md",
     "Documentation/zigux/phase11-uapi-header-parity-survey.md",
     "Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md",
@@ -47,6 +48,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-validate-manifest-roster.py",
     "scripts/zigux/check-phase11-validate-check-roster.py",
     "scripts/zigux/check-phase11-validate-route-alignment.py",
+    "scripts/zigux/check-phase11-shared-tooling-manifest.py",
     "scripts/zigux/check-phase11-focused-direct-build-replays.py",
     "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
@@ -74,6 +76,7 @@ REQUIRED_PATHS = (
     "zigux/Makefile",
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
+    "zigux/tests/fixtures/phase11_shared_tooling_manifest.json",
     "zigux/tests/phase11_bcm2835_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt_survey.zig",
@@ -145,6 +148,14 @@ CHECKS = (
     CheckSpec(
         "phase11-validate-route-alignment",
         ("python", "scripts/zigux/check-phase11-validate-route-alignment.py"),
+    ),
+    CheckSpec(
+        "phase11-shared-tooling-manifest-self-test",
+        ("python", "scripts/zigux/check-phase11-shared-tooling-manifest.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-shared-tooling-manifest",
+        ("python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"),
     ),
     CheckSpec(
         "phase11-build-inventory-self-test",
@@ -596,6 +607,8 @@ def run_self_test() -> int:
             ("scripts/zigux/check-phase11-validate-check-roster.py", "phase11-validate-check-roster"),
             ("scripts/zigux/check-phase11-validate-route-alignment.py", "phase11-validate-route-alignment-self-test"),
             ("scripts/zigux/check-phase11-validate-route-alignment.py", "phase11-validate-route-alignment"),
+            ("scripts/zigux/check-phase11-shared-tooling-manifest.py", "phase11-shared-tooling-manifest-self-test"),
+            ("scripts/zigux/check-phase11-shared-tooling-manifest.py", "phase11-shared-tooling-manifest"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
             ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
             ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays-self-test"),
