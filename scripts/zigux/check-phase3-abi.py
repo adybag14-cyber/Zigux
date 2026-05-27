@@ -8,7 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-VALIDATE_PHASE3_PATH = Path(__file__).with_name("validate-phase3.py")
+SCRIPT_DIR = Path(__file__).resolve().parent
+VALIDATE_PHASE3_REL = Path("scripts/zigux/validate-phase3.py")
 
 SELF_TEST_REPLACEMENTS = (
     ("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=", "PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT="),
@@ -21,12 +22,18 @@ RUN_REPLACEMENTS = (
 )
 
 
-def _emit_missing_validator(self_test: bool) -> int:
+def _resolve_validator_path(repo_root: Path, self_test: bool) -> Path:
+    if self_test:
+        return SCRIPT_DIR / "validate-phase3.py"
+    return repo_root / VALIDATE_PHASE3_REL
+
+
+def _emit_missing_validator(path: Path, self_test: bool) -> int:
     if self_test:
         print("PHASE3_ABI_CHECK_SELF_TEST=fail")
     else:
         print("PHASE3_ABI_CHECK=fail")
-    print(f"missing repo file: {VALIDATE_PHASE3_PATH.as_posix()}")
+    print(f"missing repo file: {path.as_posix()}")
     return 1
 
 
@@ -37,12 +44,13 @@ def _rewrite(output: str, replacements: tuple[tuple[str, str], ...]) -> str:
     return rewritten
 
 
-def _run_validator(args: list[str], self_test: bool) -> int:
-    if not VALIDATE_PHASE3_PATH.is_file():
-        return _emit_missing_validator(self_test)
+def _run_validator(args: list[str], self_test: bool, repo_root: Path) -> int:
+    validator_path = _resolve_validator_path(repo_root, self_test=self_test)
+    if not validator_path.is_file():
+        return _emit_missing_validator(validator_path, self_test)
 
     completed = subprocess.run(
-        [sys.executable, str(VALIDATE_PHASE3_PATH), *args],
+        [sys.executable, str(validator_path), *args],
         check=False,
         capture_output=True,
         text=True,
@@ -66,12 +74,13 @@ def main() -> int:
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
+    repo_root = args.repo_root.resolve()
     passthrough: list[str] = []
     if args.self_test:
         passthrough.append("--self-test")
     else:
-        passthrough.extend(("--repo-root", str(args.repo_root)))
-    return _run_validator(passthrough, self_test=args.self_test)
+        passthrough.extend(("--repo-root", str(repo_root)))
+    return _run_validator(passthrough, self_test=args.self_test, repo_root=repo_root)
 
 
 if __name__ == "__main__":
