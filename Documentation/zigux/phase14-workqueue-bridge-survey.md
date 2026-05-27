@@ -63,7 +63,7 @@ The live workqueue packet currently matches the Phase 14 roadmap and freeze-map 
 
   * roadmap required feature `boundary maps`: satisfied by `kernel/workqueue_bridge.zig` keeping exactly two `boundary_map_only` bridge areas, `submission-routing` and `allocation-and-attrs`, while exposing the rest of the workqueue surface as explicit stay-in-C decisions
   * roadmap required feature `concurrency audits`: satisfied by the bridge-local manager, pending-bit, delayed-work, flush-drain, rescuer, hotplug, and scheduler-visible worker-state audit checkpoints kept in review-only form
-  * roadmap required feature `explicit stay-in-C decisions where warranted`: satisfied by the bridge-local blocked-live-execution handoff and the survey's explicit stay-in-C boundaries around callback dispatch, flush, drain, cancellation completion, delayed requeue control, runtime `max_active` retuning, rescuer execution, scheduler-visible worker-state transitions, and topology rebinding
+  * roadmap required feature `explicit stay-in-C decisions where warranted`: satisfied by the bridge-local blocked-live-execution handoff and the survey's explicit stay-in-C boundaries around manager-role serialization, forward-progress accounting, callback dispatch, flush, drain, cancellation completion, delayed timer-base and CPU-affinity handoff, delayed requeue control, runtime `max_active` retuning, rescuer execution, scheduler-visible worker-state transitions, and topology rebinding
   * roadmap required feature `wrapper-first or study-only posture`: satisfied by keeping `kernel/workqueue.c` in the freeze map's `Study / Boundary Only` bucket and limiting trusted bridge-local reruns to reviewability evidence rather than live execution claims
 
 That alignment is intentionally narrow. It shows that the packet has a real reviewable foothold for boundary mapping and audit work, while the freeze map still blocks any claim that Zigux owns the runtime workqueue engine.
@@ -75,7 +75,7 @@ The remaining roadmap-backed gap is also intentionally narrow:
   * the boundary-map foothold is landed, but it is intentionally limited to the two bridge areas `submission-routing` and `allocation-and-attrs`
   * every other named bridge area still stays in the stay-in-C audit packet, so the current gap is no longer “missing a boundary map” but “keeping the boundary map deliberately small while the freeze map blocks stronger ownership claims”
   * the packet is still a review-only study surface rather than a deliverable wrapper around live worker execution
-  * the freeze map still blocks any ownership claim for callback dispatch, flush or drain completion, delayed-work requeue control, runtime `max_active` retuning, rescuer execution, scheduler-visible worker-state parity, or hotplug-driven topology rebinding
+  * the freeze map still blocks any ownership claim for manager-role serialization, forward-progress accounting, callback dispatch, flush or drain completion, delayed timer-base and CPU-affinity handoff, delayed requeue control, runtime `max_active` retuning, rescuer execution, scheduler-visible worker-state parity, or hotplug-driven topology rebinding
   * the shared Phase 14 route layer still stops at `make -C zigux phase14-validate`; the older `phase14-smoke`, `phase14-test`, and `phase14` wrapper names remain absent from the readable current `zigux/Makefile` body
   * the bridge-local trust surface still stops at `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while broader build-side proof such as directly readable `zigux/tests/phase14_build.zig` remains shared-packet evidence rather than a bridge-local promotion signal
 
@@ -101,13 +101,15 @@ The landed workqueue packet is strong enough to keep the following review-only a
 
 Those two boundary-map-only entrypoint groups are the current roadmap-backed bridge foothold. The rest of the packet stays review-only so Phase 14 can keep `kernel/workqueue.c` honest as a boundary-study target without implying live worker execution or wrapper ownership.
 
-The newer bridge-local concurrency audit plus the explicit cancel-path handoff keep the manager, forward-progress, inactive-list, reentrancy, callback-window, idle-sleep, delayed requeue, runtime `max_active` retuning, cancellation-completion, scheduler-visible worker-state, and hotplug-topology seams explicit as stay-in-C evidence rather than as a live wrapper claim.
+The newer bridge-local concurrency audit plus the explicit cancel-path handoff keep the manager, forward-progress, inactive-list, reentrancy, callback-window, idle-sleep, delayed timer-base plus CPU-affinity handoff, delayed requeue, runtime `max_active` retuning, cancellation-completion, scheduler-visible worker-state, and hotplug-topology seams explicit as stay-in-C evidence rather than as a live wrapper claim.
 
 The packet is still blocked from claiming:
 
   * live worker-pool execution
+  * manager-role serialization and forward-progress ownership
   * callback dispatch ownership
   * flush, drain, and cancellation completion ownership
+  * delayed-work timer-base and CPU-affinity handoff ownership
   * delayed-work requeue control ownership
   * runtime `max_active` retuning ownership
   * scheduler-visible worker-state parity
