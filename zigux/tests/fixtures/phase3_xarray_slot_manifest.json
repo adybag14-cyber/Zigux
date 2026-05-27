@@ -17,7 +17,8 @@
     "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c",
     "zigux/tests/fixtures/phase3_xarray_slot/expected.json",
     "zigux/tests/fixtures/phase3_xarray_slot_manifest.json",
-    "scripts/zigux/check-phase3-xarray-slot.py"
+    "scripts/zigux/check-phase3-xarray-slot.py",
+    "zigux/Makefile"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test",
@@ -25,7 +26,10 @@
     "python3 scripts/zigux/check-phase3-xarray-slot.py --self-test",
     "python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
-    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"
+    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
+    "make -C zigux phase3-xarray-slot-starter-packet",
+    "make -C zigux phase3-xarray-slot-starter-packet-test",
+    "make -C zigux phase3-xarray-slot-dump"
   ],
   "repo_reality_gaps": [],
   "next_safe_step": "keep any future same-lane follow-through narrowed to shared validator-entrypoint alignment only if current master drifts away from this helper-local starter-plus-dump packet"
