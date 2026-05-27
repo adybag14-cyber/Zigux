@@ -66,6 +66,23 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     };
 }
 
+fn writeCHeaderEscaped(writer: anytype, text: []const u8) !void {
+    for (text) |c| switch (c) {
+        '\\' => try writer.writeAll("\\\\"),
+        '"' => try writer.writeAll("\\\""),
+        '\n' => try writer.writeAll("\\n"),
+        '\r' => try writer.writeAll("\\r"),
+        '\t' => try writer.writeAll("\\t"),
+        else => try writer.writeByte(c),
+    };
+}
+
+fn writeKconfigQuotedValue(writer: anytype, text: []const u8) !void {
+    try writer.writeByte('"');
+    try writeCHeaderEscaped(writer, text);
+    try writer.writeByte('"');
+}
+
 fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
     if (text.len > 0 and text[text.len - 1] == '\r') {
         return text[0 .. text.len - 1];
@@ -296,6 +313,49 @@ pub fn deinitSummary(allocator: std.mem.Allocator, summary: *Summary) void {
     allocator.free(summary.entries);
 }
 
+pub fn emitAutoConfExports(writer: anytype, summary: Summary) !void {
+    for (summary.entries) |entry| {
+        if (entry.kind == .unset) continue;
+        try writer.writeAll(entry.name);
+        try writer.writeByte('=');
+        switch (entry.kind) {
+            .string => try writeKconfigQuotedValue(writer, entry.value),
+            else => try writer.writeAll(entry.value),
+        }
+        try writer.writeByte('\n');
+    }
+}
+
+pub fn emitAutoconfHeaderExports(writer: anytype, summary: Summary) !void {
+    for (summary.entries) |entry| switch (entry.kind) {
+        .unset => {},
+        .tristate => {
+            if (entry.value.len == 0 or entry.value[0] == 'n') continue;
+            try writer.writeAll("#define ");
+            try writer.writeAll(entry.name);
+            if (entry.value[0] == 'm') {
+                try writer.writeAll("_MODULE 1\n");
+            } else {
+                try writer.writeAll(" 1\n");
+            }
+        },
+        .string => {
+            try writer.writeAll("#define ");
+            try writer.writeAll(entry.name);
+            try writer.writeByte(' ');
+            try writeKconfigQuotedValue(writer, entry.value);
+            try writer.writeByte('\n');
+        },
+        .value => {
+            try writer.writeAll("#define ");
+            try writer.writeAll(entry.name);
+            try writer.writeByte(' ');
+            try writer.writeAll(entry.value);
+            try writer.writeByte('\n');
+        },
+    };
+}
+
 pub fn runConfdataBridge(allocator: std.mem.Allocator, input: []const u8, writer: anytype) !void {
     var summary = try parseConfig(allocator, input);
     defer deinitSummary(allocator, &summary);
@@ -383,6 +443,10 @@ fn parseAndExpectSingleEntry(allocator: std.mem.Allocator, input: []const u8, na
     try expectEntry(summary, 0, name, kind, value);
 }
 
+fn parseSummaryForTest(input: []const u8) !Summary {
+    return parseConfig(std.testing.allocator, input);
+}
+
 test "confdata bridge parses bounded config states" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
@@ -420,7 +484,7 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_MESSAGE="zigux\"bridge\\"
+        \\CONFIG_MESSAGE=\"zigux\\\"bridge\\\\\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -431,7 +495,7 @@ test "confdata bridge decodes escaped quoted strings" {
 test "confdata bridge strips backslashes from escaped control sequences like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ESCAPED="line\n\tend"
+        \\CONFIG_ESCAPED=\"line\\n\\tend\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -496,7 +560,7 @@ test "confdata bridge recognizes uppercase tristate assignments" {
 test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\source "Kconfig"
+        \\source \"Kconfig\"
         \\NOT_CONFIG=y
         \\CONFIG_WORD=yes
         \\CONFIG_ALPHA=m
@@ -529,7 +593,7 @@ test "confdata bridge ignores malformed unset comments with extra tokens" {
 
 test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
     try parseAndExpectSingleEntry(std.testing.allocator,
-        \\CONFIG_PATH="drivers\\"
+        \\CONFIG_PATH=\"drivers\\\\\"
         \\
     , "CONFIG_PATH", .string, "drivers\\");
 }
@@ -573,8 +637,8 @@ test "confdata bridge keeps only the last assignment for duplicate symbols" {
 test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA="stable"
-        \\CONFIG_ALPHA="broken
+        \\CONFIG_ALPHA=\"stable\"
+        \\CONFIG_ALPHA=\"broken
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -588,8 +652,8 @@ test "confdata bridge emits the preserved duplicate state after later malformed 
     defer capture.deinit();
 
     try runConfdataBridge(std.testing.allocator,
-        \\CONFIG_ALPHA="stable"
-        \\CONFIG_ALPHA="broken
+        \\CONFIG_ALPHA=\"stable\"
+        \\CONFIG_ALPHA=\"broken
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"CONFIG_ALPHA\"") != null);
@@ -634,7 +698,7 @@ test "confdata bridge emits explicit empty assignments distinctly in json output
 
     try runConfdataBridge(std.testing.allocator,
         \\CONFIG_EMPTY=
-        \\CONFIG_QUOTED_EMPTY=""
+        \\CONFIG_QUOTED_EMPTY=\"\"
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"name\":\"CONFIG_EMPTY\",\"kind\":\"value\",\"value\":\"\"") != null);
@@ -646,10 +710,77 @@ test "confdata bridge escapes parsed string bytes in json output" {
     defer capture.deinit();
 
     try runConfdataBridge(std.testing.allocator,
-        \\CONFIG_ALPHA="zigux\"bridge\\"
+        \\CONFIG_ALPHA=\"zigux\\\"bridge\\\\\"
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"value\":\"zigux\\\"bridge\\\\\"") != null);
+}
+
+test "confdata bridge emits auto.conf symbol export lines" {
+    var summary = try parseSummaryForTest(
+        \\CONFIG_ALPHA=y
+        \\CONFIG_BETA=m
+        \\CONFIG_COUNT=7
+        \\CONFIG_NAME=\"zigux\\\"bridge\\\\\"
+        \\CONFIG_EMPTY=
+        \\CONFIG_EXPLICIT_N=n
+        \\# CONFIG_DEBUG is not set
+        \\
+    );
+    defer deinitSummary(std.testing.allocator, &summary);
+
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+    try emitAutoConfExports(&capture, summary);
+    try std.testing.expectEqualStrings(
+        "CONFIG_ALPHA=y\n" ++
+            "CONFIG_BETA=m\n" ++
+            "CONFIG_COUNT=7\n" ++
+            "CONFIG_NAME=\"zigux\\\"bridge\\\\\"\n" ++
+            "CONFIG_EMPTY=\n" ++
+            "CONFIG_EXPLICIT_N=n\n",
+        capture.list.items,
+    );
+}
+
+test "confdata bridge emits autoconf header symbol export lines" {
+    var summary = try parseSummaryForTest(
+        \\CONFIG_ALPHA=y
+        \\CONFIG_BETA=m
+        \\CONFIG_COUNT=7
+        \\CONFIG_NAME=\"zigux\\\"bridge\\\\\"
+        \\CONFIG_EMPTY=
+        \\CONFIG_EXPLICIT_N=n
+        \\# CONFIG_DEBUG is not set
+        \\
+    );
+    defer deinitSummary(std.testing.allocator, &summary);
+
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+    try emitAutoconfHeaderExports(&capture, summary);
+    try std.testing.expectEqualStrings(
+        "#define CONFIG_ALPHA 1\n" ++
+            "#define CONFIG_BETA_MODULE 1\n" ++
+            "#define CONFIG_COUNT 7\n" ++
+            "#define CONFIG_NAME \"zigux\\\"bridge\\\\\"\n" ++
+            "#define CONFIG_EMPTY \n",
+        capture.list.items,
+    );
+}
+
+test "confdata bridge keeps explicit n out of autoconf header exports" {
+    var summary = try parseSummaryForTest(
+        \\CONFIG_EXPLICIT_N=n
+        \\# CONFIG_DEBUG is not set
+        \\
+    );
+    defer deinitSummary(std.testing.allocator, &summary);
+
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+    try emitAutoconfHeaderExports(&capture, summary);
+    try std.testing.expectEqualStrings("", capture.list.items);
 }
 
 test "confdata bridge file reader accepts config inputs beyond one mebibyte" {
