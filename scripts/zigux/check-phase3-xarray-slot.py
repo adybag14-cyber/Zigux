@@ -26,6 +26,7 @@ C_HARNESS_PATH = Path(
     "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c"
 )
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_xarray_slot_manifest.json")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 REQUIRED_MARKERS = {
     STARTER_CHECK_PATH: (
@@ -48,6 +49,14 @@ REQUIRED_MARKERS = {
         'xarray_slot_view.addImport("xa_value", xa_value);',
         '"phase3-xarray-slot-dump"',
     ),
+    MAKEFILE_PATH: (
+        "phase3-xarray-slot-starter-packet:",
+        "phase3-xarray-slot-starter-packet-test:",
+        "phase3-xarray-slot-dump:",
+        "$(ZIG) build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
+        "$(ZIG) build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
+        "$(ZIG) build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
+    ),
     C_HARNESS_PATH: (
         "#define MAX_ERRNO ((uintptr_t)4095)",
         "static const char *kind_name(uintptr_t raw) {",
@@ -68,9 +77,13 @@ REQUIRED_MARKERS = {
     MANIFEST_PATH: (
         '"slug": "phase3-xarray-slot"',
         '"status": "starter_and_dump_packet_present"',
+        '"zigux/Makefile"',
         '"zigux/tests/phase3_xarray_slot_dump.zig"',
         '"zigux/tests/phase3_xarray_slot_dump_build.zig"',
         '"zigux/tests/fixtures/phase3_xarray_slot/expected.json"',
+        '"make -C zigux phase3-xarray-slot-starter-packet"',
+        '"make -C zigux phase3-xarray-slot-starter-packet-test"',
+        '"make -C zigux phase3-xarray-slot-dump"',
         '"python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc"',
     ),
 }
@@ -88,6 +101,7 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/fixtures/phase3_xarray_slot/expected.json",
     "zigux/tests/fixtures/phase3_xarray_slot_manifest.json",
     "scripts/zigux/check-phase3-xarray-slot.py",
+    "zigux/Makefile",
 )
 
 REQUIRED_REPLAY_ROUTES = (
@@ -97,6 +111,9 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
     "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
+    "make -C zigux phase3-xarray-slot-starter-packet",
+    "make -C zigux phase3-xarray-slot-starter-packet-test",
+    "make -C zigux phase3-xarray-slot-dump",
 )
 
 
@@ -324,6 +341,7 @@ def _populate_repo(root: Path) -> None:
 SELF_TEST_CASES = (
     (STARTER_CHECK_PATH, "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST=pass"),
     (DUMP_PATH, 'try writeCase(writer, "inline_zero", inline_zero_raw, true);'),
+    (MAKEFILE_PATH, "phase3-xarray-slot-dump:"),
     (C_HARNESS_PATH, 'write_case("err_max", (uintptr_t)(intptr_t)-4095, 0);'),
     (EXPECTED_PATH, '"decoded_error": -4095'),
     (MANIFEST_PATH, '"status": "starter_and_dump_packet_present"'),
