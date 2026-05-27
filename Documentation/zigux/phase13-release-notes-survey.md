@@ -76,6 +76,16 @@ The release-planning handle that is directly supportable from this run stays anc
 
 Keep broad release wording tied to that reminder packet while the missing validator-first helpers, adjacent notifier companions, and route surfaces remain explicit repo-reality gaps.
 
+## Exact Checks For This Bounded Step
+
+For this bounded reminder-surface step, verify documentation behavior with these exact checks before treating a release-note refresh as truthful current-`master` evidence:
+
+- `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
+- `python3 scripts/zigux/validate-phase13-release.py`
+
+Those checks confirm the shared-summary surfaces, the tests-root reminder packet, and the release-discipline packet only. They do not turn `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, or `zigux/tests/phase13_build.zig` into shipped Phase 13 route evidence.
+
 ## Repo-Reality Gaps
 
 Direct current-`master` readback in this run still returned missing for:
