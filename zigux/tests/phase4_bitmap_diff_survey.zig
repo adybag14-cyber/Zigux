@@ -32,6 +32,8 @@ const manifest_source = @embedFile("phase4_bitmap_diff_manifest.json");
 const bitmap_diff_source = @embedFile("bitmap_diff.zig");
 const bitmap_live_helper_replay_source = @embedFile("phase4_bitmap_live_helper_replay.zig");
 const phase4_build_source = @embedFile("phase4_build.zig");
+const validator_source = @embedFile("../../scripts/zigux/validate-phase4.py");
+const validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
 
 fn gitBlobShaHex(source: []const u8) [40]u8 {
     var hasher = std.crypto.hash.Sha1.init(.{});
@@ -68,7 +70,9 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.rollback_owner);
     try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", manifest.shared_validator_path);
+    try std.testing.expectEqualStrings("e0240439445ea311a49f0d832398806d1bd49cbc", manifest.shared_validator_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
+    try std.testing.expectEqualStrings("348984ebc5a7ac85433a11f87396117059eb34f1", manifest.shared_matrix_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.gate_evidence_path);
     try std.testing.expect(manifest.phase4_build_present);
@@ -84,6 +88,8 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
         &gitBlobShaHex(bitmap_live_helper_replay_source),
         manifest.helper_replay_blob_sha,
     );
+    try std.testing.expectEqualStrings(&gitBlobShaHex(validator_source), manifest.shared_validator_blob_sha);
+    try std.testing.expectEqualStrings(&gitBlobShaHex(validation_matrix_source), manifest.shared_matrix_blob_sha);
 }
 
 test "phase 4 bitmap survey keeps the shared build route explicit" {
