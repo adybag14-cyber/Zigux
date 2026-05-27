@@ -156,7 +156,7 @@ test "gpio_wdt remove-handoff summary keeps cleanup blockers and ownership hando
     try std.testing.expect(guarded_handoff.blocked_on_platform_cleanup_callback);
     try std.testing.expect(guarded_handoff.blocked_on_platform_driver_remove);
     try std.testing.expect(guarded_handoff.blocked_on_watchdog_core_unregister);
-    try std.testing.expect(guarded_handoff.blocked_onHost_shutdown_execution);
+    try std.testing.expect(guarded_handoff.blocked_on_host_shutdown_execution);
 }
 
 test "gpio_wdt hardware validation matrix keeps the roadmap branches reviewable" {
