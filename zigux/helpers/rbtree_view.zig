@@ -43,6 +43,44 @@ pub const RBNode = extern struct {
     pub fn right(self: *const RBNode) ?*const RBNode {
         return ptrFromRaw(self.rb_right);
     }
+
+    pub fn next(self: *const RBNode) ?*const RBNode {
+        if (self.right()) |right_child| {
+            var cursor = right_child;
+            while (cursor.left()) |child| {
+                cursor = child;
+            }
+            return cursor;
+        }
+
+        var cursor: *const RBNode = self;
+        while (cursor.parent()) |parent_node| {
+            if (parent_node.left()) |left_child| {
+                if (left_child == cursor) return parent_node;
+            }
+            cursor = parent_node;
+        }
+        return null;
+    }
+
+    pub fn prev(self: *const RBNode) ?*const RBNode {
+        if (self.left()) |left_child| {
+            var cursor = left_child;
+            while (cursor.right()) |child| {
+                cursor = child;
+            }
+            return cursor;
+        }
+
+        var cursor: *const RBNode = self;
+        while (cursor.parent()) |parent_node| {
+            if (parent_node.right()) |right_child| {
+                if (right_child == cursor) return parent_node;
+            }
+            cursor = parent_node;
+        }
+        return null;
+    }
 };
 
 pub const RBRoot = extern struct {
@@ -151,4 +189,54 @@ test "rbtree view finds the leftmost and rightmost nodes of a bounded tree" {
 
     try std.testing.expectEqual(@as(?*const RBNode, &left), view.leftmost());
     try std.testing.expectEqual(@as(?*const RBNode, &right), view.rightmost());
+}
+
+test "rbtree view walks inorder successors across a bounded tree" {
+    var root_node = RBNode{
+        .__rb_parent_color = @intFromEnum(Color.black),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var left = RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var right = RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+
+    root_node.rb_left = @intFromPtr(&left);
+    root_node.rb_right = @intFromPtr(&right);
+
+    try std.testing.expectEqual(@as(?*const RBNode, &root_node), left.next());
+    try std.testing.expectEqual(@as(?*const RBNode, &right), root_node.next());
+    try std.testing.expectEqual(@as(?*const RBNode, null), right.next());
+}
+
+test "rbtree view walks inorder predecessors across a bounded tree" {
+    var root_node = RBNode{
+        .__rb_parent_color = @intFromEnum(Color.black),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var left = RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+    var right = RBNode{
+        .__rb_parent_color = @intFromPtr(&root_node) | @intFromEnum(Color.red),
+        .rb_right = 0,
+        .rb_left = 0,
+    };
+
+    root_node.rb_left = @intFromPtr(&left);
+    root_node.rb_right = @intFromPtr(&right);
+
+    try std.testing.expectEqual(@as(?*const RBNode, null), left.prev());
+    try std.testing.expectEqual(@as(?*const RBNode, &left), root_node.prev());
+    try std.testing.expectEqual(@as(?*const RBNode, &root_node), right.prev());
 }
