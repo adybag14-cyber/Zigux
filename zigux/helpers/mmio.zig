@@ -176,6 +176,38 @@ pub fn rangeInteropPolicyByte(base_addr: usize, length: u32, stride: u32, unsafe
     return rangeInteropPolicyBytes(base_addr, length, stride, unsafe_scope, 0);
 }
 
+pub fn constPointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*const volatile T {
+    try validateRangeTypedAccess(T, range, byte_offset);
+    return @ptrFromInt(try byteOffsetAddress(range.base_addr, byte_offset));
+}
+
+pub fn pointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*volatile T {
+    try validateRangeTypedAccess(T, range, byte_offset);
+    return @ptrFromInt(try byteOffsetAddress(range.base_addr, byte_offset));
+}
+
+pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {
+    return read(T, try constPointerAt(T, range, byte_offset));
+}
+
+pub fn writeAt(comptime T: type, range: MmioRange, byte_offset: usize, value: T) PolicyError!void {
+    write(T, try pointerAt(T, range, byte_offset), value);
+}
+
+pub fn exchangeAt(comptime T: type, range: MmioRange, byte_offset: usize, value: T) PolicyError!T {
+    return exchange(T, try pointerAt(T, range, byte_offset), value);
+}
+
+pub fn writeMaskedAt(
+    comptime T: type,
+    range: MmioRange,
+    byte_offset: usize,
+    clear_mask: T,
+    set_mask: T,
+) PolicyError!T {
+    return writeMasked(T, try pointerAt(T, range, byte_offset), clear_mask, set_mask);
+}
+
 pub fn readInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *const volatile T) PolicyError!T {
     try requireInteropPolicy(policy);
     return read(T, ptr);
@@ -556,6 +588,35 @@ test "phase3 mmio helper keeps MmioRange typed-access windows explicit before fu
     try std.testing.expectError(error.InvalidInteropPolicy, validateRangeTypedAccess(u32, strided, 13));
     try std.testing.expectError(error.InvalidInteropPolicy, validateRangeTypedAccess(u64, tightly_spaced, 8));
     try std.testing.expect(!rangeContainsAccessBytes(strided, std.math.maxInt(usize), 4));
+}
+
+test "phase3 mmio helper keeps range-bound accessors inside the blessed MMIO window" {
+    var bytes = [_]u8{0} ** 16;
+    const base_addr = @intFromPtr(&bytes[0]);
+    const range = try rangeScoped(base_addr, 16, 4, .volatile_mmio);
+
+    try std.testing.expectEqual(base_addr, range.base_addr);
+    try std.testing.expectEqual(@as(u32, 16), range.length);
+    try std.testing.expectEqual(@as(u32, 4), range.stride);
+    try std.testing.expectEqual(@as(*const volatile u32, @ptrFromInt(base_addr + 4)), try constPointerAt(u32, range, 4));
+
+    try writeAt(u32, range, 4, 0x1122_3344);
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), try readAt(u32, range, 4));
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), try exchangeAt(u32, range, 4, 0x5566_7788));
+    try std.testing.expectEqual(@as(u32, 0x5566_7788), try readAt(u32, range, 4));
+    try std.testing.expectEqual(
+        @as(u32, 0x5500_0088),
+        try writeMaskedAt(u32, range, 4, 0x00FF_FF00, 0x5500_0088),
+    );
+
+    const ptr = try pointerAt(u32, range, 4);
+    ptr.* = 0xCAFE_BABE;
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), try readAt(u32, range, 4));
+
+    try std.testing.expectError(error.InvalidInteropPolicy, constPointerAt(u16, range, 2));
+    try std.testing.expectError(error.InvalidInteropPolicy, writeAt(u32, range, 2, 1));
+    try std.testing.expectError(error.InvalidInteropPolicy, exchangeAt(u32, range, 14, 1));
+    try std.testing.expectError(error.InvalidInteropPolicy, writeMaskedAt(u32, range, 13, 0, 1));
 }
 
 test "phase3 mmio helper rejects overflowing range windows before blessing unsafe access" {
