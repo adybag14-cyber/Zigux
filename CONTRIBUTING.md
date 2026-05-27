@@ -16,6 +16,14 @@ Read these files before you open or update a change:
 
 Use `Documentation/zigux/contributor-entrypoints.md` to pick the right bounded guide for docs, checklist, or workflow work, and use `Documentation/zigux/contributor-workflow.md` for the routine edit loop once the lane is chosen.
 
+Keep the top-level contributor onboarding packet aligned through:
+
+1. `CONTRIBUTING.md`
+2. `Documentation/zigux/contributor-entrypoints.md`
+3. `Documentation/zigux/contributor-workflow.md`
+
+Top-level onboarding guard: `python3 scripts/zigux/check-contributor-onboarding-packet.py`
+
 If your change touches the shared contributor packet for Phase 13, also reread:
 
 1. `Documentation/zigux/phase13-contributor-workflow-guide.md`
@@ -44,6 +52,8 @@ Every change should keep these explicit:
 - validation gate or replay path
 - rollback owner and fallback path
 - any repo-reality gaps that are still gaps on current `master`
+
+If you update the top-level contributor onboarding packet, rerun `python3 scripts/zigux/check-contributor-onboarding-packet.py` so the start-here entrypoint, onboarding guide, and routine workflow note stay aligned.
 
 If you update a shared reminder surface, reread the neighboring docs, scripts, and tests notes together so they keep describing the same shipped packet.
 
@@ -83,3 +93,4 @@ Before landing a change, confirm that:
 2. the relevant docs, scripts, and tests surfaces still describe the same bounded packet
 3. the change does not imply missing repo paths or routes are already shipped
 4. the change stays inside the requested lane or helper family
+5. any top-level onboarding wording still agrees across `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and `Documentation/zigux/contributor-workflow.md`
