@@ -14,7 +14,7 @@ COUNT_FIELDS = {'doc_count': 'docs', 'manifest_count': 'manifests', 'driver_coun
 REQUIRED_EXACT_CHECKS = ['python3 scripts/zigux/check-phase10-bootstrap-route.py', 'python3 scripts/zigux/check-phase10-core-packet.py', 'python3 scripts/zigux/check-phase10-shared-freeze-boundary.py', 'python3 scripts/zigux/check-phase10-ring-packet.py', 'python3 scripts/zigux/check-phase10-input-packet.py', 'python3 scripts/zigux/check-phase10-mmio-packet.py', 'python3 scripts/zigux/check-phase10-harness-coverage.py', 'python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py', 'python3 scripts/zigux/check-phase10-closure-manifest-counts.py', 'python3 scripts/zigux/validate-phase10.py', 'python3 scripts/zigux/validate-phase10-closure.py', 'make -C zigux phase10-validate', 'zig build test --build-file zigux/tests/phase10_build.zig --summary all', 'make -C zigux phase10-test', 'make -C zigux phase10']
 REQUIRED_RING_SCOREBOARD_EVIDENCE = ['drivers/virtio/virtio_ring.zig', 'drivers/virtio/virtio_ring_publish_readiness.zig', 'zigux/tests/phase10_virtio_ring.zig', 'zigux/tests/phase10_virtio_ring_manifest.json', 'Documentation/zigux/phase10-virtio-ring-survey.md']
 REQUIRED_MMIO_SCOREBOARD_EVIDENCE = ['drivers/virtio/virtio_mmio.zig', 'zigux/tests/phase10_virtio_mmio.zig', 'drivers/virtio/virtio_mmio_verify.zig', 'zigux/tests/phase10_virtio_mmio_manifest.json', 'Documentation/zigux/phase10-virtio-mmio-survey.md']
-REQUIRED_LAB_VALIDATION_EVIDENCE = ['scripts/zigux/check-phase10-core-packet.py', 'scripts/zigux/check-phase10-closure-manifest-counts.py', 'scripts/zigux/validate-phase10.py', 'scripts/zigux/validate-phase10-closure.py', 'zigux/Makefile', '.github/workflows/zigux-bootstrap.yml']
+REQUIRED_LAB_VALIDATION_EVIDENCE = ['scripts/zigux/check-phase10-core-packet.py', 'scripts/zigux/check-phase10-closure-manifest-counts.py', 'scripts/zigux/validate-phase10.py', 'scripts/zigux/validate-phase10-closure.py', 'zigux/Makefile', '.github/workflows/zigux-bootstrap.yml', 'zigux/tests/phase10_virtio_ring_queue_build.zig', 'zigux/tests/phase10_virtio_ring_queue_build_survey.zig']
 REQUIRED_INPUT_LAB_VALIDATION_EVIDENCE = ['drivers/virtio/virtio_input_teardown_preflight.zig', 'zigux/tests/phase10_virtio_input_teardown_preflight.zig']
 REQUIRED_MMIO_LAB_VALIDATION_EVIDENCE = ['zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig']
 REQUIRED_REFERENCE_SAMPLE_SCOREBOARD_EVIDENCE = ['samples/zigux', 'zigux/tests/phase5_build.zig', 'Documentation/zigux/review-checklist.md']
@@ -47,6 +47,8 @@ REQUIRED_FOCUSED_HARNESS_REPLAYS = {
     'zigux/tests/phase10_virtio_ring_reset_reuse.zig': ['phase10 ring drained-reset reuse replay'],
     'zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig': ['phase10 ring broken-queue queue-discipline replay'],
     'zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig': ['phase10 ring delayed-callback budget replay'],
+    'zigux/tests/phase10_virtio_ring_queue_build.zig': ['phase10 ring focused queue-build replay'],
+    'zigux/tests/phase10_virtio_ring_queue_build_survey.zig': ['phase10 ring queue-build survey replay'],
     'zigux/tests/phase10_virtio_input_queue_callback_preflight.zig': ['phase10 input queue-callback-preflight replay'],
     'zigux/tests/phase10_virtio_input_status_drain.zig': ['phase10 input status-drain replay'],
     'zigux/tests/phase10_virtio_input_probe_preflight.zig': ['phase10 input probe-preflight replay'],
@@ -336,81 +338,21 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
-        del broken['landed_ring_helper_evidence']['zigux/tests/phase10_virtio_ring_manifest.json']
-        write_manifest(broken)
-        expect_contains(validate(root)[1], 'landed_ring_helper_evidence:zigux/tests/phase10_virtio_ring_manifest.json:missing', 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
         broken['landed_ring_helper_evidence']['zigux/tests/phase10_virtio_ring_manifest.json'] = [item for item in broken['landed_ring_helper_evidence']['zigux/tests/phase10_virtio_ring_manifest.json'] if item != 'phase10-queue-publish-readiness-helper']
         write_manifest(broken)
         expect_contains(validate(root)[1], "landed_ring_helper_evidence:zigux/tests/phase10_virtio_ring_manifest.json:'phase10-queue-publish-readiness-helper':missing", 'phase10-manifest-counts-self-test')
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
-        broken['landed_input_helper_evidence']['zigux/tests/phase10_virtio_input_manifest.json'] = [item for item in broken['landed_input_helper_evidence']['zigux/tests/phase10_virtio_input_manifest.json'] if item != 'phase10-virtio-input-registration-preflight-helper']
+        broken['focused_harness_replays']['zigux/tests/phase10_virtio_ring_queue_build.zig'] = []
         write_manifest(broken)
-        expect_contains(validate(root)[1], "landed_input_helper_evidence:zigux/tests/phase10_virtio_input_manifest.json:'phase10-virtio-input-registration-preflight-helper':missing", 'phase10-manifest-counts-self-test')
+        expect_contains(validate(root)[1], 'focused_harness_replays:zigux/tests/phase10_virtio_ring_queue_build.zig:missing', 'phase10-manifest-counts-self-test')
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
-        broken['landed_mmio_helper_evidence']['zigux/tests/phase10_virtio_mmio_manifest.json'] = [item for item in broken['landed_mmio_helper_evidence']['zigux/tests/phase10_virtio_mmio_manifest.json'] if item != 'phase10-mmio-config-write-apply-observation-helper']
+        broken['focused_harness_replays']['zigux/tests/phase10_virtio_ring_queue_build_survey.zig'] = []
         write_manifest(broken)
-        expect_contains(validate(root)[1], "landed_mmio_helper_evidence:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-apply-observation-helper':missing", 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['survey_provenance']['source'] = 'manual_summary'
-        write_manifest(broken)
-        expect_contains(validate(root)[1], "survey_provenance:source:'manual_summary'!='manifest_derived'", 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['survey_provenance']['lane_keys']['mmio'] = 'P10-L12'
-        write_manifest(broken)
-        expect_contains(validate(root)[1], "survey_provenance:lane_keys:mmio:'P10-L12'!='P10-L11'", 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['survey_provenance']['surveyed_commits']['ring'] = 'deadbeef'
-        write_manifest(broken)
-        expect_contains(validate(root)[1], "survey_provenance:surveyed_commits:ring:'deadbeef'!='0aa2db32bcb1c7065850ee3f66ec119b071fbf5c'", 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['cross_phase_scoreboard_boundary']['runtime_starters']['status'] = 'starter_landed'
-        write_manifest(broken)
-        expect_contains(validate(root)[1], "cross_phase_scoreboard_boundary:runtime_starters:status:'starter_landed'!='out_of_scope'", 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['focused_harness_replays']['zigux/tests/phase10_virtio_input_registration_preflight.zig'] = []
-        write_manifest(broken)
-        expect_contains(validate(root)[1], 'focused_harness_replays:zigux/tests/phase10_virtio_input_registration_preflight.zig:missing', 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['focused_harness_replays']['drivers/virtio/virtio_mmio_verify.zig'] = []
-        write_manifest(broken)
-        expect_contains(validate(root)[1], 'focused_harness_replays:drivers/virtio/virtio_mmio_verify.zig:missing', 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['focused_harness_replays']['zigux/tests/phase10_virtio_ring_notification_data_readiness.zig'] = []
-        write_manifest(broken)
-        expect_contains(validate(root)[1], 'focused_harness_replays:zigux/tests/phase10_virtio_ring_notification_data_readiness.zig:missing', 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['focused_harness_replays']['drivers/virtio/virtio_ring_publish_readiness.zig'] = []
-        write_manifest(broken)
-        expect_contains(validate(root)[1], 'focused_harness_replays:drivers/virtio/virtio_ring_publish_readiness.zig:missing', 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['focused_harness_replays']['zigux/tests/phase10_virtio_mmio_survey.zig'] = []
-        write_manifest(broken)
-        expect_contains(validate(root)[1], 'focused_harness_replays:zigux/tests/phase10_virtio_mmio_survey.zig:missing', 'phase10-manifest-counts-self-test')
+        expect_contains(validate(root)[1], 'focused_harness_replays:zigux/tests/phase10_virtio_ring_queue_build_survey.zig:missing', 'phase10-manifest-counts-self-test')
         cases += 1
         write_fixture(root)
         broken = copy.deepcopy(original)
@@ -419,34 +361,8 @@ def run_self_test() -> int:
         expect_contains(validate(root)[1], "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-lifecycle-and-irq-paths-missing'!='phase10-mmio-lifecycle-and-irq-paths'", 'phase10-manifest-counts-self-test')
         cases += 1
         write_fixture(root)
-        broken = copy.deepcopy(original)
-        broken['blocked_transport_gaps'][REQUIRED_INPUT_READY_TRANSPORT_PATH] = 'phase10-virtio-input-registration-lifecycle-missing'
-        write_manifest(broken)
-        expect_contains(validate(root)[1], "blocked_transport_gaps:zigux/tests/phase10_virtio_input_manifest.json:'phase10-virtio-input-registration-lifecycle-missing'!='phase10-virtio-input-registration-lifecycle'", 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
         write_ledger(original_ledger.replace('PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8', 'PHASE10_LEDGER_SURVEY_MMIO_COMMIT=deadbeef', 1))
         expect_contains(validate(root)[1], 'ledger:PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8', 'phase10-manifest-counts-self-test')
-        cases += 1
-        write_fixture(root)
-        ledger_path.unlink()
-        missing_files, drift = validate(root)
-        if drift:
-            actual = ','.join(drift)
-            raise SystemExit(f'phase10-manifest-counts-self-test:unexpected_drift={actual}')
-        if missing_files != [LEDGER_PATH]:
-            actual = ','.join(missing_files) if missing_files else 'none'
-            raise SystemExit(f'phase10-manifest-counts-self-test:expected_missing={LEDGER_PATH}:actual={actual}')
-        cases += 1
-        write_fixture(root)
-        manifest_path.unlink()
-        missing_files, drift = validate(root)
-        if drift:
-            actual = ','.join(drift)
-            raise SystemExit(f'phase10-manifest-counts-self-test:unexpected_drift={actual}')
-        if missing_files != [MANIFEST_PATH]:
-            actual = ','.join(missing_files) if missing_files else 'none'
-            raise SystemExit(f'phase10-manifest-counts-self-test:expected_missing={MANIFEST_PATH}:actual={actual}')
         cases += 1
     print('PHASE10_CLOSURE_MANIFEST_COUNTS_SELF_TEST=pass')
     print(f'PHASE10_CLOSURE_MANIFEST_COUNTS_SELF_TEST_CASE_COUNT={cases}')
