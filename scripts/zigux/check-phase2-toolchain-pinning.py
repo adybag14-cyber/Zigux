@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 43
+EXPECTED_SELF_TEST_CASE_COUNT = 51
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -61,6 +61,7 @@ SURFACE_PATHS = (
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
+    "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
@@ -120,6 +121,8 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
     "run: make -C zigux phase2-fixdep",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
@@ -140,6 +143,7 @@ BOOTSTRAP_PRESENT = (
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`scripts/zigux/check-phase2-bootstrap-workflow-routes.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-kconfig-bridge.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -167,6 +171,7 @@ MANIFEST_BUCKETS = {
         "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
         "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
     ),
+    "checkers": ("scripts/zigux/check-phase2-bootstrap-workflow-routes.py",),
     "artifact_support": (
         "scripts/zigux/artifact_diff.py",
         "scripts/zigux/check-phase2-artifact-tools-manifest.py",
@@ -445,6 +450,13 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        manifest = json.loads(read_text(resolve(root, TOOL_MANIFEST)))
+        manifest["present_surfaces"]["checkers"].remove("scripts/zigux/check-phase2-bootstrap-workflow-routes.py")
+        write_text(resolve(root, TOOL_MANIFEST), json.dumps(manifest, indent=2) + "\n")
+        assert ("TOOL_MANIFEST_BUCKET_MISMATCH", "checkers:scripts/zigux/check-phase2-bootstrap-workflow-routes.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         policy = json.loads(read_text(resolve(root, POLICY)))
         policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain"]
         write_text(resolve(root, POLICY), json.dumps(policy, indent=2) + "\n")
@@ -465,6 +477,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         resolve(root, "scripts/zigux/check-phase2-tool-manifest.py").unlink()
         assert ("MISSING_SURFACE_PATHS", "scripts/zigux/check-phase2-tool-manifest.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        resolve(root, "scripts/zigux/check-phase2-bootstrap-workflow-routes.py").unlink()
+        assert ("MISSING_SURFACE_PATHS", "scripts/zigux/check-phase2-bootstrap-workflow-routes.py") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
@@ -499,6 +516,15 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         assert any(code == "MISSING_BOOTSTRAP_PRESENT_MARKERS" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        notes = resolve(root, BOOTSTRAP_NOTES)
+        notes.write_text(
+            notes.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase2-bootstrap-workflow-routes.py`", ""),
+            encoding="utf-8",
+        )
+        assert ("MISSING_BOOTSTRAP_PRESENT_MARKERS", "`scripts/zigux/check-phase2-bootstrap-workflow-routes.py`") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
