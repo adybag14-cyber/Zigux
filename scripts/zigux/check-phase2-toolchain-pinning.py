@@ -21,7 +21,7 @@ TOOL_MANIFEST = "zigux/tests/fixtures/phase2_tool_manifest.json"
 ARCHIVE_TARGET = "x86_64-linux"
 ARCHIVE_CHANNEL = "0.17.0-dev.87+9b177a7d2"
 ARCHIVE_SIZE = 58_159_088
-EXPECTED_SELF_TEST_CASE_COUNT = 41
+EXPECTED_SELF_TEST_CASE_COUNT = 43
 
 GENKSYMS_EXPECTED = (
     "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
@@ -60,7 +60,12 @@ SURFACE_PATHS = (
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
     "scripts/zigux/check-phase2-kbuild-routes.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
@@ -135,6 +140,11 @@ BOOTSTRAP_PRESENT = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
+    "`scripts/zigux/check-kconfig-bridge.py`",
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py`",
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-genksyms-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
@@ -457,6 +467,16 @@ def run_self_test() -> int:
         checks += 1
 
         build_self_test_root(root)
+        resolve(root, "scripts/zigux/check-phase2-kconfig-selftest-alignment.py").unlink()
+        assert ("MISSING_SURFACE_PATHS", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        resolve(root, "scripts/zigux/check-phase2-cross.py").unlink()
+        assert ("MISSING_SURFACE_PATHS", "scripts/zigux/check-phase2-cross.py") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
         resolve(root, "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig").unlink()
         assert ("MISSING_SURFACE_PATHS", "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig") in collect_issues(root)
         checks += 1
@@ -478,6 +498,15 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         assert any(code == "MISSING_BOOTSTRAP_PRESENT_MARKERS" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        notes = resolve(root, BOOTSTRAP_NOTES)
+        notes.write_text(
+            notes.read_text(encoding="utf-8").replace("`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`", ""),
+            encoding="utf-8",
+        )
+        assert ("MISSING_BOOTSTRAP_PRESENT_MARKERS", "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
