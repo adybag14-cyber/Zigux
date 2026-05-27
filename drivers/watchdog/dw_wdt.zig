@@ -40,6 +40,13 @@ pub const RegistrationScaffoldState = enum {
     ready_to_register,
 };
 
+pub const ProbeFailureStage = enum {
+    missing_timer_clock,
+    timeout_programming,
+    import_running_state,
+    register_device,
+};
+
 pub const PlatformResourcePreflightRequest = struct {
     has_named_tclk: bool,
     has_shared_clock: bool,
@@ -140,6 +147,65 @@ pub const RegistrationOrderSummary = struct {
     register_call: []const u8,
     blocked_on_live_platform_registration: bool,
     blocked_on_live_mmio: bool,
+};
+
+pub const ProbeFailureCleanupRequest = struct {
+    has_named_tclk: bool,
+    has_shared_clock: bool,
+    has_pclk: bool,
+    has_reset_control: bool,
+    has_pretimeout_irq: bool,
+    drvdata_published: bool,
+    timeout_programmed: bool,
+    imported_running: bool,
+    failure_stage: ProbeFailureStage,
+};
+
+pub const ProbeFailureCleanupSummary = struct {
+    anchor: []const u8,
+    failure_stage: ProbeFailureStage,
+    state: RegistrationScaffoldState,
+    timer_clock_path: TimerClockPath,
+    apb_clock_path: ApbClockPath,
+    probe_timeout_origin: ProbeTimeoutOrigin,
+    registration_requested: bool,
+    drvdata_cleanup_reviewable: bool,
+    timeout_cleanup_reviewable: bool,
+    pretimeout_irq_release_reviewable: bool,
+    reset_assert_requested: bool,
+    timer_clock_disable_requested: bool,
+    apb_clock_disable_requested: bool,
+    blocked_on_live_mmio_cleanup: bool,
+    blocked_on_live_platform_cleanup: bool,
+};
+
+pub const RemoveTeardownRequest = struct {
+    has_named_tclk: bool,
+    has_shared_clock: bool,
+    has_pclk: bool,
+    has_reset_control: bool,
+    has_pretimeout_irq: bool,
+    drvdata_published: bool,
+    timeout_programmed: bool,
+    imported_running: bool,
+    nowayout: bool,
+    restart_handler_registered: bool,
+};
+
+pub const RemoveTeardownSummary = struct {
+    anchor: []const u8,
+    state: RegistrationScaffoldState,
+    timer_clock_path: TimerClockPath,
+    apb_clock_path: ApbClockPath,
+    running_state_visible: bool,
+    watchdog_stop_requested: bool,
+    restart_handler_unregistered: bool,
+    pretimeout_irq_release_reviewable: bool,
+    reset_assert_requested: bool,
+    timer_clock_disable_requested: bool,
+    apb_clock_disable_requested: bool,
+    blocked_on_live_mmio_stop: bool,
+    blocked_on_live_remove_callback: bool,
 };
 
 fn selectTimerClockPath(has_named_tclk: bool, has_shared_clock: bool) TimerClockPath {
@@ -287,6 +353,75 @@ pub fn registrationOrderSummary(request: RegistrationOrderRequest) RegistrationO
     };
 }
 
+pub fn probeFailureCleanupSummary(
+    request: ProbeFailureCleanupRequest,
+) ProbeFailureCleanupSummary {
+    const handoff = platformHandoffSummary(.{
+        .has_named_tclk = request.has_named_tclk,
+        .has_shared_clock = request.has_shared_clock,
+        .has_pclk = request.has_pclk,
+        .has_reset_control = request.has_reset_control,
+        .has_pretimeout_irq = request.has_pretimeout_irq,
+        .drvdata_published = request.drvdata_published,
+        .timeout_programmed = request.timeout_programmed,
+        .imported_running = request.imported_running,
+    });
+    const registration = registrationOrderSummary(.{
+        .drvdata_published = request.drvdata_published,
+        .timeout_programmed = request.timeout_programmed,
+        .imported_running = request.imported_running,
+    });
+
+    return .{
+        .anchor = anchor_path,
+        .failure_stage = request.failure_stage,
+        .state = handoff.state,
+        .timer_clock_path = handoff.timer_clock_path,
+        .apb_clock_path = handoff.apb_clock_path,
+        .probe_timeout_origin = handoff.probe_timeout_origin,
+        .registration_requested = request.failure_stage == .register_device and registration.registration_requested,
+        .drvdata_cleanup_reviewable = request.drvdata_published,
+        .timeout_cleanup_reviewable = request.timeout_programmed or request.imported_running,
+        .pretimeout_irq_release_reviewable = request.has_pretimeout_irq and request.drvdata_published,
+        .reset_assert_requested = request.has_reset_control and request.drvdata_published,
+        .timer_clock_disable_requested = request.drvdata_published and handoff.timer_clock_available,
+        .apb_clock_disable_requested = request.drvdata_published and request.has_pclk,
+        .blocked_on_live_mmio_cleanup = handoff.blocked_on_live_mmio or
+            request.failure_stage == .timeout_programming or
+            request.failure_stage == .import_running_state,
+        .blocked_on_live_platform_cleanup = true,
+    };
+}
+
+pub fn removeTeardownSummary(request: RemoveTeardownRequest) RemoveTeardownSummary {
+    const handoff = platformHandoffSummary(.{
+        .has_named_tclk = request.has_named_tclk,
+        .has_shared_clock = request.has_shared_clock,
+        .has_pclk = request.has_pclk,
+        .has_reset_control = request.has_reset_control,
+        .has_pretimeout_irq = request.has_pretimeout_irq,
+        .drvdata_published = request.drvdata_published,
+        .timeout_programmed = request.timeout_programmed,
+        .imported_running = request.imported_running,
+    });
+
+    return .{
+        .anchor = anchor_path,
+        .state = handoff.state,
+        .timer_clock_path = handoff.timer_clock_path,
+        .apb_clock_path = handoff.apb_clock_path,
+        .running_state_visible = request.imported_running,
+        .watchdog_stop_requested = handoff.registration_ready and !request.nowayout,
+        .restart_handler_unregistered = request.restart_handler_registered and handoff.registration_ready,
+        .pretimeout_irq_release_reviewable = request.has_pretimeout_irq and request.drvdata_published,
+        .reset_assert_requested = request.has_reset_control and request.drvdata_published,
+        .timer_clock_disable_requested = request.drvdata_published and handoff.timer_clock_available,
+        .apb_clock_disable_requested = request.drvdata_published and request.has_pclk,
+        .blocked_on_live_mmio_stop = handoff.registration_ready,
+        .blocked_on_live_remove_callback = true,
+    };
+}
+
 test "dw_wdt preflight keeps named and shared timer clock paths explicit" {
     const named = platformResourcePreflightSummary(.{
         .has_named_tclk = true,
@@ -380,4 +515,120 @@ test "dw_wdt registration order keeps imported running handoff distinct from tim
     try std.testing.expectEqual(default_restart_priority, summary.restart_priority_value);
     try std.testing.expectEqualStrings("watchdog_register_device", summary.register_call);
     try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
+test "dw_wdt probe-failure cleanup keeps missing timer clock from claiming unwind work" {
+    const summary = probeFailureCleanupSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = false,
+        .timeout_programmed = false,
+        .imported_running = false,
+        .failure_stage = .missing_timer_clock,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(ProbeFailureStage.missing_timer_clock, summary.failure_stage);
+    try std.testing.expectEqual(RegistrationScaffoldState.blocked_missing_timer_clock, summary.state);
+    try std.testing.expectEqual(TimerClockPath.blocked_missing_timer_clock, summary.timer_clock_path);
+    try std.testing.expectEqual(ApbClockPath.optional_present, summary.apb_clock_path);
+    try std.testing.expectEqual(ProbeTimeoutOrigin.blocked_missing_timer_clock, summary.probe_timeout_origin);
+    try std.testing.expect(!summary.registration_requested);
+    try std.testing.expect(!summary.drvdata_cleanup_reviewable);
+    try std.testing.expect(!summary.timeout_cleanup_reviewable);
+    try std.testing.expect(!summary.pretimeout_irq_release_reviewable);
+    try std.testing.expect(!summary.reset_assert_requested);
+    try std.testing.expect(!summary.timer_clock_disable_requested);
+    try std.testing.expect(!summary.apb_clock_disable_requested);
+    try std.testing.expect(!summary.blocked_on_live_mmio_cleanup);
+    try std.testing.expect(summary.blocked_on_live_platform_cleanup);
+}
+
+test "dw_wdt probe-failure cleanup keeps post-drvdata mmio unwind reviewable" {
+    const summary = probeFailureCleanupSummary(.{
+        .has_named_tclk = true,
+        .has_shared_clock = false,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = false,
+        .failure_stage = .timeout_programming,
+    });
+
+    try std.testing.expectEqual(ProbeFailureStage.timeout_programming, summary.failure_stage);
+    try std.testing.expectEqual(RegistrationScaffoldState.blocked_on_live_mmio, summary.state);
+    try std.testing.expectEqual(TimerClockPath.named_tclk, summary.timer_clock_path);
+    try std.testing.expectEqual(ApbClockPath.optional_present, summary.apb_clock_path);
+    try std.testing.expectEqual(ProbeTimeoutOrigin.blocked_on_live_mmio, summary.probe_timeout_origin);
+    try std.testing.expect(!summary.registration_requested);
+    try std.testing.expect(summary.drvdata_cleanup_reviewable);
+    try std.testing.expect(!summary.timeout_cleanup_reviewable);
+    try std.testing.expect(summary.pretimeout_irq_release_reviewable);
+    try std.testing.expect(summary.reset_assert_requested);
+    try std.testing.expect(summary.timer_clock_disable_requested);
+    try std.testing.expect(summary.apb_clock_disable_requested);
+    try std.testing.expect(summary.blocked_on_live_mmio_cleanup);
+    try std.testing.expect(summary.blocked_on_live_platform_cleanup);
+}
+
+test "dw_wdt remove teardown keeps imported-running unregister ownership reviewable" {
+    const summary = removeTeardownSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = true,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = true,
+        .nowayout = false,
+        .restart_handler_registered = true,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(RegistrationScaffoldState.import_running_state_then_register, summary.state);
+    try std.testing.expectEqual(TimerClockPath.unnamed_shared_fallback, summary.timer_clock_path);
+    try std.testing.expectEqual(ApbClockPath.optional_present, summary.apb_clock_path);
+    try std.testing.expect(summary.running_state_visible);
+    try std.testing.expect(summary.watchdog_stop_requested);
+    try std.testing.expect(summary.restart_handler_unregistered);
+    try std.testing.expect(summary.pretimeout_irq_release_reviewable);
+    try std.testing.expect(summary.reset_assert_requested);
+    try std.testing.expect(summary.timer_clock_disable_requested);
+    try std.testing.expect(summary.apb_clock_disable_requested);
+    try std.testing.expect(summary.blocked_on_live_mmio_stop);
+    try std.testing.expect(summary.blocked_on_live_remove_callback);
+}
+
+test "dw_wdt remove teardown keeps nowayout from claiming a stop call" {
+    const summary = removeTeardownSummary(.{
+        .has_named_tclk = true,
+        .has_shared_clock = false,
+        .has_pclk = false,
+        .has_reset_control = false,
+        .has_pretimeout_irq = false,
+        .drvdata_published = true,
+        .timeout_programmed = true,
+        .imported_running = false,
+        .nowayout = true,
+        .restart_handler_registered = true,
+    });
+
+    try std.testing.expectEqual(RegistrationScaffoldState.ready_to_register, summary.state);
+    try std.testing.expectEqual(TimerClockPath.named_tclk, summary.timer_clock_path);
+    try std.testing.expectEqual(ApbClockPath.optional_absent, summary.apb_clock_path);
+    try std.testing.expect(!summary.running_state_visible);
+    try std.testing.expect(!summary.watchdog_stop_requested);
+    try std.testing.expect(summary.restart_handler_unregistered);
+    try std.testing.expect(!summary.pretimeout_irq_release_reviewable);
+    try std.testing.expect(!summary.reset_assert_requested);
+    try std.testing.expect(summary.timer_clock_disable_requested);
+    try std.testing.expect(!summary.apb_clock_disable_requested);
+    try std.testing.expect(summary.blocked_on_live_mmio_stop);
+    try std.testing.expect(summary.blocked_on_live_remove_callback);
 }
