@@ -203,6 +203,28 @@ static int check_boundary_header_relays(void)
     return 0;
 }
 
+static int check_status_facility_relays(void)
+{
+    struct zigux_export_status ok = zigux_ok_status((uint16_t)ZIGUX_FACILITY_HELPERS);
+    struct zigux_export_status err = zigux_make_status(-22, (uint16_t)ZIGUX_FACILITY_KERNEL);
+    struct zigux_export_status unknown = zigux_make_status(0, 9u);
+
+    if (!zigux_uapi_facility_is_known(ok.facility))
+        return __LINE__;
+    if (!zigux_uapi_facility_is_known(err.facility))
+        return __LINE__;
+    if (!zigux_uapi_export_status_has_known_facility(ok))
+        return __LINE__;
+    if (!zigux_uapi_export_status_has_known_facility(err))
+        return __LINE__;
+    if (zigux_uapi_facility_is_known(unknown.facility))
+        return __LINE__;
+    if (zigux_uapi_export_status_has_known_facility(unknown))
+        return __LINE__;
+
+    return 0;
+}
+
 static int check_interop_policy_relays(void)
 {
     struct zigux_interop_policy safe = zigux_default_interop_policy();
@@ -383,6 +405,10 @@ int main(void)
         return rc;
 
     rc = check_boundary_header_relays();
+    if (rc != 0)
+        return rc;
+
+    rc = check_status_facility_relays();
     if (rc != 0)
         return rc;
 
