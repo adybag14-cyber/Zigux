@@ -24,6 +24,8 @@ EXPECTED_CURRENT_HEAD_SURFACES = [
     "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig",
     "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
     "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_registration_intent_review.zig",
+    "zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
@@ -44,6 +46,7 @@ EXPECTED_GAP_SUMMARY = [
     ("phase11-gpio-wdt-driver-starter", "starter_landed"),
     ("phase11-gpio-wdt-verify-helper", "starter_landed"),
     ("phase11-gpio-wdt-preflight-proof", "starter_landed"),
+    ("phase11-gpio-wdt-registration-intent-proof", "starter_landed"),
     ("phase11-gpio-wdt-register-device-glue-proof", "starter_landed"),
     ("phase11-gpio-wdt-nowayout-proof", "starter_landed"),
     ("phase11-gpio-wdt-remove-handoff-proof", "starter_landed"),
@@ -55,29 +58,33 @@ EXPECTED_GAP_SUMMARY = [
 ]
 
 SURVEY_MARKERS = (
+    "`zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`",
+    "`zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig`",
     "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
     "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
     "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
     "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
     "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
-    "fail-closes on the recovered",
+    "registration-intent route",
     "dedicated build route",
 )
 
 MATRIX_MARKERS = (
+    "`zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`",
+    "`zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig`",
     "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
     "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
     "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
     "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
     "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
-    "The dedicated current-head manifest checker now keeps the recovered manifest",
+    "focused registration-intent proof",
     "packet aligned through",
 )
 
 BUILD_MARKERS = (
     '.root_source_file = b.path("phase11_gpio_wdt_current_head_manifest_survey.zig")',
     '.name = "phase11-gpio-wdt-current-head-manifest-survey-tests"',
-    'Run the focused Phase 11 gpio watchdog current-head manifest survey',
+    "Run the focused Phase 11 gpio watchdog current-head manifest survey",
 )
 
 
@@ -187,12 +194,14 @@ def build_fixture(root: Path) -> None:
         "\n".join(
             [
                 "# survey",
+                "`zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`",
+                "`zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig`",
                 "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
                 "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
                 "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
                 "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
                 "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
-                "fail-closes on the recovered manifest, survey note, validation matrix, and dedicated build route",
+                "registration-intent route with a dedicated build route",
             ]
         )
         + "\n",
@@ -203,12 +212,14 @@ def build_fixture(root: Path) -> None:
         "\n".join(
             [
                 "# matrix",
+                "`zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`",
+                "`zigux/tests/phase11_gpio_wdt_registration_intent_review_build.zig`",
                 "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
                 "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
                 "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
                 "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
                 "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
-                "The dedicated current-head manifest checker now keeps the recovered manifest packet aligned",
+                "focused registration-intent proof",
                 "packet aligned through",
             ]
         )
@@ -251,8 +262,8 @@ def run_self_test() -> int:
         mutations = (
             (MANIFEST_PATH, '"lane_key": "P11-L04"', '"lane_key": "P11-L99"', "lane_key mismatch"),
             (MANIFEST_PATH, '"packet_kind": "current_head_driver_docs_and_proof_packet"', '"packet_kind": "drifted_packet"', "packet_kind mismatch"),
-            (SURVEY_PATH, "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`", "", SURVEY_PATH),
-            (MATRIX_PATH, "The dedicated current-head manifest checker now keeps the recovered manifest packet aligned", "", MATRIX_PATH),
+            (SURVEY_PATH, "`zigux/tests/phase11_gpio_wdt_registration_intent_review.zig`", "", SURVEY_PATH),
+            (MATRIX_PATH, "focused registration-intent proof", "", MATRIX_PATH),
             (BUILD_PATH, 'Run the focused Phase 11 gpio watchdog current-head manifest survey', 'Run a different survey', BUILD_PATH),
         )
 
