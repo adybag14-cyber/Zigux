@@ -41,6 +41,7 @@
     "copy_values": [18446744073709551615, 18446744073709551615],
     "copy_clear_tail_values": [18446744073709551615, 31],
     "copy_and_extend_values": [18446744073709551615, 31, 0],
+    "complement_values": [18446744073709551605, 29],
     "and_result": true,
     "and_values": [10, 0],
     "andnot_result": true,
