@@ -103,6 +103,7 @@ const Fixture = struct {
         copy_values: []const u64,
         copy_clear_tail_values: []const u64,
         copy_and_extend_values: []const u64,
+        complement_values: []const u64,
         and_result: bool,
         and_values: []const u64,
         andnot_result: bool,
@@ -458,6 +459,18 @@ test "phase 1 helper ports match committed parity fixture" {
         @intCast(copy_and_extend_dst[0]),
         @intCast(copy_and_extend_dst[1]),
         @intCast(copy_and_extend_dst[2]),
+    });
+
+    const complement_nbits = fixture.find_bit.bits_per_long + 5;
+    const complement_src = [_]find_bit.Word{
+        0b1010,
+        (@as(find_bit.Word, 1) << 1) | (@as(find_bit.Word, 1) << 7) | (@as(find_bit.Word, 1) << 10),
+    };
+    var complement_dst = [_]find_bit.Word{ 0, 0 };
+    bitmap.complement(&complement_dst, &complement_src, complement_nbits);
+    try std.testing.expectEqualSlices(u64, fixture.bitmap.complement_values, &[_]u64{
+        @intCast(complement_dst[0]),
+        @intCast(complement_dst[1]),
     });
 
     const logic_lhs = [_]find_bit.Word{ 0b1110, 0 };
