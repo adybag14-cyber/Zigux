@@ -191,8 +191,14 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(ready_buffer_fd_lookup, "resolveReadyBufferFdLookupReturnAtAttempt");
 
     try expectHasDecl(perf_buffer_ready_window, "ReadyBufferWindowLookupError");
+    try expectHasDecl(perf_buffer_ready_window, "ReadyBufferWindowLookupDisposition");
+    try expectHasDecl(perf_buffer_ready_window, "ReadyBufferWindowLookupSummary");
+    try expectHasDecl(perf_buffer_ready_window, "summarizeReadyBufferWindowLookupAtAttempt");
+    try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowLookup");
     try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowMappedSizeAtAttempt");
+    try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowMappedSizeReturn");
     try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowMappedSizeReturnAtAttempt");
+    try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowLookupReturn");
     try expectHasDecl(perf_buffer_ready_window, "resolveReadyBufferWindowLookupReturnAtAttempt");
 
     try expectHasDecl(pin_path, "pathnameConcat");
@@ -468,6 +474,25 @@ test "materialized tools/lib/bpf Zigux segments keep stable ready-buffer window 
         .{ .mapped_size = 8192 },
     };
 
+    const lookup = perf_buffer_ready_window.summarizeReadyBufferWindowLookupAtAttempt(
+        &buffers,
+        &buffer_windows,
+        1,
+    );
+    try std.testing.expectEqual(
+        perf_buffer_ready_window.ReadyBufferWindowLookupDisposition.found_window,
+        lookup.disposition,
+    );
+    try std.testing.expectEqual(@as(?usize, 3), lookup.ready_index);
+    try std.testing.expectEqual(@as(?usize, 8192), lookup.mapped_size);
+    try std.testing.expectEqual(
+        @as(usize, 8192),
+        try perf_buffer_ready_window.resolveReadyBufferWindowLookup(lookup),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 0),
+        perf_buffer_ready_window.resolveReadyBufferWindowLookupReturn(lookup),
+    );
     try std.testing.expectEqual(
         @as(usize, 4096),
         try perf_buffer_ready_window.resolveReadyBufferWindowMappedSizeAtAttempt(&buffers, &buffer_windows, 0),
