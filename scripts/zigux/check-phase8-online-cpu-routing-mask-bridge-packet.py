@@ -161,7 +161,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    args = parser_args = parse_args()
+    args = parse_args()
     if args.self_test:
         return run_self_test()
     return emit_result(validate_root(args.root))
