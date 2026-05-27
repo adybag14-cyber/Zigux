@@ -1,12 +1,14 @@
 {
-  "lane_key": "P13-Y01",
+  "lane_key": "P13-L01",
   "phase": "Phase 13",
   "surveyed_commit": "master-readback-2026-05-27",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
+    "fs/libfs_dcache_cursor.zig",
     "zigux/tests/",
-    "Documentation/zigux/"
+    "Documentation/zigux/",
+    "scripts/zigux/"
   ],
   "survey_summary": {
     "current_phase13_build_present": false,
@@ -14,7 +16,11 @@
     "current_phase13_libfs_test_present": true,
     "current_phase13_libfs_reviewability_present": true,
     "current_phase13_libfs_survey_present": true,
-    "current_phase13_libfs_manifest_present": true
+    "current_phase13_libfs_manifest_present": true,
+    "current_libfs_dcache_cursor_zig_present": true,
+    "current_phase13_libfs_dcache_cursor_test_present": true,
+    "current_phase13_libfs_dcache_cursor_manifest_present": true,
+    "current_phase13_libfs_dcache_cursor_note_present": true
   },
   "gaps": [
     {
@@ -88,6 +94,13 @@
       "why_now": "The libfs roadmap anchor still needs one packet-local survey note, and current master keeps that reminder surface aligned with the shipped helper packet."
     },
     {
+      "id": "phase13-libfs-dcache-cursor-precondition-planner",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "fs/libfs_dcache_cursor.zig",
+      "why_now": "Current master now keeps the bounded `dcache_dir_open()` and `dcache_readdir()` cursor precondition side packet reviewable through its direct helper, focused replay, manifest, note, and dedicated checker without claiming live cursor traversal."
+    },
+    {
       "id": "phase13-build-gate",
       "status": "blocked_on_shared_build_surface",
       "kind": "validation",
@@ -107,6 +120,13 @@
       "kind": "runtime_boundary",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "Even with the direct helper packet shipped, this lane still must not overclaim live inode lifetime, inode lock ordering, or page-cache-backed filesystem state."
+    },
+    {
+      "id": "phase13-libfs-live-cursor-traversal",
+      "status": "blocked_on_dcache_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "fs/libfs_dcache_cursor.zig",
+      "why_now": "Even with the cursor precondition side packet landed, this lane still must not overclaim private cursor sibling walking, live cursor relocation, or lock ordering."
     }
   ]
 }
