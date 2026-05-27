@@ -22,8 +22,16 @@ pub const CpuMaskView = struct {
         return self.bitmap.firstSetBit();
     }
 
+    pub fn nextCpu(self: CpuMaskView, start_cpu: usize) ?usize {
+        return self.bitmap.nextSetBit(start_cpu);
+    }
+
     pub fn firstMissingCpu(self: CpuMaskView) ?usize {
         return self.bitmap.firstClearBit();
+    }
+
+    pub fn nextMissingCpu(self: CpuMaskView, start_cpu: usize) ?usize {
+        return self.bitmap.nextClearBit(start_cpu);
     }
 
     pub fn isSubsetOf(self: CpuMaskView, other: CpuMaskView) bool {
@@ -34,6 +42,26 @@ pub const CpuMaskView = struct {
         return self.bitmap.intersects(other.bitmap);
     }
 };
+
+test "cpumask view can walk present and missing cpus from a bounded start point" {
+    const words = [_]usize{
+        (@as(usize, 1) << 1) |
+            (@as(usize, 1) << 4) |
+            (@as(usize, 1) << 7),
+        std.math.maxInt(usize),
+    };
+    const view = CpuMaskView.init(words[0..], 8);
+
+    try std.testing.expectEqual(@as(?usize, 1), view.nextCpu(0));
+    try std.testing.expectEqual(@as(?usize, 4), view.nextCpu(2));
+    try std.testing.expectEqual(@as(?usize, 7), view.nextCpu(7));
+    try std.testing.expectEqual(@as(?usize, null), view.nextCpu(8));
+
+    try std.testing.expectEqual(@as(?usize, 0), view.nextMissingCpu(0));
+    try std.testing.expectEqual(@as(?usize, 2), view.nextMissingCpu(2));
+    try std.testing.expectEqual(@as(?usize, 5), view.nextMissingCpu(5));
+    try std.testing.expectEqual(@as(?usize, null), view.nextMissingCpu(8));
+}
 
 test "cpumask view keeps cpu presence and gaps explicit" {
     const words = [_]usize{
