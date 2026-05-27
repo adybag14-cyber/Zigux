@@ -26,13 +26,11 @@ FREEZE_MAP_MARKERS = (
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "study-only anchor maintenance must stay aligned with `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "shared Phase 15 handoff and gap notes, especially `Documentation/zigux/phase15-handoff-next-steps-survey.md` and `Documentation/zigux/phase15-shared-summary-gap.md`, must keep the directly materialized validator, tests-root reminder, and shared build companion aligned as landed governance evidence",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
     "if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?",
-    "if the change touches the shared Phase 15 governance packet",
-    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
-    "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit as study-only boundary anchors rather than delivery-ready runtime evidence",
 )
 
 STUDY_ONLY_MARKERS = (
@@ -42,18 +40,21 @@ STUDY_ONLY_MARKERS = (
     "posture: `study_only`",
     "if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it",
     "this note is an inventory and handoff surface, not an approval record",
+    "the current Phase 15 handoff-next-steps survey keeps the same two study-only anchors parked beside the existing governance packet and reopens only if a broader reminder surface drifts",
 )
 
 LANE_SEQ_MARKERS = (
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md` owns the explicit two-anchor study-only inventory",
     "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` are shared reminder surfaces",
+    "`scripts/zigux/check-phase15-review-checklist-study-only-alignment.py` keeps the checklist-specific study-only anchor summary boundary aligned with `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
 )
 
 SHARED_GAP_MARKERS = (
     "`Documentation/zigux/review-checklist.md`",
-    "if docs-root, checklist, scripts-root, tests-root, handoff-note, or adjacent stay-in-C wording drifts",
-    "the current Phase 15 governance packet above, the dedicated handoff manifest or the stay-in-C companion changes enough to force a smaller shared-summary refresh",
+    "the focused review-checklist study-only alignment checker",
+    "if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, the Architecture Council decision index, the deep-core blocker survey, the Architecture Council packet checker, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims",
+    "the dedicated handoff manifest, the directly materialized shared build companion, the landed tests-root Phase 15 governance reminder, or the stay-in-C companion changes enough to force a smaller shared-summary refresh",
 )
 
 
@@ -102,6 +103,7 @@ def _seed(root: Path) -> None:
 ## Governance For Freeze-Map Changes
 - shared reminder surfaces that summarize freeze posture, especially `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md`, must keep the same study-only anchor inventory and route back to `Documentation/zigux/phase15-study-only-anchor-accounting.md` when they summarize that boundary set
 - study-only anchor maintenance must stay aligned with `Documentation/zigux/phase15-study-only-anchor-accounting.md` so the `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` inventory does not drift from this file
+- shared Phase 15 handoff and gap notes, especially `Documentation/zigux/phase15-handoff-next-steps-survey.md` and `Documentation/zigux/phase15-shared-summary-gap.md`, must keep the directly materialized validator, tests-root reminder, and shared build companion aligned as landed governance evidence while describing only the still-missing dedicated `phase15*` wrapper routes and shared-CI companions as repo-reality gaps on current `master`
 """,
     )
     _write(
@@ -109,12 +111,14 @@ def _seed(root: Path) -> None:
         """# Zigux Review Checklist
 
 - if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?
-- if the change touches the shared Phase 15 governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, and `Documentation/zigux/review-checklist.md` still agree on the current maintenance-mode governance packet, keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit as study-only boundary anchors rather than delivery-ready runtime evidence, and avoid implying any Architecture Council approval or freeze-map status change that the current packet does not record?
 """,
     )
     _write(
         root / STUDY_ONLY_REL,
         """# Phase 15 Study-Only Anchor Accounting
+
+## Current Repo Reality
+- the current Phase 15 handoff-next-steps survey keeps the same two study-only anchors parked beside the existing governance packet and reopens only if a broader reminder surface drifts
 
 ## Study-Only Anchor Inventory
 ### `kernel/workqueue.c`
@@ -134,20 +138,24 @@ def _seed(root: Path) -> None:
 
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md` owns the explicit two-anchor study-only inventory that stays outside the freeze-in-C scorecard and blocked status-change rows
 - `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` are shared reminder surfaces that may summarize the parked packet, but they do not own freeze-map status decisions themselves
+- `scripts/zigux/check-phase15-review-checklist-study-only-alignment.py` keeps the checklist-specific study-only anchor summary boundary aligned with `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` without widening the checklist into an owner of freeze-map status decisions
 """,
     )
     _write(
         root / SHARED_GAP_REL,
         """# Phase 15 Shared Summary Gap
 
+## Why this note exists
+- the focused review-checklist study-only alignment checker is materialized on current `master`
+
 ## Current shared-summary watchpoints
 - `Documentation/zigux/review-checklist.md`
 
 ## Recovery rule
-- if docs-root, checklist, scripts-root, tests-root, handoff-note, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+- if docs-root, checklist, scripts-root, tests-root, the Architecture Council review-process owner note, the decision-record template, the Architecture Council decision index, the deep-core blocker survey, the Architecture Council packet checker, readiness note, handoff note, the checklist-specific study-only anchor summary boundary, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 
 ## Next bounded step
-- keep this note parked unless the current Phase 15 governance packet above, the dedicated handoff manifest or the stay-in-C companion changes enough to force a smaller shared-summary refresh
+- keep this note parked unless the dedicated handoff manifest, the directly materialized shared build companion, the landed tests-root Phase 15 governance reminder, or the stay-in-C companion changes enough to force a smaller shared-summary refresh
 """,
     )
 
@@ -164,11 +172,12 @@ def run_self_test() -> int:
         case_count += 1
 
         cases = (
-            (FREEZE_MAP_REL, FREEZE_MAP_MARKERS[2]),
+            (FREEZE_MAP_REL, FREEZE_MAP_MARKERS[6]),
             (REVIEW_CHECKLIST_REL, REVIEW_CHECKLIST_MARKERS[0]),
-            (STUDY_ONLY_REL, STUDY_ONLY_MARKERS[4]),
-            (LANE_SEQ_REL, LANE_SEQ_MARKERS[1]),
-            (SHARED_GAP_REL, SHARED_GAP_MARKERS[1]),
+            (STUDY_ONLY_REL, STUDY_ONLY_MARKERS[6]),
+            (LANE_SEQ_REL, LANE_SEQ_MARKERS[3]),
+            (SHARED_GAP_REL, SHARED_GAP_MARKERS[2]),
+            (SHARED_GAP_REL, SHARED_GAP_MARKERS[3]),
         )
 
         for rel, marker in cases:
