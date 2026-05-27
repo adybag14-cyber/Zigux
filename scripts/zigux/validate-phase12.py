@@ -33,6 +33,9 @@ NVME_FALLBACK_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-m
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 BUILD_INVENTORY_CHECKER_PATH = "scripts/zigux/check-phase12-build-inventory.py"
+VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-virtio-net-manifest-presence.py"
+)
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
@@ -62,6 +65,7 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 CHECKER_PATHS = (
     BUILD_ONLY_CHECKER_PATH,
     BUILD_INVENTORY_CHECKER_PATH,
+    VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     COMPLEX_DRIVER_CHECKER_PATH,
     NVME_PACKET_COHERENCE_CHECKER_PATH,
@@ -196,6 +200,7 @@ REQUIRED_MARKERS = {
     ],
     VALIDATOR_PATH: [
         BUILD_INVENTORY_CHECKER_PATH,
+        VIRTIO_NET_MANIFEST_PRESENCE_CHECKER_PATH,
         NVME_PACKET_COHERENCE_CHECKER_PATH,
         VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
         VIRTIO_NET_FALLBACK_PATH,
