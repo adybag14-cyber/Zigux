@@ -54,6 +54,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
     "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py",
     "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+    "scripts/zigux/check-phase11-hvc-current-head-manifest.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
     "scripts/zigux/validate-phase11.py",
@@ -211,6 +212,14 @@ CHECKS = (
     CheckSpec(
         "phase11-hvc-targetless-unregister-witness",
         ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
+    ),
+    CheckSpec(
+        "phase11-hvc-current-head-manifest-self-test",
+        ("python", "scripts/zigux/check-phase11-hvc-current-head-manifest.py", "--self-test"),
+    ),
+    CheckSpec(
+        "phase11-hvc-current-head-manifest",
+        ("python", "scripts/zigux/check-phase11-hvc-current-head-manifest.py"),
     ),
     CheckSpec(
         "phase11-dw-wdt-teardown-packet-self-test",
@@ -493,6 +502,7 @@ def run_self_test() -> int:
             "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
             "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py",
             "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
+            "scripts/zigux/check-phase11-hvc-current-head-manifest.py",
             "zigux/Makefile",
             "zigux/tests/fixtures/phase11_validate_checks.json",
             "zigux/tests/phase11_bcm2835_wdt.zig",
@@ -578,6 +588,8 @@ def run_self_test() -> int:
             ("scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py", "phase11-hvc-cleanup-prerequisite-packet"),
             ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness-self-test"),
             ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness"),
+            ("scripts/zigux/check-phase11-hvc-current-head-manifest.py", "phase11-hvc-current-head-manifest-self-test"),
+            ("scripts/zigux/check-phase11-hvc-current-head-manifest.py", "phase11-hvc-current-head-manifest"),
             ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet-self-test"),
             ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet"),
             ("scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "phase11-dw-wdt-verify-alignment-self-test"),
