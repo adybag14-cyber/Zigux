@@ -186,21 +186,61 @@ def run_self_test() -> int:
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture should pass: {failures!r}")
+
+        write_fixture_root(base)
         (base / FIXTURE_PATH).write_text("{}\n", encoding="utf-8")
         if "phase12_build_inventory_mismatch" not in validate(base):
             raise SystemExit("expected inventory mismatch")
+
         write_fixture_root(base)
         (base / BUILD_PATH).write_text('const std = @import("std");\npub fn build(b: *std.Build) void { _ = b; }\n', encoding="utf-8")
         failures = validate(base)
         if "phase12_build_inventory_mismatch" not in failures:
             raise SystemExit("expected build mismatch")
+
         write_fixture_root(base)
         (base / SYNTAX_SOURCE_PATH).unlink()
         failures = validate(base)
         if f"missing_file:{SYNTAX_SOURCE_PATH.as_posix()}" not in failures:
             raise SystemExit("expected syntax-lab source missing-file failure")
+
+        write_fixture_root(base)
+        (base / SYNTAX_BUILD_PATH).unlink()
+        failures = validate(base)
+        if f"missing_file:{SYNTAX_BUILD_PATH.as_posix()}" not in failures:
+            raise SystemExit("expected syntax-lab build missing-file failure")
+
+        write_fixture_root(base)
+        (base / SYNTAX_BUILD_PATH).write_text('const std = @import("std");\npub fn build(b: *std.Build) void { _ = b; }\n', encoding="utf-8")
+        failures = validate(base)
+        if "phase12_syntax_lab_inventory_mismatch" not in failures:
+            raise SystemExit("expected syntax-lab inventory mismatch")
+
+        write_fixture_root(base)
+        (base / MAKEFILE_PATH).write_text(
+            "phase12-test:\n"
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all\n",
+            encoding="utf-8",
+        )
+        failures = validate(base)
+        if "phase12_makefile_missing_marker:phase12-virtio-net-syntax-lab-test:" not in failures:
+            raise SystemExit("expected syntax-lab makefile marker failure")
+
+        write_fixture_root(base)
+        (base / MAKEFILE_PATH).write_text(
+            (base / MAKEFILE_PATH).read_text(encoding="utf-8")
+            + "phase12: phase12-validate phase12-smoke phase12-test phase12-virtio-net-syntax-lab-test\n",
+            encoding="utf-8",
+        )
+        failures = validate(base)
+        if (
+            "phase12_makefile_forbidden_marker:"
+            "phase12: phase12-validate phase12-smoke phase12-test phase12-virtio-net-syntax-lab-test"
+        ) not in failures:
+            raise SystemExit("expected forbidden syntax-lab aggregation marker")
+
         print("PHASE12_BUILD_INVENTORY_SELF_TEST=pass")
-        print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=3")
+        print("PHASE12_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
