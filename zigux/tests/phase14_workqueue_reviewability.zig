@@ -37,6 +37,8 @@ const expected_productization_exact_checks = [_][]const u8{
     "python3 scripts/zigux/validate-phase14.py",
     "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
     "python3 scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+    "python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py --self-test",
+    "python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py",
     "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
     "python3 scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "make -C zigux phase14-validate",
