@@ -197,7 +197,7 @@ fn expectEvidenceArchiveTruthfulness(manifest: Manifest) !void {
 
         try expectContains(archive_doc, "`PHASE=Phase 15`");
         try expectContains(archive_doc, "`LANE_KEY=P15-L03`");
-        try expectContains(archive_doc, "`SURVEYED_COMMIT=current-master-readback-2026-05-25`");
+        try expectContains(archive_doc, "`SURVEYED_COMMIT=current-master-readback-2026-05-27`");
         try expectContains(archive_doc, "`REVIEW_STATUS=blocked_review`");
         try expectContains(archive_doc, "current Architecture Council status-change approval: `not_recorded`");
         try expectContains(archive_doc, anchor.path);
