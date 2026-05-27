@@ -31,6 +31,24 @@ fn validateRangeWindow(base_addr: usize, length: u32) PolicyError!void {
     _ = try byteOffsetAddress(base_addr, byte_len - 1);
 }
 
+fn rangeContainsAccessBytes(range: MmioRange, byte_offset: usize, byte_len: usize) bool {
+    const range_len: usize = @intCast(range.length);
+    const access_end = std.math.add(usize, byte_offset, byte_len) catch return false;
+    return access_end <= range_len;
+}
+
+fn rangeStrideAllowsOffset(range: MmioRange, byte_offset: usize) bool {
+    const stride: usize = @intCast(range.stride);
+    if (stride == 0) return true;
+    return (byte_offset % stride) == 0;
+}
+
+fn validateRangeTypedAccess(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!void {
+    if ((byte_offset % @alignOf(T)) != 0) return error.InvalidInteropPolicy;
+    if (!rangeStrideAllowsOffset(range, byte_offset)) return error.InvalidInteropPolicy;
+    if (!rangeContainsAccessBytes(range, byte_offset, @sizeOf(T))) return error.InvalidInteropPolicy;
+}
+
 fn offsetConstPointer(comptime T: type, base_addr: usize, byte_offset: usize) PolicyError!*const volatile T {
     if ((byte_offset % @alignOf(T)) != 0) return error.InvalidInteropPolicy;
     return @ptrFromInt(try byteOffsetAddress(base_addr, byte_offset));
@@ -507,6 +525,37 @@ test "phase3 mmio helper keeps helper-local ranges and width aliases explicit" {
     );
 
     try std.testing.expectError(error.UnsafeScopeDenied, write64InteropPolicyBytes(base_addr, 8, 0, no_unsafe_scope, 0));
+}
+
+test "phase3 mmio helper keeps MmioRange typed-access windows explicit before future range-bound accessors land" {
+    const strided = MmioRange{
+        .base_addr = 0x1000,
+        .length = 16,
+        .stride = 4,
+    };
+    const tightly_spaced = MmioRange{
+        .base_addr = 0x2000,
+        .length = 12,
+        .stride = 0,
+    };
+
+    try validateRangeTypedAccess(u8, strided, 0);
+    try validateRangeTypedAccess(u16, strided, 4);
+    try validateRangeTypedAccess(u32, strided, 8);
+    try std.testing.expect(rangeContainsAccessBytes(strided, 12, @sizeOf(u32)));
+    try std.testing.expect(!rangeContainsAccessBytes(strided, 13, @sizeOf(u32)));
+    try std.testing.expect(rangeStrideAllowsOffset(strided, 12));
+    try std.testing.expect(!rangeStrideAllowsOffset(strided, 10));
+
+    try validateRangeTypedAccess(u16, tightly_spaced, 6);
+    try std.testing.expect(rangeStrideAllowsOffset(tightly_spaced, 7));
+    try std.testing.expect(rangeContainsAccessBytes(tightly_spaced, 10, @sizeOf(u16)));
+
+    try std.testing.expectError(error.InvalidInteropPolicy, validateRangeTypedAccess(u16, strided, 2));
+    try std.testing.expectError(error.InvalidInteropPolicy, validateRangeTypedAccess(u32, strided, 6));
+    try std.testing.expectError(error.InvalidInteropPolicy, validateRangeTypedAccess(u32, strided, 13));
+    try std.testing.expectError(error.InvalidInteropPolicy, validateRangeTypedAccess(u64, tightly_spaced, 8));
+    try std.testing.expect(!rangeContainsAccessBytes(strided, std.math.maxInt(usize), 4));
 }
 
 test "phase3 mmio helper rejects overflowing range windows before blessing unsafe access" {
