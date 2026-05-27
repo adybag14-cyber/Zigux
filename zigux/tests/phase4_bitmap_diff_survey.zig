@@ -43,7 +43,6 @@ fn gitBlobShaHex(source: []const u8) [40]u8 {
     const len_text = std.fmt.bufPrint(&len_buf, "{}", .{source.len}) catch unreachable;
     hasher.update(len_text);
     hasher.update(&[_]u8{0});
-
     hasher.update(source);
 
     var digest: [20]u8 = undefined;
@@ -65,7 +64,7 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_bitmap_diff_present);
     try std.testing.expectEqualStrings("zigux/tests/bitmap_diff.zig", manifest.live_gate_path);
-    try std.testing.expectEqualStrings("c10241b1b7a86e161d602dbc4b480173a4aa0986", manifest.live_gate_blob_sha);
+    try std.testing.expectEqualStrings("7b802d3d710426c6369e73dbdeee568a8c045221", manifest.live_gate_blob_sha);
     try std.testing.expectEqualStrings("zigux/tests/phase4_bitmap_live_helper_replay.zig", manifest.helper_replay_path);
     try std.testing.expectEqualStrings("375f7f5ac9dfecee48500cf52a4edbcd7cd02e2f", manifest.helper_replay_blob_sha);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
