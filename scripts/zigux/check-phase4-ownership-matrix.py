@@ -13,7 +13,7 @@ ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json
 BITMAP_MANIFEST = Path("zigux/tests/phase4_bitmap_diff_manifest.json")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASES = 15
+EXPECTED_SELF_TEST_CASES = 17
 
 
 def parse_args() -> argparse.Namespace:
@@ -103,8 +103,11 @@ def validate_root(root: Path) -> list[str]:
         issues.append(f"matrix_line_missing:{bitmap_line}")
 
     perf_gate_surfaces = perf_manifest.get("gate_surfaces")
-    if not isinstance(perf_gate_surfaces, list) or len(perf_gate_surfaces) < 2:
-        issues.append("perf_manifest:gate_surfaces:missing_or_short")
+    if not isinstance(perf_gate_surfaces, list):
+        issues.append("perf_manifest:gate_surfaces:not_list")
+        return issues
+    if len(perf_gate_surfaces) != 2:
+        issues.append(f"perf_manifest:gate_surfaces:expected=2:actual={len(perf_gate_surfaces)}")
         return issues
 
     atomic64_surface = perf_gate_surfaces[0]
@@ -239,6 +242,21 @@ def run_self_test() -> int:
             if not expect_failure(root, expected_prefix):
                 print("PHASE4_OWNERSHIP_MATRIX_SELF_TEST=fail")
                 print(f"drift case did not fail closed: {expected_prefix}")
+                return 1
+            cases += 1
+
+        for actual_count in (1, 3):
+            build_fixture_tree(root)
+            perf_manifest = json.loads(read_text(root / PERF_MANIFEST))
+            if actual_count == 1:
+                perf_manifest["gate_surfaces"] = perf_manifest["gate_surfaces"][:1]
+            else:
+                perf_manifest["gate_surfaces"].append(dict(perf_manifest["gate_surfaces"][0]))
+            write_text(root / PERF_MANIFEST, json.dumps(perf_manifest, indent=2) + "\n")
+            expected_prefix = f"perf_manifest:gate_surfaces:expected=2:actual={actual_count}"
+            if not expect_failure(root, expected_prefix):
+                print("PHASE4_OWNERSHIP_MATRIX_SELF_TEST=fail")
+                print(f"gate surface cardinality drift did not fail closed: {expected_prefix}")
                 return 1
             cases += 1
 
