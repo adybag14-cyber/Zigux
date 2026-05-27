@@ -73,6 +73,14 @@
       "command": ["python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"]
     },
     {
+      "name": "phase11-watchdog-lifecycle-parity-gap-self-test",
+      "command": ["python", "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py", "--self-test"]
+    },
+    {
+      "name": "phase11-watchdog-lifecycle-parity-gap",
+      "command": ["python", "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py"]
+    },
+    {
       "name": "phase11-header-boundary-packet-self-test",
       "command": ["python", "scripts/zigux/check-phase11-header-boundary-packet.py", "--self-test"]
     },
