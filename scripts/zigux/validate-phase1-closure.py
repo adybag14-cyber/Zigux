@@ -258,6 +258,7 @@ EXPECTED_STRING_REVIEW_ANCHORS = {
         'test "strnchr honors count and C-string boundaries"',
         'test "strnlen honors count and C-string boundaries"',
         'test "strnchrNul returns the first match, NUL, or count boundary"',
+        'test "strchrNul and strchrnul return the first match or terminator boundary"',
     ],
     "strcmp_review_anchors": [
         'test "strcmp mirrors C-string lexical ordering"',
@@ -270,10 +271,11 @@ EXPECTED_STRING_REVIEW_ANCHORS = {
         'test "strchr and strrchr return the terminator index when searching for NUL"',
         'test "strlen honors C-string boundaries"',
         'test "strnlen honors count and C-string boundaries"',
+        'test "strchrNul and strchrnul return the first match or terminator boundary"',
     ],
-    "search_length_review_summary": "helper-local search-and-length boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated search-length fixture keys, so strchr() or strrchr() boundary scans, terminator-index searches, and strlen() or strnlen() length boundaries remain review-visible at the helper surface",
-    "strnchr_review_summary": "the direct counted-search and C-string search-length follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, strspn() accepted-prefix scanning, strcspn() rejected-byte scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors",
-    "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default.",
+    "search_length_review_summary": "helper-local search-and-length boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated search-length fixture keys, so strchr() or strrchr() boundary scans, terminator-index searches, strchrNul() or strchrnul() match-or-terminator boundaries, and strlen() or strnlen() length boundaries remain review-visible at the helper surface",
+    "strnchr_review_summary": "the direct counted-search and C-string search-length follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, strspn() accepted-prefix scanning, strcspn() rejected-byte scanning, strnchr() count-limited scanning, strnlen() count-clamped length, strnchrNul() or strnchrnul() match-or-NUL boundary behavior, and strchrNul() or strchrnul() match-or-terminator boundaries remain owned by the helper-local anchors",
+    "next_safe_step_note": "If this helper lane reopens, keep the helper-local strlcat, sysfs, case-insensitive compare, and match-or-terminator review anchors aligned across the string review packet and this lane note unless dedicated shared fixture keys land; do not reopen missing closure-side validator names by default.",
 }
 
 DELEGATED_CHECKERS = (
