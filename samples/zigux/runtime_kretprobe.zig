@@ -762,3 +762,124 @@ test "runtime kretprobe sample keeps duplicate registration rollback explicit ac
     try std.testing.expectEqual(@as(usize, 2), selftested_after_exit.completed_instances);
     try std.testing.expectEqual(@as(?i32, 42), selftested_after_exit.last_retval);
 }
+
+test "runtime kretprobe sample keeps maxactive saturation rollback explicit across initialized and selftested stages" {
+    var initialized = RuntimeKretprobeSample{};
+    try initialized.init();
+    try initialized.registerProbe();
+    inline for ([_]i64{ 10, 20, 30, 40, 50, 60, 70, 80 }) |entry_timestamp_ns| {
+        try initialized.recordEntryAt(entry_timestamp_ns);
+    }
+
+    const initialized_before_capacity = initialized.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized_before_capacity.stage);
+    try std.testing.expectEqual(@as(usize, 8), initialized_before_capacity.active_instances);
+    try std.testing.expectEqual(@as(?i64, 10), initialized_before_capacity.oldest_active_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 80), initialized_before_capacity.newest_active_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 80), initialized_before_capacity.last_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i32, null), initialized_before_capacity.last_retval);
+
+    try std.testing.expectError(error.ActiveInstanceCapacityExceeded, initialized.recordEntryAt(90));
+    try expectSnapshotStable(initialized_before_capacity, initialized.lifecycleSnapshot());
+
+    inline for ([_]struct { retval: i32, ts: i64 }{
+        .{ .retval = 1, .ts = 81 },
+        .{ .retval = 2, .ts = 82 },
+        .{ .retval = 3, .ts = 83 },
+        .{ .retval = 4, .ts = 84 },
+        .{ .retval = 5, .ts = 85 },
+        .{ .retval = 6, .ts = 86 },
+        .{ .retval = 7, .ts = 87 },
+        .{ .retval = 8, .ts = 88 },
+    }) |ret| {
+        try initialized.recordReturnAt(ret.retval, ret.ts);
+    }
+    try initialized.unregisterProbe();
+    try initialized.exit();
+
+    var selftested = RuntimeKretprobeSample{};
+    try selftested.init();
+    _ = try selftested.runSelftest();
+    try selftested.registerProbe();
+    inline for ([_]i64{ 100, 110, 120, 130, 140, 150, 160, 170 }) |entry_timestamp_ns| {
+        try selftested.recordEntryAt(entry_timestamp_ns);
+    }
+
+    const selftested_before_capacity = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftested_before_capacity.stage);
+    try std.testing.expectEqual(@as(usize, 8), selftested_before_capacity.active_instances);
+    try std.testing.expectEqual(@as(?i64, 100), selftested_before_capacity.oldest_active_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 170), selftested_before_capacity.newest_active_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 170), selftested_before_capacity.last_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i32, 0), selftested_before_capacity.last_retval);
+
+    try std.testing.expectError(error.ActiveInstanceCapacityExceeded, selftested.recordEntryAt(180));
+    try expectSnapshotStable(selftested_before_capacity, selftested.lifecycleSnapshot());
+
+    inline for ([_]struct { retval: i32, ts: i64 }{
+        .{ .retval = 11, .ts = 171 },
+        .{ .retval = 12, .ts = 172 },
+        .{ .retval = 13, .ts = 173 },
+        .{ .retval = 14, .ts = 174 },
+        .{ .retval = 15, .ts = 175 },
+        .{ .retval = 16, .ts = 176 },
+        .{ .retval = 17, .ts = 177 },
+        .{ .retval = 18, .ts = 178 },
+    }) |ret| {
+        try selftested.recordReturnAt(ret.retval, ret.ts);
+    }
+    try selftested.unregisterProbe();
+    try selftested.exit();
+
+    const selftested_after_exit = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, selftested_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 9), selftested_after_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 18), selftested_after_exit.last_retval);
+}
+
+test "runtime kretprobe sample keeps return timestamp rollback explicit across initialized and selftested stages" {
+    var initialized = RuntimeKretprobeSample{};
+    try initialized.init();
+    try initialized.registerProbe();
+    try initialized.recordEntryAt(40);
+
+    const initialized_before_bad_return = initialized.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized_before_bad_return.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_before_bad_return.active_instances);
+    try std.testing.expectEqual(@as(?i64, 40), initialized_before_bad_return.last_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, null), initialized_before_bad_return.last_return_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, null), initialized_before_bad_return.last_duration_ns);
+
+    try std.testing.expectError(error.ReturnBeforeEntryTimestamp, initialized.recordReturnAt(7, 39));
+    try expectSnapshotStable(initialized_before_bad_return, initialized.lifecycleSnapshot());
+
+    try initialized.recordReturnAt(7, 41);
+    try initialized.unregisterProbe();
+    try initialized.exit();
+
+    var selftested = RuntimeKretprobeSample{};
+    try selftested.init();
+    _ = try selftested.runSelftest();
+    try selftested.registerProbe();
+    try selftested.recordEntryAt(100);
+
+    const selftested_before_bad_return = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftested_before_bad_return.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftested_before_bad_return.active_instances);
+    try std.testing.expectEqual(@as(?i64, 100), selftested_before_bad_return.last_entry_timestamp_ns);
+    try std.testing.expectEqual(@as(?i32, 0), selftested_before_bad_return.last_retval);
+
+    try std.testing.expectError(error.ReturnBeforeEntryTimestamp, selftested.recordReturnAt(11, 99));
+    try expectSnapshotStable(selftested_before_bad_return, selftested.lifecycleSnapshot());
+
+    try selftested.recordReturnAt(11, 120);
+    try selftested.unregisterProbe();
+    try selftested.exit();
+
+    const selftested_after_exit = selftested.lifecycleSnapshot();
+    try std.testing.expectEqual(ModuleStage.exited, selftested_after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 2), selftested_after_exit.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 11), selftested_after_exit.last_retval);
+    try std.testing.expectEqual(@as(?i64, 120), selftested_after_exit.last_return_timestamp_ns);
+    try std.testing.expectEqual(@as(?i64, 20), selftested_after_exit.last_duration_ns);
+}
