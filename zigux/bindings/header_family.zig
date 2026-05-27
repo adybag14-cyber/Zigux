@@ -24,11 +24,11 @@ pub const abi_major_offset: usize = version_binding.abi_major_offset;
 pub const abi_minor_offset: usize = version_binding.abi_minor_offset;
 pub const header_family_revision_offset: usize = version_binding.header_family_revision_offset;
 
-pub const header_size: usize = @sizeOf(BoundaryHeader);
-pub const header_align: usize = @alignOf(BoundaryHeader);
-pub const header_size_offset: usize = @offsetOf(BoundaryHeader, "size");
-pub const header_abi_version_offset: usize = @offsetOf(BoundaryHeader, "abi_version");
-pub const header_flags_offset: usize = @offsetOf(BoundaryHeader, "flags");
+pub const header_size: usize = abi.boundary_header_size;
+pub const header_align: usize = abi.boundary_header_align;
+pub const header_size_offset: usize = abi.boundary_header_size_offset;
+pub const header_abi_version_offset: usize = abi.boundary_header_abi_version_offset;
+pub const header_flags_offset: usize = abi.boundary_header_flags_offset;
 
 pub const fields_size: usize = dev_t_binding.fields_size;
 pub const fields_align: usize = dev_t_binding.fields_align;
@@ -75,11 +75,11 @@ pub fn boundaryHeaderHasCurrentAbiVersion(abi_version_value: u16) bool {
 }
 
 pub fn boundaryHeaderIsCompatibleSize(size: u32) bool {
-    return size >= @sizeOf(BoundaryHeader);
+    return size >= @as(u32, @intCast(header_size));
 }
 
 pub fn boundaryHeaderIsCanonicalSize(size: u32) bool {
-    return size == @sizeOf(BoundaryHeader);
+    return size == @as(u32, @intCast(header_size));
 }
 
 pub fn boundaryHeaderIsCanonical(header: BoundaryHeader) bool {
@@ -96,7 +96,7 @@ pub fn boundaryHeaderExtendsBoundary(header: BoundaryHeader) bool {
 
 pub fn boundaryHeaderRequestedExtraBytes(header: BoundaryHeader) u32 {
     if (!boundaryHeaderExtendsBoundary(header)) return 0;
-    return header.size - @sizeOf(BoundaryHeader);
+    return header.size - @as(u32, @intCast(header_size));
 }
 
 pub fn canonicalizeBoundaryHeader(header: BoundaryHeader) BoundaryHeader {
@@ -246,6 +246,11 @@ test "header family binding keeps boundary header compatibility helpers direct" 
     try std.testing.expectEqual(@as(usize, 0), header_size_offset);
     try std.testing.expectEqual(@as(usize, 4), header_abi_version_offset);
     try std.testing.expectEqual(@as(usize, 6), header_flags_offset);
+    try std.testing.expectEqual(abi.boundary_header_size, header_size);
+    try std.testing.expectEqual(abi.boundary_header_align, header_align);
+    try std.testing.expectEqual(abi.boundary_header_size_offset, header_size_offset);
+    try std.testing.expectEqual(abi.boundary_header_abi_version_offset, header_abi_version_offset);
+    try std.testing.expectEqual(abi.boundary_header_flags_offset, header_flags_offset);
     try std.testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), canonical.size);
     try std.testing.expectEqual(@as(u16, abi.ABI_VERSION), canonical.abi_version);
     try std.testing.expectEqual(@as(u16, 0x55), canonical.flags);
