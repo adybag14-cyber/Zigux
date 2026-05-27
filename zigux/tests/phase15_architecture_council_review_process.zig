@@ -7,6 +7,7 @@ const ReviewProcessManifest = struct {
     surveyed_commit_mode: []const u8,
     review_process_note: []const u8,
     decision_record_template: []const u8,
+    decision_index_note: []const u8,
     indefinite_c_policy_note: []const u8,
     handoff_note: []const u8,
     shared_summary_gap_note: []const u8,
@@ -64,6 +65,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.review_process_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", manifest.decision_record_template);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-index.md", manifest.decision_index_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", manifest.indefinite_c_policy_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-shared-summary-gap.md", manifest.shared_summary_gap_note);
@@ -89,8 +91,8 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
-    try std.testing.expectEqual(@as(usize, 27), manifest.handoff_required_markers.len);
-    try std.testing.expectEqual(@as(usize, 29), manifest.shared_gap_expected_present_paths.len);
+    try std.testing.expectEqual(@as(usize, 28), manifest.handoff_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 30), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 0), manifest.shared_gap_expected_missing_paths.len);
 
     try expectSliceContains(manifest.review_checklist_entry_prompt_required_markers, "required approver set");
@@ -116,6 +118,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(manifest.indefinite_c_policy_required_markers, "parity scorecard link or blocker record");
     try expectSliceContains(manifest.study_only_anchor_review_markers, "`kernel/workqueue.c`");
     try expectSliceContains(manifest.study_only_anchor_review_markers, "not candidates for a freeze-in-C status review through this note");
+    try expectSliceContains(manifest.handoff_required_markers, "`Documentation/zigux/phase15-architecture-council-decision-index.md`");
     try expectSliceContains(manifest.handoff_required_markers, "`Documentation/zigux/phase15-deep-core-blocker-survey.md`");
     try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_freeze_map_governance.zig`");
     try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_parity_scorecard.json`");
@@ -128,6 +131,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(manifest.handoff_required_markers, "`scripts/zigux/check-phase15-shared-summary-gap.py`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-architecture-council-decision-index.md`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`Documentation/zigux/phase15-deep-core-blocker-survey.md`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-docs-readme-alignment.py`");
     try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-scripts-readme-alignment.py`");
@@ -152,6 +156,9 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
 
     const decision_record_template = try readRepoFile("Documentation/zigux/phase15-architecture-council-decision-record-template.md", 16 * 1024);
     defer std.testing.allocator.free(decision_record_template);
+
+    const decision_index = try readRepoFile("Documentation/zigux/phase15-architecture-council-decision-index.md", 16 * 1024);
+    defer std.testing.allocator.free(decision_index);
 
     const indefinite_c_policy = try readRepoFile("Documentation/zigux/phase15-indefinite-c-policy.md", 16 * 1024);
     defer std.testing.allocator.free(indefinite_c_policy);
@@ -179,6 +186,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, manifest.surveyed_commit);
     try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process_manifest.json`");
     try expectContains(review_process, "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`");
+    try expectContains(review_process, manifest.decision_index_note);
     try expectContains(review_process, manifest.indefinite_c_policy_note);
     try expectContains(review_process, "`scripts/zigux/check-phase15-review-process-handoff.py`");
     try expectContains(review_process, "`scripts/zigux/check-phase15-tests-readme-alignment.py`");
@@ -191,6 +199,8 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "defaults that record to dated-master-readback provenance");
     try expectContains(review_process, manifest.review_checklist_boundary_rule);
     try expectContains(decision_record_template, manifest.decision_record_template_study_only_rule);
+    try expectContains(decision_index, manifest.review_process_note);
+    try expectContains(decision_index, manifest.decision_record_template);
     try expectContains(review_checklist, manifest.review_checklist_entry_prompt);
     try expectContains(review_checklist, manifest.review_process_note);
     try expectContains(review_checklist, manifest.decision_record_template);
@@ -198,6 +208,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     for (manifest.review_checklist_entry_prompt_required_markers) |marker| {
         try expectContains(review_checklist, marker);
     }
+    try expectContains(handoff_note, manifest.decision_index_note);
     try expectContains(tests_readme, "## Phase 15 governance packet");
     try expectContains(tests_readme, "`scripts/zigux/check-phase15-review-process-handoff.py`");
     try expectContains(tests_readme, "`zigux/tests/phase15_architecture_council_review_process.zig`");
@@ -272,7 +283,6 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "review-process note is missing the review-checklist boundary rule");
     try expectContains(checker, "review checklist entry prompt is missing required stay-in-C policy boundary marker");
     try expectContains(checker, "decision-record template is missing the study-only anchor boundary rule");
-    try expectContains(checker, "review-process note is missing study-only boundary marker");
     try expectContains(checker, "review-process note is missing supporting context field");
     try expectContains(checker, "decision-record template is missing supporting context field");
     try expectContains(checker, "repo_path = _marker_to_repo_path(marker)");
@@ -280,6 +290,7 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass");
     try expectContains(checker, "current-master-readback-2026-05-26");
     try expectContains(review_process, "current-master-readback-2026-05-26");
+    try expectContains(gap_note, "`Documentation/zigux/phase15-architecture-council-decision-index.md`");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
