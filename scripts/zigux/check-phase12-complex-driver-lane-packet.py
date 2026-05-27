@@ -36,12 +36,13 @@ REQUIRED_PRESENT_PATHS = (
     Path("zigux/tests/phase12_virtio_net_post_reset_replay.zig"),
     Path("zigux/tests/phase12_virtio_net_throughput_parity.zig"),
     Path("zigux/tests/phase12_virtio_net_survey.zig"),
+    Path("zigux/tests/phase12_virtio_net_syntax_lab.zig"),
+    Path("zigux/tests/phase12_virtio_net_syntax_lab_build.zig"),
 )
 
 FORBIDDEN_PRESENT_PATHS = (
     Path("drivers/net/virtio_net.zig"),
     Path("zigux/tests/phase12_virtio_net.zig"),
-    Path("zigux/tests/phase12_virtio_net_syntax_lab.zig"),
 )
 
 NOTE_MARKERS = (
@@ -51,7 +52,8 @@ NOTE_MARKERS = (
     "`drivers/net/virtio_net_queue_resume.zig`, `drivers/net/virtio_net_receive_refill_replay.zig`, `drivers/net/virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_post_reset_replay.zig`, and `drivers/net/virtio_net_throughput_parity.zig` are now present on `master`.",
     "`zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_receive_refill_replay.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig` are now present on `master` as the directly coupled review packet for that split-helper family.",
     "`zigux/tests/phase12_virtio_net_survey.zig` is also present on `master` as the shared survey gate for that same bounded packet; keep it explicit as reviewability support beside the five replay shards without reviving the older monolithic starter or implying live DMA-safe queue ownership, queue restart parity, or completion-path delivery.",
-    "`drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` are currently absent on `master`",
+    "`zigux/tests/phase12_virtio_net_syntax_lab.zig` and `zigux/tests/phase12_virtio_net_syntax_lab_build.zig` are now present on `master` as isolated compile-smoke companions for the split-helper family, and current `zigux/Makefile` ships `phase12-virtio-net-syntax-lab-test` to keep that review-only rerun hook explicit outside the shared `phase12-validate` / `phase12-smoke` / `phase12-test` route.",
+    "`drivers/net/virtio_net.zig` and `zigux/tests/phase12_virtio_net.zig` are currently absent on `master`",
     "current `zigux/Makefile` now ships `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`, so `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
     "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-complex-driver-lane-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12`.",
     "The note-local compile-smoke companion in this lane is `Documentation/zigux/phase12-cross-compile-smoke.md`, and its directly readable rerun handle is `python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test` plus `python3 scripts/zigux/check-phase12-cross-compile-smoke.py`; keep that narrower smoke packet explicit beside the broader validator-first support bundle without treating it as DMA, queue ownership, throughput, recovery, or driver-delivery proof.",
@@ -70,7 +72,8 @@ README_MARKERS = (
     "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, and `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
     "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `scripts/zigux/README.md` remain the current reminder-surface companions for that shared Phase 12 packet",
     "`drivers/net/virtio_net_queue_resume.zig`, `drivers/net/virtio_net_receive_refill_replay.zig`, `drivers/net/virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_post_reset_replay.zig`, `drivers/net/virtio_net_throughput_parity.zig`",
-    "`drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` stay absent on current `master`",
+    "`zigux/tests/phase12_virtio_net_syntax_lab.zig` and `zigux/tests/phase12_virtio_net_syntax_lab_build.zig` stay the isolated syntax-lab compile-smoke companions, and `make -C zigux phase12-virtio-net-syntax-lab-test` keeps that review-only rerun hook explicit outside the shared smoke-first route.",
+    "`drivers/net/virtio_net.zig` and `zigux/tests/phase12_virtio_net.zig` stay absent on current `master`, so keep the shared reminder scoped to the returned split-helper packet rather than reviving the older monolithic starter vocabulary.",
     "`zigux/tests/phase12_virtio_scsi_survey_build.zig`",
     "`Documentation/zigux/phase12-nvme-pci-reopen-governance.md`",
     "`zigux/tests/phase12_nvme_pci_manifest.json` keeps the published-but-unwired NVMe foothold explicit without widening this shared scripts-root reminder into driver-local queueing, transport, or DMA claims",
@@ -285,7 +288,7 @@ def run_self_test() -> int:
 
         write_fixture(root)
         direct_read_bridge_readme = "`scripts/zigux/README.md`, "
-        (root / NOTE_PATH).write_text(
+        (root / NOTE_PATH).writeText(
             read_text(root, NOTE_PATH).replace(direct_read_bridge_readme, "", 1),
             encoding="utf-8",
         )
