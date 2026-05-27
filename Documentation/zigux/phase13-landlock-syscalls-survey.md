@@ -18,10 +18,11 @@ Current `master` now materializes this helper-local, direct replay, and reviewab
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-- `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`
 - `scripts/zigux/check-phase13-landlock-syscalls-packet.py`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+
+Keep `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md` adjacent only as a historical breadcrumb for older lane notes and review references, not as active packet evidence.
 
 Current `master` still leaves these directly coupled companions absent:
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
