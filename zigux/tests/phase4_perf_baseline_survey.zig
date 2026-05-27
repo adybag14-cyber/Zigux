@@ -35,6 +35,22 @@ fn requireOrderedMarkersInSection(
     }
 }
 
+fn requireOrderedMarkersAfter(
+    section_header: []const u8,
+    expected_markers: []const []const u8,
+) !void {
+    const section_start = std.mem.indexOf(u8, baseline_packet, section_header) orelse
+        return error.MissingSectionHeader;
+    const section = baseline_packet[section_start..];
+
+    var cursor: usize = 0;
+    for (expected_markers) |marker| {
+        const offset = std.mem.indexOfPos(u8, section, cursor, marker) orelse
+            return error.MissingOrderedMarker;
+        cursor = offset + marker.len;
+    }
+}
+
 test "phase4 perf baseline survey keeps exact local-only iteration, sample, and replay counts explicit" {
     try requireMarkerCount("\"acceptable_limit_iterations\": 4", 2);
     try requireMarkerCount("\"acceptable_limit_sample_count\": 7", 2);
@@ -126,6 +142,21 @@ test "phase4 perf baseline survey keeps the dedicated packet contract reviewable
     try requireMarker("\"coordination_owners\": [");
     try requireMarker("\"ABI and Runtime Team\"");
     try requireMarker("\"Shared Subsystems Pod\"");
+}
+
+test "phase4 perf baseline survey keeps the shared promotion decision rollback packet exact" {
+    try requireOrderedMarkersAfter(
+        "\"promotion_decision\": {",
+        &.{
+            "\"id\": \"phase4-perf-baseline-shared-promotion-decision\"",
+            "\"status\": \"shared CI perf promotion pending\"",
+            "\"owner\": \"Validation and Perf Team\"",
+            "\"rollback_owner\": \"Validation and Perf Team\"",
+            "\"coordination_owners\": [",
+            "\"ABI and Runtime Team\"",
+            "\"Shared Subsystems Pod\"",
+        },
+    );
 }
 
 test "phase4 perf baseline survey keeps coordination-owner and evidence-id pins exact" {
