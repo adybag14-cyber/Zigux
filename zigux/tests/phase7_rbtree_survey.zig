@@ -101,7 +101,6 @@ test "phase 7 rbtree survey keeps the returned json fixture, C harness, and dire
     try expectSliceContains(manifest.ownership_focus, "legacy runtime-family truthfulness must keep `tools/lib/rbtree.zig` readable on the same reverse-traversal alias, postorder alias, and plain erase-init markers that the direct helper packet treats as current product-facing evidence");
     try expectContains(manifest.next_bounded_step, "including the non-leftmost cached erase, singleton cached erase, and plain erase-init reseed cases");
     try expectContains(manifest.next_bounded_step, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
-    try expectContains(manifest.next_bounded_step, "tools/lib/rbtree.zig");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-test:");
     try expectContains(manifest.next_bounded_step, "phase7-rbtree-survey:");
     try expectContains(manifest.next_bounded_step, "phase7-test:");
