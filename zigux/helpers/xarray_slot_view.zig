@@ -45,6 +45,10 @@ pub const SlotView = struct {
         return self.kind() == .pointer;
     }
 
+    pub fn isTaggedEntry(self: SlotView) bool {
+        return isTaggedInternalEntry(self.raw);
+    }
+
     pub fn value(self: SlotView) ?usize {
         if (!self.isValue()) {
             return null;
@@ -103,6 +107,7 @@ test "err floor stays in the err lane even with the xa_value low tag bit set" {
     try std.testing.expectEqual(@as(?isize, -4095), slot.errorCode());
     try std.testing.expectEqual(@as(?usize, null), slot.value());
     try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(slot.isTaggedEntry());
     try std.testing.expect(isTaggedInternalEntry(err_ptr.err_floor));
 }
 
@@ -117,6 +122,7 @@ test "gap below err floor stays pointer-like and leaves tagged decoders closed" 
     try std.testing.expectEqual(@as(?isize, null), slot.errorCode());
     try std.testing.expectEqual(@as(?usize, null), slot.value());
     try std.testing.expectEqual(@as(?usize, raw), slot.pointerValue());
+    try std.testing.expect(!slot.isTaggedEntry());
     try std.testing.expect(!isTaggedInternalEntry(raw));
 }
 
@@ -131,6 +137,7 @@ test "inline zero stays a tagged value and keeps other decoders closed" {
     try std.testing.expectEqual(@as(?usize, 0), slot.value());
     try std.testing.expectEqual(@as(?isize, null), slot.errorCode());
     try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(slot.isTaggedEntry());
     try std.testing.expect(isTaggedInternalEntry(raw));
 }
 
@@ -145,6 +152,7 @@ test "top err_ptr encoding stays tagged and keeps value and pointer decoders clo
     try std.testing.expectEqual(@as(?usize, null), slot.value());
     try std.testing.expectEqual(@as(?isize, -1), slot.errorCode());
     try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(slot.isTaggedEntry());
     try std.testing.expect(isTaggedInternalEntry(raw));
 }
 
@@ -175,4 +183,16 @@ test "value constructor still rejects entries that would overlap err_ptr space" 
         error.ValueWouldOverlapErrPtr,
         fromValue(xa_value.safe_inline_limit + 1),
     );
+}
+
+test "slot view exposes tagged internal entries as a lane-level predicate" {
+    const null_slot = nullSlot();
+    const value_slot = try fromValue(7);
+    const pointer_slot = fromPointer(err_ptr.err_floor - 1);
+    const err_slot = fromErrorCode(-5);
+
+    try std.testing.expect(!null_slot.isTaggedEntry());
+    try std.testing.expect(value_slot.isTaggedEntry());
+    try std.testing.expect(!pointer_slot.isTaggedEntry());
+    try std.testing.expect(err_slot.isTaggedEntry());
 }
