@@ -190,6 +190,14 @@ SELFTEST_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/check-phase3-low-level-wrappers.py"),
+        ("--self-test",),
+        (
+            "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=pass",
+            "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST_CASES=",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
         ("--self-test",),
         ("PHASE3_LINUX_ZIGUX_HEADER_GOVERNANCE_SELF_TEST=pass",),
@@ -463,7 +471,8 @@ def run_self_test() -> int:
             ("check-phase3-export-uapi-c-header-smoke.py", "expected export-uapi c-header smoke script omission was not reported"),
             ("validate-phase3-abi-header-family-survey.py", "expected abi-header-family survey script omission was not reported"),
             ("validate-phase3-policy-unsafe-survey.py", "expected policy-unsafe survey script omission was not reported"),
-            ("validate-phase3-low-level-wrapper-survey.py", "expected low-level-wrapper script omission was not reported"),
+            ("validate-phase3-low-level-wrapper-survey.py", "expected low-level-wrapper survey script omission was not reported"),
+            ("check-phase3-low-level-wrappers.py", "expected low-level-wrapper compile-route script omission was not reported"),
             ("validate-phase3-linux-zigux-header-governance.py", "expected linux-zigux header governance validator omission was not reported"),
             ("generate-phase3-check-wrappers.py", "expected wrapper-generator script omission was not reported"),
             ("check-phase3-selftest-surface.py", "expected selftest-surface script omission was not reported"),
@@ -504,11 +513,11 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        failing_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-low-level-wrapper-survey.py")][0]
+        failing_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-low-level-wrappers.py")][0]
         _write_synthetic_script(
             failing_path,
-            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
-            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",
+            "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=pass",
+            "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST_CASES=",
             failure_code=7,
         )
         if run_packet(root) != 1:
@@ -769,6 +778,30 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
+        missing_low_level_wrappers_pass_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-low-level-wrappers.py")][0]
+        _write_synthetic_script(
+            missing_low_level_wrappers_pass_path,
+            None,
+            "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST_CASES=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing low-level-wrapper compile-route pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_low_level_wrappers_count_path = root / SELFTEST_COMMANDS[_command_index("check-phase3-low-level-wrappers.py")][0]
+        _write_synthetic_script(
+            missing_low_level_wrappers_count_path,
+            "PHASE3_LOW_LEVEL_WRAPPERS_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing low-level-wrapper compile-route count marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
         missing_governance_pass_path = root / SELFTEST_COMMANDS[_command_index("validate-phase3-linux-zigux-header-governance.py")][0]
         _write_synthetic_script(
             missing_governance_pass_path,
@@ -879,7 +912,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 35}"
+        f"{len(missing_cases) + 37}"
     )
     return 0
 
