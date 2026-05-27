@@ -14,7 +14,9 @@ MANIFEST_PATH = Path("zigux/tests/phase7_leaf_library_evidence_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
 BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 RBTREE_PATH = Path("lib/rbtree.zig")
+CMDLINE_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-cmdline-packet.py")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
+RBTREE_PARITY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-rbtree-parity.py")
 STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path(
     "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py"
 )
@@ -29,10 +31,14 @@ EXPECTED_REPLAYS = [
     "python3 scripts/zigux/check-phase7-build-wiring.py --self-test",
     "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase7-cmdline-packet.py",
+    "python3 scripts/zigux/check-phase7-cmdline-packet.py --self-test",
     "python3 scripts/zigux/check-phase7-argv-split-packet.py",
     "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
     "python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
     "python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py --self-test",
+    "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+    "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate",
@@ -44,8 +50,10 @@ EXPECTED_DIRECT_COMPANIONS = [
     "scripts/zigux/check-phase7-shared-surface.py",
     "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "scripts/zigux/check-phase7-cmdline-packet.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py",
+    "scripts/zigux/check-phase7-rbtree-parity.py",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -162,7 +170,9 @@ REQUIRED_FILES = (
     MAKEFILE_PATH,
     BUILD_PATH,
     RBTREE_PATH,
+    CMDLINE_PACKET_CHECKER_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
+    RBTREE_PARITY_PACKET_CHECKER_PATH,
     STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH,
 )
 
@@ -170,15 +180,19 @@ CATALOG_REQUIRED_SNIPPETS = [
     "## Current direct-readback companions",
     "- `Documentation/zigux/review-checklist.md`",
     "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+    "- `scripts/zigux/check-phase7-cmdline-packet.py`",
     "- `scripts/zigux/check-phase7-argv-split-packet.py`",
     "- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
+    "- `scripts/zigux/check-phase7-rbtree-parity.py`",
     "- `zigux/tests/phase7_build.zig`",
     "- `lib/rbtree.zig`",
     "## Current replay inventory",
     "- `python3 scripts/zigux/check-phase7-build-wiring.py`",
     "- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+    "- `python3 scripts/zigux/check-phase7-cmdline-packet.py`",
     "- `python3 scripts/zigux/check-phase7-argv-split-packet.py`",
     "- `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`",
+    "- `python3 scripts/zigux/check-phase7-rbtree-parity.py`",
     "- `make -C zigux phase7-validate`",
     "## Current build-wiring evidence",
     "- `zigux/tests/phase7_build.zig` wires `../../lib/string_helpers.zig`, `../../lib/cmdline.zig`, `../../lib/argv_split.zig`, and `../../lib/rbtree.zig` into the shared Phase 7 build graph.",
@@ -193,10 +207,14 @@ VALIDATOR_REQUIRED_SNIPPETS = [
     "phase7 build-wiring evidence drift",
     "phase7 build marker missing: ../../lib/rbtree.zig",
     "phase7 build marker missing: phase7-rbtree-test",
+    'CMDLINE_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-cmdline-packet.py")',
     'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
     'STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py")',
+    'RBTREE_PARITY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-rbtree-parity.py")',
+    'run_checker(root, CMDLINE_PACKET_CHECKER_PATH)',
     'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
     'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)',
+    'run_checker(root, RBTREE_PARITY_PACKET_CHECKER_PATH)',
 ]
 
 MAKEFILE_REQUIRED_LINES = [
@@ -251,10 +269,8 @@ RBTREE_REQUIRED_SNIPPETS = [
 
 SELF_TEST_CASE_COUNT = 19
 
-
 class ValidationError(RuntimeError):
     pass
-
 
 def read_text(path: Path) -> str:
     try:
@@ -262,21 +278,17 @@ def read_text(path: Path) -> str:
     except FileNotFoundError as exc:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
-
 def read_json(path: Path) -> dict[str, object]:
     return json.loads(read_text(path))
 
-
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker.strip())
-
 
 def require_snippets(path: Path, snippets: list[str]) -> None:
     text = read_text(path)
     for snippet in snippets:
         if snippet not in text:
             raise ValidationError(f"missing expected marker in {path.as_posix()}: {snippet}")
-
 
 def require_exact_lines(path: Path, markers: list[str]) -> None:
     text = read_text(path)
@@ -287,13 +299,11 @@ def require_exact_lines(path: Path, markers: list[str]) -> None:
         if count != 1:
             raise ValidationError(f"duplicate expected line in {path.as_posix()}: {marker}")
 
-
 def require_absent_lines(path: Path, markers: list[str]) -> None:
     text = read_text(path)
     for marker in markers:
         if count_exact_lines(text, marker):
             raise ValidationError(f"unexpected stale line in {path.as_posix()}: {marker}")
-
 
 def validate(root: Path) -> None:
     missing = [str(rel) for rel in REQUIRED_FILES if not (root / rel).is_file()]
@@ -327,27 +337,14 @@ def validate(root: Path) -> None:
     if manifest.get("current_repo_reality_gaps") != EXPECTED_REPO_GAPS:
         raise ValidationError("phase7 repo-reality gap drift")
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
-
 def build_fixture_root(root: Path) -> None:
     write(
         root / VALIDATOR_PATH,
-        "\n".join(
-            [
-                "phase7 build-wiring evidence drift",
-                "phase7 build marker missing: ../../lib/rbtree.zig",
-                "phase7 build marker missing: phase7-rbtree-test",
-                'ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")',
-                'STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py")',
-                'run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)',
-                'run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)',
-            ]
-        )
-        + "\n",
+        "\n".join(VALIDATOR_REQUIRED_SNIPPETS) + "\n",
     )
     write(root / CATALOG_PATH, "\n".join(CATALOG_REQUIRED_SNIPPETS) + "\n")
     write(
@@ -381,12 +378,13 @@ def build_fixture_root(root: Path) -> None:
     )
     write(root / BUILD_PATH, "\n".join(BUILD_REQUIRED_SNIPPETS) + "\n")
     write(root / RBTREE_PATH, "\n".join(RBTREE_REQUIRED_SNIPPETS) + "\n")
+    write(root / CMDLINE_PACKET_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_CMDLINE_PACKET=pass')\n")
     write(root / ARGV_SPLIT_PACKET_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_ARGV_SPLIT_PACKET=pass')\n")
+    write(root / RBTREE_PARITY_PACKET_CHECKER_PATH, "#!/usr/bin/env python3\nprint('PHASE7_RBTREE_PARITY=pass')\n")
     write(
         root / STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH,
         "#!/usr/bin/env python3\nprint('PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET=pass')\n",
     )
-
 
 def expect_failure(root: Path, rel: Path, old: str, new: str) -> None:
     path = root / rel
@@ -400,7 +398,6 @@ def expect_failure(root: Path, rel: Path, old: str, new: str) -> None:
     except ValidationError:
         return
     raise AssertionError("expected validation failure")
-
 
 def run_self_test() -> None:
     cases = 0
@@ -440,7 +437,6 @@ def run_self_test() -> None:
     print("PHASE7_BUILD_WIRING_SELF_TEST=pass")
     print(f"PHASE7_BUILD_WIRING_SELF_TEST_CASE_COUNT={cases}")
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check that the current Phase 7 build-wiring reminder matches the returned leaf-library packet."
@@ -463,7 +459,6 @@ def main() -> int:
     print(f"PHASE7_BUILD_WIRING_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE7_BUILD_WIRING_REPLAY_COUNT={len(EXPECTED_REPLAYS)}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
