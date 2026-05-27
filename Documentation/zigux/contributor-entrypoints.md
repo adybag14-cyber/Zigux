@@ -28,6 +28,21 @@ After the shared entry reread, choose one bounded guide instead of widening acro
 
 Use `Documentation/zigux/phase5-sample-review-guide.md` when the change touches sample-facing contributor guidance, approved Phase 5 idioms, or review wording around the bytestream, kobject, kretprobe, or bounded trace-events packet.
 
+Supporting companions:
+
+- `Documentation/zigux/phase5-sample-lane-sequencing.md`
+- `samples/zigux/README.md`
+- `Documentation/zigux/phase5-kfifo-sample-survey.md`
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+- `Documentation/zigux/phase5-kobject-sample-survey.md`
+- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+
+Keep the current Phase 5 sample split explicit while you use that guide:
+
+- `samples/zigux/bytestream_fifo.zig` and `samples/zigux/kretprobe_example.zig` are direct non-runtime sample proof in the current shared packet
+- `samples/zigux/kobject_example.zig` stays the sample-root owner path through the shared reminder packet, while `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` can still depend on public-tree-backed companion readback in this runtime
+- `samples/zigux/trace_events_string_formatting_sample.zig` and `samples/zigux/trace_events_callback_focus_contract.zig` are the direct bounded trace-events companions, while `samples/zigux/runtime_*.zig` remains Phase 9 evidence rather than extra Phase 5 proof
+
 Matching guard:
 
 - `python3 scripts/zigux/check-phase5-review-guide-surface.py --self-test`
