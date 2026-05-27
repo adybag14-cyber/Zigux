@@ -274,7 +274,7 @@ def run_self_test() -> int:
 
         issues = validate_repo(root, zig="zig", skip_exec=True)
         if issues:
-            print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
+            print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
             print("\n".join(issues))
             return 1
 
@@ -285,7 +285,7 @@ def run_self_test() -> int:
             issues = validate_repo(root, zig="zig", skip_exec=True)
             expected = f"missing {relative_path.as_posix()} marker: {marker}"
             if expected not in issues:
-                print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
+                print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
@@ -297,7 +297,7 @@ def run_self_test() -> int:
         issues = validate_repo(root, zig="zig", skip_exec=True)
         expected = "phase3_list_hlist_manifest.json packet_files duplicate entry:"
         if not any(issue.startswith(expected) for issue in issues):
-            print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
+            print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
             print("expected duplicate packet_files entry was not reported")
             return 1
 
@@ -308,7 +308,7 @@ def run_self_test() -> int:
         issues = validate_repo(root, zig="zig", skip_exec=True)
         expected = "phase3_list_hlist_manifest.json replay_routes duplicate entry:"
         if not any(issue.startswith(expected) for issue in issues):
-            print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
+            print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
             print("expected duplicate replay_routes entry was not reported")
             return 1
 
@@ -321,12 +321,12 @@ def run_self_test() -> int:
             "phase3_list_hlist_manifest.json repo_reality_gaps must stay empty after the dump packet lands"
         )
         if expected not in issues:
-            print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=fail")
+            print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=fail")
             print("expected repo_reality_gaps drift was not reported")
             return 1
 
-    print("PHASE3_LIST_HLIST_PACKET_SELF_TEST=pass")
-    print(f"PHASE3_LIST_HLIST_PACKET_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 3}")
+    print("PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=pass")
+    print(f"PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 3}")
     return 0
 
 
