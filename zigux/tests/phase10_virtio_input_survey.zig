@@ -36,6 +36,9 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     const manifest = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_input_manifest.json");
     defer allocator.free(manifest);
 
+    const shared_build_file = try readRepoRelative(allocator, "zigux/tests/build.zig");
+    defer allocator.free(shared_build_file);
+
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L22");
     try expectContains(survey_note, "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport");
@@ -46,6 +49,7 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     try expectContains(survey_note, "drivers/virtio/virtio_input_verify.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_input_registration_preflight.zig");
+    try expectContains(survey_note, "zigux/tests/build.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
@@ -56,8 +60,17 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     );
     try expectContains(
         survey_note,
+        "the shared tests-root survey route now surfaces `phase10-virtio-input-survey` beside the existing core and ring Phase 10 anchors",
+    );
+    try expectContains(
+        survey_note,
         "wrapper-facing teardown-reset verify parity stays explicit across reset",
     );
+    try expectContains(shared_build_file, "\"phase10-virtio-input-survey\"");
+    try expectContains(shared_build_file, "\"phase10_virtio_input_survey.zig\"");
+    try expectContains(shared_build_file, "phase10_input_step.dependOn(&phase10_virtio_input_survey.step);");
+    try expectContains(shared_build_file, "smoke_step.dependOn(&phase10_virtio_input_survey.step);");
+    try expectContains(shared_build_file, "test_step.dependOn(&phase10_virtio_input_survey.step);");
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-local MMIO tests") == null);
 }
 
