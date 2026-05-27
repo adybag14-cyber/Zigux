@@ -341,8 +341,13 @@
         "test \"strscpy_pad mirrors strscpyPad padding semantics\"",
         "test \"strscpy and strscpyPad keep one-byte destinations terminated\"",
         "test \"memcpyAndPad copies the requested prefix and pads the destination tail\"",
+        "test \"memcpy_and_pad mirrors memcpyAndPad padding semantics\"",
         "test \"strtomem copies a C-string prefix without adding a terminator or padding\"",
         "test \"strtomem_pad copies through the first NUL and pads the remaining tail\"",
+        "test \"memtostr copies a bounded non-NUL source and adds one terminator\"",
+        "test \"memtostr stops at embedded NUL without padding the tail\"",
+        "test \"memtostrPad zero-pads the remaining tail after copying\"",
+        "test \"memtostr helpers keep one-byte destinations terminated\"",
         "test \"streq matches C-string equality semantics\"",
         "test \"skip trim remove and replace spaces work in place\"",
         "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
@@ -351,6 +356,7 @@
         "test \"strHasSuffix returns the matched suffix length with C-string semantics\"",
         "test \"strstarts mirrors the header-level prefix helper\"",
         "test \"strEndsWith honors C-string boundaries\"",
+        "test \"prefix and suffix Linux-style aliases mirror the primary helpers\"",
         "test \"kbasename returns the final path component with C-string semantics\"",
         "test \"sysfsStreq treats trailing newline and NUL as equivalent\"",
         "test \"sysfs_streq mirrors sysfsStreq newline and NUL equivalence\"",
@@ -362,6 +368,10 @@
         "test \"strcmp stops at embedded NULs and length mismatches\"",
         "test \"strncmp honors the count limit before later mismatches\"",
         "test \"strncmp stops at embedded NULs and shorter prefixes\"",
+        "test \"strcasecmp ignores ASCII case and preserves lexical ordering\"",
+        "test \"strcasecmp stops at embedded NULs and length mismatches\"",
+        "test \"strncasecmp honors the count limit before later mismatches\"",
+        "test \"strncasecmp stops at embedded NULs and shorter prefixes\"",
         "test \"strstr mirrors full-length C-string substring searches\"",
         "test \"strnstr honors count and C-string boundaries\"",
         "test \"memdup and memchrInv preserve byte content\"",
@@ -390,7 +400,8 @@
         "test \"strnchr honors count and C-string boundaries\"",
         "test \"strlen honors C-string boundaries\"",
         "test \"strnlen honors count and C-string boundaries\"",
-        "test \"strnchrNul returns the first match, NUL, or count boundary\""
+        "test \"strnchrNul returns the first match, NUL, or count boundary\"",
+        "test \"strchrNul and strchrnul return the first match or terminator boundary\""
       ],
       "memparse_review_anchors": [
         "test \"memparse handles decimal hexadecimal octal and suffixes\"",
@@ -404,10 +415,11 @@
       "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation",
       "copy_fill_review_anchors": [
         "test \"memcpyAndPad copies the requested prefix and pads the destination tail\"",
+        "test \"memcpy_and_pad mirrors memcpyAndPad padding semantics\"",
         "test \"strtomem copies a C-string prefix without adding a terminator or padding\"",
         "test \"strtomem_pad copies through the first NUL and pads the remaining tail\""
       ],
-      "copy_fill_review_summary": "helper-local raw-copy and pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated memcpyAndPad(), strtomem(), or strtomem_pad() fixture keys, so prefix-copy, first-NUL stop, and caller-selected pad behavior remain review-visible at the helper surface",
+      "copy_fill_review_summary": "helper-local raw-copy and pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated memcpyAndPad(), memcpy_and_pad(), strtomem(), or strtomem_pad() fixture keys, so prefix-copy, first-NUL stop, alias parity, and caller-selected pad behavior remain review-visible at the helper surface",
       "memtostr_review_anchors": [
         "test \"memtostr copies a bounded non-NUL source and adds one terminator\"",
         "test \"memtostr stops at embedded NUL without padding the tail\"",
@@ -419,7 +431,8 @@
         "test \"strHasPrefix returns the matched prefix length with C-string semantics\"",
         "test \"strHasSuffix returns the matched suffix length with C-string semantics\"",
         "test \"strstarts mirrors the header-level prefix helper\"",
-        "test \"strEndsWith honors C-string boundaries\""
+        "test \"strEndsWith honors C-string boundaries\"",
+        "test \"prefix and suffix Linux-style aliases mirror the primary helpers\""
       ],
       "prefix_suffix_review_summary": "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than dedicated prefix or suffix fixture fields, so strHasPrefix and str_has_prefix plus strHasSuffix and str_has_suffix plus strstarts plus strEndsWith and str_ends_with plus strends remain review-visible at the helper surface",
       "lookup_review_anchors": [
@@ -448,6 +461,13 @@
         "test \"strcmp stops at embedded NULs and length mismatches\""
       ],
       "strcmp_review_summary": "helper-local lexical-compare anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strcmp() fixture keys, so lexical ordering and embedded-NUL length-mismatch behavior remain review-visible at the helper surface",
+      "casecmp_review_anchors": [
+        "test \"strcasecmp ignores ASCII case and preserves lexical ordering\"",
+        "test \"strcasecmp stops at embedded NULs and length mismatches\"",
+        "test \"strncasecmp honors the count limit before later mismatches\"",
+        "test \"strncasecmp stops at embedded NULs and shorter prefixes\""
+      ],
+      "casecmp_review_summary": "helper-local ASCII case-folded compare anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strcasecmp() or strncasecmp() fixture keys, so case-insensitive lexical ordering, embedded-NUL boundaries, and counted-prefix behavior remain review-visible at the helper surface",
       "substring_search_review_anchors": [
         "test \"strstr mirrors full-length C-string substring searches\"",
         "test \"strnstr honors count and C-string boundaries\""
@@ -458,9 +478,10 @@
         "test \"strrchr finds the last in-range match with C-string semantics\"",
         "test \"strchr and strrchr return the terminator index when searching for NUL\"",
         "test \"strlen honors C-string boundaries\"",
-        "test \"strnlen honors count and C-string boundaries\""
+        "test \"strnlen honors count and C-string boundaries\"",
+        "test \"strchrNul and strchrnul return the first match or terminator boundary\""
       ],
-      "search_length_review_summary": "helper-local search-and-length boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated search-length fixture keys, so strchr() or strrchr() boundary scans, terminator-index searches, and strlen() or strnlen() length boundaries remain review-visible at the helper surface",
+      "search_length_review_summary": "helper-local search-and-length boundary anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated search-length fixture keys, so strchr() or strrchr() boundary scans, terminator-index searches, strlen() or strnlen() length boundaries, and strchrNul() or strchrnul() match-or-terminator behavior remain review-visible at the helper surface",
       "strnchr_review_anchor": "test \"strnchr honors count and C-string boundaries\"",
       "counted_search_review_anchors": [
         "test \"strchr mirrors full-length C-string searches\"",
@@ -502,7 +523,7 @@
         "memchr_inv_index",
         "memchr_inv_none"
       ],
-      "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default."
+      "next_safe_step_note": "If this helper lane reopens, keep the helper-local sysfs, case-folded compare, and NUL-boundary search review anchors aligned across the string review packet and this lane note unless dedicated shared fixture keys land; do not reopen missing closure-side validator names by default."
     }
   }
 }
