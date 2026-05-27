@@ -18,6 +18,11 @@ const phase15_targets = [_]Phase15Target{
         .root_source_file = "phase15_architecture_council_review_process.zig",
     },
     .{
+        .step_name = "phase15-architecture-council-decision-index",
+        .description = "Run the focused Phase 15 Architecture Council decision-index test",
+        .root_source_file = "phase15_architecture_council_decision_index.zig",
+    },
+    .{
         .step_name = "phase15-governance-lane-sequencing",
         .description = "Run the focused Phase 15 governance-lane sequencing test",
         .root_source_file = "phase15_governance_lane_sequencing.zig",
