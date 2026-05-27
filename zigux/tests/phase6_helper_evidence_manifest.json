@@ -119,6 +119,57 @@
           "make -C zigux phase6-bsearch-perf",
           "make -C zigux phase6-perf"
         ]
+      },
+      "current_fixture_corpus_evidence": {
+        "representative_lengths": {
+          "ascending": 15,
+          "descending": 15,
+          "ascending_duplicates": 15,
+          "descending_duplicates": 10
+        },
+        "duplicate_value": 21,
+        "duplicate_span": {
+          "ascending": {
+            "lower": 4,
+            "upper": 7
+          },
+          "descending": {
+            "lower": 3,
+            "upper": 6
+          }
+        },
+        "hit_queries": [
+          3,
+          21,
+          24,
+          39,
+          45
+        ],
+        "miss_queries": [
+          1,
+          10,
+          26,
+          44,
+          50
+        ],
+        "sorted_symbols": [
+          "do_exit",
+          "kfree",
+          "kmalloc",
+          "schedule"
+        ],
+        "packed_record_keys": [
+          3,
+          8,
+          13,
+          21,
+          34,
+          55,
+          89
+        ],
+        "dynamic_case_length_count": 33,
+        "dynamic_case_length_max": 32,
+        "seed_query_layout": "4 representative hits + 4 representative misses + 4 extra hits + 4 extra misses"
       }
     },
     {
