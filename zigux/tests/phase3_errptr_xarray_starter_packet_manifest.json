@@ -16,7 +16,8 @@
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"
+    "python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "zig build phase3-errptr-xarray-starter-packet-test --build-file zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"
   ],
   "repo_reality_gaps": [],
   "next_safe_step": "keep the helper-local err_ptr/xarray packet honest with manifest-backed replay before widening into broader Phase 3 validator or export-boundary claims"
