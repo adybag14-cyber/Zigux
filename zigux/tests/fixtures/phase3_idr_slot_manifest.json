@@ -1,0 +1,24 @@
+{
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-idr-slot",
+  "status": "starter_packet_present",
+  "scope": "helper-local idr slot starter packet built on xarray slot tagging rules",
+  "packet_files": [
+    "Documentation/zigux/phase3-idr-slot-slice.md",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/helpers/xarray_slot_view.zig",
+    "zigux/helpers/idr_slot_view.zig",
+    "zigux/tests/phase3_idr_slot_starter_packet.zig",
+    "zigux/tests/phase3_idr_slot_starter_packet_build.zig",
+    "scripts/zigux/check-phase3-idr-slot-starter-packet.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .",
+    "zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig"
+  ],
+  "repo_reality_gaps": [],
+  "next_safe_step": "keep any same-lane follow-through narrowed to shared Phase 3 survey alignment only if current master needs this helper-local starter packet reflected in the broader ABI packet"
+}
