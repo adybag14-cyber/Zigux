@@ -16,6 +16,13 @@ companion notes keep explicit:
   identity explicit.
 - `watchdogMetadataSummary()` keeps the watchdog metadata packet visible before
   later live registration work.
+- `drivers/watchdog/gpio_wdt_verify.zig` keeps the driver-backed verify helper
+  replayable beside the direct proofs so `registrationPlanSummary()`,
+  `registerDeviceCallSummary()`, `registerDeviceFailureSummary()`,
+  `rebootGlueCheckpointSummary()`, `summarizeTeardown()`, and
+  `summarizeRemoveHandoff()` stay directly reviewable without claiming live
+  GPIO, watchdog-core registration, remove-hook execution, or reboot-backed
+  shutdown behavior.
 - `descriptorRequestSummary()` keeps the `devm_gpiod_get()` flag choice
   reviewable without claiming live descriptor acquisition.
 - `descriptorPreflightSummary()` keeps the direct descriptor-preflight alias
@@ -47,6 +54,13 @@ companion notes keep explicit:
   watchdog-core registration or shutdown execution.
 - `probeSummary()` keeps the probe-time bookkeeping visible without claiming
   live platform registration.
+- `registrationIntentCheckpointSummary()` keeps timeout setup, nowayout
+  application, stop-on-reboot ordering, and pre-registration start posture
+  explicit before the first bounded register-device request.
+- `zigux/tests/phase11_gpio_wdt_registration_intent_review.zig` keeps
+  `registrationIntentCheckpointSummary()` and `registrationHandoffSummary()`
+  directly reviewable as the registration-intent bridge before the first
+  register-device request.
 - `registrationHandoffSummary()` keeps the descriptor-facing and bookkeeping
   handoff reviewable before the first bounded register-device request.
 - `registrationPlanSummary()` keeps the still-bounded watchdog registration
@@ -62,6 +76,21 @@ companion notes keep explicit:
   registration or shutdown execution.
 - `summarizeTeardown()` keeps the host-free teardown summary visible without
   claiming reboot-backed shutdown execution.
+- `platformCleanupCheckpointSummary()` keeps the cleanup-ordering bridge
+  explicit between teardown and remove handoff before any live platform cleanup
+  callback, platform-driver removal, or watchdog-core unregister claim.
+- `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig` keeps
+  `platformCleanupCheckpointSummary()` and `summarizeRemoveHandoff()`
+  replayable as the cleanup-to-remove handoff packet without claiming live
+  platform cleanup callbacks, platform-driver removal, watchdog-core unregister
+  side effects, or host-backed shutdown execution.
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest.json` keeps the returned
+  packet machine-readable without promoting the older wider manifest or shared
+  replay routes into current-head evidence.
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig` and
+  `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig` keep
+  the module slice, survey note, validation matrix, and current-head manifest
+  aligned through one dedicated bounded replay route.
 
 The same review packet also keeps teardown and failure-mode parity explicit in
 bounded form while the paired
