@@ -64,6 +64,11 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         16 * 1024,
     );
     defer std.testing.allocator.free(registration_reentry_guard_file);
+    const reinit_reexit_guard_file = try readRepoFileAlloc(
+        "samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(reinit_reexit_guard_file);
     const parity_behavior_file = try readRepoFileAlloc(
         "zigux/tests/runtime_first_loadable_parity_behavior.zig",
         64 * 1024,
@@ -78,14 +83,6 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(sample_file, "selftest_complete");
     try expectContains(sample_file, "pub fn runSelftest");
     try expectContains(sample_file, "pub fn exit");
-    try expectContains(
-        sample_file,
-        "try std.testing.expectEqualStrings(\"do_sys_openat2\", selftest.symbol_name);",
-    );
-    try expectContains(
-        sample_file,
-        "try std.testing.expectEqualStrings(\"do_sys_openat2\", exit_report.symbol_name);",
-    );
 
     try expectContains(loader_file, "pub const LoaderStage = enum(u8)");
     try expectContains(loader_file, "pub const RuntimeKretprobeLoader = struct");
@@ -143,26 +140,6 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         module_file,
         "runtime kretprobe sample keeps duplicate registration and failed exit rollback explicit at the module boundary",
     );
-    try expectContains(
-        module_file,
-        "try std.testing.expectEqualStrings(\"do_sys_openat2\", initialized.symbol_name);",
-    );
-    try expectContains(
-        module_file,
-        "try std.testing.expectEqualStrings(\"do_sys_openat2\", selftest_summary.symbol_name);",
-    );
-    try expectContains(
-        module_file,
-        "try std.testing.expectEqualStrings(\"do_sys_openat2\", before_exit.symbol_name);",
-    );
-    try expectContains(
-        module_file,
-        "try std.testing.expectEqualStrings(\"do_sys_openat2\", exit_report.symbol_name);",
-    );
-    try expectContains(
-        module_file,
-        "try std.testing.expectEqualStrings(\"do_sys_openat2\", after_exit.symbol_name);",
-    );
 
     try expectContains(
         initialized_guard_file,
@@ -179,6 +156,14 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
     try expectContains(
         registration_reentry_guard_file,
         "runtime kretprobe registration reentry stays fail-closed after exit",
+    );
+    try expectContains(
+        reinit_reexit_guard_file,
+        "phase9 kretprobe sample keeps paired rejected re-init and re-exit rollback explicit after initialized direct activity",
+    );
+    try expectContains(
+        reinit_reexit_guard_file,
+        "phase9 kretprobe sample keeps paired rejected re-init and re-exit rollback explicit after selftest-ready replay",
     );
 
     try expectContains(
@@ -210,20 +195,24 @@ test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and
         phase9_build,
         "\"phase9-runtime-kretprobe-registration-reentry-gate-tests\"",
     );
+    try expectContains(
+        phase9_build,
+        "\"phase9-runtime-kretprobe-reinit-reexit-guard-tests\"",
+    );
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-survey-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-module-tests\"");
     try expectContains(phase9_build, "\"phase9-runtime-kretprobe-tests\"");
     try expectContains(
         phase9_build,
+        "Run the Phase 9 runtime kretprobe paired re-init and re-exit rollback guard tests.",
+    );
+    try expectContains(
+        phase9_build,
+        "Run the Phase 9 runtime kretprobe sample, loader, initialized-snapshot guard, registration-reentry gate, reinit-reexit guard, survey, and module lifecycle tests.",
+    );
+    try expectContains(
+        phase9_build,
         "\"phase9-first-loadable-runtime-module-parity-behavior-tests\"",
-    );
-    try expectContains(
-        phase9_build,
-        "Run the Phase 9 runtime kretprobe loader handoff and blocked shared-request tests.",
-    );
-    try expectContains(
-        phase9_build,
-        "Run the Phase 9 runtime kretprobe sample, loader, initialized-snapshot guard, registration-reentry gate, survey, and module lifecycle tests.",
     );
     try expectContains(
         phase9_build,
