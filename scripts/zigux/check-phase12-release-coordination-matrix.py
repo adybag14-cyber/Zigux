@@ -26,9 +26,11 @@ RELEASE_CLOSURE_PATH = "Documentation/zigux/phase12-release-closure-checklist.md
 RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 COMPLEX_DRIVER_LANE_PATH = "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
 LIBBPF_LANE_PATH = "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
+CROSS_COMPILE_SMOKE_PATH = "Documentation/zigux/phase12-cross-compile-smoke.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 READINESS_CHECKER_PATH = "scripts/zigux/check-phase12-release-readiness-packet.py"
+CROSS_COMPILE_SMOKE_CHECKER_PATH = "scripts/zigux/check-phase12-cross-compile-smoke.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
@@ -42,9 +44,11 @@ REQUIRED_FILES = [
     RAW_GITHUB_COVERAGE_PATH,
     COMPLEX_DRIVER_LANE_PATH,
     LIBBPF_LANE_PATH,
+    CROSS_COMPILE_SMOKE_PATH,
     FREEZE_MAP_PATH,
     BUILD_ONLY_CHECKER_PATH,
     READINESS_CHECKER_PATH,
+    CROSS_COMPILE_SMOKE_CHECKER_PATH,
     VALIDATOR_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
@@ -54,6 +58,7 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = {
     COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "compile-smoke checker: `scripts/zigux/check-phase12-cross-compile-smoke.py`",
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-libbpf-lane-marker.py`, `scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py`, and the shipped wrapper name `make -C zigux phase12-validate`",
         "shared replay wiring: `zigux/tests/phase12_build.zig` and `.github/workflows/zigux-bootstrap.yml`; `zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on `master`",
         "The active shared build packet is the returned six-file `virtio_net` sextet only:",
@@ -93,6 +98,13 @@ REQUIRED_MARKERS = {
     LIBBPF_LANE_PATH: [
         "Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12` on current `master`",
         "The shipped heavy-consumer guard now sits beside that same support bundle too: `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py --self-test` and `python3 scripts/zigux/check-phase12-libbpf-heavy-consumer-packet.py` keep the parked helper-first packet fail-closed beside the snapshot checker and shared validator entrypoint",
+    ],
+    CROSS_COMPILE_SMOKE_PATH: [
+        "- support checker: `scripts/zigux/check-phase12-cross-compile-smoke.py`",
+        "the active shared `virtio_net` compile-smoke packet is the six-file bundle in `zigux/tests/phase12_build.zig`",
+        "current `zigux/Makefile` directly exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, `make -C zigux phase12`, and `make -C zigux phase12-virtio-net-syntax-lab-test`",
+        "the isolated syntax-lab rerun handles are `zig build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all` and `make -C zigux phase12-virtio-net-syntax-lab-test`, so the companion stays reviewable without joining the shared packet",
+        "the shipped cross-compile checker now keeps that returned wrapper wording plus the isolated syntax-lab rerun hook fail-closed across this note and `zigux/Makefile`",
     ],
     FREEZE_MAP_PATH: [
         "- `net/core/skbuff.c`",
@@ -204,6 +216,7 @@ def fixture_text(rel_path: str) -> str:
             RAW_GITHUB_COVERAGE_PATH: "# Phase 12 Raw GitHub Coverage Survey",
             COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex Driver Lane Sequencing",
             LIBBPF_LANE_PATH: "# Phase 12 Libbpf Heavy Consumer Lane Sequencing",
+            CROSS_COMPILE_SMOKE_PATH: "# Phase 12 Cross Compile Smoke",
             FREEZE_MAP_PATH: "# Zigux Freeze Map",
             WORKFLOW_PATH: "name: zigux-bootstrap",
         }.get(rel_path, "# Fixture")
@@ -291,8 +304,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 release coordination matrix against the "
-            "shared PMO packet, returned validator-first wrapper set, and bounded "
-            "driver-family coordination wording."
+            "shared PMO packet, returned validator-first wrapper set, bounded "
+            "compile-smoke companion, and bounded driver-family coordination wording."
         )
     )
     parser.add_argument(
@@ -319,16 +332,8 @@ def main() -> int:
 
     print("PHASE12_RELEASE_COORDINATION_MATRIX=pass")
     print(
-        "PHASE12_RELEASE_COORDINATION_MATRIX_REQUIRED_FILE_COUNT="
-        f"{len(REQUIRED_FILES)}"
-    )
-    print(
-        "PHASE12_RELEASE_COORDINATION_MATRIX_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
-    )
-    print(
-        "PHASE12_RELEASE_COORDINATION_MATRIX_FORBIDDEN_MARKER_COUNT="
-        f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
+        "PHASE12_RELEASE_COORDINATION_MATRIX_SCOPE="
+        "phase12_release_coordination_and_compile_smoke_truth"
     )
     return 0
 
