@@ -9,11 +9,11 @@ the Makefile keeps the staged-toolchain fallback chain explicit, that the route
 reruns the shared smoke route checker plus the current tests-root
 smoke-summary checker, validator, rollback-threshold sequencing checker,
 dedicated skbuff stay-in-C guardrail, validator-side skbuff compile-route
-checker, dedicated RCU rollback guardrail, and release-boundary checker
-packets, and that the shared smoke manifest records the same single-route
-Makefile split plus the focused raw build-file smoke shard as reminder
-vocabulary without claiming that the missing `phase14-smoke`, `phase14-test`,
-or full bundle wrappers have returned.
+checker, validator-side RCU compile-route checker, dedicated RCU rollback
+guardrail, and release-boundary checker packets, and that the shared smoke
+manifest records the same single-route Makefile split plus the focused raw
+build-file smoke shard as reminder vocabulary without claiming that the missing
+`phase14-smoke`, `phase14-test`, or full bundle wrappers have returned.
 """
 
 from __future__ import annotations
@@ -75,7 +75,9 @@ FORBIDDEN_WORKFLOW_MARKERS = [
 
 VALIDATOR_MARKERS = [
     'SKBUFF_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-skbuff-compile-route.py"',
+    'RCU_COMPILE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-compile-route.py"',
     "run_guardrail_checker(\n                args.root,\n                SKBUFF_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,",
+    "run_guardrail_checker(\n                args.root,\n                RCU_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,",
 ]
 
 REQUIRED_MANIFEST_VALUES = {
@@ -90,6 +92,8 @@ REQUIRED_MANIFEST_VALUES = {
     ("survey_summary", "phase14_validate_runs_rollback_threshold_sequencing"): True,
     ("survey_summary", "phase14_validate_runs_skbuff_stay_in_c_guardrail"): True,
     ("survey_summary", "phase14_validate_runs_skbuff_compile_route_checker"): True,
+    ("survey_summary", "phase14_validate_runs_rcu_compile_route_checker"): True,
+    ("survey_summary", "shared_manifest_records_rcu_compile_route_checker"): True,
     ("survey_summary", "phase14_validate_runs_rcu_rollback_guardrail"): True,
     ("survey_summary", "phase14_make_uses_pinned_toolchain_fallback"): True,
     ("survey_summary", "phase14_make_uses_local_toolchain_probe"): True,
@@ -288,6 +292,8 @@ def fixture_manifest() -> str:
             "phase14_validate_runs_rollback_threshold_sequencing": True,
             "phase14_validate_runs_skbuff_stay_in_c_guardrail": True,
             "phase14_validate_runs_skbuff_compile_route_checker": True,
+            "phase14_validate_runs_rcu_compile_route_checker": True,
+            "shared_manifest_records_rcu_compile_route_checker": True,
             "phase14_validate_runs_rcu_rollback_guardrail": True,
             "phase14_make_uses_pinned_toolchain_fallback": True,
             "phase14_make_uses_local_toolchain_probe": True,
@@ -300,6 +306,7 @@ def fixture_manifest() -> str:
 def fixture_validator() -> str:
     return """#!/usr/bin/env python3
 SKBUFF_COMPILE_ROUTE_CHECKER_PATH = \"scripts/zigux/check-phase14-skbuff-compile-route.py\"
+RCU_COMPILE_ROUTE_CHECKER_PATH = \"scripts/zigux/check-phase14-rcu-compile-route.py\"
 
 def run_guardrail_checker(root, rel_path, *, self_test):
     return []
@@ -308,6 +315,11 @@ def main(args):
     run_guardrail_checker(
                 args.root,
                 SKBUFF_COMPILE_ROUTE_CHECKER_PATH,
+                self_test=False,
+            )
+    run_guardrail_checker(
+                args.root,
+                RCU_COMPILE_ROUTE_CHECKER_PATH,
                 self_test=False,
             )
 """
@@ -424,6 +436,21 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         write_text(
             base,
+            VALIDATOR_PATH,
+            fixture_validator().replace(
+                "run_guardrail_checker(\n                args.root,\n                RCU_COMPILE_ROUTE_CHECKER_PATH,\n                self_test=False,\n            )\n",
+                "",
+                1,
+            ),
+        )
+        if not any("RCU_COMPILE_ROUTE_CHECKER_PATH" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected validator-side rcu compile-route marker failure")
+            return 1
+
+        write_fixture_tree(base)
+        write_text(
+            base,
             MAKEFILE_PATH,
             fixture_makefile().replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-skbuff-stay-in-c-guardrail.py --self-test\n"
@@ -509,6 +536,24 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["phase14_validate_runs_rcu_compile_route_checker"] = False
+        write_fixture_manifest(base, manifest)
+        if not any("manifest_value_mismatch:survey_summary.phase14_validate_runs_rcu_compile_route_checker" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected rcu compile-route manifest drift failure")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
+        manifest["survey_summary"]["shared_manifest_records_rcu_compile_route_checker"] = False
+        write_fixture_manifest(base, manifest)
+        if not any("manifest_value_mismatch:survey_summary.shared_manifest_records_rcu_compile_route_checker" in error for error in check(base)):
+            print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=fail")
+            print("expected rcu shared-manifest marker drift failure")
+            return 1
+
+        write_fixture_tree(base)
+        manifest = json.loads(fixture_manifest())
         manifest["survey_summary"]["phase14_validate_runs_rcu_rollback_guardrail"] = False
         write_fixture_manifest(base, manifest)
         if not any("manifest_value_mismatch:survey_summary.phase14_validate_runs_rcu_rollback_guardrail" in error for error in check(base)):
@@ -535,7 +580,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST=pass")
-        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=16")
+        print("PHASE14_SHARED_SMOKE_ROUTE_SELF_TEST_CASE_COUNT=19")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
