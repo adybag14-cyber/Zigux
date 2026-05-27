@@ -18,6 +18,9 @@ DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else Path.cwd(
 VALIDATE_PATH = Path("scripts/zigux/validate-phase11.py")
 FIXTURE_PATH = Path("zigux/tests/fixtures/phase11_validate_checks.json")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
+SHARED_TOOLING_CHECK_PATH = "scripts/zigux/check-phase11-shared-tooling-manifest.py"
+SHARED_TOOLING_FIXTURE_PATH = "zigux/tests/fixtures/phase11_shared_tooling_manifest.json"
+SHARED_TOOLING_SURVEY_PATH = "Documentation/zigux/phase11-codegen-manifest-tooling-gap-survey.md"
 
 SELF_CHECK_PATH = "scripts/zigux/check-phase11-validate-check-roster.py"
 SELF_FIXTURE_PATH = "zigux/tests/fixtures/phase11_validate_checks.json"
@@ -145,6 +148,12 @@ def run_check(root: Path) -> tuple[int, int]:
         raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {SELF_FIXTURE_PATH}")
     if str(INVENTORY_PATH) not in required_paths:
         raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {INVENTORY_PATH}")
+    if SHARED_TOOLING_CHECK_PATH not in required_paths:
+        raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {SHARED_TOOLING_CHECK_PATH}")
+    if SHARED_TOOLING_FIXTURE_PATH not in required_paths:
+        raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {SHARED_TOOLING_FIXTURE_PATH}")
+    if SHARED_TOOLING_SURVEY_PATH not in required_paths:
+        raise CheckError(f"validate-phase11 REQUIRED_PATHS is missing {SHARED_TOOLING_SURVEY_PATH}")
 
     lane_key = fixture.get("lane_key")
     if lane_key != EXPECTED_LANE_KEY:
@@ -222,6 +231,8 @@ def run_check(root: Path) -> tuple[int, int]:
     expected_self_checks = [
         {"name": "phase11-validate-check-roster-self-test", "command": ["python", SELF_CHECK_PATH, "--self-test"]},
         {"name": "phase11-validate-check-roster", "command": ["python", SELF_CHECK_PATH]},
+        {"name": "phase11-shared-tooling-manifest-self-test", "command": ["python", SHARED_TOOLING_CHECK_PATH, "--self-test"]},
+        {"name": "phase11-shared-tooling-manifest", "command": ["python", SHARED_TOOLING_CHECK_PATH]},
     ]
     for expected in expected_self_checks:
         if expected not in checks:
@@ -250,6 +261,9 @@ def build_fixture(
         SELF_CHECK_PATH,
         SELF_FIXTURE_PATH,
         str(INVENTORY_PATH),
+        SHARED_TOOLING_CHECK_PATH,
+        SHARED_TOOLING_FIXTURE_PATH,
+        SHARED_TOOLING_SURVEY_PATH,
     ]
     if omit_required_path:
         required_paths.remove(SELF_FIXTURE_PATH)
@@ -258,6 +272,8 @@ def build_fixture(
         {"name": "phase11-validation-self-test", "command": ["python", "scripts/zigux/validate-phase11.py", "--self-test"]},
         {"name": "phase11-validate-check-roster-self-test", "command": ["python", SELF_CHECK_PATH, "--self-test"]},
         {"name": "phase11-validate-check-roster", "command": ["python", SELF_CHECK_PATH]},
+        {"name": "phase11-shared-tooling-manifest-self-test", "command": ["python", SHARED_TOOLING_CHECK_PATH, "--self-test"]},
+        {"name": "phase11-shared-tooling-manifest", "command": ["python", SHARED_TOOLING_CHECK_PATH]},
         {"name": "phase11-validation", "command": ["python", "scripts/zigux/validate-phase11.py"]},
     ]
     fixture_checks = json.loads(json.dumps(checks))
@@ -274,14 +290,16 @@ def build_fixture(
             "    command: tuple[str, ...]",
             "",
             "REQUIRED_PATHS = (",
-            *(f'    "{path}",' for path in required_paths),
+            *(f'    \"{path}\",' for path in required_paths),
             ")",
             "",
             "CHECKS = (",
-            '    CheckSpec("phase11-validation-self-test", ("python", "scripts/zigux/validate-phase11.py", "--self-test")),',
-            f'    CheckSpec("phase11-validate-check-roster-self-test", ("python", "{SELF_CHECK_PATH}", "--self-test")),',
-            f'    CheckSpec("phase11-validate-check-roster", ("python", "{SELF_CHECK_PATH}")),',
-            '    CheckSpec("phase11-validation", ("python", "scripts/zigux/validate-phase11.py")),',
+            '    CheckSpec(\"phase11-validation-self-test\", (\"python\", \"scripts/zigux/validate-phase11.py\", \"--self-test\")),',
+            f'    CheckSpec(\"phase11-validate-check-roster-self-test\", (\"python\", \"{SELF_CHECK_PATH}\", \"--self-test\")),',
+            f'    CheckSpec(\"phase11-validate-check-roster\", (\"python\", \"{SELF_CHECK_PATH}\")),',
+            f'    CheckSpec(\"phase11-shared-tooling-manifest-self-test\", (\"python\", \"{SHARED_TOOLING_CHECK_PATH}\", \"--self-test\")),',
+            f'    CheckSpec(\"phase11-shared-tooling-manifest\", (\"python\", \"{SHARED_TOOLING_CHECK_PATH}\")),',
+            '    CheckSpec(\"phase11-validation\", (\"python\", \"scripts/zigux/validate-phase11.py\")),',
             ")",
             "",
         ]
@@ -440,7 +458,7 @@ def run_self_test() -> int:
         write(
             missing_self_test_entry / VALIDATE_PATH,
             read_text(missing_self_test_entry / VALIDATE_PATH).replace(
-                f'    CheckSpec("phase11-validate-check-roster-self-test", ("python", "{SELF_CHECK_PATH}", "--self-test")),\n',
+                f'    CheckSpec(\"phase11-validate-check-roster-self-test\", (\"python\", \"{SELF_CHECK_PATH}\", \"--self-test\")),\n',
                 "",
                 1,
             ),
@@ -463,7 +481,7 @@ def run_self_test() -> int:
         write(
             missing_live_entry / VALIDATE_PATH,
             read_text(missing_live_entry / VALIDATE_PATH).replace(
-                f'    CheckSpec("phase11-validate-check-roster", ("python", "{SELF_CHECK_PATH}")),\n',
+                f'    CheckSpec(\"phase11-validate-check-roster\", (\"python\", \"{SELF_CHECK_PATH}\")),\n',
                 "",
                 1,
             ),
