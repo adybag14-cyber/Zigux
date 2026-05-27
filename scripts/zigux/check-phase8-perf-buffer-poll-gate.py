@@ -33,6 +33,8 @@ NOTE_REQUIRED_MARKERS = [
     "`PHASE8_SLICE=libbpf-perf-buffer-poll`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig`",
+    "`tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig`",
+    "`tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig`",
     "`tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig`",
     "`zigux/tests/phase8_perf_buffer_poll.zig`",
@@ -106,10 +108,16 @@ PERF_BUFFER_POLL_BUILD_REQUIRED_MARKERS = [
     "phase8-perf-buffer-wait-budget-tests",
     "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
     "phase8-ready-buffer-fd-lookup-tests",
+    "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
+    "phase8-perf-buffer-ready-window-tests",
+    "../../tools/lib/bpf/zigux_segments/ready_buffer_window_verify.zig",
+    "phase8-ready-buffer-window-verify-tests",
     "../../tools/lib/bpf/zigux_segments/perf_buffer_poll_verify.zig",
     "phase8-perf-buffer-poll-verify-tests",
     "test_step.dependOn(&run_perf_buffer_wait_budget_tests.step);",
     "test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);",
+    "test_step.dependOn(&run_perf_buffer_ready_window_tests.step);",
+    "test_step.dependOn(&run_ready_buffer_window_verify_tests.step);",
     "test_step.dependOn(&run_perf_buffer_poll_verify_tests.step);",
 ]
 
@@ -121,8 +129,11 @@ PHASE8_BUILD_REQUIRED_MARKERS = [
     "phase8-perf-buffer-wait-budget-tests",
     "../../tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
     "phase8-ready-buffer-fd-lookup-tests",
+    "../../tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
+    "phase8-perf-buffer-ready-window-tests",
     "test_step.dependOn(&run_perf_buffer_wait_budget_tests.step);",
     "test_step.dependOn(&run_ready_buffer_fd_lookup_tests.step);",
+    "test_step.dependOn(&run_perf_buffer_ready_window_tests.step);",
 ]
 
 PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
