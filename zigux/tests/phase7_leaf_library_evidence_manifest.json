@@ -139,5 +139,7 @@
     "python3 scripts/zigux/validate-phase7.py --self-test",
     "make -C zigux phase7-validate"
   ],
-  "current_repo_reality_gaps": []
+  "current_repo_reality_gaps": [
+    "shared `scripts/zigux/README.md` and `zigux/tests/README.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory"
+  ]
 }
