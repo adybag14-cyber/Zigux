@@ -45,9 +45,12 @@ REQUIRED_MARKERS = {
         "pub fn fromErrorCode(code: isize) usize {",
         "pub fn isErrValue(raw: usize) bool {",
         "pub fn toErrorCode(raw: usize) isize {",
+        'test "err_ptr encodes the Linux error band as a tagged pointer-sized value" {',
+        'test "err_ptr keeps the floor boundary explicit" {',
+        'test "non-error values stay outside the err_ptr band" {',
     ),
     XA_VALUE_PATH: (
-        "const err_ptr = @import(\"err_ptr\");",
+        'const err_ptr = @import("err_ptr");',
         "pub const value_tag_mask: usize = 0x1;",
         "pub const safe_inline_limit: usize = (err_ptr.err_floor >> 1) - 1;",
         "ValueWouldOverlapErrPtr",
@@ -55,10 +58,10 @@ REQUIRED_MARKERS = {
         "return (raw & value_tag_mask) == value_tag_mask and !err_ptr.isErrValue(raw);",
     ),
     TEST_PATH: (
-        "test \"err_ptr encodes the Linux error band as a tagged pointer-sized value\" {",
-        "test \"xa_value round-trips a bounded inline value without entering the err_ptr band\" {",
-        "test \"xa_value rejects inline values that would overlap err_ptr encodings\" {",
-        "test \"safe inline limit stays the highest tagged value below the err_ptr floor\" {",
+        'test "err_ptr encodes the Linux error band as a tagged pointer-sized value" {',
+        'test "xa_value round-trips a bounded inline value without entering the err_ptr band" {',
+        'test "xa_value rejects inline values that would overlap err_ptr encodings" {',
+        'test "safe inline limit stays the highest tagged value below the err_ptr floor" {',
         "try testing.expectEqual(err_ptr.err_floor, raw + 2);",
     ),
     BUILD_PATH: (
@@ -100,37 +103,14 @@ REQUIRED_REPLAY_ROUTES = (
 )
 
 SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
-SAMPLE_FILES[MANIFEST_PATH] = f"""{{
-  \"phase\": \"Phase 3\",
-  \"lane\": \"helper-interop\",
-  \"slug\": \"phase3-errptr-xarray-starter-packet\",
-  \"status\": \"starter_packet_present\",
-  \"scope\": \"helper-local err_ptr and xarray inline-value boundary replay\",
-  \"packet_files\": [
-    \"Documentation/zigux/phase3-errptr-xarray-slice.md\",
-    \"Documentation/zigux/phase3-validator-support-surface.md\",
-    \"zigux/helpers/err_ptr.zig\",
-    \"zigux/helpers/xa_value.zig\",
-    \"zigux/tests/phase3_errptr_xarray_starter_packet.zig\",
-    \"zigux/tests/phase3_errptr_xarray_starter_packet_build.zig\",
-    \"zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json\",
-    \"scripts/zigux/check-phase3-errptr-xarray-starter-packet.py\"
-  ],
-  \"replay_routes\": [
-    \"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test\",
-    \"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py\",
-    \"{STARTER_BUILD_ROUTE}\"
-  ],
-  \"repo_reality_gaps\": [],
-  \"next_safe_step\": \"keep the helper-local err_ptr/xarray packet honest with manifest-backed replay before widening into broader Phase 3 validator or export-boundary claims\"
-}}
-"""
+SAMPLE_FILES[MANIFEST_PATH] = f"""{{\n  \"phase\": \"Phase 3\",\n  \"lane\": \"helper-interop\",\n  \"slug\": \"phase3-errptr-xarray-starter-packet\",\n  \"status\": \"starter_packet_present\",\n  \"scope\": \"helper-local err_ptr and xarray inline-value boundary replay\",\n  \"packet_files\": [\n    \"Documentation/zigux/phase3-errptr-xarray-slice.md\",\n    \"Documentation/zigux/phase3-validator-support-surface.md\",\n    \"zigux/helpers/err_ptr.zig\",\n    \"zigux/helpers/xa_value.zig\",\n    \"zigux/tests/phase3_errptr_xarray_starter_packet.zig\",\n    \"zigux/tests/phase3_errptr_xarray_starter_packet_build.zig\",\n    \"zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json\",\n    \"scripts/zigux/check-phase3-errptr-xarray-starter-packet.py\"\n  ],\n  \"replay_routes\": [\n    \"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test\",\n    \"python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py\",\n    \"{STARTER_BUILD_ROUTE}\"\n  ],\n  \"repo_reality_gaps\": [],\n  \"next_safe_step\": \"keep the helper-local err_ptr/xarray packet honest with manifest-backed replay before widening into broader Phase 3 validator or export-boundary claims\"\n}}\n"""
 
 SELF_TEST_CASES = (
     (SLICE_PATH, "zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json"),
     (SLICE_PATH, STARTER_BUILD_ROUTE),
     (VALIDATOR_NOTE_PATH, "the manifest-backed starter packet"),
     (ERR_PTR_PATH, "pub fn isErrValue(raw: usize) bool {"),
+    (ERR_PTR_PATH, 'test "err_ptr encodes the Linux error band as a tagged pointer-sized value" {'),
     (XA_VALUE_PATH, "ValueWouldOverlapErrPtr"),
     (TEST_PATH, "try testing.expectEqual(err_ptr.err_floor, raw + 2);"),
     (BUILD_PATH, '"phase3-errptr-xarray-starter-packet-test"'),
