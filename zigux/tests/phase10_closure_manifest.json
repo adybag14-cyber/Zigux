@@ -5,7 +5,7 @@
   "doc_count": 8,
   "manifest_count": 4,
   "driver_count": 4,
-  "test_count": 33,
+  "test_count": 35,
   "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
@@ -69,6 +69,8 @@
         "zigux/tests/phase10_virtio_ring.zig",
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         "zigux/tests/phase10_virtio_ring_reset_readiness.zig",
+        "zigux/tests/phase10_virtio_ring_queue_build.zig",
+        "zigux/tests/phase10_virtio_ring_queue_build_survey.zig",
         "drivers/virtio/virtio_ring_verify.zig",
         "drivers/virtio/virtio_ring_publish_readiness.zig",
         "drivers/virtio/virtio_ring_registration_summary.zig",
@@ -261,6 +263,12 @@
     "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig": [
       "phase10 ring delayed-callback budget replay"
     ],
+    "zigux/tests/phase10_virtio_ring_queue_build.zig": [
+      "phase10 ring focused queue-build replay"
+    ],
+    "zigux/tests/phase10_virtio_ring_queue_build_survey.zig": [
+      "phase10 ring queue-build survey replay"
+    ],
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
       "phase10 input queue-callback-preflight replay"
     ],
@@ -368,6 +376,8 @@
     "zigux/tests/phase10_virtio_ring_reset_readiness.zig",
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
     "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
+    "zigux/tests/phase10_virtio_ring_queue_build.zig",
+    "zigux/tests/phase10_virtio_ring_queue_build_survey.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
