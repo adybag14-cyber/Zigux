@@ -8,7 +8,6 @@ import difflib
 import json
 import os
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -23,6 +22,19 @@ DUMP_BUILD_PATH = Path("zigux/tests/phase3_list_hlist_dump_build.zig")
 C_HARNESS_PATH = Path("zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c")
 EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_list_hlist/expected.json")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_list_hlist_manifest.json")
+
+EXPECTED_MANIFEST_FIELDS = {
+    "phase": "Phase 3",
+    "lane": "abi-runtime",
+    "slug": "phase3-list-hlist",
+    "status": "starter_and_dump_packet_present",
+    "scope": "helper-local list_head and hlist starter packet plus fixture-backed dump parity",
+    "next_safe_step": (
+        "keep any future same-lane follow-through narrowed to shared "
+        "validator-entrypoint alignment or another explicitly bounded "
+        "helper-local replay route after rereading current master"
+    ),
+}
 
 REQUIRED_MARKERS = {
     DOC_PATH: (
@@ -103,9 +115,31 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
 )
 
+SELF_TEST_CASES = (
+    (
+        DOC_PATH,
+        "This note records one bounded shared-helper starter-plus-dump packet for the existing Phase 3 `list_head` and `hlist` helpers on current `master`.",
+    ),
+    (
+        DUMP_PATH,
+        'try writeListCase(writer, "broken_backlink", &list_broken_head, &list_broken_first, &list_broken_second, false);',
+    ),
+    (
+        C_HARNESS_PATH,
+        'write_hlist_case("broken_prev_link", &hlist_broken_head, &hlist_broken_first, &hlist_broken_second, false);',
+    ),
+    (EXPECTED_PATH, '"expected_pprev_label": "node0.next"'),
+    (MANIFEST_PATH, '"status": "starter_and_dump_packet_present"'),
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8", newline="\n")
 
 
 def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -140,6 +174,19 @@ def _diff(label: str, expected: object, actual: object) -> str:
 
 def _load_json(path: Path) -> object:
     return json.loads(_read(path))
+
+
+def _append_duplicate_list_entry_issues(label: str, values: list[object], issues: list[str]) -> None:
+    seen: dict[str, int] = {}
+    for index, value in enumerate(values):
+        key = repr(value)
+        first_index = seen.get(key)
+        if first_index is None:
+            seen[key] = index
+            continue
+        issues.append(
+            f"{label} duplicate entry: {value!r} (first index {first_index}, duplicate index {index})"
+        )
 
 
 def _run_starter_build(repo_root: Path, zig: str) -> None:
@@ -236,26 +283,45 @@ def validate_repo(repo_root: Path, zig: str, cc: str, *, skip_exec: bool = False
         issues.append(f"invalid JSON in {MANIFEST_PATH.as_posix()}: {exc}")
         return issues
 
-    if manifest.get("status") != "starter_and_dump_packet_present":
-        issues.append("phase3_list_hlist_manifest.json wrong status")
-    if manifest.get("slug") != "phase3-list-hlist":
-        issues.append("phase3_list_hlist_manifest.json wrong slug")
+    for field, expected in EXPECTED_MANIFEST_FIELDS.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            issues.append(
+                f"phase3_list_hlist_manifest.json wrong {field}: {actual!r} != {expected!r}"
+            )
+
     packet_files = manifest.get("packet_files")
     replay_routes = manifest.get("replay_routes")
+    repo_reality_gaps = manifest.get("repo_reality_gaps")
+
     if not isinstance(packet_files, list):
         issues.append("phase3_list_hlist_manifest.json packet_files is not a list")
     else:
+        _append_duplicate_list_entry_issues(
+            "phase3_list_hlist_manifest.json packet_files",
+            packet_files,
+            issues,
+        )
         for entry in REQUIRED_PACKET_FILES:
             if entry not in packet_files:
                 issues.append(f"phase3_list_hlist_manifest.json missing packet_files entry: {entry}")
+
     if not isinstance(replay_routes, list):
         issues.append("phase3_list_hlist_manifest.json replay_routes is not a list")
     else:
+        _append_duplicate_list_entry_issues(
+            "phase3_list_hlist_manifest.json replay_routes",
+            replay_routes,
+            issues,
+        )
         for entry in REQUIRED_REPLAY_ROUTES:
             if entry not in replay_routes:
                 issues.append(f"phase3_list_hlist_manifest.json missing replay route: {entry}")
-    if manifest.get("repo_reality_gaps") != []:
-        issues.append("phase3_list_hlist_manifest.json repo_reality_gaps must be empty after the parity packet lands")
+
+    if repo_reality_gaps != []:
+        issues.append(
+            "phase3_list_hlist_manifest.json repo_reality_gaps must be empty after the parity packet lands"
+        )
 
     if issues or skip_exec:
         return issues
@@ -279,39 +345,102 @@ def validate_repo(repo_root: Path, zig: str, cc: str, *, skip_exec: bool = False
     return issues
 
 
-SELF_TEST_CASES = (
-    (DOC_PATH, "This note records one bounded shared-helper starter-plus-dump packet for the existing Phase 3 `list_head` and `hlist` helpers on current `master`."),
-    (DUMP_PATH, 'try writeListCase(writer, "broken_backlink", &list_broken_head, &list_broken_first, &list_broken_second, false);'),
-    (C_HARNESS_PATH, 'write_hlist_case("broken_prev_link", &hlist_broken_head, &hlist_broken_first, &hlist_broken_second, false);'),
-    (EXPECTED_PATH, '"expected_pprev_label": "node0.next"'),
-    (MANIFEST_PATH, '"status": "starter_and_dump_packet_present"'),
-)
+def _populate_repo(root: Path) -> None:
+    for relative_path, markers in REQUIRED_MARKERS.items():
+        if relative_path in {EXPECTED_PATH, MANIFEST_PATH}:
+            continue
+        _write(root / relative_path, "\n".join(markers) + "\n")
+
+    _write(
+        root / EXPECTED_PATH,
+        json.dumps(
+            {
+                "word_bits": 64,
+                "cases": [
+                    {
+                        "name": "broken_backlink",
+                        "expected_prev_label": "node0",
+                    },
+                    {
+                        "name": "broken_prev_link",
+                        "expected_pprev_label": "node0.next",
+                    },
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+
+    manifest = {
+        **EXPECTED_MANIFEST_FIELDS,
+        "packet_files": list(REQUIRED_PACKET_FILES),
+        "replay_routes": list(REQUIRED_REPLAY_ROUTES),
+        "repo_reality_gaps": [],
+    }
+    _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
 
 
 def run_self_test() -> int:
-    root = Path(__file__).resolve().parents[2]
-    issues = validate_repo(root, zig="zig", cc="gcc", skip_exec=True)
-    if issues:
-        print("PHASE3_LIST_HLIST_SELF_TEST=fail")
-        print("\n".join(issues))
-        return 1
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_list_hlist_") as temp_dir:
+        root = Path(temp_dir)
+        _populate_repo(root)
 
-    for relative_path, marker in SELF_TEST_CASES:
-        path = root / relative_path
-        original = _read(path)
-        path.write_text(original.replace(marker, "", 1), encoding="utf-8")
-        try:
+        issues = validate_repo(root, zig="zig", cc="gcc", skip_exec=True)
+        if issues:
+            print("PHASE3_LIST_HLIST_SELF_TEST=fail")
+            print("\n".join(issues))
+            return 1
+
+        for relative_path, marker in SELF_TEST_CASES:
+            _populate_repo(root)
+            path = root / relative_path
+            _write(path, _read(path).replace(marker, "", 1))
             issues = validate_repo(root, zig="zig", cc="gcc", skip_exec=True)
             expected = f"missing {relative_path.as_posix()} marker: {marker}"
             if expected not in issues:
                 print("PHASE3_LIST_HLIST_SELF_TEST=fail")
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
-        finally:
-            path.write_text(original, encoding="utf-8")
+
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = _load_json(manifest_path)
+        manifest["packet_files"].append(REQUIRED_PACKET_FILES[0])
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root, zig="zig", cc="gcc", skip_exec=True)
+        expected = "phase3_list_hlist_manifest.json packet_files duplicate entry:"
+        if not any(issue.startswith(expected) for issue in issues):
+            print("PHASE3_LIST_HLIST_SELF_TEST=fail")
+            print("expected duplicate packet_files entry was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = _load_json(manifest_path)
+        manifest["replay_routes"].append(REQUIRED_REPLAY_ROUTES[0])
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root, zig="zig", cc="gcc", skip_exec=True)
+        expected = "phase3_list_hlist_manifest.json replay_routes duplicate entry:"
+        if not any(issue.startswith(expected) for issue in issues):
+            print("PHASE3_LIST_HLIST_SELF_TEST=fail")
+            print("expected duplicate replay_routes entry was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = _load_json(manifest_path)
+        manifest["repo_reality_gaps"] = ["still-open-gap"]
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root, zig="zig", cc="gcc", skip_exec=True)
+        expected = (
+            "phase3_list_hlist_manifest.json repo_reality_gaps must be empty after the parity packet lands"
+        )
+        if expected not in issues:
+            print("PHASE3_LIST_HLIST_SELF_TEST=fail")
+            print("expected non-empty repo_reality_gaps was not reported")
+            return 1
 
     print("PHASE3_LIST_HLIST_SELF_TEST=pass")
-    print(f"PHASE3_LIST_HLIST_SELF_TEST_CASES={len(SELF_TEST_CASES)}")
+    print(f"PHASE3_LIST_HLIST_SELF_TEST_CASES={len(SELF_TEST_CASES) + 3}")
     return 0
 
 
