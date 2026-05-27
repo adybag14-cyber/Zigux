@@ -198,3 +198,29 @@ test "phase 7 cmdline companion replays borrowed nextArg suffix ownership" {
     try std.testing.expectEqualStrings("", nul_bounded.remaining);
     try std.testing.expectEqual(@as(usize, @intFromPtr(nul_bounded.rest.ptr)), @as(usize, @intFromPtr(nul_bounded.remaining.ptr)));
 }
+
+test "phase 7 cmdline companion replays quoted-empty and unterminated quoted-value boundaries" {
+    var quoted_empty_input = [_]u8{ 'f', 'l', 'a', 'g', '=', '"', '"', ' ', 'n', 'e', 'x', 't', 0 };
+    const quoted_empty = cmdline.nextArg(&quoted_empty_input);
+    try std.testing.expectEqualStrings("flag", quoted_empty.param);
+    try std.testing.expectEqualStrings("", quoted_empty.value.?);
+    try std.testing.expectEqualStrings("next", quoted_empty.rest);
+    try std.testing.expectEqualStrings("next", quoted_empty.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_empty_input[0])), @as(usize, @intFromPtr(quoted_empty.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_empty_input[6])), @as(usize, @intFromPtr(quoted_empty.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&quoted_empty_input[8])), @as(usize, @intFromPtr(quoted_empty.rest.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(quoted_empty.rest.ptr)), @as(usize, @intFromPtr(quoted_empty.remaining.ptr)));
+
+    var unterminated_input = [_]u8{
+        'c', 'o', 'n', 's', 'o', 'l', 'e', '=', '"', 't', 't', 'y', 'S', '0', ',', '1', '1', '5', '2', '0', ' ', 'r', 'o', 'o', 't', '=', '/', 'd', 'e', 'v', '/', 'v', 'd', 'a', 0,
+    };
+    const unterminated = cmdline.nextArg(&unterminated_input);
+    try std.testing.expectEqualStrings("console", unterminated.param);
+    try std.testing.expectEqualStrings("ttyS0,115200 root=/dev/vda", unterminated.value.?);
+    try std.testing.expectEqualStrings("", unterminated.rest);
+    try std.testing.expectEqualStrings("", unterminated.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&unterminated_input[0])), @as(usize, @intFromPtr(unterminated.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&unterminated_input[9])), @as(usize, @intFromPtr(unterminated.value.?.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&unterminated_input[34])), @as(usize, @intFromPtr(unterminated.rest.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(unterminated.rest.ptr)), @as(usize, @intFromPtr(unterminated.remaining.ptr)));
+}
