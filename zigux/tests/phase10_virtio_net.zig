@@ -326,6 +326,89 @@ test "phase10 virtio net reserves refill descriptors without widening into live 
     try std.testing.expectEqual(@as(u32, 25600), recycled_reservation.total_allocation_bytes);
 }
 
+test "phase10 virtio net makes a bounded notify decision from the queued refill reservation" {
+    var device = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+    });
+    const snapshot = try device.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+        },
+        .requested_queue_pairs = 2,
+        .max_queue_pairs = 2,
+    });
+    _ = try device.planMergeableReceiveBuffer(snapshot, .{
+        .header_len = 12,
+        .average_packet_len = 1500,
+        .min_buf_len = 512,
+        .headroom = 256,
+        .cache_line_size = 64,
+        .skb_shared_info_size = 320,
+    });
+
+    const reservation = try device.reserveReceiveQueueRefillDescriptors(.{
+        .queue_capacity = 256,
+        .buffers_posted = 192,
+        .batch_limit = 32,
+        .descriptors_available = 48,
+        .descriptors_per_buffer = 2,
+    });
+
+    const empty_transition = device.decideReceiveQueueRefillNotify(reservation, .{
+        .queue_was_empty = true,
+        .notify_after_descriptors = 64,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", empty_transition.anchor);
+    try std.testing.expect(empty_transition.queue_became_non_empty);
+    try std.testing.expectEqual(@as(u16, 64), empty_transition.notify_after_descriptors);
+    try std.testing.expect(!empty_transition.reached_notify_threshold);
+    try std.testing.expect(empty_transition.should_notify);
+
+    const threshold_only = device.decideReceiveQueueRefillNotify(reservation, .{
+        .queue_was_empty = false,
+        .notify_after_descriptors = 48,
+    });
+    try std.testing.expect(!threshold_only.queue_became_non_empty);
+    try std.testing.expect(threshold_only.reached_notify_threshold);
+    try std.testing.expect(threshold_only.should_notify);
+
+    const suppressed = device.decideReceiveQueueRefillNotify(reservation, .{
+        .queue_was_empty = true,
+        .notifications_enabled = false,
+        .notify_after_descriptors = 16,
+    });
+    try std.testing.expect(suppressed.queue_became_non_empty);
+    try std.testing.expect(suppressed.reached_notify_threshold);
+    try std.testing.expect(!suppressed.should_notify);
+
+    const no_threshold = device.decideReceiveQueueRefillNotify(reservation, .{
+        .queue_was_empty = false,
+        .notify_after_descriptors = 64,
+    });
+    try std.testing.expect(!no_threshold.queue_became_non_empty);
+    try std.testing.expect(!no_threshold.reached_notify_threshold);
+    try std.testing.expect(!no_threshold.should_notify);
+
+    const exhausted_reservation = try device.reserveReceiveQueueRefillDescriptors(.{
+        .queue_capacity = 256,
+        .buffers_posted = 192,
+        .batch_limit = 32,
+        .descriptors_available = 0,
+        .descriptors_per_buffer = 2,
+    });
+    const no_descriptors = device.decideReceiveQueueRefillNotify(exhausted_reservation, .{
+        .queue_was_empty = true,
+    });
+    try std.testing.expect(!no_descriptors.queue_became_non_empty);
+    try std.testing.expect(!no_descriptors.reached_notify_threshold);
+    try std.testing.expect(!no_descriptors.should_notify);
+    try std.testing.expect(no_descriptors.descriptor_budget_exhausted);
+}
+
 test "phase10 virtio net rejects mergeable buffer plans that widen beyond the negotiated safe path" {
     var untouched_device = try virtio_net.VirtioNetProbeLab.init(&.{virtio_net.feature_mergeable_rx_buffers});
     try std.testing.expectError(error.MergeableBufferPlanUnavailable, untouched_device.summarizeReceiveQueueRefill());
