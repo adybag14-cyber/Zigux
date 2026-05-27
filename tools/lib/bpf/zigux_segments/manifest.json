@@ -9,7 +9,8 @@
     "preexisting_phase8_libbpf_note_present": true,
     "repo_reality_notes": [
       "Current master carries helper-first Zig segments under tools/lib/bpf/zigux_segments.",
-      "Current master now carries tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig for helper-only proc-fdinfo pathname shaping, compact fdinfo map-info parsing, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token readiness while direct procfs reads, bpffs opens, and descriptor ownership still stay deferred."
+      "Current master now carries tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig for helper-only proc-fdinfo pathname shaping, compact fdinfo map-info parsing, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token readiness while direct procfs reads, bpffs opens, and descriptor ownership still stay deferred.",
+      "Current master also carries ready-buffer helper shards that split ready-attempt-to-fd lookup and ready-attempt-to-window lookup into stable-output review surfaces under tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig and tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig."
     ],
     "companion_c_files": [
       { "path": "tools/lib/bpf/bpf.c", "lines": 1419 },
@@ -78,7 +79,7 @@
         "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The shared file-path bridge destination already carries bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow."
+      "why_now": "The shared file-path bridge destination already carries the bounded procfs path construction and fdinfo text parsing helpers, so this landed slice should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow."
     },
     {
       "id": "P8-L13-S06",
@@ -170,6 +171,28 @@
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
       "why_now": "This materializes the shared bridge destination with side-effect-free pathname shaping and bounded reused-map name retention while keeping procfs reads, fdinfo parsing, and reuse comparison logic deferred."
+    },
+    {
+      "id": "P8-L13-S14",
+      "slug": "ready-buffer-fd-lookup",
+      "status": "starter_landed",
+      "kind": "helper_adjacent",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: perf_buffer__poll() ready buffer descriptor lookup after ready-attempt selection"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
+      "why_now": "The dedicated ready-buffer fd lookup helper keeps slot-to-ready-attempt translation and errno-shaped fd lookup outputs stable without widening into epoll wiring, perf_event setup, or ring ownership behavior."
+    },
+    {
+      "id": "P8-L13-S15",
+      "slug": "ready-buffer-window-lookup",
+      "status": "starter_landed",
+      "kind": "helper_adjacent",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: perf_buffer__poll() ready buffer mapped-window lookup around process_records bookkeeping"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
+      "why_now": "The ready-buffer window helper isolates mapped-size and lookup-return summaries for already-ready buffers, extending stable-output poll bookkeeping without widening into mmap ownership, ring lifecycle, or wait orchestration."
     }
   ],
   "segmentation_notes": [
@@ -202,6 +225,42 @@
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
       ],
       "why_now": "The shared file-path bridge destination now records the fdinfo parsing foundation, helper-only observation shaping, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token-readiness gating as a reviewable landed helper slice, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor, token materialization, or reopen side effects."
+    },
+    {
+      "destination": "tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig",
+      "status": "helper_landed",
+      "landed_scope": [
+        "summarizeReadyBufferFdLookupAtAttempt() stable ready-attempt-to-fd lookup summary",
+        "resolveReadyBufferFdLookup() typed ready-buffer fd lookup wrapper",
+        "resolveReadyBufferFdAtAttempt() direct ready-buffer fd wrapper",
+        "resolveReadyBufferFdLookupReturn() errno-shaped ready-buffer fd summary wrapper",
+        "resolveReadyBufferFdLookupReturnAtAttempt() errno-shaped ready-buffer fd direct wrapper"
+      ],
+      "queued_scope": [],
+      "deferred_scope": [
+        "epoll registration and wait orchestration",
+        "perf_event_open setup and mmap-backed ring ownership"
+      ],
+      "why_now": "This helper-local shard keeps ready-buffer descriptor lookup outputs reviewable as stable poll bookkeeping without widening into setup-side routing, perf-event wiring, or ring lifecycle ownership."
+    },
+    {
+      "destination": "tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
+      "status": "helper_landed",
+      "landed_scope": [
+        "summarizeReadyBufferWindowLookupAtAttempt() stable ready-attempt-to-window summary",
+        "resolveReadyBufferWindowLookup() typed ready-buffer window lookup wrapper",
+        "resolveReadyBufferWindowMappedSizeAtAttempt() direct ready-buffer mapped-size wrapper",
+        "resolveReadyBufferWindowMappedSizeReturn() errno-shaped mapped-size summary wrapper",
+        "resolveReadyBufferWindowMappedSizeReturnAtAttempt() errno-shaped mapped-size direct wrapper",
+        "resolveReadyBufferWindowLookupReturn() errno-shaped ready-buffer window summary wrapper",
+        "resolveReadyBufferWindowLookupReturnAtAttempt() errno-shaped ready-buffer window direct wrapper"
+      ],
+      "queued_scope": [],
+      "deferred_scope": [
+        "mmap-backed window ownership and teardown",
+        "broader wait-result orchestration outside ready-buffer lookup bookkeeping"
+      ],
+      "why_now": "This helper-local shard keeps ready-buffer mapped-window outputs reviewable as stable poll bookkeeping without widening into mmap lifecycle ownership, ring teardown, or broader wait orchestration."
     }
   ]
 }
