@@ -312,7 +312,7 @@ pub const SyscallsHelperLab = struct {
         }
 
         const create_ruleset_plan = try planCreateRuleset(request.input);
-        if (create_ruleset_plan.mode == .create_handle and !request.attr_present) {
+        if (create_ruleset_plan.performs_copy_from_user and !request.attr_present) {
             return error.BadUserPointer;
         }
 
@@ -326,7 +326,7 @@ pub const SyscallsHelperLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
-            .checks_attr_presence_before_copy_from_user = true,
+            .checks_attr_presence_before_copy_from_user = create_ruleset_plan.performs_copy_from_user,
             .reuses_create_ruleset_validation = true,
             .reuses_ruleset_fd_install_planning = create_ruleset_plan.mode == .create_handle,
             .create_ruleset_plan = create_ruleset_plan,
@@ -672,7 +672,7 @@ test "landlock syscalls top-level wrapper keeps version query nullable and expli
 
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
     try std.testing.expect(wrapper.checks_initialization_gate);
-    try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(!wrapper.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(wrapper.reuses_create_ruleset_validation);
     try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
@@ -689,7 +689,7 @@ test "landlock syscalls top-level wrapper keeps errata query nullable and explic
 
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
     try std.testing.expect(wrapper.checks_initialization_gate);
-    try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(!wrapper.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(wrapper.reuses_create_ruleset_validation);
     try std.testing.expectEqual(CreateRulesetMode.abi_errata_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
