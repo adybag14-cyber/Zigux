@@ -1,17 +1,17 @@
 # Phase 11 GPIO Watchdog Module Slice
 
-This bounded Phase 11 module slice keeps the archived `P11-L04` gpio watchdog
-review packet truthful on current `master`.
-It records the returned driver-plus-docs-plus-proof packet that current
-authenticated contents reads still rematerialize and does not treat older wider
-replay, manifest, survey-gate, shared-contract, or shared-build anchors as
-current-head evidence.
+This bounded Phase 11 `P11-L04` gpio watchdog review packet keeps the current
+driver-plus-docs-plus-proof packet truthful on current `master`.
+It records the returned driver, direct proofs, current-head manifest, dedicated
+manifest survey route, and coupled note surfaces that authenticated contents
+reads still rematerialize and does not treat older wider replay, manifest,
+survey-gate, shared-contract, or shared-build anchors as current-head evidence.
 
 ## Review Packet
 
 The `gpio_wdt_lab` starter remains intentionally review-first while still
-exposing the shipped checkpoint names that the returned driver, proof, and
-companion notes keep explicit:
+exposing the shipped checkpoint names that the returned driver, proof, current-
+head manifest, and companion notes keep explicit:
 - `platformDriverIdentitySummary()` keeps the Linux anchor and bounded starter
   identity explicit.
 - `watchdogMetadataSummary()` keeps the watchdog metadata packet visible before
@@ -62,13 +62,26 @@ companion notes keep explicit:
   registration or shutdown execution.
 - `summarizeTeardown()` keeps the host-free teardown summary visible without
   claiming reboot-backed shutdown execution.
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest.json` keeps the returned
+  driver-plus-docs-plus-proof packet machine-readable without reviving the
+  older wider manifest or shared replay route.
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig` and
+  `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig` keep
+  the narrower current-head packet on a dedicated fail-closed survey route.
 
 The same review packet also keeps teardown and failure-mode parity explicit in
 bounded form while the paired
-`Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md` keeps the current
-remove-handoff packet explicit without claiming live platform cleanup
-callbacks, platform-driver removal, watchdog-core unregister side effects, or
-host-backed shutdown behavior.
+`Documentation/zigux/phase11-gpio-wdt-teardown-note.md` and
+`Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md` keep the current
+teardown and remove-handoff packet explicit without claiming live platform
+cleanup callbacks, platform-driver removal, watchdog-core unregister side
+effects, or host-backed shutdown behavior.
+
+`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`
+and `python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py` keep
+the recovered manifest, survey note, module slice, teardown note,
+remove-handoff note, validation matrix, and dedicated survey build route
+aligned on current `master`.
 
 ## Boundaries
 
