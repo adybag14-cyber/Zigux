@@ -161,6 +161,7 @@ Purpose
   * `scripts/zigux/check-phase7-shared-surface.py`
   * `scripts/zigux/check-phase7-build-wiring.py`
   * `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+  * `scripts/zigux/check-phase7-cmdline-packet.py`
   * `scripts/zigux/check-phase7-argv-split-packet.py`
   * `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`
   * `scripts/zigux/check-phase7-rbtree-parity.py`
@@ -172,7 +173,7 @@ Purpose
   * `lib/cmdline.zig`
   * `lib/argv_split.zig`
   * `lib/rbtree.zig`
-  * Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`, `python3 scripts/zigux/check-phase7-rbtree-parity.py`, `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`, `python3 scripts/zigux/validate-phase7.py`, `python3 scripts/zigux/validate-phase7.py --self-test`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, and `zigux/Makefile` still keeps only the narrow `phase7-validate` foothold explicit rather than a broader wrapper family.
+  * Keep the validator-first reminder packet explicit too: `python3 scripts/zigux/check-phase7-shared-surface.py`, `python3 scripts/zigux/check-phase7-build-wiring.py`, `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `python3 scripts/zigux/check-phase7-cmdline-packet.py`, `python3 scripts/zigux/check-phase7-argv-split-packet.py`, `python3 scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`, `python3 scripts/zigux/check-phase7-rbtree-parity.py`, `python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`, `python3 scripts/zigux/validate-phase7.py`, `python3 scripts/zigux/validate-phase7.py --self-test`, and `make -C zigux phase7-validate` remain the shipped bounded replay surfaces, and `zigux/Makefile` still keeps only the narrow `phase7-validate` foothold explicit rather than a broader wrapper family.
 
 ## Phase 8 tooling packet
 
