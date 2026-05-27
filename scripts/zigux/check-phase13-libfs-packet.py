@@ -14,7 +14,7 @@ HELPER_PATH = "fs/libfs.zig"
 REPLAY_PATH = "zigux/tests/phase13_libfs.zig"
 REVIEWABILITY_PATH = "zigux/tests/phase13_libfs_reviewability.zig"
 
-FIXTURE_LANE = "P13-L01"
+FIXTURE_LANE = "P13-Y01"
 FIXTURE_COMMIT = "master-readback-2026-05-27"
 EXPECTED_GAP_COUNT = 15
 EXPECTED_STARTER_COUNT = 11
@@ -231,11 +231,11 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         manifest = json.loads(read_text(root / MANIFEST_PATH))
-        manifest["lane_key"] = "P13-Y01"
+        manifest["lane_key"] = "P13-L01"
         write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         assert_only(
             validate(root),
-            ['survey:missing_marker:helper-local governance for this family remains tracked under `P13-Y01`', 'replay:missing_marker:"lane_key": "P13-Y01"'],
+            ['survey:missing_marker:helper-local governance for this family remains tracked under `P13-L01`', 'replay:missing_marker:"lane_key": "P13-L01"'],
             "manifest_lane_alignment_failed",
         )
         case_count += 1
@@ -289,7 +289,7 @@ def run_self_test() -> int:
         assert_only(validate(root), expected, "survey_missing_markers_failed")
         case_count += 1
 
-        seed_fixture_tree(root)
+        seed_fixtureTree(root)
         write_text(
             root / HELPER_PATH,
             "\n".join(marker for marker in HELPER_MARKERS if marker != "pub fn planSimpleOffsetRemove(") + "\n",
