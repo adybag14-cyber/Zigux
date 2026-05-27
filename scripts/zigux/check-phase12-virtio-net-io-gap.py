@@ -221,8 +221,7 @@ def run_self_test() -> None:
 
         write_fixture_tree(root)
         broken_manifest = root / "zigux/tests/phase12_virtio_net_manifest.json"
-        broken_manifest.writeText = broken_manifest.write_text
-        broken_manifest.writeText(
+        broken_manifest.write_text(
             broken_manifest.read_text(encoding="utf-8").replace(
                 "blocked_on_dma_transport_runtime",
                 "missing",
