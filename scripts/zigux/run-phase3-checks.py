@@ -149,6 +149,16 @@ CHECK_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/check-phase3-low-level-wrappers.py"),
+        (),
+        (
+            "validated zigux/tests/phase3_low_level_wrappers.zig",
+            "validated zigux/tests/phase3_low_level_wrappers_build.zig",
+            "validated zigux/tests/build.zig",
+            "validated zigux/Makefile",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"),
         (),
         ("validated Documentation/zigux/phase3-linux-zigux-header-governance.md",),
@@ -215,27 +225,24 @@ SELF_TEST_MISSING_CASES = (
     (16, "expected abi-header-family survey script omission was not reported"),
     (17, "expected policy-unsafe survey script omission was not reported"),
     (18, "expected low-level-wrapper script omission was not reported"),
-    (19, "expected linux-zigux header-governance script omission was not reported"),
-    (20, "expected selftest-surface script omission was not reported"),
-    (21, "expected abi manifest replay-routes script omission was not reported"),
-    (22, "expected bitmap-cpumask script omission was not reported"),
-    (23, "expected list-hlist starter script omission was not reported"),
-    (24, "expected full list-hlist script omission was not reported"),
+    (19, "expected low-level-wrapper compile-route script omission was not reported"),
+    (20, "expected linux-zigux header-governance script omission was not reported"),
+    (21, "expected selftest-surface script omission was not reported"),
+    (22, "expected abi manifest replay-routes script omission was not reported"),
+    (23, "expected bitmap-cpumask script omission was not reported"),
+    (24, "expected list-hlist starter script omission was not reported"),
+    (25, "expected full list-hlist script omission was not reported"),
 )
-
 
 def _missing_output_markers(stdout: str, markers: tuple[str, ...]) -> list[str]:
     return [marker for marker in markers if marker not in stdout]
 
-
 def _expected_manifest_python_routes(manifest: object) -> set[Path]:
     if not isinstance(manifest, dict):
         return set()
-
     replay_routes = manifest.get("replay_routes")
     if not isinstance(replay_routes, list):
         return set()
-
     expected: set[Path] = set()
     for route in replay_routes:
         if not isinstance(route, str):
@@ -244,14 +251,9 @@ def _expected_manifest_python_routes(manifest: object) -> set[Path]:
         if len(parts) < 2 or parts[0] != "python3" or "--self-test" in parts[2:]:
             continue
         script_path = Path(parts[1])
-        if (
-            script_path.parts[:2] == ("scripts", "zigux")
-            and script_path.suffix == ".py"
-            and script_path not in ORCHESTRATION_ROUTES
-        ):
+        if script_path.parts[:2] == ("scripts", "zigux") and script_path.suffix == ".py" and script_path not in ORCHESTRATION_ROUTES:
             expected.add(script_path)
     return expected
-
 
 def validate_script_list(repo_root: Path) -> list[str]:
     missing: list[str] = []
@@ -260,26 +262,18 @@ def validate_script_list(repo_root: Path) -> list[str]:
             missing.append(f"missing phase3 check script: {rel_path.as_posix()}")
     return missing
 
-
 def validate_manifest_python_coverage(repo_root: Path) -> list[str]:
     manifest_path = repo_root / MANIFEST_PATH
     if not manifest_path.is_file():
         return [f"missing phase3 manifest: {MANIFEST_PATH.as_posix()}"]
-
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return [f"invalid phase3 manifest JSON: {MANIFEST_PATH.as_posix()}: {exc}"]
-
     expected = _expected_manifest_python_routes(manifest)
     actual = {rel_path for rel_path, _args, _markers in CHECK_COMMANDS}
     missing = sorted(expected - actual)
-    return [
-        "manifest python replay route missing from CHECK_COMMANDS: "
-        + rel_path.as_posix()
-        for rel_path in missing
-    ]
-
+    return ["manifest python replay route missing from CHECK_COMMANDS: " + rel_path.as_posix() for rel_path in missing]
 
 def run_packet(repo_root: Path) -> int:
     missing = validate_script_list(repo_root)
@@ -288,15 +282,8 @@ def run_packet(repo_root: Path) -> int:
         print("PHASE3_CHECK_RUNNER=fail")
         print("\n".join(missing))
         return 1
-
     for rel_path, args, output_markers in CHECK_COMMANDS:
-        result = subprocess.run(
-            [sys.executable, rel_path.as_posix(), *args],
-            cwd=repo_root,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+        result = subprocess.run([sys.executable, rel_path.as_posix(), *args], cwd=repo_root, check=False, capture_output=True, text=True)
         if result.returncode != 0:
             print("PHASE3_CHECK_RUNNER=fail")
             print("phase3 check failed: " + " ".join([rel_path.as_posix(), *args]))
@@ -305,7 +292,6 @@ def run_packet(repo_root: Path) -> int:
             if result.stderr:
                 print(result.stderr.rstrip())
             return 1
-
         missing_markers = _missing_output_markers(result.stdout, output_markers)
         if missing_markers:
             print("PHASE3_CHECK_RUNNER=fail")
@@ -317,18 +303,11 @@ def run_packet(repo_root: Path) -> int:
             if result.stderr:
                 print(result.stderr.rstrip())
             return 1
-
     print("PHASE3_CHECK_RUNNER=pass")
     print(f"PHASE3_CHECK_RUNNER_CASE_COUNT={len(CHECK_COMMANDS)}")
     return 0
 
-
-def _write_synthetic_script(
-    path: Path,
-    output_markers: tuple[str, ...],
-    *,
-    failure_code: int | None = None,
-) -> None:
+def _write_synthetic_script(path: Path, output_markers: tuple[str, ...], *, failure_code: int | None = None) -> None:
     lines = ["#!/usr/bin/env python3", "import sys"]
     for marker in output_markers:
         lines.append(f"print({marker!r})")
@@ -339,52 +318,27 @@ def _write_synthetic_script(
         lines.append(f"raise SystemExit({failure_code})")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-
 def _write_synthetic_manifest(root: Path, replay_routes: list[str] | None = None) -> None:
     manifest_path = root / MANIFEST_PATH
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     if replay_routes is None:
-        replay_routes = [
-            f"python3 {rel_path.as_posix()}"
-            for rel_path, _args, _markers in CHECK_COMMANDS
-        ]
-        replay_routes.extend(
-            [
-                "python3 scripts/zigux/run-phase3-checks.py",
-                "python3 scripts/zigux/validate_phase3_selftest.py",
-                "python3 scripts/zigux/check-phase3-abi.py --self-test",
-                "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
-            ]
-        )
-    manifest_path.write_text(
-        json.dumps({"replay_routes": replay_routes}, indent=2) + "\n",
-        encoding="utf-8",
-    )
-
+        replay_routes = [f"python3 {rel_path.as_posix()}" for rel_path, _args, _markers in CHECK_COMMANDS]
+        replay_routes.extend(["python3 scripts/zigux/run-phase3-checks.py", "python3 scripts/zigux/validate_phase3_selftest.py", "python3 scripts/zigux/check-phase3-abi.py --self-test", "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig"])
+    manifest_path.write_text(json.dumps({"replay_routes": replay_routes}, indent=2) + "\n", encoding="utf-8")
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_check_runner_") as temp_dir:
         root = Path(temp_dir)
-
         def populate_repo() -> None:
             for rel_path, _args, output_markers in CHECK_COMMANDS:
                 path = root / rel_path
                 path.parent.mkdir(parents=True, exist_ok=True)
                 _write_synthetic_script(path, output_markers)
             _write_synthetic_manifest(root)
-
-        def expect_missing_output_marker(
-            index: int,
-            missing_marker_index: int,
-            message: str,
-        ) -> int:
+        def expect_missing_output_marker(index: int, missing_marker_index: int, message: str) -> int:
             populate_repo()
             output_markers = CHECK_COMMANDS[index][2]
-            kept_markers = tuple(
-                marker
-                for marker_index, marker in enumerate(output_markers)
-                if marker_index != missing_marker_index
-            )
+            kept_markers = tuple(marker for marker_index, marker in enumerate(output_markers) if marker_index != missing_marker_index)
             target_path = root / CHECK_COMMANDS[index][0]
             _write_synthetic_script(target_path, kept_markers)
             if run_packet(root) != 1:
@@ -392,21 +346,17 @@ def run_self_test() -> int:
                 print(message)
                 return 1
             return 0
-
         populate_repo()
-
         if validate_script_list(root):
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected synthetic phase3 check set to validate")
             return 1
-
         manifest_missing = validate_manifest_python_coverage(root)
         if manifest_missing:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected synthetic manifest coverage to validate")
             print("\n".join(manifest_missing))
             return 1
-
         for index, message in SELF_TEST_MISSING_CASES:
             populate_repo()
             missing_path = CHECK_COMMANDS[index][0]
@@ -417,26 +367,14 @@ def run_self_test() -> int:
                 print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
                 print(message)
                 return 1
-
         populate_repo()
-        _write_synthetic_manifest(
-            root,
-            replay_routes=[
-                f"python3 {rel_path.as_posix()}"
-                for rel_path, _args, _markers in CHECK_COMMANDS
-            ]
-            + ["python3 scripts/zigux/manifest-only-check.py"],
-        )
+        _write_synthetic_manifest(root, replay_routes=[f"python3 {rel_path.as_posix()}" for rel_path, _args, _markers in CHECK_COMMANDS] + ["python3 scripts/zigux/manifest-only-check.py"])
         manifest_missing = validate_manifest_python_coverage(root)
-        expected_manifest_gap = (
-            "manifest python replay route missing from CHECK_COMMANDS: "
-            "scripts/zigux/manifest-only-check.py"
-        )
+        expected_manifest_gap = "manifest python replay route missing from CHECK_COMMANDS: scripts/zigux/manifest-only-check.py"
         if expected_manifest_gap not in manifest_missing:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected manifest-only python replay route omission to be reported")
             return 1
-
         populate_repo()
         (root / MANIFEST_PATH).unlink()
         manifest_missing = validate_manifest_python_coverage(root)
@@ -445,31 +383,21 @@ def run_self_test() -> int:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing manifest to be reported")
             return 1
-
         failing_path = root / CHECK_COMMANDS[-2][0]
         populate_repo()
-        _write_synthetic_script(
-            failing_path,
-            CHECK_COMMANDS[-2][2],
-            failure_code=9,
-        )
+        _write_synthetic_script(failing_path, CHECK_COMMANDS[-2][2], failure_code=9)
         result = run_packet(root)
         if result != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected failing child validator to fail the runner")
             return 1
-
         xarray_slot_dump_path = root / CHECK_COMMANDS[3][0]
         populate_repo()
-        _write_synthetic_script(
-            xarray_slot_dump_path,
-            (CHECK_COMMANDS[3][2][0],),
-        )
+        _write_synthetic_script(xarray_slot_dump_path, (CHECK_COMMANDS[3][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing xarray-slot dump output marker to fail the runner")
             return 1
-
         support_checker_path = root / CHECK_COMMANDS[8][0]
         populate_repo()
         _write_synthetic_script(support_checker_path, ())
@@ -477,39 +405,26 @@ def run_self_test() -> int:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing support-checker output marker to fail the runner")
             return 1
-
         validator_support_path = root / CHECK_COMMANDS[13][0]
         populate_repo()
-        _write_synthetic_script(
-            validator_support_path,
-            (CHECK_COMMANDS[13][2][0],),
-        )
+        _write_synthetic_script(validator_support_path, (CHECK_COMMANDS[13][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing validator-support shared-reminder marker to fail the runner")
             return 1
-
         populate_repo()
-        _write_synthetic_script(
-            validator_support_path,
-            (CHECK_COMMANDS[13][2][1],),
-        )
+        _write_synthetic_script(validator_support_path, (CHECK_COMMANDS[13][2][1],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing validator-support note marker to fail the runner")
             return 1
-
         policy_dump_path = root / CHECK_COMMANDS[5][0]
         populate_repo()
-        _write_synthetic_script(
-            policy_dump_path,
-            (CHECK_COMMANDS[5][2][0],),
-        )
+        _write_synthetic_script(policy_dump_path, (CHECK_COMMANDS[5][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing policy-dump output marker to fail the runner")
             return 1
-
         shared_abi_validator_path = root / CHECK_COMMANDS[6][0]
         populate_repo()
         _write_synthetic_script(shared_abi_validator_path, ())
@@ -517,18 +432,13 @@ def run_self_test() -> int:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing shared ABI validator pass marker to fail the runner")
             return 1
-
         shared_routes_path = root / CHECK_COMMANDS[9][0]
         populate_repo()
-        _write_synthetic_script(
-            shared_routes_path,
-            (CHECK_COMMANDS[9][2][0],),
-        )
+        _write_synthetic_script(shared_routes_path, (CHECK_COMMANDS[9][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing shared-routes output marker to fail the runner")
             return 1
-
         readme_inventory_path = root / CHECK_COMMANDS[10][0]
         populate_repo()
         _write_synthetic_script(readme_inventory_path, ())
@@ -536,223 +446,106 @@ def run_self_test() -> int:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing readme-inventory output marker to fail the runner")
             return 1
-
         wrapper_templates_path = root / CHECK_COMMANDS[11][0]
         populate_repo()
-        _write_synthetic_script(
-            wrapper_templates_path,
-            (CHECK_COMMANDS[11][2][0],),
-        )
+        _write_synthetic_script(wrapper_templates_path, (CHECK_COMMANDS[11][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing wrapper-template pass marker to fail the runner")
             return 1
-
         c_header_smoke_path = root / CHECK_COMMANDS[15][0]
         populate_repo()
-        _write_synthetic_script(
-            c_header_smoke_path,
-            (CHECK_COMMANDS[15][2][0],),
-        )
+        _write_synthetic_script(c_header_smoke_path, (CHECK_COMMANDS[15][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing export-uapi c-header smoke pass marker to fail the runner")
             return 1
-
         header_family_path = root / CHECK_COMMANDS[16][0]
         populate_repo()
-        _write_synthetic_script(
-            header_family_path,
-            (CHECK_COMMANDS[16][2][0],),
-        )
+        _write_synthetic_script(header_family_path, (CHECK_COMMANDS[16][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing abi-header-family pass marker to fail the runner")
             return 1
-
         policy_unsafe_path = root / CHECK_COMMANDS[17][0]
         populate_repo()
-        _write_synthetic_script(
-            policy_unsafe_path,
-            (CHECK_COMMANDS[17][2][0],),
-        )
+        _write_synthetic_script(policy_unsafe_path, (CHECK_COMMANDS[17][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing policy-unsafe pass marker to fail the runner")
             return 1
-
         low_level_wrapper_path = root / CHECK_COMMANDS[18][0]
         populate_repo()
-        _write_synthetic_script(
-            low_level_wrapper_path,
-            (CHECK_COMMANDS[18][2][0],),
-        )
+        _write_synthetic_script(low_level_wrapper_path, (CHECK_COMMANDS[18][2][0],))
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing low-level-wrapper pass marker to fail the runner")
             return 1
-
-        linux_zigux_header_path = root / CHECK_COMMANDS[19][0]
+        if expect_missing_output_marker(19, 0, "expected missing low-level-wrapper replay output marker to fail the runner") != 0:
+            return 1
+        if expect_missing_output_marker(19, 1, "expected missing low-level-wrapper focused-build output marker to fail the runner") != 0:
+            return 1
+        if expect_missing_output_marker(19, 2, "expected missing low-level-wrapper shared-build output marker to fail the runner") != 0:
+            return 1
+        if expect_missing_output_marker(19, 3, "expected missing low-level-wrapper make-route output marker to fail the runner") != 0:
+            return 1
+        linux_zigux_header_path = root / CHECK_COMMANDS[20][0]
         populate_repo()
         _write_synthetic_script(linux_zigux_header_path, ())
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing linux-zigux header-governance output marker to fail the runner")
             return 1
-
-        selftest_surface_path = root / CHECK_COMMANDS[20][0]
+        selftest_surface_path = root / CHECK_COMMANDS[21][0]
         populate_repo()
         _write_synthetic_script(selftest_surface_path, ())
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing selftest-surface output marker to fail the runner")
             return 1
-
-        manifest_replay_routes_path = root / CHECK_COMMANDS[21][0]
+        manifest_replay_routes_path = root / CHECK_COMMANDS[22][0]
         populate_repo()
         _write_synthetic_script(manifest_replay_routes_path, ())
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing abi manifest replay-routes pass marker to fail the runner")
             return 1
-
-        if (
-            expect_missing_output_marker(
-                22,
-                0,
-                "expected missing bitmap-cpumask pass marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(23, 0, "expected missing bitmap-cpumask pass marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                22,
-                1,
-                "expected missing bitmap-cpumask manifest output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(23, 1, "expected missing bitmap-cpumask manifest output marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                22,
-                2,
-                "expected missing bitmap-cpumask starter-packet output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(23, 2, "expected missing bitmap-cpumask starter-packet output marker to fail the runner") != 0:
             return 1
-
-        if (
-            expect_missing_output_marker(
-                23,
-                0,
-                "expected missing list-hlist list-view output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(24, 0, "expected missing list-hlist list-view output marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                23,
-                1,
-                "expected missing list-hlist hlist-view output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(24, 1, "expected missing list-hlist hlist-view output marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                23,
-                2,
-                "expected missing list-hlist starter-packet output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(24, 2, "expected missing list-hlist starter-packet output marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                23,
-                3,
-                "expected missing list-hlist build output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(24, 3, "expected missing list-hlist build output marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                23,
-                4,
-                "expected missing list-hlist manifest output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(24, 4, "expected missing list-hlist manifest output marker to fail the runner") != 0:
             return 1
-
-        if (
-            expect_missing_output_marker(
-                24,
-                0,
-                "expected missing full list-hlist dump output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(25, 0, "expected missing full list-hlist dump output marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                24,
-                1,
-                "expected missing full list-hlist c-harness output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(25, 1, "expected missing full list-hlist c-harness output marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                24,
-                2,
-                "expected missing full list-hlist expected-json output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(25, 2, "expected missing full list-hlist expected-json output marker to fail the runner") != 0:
             return 1
-        if (
-            expect_missing_output_marker(
-                24,
-                3,
-                "expected missing full list-hlist manifest output marker to fail the runner",
-            )
-            != 0
-        ):
+        if expect_missing_output_marker(25, 3, "expected missing full list-hlist manifest output marker to fail the runner") != 0:
             return 1
-
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
-        print(
-            "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 32}"
-        )
+        print("PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT=" f"{len(SELF_TEST_MISSING_CASES) + 36}")
         return 0
 
-
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Run the current bounded Phase 3 validator packet."
-    )
-    parser.add_argument(
-        "--repo-root",
-        type=Path,
-        default=Path("."),
-        help="repository root that contains scripts/zigux/",
-    )
+    parser = argparse.ArgumentParser(description="Run the current bounded Phase 3 validator packet.")
+    parser.add_argument("--repo-root", type=Path, default=Path("."), help="repository root that contains scripts/zigux/")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
     return run_packet(args.repo_root)
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
