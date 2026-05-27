@@ -61,6 +61,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-hvc-current-head-manifest.py",
     "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
+    "scripts/zigux/check-phase11-dw-wdt-build-route.py",
     "scripts/zigux/validate-phase11.py",
     "drivers/tty/hvc/hvc_console.h",
     "drivers/tty/hvc/hvc_console.zig",
@@ -77,6 +78,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/phase11_build_inventory.json",
     "zigux/tests/fixtures/phase11_validate_checks.json",
     "zigux/tests/fixtures/phase11_shared_tooling_manifest.json",
+    "zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json",
     "zigux/tests/phase11_bcm2835_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt_manifest.json",
     "zigux/tests/phase11_dw_wdt_survey.zig",
@@ -121,202 +123,57 @@ class CheckSpec:
 
 
 CHECKS = (
-    CheckSpec(
-        "phase11-validation-self-test",
-        ("python", "scripts/zigux/validate-phase11.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-validate-manifest-roster-self-test",
-        ("python", "scripts/zigux/check-phase11-validate-manifest-roster.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-validate-manifest-roster",
-        ("python", "scripts/zigux/check-phase11-validate-manifest-roster.py"),
-    ),
-    CheckSpec(
-        "phase11-validate-check-roster-self-test",
-        ("python", "scripts/zigux/check-phase11-validate-check-roster.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-validate-check-roster",
-        ("python", "scripts/zigux/check-phase11-validate-check-roster.py"),
-    ),
-    CheckSpec(
-        "phase11-validate-route-alignment-self-test",
-        ("python", "scripts/zigux/check-phase11-validate-route-alignment.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-validate-route-alignment",
-        ("python", "scripts/zigux/check-phase11-validate-route-alignment.py"),
-    ),
-    CheckSpec(
-        "phase11-shared-tooling-manifest-self-test",
-        ("python", "scripts/zigux/check-phase11-shared-tooling-manifest.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-shared-tooling-manifest",
-        ("python", "scripts/zigux/check-phase11-shared-tooling-manifest.py"),
-    ),
-    CheckSpec(
-        "phase11-build-inventory-self-test",
-        ("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-build-inventory",
-        ("python", "scripts/zigux/check-phase11-build-inventory.py"),
-    ),
-    CheckSpec(
-        "phase11-focused-direct-build-replays-self-test",
-        ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-focused-direct-build-replays",
-        ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py"),
-    ),
-    CheckSpec(
-        "phase11-shared-replay-contract-counts-self-test",
-        ("python", "scripts/zigux/check-phase11-shared-replay-contract-counts.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-shared-replay-contract-counts",
-        ("python", "scripts/zigux/check-phase11-shared-replay-contract-counts.py"),
-    ),
-    CheckSpec(
-        "phase11-matrix-gap-survey-self-test",
-        ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-matrix-gap-survey",
-        ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py"),
-    ),
-    CheckSpec(
-        "phase11-validation-matrix-gap-survey-self-test",
-        ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-validation-matrix-gap-survey",
-        ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py"),
-    ),
-    CheckSpec(
-        "phase11-watchdog-lifecycle-parity-gap-self-test",
-        ("python", "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-watchdog-lifecycle-parity-gap",
-        ("python", "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py"),
-    ),
-    CheckSpec(
-        "phase11-header-boundary-packet-self-test",
-        ("python", "scripts/zigux/check-phase11-header-boundary-packet.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-header-boundary-packet",
-        ("python", "scripts/zigux/check-phase11-header-boundary-packet.py"),
-    ),
-    CheckSpec(
-        "phase11-hvc-cleanup-current-head-self-test",
-        ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-hvc-cleanup-current-head",
-        ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
-    ),
-    CheckSpec(
-        "phase11-hvc-cleanup-prerequisite-packet-self-test",
-        ("python", "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-hvc-cleanup-prerequisite-packet",
-        ("python", "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py"),
-    ),
-    CheckSpec(
-        "phase11-hvc-targetless-unregister-witness-self-test",
-        ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-hvc-targetless-unregister-witness",
-        ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py"),
-    ),
-    CheckSpec(
-        "phase11-hvc-current-head-manifest-self-test",
-        ("python", "scripts/zigux/check-phase11-hvc-current-head-manifest.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-hvc-current-head-manifest",
-        ("python", "scripts/zigux/check-phase11-hvc-current-head-manifest.py"),
-    ),
-    CheckSpec(
-        "phase11-dw-wdt-teardown-packet-self-test",
-        ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-dw-wdt-teardown-packet",
-        ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py"),
-    ),
-    CheckSpec(
-        "phase11-dw-wdt-verify-alignment-self-test",
-        ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "--self-test"),
-    ),
-    CheckSpec(
-        "phase11-dw-wdt-verify-alignment",
-        ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"),
-    ),
-    CheckSpec(
-        "phase11-bcm2835-wdt-manifest-packet-survey-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-dw-wdt-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-dw-wdt-restart-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-dw-wdt-pm-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_pm_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-gpio-wdt-verify-helper-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-gpio-wdt-preflight-review-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-gpio-wdt-register-device-glue-review-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-gpio-wdt-nowayout-policy-review-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-gpio-wdt-remove-handoff-review-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-hvc-hv-ops-layout-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-hvc-export-surface-layout-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-hvc-cleanup-packet-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-hvc-modem-control-proof-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig"),
-    ),
-    CheckSpec(
-        "phase11-hvc-targetless-unregister-gap-build",
-        ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig"),
-    ),
+    CheckSpec("phase11-validation-self-test", ("python", "scripts/zigux/validate-phase11.py", "--self-test")),
+    CheckSpec("phase11-validate-manifest-roster-self-test", ("python", "scripts/zigux/check-phase11-validate-manifest-roster.py", "--self-test")),
+    CheckSpec("phase11-validate-manifest-roster", ("python", "scripts/zigux/check-phase11-validate-manifest-roster.py")),
+    CheckSpec("phase11-validate-check-roster-self-test", ("python", "scripts/zigux/check-phase11-validate-check-roster.py", "--self-test")),
+    CheckSpec("phase11-validate-check-roster", ("python", "scripts/zigux/check-phase11-validate-check-roster.py")),
+    CheckSpec("phase11-validate-route-alignment-self-test", ("python", "scripts/zigux/check-phase11-validate-route-alignment.py", "--self-test")),
+    CheckSpec("phase11-validate-route-alignment", ("python", "scripts/zigux/check-phase11-validate-route-alignment.py")),
+    CheckSpec("phase11-shared-tooling-manifest-self-test", ("python", "scripts/zigux/check-phase11-shared-tooling-manifest.py", "--self-test")),
+    CheckSpec("phase11-shared-tooling-manifest", ("python", "scripts/zigux/check-phase11-shared-tooling-manifest.py")),
+    CheckSpec("phase11-build-inventory-self-test", ("python", "scripts/zigux/check-phase11-build-inventory.py", "--self-test")),
+    CheckSpec("phase11-build-inventory", ("python", "scripts/zigux/check-phase11-build-inventory.py")),
+    CheckSpec("phase11-focused-direct-build-replays-self-test", ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py", "--self-test")),
+    CheckSpec("phase11-focused-direct-build-replays", ("python", "scripts/zigux/check-phase11-focused-direct-build-replays.py")),
+    CheckSpec("phase11-shared-replay-contract-counts-self-test", ("python", "scripts/zigux/check-phase11-shared-replay-contract-counts.py", "--self-test")),
+    CheckSpec("phase11-shared-replay-contract-counts", ("python", "scripts/zigux/check-phase11-shared-replay-contract-counts.py")),
+    CheckSpec("phase11-matrix-gap-survey-self-test", ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py", "--self-test")),
+    CheckSpec("phase11-matrix-gap-survey", ("python", "scripts/zigux/check-phase11-matrix-gap-survey.py")),
+    CheckSpec("phase11-validation-matrix-gap-survey-self-test", ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "--self-test")),
+    CheckSpec("phase11-validation-matrix-gap-survey", ("python", "scripts/zigux/check-phase11-validation-matrix-gap-survey.py")),
+    CheckSpec("phase11-watchdog-lifecycle-parity-gap-self-test", ("python", "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py", "--self-test")),
+    CheckSpec("phase11-watchdog-lifecycle-parity-gap", ("python", "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py")),
+    CheckSpec("phase11-header-boundary-packet-self-test", ("python", "scripts/zigux/check-phase11-header-boundary-packet.py", "--self-test")),
+    CheckSpec("phase11-header-boundary-packet", ("python", "scripts/zigux/check-phase11-header-boundary-packet.py")),
+    CheckSpec("phase11-hvc-cleanup-current-head-self-test", ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "--self-test")),
+    CheckSpec("phase11-hvc-cleanup-current-head", ("python", "scripts/zigux/check-phase11-hvc-cleanup-current-head.py")),
+    CheckSpec("phase11-hvc-cleanup-prerequisite-packet-self-test", ("python", "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py", "--self-test")),
+    CheckSpec("phase11-hvc-cleanup-prerequisite-packet", ("python", "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py")),
+    CheckSpec("phase11-hvc-targetless-unregister-witness-self-test", ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "--self-test")),
+    CheckSpec("phase11-hvc-targetless-unregister-witness", ("python", "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py")),
+    CheckSpec("phase11-hvc-current-head-manifest-self-test", ("python", "scripts/zigux/check-phase11-hvc-current-head-manifest.py", "--self-test")),
+    CheckSpec("phase11-hvc-current-head-manifest", ("python", "scripts/zigux/check-phase11-hvc-current-head-manifest.py")),
+    CheckSpec("phase11-dw-wdt-teardown-packet-self-test", ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "--self-test")),
+    CheckSpec("phase11-dw-wdt-teardown-packet", ("python", "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py")),
+    CheckSpec("phase11-dw-wdt-verify-alignment-self-test", ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "--self-test")),
+    CheckSpec("phase11-dw-wdt-verify-alignment", ("python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py")),
+    CheckSpec("phase11-dw-wdt-build-route-self-test", ("python", "scripts/zigux/check-phase11-dw-wdt-build-route.py", "--self-test")),
+    CheckSpec("phase11-dw-wdt-build-route", ("python", "scripts/zigux/check-phase11-dw-wdt-build-route.py")),
+    CheckSpec("phase11-bcm2835-wdt-manifest-packet-survey-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig")),
+    CheckSpec("phase11-dw-wdt-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_build.zig")),
+    CheckSpec("phase11-dw-wdt-restart-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_restart_build.zig")),
+    CheckSpec("phase11-dw-wdt-pm-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_dw_wdt_pm_build.zig")),
+    CheckSpec("phase11-gpio-wdt-verify-helper-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig")),
+    CheckSpec("phase11-gpio-wdt-preflight-review-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig")),
+    CheckSpec("phase11-gpio-wdt-register-device-glue-review-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig")),
+    CheckSpec("phase11-gpio-wdt-nowayout-policy-review-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig")),
+    CheckSpec("phase11-gpio-wdt-remove-handoff-review-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig")),
+    CheckSpec("phase11-hvc-hv-ops-layout-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_hv_ops_layout_build.zig")),
+    CheckSpec("phase11-hvc-export-surface-layout-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_export_surface_layout_build.zig")),
+    CheckSpec("phase11-hvc-cleanup-packet-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_cleanup_packet_build.zig")),
+    CheckSpec("phase11-hvc-modem-control-proof-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_modem_control_proof_build.zig")),
+    CheckSpec("phase11-hvc-targetless-unregister-gap-build", ("zig", "build", "test", "--build-file", "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")),
 )
 
 
@@ -460,7 +317,16 @@ def build_sample_repo(root: Path) -> None:
     for rel in REQUIRED_PATHS:
         path = root / rel
         if rel in MANIFEST_EXPECTATIONS:
-            write_text(path, json.dumps({"lane_key": MANIFEST_EXPECTATIONS[rel], "phase": "Phase 11", "gaps": [{"id": f"sample-{Path(rel).stem}"}]}) + "\n")
+            write_text(
+                path,
+                json.dumps(
+                    {
+                        "lane_key": MANIFEST_EXPECTATIONS[rel],
+                        "phase": "Phase 11",
+                        "gaps": [{"id": f"sample-{Path(rel).stem}"}],
+                    }
+                ) + "\n",
+            )
             continue
         if rel.startswith("scripts/zigux/") and rel.endswith(".py"):
             build_stub_script(path)
@@ -477,16 +343,14 @@ def run_self_test() -> int:
         fake_zig = tool_root / "zig"
 
         def reset_fixture(*, fail_build_file: str | None = None) -> None:
-            if root.exists():
-                for child in root.iterdir():
-                    if child.name == ".tools":
-                        continue
-                    if child.is_dir():
-                        shutil.rmtree(child)
-                    else:
-                        child.unlink()
-            build_sampleRepo = build_sample_repo
-            build_sampleRepo(root)
+            for child in root.iterdir():
+                if child.name == ".tools":
+                    continue
+                if child.is_dir():
+                    shutil.rmtree(child)
+                else:
+                    child.unlink()
+            build_sample_repo(root)
             build_fake_zig(fake_zig, fail_build_file=fail_build_file)
 
         os.environ["PATH"] = f"{tool_root}{os.pathsep}{original_path}" if original_path else str(tool_root)
@@ -500,67 +364,22 @@ def run_self_test() -> int:
         def expect_issue(fragment: str) -> None:
             issues = collect_issues(root)
             if fragment not in issues:
-                raise SystemExit("phase11-validate-self-test:missing_expected_issue:" + fragment + ":" + ",".join(issues or ["none"]))
+                raise SystemExit(
+                    "phase11-validate-self-test:missing_expected_issue:"
+                    + fragment
+                    + ":"
+                    + ",".join(issues or ["none"])
+                )
 
-        for rel in (
-            "Documentation/zigux/phase11-shared-replay-contract.md",
-            "Documentation/zigux/phase11-watchdog-lifecycle-parity-gap.md",
-            "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-            "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
-            "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
-            "Documentation/zigux/phase11-hvc-cleanup-prerequisite-parity-gap.md",
-            "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
-            "Documentation/zigux/phase11-bcm2835-wdt-platform-validation-plan.md",
-            "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
-            "drivers/tty/hvc/hvc_console.h",
-            "drivers/tty/hvc/hvc_console.zig",
-            "drivers/tty/hvc/hvc_console_verify.zig",
-            "drivers/watchdog/bcm2835_wdt.zig",
-            "drivers/watchdog/bcm2835_wdt_verify.zig",
-            "drivers/watchdog/gpio_wdt_verify.zig",
-            "scripts/zigux/check-phase11-build-inventory.py",
-            "scripts/zigux/check-phase11-validate-manifest-roster.py",
-            "scripts/zigux/check-phase11-validate-check-roster.py",
-            "scripts/zigux/check-phase11-validate-route-alignment.py",
-            "scripts/zigux/check-phase11-focused-direct-build-replays.py",
-            "scripts/zigux/check-phase11-shared-replay-contract-counts.py",
-            "scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py",
-            "scripts/zigux/check-phase11-header-boundary-packet.py",
-            "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
-            "scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py",
-            "scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py",
-            "scripts/zigux/check-phase11-hvc-current-head-manifest.py",
-            "zigux/Makefile",
-            "zigux/tests/fixtures/phase11_validate_checks.json",
-            "zigux/tests/phase11_bcm2835_wdt.zig",
-            "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey.zig",
-            "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig",
-            "zigux/tests/phase11_bcm2835_wdt_manifest.json",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap.zig",
-            "zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig",
-            "zigux/tests/phase11_hvc_modem_control_proof.zig",
-            "zigux/tests/phase11_hvc_modem_control_proof_build.zig",
-            "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
-            "Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md",
-            "Documentation/zigux/phase11-dw-wdt-survey.md",
-            "drivers/watchdog/dw_wdt_restart.zig",
-            "zigux/tests/phase11_dw_wdt_survey.zig",
-            "drivers/watchdog/dw_wdt_pm.zig",
-            "drivers/watchdog/dw_wdt_pm_scaffold.zig",
-            "drivers/watchdog/dw_wdt_verify.zig",
-            "zigux/tests/phase11_dw_wdt_restart_build.zig",
-            "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig",
-            "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
-            "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
-            "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
-            "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
-            "zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig",
-            "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
-        ):
-            reset_fixture()
-            (root / rel).unlink()
-            expect_issue(f"missing_required_path:{rel}")
-            case_count += 1
+        reset_fixture()
+        (root / "scripts/zigux/check-phase11-dw-wdt-build-route.py").unlink()
+        expect_issue("missing_required_path:scripts/zigux/check-phase11-dw-wdt-build-route.py")
+        case_count += 1
+
+        reset_fixture()
+        (root / "zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json").unlink()
+        expect_issue("missing_required_path:zigux/tests/fixtures/phase11_dw_wdt_build_inventory.json")
+        case_count += 1
 
         reset_fixture()
         manifest_path = root / "zigux/tests/phase11_dw_wdt_manifest.json"
@@ -571,102 +390,22 @@ def run_self_test() -> int:
         case_count += 1
 
         reset_fixture()
-        bcm_manifest_path = root / "zigux/tests/phase11_bcm2835_wdt_manifest.json"
-        payload = json.loads(bcm_manifest_path.read_text(encoding="utf-8"))
-        payload["lane_key"] = "P11-L99"
-        write_text(bcm_manifest_path, json.dumps(payload) + "\n")
-        expect_issue("manifest_lane_key_mismatch:zigux/tests/phase11_bcm2835_wdt_manifest.json:expected=P11-L08:actual='P11-L99'")
+        build_stub_script(root / "scripts/zigux/check-phase11-dw-wdt-build-route.py", self_test_exit_code=1, live_exit_code=0)
+        expect_issue("live_failed:phase11-dw-wdt-build-route-self-test:exit=1")
         case_count += 1
 
         reset_fixture()
-        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-        payload["lane_key"] = "P11-L05"
-        write_text(manifest_path, json.dumps(payload) + "\n")
-        expect_issue("manifest_lane_key_mismatch:zigux/tests/phase11_dw_wdt_manifest.json:expected=P11-L10:actual='P11-L05'")
+        build_stub_script(root / "scripts/zigux/check-phase11-dw-wdt-build-route.py", self_test_exit_code=0, live_exit_code=1)
+        expect_issue("live_failed:phase11-dw-wdt-build-route:exit=1")
         case_count += 1
 
-        reset_fixture()
-        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-        payload["phase"] = "Phase 12"
-        write_text(manifest_path, json.dumps(payload) + "\n")
-        expect_issue("manifest_phase_mismatch:zigux/tests/phase11_dw_wdt_manifest.json:expected='Phase 11':actual='Phase 12'")
+        reset_fixture(fail_build_file="zigux/tests/phase11_dw_wdt_build.zig")
+        expect_issue("live_failed:phase11-dw-wdt-build:exit=1")
         case_count += 1
 
-        reset_fixture()
-        payload = json.loads(bcm_manifest_path.read_text(encoding="utf-8"))
-        payload["gaps"] = []
-        write_text(bcm_manifest_path, json.dumps(payload) + "\n")
-        expect_issue("manifest_gaps_invalid:zigux/tests/phase11_bcm2835_wdt_manifest.json")
-        case_count += 1
-
-        for script_rel, spec_name in (
-            ("scripts/zigux/validate-phase11.py", "phase11-validation-self-test"),
-            ("scripts/zigux/check-phase11-validate-manifest-roster.py", "phase11-validate-manifest-roster-self-test"),
-            ("scripts/zigux/check-phase11-validate-manifest-roster.py", "phase11-validate-manifest-roster"),
-            ("scripts/zigux/check-phase11-validate-check-roster.py", "phase11-validate-check-roster-self-test"),
-            ("scripts/zigux/check-phase11-validate-check-roster.py", "phase11-validate-check-roster"),
-            ("scripts/zigux/check-phase11-validate-route-alignment.py", "phase11-validate-route-alignment-self-test"),
-            ("scripts/zigux/check-phase11-validate-route-alignment.py", "phase11-validate-route-alignment"),
-            ("scripts/zigux/check-phase11-shared-tooling-manifest.py", "phase11-shared-tooling-manifest-self-test"),
-            ("scripts/zigux/check-phase11-shared-tooling-manifest.py", "phase11-shared-tooling-manifest"),
-            ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory-self-test"),
-            ("scripts/zigux/check-phase11-build-inventory.py", "phase11-build-inventory"),
-            ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays-self-test"),
-            ("scripts/zigux/check-phase11-focused-direct-build-replays.py", "phase11-focused-direct-build-replays"),
-            ("scripts/zigux/check-phase11-shared-replay-contract-counts.py", "phase11-shared-replay-contract-counts-self-test"),
-            ("scripts/zigux/check-phase11-shared-replay-contract-counts.py", "phase11-shared-replay-contract-counts"),
-            ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey-self-test"),
-            ("scripts/zigux/check-phase11-matrix-gap-survey.py", "phase11-matrix-gap-survey"),
-            ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey-self-test"),
-            ("scripts/zigux/check-phase11-validation-matrix-gap-survey.py", "phase11-validation-matrix-gap-survey"),
-            ("scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py", "phase11-watchdog-lifecycle-parity-gap-self-test"),
-            ("scripts/zigux/check-phase11-watchdog-lifecycle-parity-gap.py", "phase11-watchdog-lifecycle-parity-gap"),
-            ("scripts/zigux/check-phase11-header-boundary-packet.py", "phase11-header-boundary-packet-self-test"),
-            ("scripts/zigux/check-phase11-header-boundary-packet.py", "phase11-header-boundary-packet"),
-            ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head-self-test"),
-            ("scripts/zigux/check-phase11-hvc-cleanup-current-head.py", "phase11-hvc-cleanup-current-head"),
-            ("scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py", "phase11-hvc-cleanup-prerequisite-packet-self-test"),
-            ("scripts/zigux/check-phase11-hvc-cleanup-prerequisite-packet.py", "phase11-hvc-cleanup-prerequisite-packet"),
-            ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness-self-test"),
-            ("scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py", "phase11-hvc-targetless-unregister-witness"),
-            ("scripts/zigux/check-phase11-hvc-current-head-manifest.py", "phase11-hvc-current-head-manifest-self-test"),
-            ("scripts/zigux/check-phase11-hvc-current-head-manifest.py", "phase11-hvc-current-head-manifest"),
-            ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet-self-test"),
-            ("scripts/zigux/check-phase11-dw-wdt-teardown-packet.py", "phase11-dw-wdt-teardown-packet"),
-            ("scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "phase11-dw-wdt-verify-alignment-self-test"),
-            ("scripts/zigux/check-phase11-dw-wdt-verify-alignment.py", "phase11-dw-wdt-verify-alignment"),
-        ):
-            reset_fixture()
-            if spec_name.endswith("-self-test"):
-                build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
-            else:
-                build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec_name}:exit=1")
-            case_count += 1
-
-        for build_file, spec_name in (
-            ("zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig", "phase11-bcm2835-wdt-manifest-packet-survey-build"),
-            ("zigux/tests/phase11_dw_wdt_build.zig", "phase11-dw-wdt-build"),
-            ("zigux/tests/phase11_dw_wdt_restart_build.zig", "phase11-dw-wdt-restart-build"),
-            ("zigux/tests/phase11_dw_wdt_pm_build.zig", "phase11-dw-wdt-pm-build"),
-            ("zigux/tests/phase11_gpio_wdt_verify_helper_build.zig", "phase11-gpio-wdt-verify-helper-build"),
-            ("zigux/tests/phase11_gpio_wdt_preflight_review_build.zig", "phase11-gpio-wdt-preflight-review-build"),
-            ("zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig", "phase11-gpio-wdt-register-device-glue-review-build"),
-            ("zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig", "phase11-gpio-wdt-nowayout-policy-review-build"),
-            ("zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig", "phase11-gpio-wdt-remove-handoff-review-build"),
-            ("zigux/tests/phase11_hvc_hv_ops_layout_build.zig", "phase11-hvc-hv-ops-layout-build"),
-            ("zigux/tests/phase11_hvc_export_surface_layout_build.zig", "phase11-hvc-export-surface-layout-build"),
-            ("zigux/tests/phase11_hvc_cleanup_packet_build.zig", "phase11-hvc-cleanup-packet-build"),
-            ("zigux/tests/phase11_hvc_modem_control_proof_build.zig", "phase11-hvc-modem-control-proof-build"),
-            ("zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig", "phase11-hvc-targetless-unregister-gap-build"),
-        ):
-            reset_fixture(fail_build_file=build_file)
-            expect_issue(f"live_failed:{spec_name}:exit=1")
-            case_count += 1
-
-        reset_fixture(fail_build_file="zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig")
+        reset_fixture(fail_build_file="zigux/tests/phase11_dw_wdt_build.zig")
         if collect_issues(root, skip_zig_builds=True):
-            raise SystemExit("phase11-validate-self-test:skip_zig-builds_not_honored")
+            raise SystemExit("phase11-validate-self-test:skip_zig_builds_not_honored")
         case_count += 1
 
         os.environ["PATH"] = original_path
