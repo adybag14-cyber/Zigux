@@ -160,6 +160,22 @@ fn addMmioHelperModule(
     return root_module;
 }
 
+fn addMmioWidthHelperModule(
+    b: *std.Build,
+    root_source_file: []const u8,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    mmio_module: *std.Build.Module,
+) *std.Build.Module {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path(root_source_file),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("mmio", mmio_module);
+    return root_module;
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -288,16 +304,28 @@ pub fn build(b: *std.Build) void {
             xa_value_module,
         ),
     );
+    const mmio_module = addMmioHelperModule(
+        b,
+        "mmio.zig",
+        target,
+        optimize,
+        abi_bindings,
+        unsafe_policy_module,
+    );
     const mmio = addModuleTest(
         b,
         "helper-mmio",
-        addMmioHelperModule(
+        mmio_module,
+    );
+    const mmio_width = addModuleTest(
+        b,
+        "helper-mmio-width",
+        addMmioWidthHelperModule(
             b,
-            "mmio.zig",
+            "mmio_width.zig",
             target,
             optimize,
-            abi_bindings,
-            unsafe_policy_module,
+            mmio_module,
         ),
     );
     const policy_helpers = b.step(
@@ -311,11 +339,18 @@ pub fn build(b: *std.Build) void {
 
     const low_level_helpers = b.step(
         "test-low-level-helpers",
-        "Run the helper-local Phase 3 low-level wrapper tests.",
+        "Run the helper-local Phase 3 low-level wrapper and width-alias tests.",
     );
     low_level_helpers.dependOn(&atomic.step);
     low_level_helpers.dependOn(&barrier.step);
     low_level_helpers.dependOn(&mmio.step);
+    low_level_helpers.dependOn(&mmio_width.step);
+
+    const mmio_width_step = b.step(
+        "test-mmio-width",
+        "Run the helper-local MMIO width alias tests.",
+    );
+    mmio_width_step.dependOn(&mmio_width.step);
 
     const unsafe_boundary_helpers = b.step(
         "test-unsafe-boundary",
@@ -366,5 +401,6 @@ pub fn build(b: *std.Build) void {
     all.dependOn(&xa_value.step);
     all.dependOn(&xarray_slot_view.step);
     all.dependOn(&mmio.step);
+    all.dependOn(&mmio_width.step);
     b.default_step = all;
 }
