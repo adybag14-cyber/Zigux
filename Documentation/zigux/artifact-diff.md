@@ -20,13 +20,13 @@ Phase 4 keeps the host-side artifact-diff packet explicit through `scripts/zigux
 
 The helper now compares `text`, `json`, and `bytes` artifacts, keeps the legacy `sha256 -> bytes` alias for compatibility, and publishes a stable result surface with `ARTIFACT_DIFF_RESULT_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL[,SHA256|EXPECTED_EXISTS|ACTUAL_EXISTS|EXPECTED_JSON_ERROR|ACTUAL_JSON_ERROR]`; the bytes-drift fail path also emits `EXPECTED_SHA256=...` and `ACTUAL_SHA256=...` so the mismatch-side digest pair stays explicit instead of being folded into the pass-path `SHA256=...` marker.
 
-The current helper self-test families remain:
-- `ARTIFACT_DIFF_SELF_TEST_TEXT`
-- `ARTIFACT_DIFF_SELF_TEST_JSON`
-- `ARTIFACT_DIFF_SELF_TEST_JSON_INVALID`
-- `ARTIFACT_DIFF_SELF_TEST_MISSING`
+The current helper self-test packet keeps these comparison and parser coverage families explicit:
+- text pass, mismatch, and missing-path cases
+- JSON pass, mismatch, invalid-input, and missing-path cases
+- bytes pass, digest-drift, and missing-path cases
+- legacy `sha256` alias coverage plus CLI parser rejection coverage for missing mode values, missing operands, invalid modes, and extra positionals
 
-The current helper self-test packet now also keeps the bytes-path and CLI parser coverage explicit through `bytes_pass`, `bytes_drift`, `legacy_sha256_alias`, `missing_mode_value_rejected`, `missing_positional_arguments_rejected`, `invalid_mode_rejected`, and `extra_positional_rejected`.
+The current helper self-test packet keeps the exact bytes-path and CLI parser coverage explicit through `bytes_pass`, `bytes_drift`, `legacy_sha256_alias`, `missing_mode_value_rejected`, `missing_positional_arguments_rejected`, `invalid_mode_rejected`, and `extra_positional_rejected`.
 
 `scripts/zigux/check-artifact-diff-contract.py` reruns the bounded helper self-test, CLI help output, missing-required-args, missing-mode-value, missing-actual-operand, invalid-mode, and extra-positional parser coverage plus the text, JSON, bytes, missing-path, malformed-input, and repeat-run cases so the helper's outward contract stays deterministic before the broader Phase 4 validator and Zig gates run.
 
