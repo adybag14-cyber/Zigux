@@ -22,6 +22,7 @@
     "Keep the direct sample duplicate bit-list normalization and malformed-bit-list cold-state guards explicit when the manifest summarizes parse-and-print evidence.",
     "Keep the direct sample whitespace-only bit-list path explicit as an initialized empty bitmap plus direct-exit guard when the manifest summarizes parse, summary, and lifecycle stability.",
     "Keep the direct sample zero-length and rejected range-mutation replay explicit when the manifest summarizes direct sample range, summary, and parse stability.",
+    "Keep the direct-init companion lifecycle-summary stability explicit when the manifest summarizes direct-init normalization evidence.",
     "Keep the cold-stage selftest, exit, mutation, and source-lifecycle guard companion explicit when the manifest summarizes the sample-root runtime bitmap packet.",
     "Keep the direct sample re-selftest summary-stability guard explicit when the manifest summarizes selftest-hook and lifecycle evidence.",
     "Keep the direct sample initialized-to-exit summary-stability guard explicit when the manifest summarizes runtime lifecycle evidence.",
@@ -29,7 +30,9 @@
     "Keep the loader empty-payload direct-exit guard explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the newer loader re-init, re-selftest, direct-exit, and rejected re-exit rollback guards explicit when the manifest summarizes runtime lifecycle evidence.",
     "Keep the module-side descriptor, selftest-summary, lifecycle-summary, mutation-and-copy, and source-target guard proofs explicit when the manifest summarizes the direct module packet.",
-    "Keep the diff-side summary replay, copy-tail clearing, and exit-guard coverage explicit when the manifest summarizes the bounded runtime bitmap packet."
+    "Keep the module selftested-target copy replay explicit when the manifest summarizes the direct module packet.",
+    "Keep the diff-side summary replay, copy-tail clearing, and exit-guard coverage explicit when the manifest summarizes the bounded runtime bitmap packet.",
+    "Keep the top-bit source-target copy guards explicit when the manifest summarizes the bounded top-bit companion proof."
   ],
   "exact_checks": [
     "descriptor_and_anchor",
@@ -41,6 +44,7 @@
     "sample_invalid_bit_list_init_guards",
     "sample_whitespace_only_bit_list_empty_exit",
     "sample_range_guard_non_destructive",
+    "direct_init_lifecycle_summary_stability",
     "cold_stage_selftest_and_exit_guards",
     "cold_stage_mutation_and_source_lifecycle_guards",
     "selftest_lifecycle",
@@ -58,10 +62,12 @@
     "module_lifecycle_summary_replay",
     "module_initialized_exit_summary_stability",
     "module_post_selftest_mutation_and_copy",
+    "module_selftested_target_copy_replay",
     "module_source_target_lifecycle_guards",
     "diff_summary_replay",
     "diff_copy_tail_clearing",
     "diff_exit_lifecycle_guards",
+    "top_bit_source_target_copy_guards",
     "top_bit_contract",
     "shared_build_route_visibility"
   ],
