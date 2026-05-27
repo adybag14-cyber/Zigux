@@ -404,6 +404,16 @@ pub const perf_cases = [_]PerfCase{
             .big = "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.",
         },
     },
+    .{
+        .label = "12B-ascii-fallback",
+        .len = 12,
+        .rowsize = 99,
+        .groupsize = 3,
+        .ascii = true,
+        .reps = 20_000,
+        .max_slowdown_pct = 550,
+        .expected_text = same("be 32 db 7b 0a 18 93 b2 70 ba c4 24              .2.{....p..$"),
+    },
 };
 
 test "phase 6 hexdump curated length packet stays bounded to the documented matrix" {
@@ -441,10 +451,13 @@ test "phase 6 hexdump empty-length fixtures keep plain and ascii rows silent" {
 }
 
 test "phase 6 hexdump perf packet stays aligned with the documented matrix" {
-    try std.testing.expectEqual(@as(usize, 4), perf_cases.len);
+    try std.testing.expectEqual(@as(usize, 5), perf_cases.len);
     try std.testing.expectEqual(@as(u64, 600), perf_cases[3].max_slowdown_pct);
     try std.testing.expectEqualStrings("be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b", perf_cases[0].expected_text.current());
     try std.testing.expectEqualStrings("16B-ascii-g8", perf_cases[3].label);
     try std.testing.expectEqualStrings("b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.", perf_cases[3].expected_text.little);
     try std.testing.expectEqualStrings("be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.", perf_cases[3].expected_text.big);
+    try std.testing.expectEqualStrings("12B-ascii-fallback", perf_cases[4].label);
+    try std.testing.expectEqual(@as(u64, 550), perf_cases[4].max_slowdown_pct);
+    try std.testing.expectEqualStrings("be 32 db 7b 0a 18 93 b2 70 ba c4 24              .2.{....p..$", perf_cases[4].expected_text.current());
 }
