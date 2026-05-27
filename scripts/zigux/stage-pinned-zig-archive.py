@@ -611,7 +611,7 @@ def run_self_test() -> int:
         check_only=False,
     )
     expect_failure(
-        mutator=lambda root, source, expected_sha, parts_dir: (root / TOOLCHAIN_POLICY).writeText(
+        mutator=lambda root, source, expected_sha, parts_dir: (root / TOOLCHAIN_POLICY).write_text(
             '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
             + expected_sha
             + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
