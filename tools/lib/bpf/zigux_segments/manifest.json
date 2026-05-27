@@ -10,7 +10,8 @@
     "repo_reality_notes": [
       "Current master carries helper-first Zig segments under tools/lib/bpf/zigux_segments.",
       "Current master now carries tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig for helper-only proc-fdinfo pathname shaping, compact fdinfo map-info parsing, reused-map compatibility summaries, pinned-map reuse planning, and planning-only token readiness while direct procfs reads, bpffs opens, and descriptor ownership still stay deferred.",
-      "Current master also carries ready-buffer helper shards that split ready-attempt-to-fd lookup and ready-attempt-to-window lookup into stable-output review surfaces under tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig and tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig."
+      "Current master also carries ready-buffer helper shards that split ready-attempt-to-fd lookup and ready-attempt-to-window lookup into stable-output review surfaces under tools/lib/bpf/zigux_segments/ready_buffer_fd_lookup.zig and tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig.",
+      "Current master also carries tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig for bounded millisecond and nanosecond wait-budget normalization inside the surviving perf-buffer poll helper packet."
     ],
     "companion_c_files": [
       { "path": "tools/lib/bpf/bpf.c", "lines": 1419 },
@@ -193,6 +194,17 @@
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_ready_window.zig",
       "why_now": "The ready-buffer window helper isolates mapped-size and lookup-return summaries for already-ready buffers, extending stable-output poll bookkeeping without widening into mmap ownership, ring lifecycle, or wait orchestration."
+    },
+    {
+      "id": "P8-L13-S16",
+      "slug": "perf-buffer-wait-budget",
+      "status": "starter_landed",
+      "kind": "helper_adjacent",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: perf_buffer__poll() timeout classification and bounded wait-budget normalization"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig",
+      "why_now": "The dedicated wait-budget helper keeps bounded millisecond and nanosecond timeout normalization reviewable without widening into poll waits, epoll orchestration, or online-CPU setup."
     }
   ],
   "segmentation_notes": [
@@ -261,6 +273,20 @@
         "broader wait-result orchestration outside ready-buffer lookup bookkeeping"
       ],
       "why_now": "This helper-local shard keeps ready-buffer mapped-window outputs reviewable as stable poll bookkeeping without widening into mmap lifecycle ownership, ring teardown, or broader wait orchestration."
+    },
+    {
+      "destination": "tools/lib/bpf/zigux_segments/perf_buffer_wait_budget.zig",
+      "status": "helper_landed",
+      "landed_scope": [
+        "summarizeWaitBudget() bounded timeout normalization into millisecond and nanosecond budgets",
+        "summarizeWaitBudgetFromPollSummary() helper-only wait-budget reconstruction from bounded poll summaries"
+      ],
+      "queued_scope": [],
+      "deferred_scope": [
+        "direct poll waits and timeout-sensitive routing orchestration",
+        "epoll registration, perf_event_open setup, and mmap-backed ring ownership"
+      ],
+      "why_now": "This helper-local shard keeps bounded wait-budget normalization reviewable beside the poll packet without widening into wait orchestration, setup-side routing, or ring lifecycle ownership."
     }
   ]
 }
