@@ -731,6 +731,81 @@ test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged" {
     try std.testing.expectEqual(@as(?*Node, &replacement.node), last(&root.root));
 }
 
+test "rbtree replaceNode keeps root ownership and traversal stable when replacing the current root" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 20 };
+    var replacement = Entry{ .key = 10 };
+    var root = Root.init();
+
+    add(&root_entry.node, &root, less);
+    add(&left_entry.node, &root, less);
+    add(&right_entry.node, &root, less);
+
+    replaceNode(&root_entry.node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), root.node);
+    try std.testing.expectEqual(@as(?*Node, null), replacement.node.parent);
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), replacement.node.left);
+    try std.testing.expectEqual(@as(?*Node, &right_entry.node), replacement.node.right);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), left_entry.node.parent);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), right_entry.node.parent);
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), first(&root));
+    try std.testing.expectEqual(@as(?*Node, &right_entry.node), last(&root));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), next(&left_entry.node));
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), prev(&replacement.node));
+    try std.testing.expectEqual(@as(?*Node, &right_entry.node), next(&replacement.node));
+}
+
+test "rbtree replaceNodeCached keeps the cached leftmost stable when replacing the current root" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 20 };
+    var replacement = Entry{ .key = 10 };
+    var root = RootCached.init();
+
+    _ = addCached(&root_entry.node, &root, less);
+    _ = addCached(&left_entry.node, &root, less);
+    _ = addCached(&right_entry.node, &root, less);
+
+    replaceNodeCached(&root_entry.node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), root.root.node);
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    try std.testing.expectEqual(@as(?*Node, null), replacement.node.parent);
+    try std.testing.expectEqual(@as(?*Node, &left_entry.node), replacement.node.left);
+    try std.testing.expectEqual(@as(?*Node, &right_entry.node), replacement.node.right);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), left_entry.node.parent);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), right_entry.node.parent);
+}
+
 test "rbtree rb_find_add_cached keeps duplicate callers detached and rb_replace_node_cached keeps leftmost aligned" {
     const Entry = struct {
         key: i32,
