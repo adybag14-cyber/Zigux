@@ -208,7 +208,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "explicit_empty_assignments", "input": "explicit_empty_assignments.config", "expected": "explicit_empty_assignments_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 13
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
@@ -306,6 +306,25 @@ def load_case_groups(fixture_dir: Path) -> tuple[list[dict[str, object]] | None,
         return None, None, [("INVALID_CASES_FIELDS", "conf_cases/confdata_cases")]
     return conf_cases, confdata_cases, []
 
+def collect_duplicate_values(issue_code: str, values: list[str]) -> list[tuple[str, str]]:
+    duplicates: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for value in values:
+        if value in seen:
+            duplicates.append((issue_code, value))
+            continue
+        seen.add(value)
+    return duplicates
+
+def expected_conf_expected_path(case_name: str) -> str:
+    return f"{case_name}_expected.json"
+
+def expected_confdata_input_path(case_name: str) -> str:
+    return f"{case_name}.config"
+
+def expected_confdata_expected_path(case_name: str) -> str:
+    return f"{case_name}_expected.json"
+
 def collect_conf_manifest_issues(fixture_dir: Path, conf_bridge_path: Path, conf_cases: list[dict[str, object]]) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     actual_anchors = ordered_test_anchors(conf_bridge_path, "failed to discover conf bridge test anchors")
@@ -389,6 +408,9 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     for case in conf_cases:
         mode = str(case["mode"])
         name = str(case["name"])
+        expected_path = str(case["expected"])
+        if expected_path != expected_conf_expected_path(name):
+            issues.append(("CONF_EXPECTED_PATH_NAME_MISMATCH", f"{name}:{expected_path}"))
         if mode in ("defconfig", "savedefconfig") and not case.get("mode_arg"):
             issues.append(("MISSING_CONF_MODE_ARG_FIELDS", f"{name}:{mode}"))
         elif mode not in ("defconfig", "savedefconfig") and "mode_arg" in case:
@@ -403,8 +425,19 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("INVALID_CONF_CASE_ALLCONFIG_FIELDS", f"{name}:allconfig"))
         if "silent" in case and case["silent"] is not True:
             issues.append(("INVALID_CONF_CASE_SILENT_FIELDS", f"{name}:silent"))
-        if not (fixture_dir / str(case["expected"])).exists():
-            issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{name}:expected:{case['expected']}"))
+        if not (fixture_dir / expected_path).exists():
+            issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{name}:expected:{expected_path}"))
+    issues.extend(collect_duplicate_values("DUPLICATE_CONF_CASE_EXPECTED_PATHS", [str(case["expected"]) for case in conf_cases]))
+    for case in confdata_cases:
+        name = str(case["name"])
+        input_path = str(case["input"])
+        expected_path = str(case["expected"])
+        if input_path != expected_confdata_input_path(name):
+            issues.append(("CONFDATA_INPUT_PATH_NAME_MISMATCH", f"{name}:{input_path}"))
+        if expected_path != expected_confdata_expected_path(name):
+            issues.append(("CONFDATA_EXPECTED_PATH_NAME_MISMATCH", f"{name}:{expected_path}"))
+    issues.extend(collect_duplicate_values("DUPLICATE_CONFDATA_INPUT_PATHS", [str(case["input"]) for case in confdata_cases]))
+    issues.extend(collect_duplicate_values("DUPLICATE_CONFDATA_EXPECTED_PATHS", [str(case["expected"]) for case in confdata_cases]))
     issues.extend(collect_conf_manifest_issues(fixture_dir, conf_bridge, conf_cases))
     issues.extend(collect_confdata_manifest_issues(fixture_dir, confdata_bridge, confdata_cases))
     return issues
@@ -544,6 +577,31 @@ def run_self_test() -> int:
         payload["conf_cases"][7].pop("probability")
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         assert any(code == "CONF_MANIFEST_RANDCONFIG_ENV_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][1]["expected"] = payload["conf_cases"][0]["expected"]
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("DUPLICATE_CONF_CASE_EXPECTED_PATHS", "oldaskconfig_expected.json") in issues
+        assert ("CONF_EXPECTED_PATH_NAME_MISMATCH", "syncconfig:oldaskconfig_expected.json") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][0]["input"] = "wrong-name.config"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        assert ("CONFDATA_INPUT_PATH_NAME_MISMATCH", "sample:wrong-name.config") in collect_manifest_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["confdata_cases"][1]["expected"] = payload["confdata_cases"][0]["expected"]
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("DUPLICATE_CONFDATA_EXPECTED_PATHS", "sample_expected.json") in issues
+        assert ("CONFDATA_EXPECTED_PATH_NAME_MISMATCH", "escaped_strings:sample_expected.json") in issues
         checks_run += 1
 
     if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
