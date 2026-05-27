@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
+MEASURABILITY_GAP_NOTE = Path("Documentation/zigux/phase4-measurability-gap-survey.md")
 KPROBE_NOTE = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
 TEST_FSMOUNT_NOTE = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
 KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
@@ -18,7 +19,7 @@ TEST_FSMOUNT_SURVEY = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 37
+EXPECTED_SELF_TEST_CASE_COUNT = 43
 
 KPROBE_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
 TEST_FSMOUNT_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
@@ -63,6 +64,7 @@ TEST_FSMOUNT_NEXT_BOUNDED_EVIDENCE_STEP = (
 
 MATRIX_MARKERS = (
     "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
+    "`Documentation/zigux/phase4-measurability-gap-survey.md`",
     "`Documentation/zigux/phase4-kprobe-example-gap-survey.md`",
     "`zigux/tests/phase4_kprobe_example_manifest.json`",
     "`zigux/tests/phase4_kprobe_example_survey.zig`",
@@ -80,6 +82,15 @@ MATRIX_MARKERS = (
     "Validation and Perf Team owning that policy decision",
     "gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
     "rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`",
+)
+
+MEASURABILITY_GAP_NOTE_MARKERS = (
+    "# Phase 4 Measurability Gap Survey",
+    "PHASE4_MEASURABILITY_GAP_REMAINING_PACKET_COUNT=3",
+    "`Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`",
+    "`Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`",
+    "`zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, and `scripts/zigux/check-phase4-perf-threshold-matrix.py`",
+    "`Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-reversible-delivery-evidence.md`, and `scripts/zigux/validate-phase4.py`",
 )
 
 KPROBE_NOTE_MARKERS = (
@@ -271,6 +282,7 @@ def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
     for path in (
         MATRIX,
+        MEASURABILITY_GAP_NOTE,
         KPROBE_NOTE,
         TEST_FSMOUNT_NOTE,
         KPROBE_MANIFEST,
@@ -286,6 +298,7 @@ def validate_root(root: Path) -> list[str]:
         return missing
 
     require_markers(read_text(root / MATRIX), MATRIX_MARKERS, "matrix_marker", missing)
+    require_markers(read_text(root / MEASURABILITY_GAP_NOTE), MEASURABILITY_GAP_NOTE_MARKERS, "measurability_gap_note_marker", missing)
     require_markers(read_text(root / KPROBE_NOTE), KPROBE_NOTE_MARKERS, "kprobe_note_marker", missing)
     require_markers(read_text(root / TEST_FSMOUNT_NOTE), TEST_FSMOUNT_NOTE_MARKERS, "test_fsmount_note_marker", missing)
     require_markers(read_text(root / PHASE4_BUILD), PHASE4_BUILD_MARKERS, "phase4_build_marker", missing)
@@ -316,6 +329,7 @@ def replace_once(text: str, old: str, new: str) -> str:
 
 def write_fixture_tree(root: Path) -> None:
     write_text(root / MATRIX, "\n".join(["# Phase 4 Validation Matrix", *MATRIX_MARKERS]) + "\n")
+    write_text(root / MEASURABILITY_GAP_NOTE, "\n".join(MEASURABILITY_GAP_NOTE_MARKERS) + "\n")
     write_text(root / KPROBE_NOTE, "\n".join(KPROBE_NOTE_MARKERS) + "\n")
     write_text(root / TEST_FSMOUNT_NOTE, "\n".join(TEST_FSMOUNT_NOTE_MARKERS) + "\n")
     write_text(root / KPROBE_SURVEY, 'test "phase4 kprobe survey fixture" {}\n')
@@ -341,20 +355,20 @@ def write_fixture_tree(root: Path) -> None:
                 "reversible_delivery_evidence": KPROBE_REVERSIBLE_DELIVERY_EVIDENCE,
                 "next_bounded_evidence_step": KPROBE_NEXT_BOUNDED_EVIDENCE_STEP,
                 "survey_summary": {
-                    "kprobe_makefile_replay_present": True,
-                    "kprobe_anchor_symbol_present": True,
-                    "zig_sample_present": False,
-                    "phase4_build_present": True,
-                    "phase4_validation_matrix_present": True,
-                    "phase4_gate_evidence_present": True,
+                    "kprobe_makefile_replay_present": true,
+                    "kprobe_anchor_symbol_present": true,
+                    "zig_sample_present": false,
+                    "phase4_build_present": true,
+                    "phase4_validation_matrix_present": true,
+                    "phase4_gate_evidence_present": true
                 },
                 "gaps": [
                     {"id": "phase4-kprobe-example-survey-manifest", "status": "starter_landed"},
                     {"id": "phase4-kprobe-example-survey-gate", "status": "starter_landed"},
                     {"id": "phase4-kprobe-example-c-anchor-replay", "status": "starter_landed"},
                     {"id": "phase4-kprobe-example-shared-validator-promotion", "status": "starter_landed"},
-                    {"id": "phase4-kprobe-example-zig-sample", "status": "ready_next"},
-                ],
+                    {"id": "phase4-kprobe-example-zig-sample", "status": "ready_next"}
+                ]
             },
             indent=2,
         ) + "\n",
@@ -384,20 +398,20 @@ def write_fixture_tree(root: Path) -> None:
                 "reversible_delivery_evidence": TEST_FSMOUNT_REVERSIBLE_DELIVERY_EVIDENCE,
                 "next_bounded_evidence_step": TEST_FSMOUNT_NEXT_BOUNDED_EVIDENCE_STEP,
                 "survey_summary": {
-                    "zig_sample_present": False,
-                    "phase4_build_present": True,
-                    "phase4_validation_matrix_present": True,
-                    "phase4_gate_evidence_present": True,
-                    "scripts_readme_present": True,
-                    "tests_readme_present": True,
+                    "zig_sample_present": false,
+                    "phase4_build_present": true,
+                    "phase4_validation_matrix_present": true,
+                    "phase4_gate_evidence_present": true,
+                    "scripts_readme_present": true,
+                    "tests_readme_present": true
                 },
                 "gaps": [
                     {"id": "phase4-test-fsmount-survey-manifest", "status": "starter_landed"},
                     {"id": "phase4-test-fsmount-survey-gate", "status": "starter_landed"},
                     {"id": "phase4-test-fsmount-shared-validator-promotion", "status": "starter_landed"},
                     {"id": "phase4-test-fsmount-readme-alignment", "status": "starter_landed"},
-                    {"id": "phase4-test-fsmount-zig-sample", "status": "ready_next"},
-                ],
+                    {"id": "phase4-test-fsmount-zig-sample", "status": "ready_next"}
+                ]
             },
             indent=2,
         ) + "\n",
@@ -423,18 +437,18 @@ def write_fixture_tree(root: Path) -> None:
                 "atomic64": {
                     "gate_owner": "ABI and Runtime Team",
                     "gate_rollback_owner": "ABI and Runtime Team",
-                    "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+                    "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"
                 },
                 "bitmap": {
                     "gate_owner": "Shared Subsystems Pod",
                     "gate_rollback_owner": "Shared Subsystems Pod",
-                    "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+                    "benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"
                 },
                 "promotion_decision": {
                     "status": "shared CI perf promotion pending",
                     "owner": "Validation and Perf Team",
-                    "coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"],
-                },
+                    "coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]
+                }
             },
             indent=2,
         ) + "\n",
@@ -457,6 +471,7 @@ def run_self_test() -> int:
         cases = 1
         variants = (
             (MATRIX, "`scripts/zigux/check-phase4-remaining-gap-matrix.py`", "`scripts/zigux/check-phase4-gap-matrix.py`", "matrix_marker:`scripts/zigux/check-phase4-remaining-gap-matrix.py`"),
+            (MATRIX, "`Documentation/zigux/phase4-measurability-gap-survey.md`", "`Documentation/zigux/phase4-gap-summary.md`", "matrix_marker:`Documentation/zigux/phase4-measurability-gap-survey.md`"),
             (MATRIX, "`Documentation/zigux/phase4-kprobe-example-gap-survey.md`", "`Documentation/zigux/phase4-kprobe-gap-survey.md`", "matrix_marker:`Documentation/zigux/phase4-kprobe-example-gap-survey.md`"),
             (MATRIX, "`zigux/tests/phase4_kprobe_example_manifest.json`", "`zigux/tests/phase4_kprobe_gap_manifest.json`", "matrix_marker:`zigux/tests/phase4_kprobe_example_manifest.json`"),
             (MATRIX, "`zigux/tests/phase4_kprobe_example_survey.zig`", "`zigux/tests/phase4_kprobe_gap_survey.zig`", "matrix_marker:`zigux/tests/phase4_kprobe_example_survey.zig`"),
@@ -468,6 +483,10 @@ def run_self_test() -> int:
             (MATRIX, "`zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`", "`zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig`", "matrix_marker:`zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`"),
             (MATRIX, "`make -C zigux phase4-test-fsmount-survey`", "`make -C zigux phase4-test-fsmount-gap-survey`", "matrix_marker:`make -C zigux phase4-test-fsmount-survey`"),
             (MATRIX, "`zigux/tests/phase4_perf_baseline_manifest.json`", "`zigux/tests/phase4_perf_manifest.json`", "matrix_marker:`zigux/tests/phase4_perf_baseline_manifest.json`"),
+            (MEASURABILITY_GAP_NOTE, "PHASE4_MEASURABILITY_GAP_REMAINING_PACKET_COUNT=3", "PHASE4_MEASURABILITY_GAP_REMAINING_PACKET_COUNT=2", "measurability_gap_note_marker:PHASE4_MEASURABILITY_GAP_REMAINING_PACKET_COUNT=3"),
+            (MEASURABILITY_GAP_NOTE, "`Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`", "`Documentation/zigux/phase4-kprobe-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`", "measurability_gap_note_marker:`Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`"),
+            (MEASURABILITY_GAP_NOTE, "`Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-reversible-delivery-evidence.md`, and `scripts/zigux/validate-phase4.py`", "`Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, and `Documentation/zigux/phase4-reversible-delivery-evidence.md`", "measurability_gap_note_marker:`Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-reversible-delivery-evidence.md`, and `scripts/zigux/validate-phase4.py`"),
+            (MEASURABILITY_GAP_NOTE, "`zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, and `scripts/zigux/check-phase4-perf-threshold-matrix.py`", "`zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `scripts/zigux/check-phase4-perf-baseline-packet.py`", "measurability_gap_note_marker:`zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, and `scripts/zigux/check-phase4-perf-threshold-matrix.py`"),
             (KPROBE_NOTE, "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey", "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-gap-survey", "kprobe_note_marker:PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey"),
             (KPROBE_NOTE, "PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig", "PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_gap_survey.zig", "kprobe_note_marker:PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig"),
             (KPROBE_MANIFEST, f'"surveyed_commit": "{KPROBE_SURVEYED_COMMIT}"', '"surveyed_commit": "INVALID"', "kprobe_manifest:surveyed_commit:invalid_lower_hex_sha:'INVALID'"),
@@ -496,7 +515,7 @@ def run_self_test() -> int:
                 return 1
             cases += 1
 
-        for rel in (KPROBE_NOTE, KPROBE_SURVEY, TEST_FSMOUNT_SURVEY, PHASE4_BUILD):
+        for rel in (MEASURABILITY_GAP_NOTE, KPROBE_NOTE, KPROBE_SURVEY, TEST_FSMOUNT_SURVEY, PHASE4_BUILD):
             write_fixture_tree(root)
             (root / rel).unlink()
             if not expect_failure(root, f"file:{rel.as_posix()}"):
