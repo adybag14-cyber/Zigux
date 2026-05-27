@@ -26,6 +26,9 @@ REQUIRED_TEST_MARKERS = {
 }
 
 REQUIRED_SOURCE_MARKERS = {
+    "empty_node": "pub fn emptyNode(node: *const Node) bool {",
+    "clear_node": "pub fn clearNode(node: *Node) void {",
+    "link_node": "pub fn linkNode(node: *Node, parent: ?*Node, link: *?*Node) void {",
     "insert_color_cached": "pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "rb_insert_color_cached": "pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {",
     "add_cached": "pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {",
@@ -34,10 +37,13 @@ REQUIRED_SOURCE_MARKERS = {
     "rb_find_add_cached": "pub fn rb_find_add_cached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {",
     "erase_cached": "pub fn eraseCached(node: *Node, root: *RootCached) ?*Node {",
     "rb_erase_cached": "pub fn rb_erase_cached(node: *Node, root: *RootCached) ?*Node {",
+    "erase_init": "pub fn eraseInit(node: *Node, root: *Root) void {",
     "erase_init_cached": "pub fn eraseInitCached(node: *Node, root: *RootCached) void {",
     "rb_erase_init_cached": "pub fn rb_erase_init_cached(node: *Node, root: *RootCached) void {",
     "first_cached": "pub fn firstCached(root: *const RootCached) ?*Node {",
     "rb_first_cached": "pub fn rb_first_cached(root: *const RootCached) ?*Node {",
+    "replace_node": "pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {",
+    "rb_replace_node": "pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void {",
     "replace_node_cached": "pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {",
     "rb_replace_node_cached": "pub fn rb_replace_node_cached(victim: *Node, new: *Node, root: *RootCached) void {",
 }
