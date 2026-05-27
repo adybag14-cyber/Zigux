@@ -163,3 +163,25 @@ test "phase14 workqueue bridge max-active retuning handoff stays explicit and in
     try std.testing.expect(std.mem.indexOf(u8, retuning_handoff.next_focus, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, retuning_handoff.next_focus, "shared reminder surface") != null);
 }
+
+test "phase14 workqueue bridge keeps the boundary and concurrency ownership split explicit" {
+    const map = workqueue_bridge.WorkqueueBridgeLab.boundaryMap();
+    const packet = workqueue_bridge.WorkqueueBridgeLab.wrapperCandidatePacket();
+    const audit = workqueue_bridge.WorkqueueBridgeLab.concurrencyAudit();
+
+    try std.testing.expectEqual(@as(usize, 2), packet.candidates.len);
+    for (packet.candidates, 0..) |candidate, index| {
+        try std.testing.expect(candidate.ownership == .boundary_map_only);
+        try std.testing.expect(index < map.areas.len);
+        try std.testing.expect(map.areas[index].ownership == .boundary_map_only);
+        try std.testing.expectEqualStrings(candidate.id, map.areas[index].id);
+    }
+
+    for (map.areas[packet.candidates.len..]) |area| {
+        try std.testing.expect(area.ownership == .stay_in_c);
+    }
+
+    for (audit.checkpoints) |checkpoint| {
+        try std.testing.expect(checkpoint.ownership == .stay_in_c);
+    }
+}
