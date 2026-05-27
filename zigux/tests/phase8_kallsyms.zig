@@ -90,7 +90,7 @@ test "phase 8 kallsyms chunked parser also truncates oversized names" {
 
     try kallsyms.forEachParsedChunked(std.testing.allocator, &state, ChunkFixture.next, &symbols, Collector.append);
     try std.testing.expectEqual(@as(usize, 2), symbols.items.len);
-    try std.testing.expectEqualStrings("startup_64\r", symbols.items[0].name);
+    try std.testing.expectEqualStrings("startup_64", symbols.items[0].name);
     try std.testing.expectEqualStrings("weak_tail", symbols.items[1].name);
 
     for (symbols.items) |*symbol| symbol.deinit(std.testing.allocator);
