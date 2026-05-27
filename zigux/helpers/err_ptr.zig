@@ -27,3 +27,27 @@ comptime {
     std.debug.assert(isErrValue(err_floor));
     std.debug.assert(isOkValue(err_floor - 1));
 }
+
+test "err_ptr encodes the Linux error band as a tagged pointer-sized value" {
+    const low = fromErrorCode(-@as(isize, @intCast(max_errno)));
+    const high = fromErrorCode(-1);
+
+    try std.testing.expectEqual(err_floor, low);
+    try std.testing.expectEqual(@as(isize, -@as(isize, @intCast(max_errno))), toErrorCode(low));
+    try std.testing.expectEqual(@as(isize, -1), toErrorCode(high));
+    try std.testing.expect(isErrValue(low));
+    try std.testing.expect(isErrValue(high));
+}
+
+test "err_ptr keeps the floor boundary explicit" {
+    try std.testing.expect(isErrValue(err_floor));
+    try std.testing.expect(!isErrValue(err_floor - 1));
+    try std.testing.expect(isOkValue(err_floor - 1));
+}
+
+test "non-error values stay outside the err_ptr band" {
+    try std.testing.expect(isOkValue(0));
+    try std.testing.expect(isOkValue(1));
+    try std.testing.expect(!isErrValue(0));
+    try std.testing.expect(!isErrValue(1));
+}
