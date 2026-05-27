@@ -11,6 +11,7 @@ This note keeps the shared Phase 9 delivery packet explicit without widening cur
 - `PHASE9_RUNTIME_PILOT_SCRIPTS_ROOT=scripts/zigux/README.md`
 - `PHASE9_RUNTIME_PILOT_SHARED_NOTE=Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `PHASE9_RUNTIME_PILOT_SHARED_BUILD=zigux/tests/phase9_build.zig`
+- `PHASE9_RUNTIME_PILOT_BLOCKED_PUBLICATION_OWNER=Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`
 
 ## Shared Owner Packet
 
@@ -30,6 +31,15 @@ These files describe the shared reminder, review, rerun, and validation surfaces
 - `zigux/tests/runtime_pilot_manifest.json`
 - `zigux/tests/README.md`
 - `zigux/tests/phase9_build.zig`
+
+## Blocked Publication Boundary Owner
+
+These reminder surfaces own the blocked module-metadata, depmod, and install-root boundary only:
+
+- `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`
+- blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, depmod, install-root, `modules.order`, `modules.builtin`, and `Module.symvers` publication claims
+
+Keep this packet reminder-only. It does not promote blocked publication vocabulary into shared runtime-loader closure or family-local runtime completion claims.
 
 ## Shared Runtime Loader Owner
 
