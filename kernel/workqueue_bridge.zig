@@ -324,7 +324,7 @@ const blocked_live_behaviors = [_][]const u8{
     "flush, drain, and cancellation completion ownership",
     "delayed-work requeue control",
     "runtime max_active retuning ownership",
-    "scheduler callback parity",
+    "scheduler-visible worker-state parity",
     "rescuer execution ownership",
     "hotplug-driven worker migration and topology rebinding",
 };
