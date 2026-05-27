@@ -124,4 +124,17 @@ test "phase 4 bitmap survey keeps the helper-backed rollback replay explicit" {
         bitmap_live_helper_replay_source,
         "test \"phase4 bitmap live helper replay keeps copy-tail rollback explicit\" {",
     );
+    try expectContains(bitmap_live_helper_replay_source, "bitmap.copyClearTail(&source, 97);");
+    try expectContains(
+        bitmap_live_helper_replay_source,
+        "try std.testing.expectEqual(@as(usize, 0), bitmap.firstSet());",
+    );
+    try expectContains(
+        bitmap_live_helper_replay_source,
+        "try std.testing.expectEqual(@as(usize, 97), bitmap.firstZero());",
+    );
+    try expectContains(
+        bitmap_live_helper_replay_source,
+        "try std.testing.expectEqual(@as(usize, 993), bitmap.weight());",
+    );
 }
