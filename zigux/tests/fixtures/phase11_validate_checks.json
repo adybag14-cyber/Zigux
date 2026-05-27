@@ -145,6 +145,14 @@
       "command": ["python", "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"]
     },
     {
+      "name": "phase11-dw-wdt-build-route-self-test",
+      "command": ["python", "scripts/zigux/check-phase11-dw-wdt-build-route.py", "--self-test"]
+    },
+    {
+      "name": "phase11-dw-wdt-build-route",
+      "command": ["python", "scripts/zigux/check-phase11-dw-wdt-build-route.py"]
+    },
+    {
       "name": "phase11-bcm2835-wdt-manifest-packet-survey-build",
       "command": ["zig", "build", "test", "--build-file", "zigux/tests/phase11_bcm2835_wdt_manifest_packet_survey_build.zig"]
     },
