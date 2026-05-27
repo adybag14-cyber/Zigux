@@ -525,6 +525,19 @@ test "hexDumpLineLength mirrors formatter normalization" {
     }
 }
 
+test "hex_dump aliases stay aligned with the direct helpers" {
+    const expected_len = hexDumpLineLength(16, 7, 3, true);
+    try std.testing.expectEqual(expected_len, hex_dump_line_length(16, 7, 3, true));
+
+    var direct_line: [16 * 3 + 2 + 16 + 1]u8 = undefined;
+    var alias_line: [16 * 3 + 2 + 16 + 1]u8 = undefined;
+    const direct_written = hexDumpToBuffer(test_data_b[0..16], 16, 1, direct_line[0..], true);
+    const alias_written = hex_dump_to_buffer(test_data_b[0..16], 16, 1, alias_line[0..], true);
+
+    try std.testing.expectEqual(direct_written, alias_written);
+    try std.testing.expectEqualSlices(u8, std.mem.sliceTo(direct_line[0..], 0), std.mem.sliceTo(alias_line[0..], 0));
+}
+
 test "hexDumpToBuffer matches the kernel-style 16-byte line output" {
     var line: [16 * 3 + 2 + 16 + 1]u8 = undefined;
     var expected: [16 * 3 + 2 + 16 + 1]u8 = undefined;
@@ -661,3 +674,5 @@ pub const hex_to_bin = hexToBin;
 pub const hex2Bin = hex2bin;
 pub const bin2Hex = bin2hex;
 pub const bin2HexUpper = bin2hexUpper;
+pub const hex_dump_line_length = hexDumpLineLength;
+pub const hex_dump_to_buffer = hexDumpToBuffer;
