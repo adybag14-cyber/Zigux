@@ -90,6 +90,7 @@ EXPECTED_PROCESS_OUTPUT_PACKET = (
     "too_many_reference_files_expected.json",
     "unsupported_long_option_expected.json",
     "unexpected_long_help_argument_expected.json",
+    "abbreviated_unexpected_long_help_argument_expected.json",
 )
 
 EXPECTED_HELPER_LOCAL_ANCHORS = (
@@ -388,6 +389,11 @@ def expected_process_output_payloads() -> dict[str, dict[str, object]]:
             "exit_code": 1,
         },
         "unexpected_long_help_argument_expected.json": {
+            "stdout": "",
+            "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
+            "exit_code": 1,
+        },
+        "abbreviated_unexpected_long_help_argument_expected.json": {
             "stdout": "",
             "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
             "exit_code": 1,
