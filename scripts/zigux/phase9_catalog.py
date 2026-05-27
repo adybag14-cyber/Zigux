@@ -38,6 +38,8 @@ EXPECTED_PACKET_FILES = (
     "zigux/tests/phase9_build.zig",
     "zigux/tests/runtime_pilot_manifest.json",
     "zigux/tests/runtime_loader_allocator_init_flow.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/runtime_atomic64_module.zig",
     "zigux/tests/runtime_bitmap_manifest.json",
     "zigux/tests/runtime_bitmap_survey.zig",
     "zigux/tests/runtime_bitmap_module.zig",
@@ -48,6 +50,8 @@ EXPECTED_PACKET_FILES = (
     "zigux/tests/runtime_kretprobe_survey.zig",
     "zigux/tests/runtime_kretprobe_module.zig",
     "zigux/tests/runtime_first_loadable_parity_behavior.zig",
+    "samples/zigux/runtime_atomic64.zig",
+    "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_trace_events.zig",
     "samples/zigux/runtime_trace_events_unregistered_gate.zig",
     "samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
@@ -74,6 +78,7 @@ EXPECTED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
     "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test",
     "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test",
+    "zig build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig",
     "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig",
     "zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig",
     "zig build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig",
@@ -238,7 +243,7 @@ def _manifest_payload() -> dict[str, object]:
         "lane_key": PHASE9_CATALOG_LANE,
         "slug": "phase9-runtime-pilot-shared-packet",
         "status": "shared_runtime_pilot_delivery_evidence_present",
-        "scope": "shared reminder, manifest, catalog, and ownership surfaces for the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
+        "scope": "shared reminder, manifest, catalog, and ownership surfaces for the atomic64 pilot packet, the shipped trace-events packet, the narrower shared runtime-loader packet, the bounded runtime bitmap packet, and the returned runtime kretprobe packet without blocked publication claims",
         "ownership_map_path": OWNERSHIP_MAP_PATH.as_posix(),
         "packet_files": list(EXPECTED_PACKET_FILES),
         "replay_routes": list(EXPECTED_REPLAY_ROUTES),
@@ -246,7 +251,7 @@ def _manifest_payload() -> dict[str, object]:
             "no dedicated shared validate-phase9.py rerun path on current master",
             "blocked publication and install-root vocabulary remains historical rather than direct shipped proof",
         ],
-        "next_safe_step": "tighten one stale shared reminder surface at a time when it undercounts the returned kretprobe or shared loader packet, and keep the shared manifest aligned without widening runtime behavior claims",
+        "next_safe_step": "tighten one stale shared reminder surface at a time when it undercounts the atomic64, returned kretprobe, or shared loader packet, and keep the shared manifest aligned without widening runtime behavior claims",
     }
 
 
