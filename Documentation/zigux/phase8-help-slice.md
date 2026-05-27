@@ -21,6 +21,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - authenticated GitHub contents reads still lag on some broader Phase 8 files from this environment, but the dedicated help note, helper, focused replay, focused build shard, and `zigux/Makefile` now read directly on current `master`, while the mixed `zigux/tests/phase8_help_kallsyms_only_build.zig` shard still needs the public raw fallback here
   - the mixed `zigux/tests/phase8_help_kallsyms_only_build.zig` shard remains shared validation overlap only and does not transfer help-lane ownership into the dedicated symbol lane
   - current authenticated contents readback shows `zigux/tests/phase8_help.zig` now directly embeds this slice note and exercises the shipped helper surface through `CommandNames`, `trimCommandPrefix`, `computePrettyLayout`, `renderPrettyStringList`, and `renderCommandSections`, so the dedicated help replay is again honest same-source evidence even while neighboring broader Phase 8 files still need mixed-source rereads here
+  - authenticated GitHub contents readback during this pass also returns `zigux/tests/phase8_help_kallsyms_only_build.zig` directly on current `master`, so the shared build shard is readable from the same current branch packet again even though it still stays shared validation overlap only instead of a help-lane ownership handoff
 
 ## Why this slice exists
 
