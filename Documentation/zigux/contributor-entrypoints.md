@@ -40,6 +40,19 @@ Matching guard:
 
 Keep this packet scoped to contributor-facing onboarding only. Do not widen it into phase-local status claims or helper-local proof.
 
+### Developer Enablement Reminder Work
+
+Use `Documentation/zigux/developer-enablement-contributor-workflow.md` when the change stays inside docs-only reminder work, checklist maintenance, or contributor workflow guidance and does not reopen implementation lanes.
+
+Supporting companions:
+
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+
+Keep this path scoped to reminder-surface maintenance: reread the owning packet first, update only the smallest understated shared surface, and leave absent routes, files, or wrappers framed as repo-reality gaps instead of shipped evidence.
+
 ### Samples And Reference Patterns
 
 Use `Documentation/zigux/phase5-sample-review-guide.md` when the change touches sample-facing contributor guidance, approved Phase 5 idioms, or review wording around the bytestream, kobject, kretprobe, or bounded trace-events packet.
@@ -99,7 +112,7 @@ Matching support bundle:
 When the change stays inside the developer-enablement lane, use this bounded loop:
 
 1. reread the four shared entry surfaces together
-2. reread one phase-local guide or checklist that matches the actual change
+2. reread one phase-local guide or `Documentation/zigux/developer-enablement-contributor-workflow.md` that matches the actual change
 3. if the change touches top-level onboarding wording, keep `CONTRIBUTING.md`, `Documentation/zigux/contributor-entrypoints.md`, and `Documentation/zigux/contributor-workflow.md` aligned and rerun `python3 scripts/zigux/check-contributor-onboarding-packet.py`
 4. update one shared reminder surface plus the smallest necessary companion note
 5. rerun the smallest checker set that matches the packet you touched
