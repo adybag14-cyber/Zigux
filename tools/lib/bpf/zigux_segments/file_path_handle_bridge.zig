@@ -359,9 +359,20 @@ pub fn resolveReusePinnedMapAttempt(
     observed_name: []const u8,
     fdinfo: FdinfoMapInfo,
 ) FilePathHandleBridgeError!ReusePinnedMapAttemptSummary {
-    const retained_name = try summarizeReusedMapName(observed_name);
     const fdinfo_summary = summarizeFdinfoMapInfo(fdinfo);
     const reuse_observation = mapReuseObservationFromFdinfo(fdinfo);
+
+    if (observed_name.len == 0) {
+        return .{
+            .disposition = .missing_map_name,
+            .should_attempt_reopen = false,
+            .retained_name = null,
+            .fdinfo_summary = fdinfo_summary,
+            .reuse_observation = reuse_observation,
+        };
+    }
+
+    const retained_name = try summarizeReusedMapName(observed_name);
 
     if (!fdinfo_summary.has_complete_legacy_fields) {
         return .{
@@ -551,6 +562,32 @@ test "phase8 file-path bridge keeps reuse observations and planning-only bridge 
         token_plan.disposition,
     );
     try std.testing.expect(token_plan.should_attempt_token_open);
+}
+
+test "phase8 file-path bridge keeps missing-map-name reuse planning explicit" {
+    const parsed = try parseFdinfoMapInfo(
+        \\map_type: 14
+        \\key_size: 4
+        \\value_size: 8
+        \\max_entries: 16
+        \\map_flags: 0x80
+    );
+
+    const reuse_attempt = try resolveReusePinnedMapAttempt("", parsed);
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.missing_map_name,
+        reuse_attempt.disposition,
+    );
+    try std.testing.expect(!reuse_attempt.should_attempt_reopen);
+    try std.testing.expectEqual(@as(?[]const u8, null), reuse_attempt.retained_name);
+    try std.testing.expect(reuse_attempt.fdinfo_summary.has_complete_legacy_fields);
+
+    const token_plan = planTokenPreparation(reuse_attempt);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.skip_token_open_attempt,
+        token_plan.disposition,
+    );
+    try std.testing.expect(!token_plan.should_attempt_token_open);
 }
 
 test "phase8 file-path bridge keeps reused-map name retention summaries stable" {
