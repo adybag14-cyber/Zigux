@@ -93,6 +93,8 @@ REQUIRED_SOURCE_MARKERS = {
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
         'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
         'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
+        'Path("scripts/zigux/check-phase3-idr-slot-starter-packet.py")',
+        'Path("scripts/zigux/check-phase3-idr-slot.py")',
         '"PHASE3_ERRPTR_XARRAY_STARTER_PACKET=pass"',
         '"PHASE3_XARRAY_SLOT_STARTER_PACKET=pass"',
         '"validated zigux/tests/phase3_xarray_slot_dump.zig"',
@@ -105,6 +107,8 @@ REQUIRED_SOURCE_MARKERS = {
         '"validated zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json"',
         '"validated zigux/helpers/list_view.zig"',
         '"validated zigux/tests/fixtures/phase3_list_hlist_manifest.json"',
+        '"validated zigux/tests/phase3_idr_slot_starter_packet.zig"',
+        '"validated zigux/tests/fixtures/phase3_idr_slot_manifest.json"',
     ),
     VALIDATE_PHASE3_SELFTEST_PATH: (
         'Path("scripts/zigux/validate-phase3.py")',
@@ -347,8 +351,19 @@ REQUIRED_MANIFEST_PACKET_FILES = (
     "zigux/tests/phase3_list_hlist_starter_packet_build.zig",
     "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
     "scripts/zigux/check-phase3-list-hlist-starter-packet.py",
+    "Documentation/zigux/phase3-idr-slot-slice.md",
+    "zigux/helpers/idr_slot_view.zig",
+    "zigux/tests/phase3_idr_slot_starter_packet.zig",
+    "zigux/tests/phase3_idr_slot_starter_packet_build.zig",
+    "zigux/tests/phase3_idr_slot_dump.zig",
+    "zigux/tests/phase3_idr_slot_dump_build.zig",
+    "zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c",
+    "zigux/tests/fixtures/phase3_idr_slot/expected.json",
+    "zigux/tests/fixtures/phase3_idr_slot_manifest.json",
+    "scripts/zigux/check-phase3-idr-slot-starter-packet.py",
+    "scripts/zigux/check-phase3-idr-slot.py",
     "zigux/Makefile",
-    ".github/workflows/zigux-bootstrap.yml",
+    ".github/workflows/zigux-bootstrap.yml"
 )
 
 REQUIRED_MANIFEST_REPLAY_ROUTES = (
@@ -404,6 +419,10 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-bitmap-cpumask.py",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
+    "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .",
+    "python3 scripts/zigux/check-phase3-idr-slot.py --self-test",
+    "python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
     "zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig",
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
@@ -430,6 +449,8 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "make -C zigux phase3-low-level-wrappers-test",
     "zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig",
+    "zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig",
 )
 
 HEADER_TYPEDEF_ALIAS_RE = re.compile(r"^\s*}\s*([A-Za-z_][A-Za-z0-9_]*)\s*;")
@@ -782,6 +803,26 @@ def run_self_test() -> int:
                 'missing scripts/zigux/run-phase3-checks.py marker: "validated zigux/tests/fixtures/phase3_list_hlist_manifest.json"',
             ),
             (
+                RUNNER_PATH,
+                'Path("scripts/zigux/check-phase3-idr-slot-starter-packet.py")\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/check-phase3-idr-slot-starter-packet.py")',
+            ),
+            (
+                RUNNER_PATH,
+                'Path("scripts/zigux/check-phase3-idr-slot.py")\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/check-phase3-idr-slot.py")',
+            ),
+            (
+                RUNNER_PATH,
+                '"validated zigux/tests/phase3_idr_slot_starter_packet.zig"\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: "validated zigux/tests/phase3_idr_slot_starter_packet.zig"',
+            ),
+            (
+                RUNNER_PATH,
+                '"validated zigux/tests/fixtures/phase3_idr_slot_manifest.json"\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: "validated zigux/tests/fixtures/phase3_idr_slot_manifest.json"',
+            ),
+            (
                 VALIDATE_PHASE3_SELFTEST_PATH,
                 'Path("scripts/zigux/check-phase3-policy-dump.py")\n',
                 'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-policy-dump.py")',
@@ -965,6 +1006,17 @@ def run_self_test() -> int:
             ("zigux/tests/phase3_list_hlist_starter_packet_build.zig", "expected list hlist starter packet build drift was not reported"),
             ("zigux/tests/fixtures/phase3_list_hlist_manifest.json", "expected list hlist manifest drift was not reported"),
             ("scripts/zigux/check-phase3-list-hlist-starter-packet.py", "expected list hlist starter checker drift was not reported"),
+            ("Documentation/zigux/phase3-idr-slot-slice.md", "expected idr-slot slice packet-file drift was not reported"),
+            ("zigux/helpers/idr_slot_view.zig", "expected idr-slot helper packet-file drift was not reported"),
+            ("zigux/tests/phase3_idr_slot_starter_packet.zig", "expected idr-slot starter packet zig drift was not reported"),
+            ("zigux/tests/phase3_idr_slot_starter_packet_build.zig", "expected idr-slot starter packet build drift was not reported"),
+            ("zigux/tests/phase3_idr_slot_dump.zig", "expected idr-slot dump zig drift was not reported"),
+            ("zigux/tests/phase3_idr_slot_dump_build.zig", "expected idr-slot dump build drift was not reported"),
+            ("zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c", "expected idr-slot c-harness drift was not reported"),
+            ("zigux/tests/fixtures/phase3_idr_slot/expected.json", "expected idr-slot expected-json drift was not reported"),
+            ("zigux/tests/fixtures/phase3_idr_slot_manifest.json", "expected idr-slot manifest drift was not reported"),
+            ("scripts/zigux/check-phase3-idr-slot-starter-packet.py", "expected idr-slot starter checker drift was not reported"),
+            ("scripts/zigux/check-phase3-idr-slot.py", "expected idr-slot dump checker drift was not reported"),
         )
         for entry, failure_message in packet_file_checks:
             _populate_repo(repo_root)
@@ -1028,6 +1080,12 @@ def run_self_test() -> int:
             ("python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py", "expected list hlist direct route drift was not reported"),
             ("zig build phase3-bitmap-cpumask-starter-packet --build-file zigux/tests/phase3_bitmap_cpumask_starter_packet_build.zig", "expected bitmap cpumask build route drift was not reported"),
             ("zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig", "expected list hlist build route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test", "expected idr-slot starter self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .", "expected idr-slot starter direct route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-idr-slot.py --self-test", "expected idr-slot dump self-test route drift was not reported"),
+            ("python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc", "expected idr-slot dump direct route drift was not reported"),
+            ("zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig", "expected idr-slot starter build route drift was not reported"),
+            ("zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig", "expected idr-slot dump build route drift was not reported"),
         )
         for route, failure_message in replay_route_checks:
             _populate_repo(repo_root)
