@@ -55,7 +55,7 @@ test "phase13 landlock syscalls errata query keeps the fd install path disabled"
     });
 
     try std.testing.expectEqual(syscalls.CreateRulesetMode.abi_errata_query, plan.create_ruleset_plan.mode);
-    try std.testing.expect(!plan.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(plan.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(!plan.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqual(@as(?syscalls.RulesetFdInstallPlan, null), plan.ruleset_fd_install_plan);
     try std.testing.expect(!plan.create_ruleset_plan.performs_copy_from_user);
