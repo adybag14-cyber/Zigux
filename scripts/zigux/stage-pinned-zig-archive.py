@@ -252,6 +252,20 @@ def require_manifest_int(manifest: dict[str, object], key: str, manifest_path: P
     return value
 
 
+def require_clean_parts_dir(parts_dir: Path, *, part_count: int) -> None:
+    expected_names = {f"part-{index:03d}.b64" for index in range(part_count)}
+    actual_names = {path.name for path in parts_dir.glob("part-*.b64")}
+    extra_names = sorted(actual_names - expected_names)
+    if extra_names:
+        raise ValueError("unexpected shard files in parts dir: " + ", ".join(extra_names))
+
+    other_names = sorted(
+        path.name for path in parts_dir.iterdir() if path.name not in expected_names | {"manifest.json"}
+    )
+    if other_names:
+        raise ValueError("unexpected non-shard files in parts dir: " + ", ".join(other_names))
+
+
 def reconstruct_archive_from_parts(
     parts_dir: Path,
     destination: Path,
@@ -282,6 +296,8 @@ def reconstruct_archive_from_parts(
         raise ValueError(f"expected shard manifest size {expected_size}, got {size}")
     if parts_glob != "part-*.b64":
         raise ValueError(f"expected shard manifest parts_glob part-*.b64, got {parts_glob}")
+
+    require_clean_parts_dir(parts_dir, part_count=part_count)
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     with destination.open("wb") as handle:
@@ -645,11 +661,29 @@ def run_self_test() -> int:
         check_only=False,
     )
     expect_failure(
-        mutator=lambda root, source, expected_sha, parts_dir: (parts_dir / "part-000.b64").write_text(
+        mutator=lambda root, source, expected_sha, parts_dir: (parts_dir / "part-000.b64").writeText(
             "not base64!\n",
             encoding="utf-8",
         ),
         expected_substring="invalid base64 shard",
+        use_parts_dir=True,
+        check_only=False,
+    )
+    expect_failure(
+        mutator=lambda root, source, expected_sha, parts_dir: (parts_dir / "part-999.b64").write_text(
+            "QQ==\n",
+            encoding="utf-8",
+        ),
+        expected_substring="unexpected shard files in parts dir",
+        use_parts_dir=True,
+        check_only=False,
+    )
+    expect_failure(
+        mutator=lambda root, source, expected_sha, parts_dir: (parts_dir / "note.txt").write_text(
+            "unexpected\n",
+            encoding="utf-8",
+        ),
+        expected_substring="unexpected non-shard files in parts dir",
         use_parts_dir=True,
         check_only=False,
     )
