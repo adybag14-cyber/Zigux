@@ -6,6 +6,7 @@ This note records one bounded Phase 3 notifier starter packet on current `master
 
 - `Documentation/zigux/phase3-notifier-slice.md`
 - `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/notifier_view.zig`
 - `zigux/tests/phase3_notifier_starter_packet.zig`
 - `zigux/tests/phase3_notifier_starter_packet_build.zig`
 - `zigux/tests/phase3_notifier_starter_packet_manifest.json`
@@ -16,7 +17,8 @@ This note records one bounded Phase 3 notifier starter packet on current `master
 This packet stays intentionally small:
 
 - `zigux/bindings/notifier_abi.zig` keeps notifier result bytes, priority ordering, list backlink checks, and hlist prev-link checks reviewable without widening into callback execution or ownership transfer.
-- `zigux/tests/phase3_notifier_starter_packet.zig` keeps the result constants, layout anchors, bounded priority-chain replay, list backlink drift witness, and hlist prev-link drift witness explicit.
+- `zigux/helpers/notifier_view.zig` keeps helper-local forward iteration, first and last node discovery, callback-presence checks, and first priority-increase detection explicit without widening into callback execution, registration, or ownership transfer.
+- `zigux/tests/phase3_notifier_starter_packet.zig` keeps the result constants, layout anchors, bounded priority-chain replay, helper-local callback-presence witnesses, list backlink drift witness, and hlist prev-link drift witness explicit.
 - `zigux/tests/phase3_notifier_starter_packet_build.zig` provides one focused replay route for the starter packet instead of expanding the wider shared tests-root aggregate.
 - `zigux/tests/phase3_notifier_starter_packet_manifest.json` and `scripts/zigux/check-phase3-notifier-starter-packet.py` keep the packet fail-closed and reviewable.
 
@@ -26,4 +28,4 @@ This is still not a full notifier callback runtime port, notifier ownership proo
 
 ## Scope
 
-This note is limited to one notifier ABI binding surface, one focused starter packet, one focused build file, one manifest, and one checker. It does not claim callback dispatch semantics, notifier registration lifecycle coverage, or broader runtime chain ownership behavior.
+This note is limited to one notifier ABI binding surface, one helper-local notifier-chain view, one focused starter packet, one focused build file, one manifest, and one checker. It does not claim callback dispatch semantics, notifier registration lifecycle coverage, or broader runtime chain ownership behavior.
