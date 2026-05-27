@@ -262,7 +262,7 @@ test "phase 8 exec-cmd shared witness keeps argv0 sentinel path shapes explicit"
         .exec_path_env = "PERF_EXEC_PATH",
     };
 
-    const rooted = (try exec_cmd.extractArgv0Path(
+    var rooted = (try exec_cmd.extractArgv0Path(
         std.testing.allocator,
         "/usr/libexec/perf-core/perf",
     )).?;
@@ -283,7 +283,7 @@ test "phase 8 exec-cmd shared witness keeps argv0 sentinel path shapes explicit"
         rooted_search_path,
     );
 
-    const directory_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/tmp/")).?;
+    var directory_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/tmp/")).?;
     defer directory_only.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("", directory_only.command_name);
     try std.testing.expectEqualStrings("/tmp", directory_only.argv0_path.?);
@@ -298,7 +298,7 @@ test "phase 8 exec-cmd shared witness keeps argv0 sentinel path shapes explicit"
     defer std.testing.allocator.free(directory_only_search_path);
     try std.testing.expectEqualStrings("/repo/tools/bin:/tmp:/usr/bin", directory_only_search_path);
 
-    const root_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/")).?;
+    var root_only = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/")).?;
     defer root_only.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("", root_only.command_name);
     try std.testing.expectEqualStrings("", root_only.argv0_path.?);
