@@ -32,6 +32,7 @@ REQUIRED_MARKERS = {
         "failed mapping frees the release record",
         "warn-on-release-miss outcome",
         "helper-first `sg_table` free eligibility stays reviewable",
+        "records whether uninitialized tables stay neither free-ready nor unmap-requiring until table initialization is explicit",
         "requires unmap-before-free planning",
         "warn rather than claiming live `sg_table` lifecycle mutation",
         "dma_map_sgtable()",
@@ -43,6 +44,7 @@ REQUIRED_MARKERS = {
         "focused replay: `zigux/tests/phase13_devres_scatterlist.zig`",
         "provides_scatterlist_table_teardown_planning = true",
         "`planManagedScatterlistTableTeardown()` models helper-first `sg_table` teardown readiness",
+        "uninitialized-table hold",
         "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution",
         "no `struct scatterlist`, `sg_table`, or `sg_*` iteration helpers",
         "no live `sg_free_table()` lifecycle mutation or `sg_alloc_table()` ownership claims",
@@ -65,6 +67,7 @@ REQUIRED_MARKERS = {
         "phase13 devres descriptor records helper-first scatterlist planning",
         "phase13 devres scatterlist table teardown becomes free-ready once mapped entries drain",
         "phase13 devres scatterlist table teardown requires unmap before free when mapped entries remain",
+        "phase13 devres scatterlist table teardown stays inert until the table is initialized",
         "phase13 devres scatterlist table teardown warns when the release record is missing",
         "phase13 devres scatterlist table teardown warns on overmapped release drift",
         "phase13 devres scatterlist planner checker stays packet-local",
@@ -192,14 +195,14 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in REQUIRED_MARKERS[REPLAY_PATH]
-                if marker != "phase13 devres scatterlist table teardown warns on overmapped release drift"
+                if marker != "phase13 devres scatterlist table teardown stays inert until the table is initialized"
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                "zigux/tests/phase13_devres_scatterlist.zig:missing_marker:phase13 devres scatterlist table teardown warns on overmapped release drift"
+                "zigux/tests/phase13_devres_scatterlist.zig:missing_marker:phase13 devres scatterlist table teardown stays inert until the table is initialized"
             ],
             "missing_replay_case_failed",
         )
