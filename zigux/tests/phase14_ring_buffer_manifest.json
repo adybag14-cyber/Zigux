@@ -14,7 +14,7 @@
     "ring_buffer_map_doc_lines": 106,
     "trace_c_lines": 10017,
     "simple_ring_buffer_c_lines": 517,
-    "preexisting_phase14_build_present": true,
+    "preexisting_phase14_build_present": false,
     "preexisting_phase14_make_target_present": false,
     "preexisting_phase14_workqueue_bridge_present": true,
     "preexisting_ring_buffer_zig_present": false,
@@ -28,21 +28,20 @@
     "last_closed_followup": "phase14-ring-buffer-maintenance-handoff",
     "blocked_gap": "phase14-ring-buffer-zig-port-blocker",
     "lane_reopen_scope": "same_packet_truthfulness_repairs_only",
-    "why_now": "The surviving ring-buffer packet still lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, remote-reader, reader-page, read-page, and tracefs reader-serialization audits, and current public raw-file readback now recovers the dedicated survey companion plus the shared Phase 14 build shard even though the contents-path readback used elsewhere is still partial. The honest posture is therefore parked study-only governance maintained through the note-plus-manifest packet with replay wording narrowed to ring-buffer-local replay evidence rather than absence-only drift language or a parity claim."
+    "why_now": "The surviving ring-buffer packet still lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, remote-reader, reader-page, read-page, and tracefs reader-serialization audits. Current public raw-file readback still returns the dedicated survey companion, but the shared Phase 14 build shard does not currently return through this lane's exact readback path. The honest posture is therefore parked study-only governance maintained through the note-plus-manifest packet with replay wording narrowed to the returned survey companion plus shared-smoke manifest vocabulary rather than a parity claim."
   },
   "maintenance_handoff": {
     "current_lane_posture": "maintenance_mode",
     "replay_before_trusting": [
-      "zig test zigux/tests/phase14_ring_buffer_survey.zig",
-      "zig build test --build-file zigux/tests/phase14_build.zig --summary all"
+      "zig test zigux/tests/phase14_ring_buffer_survey.zig"
     ],
-    "replay_vocabulary_only_until_paths_return": false,
+    "replay_vocabulary_only_until_paths_return": true,
     "reopen_conditions": [
       "the dedicated survey note or manifest drift on surveyed commit, blocked gap, last closed follow-up, replay-route wording, or returned executable-companion truthfulness",
       "the directly coupled shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch",
       "genuinely narrower stay-in-C evidence appears around reserve or commit publication, remote-reader metadata, reader-page consume, read-page extraction, or tracefs reader serialization that could justify a new dedicated survey audit without implying kernel/trace/ring_buffer.zig"
     ],
-    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread Documentation/zigux/phase14-ring-buffer-survey.md, zigux/tests/phase14_ring_buffer_manifest.json, Documentation/zigux/phase14-end-to-end-smoke-survey.md, and Documentation/zigux/phase14-core-boundary-traceability.md; while the contents-path readback remains partial, keep the returned survey companion and shared build shard framed as public-raw-backed ring-buffer-local evidence instead of shared parity proof"
+    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread Documentation/zigux/phase14-ring-buffer-survey.md, zigux/tests/phase14_ring_buffer_manifest.json, Documentation/zigux/phase14-end-to-end-smoke-survey.md, and Documentation/zigux/phase14-core-boundary-traceability.md; while the contents-path readback remains partial, keep the returned survey companion explicit and treat the shared smoke manifest's focused build-shard command as historical vocabulary until zigux/tests/phase14_build.zig itself returns through direct readback"
   },
   "decision_checklist": [
     {
@@ -140,17 +139,17 @@
   "gaps": [
     {
       "id": "phase14-build-gate-current-master-gap",
-      "status": "restored_via_public_raw_readback",
+      "status": "exact_readback_gap",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase14_build.zig",
-      "why_now": "Current public raw-file readback now recovers the shared Phase 14 build shard, even though the contents-path readback used by some shared notes is still partial, so the dedicated ring-buffer packet should treat this route as returned ring-buffer-local replay evidence rather than as an absent current-master companion."
+      "why_now": "The shared Phase 14 smoke manifest still records a focused build-shard command for zigux/tests/phase14_build.zig, but the file itself does not currently return through this lane's direct readback path, so the ring-buffer packet must keep that build step as shared-smoke vocabulary instead of returned ring-buffer-local replay evidence."
     },
     {
       "id": "phase14-make-target",
       "status": "resolved_as_drift_retired",
       "kind": "validation",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "Current master still does not ship a dedicated `make -C zigux phase14` convenience route, so the ring-buffer packet should keep replay guidance tied to the returned `zig test` and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` routes rather than reviving a missing make wrapper."
+      "why_now": "Current master still does not ship a dedicated `make -C zigux phase14` convenience route, so the ring-buffer packet should keep concrete replay guidance tied to the returned `zig test zigux/tests/phase14_ring_buffer_survey.zig` route and treat the shared smoke manifest's focused build-shard command as vocabulary only until the build file returns."
     },
     {
       "id": "phase14-freeze-map-note",
