@@ -8,8 +8,8 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 - `PHASE15_LANE_KEY=P15-L12`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-26`
-- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-26 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, wrapper-route, or shared-CI reminder surfaces are fully aligned
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-27`
+- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-27 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, wrapper-route, or shared-CI reminder surfaces are fully aligned
 
 ## Why this note exists
 
@@ -29,7 +29,7 @@ The dedicated deep-core blocker survey `Documentation/zigux/phase15-deep-core-bl
 
 Treat this note together with `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `zigux/tests/phase15_build.zig` as the handoff-specific source of truth while the blocked route bodies and shared-CI route remain gap-tracked.
 
-This refresh closes the dedicated handoff undercount around the already-landed docs-readme alignment checker, scripts-readme alignment checker, dedicated Architecture Council packet checker, validator maintenance gate, shared build companion, governance-lane sequencing companions, deep-core blocker survey, freeze-map governance companion, parity-scorecard focused companions, and the explicit bootstrap-ledger boundary that limits what the early commit train can say about current Phase 15 status. Reviewers can now read this note against the current 2026-05-26 governance packet instead of reconciling it against an older handoff inventory by hand.
+This refresh closes the dedicated handoff undercount around the already-landed docs-readme alignment checker, scripts-readme alignment checker, dedicated Architecture Council packet checker, validator maintenance gate, shared build companion, governance-lane sequencing companions, deep-core blocker survey, freeze-map governance companion, parity-scorecard focused companions, and the explicit bootstrap-ledger boundary that limits what the early commit train can say about current Phase 15 status. Reviewers can now read this note against the current 2026-05-27 governance packet instead of reconciling it against an older handoff inventory by hand.
 
 ## Current handed-off packet on current master
 
