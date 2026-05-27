@@ -20,10 +20,15 @@ failure-mode parity reviewable without promoting live remove-hook execution.
 The current remove-handoff-facing gpio packet on `master` is:
 
 - `drivers/watchdog/gpio_wdt.zig`
+- `drivers/watchdog/gpio_wdt_verify.zig`
+- `zigux/tests/phase11_gpio_wdt_verify_helper_build.zig`
 - `zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig`
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig`
 - `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`
 - `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest.json`
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
@@ -33,9 +38,9 @@ The current remove-handoff-facing gpio packet on `master` is:
 Current direct contents reads in this run do not rematerialize the older wider
 replay and route surfaces `zigux/tests/phase11_gpio_wdt.zig`,
 `zigux/tests/phase11_gpio_wdt_manifest.json`, or `zigux/tests/phase11_build.zig`,
-so keep the remove-handoff packet bounded to the returned driver, proofs, and
-coupled docs surfaces instead of treating absent wider replay, manifest, or
-shared-build files as current-head evidence.
+so keep the remove-handoff packet bounded to the returned driver, proofs,
+current-head manifest, and coupled docs surfaces instead of treating absent
+wider replay, manifest, or shared-build files as current-head evidence.
 
 ## Returned Remove-Handoff Surface
 
@@ -64,9 +69,20 @@ shared-build files as current-head evidence.
   replayed as a dedicated cleanup-to-remove packet without claiming live
   platform cleanup callbacks, platform-driver removal, watchdog-core
   unregister, or host-backed shutdown execution.
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest.json` keeps the returned
+  remove-handoff packet machine-readable without reviving the older wider gpio
+  replay or manifest route.
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig` and
+  `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig` keep
+  the recovered manifest, survey note, module slice, teardown note,
+  remove-handoff note, and validation matrix on one dedicated fail-closed route.
 - `summarizeRemoveHandoff()` keeps the dedicated remove-handoff summary itself
   explicit before any live platform cleanup callback, platform-driver removal,
   watchdog-core unregister, or host-backed shutdown claim.
+- `python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`
+  and `python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py` keep
+  the current-head manifest packet aligned so this narrower remove-handoff
+  evidence does not drift silently.
 
 ## Guardrails
 
