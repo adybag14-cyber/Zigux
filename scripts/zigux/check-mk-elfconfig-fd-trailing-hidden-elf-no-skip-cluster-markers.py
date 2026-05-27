@@ -119,7 +119,6 @@ def run_self_test() -> None:
         reordered_markers = EXPECTED_MARKERS[
             Path("scripts/zigux/mk_elfconfig_fd_not_elf_trailing_hidden_elf_no_skip_test.zig")
         ]
-        reordered_path.writeText if False else None
         reordered_path.write_text(
             "\n".join(
                 [
