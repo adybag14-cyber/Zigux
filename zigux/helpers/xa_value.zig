@@ -12,6 +12,11 @@ pub fn canRepresent(value: usize) bool {
     return value <= safe_inline_limit;
 }
 
+// Expose the raw tagged form for boundary inspection without relaxing the checked constructor.
+pub fn rawForValueUnchecked(value: usize) usize {
+    return (value << 1) | value_tag_mask;
+}
+
 pub fn makeValue(value: usize) MakeValueError!usize {
     if (!canRepresent(value)) {
         return error.ValueWouldOverlapErrPtr;
@@ -38,6 +43,7 @@ comptime {
 test "inline zero is representable and round-trips as an xa_value" {
     const raw = try makeValue(0);
 
+    try std.testing.expectEqual(value_tag_mask, rawForValueUnchecked(0));
     try std.testing.expectEqual(value_tag_mask, raw);
     try std.testing.expect(isValue(raw));
     try std.testing.expectEqual(@as(usize, 0), toValue(raw));
@@ -52,9 +58,10 @@ test "err_ptr encodings with the low tag bit set never classify as xa_values" {
 }
 
 test "highest representable inline value stays below the err_ptr floor" {
-    const raw = try makeValue(safe_inline_limit);
+    const raw = rawForValueUnchecked(safe_inline_limit);
 
     try std.testing.expect(canRepresent(safe_inline_limit));
+    try std.testing.expectEqual(raw, try makeValue(safe_inline_limit));
     try std.testing.expect(isValue(raw));
     try std.testing.expectEqual(safe_inline_limit, toValue(raw));
     try std.testing.expect(raw < err_ptr.err_floor);
@@ -63,11 +70,23 @@ test "highest representable inline value stays below the err_ptr floor" {
 
 test "first rejected inline value aliases the err_ptr floor" {
     const overlapping_value = safe_inline_limit + 1;
-    const raw = (overlapping_value << 1) | value_tag_mask;
+    const raw = rawForValueUnchecked(overlapping_value);
 
     try std.testing.expect(!canRepresent(overlapping_value));
     try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(overlapping_value));
     try std.testing.expectEqual(err_ptr.err_floor, raw);
     try std.testing.expect(err_ptr.isErrValue(raw));
     try std.testing.expect(!isValue(raw));
+}
+
+test "wrapped rejected inline values can still map back to low tagged raws" {
+    const wrap_delta = (@as(usize, err_ptr.max_errno) + 1) / 2;
+    const source_value = safe_inline_limit + 1 + wrap_delta;
+    const raw = rawForValueUnchecked(source_value);
+
+    try std.testing.expect(!canRepresent(source_value));
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(source_value));
+    try std.testing.expectEqual(value_tag_mask, raw);
+    try std.testing.expect(isValue(raw));
+    try std.testing.expectEqual(@as(usize, 0), toValue(raw));
 }
