@@ -105,6 +105,7 @@ REQUIRED_MARKERS = {
         "lane: `P10-L10`",
         "`phase10-virtio-ring-survey-gate`",
         "`drivers/virtio/virtio_ring_publish_readiness.zig`",
+        "`drivers/virtio/virtio_ring_notification_data.zig`",
         "`drivers/virtio/virtio_ring_registration_summary.zig`",
         "`drivers/virtio/virtio_ring_used_buffer_poll.zig`",
         "`zigux/tests/phase10_virtio_ring.zig`",
@@ -114,10 +115,12 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase10_virtio_ring_reset_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`",
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
-        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
+        "`zigux/tests/phase10_virtio_ring_queue_build_survey.zig`",
+        "direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `drivers/virtio/virtio_ring_publish_readiness.zig`, `drivers/virtio/virtio_ring_notification_data.zig`, `drivers/virtio/virtio_ring_registration_summary.zig`, `drivers/virtio/virtio_ring_used_buffer_poll.zig`, the broader replay `zigux/tests/phase10_virtio_ring.zig`",
         "`phase10-used-buffer-polling-helper`",
         "`phase10-queue-registration-summary-helper`",
         "`phase10-ring-reset-readiness-replay`",
+        "`zigux/tests/phase10_virtio_ring_queue_build_survey.zig` now gives the ring lane one focused queue-build survey replay",
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
@@ -167,6 +170,14 @@ REQUIRED_MARKERS = {
         "test \"phase10 virtio ring verify exposes reset-readiness blocker ordering after clearBroken releases queue debt\" {",
         "test \"phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay\" {",
     ],
+    "drivers/virtio/virtio_ring_notification_data.zig": [
+        "pub fn summarizeNotificationData(",
+        "pub fn notificationDataUsesWrapBit(summary: NotificationDataSummary) bool {",
+        "pub fn queueIndexMatchesNotificationData(summary: NotificationDataSummary) bool {",
+        "pub fn nextAvailStateMatchesEncoding(summary: NotificationDataSummary) bool {",
+        "test \"phase10 virtio ring notification-data wrapper keeps split queue state explicit\" {",
+        "test \"phase10 virtio ring notification-data wrapper preserves packed wrap encoding across u16 rollover\" {",
+    ],
     "drivers/virtio/virtio_ring_publish_readiness.zig": [
         "pub fn summarizePublishReadiness(",
         "pub fn queueCanPublish(summary: QueuePublishReadinessSummary) bool {",
@@ -194,6 +205,7 @@ REQUIRED_MARKERS = {
         "test \"phase10 virtio ring used-buffer-poll wrapper settles once all used chains are observed\" {",
     ],
     "zigux/tests/phase10_build.zig": [
+        ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_notification_data.zig\"),",
         ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_publish_readiness.zig\"),",
         ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_used_buffer_poll.zig\"),",
         ".root_source_file = b.path(\"phase10_virtio_ring_registration_replay.zig\"),",
@@ -201,35 +213,45 @@ REQUIRED_MARKERS = {
         ".root_source_file = b.path(\"phase10_virtio_ring_reset_reuse.zig\"),",
         ".root_source_file = b.path(\"phase10_virtio_ring_broken_queue_queue_discipline.zig\"),",
         ".root_source_file = b.path(\"phase10_virtio_ring_delayed_callback_budget.zig\"),",
+        ".root_source_file = b.path(\"phase10_virtio_ring_queue_build_survey.zig\"),",
         ".root_source_file = b.path(\"phase10_virtio_ring_survey.zig\"),",
-        ".name = \\\"phase10-virtio-ring-notification-data-readiness-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-registration-replay-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-reset-readiness-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-publish-readiness-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-used-buffer-poll-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-prepare-kick-idempotent-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-reset-reuse-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-broken-queue-queue-discipline-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-delayed-callback-budget-tests\\\",",
-        ".name = \\\"phase10-virtio-ring-survey-tests\\\",",
+        ".name = \"phase10-virtio-ring-notification-data-readiness-tests\",",
+        ".name = \"phase10-virtio-ring-registration-replay-tests\",",
+        ".name = \"phase10-virtio-ring-reset-readiness-tests\",",
+        ".name = \"phase10-virtio-ring-notification-data-wrapper-tests\",",
+        ".name = \"phase10-virtio-ring-publish-readiness-tests\",",
+        ".name = \"phase10-virtio-ring-used-buffer-poll-tests\",",
+        ".name = \"phase10-virtio-ring-prepare-kick-idempotent-tests\",",
+        ".name = \"phase10-virtio-ring-reset-reuse-tests\",",
+        ".name = \"phase10-virtio-ring-broken-queue-queue-discipline-tests\",",
+        ".name = \"phase10-virtio-ring-delayed-callback-budget-tests\",",
+        ".name = \"phase10-virtio-ring-queue-build-survey-tests\",",
+        ".name = \"phase10-virtio-ring-survey-tests\",",
         "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_registration_replay_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_reset_readiness_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_notification_data_wrapper_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_publish_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_used_buffer_poll_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);",
+        "test_step.dependOn(&run_phase10_virtio_ring_queue_build_survey_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);",
     ],
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
         "test \"phase10 virtio ring notification-data replay keeps split and packed next-avail state explicit\" {",
         "const packed_summary = try ring.notificationDataSummary(2);",
     ],
-    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig": [
-        "test \"phase10 virtio ring delayed callback budget stays bounded to queue-local replay state\" {",
-        "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
+    "zigux/tests/phase10_virtio_ring_queue_build_survey.zig": [
+        "test \"phase10 virtio ring queue build keeps the focused queue packet explicit\" {",
+        ".root_source_file = b.path(\"../../drivers/virtio/virtio_ring_notification_data.zig\"),",
+        ".root_source_file = b.path(\"phase10_virtio_ring_queue_build_survey.zig\"),",
+        ".name = \"phase10-virtio-ring-notification-data-wrapper-tests\",",
+        ".name = \"phase10-virtio-ring-queue-build-survey-tests\",",
+        "run_phase10_virtio_ring_notification_data_wrapper_tests.step",
+        "run_phase10_virtio_ring_queue_build_survey_tests.step",
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
         "try expectContains(survey_note, \"drivers/virtio/virtio_ring_registration_summary.zig\");",
@@ -379,6 +401,8 @@ def run_self_test() -> int:
             "missing_survey_note": "Documentation/zigux/phase10-virtio-ring-survey.md",
             "missing_registration_summary_wrapper": "drivers/virtio/virtio_ring_registration_summary.zig",
             "missing_used_buffer_poll_wrapper": "drivers/virtio/virtio_ring_used_buffer_poll.zig",
+            "missing_notification_data_wrapper": "drivers/virtio/virtio_ring_notification_data.zig",
+            "missing_queue_build_survey": "zigux/tests/phase10_virtio_ring_queue_build_survey.zig",
             "missing_manifest": MANIFEST_PATH,
         }
         for label, rel_path in removal_cases.items():
@@ -424,7 +448,7 @@ def run_self_test() -> int:
             build_path = case_root / "zigux/tests/phase10_build.zig"
             build_text = build_path.read_text(encoding="utf-8")
             build_text = build_text.replace(
-                ".name = \\\"phase10-virtio-ring-registration-replay-tests\\\",",
+                ".name = \"phase10-virtio-ring-queue-build-survey-tests\",",
                 "",
                 1,
             )
@@ -452,7 +476,7 @@ def run_self_test() -> int:
                         )
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
