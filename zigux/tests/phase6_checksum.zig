@@ -2,32 +2,6 @@ const std = @import("std");
 const checksum = @import("checksum");
 const fixtures = @import("fixtures/phase6_checksum_vectors.zig");
 
-const ComputeCase = struct {
-    label: []const u8,
-    payload: []const u8,
-};
-
-const SeededCase = struct {
-    label: []const u8,
-    prefix: []const u8,
-    suffix: []const u8,
-    seed: u32,
-};
-
-const compute_cases = [_]ComputeCase{
-    .{ .label = "empty", .payload = "" },
-    .{ .label = "single-byte", .payload = "f" },
-    .{ .label = "two-byte", .payload = "fo" },
-    .{ .label = "three-byte", .payload = "foo" },
-    .{ .label = "phase6", .payload = "phase6" },
-};
-
-const seeded_cases = [_]SeededCase{
-    .{ .label = "seed-zero", .prefix = "ph", .suffix = "ase6", .seed = 0x0000_0000 },
-    .{ .label = "seed-carry", .prefix = "netw", .suffix = "orkstack", .seed = 0x0001_ffff },
-    .{ .label = "seed-wrap", .prefix = "carryf", .suffix = "old", .seed = 0xffff_ff10 },
-};
-
 fn referenceNormalizeWide(sum: u64) u32 {
     var value = sum;
     while ((value >> 16) != 0) {
@@ -109,13 +83,13 @@ fn referencePseudoHeaderV6(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8,
 }
 
 test "phase 6 checksum compute parity matches local reference vectors" {
-    for (compute_cases) |case| {
+    for (fixtures.compute_cases) |case| {
         try std.testing.expectEqual(referenceCompute(case.payload), checksum.compute(case.payload));
     }
 }
 
 test "phase 6 checksum split composition stays aligned with seeded partial accumulation" {
-    for (seeded_cases) |case| {
+    for (fixtures.seeded_cases) |case| {
         const prefix_sum = checksum.partial(case.prefix, case.seed);
         const split_sum = checksum.partial(case.suffix, prefix_sum);
 
