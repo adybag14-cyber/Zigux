@@ -15,7 +15,7 @@ This slice adds one helper-first scatterlist planner beside the existing `lib/de
 - `planManagedScatterlistMap()` models a helper-first retained-record decision around original segment count, mapped segment count, and detach-time unmap readiness
 - `planManagedScatterlistUnmap()` keeps the release match exact across original and mapped segment counts so the detach bookkeeping surface stays reviewable
 - `planManagedScatterlistTableTeardown()` models helper-first `sg_table` teardown readiness around original and mapped counts, table initialization, and release-record presence without claiming live teardown side effects
-- the focused replay proves success retention, zero-segment cleanup, impossible over-mapped cleanup, allocation failure, exact-versus-mismatched unmap matching, free-ready teardown, unmap-before-free planning, missing-release-record warning, and overmapped teardown warning
+- the focused replay proves success retention, zero-segment cleanup, impossible over-mapped cleanup, allocation failure, exact-versus-mismatched unmap matching, uninitialized-table hold, free-ready teardown, unmap-before-free planning, missing-release-record warning, and overmapped teardown warning
 
 ## Non-goals
 
