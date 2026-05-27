@@ -55,7 +55,13 @@ REQUIRED_MARKERS = {
     ),
     MMIO_HELPER_PATH: (
         "pub fn rangeScoped(base_addr: usize, length: u32, stride: u32, scope: abi.UnsafeScope) PolicyError!MmioRange {",
-        "pub fn readInteropPolicyBytes(",
+        "pub fn constPointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*const volatile T {",
+        "pub fn pointerAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!*volatile T {",
+        "pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {",
+        "pub fn writeAt(comptime T: type, range: MmioRange, byte_offset: usize, value: T) PolicyError!void {",
+        "pub fn exchangeAt(comptime T: type, range: MmioRange, byte_offset: usize, value: T) PolicyError!T {",
+        "pub fn writeMaskedAt(",
+        'test "phase3 mmio helper keeps range-bound accessors inside the blessed MMIO window" {',
         'test "phase3 mmio helper rejects overflowing range windows before blessing unsafe access" {',
     ),
 }
@@ -67,7 +73,7 @@ SELF_TEST_CASES = (
     (MAKEFILE_PATH, "phase3-low-level-wrappers-test:"),
     (ATOMIC_HELPER_PATH, "pub fn fetchMax("),
     (BARRIER_HELPER_PATH, "pub fn storeLoad() void {"),
-    (MMIO_HELPER_PATH, "pub fn readInteropPolicyBytes("),
+    (MMIO_HELPER_PATH, "pub fn readAt(comptime T: type, range: MmioRange, byte_offset: usize) PolicyError!T {"),
 )
 
 
