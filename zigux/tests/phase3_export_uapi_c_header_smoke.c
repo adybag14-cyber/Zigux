@@ -18,12 +18,16 @@ static int check_version_relays(void)
         return __LINE__;
     if (!zigux_export_status_ok(valid))
         return __LINE__;
+    if (!zigux_uapi_export_status_ok(valid))
+        return __LINE__;
 
     stale.header_family_revision += 1u;
     invalid = zigux_uapi_validate_version(stale);
     if (zigux_uapi_version_matches_current(stale))
         return __LINE__;
     if (zigux_export_status_ok(invalid))
+        return __LINE__;
+    if (zigux_uapi_export_status_ok(invalid))
         return __LINE__;
     if (invalid.code != ZIGUX_UAPI_INVALID_ARGUMENT)
         return __LINE__;
@@ -209,6 +213,12 @@ static int check_status_facility_relays(void)
     struct zigux_export_status err = zigux_make_status(-22, (uint16_t)ZIGUX_FACILITY_KERNEL);
     struct zigux_export_status unknown = zigux_make_status(0, 9u);
 
+    if (!zigux_uapi_export_status_ok(ok))
+        return __LINE__;
+    if (zigux_uapi_export_status_ok(err))
+        return __LINE__;
+    if (!zigux_uapi_export_status_ok(unknown))
+        return __LINE__;
     if (!zigux_uapi_facility_is_known(ok.facility))
         return __LINE__;
     if (!zigux_uapi_facility_is_known(err.facility))
