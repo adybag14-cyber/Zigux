@@ -8,6 +8,13 @@ from pathlib import Path
 OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")
 SAMPLE_PATH = Path("samples/zigux/runtime_kretprobe.zig")
 LOADER_PATH = Path("samples/zigux/runtime_kretprobe_loader.zig")
+INITIALIZED_SNAPSHOT_GUARD_PATH = Path(
+    "samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig"
+)
+REGISTRATION_REENTRY_GATE_PATH = Path(
+    "samples/zigux/runtime_kretprobe_registration_reentry_gate.zig"
+)
+REINIT_REEXIT_GUARD_PATH = Path("samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig")
 SURVEY_PATH = Path("zigux/tests/runtime_kretprobe_survey.zig")
 MODULE_PATH = Path("zigux/tests/runtime_kretprobe_module.zig")
 BUILD_PATH = Path("zigux/tests/phase9_build.zig")
@@ -16,6 +23,9 @@ REQUIRED_FILES = (
     OWNERSHIP_MAP_PATH,
     SAMPLE_PATH,
     LOADER_PATH,
+    INITIALIZED_SNAPSHOT_GUARD_PATH,
+    REGISTRATION_REENTRY_GATE_PATH,
+    REINIT_REEXIT_GUARD_PATH,
     SURVEY_PATH,
     MODULE_PATH,
     BUILD_PATH,
@@ -53,6 +63,22 @@ FILE_MARKERS = {
         'error.InvalidLoaderState',
         'test "runtime kretprobe loader keeps initialized-stage shared contract plans explicit" {',
         'test "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity" {',
+    ),
+    INITIALIZED_SNAPSHOT_GUARD_PATH: (
+        'const RuntimeKretprobeSample = kretprobe.RuntimeKretprobeSample;',
+        'test "phase9 kretprobe sample keeps captured initialized snapshot replay explicit across later selftest and exit" {',
+        'test "phase9 kretprobe sample keeps captured initialized direct-activity snapshot replay explicit across later selftest and exit" {',
+    ),
+    REGISTRATION_REENTRY_GATE_PATH: (
+        'const RuntimeKretprobeSample = runtime_kretprobe_sample.RuntimeKretprobeSample;',
+        'test "runtime kretprobe registration reentry stays reusable before selftest" {',
+        'test "runtime kretprobe registration reentry stays reusable after selftest" {',
+        'test "runtime kretprobe registration reentry stays fail-closed after exit" {',
+    ),
+    REINIT_REEXIT_GUARD_PATH: (
+        'const RuntimeKretprobeSample = kretprobe.RuntimeKretprobeSample;',
+        'test "phase9 kretprobe sample keeps paired rejected re-init and re-exit rollback explicit after initialized direct activity" {',
+        'test "phase9 kretprobe sample keeps paired rejected re-init and re-exit rollback explicit after selftest-ready replay" {',
     ),
     SURVEY_PATH: (
         'test "phase9 runtime kretprobe survey gate matches the roadmap-backed sample and module packet" {',
@@ -132,6 +158,13 @@ def run_self_test() -> int:
         _expect_issue(root, "missing repo file: samples/zigux/runtime_kretprobe.zig")
 
         _populate_repo(root)
+        (root / INITIALIZED_SNAPSHOT_GUARD_PATH).unlink()
+        _expect_issue(
+            root,
+            "missing repo file: samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig",
+        )
+
+        _populate_repo(root)
         _write(
             root / OWNERSHIP_MAP_PATH,
             _read(root / OWNERSHIP_MAP_PATH).replace(
@@ -143,6 +176,34 @@ def run_self_test() -> int:
         _expect_issue(
             root,
             "missing Documentation/zigux/phase9-runtime-pilot-ownership-map.md marker: `scripts/zigux/check-phase9-kretprobe-runtime-packet.py`",
+        )
+
+        _populate_repo(root)
+        _write(
+            root / REGISTRATION_REENTRY_GATE_PATH,
+            _read(root / REGISTRATION_REENTRY_GATE_PATH).replace(
+                'test "runtime kretprobe registration reentry stays reusable after selftest" {',
+                "",
+                1,
+            ),
+        )
+        _expect_issue(
+            root,
+            'missing samples/zigux/runtime_kretprobe_registration_reentry_gate.zig marker: test "runtime kretprobe registration reentry stays reusable after selftest" {',
+        )
+
+        _populate_repo(root)
+        _write(
+            root / REINIT_REEXIT_GUARD_PATH,
+            _read(root / REINIT_REEXIT_GUARD_PATH).replace(
+                'test "phase9 kretprobe sample keeps paired rejected re-init and re-exit rollback explicit after selftest-ready replay" {',
+                "",
+                1,
+            ),
+        )
+        _expect_issue(
+            root,
+            'missing samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig marker: test "phase9 kretprobe sample keeps paired rejected re-init and re-exit rollback explicit after selftest-ready replay" {',
         )
 
         _populate_repo(root)
@@ -174,7 +235,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_KRETPROBE_RUNTIME_PACKET_SELF_TEST=pass")
-    print("PHASE9_KRETPROBE_RUNTIME_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE9_KRETPROBE_RUNTIME_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
