@@ -107,6 +107,45 @@ test "phase 8 kallsyms chunked parser also truncates oversized names" {
     try std.testing.expectEqualStrings(too_long_name[0..kallsyms.KSYM_NAME_LEN], symbols.items[0].name);
 }
 
+test "phase 8 kallsyms reader wrappers fail closed when the scratch buffer is empty" {
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) return 0;
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
+    const CountingCollector = struct {
+        fn collect(seen: *usize, _: kallsyms.ParsedSymbol) !void {
+            seen.* += 1;
+        }
+    };
+
+    var reader = SliceReader{
+        .bytes = "ffffffff81000000 T startup_64\n" ++
+            "ffffffff81000200 W weak_handler\n",
+    };
+    var seen: usize = 0;
+
+    try std.testing.expectError(
+        error.EmptyScratchBuffer,
+        kallsyms.forEachParsedReader(
+            std.testing.allocator,
+            &reader,
+            &[_]u8{},
+            &seen,
+            CountingCollector.collect,
+        ),
+    );
+    try std.testing.expectEqual(@as(usize, 0), seen);
+}
+
 test "phase 8 kallsyms segmented reader bubbles callback failures unchanged" {
     const SliceReader = struct {
         bytes: []const u8,
