@@ -9,7 +9,7 @@ surfaces that already describe the host-free teardown and stop-policy packet.
 
 - `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_driver_docs_and_proof_packet`
 - teardown evidence remains bounded to the returned gpio driver, direct proofs,
-  dedicated replay routes, and coupled docs packet
+  current-head manifest, dedicated replay routes, and coupled docs packet
 - remaining follow-through is still wider focused replay or manifest recovery,
   live GPIO descriptor lookup, platform-driver registration, watchdog-core
   registration, live platform cleanup callbacks, reboot-backed teardown
@@ -30,15 +30,19 @@ The current teardown-facing GPIO packet on `master` is:
 - `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`
 - `zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig`
 - `zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig`
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest.json`
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`
+- `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
-These returned driver, driver-backed verify helper, direct proofs, dedicated
-replay routes, and documentation surfaces keep the teardown packet readable
-without promoting absent wider replay, survey, manifest, or shared-build files
-into current-head evidence.
+These returned driver, driver-backed verify helper, direct proofs, current-head
+manifest, dedicated replay routes, and documentation surfaces keep the teardown
+packet readable without promoting absent wider replay, survey, manifest, or
+shared-build files into current-head evidence.
 
 ## What The Landed Teardown Packet Covers
 
@@ -77,6 +81,15 @@ The current host-free teardown review packet keeps these handoffs explicit:
   `summarizeRemoveHandoff()` replayable as the cleanup-to-remove handoff packet
   without claiming live platform cleanup callbacks, platform-driver removal,
   watchdog-core unregister side effects, or host-backed shutdown execution
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest.json` as the machine-
+  readable inventory that keeps the returned teardown packet explicit without
+  overclaiming that the older wider gpio manifest or shared build route has
+  returned
+- `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig` and
+  `zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig` as the
+  dedicated fail-closed route that rechecks the recovered manifest, coupled
+  survey note, teardown note, remove-handoff note, module slice, and validation
+  matrix packet
 - `zigux/tests/phase11_gpio_wdt_preflight_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig`,
   `zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig`,
@@ -97,6 +110,9 @@ The current host-free teardown review packet keeps these handoffs explicit:
   companion surface that keeps the bounded remove-handoff packet explicit
   without claiming live platform cleanup callbacks, platform-driver removal,
   watchdog-core unregister side effects, or host-backed shutdown execution
+- `python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`
+  and `python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py` as
+  the direct truthfulness guard for the recovered current-head manifest packet
 - the teardown handoff after descriptor preflight and the first bounded
   register-device request surface
 
@@ -109,10 +125,10 @@ cleanup callbacks, or host-backed shutdown behavior.
 
 ## Bounded Meaning
 
-This note records the returned teardown summaries, direct proofs, and dedicated
-replay routes only. It does not claim live GPIO descriptor acquisition,
-`platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
-`watchdog_stop_on_reboot()` execution,
+This note records the returned teardown summaries, direct proofs, current-head
+manifest evidence, and dedicated replay routes only. It does not claim live
+GPIO descriptor acquisition, `platform_set_drvdata()` execution,
+`watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution,
 `devm_watchdog_register_device()` execution, platform-driver registration, live
 reboot-hook registration, live platform cleanup callbacks, live remove-hook
 execution, or hardware-validated teardown parity. Those remain later same-lane
