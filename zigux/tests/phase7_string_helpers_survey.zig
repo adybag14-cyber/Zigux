@@ -1,11 +1,38 @@
 const std = @import("std");
 
+const Manifest = struct {
+    lane_key: []const u8,
+    lane_key_note: []const u8,
+    phase: []const u8,
+    anchor: []const u8,
+    direct_repo_anchor: []const u8,
+    anchor_state_note: []const u8,
+    current_master_state: []const u8,
+    review_surfaces: []const []const u8,
+    covered_helpers: []const []const u8,
+    current_master_truthfulness: []const u8,
+    starter_packet_focus: []const []const u8,
+    ownership_focus: []const []const u8,
+    next_bounded_step: []const u8,
+};
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
 fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
+fn stringSliceContains(haystack: []const []const u8, needle: []const u8) bool {
+    for (haystack) |item| {
+        if (std.mem.eql(u8, item, needle)) return true;
+    }
+    return false;
+}
+
+fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !void {
+    try std.testing.expect(stringSliceContains(haystack, needle));
 }
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -73,24 +100,59 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectNotContains(helper_tests, "parseIntArrayUser");
     try expectNotContains(helper_tests, "parse_int_array_user");
 
-    const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
-    defer allocator.free(manifest);
-    try expectContains(manifest, "\"scripts/zigux/check-phase7-string-helpers-packet.py\"");
-    try expectContains(manifest, "\"scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py\"");
-    try expectContains(manifest, "\"zigux/tests/phase7_string_helpers_format_boundary.zig\"");
-    try expectContains(manifest, "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters");
-    try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched");
-    try expectContains(manifest, "stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix");
-    try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
-    try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");
-    try expectContains(manifest, "dedicated format-boundary replay for the trace-events formatting companion and broad-format exclusion");
-    try expectContains(manifest, "still-parked `parse_int_array_user()` user-buffer follow-on or the device-managed `devm_kasprintf_strarray()` follow-on");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons");
-    try expectContains(manifest, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test");
-    try expectNotContains(manifest, "\"devmKasprintfStrarray\"");
-    try expectNotContains(manifest, "\"devm_kasprintf_strarray\"");
-    try expectNotContains(manifest, "\"parseIntArrayUser\"");
-    try expectNotContains(manifest, "\"parse_int_array_user\"");
+    const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
+    defer allocator.free(manifest_json);
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
+    defer parsed.deinit();
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("helper-local", manifest.lane_key);
+    try expectContains(manifest.lane_key_note, "helper-local keeps the expanded string-helpers starter packet separate");
+    try std.testing.expectEqualStrings("Phase 7", manifest.phase);
+    try std.testing.expectEqualStrings("lib/string_helpers.c", manifest.anchor);
+    try std.testing.expectEqualStrings("lib/string_helpers.zig", manifest.direct_repo_anchor);
+    try expectContains(manifest.anchor_state_note, "directly readable current-master helper-local anchor");
+    try std.testing.expectEqualStrings("expanded_starter_packet", manifest.current_master_state);
+
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-string-helpers-slice.md");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-string-helpers-packet.py");
+    try expectStringSliceContains(manifest.review_surfaces, "scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py");
+    try expectStringSliceContains(manifest.review_surfaces, "lib/string_helpers.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_string_helpers.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_string_helpers_survey.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_string_helpers_format_boundary.zig");
+    try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_string_helpers_manifest.json");
+    try expectStringSliceContains(manifest.review_surfaces, "samples/zigux/README.md");
+
+    try expectStringSliceContains(manifest.covered_helpers, "stringIsTerminated");
+    try expectStringSliceContains(manifest.covered_helpers, "string_is_terminated");
+    try expectStringSliceContains(manifest.covered_helpers, "stringEscapeStrAnyNp");
+    try expectStringSliceContains(manifest.covered_helpers, "string_escape_str_any_np");
+    try expectStringSliceContains(manifest.covered_helpers, "kstrdupQuotableCmdline");
+    try expectStringSliceContains(manifest.covered_helpers, "kstrdup_quotable_cmdline");
+    try expectStringSliceContains(manifest.covered_helpers, "parseIntArray");
+    try expectStringSliceContains(manifest.covered_helpers, "parse_int_array");
+    try expectStringSliceContains(manifest.covered_helpers, "stringUpper");
+    try expectStringSliceContains(manifest.covered_helpers, "stringLower");
+
+    try expectContains(manifest.current_master_truthfulness, "still-parked `parse_int_array_user()` user-buffer follow-on");
+    try expectContains(manifest.current_master_truthfulness, "`devm_kasprintf_strarray()` follow-on");
+
+    try expectStringSliceContains(manifest.starter_packet_focus, "dedicated helper-local checker-backed packet reviewability");
+    try expectStringSliceContains(manifest.starter_packet_focus, "dedicated format-boundary replay for the trace-events formatting companion and broad-format exclusion");
+
+    try expectStringSliceContains(manifest.ownership_focus, "stringIsTerminated() and string_is_terminated() keep caller-provided bounds explicit and only scan inside the requested prefix");
+    try expectStringSliceContains(manifest.ownership_focus, "kstrdupQuotableCmdline() keeps returned storage caller-owned, leaves the caller source buffer untouched, collapses trailing and inter-argument NULL separators only inside duplicated command-line storage, and only then applies quotable escaping");
+    try expectStringSliceContains(manifest.ownership_focus, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*kasprintf*`, and `*strarray*` exclusions aligned with the helper-local boundary test");
+    try std.testing.expectEqualStrings(
+        "Keep the dedicated checkers, survey, sample-boundary, and format-boundary replays fail-closed on the still-parked `parse_int_array_user()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`.",
+        manifest.next_bounded_step,
+    );
+
+    try expectNotContains(manifest_json, "\"devmKasprintfStrarray\"");
+    try expectNotContains(manifest_json, "\"devm_kasprintf_strarray\"");
+    try expectNotContains(manifest_json, "\"parseIntArrayUser\"");
+    try expectNotContains(manifest_json, "\"parse_int_array_user\"");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
