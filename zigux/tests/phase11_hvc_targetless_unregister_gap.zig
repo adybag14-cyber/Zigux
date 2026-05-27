@@ -44,6 +44,9 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
     try expectContains(verify_helper, ".targetless_dispatch_with_notifier_sanitized = targetless_dispatch_with_notifier_sanitized,");
     try expectContains(verify_helper, "test \"phase11 hvc verify helper keeps registered targetless sysrq fallback sanitized\" {");
     try expectContains(verify_helper, "try std.testing.expect(summary.targetless_dispatch_with_notifier_sanitized);");
+    try expectContains(verify_helper, "test \"phase11 hvc verify helper keeps targeted notifier SysRq dispatch explicit\" {");
+    try expectContains(verify_helper, "try std.testing.expect(summary.dispatch_allowed);");
+    try expectContains(verify_helper, "try std.testing.expect(!summary.literal_fallback_required);");
 
     const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");
     defer std.testing.allocator.free(boundary);
