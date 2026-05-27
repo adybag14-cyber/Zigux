@@ -126,10 +126,10 @@ test "phase12 libbpf reviewability gate keeps the current snapshot anchor exact"
         fixture.verification_evidence.checker.path,
     );
     try std.testing.expectEqualStrings(
-        "92759632d6db2a6419de41d561aa8c5ffba6dd05",
+        "277554397ab1a236c71f1dac9061ffe4cfbeaf67",
         fixture.verification_evidence.checker.blob_sha,
     );
-    try std.testing.expectEqual(@as(usize, 29), fixture.verification_evidence.checker.self_test_case_count);
+    try std.testing.expectEqual(@as(usize, 30), fixture.verification_evidence.checker.self_test_case_count);
 
     for (fixture.files, fixture.verification_evidence.current_note_blobs, expected_paths) |file_entry, note_blob, expected_path| {
         try std.testing.expectEqualStrings(expected_path, file_entry.path);
@@ -165,10 +165,10 @@ test "phase12 libbpf reviewability gate keeps the helper-local determinism fixtu
         fixture.verification_evidence.checker.path,
     );
     try std.testing.expectEqualStrings(
-        "92759632d6db2a6419de41d561aa8c5ffba6dd05",
+        "277554397ab1a236c71f1dac9061ffe4cfbeaf67",
         fixture.verification_evidence.checker.blob_sha,
     );
-    try std.testing.expectEqual(@as(usize, 29), fixture.verification_evidence.checker.self_test_case_count);
+    try std.testing.expectEqual(@as(usize, 30), fixture.verification_evidence.checker.self_test_case_count);
     try std.testing.expectEqualStrings(expected_path, fixture.verification_evidence.current_helper_blob.path);
     try std.testing.expect(isHexSha(fixture.verification_evidence.current_helper_blob.blob_sha));
     try std.testing.expectEqualStrings(
