@@ -27,38 +27,11 @@ pub const CpuMaskView = struct {
     }
 
     pub fn isSubsetOf(self: CpuMaskView, other: CpuMaskView) bool {
-        std.debug.assert(self.bitmap.bit_len == other.bitmap.bit_len);
-
-        const active_len = self.bitmap.activeWordLen();
-        for (self.bitmap.words[0..active_len], other.bitmap.words[0..active_len], 0..) |self_word, other_word, index| {
-            var masked_self = self_word;
-            if (index == active_len - 1) {
-                const remainder = self.bitmap.bit_len % bitmap_view.word_bits;
-                if (remainder != 0) {
-                    const mask = (@as(usize, 1) << @intCast(remainder)) - 1;
-                    masked_self &= mask;
-                }
-            }
-            if ((masked_self & ~other_word) != 0) return false;
-        }
-        return true;
+        return self.bitmap.isSubsetOf(other.bitmap);
     }
 
     pub fn intersects(self: CpuMaskView, other: CpuMaskView) bool {
-        std.debug.assert(self.bitmap.bit_len == other.bitmap.bit_len);
-
-        const active_len = self.bitmap.activeWordLen();
-        for (self.bitmap.words[0..active_len], other.bitmap.words[0..active_len], 0..) |self_word, other_word, index| {
-            var overlap = self_word & other_word;
-            if (index == active_len - 1) {
-                const remainder = self.bitmap.bit_len % bitmap_view.word_bits;
-                if (remainder != 0) {
-                    overlap &= (@as(usize, 1) << @intCast(remainder)) - 1;
-                }
-            }
-            if (overlap != 0) return true;
-        }
-        return false;
+        return self.bitmap.intersects(other.bitmap);
     }
 };
 
