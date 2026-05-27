@@ -8,7 +8,7 @@ can validate locally before it falls back to network downloads.
 - target: `x86_64-linux`
 - channel: `0.17.0-dev.87+9b177a7d2`
 - file: `third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz`
-- sha256: `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`
+- sha256: `a3eae1cdb9643cf68e09e97574fb6780699e05148c270e52347faa293b80d858`
 - size: `58159088` bytes
 
 ## Validation
