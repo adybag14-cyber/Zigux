@@ -18,7 +18,7 @@ EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json"
 PARITY_MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 
 REQUIRED_SURVEY_SNIPPETS = [
-    "the exact posture below was re-read from current `master` on `2026-05-26`",
+    "the exact posture below was re-read from current `master` on `2026-05-27`",
     "`iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
     "`len15` at `reps = 4_000`, `len64` at `reps = 2_000`, and `len1024` at `reps = 250`",
     "`query_count = 16`",
@@ -440,8 +440,8 @@ def run_self_test() -> None:
         cases = [
             (
                 SURVEY_PATH,
+                "the exact posture below was re-read from current `master` on `2026-05-27`",
                 "the exact posture below was re-read from current `master` on `2026-05-26`",
-                "the exact posture below was re-read from current `master` on `2026-05-25`",
                 "phase6-perf-gate-survey.md",
             ),
             (
