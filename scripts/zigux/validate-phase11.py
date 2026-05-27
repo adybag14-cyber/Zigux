@@ -85,7 +85,7 @@ REQUIRED_PATHS = (
     "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
     "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig",
-    "zigux/tests/phase11_gpio_wdt_register-device-glue-review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
     "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
     "zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig",
@@ -611,7 +611,7 @@ def run_self_test() -> int:
                 build_stub_script(root / script_rel, self_test_exit_code=1, live_exit_code=0)
             else:
                 build_stub_script(root / script_rel, self_test_exit_code=0, live_exit_code=1)
-            expect_issue(f"live_failed:{spec.name}:exit={completed.returncode}")
+            expect_issue(f"live_failed:{spec_name}:exit=1")
             case_count += 1
 
         for build_file, spec_name in (
