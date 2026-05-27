@@ -34,6 +34,13 @@ REQUIRED_FILES = (
     WORKFLOW_REL,
 )
 
+SURVEY_REQUIRED_MARKERS = (
+    "Phase 2 roadmap still keeps `scripts/basic/fixdep.c` and `scripts/zigux/fixdep.zig` inside the selected dual-implementation tranche.",
+    "bounded thirteen-case external fixdep packet",
+    "Current `scripts/zigux/fixdep.zig` still carries a helper-local `PermissionDenied` open-error classification hole",
+    "Exact-path authenticated contents reads still return missing for `scripts/basic/fixdep.c`",
+)
+
 FIXDEP_REQUIRED_EXACT_LINES = (
     'test "config parsing trims _MODULE and deduplicates symbols" {',
     'test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {',
@@ -95,12 +102,12 @@ FIXDEP_DIFF_CONTRACT_EXACT_LINES = (
     'raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")',
     'if stdout_mode not in (None, "dev_full"):',
     'raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")',
-    'if seen_names != EXPECTED_CASE_ORDER:',
+    "if seen_names != EXPECTED_CASE_ORDER:",
     'raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")',
-    'if len(validated) != len(EXPECTED_CASES):',
+    "if len(validated) != len(EXPECTED_CASES):",
     'raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")',
     "missing_names = sorted(set(EXPECTED_CASES) - seen_name_set)",
-    'if missing_names:',
+    "if missing_names:",
     'raise ValueError(f"{CASES_PATH}:missing_name:{missing_names[0]}")',
     "validate_fixture_inventory()",
     "cases = validate_cases(load_cases(CASES_PATH))",
@@ -205,6 +212,7 @@ REQUIRED_MAKEFILE_LINES = (
 
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
+    + len(SURVEY_REQUIRED_MARKERS)
     + len(FIXDEP_REQUIRED_EXACT_LINES)
     + len(FIXDEP_REQUIRED_EXACT_LINES)
     + len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)
@@ -358,11 +366,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     fixdep_text = read_text(resolve(root, FIXDEP_REL))
     fixdep_diff_text = read_text(resolve(root, FIXDEP_DIFF_REL))
     validate_phase2_text = read_text(resolve(root, VALIDATE_PHASE2_REL))
+    survey_text = read_text(resolve(root, FIXDEP_SURVEY_REL))
     closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
     tests_readme_text = read_text(resolve(root, TESTS_README_REL))
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
     workflow_text = read_text(resolve(root, WORKFLOW_REL))
 
+    issues.extend(
+        collect_missing_markers(
+            survey_text,
+            SURVEY_REQUIRED_MARKERS,
+            "MISSING_SURVEY_MARKER",
+        )
+    )
     issues.extend(
         collect_required_exact_lines(
             fixdep_text,
@@ -630,7 +646,20 @@ def build_self_test_root(root: Path) -> None:
         resolve(root, FIXDEP_CASES_REL),
         json.dumps([{"name": name} for name in REQUIRED_FIXDEP_CASE_NAMES], indent=2) + "\n",
     )
-    write_text(resolve(root, FIXDEP_SURVEY_REL), "present\n")
+    write_text(
+        resolve(root, FIXDEP_SURVEY_REL),
+        "\n".join(
+            (
+                "# Phase 2 fixdep dual-implementation survey",
+                "",
+                "- The Phase 2 roadmap still keeps `scripts/basic/fixdep.c` and `scripts/zigux/fixdep.zig` inside the selected dual-implementation tranche.",
+                "- The live repo now carries the bounded thirteen-case external fixdep packet and keeps the survey anchored to that current parity scope.",
+                "- Current `scripts/zigux/fixdep.zig` still carries a helper-local `PermissionDenied` open-error classification hole that belongs to the adjacent behavior lane rather than this survey lane.",
+                "- Exact-path authenticated contents reads still return missing for `scripts/basic/fixdep.c`, so the survey still records the degraded C-anchor visibility gap.",
+            )
+        )
+        + "\n",
+    )
     write_text(
         resolve(root, PHASE2_CLOSURE_REL),
         "\n".join(
@@ -705,6 +734,13 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
+
+        for marker in SURVEY_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            path = resolve(root, FIXDEP_SURVEY_REL)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_SURVEY_MARKER", marker) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         path = resolve(root, FIXDEP_CASES_REL)
@@ -993,6 +1029,7 @@ def main() -> int:
 
     print("PHASE2_FIXDEP_GATE=pass")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_SURVEY_MARKER_COUNT={len(SURVEY_REQUIRED_MARKERS)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_LINE_COUNT={len(FIXDEP_DIFF_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_DIFF_CONTRACT_LINE_COUNT={len(FIXDEP_DIFF_CONTRACT_EXACT_LINES)}")
