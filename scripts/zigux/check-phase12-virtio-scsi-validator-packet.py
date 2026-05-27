@@ -203,8 +203,28 @@ def run_self_test() -> int:
             print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST=fail")
             return 1
 
+        noncontiguous_root = root / "noncontiguous"
+        write_fixture_root(
+            noncontiguous_root,
+            (
+                REQUIRED_VIRTIO_SCSI_CHECKERS[0],
+                "scripts/zigux/check-build-only-phase12-surface.py",
+                REQUIRED_VIRTIO_SCSI_CHECKERS[1],
+                REQUIRED_VIRTIO_SCSI_CHECKERS[2],
+                REQUIRED_VIRTIO_SCSI_CHECKERS[3],
+            ),
+        )
+        noncontiguous_errors = validate(noncontiguous_root)
+        if (
+            "validator checker tuple drift: virtio_scsi checker block is no longer contiguous"
+            not in noncontiguous_errors
+        ):
+            print("self-test did not catch checker contiguity drift", file=sys.stderr)
+            print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST=fail")
+            return 1
+
     print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE12_VIRTIO_SCSI_VALIDATOR_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
