@@ -19,6 +19,7 @@ STARTER_TEST_PATH = Path("zigux/tests/phase3_list_hlist_starter_packet.zig")
 STARTER_BUILD_PATH = Path("zigux/tests/phase3_list_hlist_starter_packet_build.zig")
 DUMP_PATH = Path("zigux/tests/phase3_list_hlist_dump.zig")
 DUMP_BUILD_PATH = Path("zigux/tests/phase3_list_hlist_dump_build.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
 C_HARNESS_PATH = Path("zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c")
 EXPECTED_PATH = Path("zigux/tests/fixtures/phase3_list_hlist/expected.json")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_list_hlist_manifest.json")
@@ -42,7 +43,10 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase3_list_hlist_dump.zig`",
         "`zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c`",
         "`scripts/zigux/check-phase3-list-hlist.py`",
+        "`zigux/Makefile`",
         "`zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig`",
+        "`make -C zigux phase3-list-hlist-starter-packet`",
+        "`make -C zigux phase3-list-hlist-dump`",
     ),
     LIST_HELPER_PATH: (
         "pub const ListView = struct {",
@@ -71,6 +75,12 @@ REQUIRED_MARKERS = {
         '.root_source_file = b.path("phase3_list_hlist_dump.zig"),',
         '"phase3-list-hlist-dump"',
     ),
+    MAKEFILE_PATH: (
+        "phase3-list-hlist-starter-packet:",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+        "phase3-list-hlist-dump:",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+    ),
     C_HARNESS_PATH: (
         'write_list_case("broken_backlink", &list_broken_head, &list_broken_first, &list_broken_second, false);',
         'write_hlist_case("broken_prev_link", &hlist_broken_head, &hlist_broken_first, &hlist_broken_second, false);',
@@ -88,6 +98,9 @@ REQUIRED_MARKERS = {
         '"status": "starter_and_dump_packet_present"',
         '"zigux/tests/phase3_list_hlist_dump.zig"',
         '"scripts/zigux/check-phase3-list-hlist.py"',
+        '"zigux/Makefile"',
+        '"make -C zigux phase3-list-hlist-starter-packet"',
+        '"make -C zigux phase3-list-hlist-dump"',
     ),
 }
 
@@ -104,15 +117,18 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/fixtures/phase3_list_hlist/expected.json",
     "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
     "scripts/zigux/check-phase3-list-hlist.py",
+    "zigux/Makefile",
 )
 
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "make -C zigux phase3-list-hlist-starter-packet",
     "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+    "make -C zigux phase3-list-hlist-dump",
 )
 
 SELF_TEST_CASES = (
@@ -123,6 +139,10 @@ SELF_TEST_CASES = (
     (
         DUMP_PATH,
         'try writeListCase(writer, "broken_backlink", &list_broken_head, &list_broken_first, &list_broken_second, false);',
+    ),
+    (
+        MAKEFILE_PATH,
+        "phase3-list-hlist-dump:",
     ),
     (
         C_HARNESS_PATH,
@@ -476,6 +496,7 @@ def main() -> int:
     print(f"validated {args.repo_root / C_HARNESS_PATH}")
     print(f"validated {args.repo_root / EXPECTED_PATH}")
     print(f"validated {args.repo_root / MANIFEST_PATH}")
+    print(f"validated {args.repo_root / MAKEFILE_PATH}")
     return 0
 
 
