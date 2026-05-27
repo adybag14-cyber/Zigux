@@ -15,6 +15,7 @@ LIST_VIEW_PATH = Path("zigux/helpers/list_view.zig")
 HLIST_VIEW_PATH = Path("zigux/helpers/hlist_view.zig")
 TEST_PATH = Path("zigux/tests/phase3_list_hlist_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_list_hlist_starter_packet_build.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_list_hlist_manifest.json")
 
 EXPECTED_MANIFEST_FIELDS = {
@@ -42,15 +43,18 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/fixtures/phase3_list_hlist/expected.json",
     "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
     "scripts/zigux/check-phase3-list-hlist.py",
+    "zigux/Makefile",
 )
 
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py",
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+    "make -C zigux phase3-list-hlist-starter-packet",
     "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
     "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+    "make -C zigux phase3-list-hlist-dump",
 )
 
 REQUIRED_REPO_REALITY_GAPS: tuple[str, ...] = ()
@@ -67,7 +71,10 @@ REQUIRED_MARKERS = {
         "`zigux/tests/fixtures/phase3_list_hlist_manifest.json`",
         "`scripts/zigux/check-phase3-list-hlist-starter-packet.py`",
         "`scripts/zigux/check-phase3-list-hlist.py`",
+        "`zigux/Makefile`",
         "python3 scripts/zigux/check-phase3-list-hlist-starter-packet.py --self-test",
+        "make -C zigux phase3-list-hlist-starter-packet",
+        "make -C zigux phase3-list-hlist-dump",
         "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
         "It does not claim exported ABI structs, intrusive container recovery helpers, list mutation semantics, or wider subsystem-specific list ownership behavior.",
     ),
@@ -100,6 +107,12 @@ REQUIRED_MARKERS = {
         '"phase3-list-hlist-starter-packet"',
         '"Run the shared Phase 3 list/hlist starter packet"',
     ),
+    MAKEFILE_PATH: (
+        "phase3-list-hlist-starter-packet:",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
+        "phase3-list-hlist-dump:",
+        "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+    ),
     MANIFEST_PATH: (
         '"slug": "phase3-list-hlist"',
         '"status": "starter_and_dump_packet_present"',
@@ -107,6 +120,9 @@ REQUIRED_MARKERS = {
         '"zigux/tests/phase3_list_hlist_dump.zig"',
         '"scripts/zigux/check-phase3-list-hlist-starter-packet.py"',
         '"scripts/zigux/check-phase3-list-hlist.py"',
+        '"zigux/Makefile"',
+        '"make -C zigux phase3-list-hlist-starter-packet"',
+        '"make -C zigux phase3-list-hlist-dump"',
     ),
 }
 
@@ -116,6 +132,7 @@ SELF_TEST_CASES = (
     (HLIST_VIEW_PATH, "pub fn tailNextIsNull(self: HListView) bool {"),
     (TEST_PATH, 'test "hlist starter packet reports the first broken prev-link witness" {'),
     (BUILD_PATH, '"phase3-list-hlist-starter-packet"'),
+    (MAKEFILE_PATH, "phase3-list-hlist-starter-packet:"),
     (MANIFEST_PATH, '"status": "starter_and_dump_packet_present"'),
 )
 
@@ -358,6 +375,7 @@ def main() -> int:
     print("PHASE3_LIST_HLIST_PACKET=pass")
     print(f"validated {args.repo_root / MANIFEST_PATH}")
     print(f"validated {args.repo_root / BUILD_PATH}")
+    print(f"validated {args.repo_root / MAKEFILE_PATH}")
     return 0
 
 
