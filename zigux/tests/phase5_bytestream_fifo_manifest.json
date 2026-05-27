@@ -11,6 +11,7 @@
     "the contributor packet still frames the landed sample as an approved Phase 5 in-memory FIFO idiom instead of a runtime-substrate claim",
     "the manifest-backed contributor packet still keeps runAnchorReplay(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), the exact queue-order replay, the non-destructive snapshotInto() cue, the lifecycle boundary, the reinit-after-exit reuse cue, the short-drain \\\"hel\\\" plus queued \\\"lo\\\" helper boundary, and the remaining-capacity evidence explicit instead of leaving those review cues implied",
     "the approved in-memory FIFO idiom still keeps queue-shape evidence explicit so previewInto(), snapshotInto(), runPreviewBoundaryReplay(), runWrappedPreviewReplay(), available(), occupancySummary(), visibleSpanSummary(), writableSpanSummary(), and usesWrappedStorageWindow() stay aligned across the same cold, full, wrapped-window, and rollover boundaries that reviewers expect from a bounded ring sample",
+    "the shipped companion still keeps the three named queue-window checkpoints explicit through checkpointName(), visibleWindowForCheckpoint(), writableWindowForCheckpoint(), and referencePattern() instead of leaving later focused replays coupled only to positional array indexes",
     "the shared docs-root, sample-root, scripts-root, and tests-root contributor packet still points at this exact bytestream FIFO slice through the survey note, sample file, directly readable focused replay packet, directly readable manifest companion, directly readable survey gate, and the directly readable phase5_build.zig route instead of collapsing the review surface back to the sample file and survey note alone",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample"
@@ -80,6 +81,11 @@
       "id": "window-contract-writable-shapes",
       "kind": "queue_shape",
       "expected": "the shipped companion samples/zigux/bytestream_fifo_window_contract.zig keeps referencePattern().writable_windows fixed at preview_after_skip_and_requeue { tail_index=17, writable_count=22, first_window_len=15, second_window_len=7, wraps=true }, wrapped_full_after_refill { tail_index=4, writable_count=0, first_window_len=0, second_window_len=0, wraps=false }, and partial_drain_after_wrap_refill { tail_index=1, writable_count=8, first_window_len=8, second_window_len=0, wraps=false }, while preview_is_non_destructive, wrapped_preview_is_non_destructive, rollover_refill_required_for_wrap, visible_windows_never_exceed_two, and writable_windows_never_exceed_two all stay true"
+    },
+    {
+      "id": "window-contract-checkpoint-lookups",
+      "kind": "queue_shape",
+      "expected": "the shipped companion now keeps checkpointName(), visibleWindowForCheckpoint(), and writableWindowForCheckpoint() aligned with the same preview_after_skip_and_requeue, wrapped_full_after_refill, and partial_drain_after_wrap_refill records so later focused replays can name the bounded queue-window checkpoints directly instead of relying on positional array slots alone"
     },
     {
       "id": "non-destructive-snapshot",
