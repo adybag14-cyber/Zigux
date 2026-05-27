@@ -85,6 +85,31 @@ pub const OwnershipReplaySummary = struct {
     replay_duration_ns: i64,
 };
 
+pub const ContributorRoutePacket = struct {
+    sample_selfcheck_route: []const u8,
+    focused_replay_route: []const u8,
+    survey_guard_route: []const u8,
+    instance_budget_companion_route: []const u8,
+    instance_budget_focused_route: []const u8,
+    probe_spec_companion_route: []const u8,
+    probe_spec_focused_route: []const u8,
+    shared_build_route: []const u8,
+};
+
+pub const sample_selfcheck_route = "zig test samples/zigux/kretprobe_example.zig";
+pub const focused_replay_route =
+    "zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig";
+pub const survey_guard_route = "zig test zigux/tests/phase5_kretprobe_example_survey.zig";
+pub const instance_budget_companion_route =
+    "zig test samples/zigux/kretprobe_example_instance_budget_contract.zig";
+pub const instance_budget_focused_route =
+    "zig test --dep kretprobe_example_instance_budget_contract -Mroot=zigux/tests/phase5_kretprobe_example_instance_budget_contract.zig -Mkretprobe_example_instance_budget_contract=samples/zigux/kretprobe_example_instance_budget_contract.zig";
+pub const probe_spec_companion_route =
+    "zig test samples/zigux/kretprobe_example_probe_spec.zig";
+pub const probe_spec_focused_route =
+    "zig test --dep kretprobe_example_probe_spec -Mroot=zigux/tests/phase5_kretprobe_example_probe_spec.zig -Mkretprobe_example_probe_spec=samples/zigux/kretprobe_example_probe_spec.zig";
+pub const shared_build_route = "zig build test --build-file zigux/tests/phase5_build.zig";
+
 pub const KretprobeExampleSample = struct {
     const Self = @This();
     const InstanceData = struct {
@@ -138,6 +163,19 @@ pub const KretprobeExampleSample = struct {
         return .{
             .focus = sample_review_focus[0..],
             .non_goals = sample_review_non_goals[0..],
+        };
+    }
+
+    pub fn contributorRoutePacket() ContributorRoutePacket {
+        return .{
+            .sample_selfcheck_route = sample_selfcheck_route,
+            .focused_replay_route = focused_replay_route,
+            .survey_guard_route = survey_guard_route,
+            .instance_budget_companion_route = instance_budget_companion_route,
+            .instance_budget_focused_route = instance_budget_focused_route,
+            .probe_spec_companion_route = probe_spec_companion_route,
+            .probe_spec_focused_route = probe_spec_focused_route,
+            .shared_build_route = shared_build_route,
         };
     }
 
@@ -371,6 +409,19 @@ test "kretprobe sample exports the live instance-budget contract" {
     try std.testing.expect(contract.reports_return_value_and_duration);
     try std.testing.expect(contract.skips_kernel_threads_without_mm);
     try std.testing.expect(contract.nmissed_suggests_increasing_maxactive);
+}
+
+test "kretprobe sample keeps contributor review routes explicit" {
+    const routes = KretprobeExampleSample.contributorRoutePacket();
+
+    try std.testing.expectEqualStrings(sample_selfcheck_route, routes.sample_selfcheck_route);
+    try std.testing.expectEqualStrings(focused_replay_route, routes.focused_replay_route);
+    try std.testing.expectEqualStrings(survey_guard_route, routes.survey_guard_route);
+    try std.testing.expectEqualStrings(instance_budget_companion_route, routes.instance_budget_companion_route);
+    try std.testing.expectEqualStrings(instance_budget_focused_route, routes.instance_budget_focused_route);
+    try std.testing.expectEqualStrings(probe_spec_companion_route, routes.probe_spec_companion_route);
+    try std.testing.expectEqualStrings(probe_spec_focused_route, routes.probe_spec_focused_route);
+    try std.testing.expectEqualStrings(shared_build_route, routes.shared_build_route);
 }
 
 test "kretprobe sample keeps maxactive tuning pre-init and reviewable" {
