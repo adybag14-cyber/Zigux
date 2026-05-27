@@ -263,6 +263,7 @@ const CallbackState = struct {
     result: i32 = 0,
 
     fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
+        // Keep callback output bounded and NUL-terminated even when the input line was oversized.
         var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
         @memcpy(name_buffer[0..symbol.name.len], symbol.name);
         name_buffer[symbol.name.len] = 0;
@@ -328,6 +329,86 @@ test "parseLine truncates oversized names without keeping a parser-local error s
     const parsed = parseLine(oversized_line) orelse unreachable;
     try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), parsed.name.len);
     try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.name);
+}
+
+test "callback file parsing keeps oversized symbol names bounded and NUL-terminated" {
+    const CallbackStateForOversizedName = struct {
+        names: std.ArrayList([]u8),
+        symbol_types: std.ArrayList(u8),
+        starts: std.ArrayList(u64),
+        saw_terminator: bool = false,
+
+        fn init() @This() {
+            return .{
+                .names = std.ArrayList([]u8).empty,
+                .symbol_types = std.ArrayList(u8).empty,
+                .starts = std.ArrayList(u64).empty,
+            };
+        }
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            for (self.names.items) |name| allocator.free(name);
+            self.names.deinit(allocator);
+            self.symbol_types.deinit(allocator);
+            self.starts.deinit(allocator);
+            self.* = undefined;
+        }
+
+        fn collect(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.saw_terminator = name[name.len] == 0;
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            self.symbol_types.append(std.testing.allocator, symbol_type) catch return -97;
+            self.starts.append(std.testing.allocator, start) catch return -96;
+            return 0;
+        }
+    };
+
+    const too_long_name = "a" ** (KSYM_NAME_LEN + 73);
+    const contents = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "1 T {s}\r\n2 t done\r\n",
+        .{too_long_name},
+    );
+    defer std.testing.allocator.free(contents);
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [256]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(contents);
+        try writer.interface.flush();
+    }
+
+    var callback_state = CallbackStateForOversizedName.init();
+    defer callback_state.deinit(std.testing.allocator);
+
+    var scratch_buffer: [17]u8 = undefined;
+    const file = try temp_dir.dir.openFile(io, "kallsyms.map", .{});
+    defer file.close(io);
+    const result = try kallsymsParseFile(
+        std.testing.allocator,
+        io,
+        file,
+        &scratch_buffer,
+        &callback_state,
+        CallbackStateForOversizedName.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), result);
+    try std.testing.expect(callback_state.saw_terminator);
+    try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), callback_state.names.items[0].len);
+    try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], callback_state.names.items[0]);
+    try std.testing.expectEqualStrings("done", callback_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'T'), callback_state.symbol_types.items[0]);
+    try std.testing.expectEqual(@as(u64, 1), callback_state.starts.items[0]);
+    try std.testing.expectEqual(@as(u64, 2), callback_state.starts.items[1]);
 }
 
 test "chunked parsing preserves split records and truncates oversized names" {
