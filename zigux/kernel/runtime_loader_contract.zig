@@ -45,6 +45,69 @@ pub const RequestState = enum(u8) {
     released_without_substrate,
 };
 
+pub const AllocatorInitOwner = enum(u8) {
+    caller_prepared,
+    helper_owned,
+    helper_owned_with_reset,
+};
+
+pub const AllocatorRuntimeInitPolicy = struct {
+    init_owner: AllocatorInitOwner,
+    requires_explicit_caller: bool,
+    permits_global_fallback: bool,
+    initializes_owned_state: bool,
+    requires_reset_on_init: bool,
+};
+
+pub fn allocatorRuntimeInitPolicyFor(
+    handoff: AllocatorHandoff,
+) AllocatorRuntimeInitPolicy {
+    return switch (handoff) {
+        .caller_provided => .{
+            .init_owner = .caller_prepared,
+            .requires_explicit_caller = true,
+            .permits_global_fallback = false,
+            .initializes_owned_state = false,
+            .requires_reset_on_init = false,
+        },
+        .arena => .{
+            .init_owner = .helper_owned_with_reset,
+            .requires_explicit_caller = false,
+            .permits_global_fallback = true,
+            .initializes_owned_state = true,
+            .requires_reset_on_init = true,
+        },
+        .kernel_heap => .{
+            .init_owner = .helper_owned,
+            .requires_explicit_caller = false,
+            .permits_global_fallback = true,
+            .initializes_owned_state = true,
+            .requires_reset_on_init = false,
+        },
+    };
+}
+
+pub fn keepsAllocatorRuntimeInitPolicyExplicit(
+    actual: AllocatorRuntimeInitPolicy,
+    expected: AllocatorRuntimeInitPolicy,
+) bool {
+    return actual.init_owner == expected.init_owner and
+        actual.requires_explicit_caller == expected.requires_explicit_caller and
+        actual.permits_global_fallback == expected.permits_global_fallback and
+        actual.initializes_owned_state == expected.initializes_owned_state and
+        actual.requires_reset_on_init == expected.requires_reset_on_init;
+}
+
+pub fn keepsAllocatorRuntimeInitPolicyConsistent(
+    handoff: AllocatorHandoff,
+    expected: AllocatorRuntimeInitPolicy,
+) bool {
+    return keepsAllocatorRuntimeInitPolicyExplicit(
+        allocatorRuntimeInitPolicyFor(handoff),
+        expected,
+    );
+}
+
 pub fn keepsLoadPlanExplicit(actual: LoadPlan, expected: LoadPlan) bool {
     return std.mem.eql(u8, actual.module_name, expected.module_name) and
         std.mem.eql(u8, actual.anchor, expected.anchor) and
@@ -139,6 +202,83 @@ test "InitFlow.readyForRuntimeLoad keeps the staged handoff rules explicit" {
         .exit_runs = 1,
     };
     try std.testing.expect(!selftest_exit_drift.readyForRuntimeLoad());
+}
+
+test "allocatorRuntimeInitPolicyFor keeps allocator ownership and reset semantics explicit" {
+    const caller_policy = AllocatorRuntimeInitPolicy{
+        .init_owner = .caller_prepared,
+        .requires_explicit_caller = true,
+        .permits_global_fallback = false,
+        .initializes_owned_state = false,
+        .requires_reset_on_init = false,
+    };
+    const arena_policy = AllocatorRuntimeInitPolicy{
+        .init_owner = .helper_owned_with_reset,
+        .requires_explicit_caller = false,
+        .permits_global_fallback = true,
+        .initializes_owned_state = true,
+        .requires_reset_on_init = true,
+    };
+    const heap_policy = AllocatorRuntimeInitPolicy{
+        .init_owner = .helper_owned,
+        .requires_explicit_caller = false,
+        .permits_global_fallback = true,
+        .initializes_owned_state = true,
+        .requires_reset_on_init = false,
+    };
+
+    try std.testing.expect(keepsAllocatorRuntimeInitPolicyExplicit(
+        allocatorRuntimeInitPolicyFor(.caller_provided),
+        caller_policy,
+    ));
+    try std.testing.expect(keepsAllocatorRuntimeInitPolicyConsistent(
+        .caller_provided,
+        caller_policy,
+    ));
+
+    try std.testing.expect(keepsAllocatorRuntimeInitPolicyExplicit(
+        allocatorRuntimeInitPolicyFor(.arena),
+        arena_policy,
+    ));
+    try std.testing.expect(keepsAllocatorRuntimeInitPolicyConsistent(
+        .arena,
+        arena_policy,
+    ));
+
+    try std.testing.expect(keepsAllocatorRuntimeInitPolicyExplicit(
+        allocatorRuntimeInitPolicyFor(.kernel_heap),
+        heap_policy,
+    ));
+    try std.testing.expect(keepsAllocatorRuntimeInitPolicyConsistent(
+        .kernel_heap,
+        heap_policy,
+    ));
+}
+
+test "keepsAllocatorRuntimeInitPolicyExplicit compares every derived runtime-init field" {
+    const stable = allocatorRuntimeInitPolicyFor(.arena);
+
+    try std.testing.expect(keepsAllocatorRuntimeInitPolicyExplicit(stable, stable));
+
+    var drifted = stable;
+    drifted.init_owner = .helper_owned;
+    try std.testing.expect(!keepsAllocatorRuntimeInitPolicyExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.requires_explicit_caller = true;
+    try std.testing.expect(!keepsAllocatorRuntimeInitPolicyExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.permits_global_fallback = false;
+    try std.testing.expect(!keepsAllocatorRuntimeInitPolicyExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.initializes_owned_state = false;
+    try std.testing.expect(!keepsAllocatorRuntimeInitPolicyExplicit(drifted, stable));
+
+    drifted = stable;
+    drifted.requires_reset_on_init = false;
+    try std.testing.expect(!keepsAllocatorRuntimeInitPolicyExplicit(drifted, stable));
 }
 
 test "keepsLoadPlanExplicit compares every shared handoff field" {
