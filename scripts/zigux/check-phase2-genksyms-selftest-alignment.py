@@ -102,6 +102,11 @@ EXPECTED_PROCESS_OUTPUT_PAYLOADS = {
         "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
         "exit_code": 1,
     },
+    "abbreviated_unexpected_long_help_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option '--help' doesn't allow an argument\n" + HELP_USAGE,
+        "exit_code": 1,
+    },
 }
 
 
@@ -746,7 +751,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         bridge_path = root / BRIDGE_CHECKER.relative_to(ROOT)
-        bridge_path.write_text(bridge_path.read_text(encoding="utf-8").replace("EXPECTED_PROCESS_OUTPUT_PACKET = ('abbreviated_version_expected.json', 'ambiguous_long_option_expected.json', 'invalid_option_expected.json', 'missing_long_dump_types_argument_expected.json', 'missing_long_reference_argument_expected.json', 'missing_reference_argument_expected.json', 'too_many_reference_files_expected.json', 'unsupported_long_option_expected.json', 'unexpected_long_help_argument_expected.json')", "EXPECTED_PROCESS_OUTPUT_PACKET = ('invalid_option_expected.json',)", 1), encoding="utf-8")
+        bridge_path.write_text(bridge_path.read_text(encoding="utf-8").replace("EXPECTED_PROCESS_OUTPUT_PACKET = ('abbreviated_version_expected.json', 'ambiguous_long_option_expected.json', 'invalid_option_expected.json', 'missing_long_dump_types_argument_expected.json', 'missing_long_reference_argument_expected.json', 'missing_reference_argument_expected.json', 'too_many_reference_files_expected.json', 'unsupported_long_option_expected.json', 'unexpected_long_help_argument_expected.json', 'abbreviated_unexpected_long_help_argument_expected.json')", "EXPECTED_PROCESS_OUTPUT_PACKET = ('invalid_option_expected.json',)", 1), encoding="utf-8")
         assert ("PROCESS_OUTPUT_PACKET_ROSTER_MISMATCH", MANIFEST_FIXTURE.name) in collect_issues(root)
         checks_run += 1
 
