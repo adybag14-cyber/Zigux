@@ -29,6 +29,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
     "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-ownership-matrix.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "scripts/zigux/check-phase4-perf-threshold-matrix.py",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
@@ -247,6 +248,14 @@ REQUIRED_COMMAND_OUTPUT_MARKERS = {
     ),
     "phase4-gate-evidence-self-test": (("phase4 gate evidence self-test", "phase4 gate evidence self-test: PASS (45 cases)"),),
     "phase4-gate-evidence": (("phase4 gate evidence check passed", "phase4 gate evidence check passed"),),
+    "phase4-ownership-matrix-self-test": (
+        ("PHASE4_OWNERSHIP_MATRIX_SELF_TEST", "PHASE4_OWNERSHIP_MATRIX_SELF_TEST=pass"),
+        ("PHASE4_OWNERSHIP_MATRIX_SELF_TEST_CASES", "PHASE4_OWNERSHIP_MATRIX_SELF_TEST_CASES=15"),
+    ),
+    "phase4-ownership-matrix": (
+        ("PHASE4_OWNERSHIP_MATRIX", "PHASE4_OWNERSHIP_MATRIX=pass"),
+        ("PHASE4_OWNERSHIP_MATRIX_ROW_COUNT", "PHASE4_OWNERSHIP_MATRIX_ROW_COUNT=2"),
+    ),
     "phase4-perf-baseline-packet-self-test": (
         ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass"),
         ("PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES", "PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES=39"),
@@ -323,6 +332,8 @@ CHECKS = (
     CheckSpec("phase4-artifact-diff-validator-replays", ("python", "scripts/zigux/check-phase4-artifact-diff-validator-replays.py")),
     CheckSpec("phase4-gate-evidence-self-test", ("python", "scripts/zigux/check-phase4-gate-evidence.py", "--self-test")),
     CheckSpec("phase4-gate-evidence", ("python", "scripts/zigux/check-phase4-gate-evidence.py")),
+    CheckSpec("phase4-ownership-matrix-self-test", ("python", "scripts/zigux/check-phase4-ownership-matrix.py", "--self-test")),
+    CheckSpec("phase4-ownership-matrix", ("python", "scripts/zigux/check-phase4-ownership-matrix.py")),
     CheckSpec("phase4-perf-baseline-packet-self-test", ("python", "scripts/zigux/check-phase4-perf-baseline-packet.py", "--self-test")),
     CheckSpec("phase4-perf-baseline-packet", ("python", "scripts/zigux/check-phase4-perf-baseline-packet.py")),
     CheckSpec("phase4-perf-threshold-matrix-self-test", ("python", "scripts/zigux/check-phase4-perf-threshold-matrix.py", "--self-test")),
@@ -580,6 +591,17 @@ def configure_phase4_output_stubs(root: Path) -> None:
         root / "scripts/zigux/check-phase4-gate-evidence.py",
         self_test_stdout_lines=("phase4 gate evidence self-test: PASS (45 cases)",),
         live_stdout_lines=("phase4 gate evidence check passed",),
+    )
+    build_stub_script(
+        root / "scripts/zigux/check-phase4-ownership-matrix.py",
+        self_test_stdout_lines=(
+            "PHASE4_OWNERSHIP_MATRIX_SELF_TEST=pass",
+            "PHASE4_OWNERSHIP_MATRIX_SELF_TEST_CASES=15",
+        ),
+        live_stdout_lines=(
+            "PHASE4_OWNERSHIP_MATRIX=pass",
+            "PHASE4_OWNERSHIP_MATRIX_ROW_COUNT=2",
+        ),
     )
     build_stub_script(
         root / "scripts/zigux/check-phase4-perf-baseline-packet.py",
