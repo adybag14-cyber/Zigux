@@ -201,6 +201,7 @@ const Processor = struct {
         switch (err) {
             error.FileNotFound,
             error.AccessDenied,
+            error.PermissionDenied,
             error.IsDir,
             error.NotDir,
             error.NameTooLong,
@@ -943,6 +944,15 @@ test "open dependency file classification keeps input-output failures on the C-s
     try std.testing.expect(try processor.captureOpenDependencyFileError("broken.d", error.InputOutput));
     try std.testing.expectEqualStrings("broken.d", processor.last_file_error_path);
     try std.testing.expectEqual(error.InputOutput, processor.last_file_error.?);
+}
+
+test "open dependency file classification keeps PermissionDenied on the C-style path" {
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    try std.testing.expect(try processor.captureOpenDependencyFileError("broken.d", error.PermissionDenied));
+    try std.testing.expectEqualStrings("broken.d", processor.last_file_error_path);
+    try std.testing.expectEqual(error.PermissionDenied, processor.last_file_error.?);
 }
 
 test "open dependency file classification preserves unrelated open failures" {
