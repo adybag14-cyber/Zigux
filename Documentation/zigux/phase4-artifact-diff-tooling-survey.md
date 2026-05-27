@@ -22,10 +22,12 @@ Current `master` now keeps the directly readable helper, contract checker, deter
 
 The broader `Documentation/zigux/artifact-diff.md` note is directly readable on current `master` again and now matches the current 23-case helper packet, the current 25-base-case / 30-case contract packet, and the current 13-case determinism self-test packet.
 
+That same direct packet now needs to keep the helper's exact output-contract lines pinned too, so the roadmap-backed host-side artifact-diff check stays machine-checked at the result-surface level instead of only at the case-count level.
+
 The directly readable Phase 4 packet therefore stays reviewable in a fully aligned state:
   * `scripts/zigux/artifact_diff.py` is directly readable on current `master`, so the bounded helper-side `text`, `json`, and `bytes` comparison entrypoints, the legacy `sha256 -> bytes` mode alias, and the shipped `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23` packet are current-head evidence rather than historical provenance.
   * `scripts/zigux/check-artifact-diff-contract.py` is directly readable again on current `master` and now exact-publishes the matching helper replay plus the 25-base-case / 30-case bytes-aware contract packet, including `cli_missing_mode_value` in the base catalog.
-  * `scripts/zigux/check-phase4-artifact-diff-determinism.py` now exact-requires the broader `Documentation/zigux/artifact-diff.md` note to keep the refreshed helper, contract, and determinism anchor lines whenever that file is present in the checked tree.
+  * `scripts/zigux/check-phase4-artifact-diff-determinism.py` now exact-requires the broader `Documentation/zigux/artifact-diff.md` note to keep the refreshed helper, contract, determinism, and helper output-contract anchor lines whenever that file is present in the checked tree.
   * `scripts/zigux/validate-phase4.py` is directly readable again on current `master` and keeps the current artifact-diff helper, contract, determinism, and validator-replay checks explicit inside the shared Phase 4 validator packet.
   * `.github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps for `python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-artifact-diff-contract.py --self-test`, `python3 scripts/zigux/check-artifact-diff-contract.py`, `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`, `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`, `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`, and `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py` rather than routing the current artifact-diff packet only through one shared `make -C zigux phase4-validate` step.
   * `zigux/Makefile` also keeps the narrower `make -C zigux phase4-artifact-diff-contract` route explicit for the helper self-test plus contract self-test and live contract replay packet instead of leaving that replay path discoverable only through workflow step names.
@@ -40,7 +42,7 @@ Current exact helper-side checks verified from the live `scripts/zigux/artifact_
   * `PHASE4_ARTIFACT_DIFF_CURRENT_SUCCESS_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_BYTES_PASS_DETAIL=SHA256=<digest>`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_BYTES_FAIL_DETAIL=EXPECTED_SHA256=<digest>,ACTUAL_SHA256=<digest>`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_ERROR_LINES=EXPECTED_JSON_ERROR_or_ACTUAL_JSON_ERROR_or_EXPECTED_EXISTS_AND_ACTUAL_EXISTS`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_ERROR_LINES=EXPECTED_JSON_ERROR_or_ACTUAL_JSON_ERROR_or_EXPECTED_UTF8_ERROR_or_ACTUAL_UTF8_ERROR_or_EXPECTED_EXISTS_plus_ACTUAL_EXISTS`
 ## Current Exact Contract Checks
 
 The directly readable `scripts/zigux/check-artifact-diff-contract.py` body now exact-publishes:
