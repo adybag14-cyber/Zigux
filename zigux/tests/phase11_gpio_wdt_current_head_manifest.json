@@ -1,0 +1,106 @@
+{
+  "lane_key": "P11-L04",
+  "phase": "Phase 11",
+  "anchor": "drivers/watchdog/gpio_wdt.c",
+  "packet_kind": "current_head_driver_docs_and_proof_packet",
+  "current_head_surfaces": [
+    "drivers/watchdog/gpio_wdt.zig",
+    "drivers/watchdog/gpio_wdt_verify.zig",
+    "zigux/tests/phase11_gpio_wdt_verify_helper_build.zig",
+    "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
+    "zigux/tests/phase11_gpio_wdt_preflight_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig",
+    "zigux/tests/phase11_gpio_wdt_register_device_glue_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
+    "zigux/tests/phase11_gpio_wdt_nowayout_policy_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig",
+    "zigux/tests/phase11_gpio_wdt_remove_handoff_review_build.zig",
+    "zigux/tests/phase11_gpio_wdt_current_head_manifest.json",
+    "zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig",
+    "zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig",
+    "Documentation/zigux/phase11-gpio-wdt-survey.md",
+    "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
+    "Documentation/zigux/phase11-gpio-wdt-teardown-note.md",
+    "Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md"
+  ],
+  "gaps": [
+    {
+      "id": "phase11-gpio-wdt-driver-starter",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
+      "why_now": "The bounded gpio watchdog starter keeps descriptor choice, timeout-property ordering, drvdata ownership, reboot glue, registration intent, teardown, and remove handoff reviewable without claiming live platform or watchdog-core execution."
+    },
+    {
+      "id": "phase11-gpio-wdt-verify-helper",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/gpio_wdt_verify.zig",
+      "why_now": "The driver-backed verify helper keeps registration-plan, register-device failure, reboot-glue, teardown, and remove-handoff summaries directly replayable beside the direct proofs."
+    },
+    {
+      "id": "phase11-gpio-wdt-preflight-proof",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_preflight_review.zig",
+      "why_now": "The focused preflight review keeps descriptor, timeout-property, and drvdata ordering explicit before any live registration or shutdown claim."
+    },
+    {
+      "id": "phase11-gpio-wdt-register-device-glue-proof",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_register_device_glue_review.zig",
+      "why_now": "The direct glue proof keeps the first bounded register-device request, failure summary, and reboot-glue boundary explicit without claiming live watchdog-core registration."
+    },
+    {
+      "id": "phase11-gpio-wdt-nowayout-proof",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_nowayout_policy_review.zig",
+      "why_now": "The direct nowayout proof keeps the bounded stopped, blocked-by-nowayout, and kept-running outcomes explicit before any live teardown or reboot-backed execution claim."
+    },
+    {
+      "id": "phase11-gpio-wdt-remove-handoff-proof",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_remove_handoff_review.zig",
+      "why_now": "The direct remove-handoff proof keeps platform cleanup ordering and the bounded remove summary explicit without claiming live cleanup callbacks or unregister side effects."
+    },
+    {
+      "id": "phase11-gpio-wdt-current-head-manifest",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_current_head_manifest.json",
+      "why_now": "The current-head manifest makes the returned gpio watchdog packet machine-readable without overclaiming that the older wider manifest or shared replay route has returned on current master."
+    },
+    {
+      "id": "phase11-gpio-wdt-current-head-manifest-survey",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig",
+      "why_now": "The focused survey route fail-closes on the current-head manifest, survey note, and validation matrix so the recovered packet cannot drift silently."
+    },
+    {
+      "id": "phase11-gpio-wdt-shared-build-route",
+      "status": "shared_gap_current_head",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_build.zig",
+      "why_now": "The older shared Phase 11 build route still does not read back as part of the returned gpio watchdog packet, so it remains a current-head shared gap."
+    },
+    {
+      "id": "phase11-gpio-wdt-older-manifest-return",
+      "status": "shared_gap_current_head",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_gpio_wdt_manifest.json",
+      "why_now": "The older wider gpio watchdog manifest path still has not returned on current master, so the new current-head manifest must stay explicitly narrower."
+    },
+    {
+      "id": "phase11-gpio-wdt-live-platform-validation",
+      "status": "ready_next",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
+      "why_now": "With the current-head manifest packet recovered, the next real gap remains live platform-backed registration, cleanup, and hardware-backed validation rather than another broad reminder rewrite."
+    }
+  ]
+}
