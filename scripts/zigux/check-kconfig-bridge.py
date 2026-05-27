@@ -76,6 +76,7 @@ REQUIRED_CONFDATA_CASES = [
     "last_state_transitions",
     "duplicate_assignments",
     "duplicate_malformed_quoted_assignment",
+    "explicit_empty_assignments",
 ]
 
 REQUIRED_CONFDATA_INPUT_PACKET = [
@@ -94,6 +95,7 @@ REQUIRED_CONFDATA_INPUT_PACKET = [
     "last_state_transitions.config",
     "duplicate_assignments.config",
     "duplicate_malformed_quoted_assignment.config",
+    "explicit_empty_assignments.config",
 ]
 
 REQUIRED_CONFDATA_EXPECTED_PACKET = [
@@ -112,6 +114,7 @@ REQUIRED_CONFDATA_EXPECTED_PACKET = [
     "last_state_transitions_expected.json",
     "duplicate_assignments_expected.json",
     "duplicate_malformed_quoted_assignment_expected.json",
+    "explicit_empty_assignments_expected.json",
 ]
 
 REQUIRED_CONFDATA_HELPER_ANCHORS = [
@@ -171,8 +174,8 @@ SAMPLE_CONF_CASES = [
     {"name": "oldaskconfig", "mode": "oldaskconfig", "kconfig": "Kconfig", "config": "ask/.config", "arch": "x86_64", "expected": "oldaskconfig_expected.json"},
     {"name": "syncconfig", "mode": "syncconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "riscv64", "nosilentupdate": "1", "expected": "syncconfig_expected.json"},
     {"name": "oldconfig", "mode": "oldconfig", "kconfig": "Kconfig", "config": "refresh/.config", "arch": "x86", "expected": "oldconfig_expected.json"},
-    {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "expected": "allnoconfig_expected.json"},
-    {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
+    {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "allconfig": "mini-all.config", "expected": "allnoconfig_expected.json"},
+    {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "allconfig": "", "expected": "allyesconfig_expected.json"},
     {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
     {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "allconfig": "mini-all.config", "expected": "alldefconfig_expected.json"},
     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
@@ -202,6 +205,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
     {"name": "duplicate_assignments", "input": "duplicate_assignments.config", "expected": "duplicate_assignments_expected.json"},
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
+    {"name": "explicit_empty_assignments", "input": "explicit_empty_assignments.config", "expected": "explicit_empty_assignments_expected.json"},
 ]
 
 EXPECTED_SELF_TEST_CASE_COUNT = 10
