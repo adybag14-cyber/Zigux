@@ -166,7 +166,7 @@ LONG_OPTION_SPECS = (
     ("preserve", "preserve", False),
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def read_text(root: Path, rel: str) -> str:
@@ -395,6 +395,16 @@ def expected_process_output_payloads() -> dict[str, dict[str, object]]:
     }
 
 
+def expected_fixture_packet() -> tuple[str, ...]:
+    return (
+        Path(HELP_FIXTURE).name,
+        Path(CASES_FIXTURE).name,
+        Path(MANIFEST_FIXTURE).name,
+        *[str(case["expected_file"]) for case in CASE_FIXTURES],
+        *EXPECTED_PROCESS_OUTPUT_PACKET,
+    )
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     required_paths = [
@@ -498,6 +508,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             continue
         if payload != expected_payload:
             issues.append(("PROCESS_OUTPUT_FIXTURE_MISMATCH", rel))
+
+    fixture_root = root / "zigux/tests/fixtures/genksyms_bridge"
+    actual_fixture_packet = sorted(
+        path.name
+        for path in fixture_root.iterdir()
+        if path.is_file()
+    )
+    expected_packet = sorted(expected_fixture_packet())
+    if actual_fixture_packet != expected_packet:
+        issues.append(("FIXTURE_PACKET_MISMATCH", "zigux/tests/fixtures/genksyms_bridge"))
 
     return issues
 
@@ -649,6 +669,16 @@ def run_self_test() -> int:
             "INVALID_PROCESS_OUTPUT_FIXTURE_JSON",
             "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
         ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        (root / "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json").unlink()
+        assert ("MISSING_REQUIRED_PATH", "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        write_text(root, "zigux/tests/fixtures/genksyms_bridge/stale_expected.json", "{}\n")
+        assert ("FIXTURE_PACKET_MISMATCH", "zigux/tests/fixtures/genksyms_bridge") in collect_issues(root)
         checks += 1
 
         build_self_test_root(root)
