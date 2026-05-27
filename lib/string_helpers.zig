@@ -321,8 +321,13 @@ pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {
     return sysfsStreq(lhs, rhs);
 }
 
-pub fn matchString(haystack: []const ?[]const u8, needle: []const u8) ?usize {
-    for (haystack, 0..) |entry, idx| {
+fn matchStringLimit(haystack: []const ?[]const u8, count: usize) usize {
+    return @min(count, haystack.len);
+}
+
+pub fn matchStringBounded(haystack: []const ?[]const u8, count: usize, needle: []const u8) ?usize {
+    const limit = matchStringLimit(haystack, count);
+    for (haystack[0..limit], 0..) |entry, idx| {
         const value = entry orelse break;
         if (std.mem.eql(u8, value[0..cStringLen(value)], needle[0..cStringLen(needle)])) {
             return idx;
@@ -331,16 +336,33 @@ pub fn matchString(haystack: []const ?[]const u8, needle: []const u8) ?usize {
     return null;
 }
 
+pub fn match_string_bounded(haystack: []const ?[]const u8, count: usize, needle: []const u8) ?usize {
+    return matchStringBounded(haystack, count, needle);
+}
+
+pub fn matchString(haystack: []const ?[]const u8, needle: []const u8) ?usize {
+    return matchStringBounded(haystack, haystack.len, needle);
+}
+
 pub fn match_string(haystack: []const ?[]const u8, needle: []const u8) ?usize {
     return matchString(haystack, needle);
 }
 
-pub fn sysfsMatchString(haystack: []const ?[]const u8, needle: []const u8) ?usize {
-    for (haystack, 0..) |entry, idx| {
+pub fn sysfsMatchStringBounded(haystack: []const ?[]const u8, count: usize, needle: []const u8) ?usize {
+    const limit = matchStringLimit(haystack, count);
+    for (haystack[0..limit], 0..) |entry, idx| {
         const value = entry orelse break;
         if (sysfsStreq(value, needle)) return idx;
     }
     return null;
+}
+
+pub fn __sysfs_match_string_bounded(haystack: []const ?[]const u8, count: usize, needle: []const u8) ?usize {
+    return sysfsMatchStringBounded(haystack, count, needle);
+}
+
+pub fn sysfsMatchString(haystack: []const ?[]const u8, needle: []const u8) ?usize {
+    return sysfsMatchStringBounded(haystack, haystack.len, needle);
 }
 
 pub fn __sysfs_match_string(haystack: []const ?[]const u8, needle: []const u8) ?usize {
@@ -890,6 +912,21 @@ test "kasprintfStrarray frees partially built arrays when allocator failure inte
         runKasprintfStrarrayWithFailingAllocator,
         .{ "phase7-helper", 4 },
     );
+}
+
+test "matchStringBounded and sysfsMatchStringBounded respect explicit counts and null sentinels" {
+    const haystack = [_]?[]const u8{ "alpha", "beta", "gamma", null, "delta" };
+    try std.testing.expectEqual(@as(?usize, 1), matchStringBounded(&haystack, 2, "beta"));
+    try std.testing.expectEqual(@as(?usize, null), matchStringBounded(&haystack, 2, "gamma"));
+    try std.testing.expectEqual(@as(?usize, null), matchStringBounded(&haystack, haystack.len, "delta"));
+    try std.testing.expectEqual(@as(?usize, 2), matchString(&haystack, "gamma"));
+    try std.testing.expectEqual(@as(?usize, 1), match_string_bounded(&haystack, 2, "beta"));
+
+    const sysfs_haystack = [_]?[]const u8{ "off\n", "on", null, "auto\n" };
+    try std.testing.expectEqual(@as(?usize, 0), sysfsMatchStringBounded(&sysfs_haystack, 1, "off"));
+    try std.testing.expectEqual(@as(?usize, null), sysfsMatchStringBounded(&sysfs_haystack, 1, "on"));
+    try std.testing.expectEqual(@as(?usize, 1), __sysfs_match_string_bounded(&sysfs_haystack, 2, "on\n"));
+    try std.testing.expectEqual(@as(?usize, null), __sysfs_match_string_bounded(&sysfs_haystack, sysfs_haystack.len, "auto"));
 }
 
 test "stringGetSize reports rounded units and truncates destination buffers safely" {
