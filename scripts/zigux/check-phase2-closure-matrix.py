@@ -253,6 +253,24 @@ def run_matrix(module, seed_root) -> int:
         support_note = archive_support_note(module)
         archive_readme_rel = getattr(module, "ARCHIVE_README_REL", None)
         if support_note is not None and isinstance(archive_readme_rel, Path):
+            archive_parts_rel = getattr(module, "ARCHIVE_PARTS_MANIFEST_REL", None)
+            if isinstance(archive_parts_rel, Path):
+                seed_root(root)
+                remove_archive_support_paths(module, root)
+                manifest_path = module.resolve(root, module.MANIFEST_REL)
+                payload = load_json(manifest_path)
+                payload["present_surfaces"]["archive_support"] = [
+                    archive_readme_rel.as_posix(),
+                    archive_parts_rel.as_posix(),
+                ]
+                write_json(manifest_path, payload)
+                parts_manifest_path = module.resolve(root, archive_parts_rel)
+                parts_manifest_path.parent.mkdir(parents=True, exist_ok=True)
+                write_json(parts_manifest_path, {"parts": []})
+                if module.collect_issues(root) != []:
+                    raise AssertionError("expected archive parts fallback baseline to stay clean")
+                checks_run += 1
+
             seed_root(root)
             remove_archive_support_paths(module, root)
             manifest_path = module.resolve(root, module.MANIFEST_REL)
@@ -379,7 +397,8 @@ EXPECTED_MANIFEST_CLOSURE_NOTES = ("closure-a.md", "closure-b.md")
 EXPECTED_MANIFEST_VALIDATORS = ("validate-a.py", "validate-b.py")
 EXPECTED_MANIFEST_CHECKERS = ("checker-a.py", "checker-b.py")
 EXPECTED_MANIFEST_BOOTSTRAP_HELPERS = ("bootstrap-a.py", "bootstrap-b.py")
-EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (ARCHIVE_README_REL.as_posix(), ARCHIVE_PAYLOAD_REL.as_posix())
+EXPECTED_MANIFEST_ARCHIVE_SUPPORT = (ARCHIVE_README_REL.as_posix(),)
+DEFAULT_MANIFEST_ARCHIVE_SUPPORT = (*EXPECTED_MANIFEST_ARCHIVE_SUPPORT, ARCHIVE_PAYLOAD_REL.as_posix())
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("bridge-a.zig", "bridge-b.zig")
 EXPECTED_MANIFEST_FIXTURE_ROSTER = ("fixture-a.json", "fixture-b.json")
 EXPECTED_MANIFEST_POLICY = ("policy-a.json",)
@@ -389,11 +408,11 @@ def resolve(root: Path, rel: Path) -> Path:
 
 def build_self_test_root(root: Path) -> None:
     resolve(root, PHASE2_CLOSURE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\\n`marker-b`\\n", encoding="utf-8")
+    resolve(root, PHASE2_CLOSURE_REL).write_text("`marker-a`\n`marker-b`\n", encoding="utf-8")
     resolve(root, WORKFLOW_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, WORKFLOW_REL).write_text("run: alpha\\nrun: beta\\n", encoding="utf-8")
+    resolve(root, WORKFLOW_REL).write_text("run: alpha\nrun: beta\n", encoding="utf-8")
     resolve(root, MAKEFILE_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, MAKEFILE_REL).write_text("phase2-a:\\nphase2-b:\\n", encoding="utf-8")
+    resolve(root, MAKEFILE_REL).write_text("phase2-a:\nphase2-b:\n", encoding="utf-8")
     resolve(root, MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, MANIFEST_REL).write_text(json.dumps({
         "repo_reality_gaps": [],
@@ -403,30 +422,30 @@ def build_self_test_root(root: Path) -> None:
             "validators": list(EXPECTED_MANIFEST_VALIDATORS),
             "checkers": list(EXPECTED_MANIFEST_CHECKERS),
             "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
-            "archive_support": list(EXPECTED_MANIFEST_ARCHIVE_SUPPORT),
+            "archive_support": list(DEFAULT_MANIFEST_ARCHIVE_SUPPORT),
             "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
             "policy": list(EXPECTED_MANIFEST_POLICY),
             "out_of_scope": ["extra-surface.md"],
         },
-    }, indent=2) + "\\n", encoding="utf-8")
+    }, indent=2) + "\n", encoding="utf-8")
     resolve(root, KCONFIG_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
     resolve(root, KCONFIG_CASES_REL).write_text(json.dumps({
         "conf_cases": EXPECTED_CONF_CASE_DETAILS,
         "confdata_cases": EXPECTED_CONFDATA_CASE_DETAILS,
-    }, indent=2) + "\\n", encoding="utf-8")
+    }, indent=2) + "\n", encoding="utf-8")
     resolve(root, CONF_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\\n", encoding="utf-8")
+    resolve(root, CONF_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\n", encoding="utf-8")
     resolve(root, CONFDATA_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\\n", encoding="utf-8")
+    resolve(root, CONFDATA_MANIFEST_REL).write_text(json.dumps(EXPECTED_CONFDATA_MANIFEST, indent=2) + "\n", encoding="utf-8")
     resolve(root, GENKSYMS_CASES_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\\n", encoding="utf-8")
+    resolve(root, GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_GENKSYMS_CASES, indent=2) + "\n", encoding="utf-8")
     resolve(root, GENKSYMS_MANIFEST_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\\n", encoding="utf-8")
+    resolve(root, GENKSYMS_MANIFEST_REL).write_text(json.dumps(EXPECTED_GENKSYMS_MANIFEST, indent=2) + "\n", encoding="utf-8")
     resolve(root, ARCHIVE_README_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, ARCHIVE_README_REL).write_text("archive readme\\n", encoding="utf-8")
+    resolve(root, ARCHIVE_README_REL).write_text("archive readme\n", encoding="utf-8")
     resolve(root, ARCHIVE_PAYLOAD_REL).parent.mkdir(parents=True, exist_ok=True)
-    resolve(root, ARCHIVE_PAYLOAD_REL).write_text("archive payload\\n", encoding="utf-8")
+    resolve(root, ARCHIVE_PAYLOAD_REL).write_text("archive payload\n", encoding="utf-8")
 
 def _count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
