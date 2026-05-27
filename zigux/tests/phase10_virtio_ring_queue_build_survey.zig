@@ -151,3 +151,36 @@ test "phase10 virtio ring queue build stays below unrelated transport and input 
     try expectNotContains(build_file, "phase10_virtio_mmio");
     try expectNotContains(build_file, "phase10_virtio_input");
 }
+
+test "phase10 virtio ring queue build survey stays explicit in the shared ring reminder packet" {
+    const allocator = std.testing.allocator;
+
+    const survey_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-ring-survey.md",
+    );
+    defer allocator.free(survey_note);
+
+    const packet_checker = try readRepoRelative(
+        allocator,
+        "scripts/zigux/check-phase10-ring-packet.py",
+    );
+    defer allocator.free(packet_checker);
+
+    try expectContains(
+        survey_note,
+        "`zigux/tests/phase10_virtio_ring_queue_build_survey.zig` now gives the ring lane one focused queue-build survey replay",
+    );
+    try expectContains(
+        packet_checker,
+        "\"zigux/tests/phase10_virtio_ring_queue_build_survey.zig\": [",
+    );
+    try expectContains(
+        packet_checker,
+        "phase10_virtio_ring_queue_build_survey.zig",
+    );
+    try expectContains(
+        packet_checker,
+        "phase10-virtio-ring-queue-build-survey-tests",
+    );
+}
