@@ -24,6 +24,21 @@ pub fn nextAvailStateMatchesEncoding(summary: NotificationDataSummary) bool {
         notificationDataUsesWrapBit(summary) == summary.next_avail_wrap_counter;
 }
 
+fn advancePackedAvailIndexNearWrap(ring: *virtio_ring.VirtioRingLab, queue_index: u16) !void {
+    for (0..8191) |_| {
+        for (0..8) |_| {
+            try ring.publishDescriptorChain(queue_index);
+        }
+        _ = try ring.prepareKick(queue_index);
+        try ring.recordUsedChains(queue_index, 8);
+        _ = try ring.pollUsedBuffers(queue_index);
+    }
+
+    for (0..7) |_| {
+        try ring.publishDescriptorChain(queue_index);
+    }
+}
+
 test "phase10 virtio ring notification-data wrapper keeps split queue state explicit" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(1, 8, .split, true, false);
@@ -70,6 +85,36 @@ test "phase10 virtio ring notification-data wrapper keeps packed wrap-bit rollov
     );
     try std.testing.expectEqual(@as(u32, 0x8001_0002), summary.notification_data);
     try std.testing.expect(notificationDataUsesWrapBit(summary));
+    try std.testing.expect(queueIndexMatchesNotificationData(summary));
+    try std.testing.expect(nextAvailStateMatchesEncoding(summary));
+}
+
+test "phase10 virtio ring notification-data wrapper preserves packed wrap encoding across u16 rollover" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(4, 8, .packed_ring, true, false);
+    try advancePackedAvailIndexNearWrap(&ring, 4);
+
+    var summary = try summarizeNotificationData(&ring, 4);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 7), summary.next_avail_idx);
+    try std.testing.expect(summary.next_avail_wrap_counter);
+    try std.testing.expectEqual(
+        @as(u16, virtio_ring.packed_notification_wrap_bit | 7),
+        summary.encoded_next,
+    );
+    try std.testing.expectEqual(@as(u32, 0x8007_0004), summary.notification_data);
+    try std.testing.expect(notificationDataUsesWrapBit(summary));
+    try std.testing.expect(queueIndexMatchesNotificationData(summary));
+    try std.testing.expect(nextAvailStateMatchesEncoding(summary));
+
+    try ring.publishDescriptorChain(4);
+    summary = try summarizeNotificationData(&ring, 4);
+    try std.testing.expectEqual(@as(u16, 0), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.next_avail_idx);
+    try std.testing.expect(!summary.next_avail_wrap_counter);
+    try std.testing.expectEqual(@as(u16, 0), summary.encoded_next);
+    try std.testing.expectEqual(@as(u32, 4), summary.notification_data);
+    try std.testing.expect(!notificationDataUsesWrapBit(summary));
     try std.testing.expect(queueIndexMatchesNotificationData(summary));
     try std.testing.expect(nextAvailStateMatchesEncoding(summary));
 }
