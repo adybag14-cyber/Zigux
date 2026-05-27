@@ -1,0 +1,1 @@
+{"tool":"scripts/kconfig/conf","mode":"allnoconfig","argv":["scripts/kconfig/conf","--allnoconfig","Kconfig"],"env":{"ARCH":"arm64","KCONFIG_CONFIG":"none/.config","KCONFIG_ALLCONFIG":"mini-all.config"}}
