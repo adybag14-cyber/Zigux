@@ -10,12 +10,22 @@ from pathlib import Path
 CHECK_NAME = "PHASE12_COMPLEX_DRIVER_LANE_PACKET"
 
 NOTE_PATH = Path("Documentation/zigux/phase12-complex-driver-lane-sequencing.md")
+SUPPORT_BUNDLE_MAP_PATH = Path(
+    "Documentation/zigux/phase12-release-support-bundle-map.md"
+)
 README_PATH = Path("scripts/zigux/README.md")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
-REQUIRED_FILES = (NOTE_PATH, README_PATH, WORKFLOW_PATH, BUILD_PATH, MAKEFILE_PATH)
+REQUIRED_FILES = (
+    NOTE_PATH,
+    SUPPORT_BUNDLE_MAP_PATH,
+    README_PATH,
+    WORKFLOW_PATH,
+    BUILD_PATH,
+    MAKEFILE_PATH,
+)
 
 REQUIRED_PRESENT_PATHS = (
     Path("drivers/net/virtio_net_queue_resume.zig"),
@@ -49,6 +59,14 @@ NOTE_MARKERS = (
     "`drivers/net/virtio_net.zig` and `zigux/tests/phase12_virtio_net.zig` are currently absent on `master`",
     "current `zigux/Makefile` now ships `phase12-validate`, `phase12-smoke`, `phase12-test`, and `phase12`, so `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
     "The note-local compile-smoke companion in this lane is `Documentation/zigux/phase12-cross-compile-smoke.md`, and its directly readable rerun handle is `python3 scripts/zigux/check-phase12-cross-compile-smoke.py --self-test` plus `python3 scripts/zigux/check-phase12-cross-compile-smoke.py`; keep that narrower smoke packet explicit beside the broader validator-first support bundle without treating it as DMA, queue ownership, throughput, recovery, or driver-delivery proof.",
+)
+
+SUPPORT_BUNDLE_MAP_MARKERS = (
+    "- lane owner: `pmo-release`",
+    "- `scripts/zigux/check-phase12-complex-driver-lane-packet.py`",
+    "- `scripts/zigux/check-phase12-cross-compile-smoke.py`",
+    "- `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py`",
+    "Those wrappers are current release-planning evidence again, but they do not by themselves close the broader complex-driver tranche.",
 )
 
 README_MARKERS = (
@@ -153,6 +171,11 @@ def check(root: Path) -> None:
     require_paths_absent(root, FORBIDDEN_PRESENT_PATHS)
 
     require_markers(read_text(root, NOTE_PATH), NOTE_MARKERS, NOTE_PATH)
+    require_markers(
+        read_text(root, SUPPORT_BUNDLE_MAP_PATH),
+        SUPPORT_BUNDLE_MAP_MARKERS,
+        SUPPORT_BUNDLE_MAP_PATH,
+    )
     require_markers(read_text(root, README_PATH), README_MARKERS, README_PATH)
     require_markers(read_text(root, WORKFLOW_PATH), WORKFLOW_MARKERS, WORKFLOW_PATH)
 
@@ -178,6 +201,7 @@ def build_fixture_text() -> str:
 def write_fixture(root: Path) -> None:
     fixtures = {
         NOTE_PATH: "\n".join(NOTE_MARKERS) + "\n",
+        SUPPORT_BUNDLE_MAP_PATH: "\n".join(SUPPORT_BUNDLE_MAP_MARKERS) + "\n",
         README_PATH: "\n".join(README_MARKERS) + "\n",
         WORKFLOW_PATH: "\n".join(WORKFLOW_MARKERS) + "\n",
         BUILD_PATH: build_fixture_text(),
@@ -216,6 +240,11 @@ def run_self_test() -> int:
         write_fixture(root)
         (root / NOTE_PATH).write_text("broken\n", encoding="utf-8")
         expect_failure(root, str(NOTE_PATH))
+        cases += 1
+
+        write_fixture(root)
+        (root / SUPPORT_BUNDLE_MAP_PATH).write_text("broken\n", encoding="utf-8")
+        expect_failure(root, str(SUPPORT_BUNDLE_MAP_PATH))
         cases += 1
 
         write_fixture(root)
