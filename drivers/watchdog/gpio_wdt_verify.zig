@@ -156,5 +156,57 @@ test "gpio_wdt remove-handoff summary keeps cleanup blockers and ownership hando
     try std.testing.expect(guarded_handoff.blocked_on_platform_cleanup_callback);
     try std.testing.expect(guarded_handoff.blocked_on_platform_driver_remove);
     try std.testing.expect(guarded_handoff.blocked_on_watchdog_core_unregister);
-    try std.testing.expect(guarded_handoff.blocked_on_host_shutdown_execution);
+    try std.testing.expect(guarded_handoff.blocked_onHost_shutdown_execution);
+}
+
+test "gpio_wdt hardware validation matrix keeps the roadmap branches reviewable" {
+    const matrix = try gpio_wdt.GpioWatchdogLab.hardwareValidationMatrixSummary();
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", matrix.anchor);
+    try std.testing.expect(matrix.covers_toggle_and_level);
+    try std.testing.expect(matrix.covers_register_only_and_prestart);
+    try std.testing.expect(matrix.covers_stop_dispositions);
+    try std.testing.expect(matrix.covers_failure_and_teardown_blockers);
+
+    const toggle_register_only = matrix.rows[0];
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_register_only.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, toggle_register_only.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.in, toggle_register_only.descriptor_flags);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, toggle_register_only.start_mode);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, toggle_register_only.stop_disposition);
+    try std.testing.expect(!toggle_register_only.ping_uses_pulse);
+    try std.testing.expect(toggle_register_only.stop_allowed_by_watchdog_core);
+
+    const level_nowayout = matrix.rows[1];
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_nowayout.hw_algo);
+    try std.testing.expect(level_nowayout.always_running);
+    try std.testing.expect(level_nowayout.nowayout);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, level_nowayout.start_mode);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, level_nowayout.stop_disposition);
+    try std.testing.expect(level_nowayout.ping_uses_pulse);
+    try std.testing.expect(!level_nowayout.stop_allowed_by_watchdog_core);
+
+    const level_register_only = matrix.rows[2];
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_register_only.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, level_register_only.start_mode);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, level_register_only.stop_disposition);
+    try std.testing.expect(level_register_only.ping_uses_pulse);
+    try std.testing.expect(level_register_only.stop_allowed_by_watchdog_core);
+
+    const toggle_prestart = matrix.rows[3];
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_prestart.hw_algo);
+    try std.testing.expect(toggle_prestart.always_running);
+    try std.testing.expect(!toggle_prestart.nowayout);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, toggle_prestart.start_mode);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.kept_running, toggle_prestart.stop_disposition);
+    try std.testing.expect(!toggle_prestart.ping_uses_pulse);
+    try std.testing.expect(toggle_prestart.stop_allowed_by_watchdog_core);
+
+    inline for (matrix.rows) |row| {
+        try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", row.anchor);
+        try std.testing.expect(row.blocked_on_live_gpio_lookup);
+        try std.testing.expect(row.blocked_on_platform_registration);
+        try std.testing.expect(row.blocked_on_reboot_glue);
+        try std.testing.expect(row.blocked_on_host_shutdown_execution);
+    }
 }
