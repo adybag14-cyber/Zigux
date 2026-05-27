@@ -37,6 +37,7 @@ TESTS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-tests-readme-alignment.py
 CROSS_CHECKER_REL = Path("scripts/zigux/check-phase2-cross.py")
 CROSS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-cross-selftest-alignment.py")
 DOCS_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase2-docs-shared-reminder.py")
+BOOTSTRAP_WORKFLOW_ROUTES_CHECKER_REL = Path("scripts/zigux/check-phase2-bootstrap-workflow-routes.py")
 REQUIRED_ROUTES_CHECKER_REL = Path("scripts/zigux/check-phase2-required-make-routes.py")
 TOOL_MANIFEST_CHECKER_REL = Path("scripts/zigux/check-phase2-tool-manifest.py")
 ARTIFACT_MANIFEST_CHECKER_REL = Path("scripts/zigux/check-phase2-artifact-tools-manifest.py")
@@ -73,6 +74,9 @@ GENKSYMS_POSITIONAL_REL = Path("zigux/tests/fixtures/genksyms_bridge/positional_
 GENKSYMS_LONE_DASH_REL = Path("zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json")
 GENKSYMS_DASH_PREFIXED_REL = Path(
     "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json"
+)
+GENKSYMS_DASH_PREFIXED_SHORT_REL = Path(
+    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json"
 )
 GENKSYMS_PROCESS_OUTPUT_RELS = (
     Path("zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json"),
@@ -121,6 +125,7 @@ REQUIRED_FILES = (
     CROSS_CHECKER_REL,
     CROSS_ALIGNMENT_REL,
     DOCS_REMINDER_CHECKER_REL,
+    BOOTSTRAP_WORKFLOW_ROUTES_CHECKER_REL,
     REQUIRED_ROUTES_CHECKER_REL,
     TOOL_MANIFEST_CHECKER_REL,
     ARTIFACT_MANIFEST_CHECKER_REL,
@@ -155,6 +160,7 @@ REQUIRED_FILES = (
     GENKSYMS_POSITIONAL_REL,
     GENKSYMS_LONE_DASH_REL,
     GENKSYMS_DASH_PREFIXED_REL,
+    GENKSYMS_DASH_PREFIXED_SHORT_REL,
     *GENKSYMS_PROCESS_OUTPUT_RELS,
 )
 
@@ -168,6 +174,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
     "`scripts/zigux/check-lane05-local-first-archive-workflow.py`",
     "`scripts/zigux/check-lane05-local-archive-readme.py`",
+    "`scripts/zigux/check-phase2-bootstrap-workflow-routes.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/check-phase2-fixdep-gate.py`",
     "`scripts/zigux/check-fixdep-diff.py`",
@@ -200,6 +207,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`",
@@ -376,6 +384,7 @@ EXPECTED_MANIFEST_CHECKERS = (
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "scripts/zigux/check-genksyms-bridge.py",
@@ -416,6 +425,7 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
