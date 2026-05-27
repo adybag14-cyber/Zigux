@@ -139,6 +139,36 @@ PHASE4_TESTS_README_PACKET_SELF_TEST_CASES = (
     "stale_phase4_tests_readme_checker_reference",
 )
 
+REQUIRED_ARTIFACT_DOC_MARKERS = (
+    "Current Phase 4 use",
+    "scripts/zigux/artifact_diff.py",
+    "scripts/zigux/check-artifact-diff-contract.py",
+    "scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+    "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=23",
+    "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=24",
+    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=30",
+    "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT=13",
+    "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_SELF_TEST_CASE_COUNT=14",
+)
+
+REQUIRED_ARTIFACT_MATRIX_MARKERS = (
+    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    "make -C zigux phase4-perf-baseline-survey",
+)
+
+SAMPLE_PHASE4_VALIDATION_MATRIX_LINES = [
+    "# Phase 4 Validation Matrix",
+    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+    "make -C zigux phase4-perf-baseline-survey",
+]
+
 REQUIRED_COMMAND_OUTPUT_MARKERS = {
     "phase4-repo-reality-warning-self-test": (
         ("PHASE4_REPO_REALITY_WARNING_SELF_TEST", "PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass"),
@@ -625,7 +655,7 @@ def run_self_test() -> int:
 
         reset_fixture()
         write_text(root / "Documentation/zigux/phase4-validation-matrix.md", "# Phase 4 Validation Matrix\n## Lab And CI Matrix\n")
-        if "artifact_matrix_marker_missing:`MODE=...`" not in collect_issues(root):
+        if "artifact_matrix_marker_missing:scripts/zigux/check-phase4-remaining-gap-matrix.py" not in collect_issues(root):
             print("PHASE4_VALIDATE_SELF_TEST=fail")
             print("artifact matrix marker case did not fail closed")
             return 1
