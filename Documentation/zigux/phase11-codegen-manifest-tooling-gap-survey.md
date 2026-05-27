@@ -5,8 +5,9 @@ This note records the current deterministic tooling posture for the shared Phase
 ## Status
 
 - `PHASE11_TOOLING_GAP_STATUS=shared_packet_aggregate_surface_materialized`
-- lane: `P11-L04`
+- lane: `P11-L06`
 - scope: keep the shared Phase 11 codegen-and-manifest tooling story honest without widening into driver-local behavior, broader reminder-surface ownership, or retired aggregate routes
+- `scripts/zigux/validate-phase11.py` and `make -C zigux phase11-validate` already execute `scripts/zigux/check-phase11-shared-tooling-manifest.py` as part of the live deterministic checker stack
 
 ## Roadmap Anchor
 
@@ -47,7 +48,7 @@ Current shared Phase 11 tooling evidence on `master` now centers on the returned
 - `zigux/Makefile`
 - `make -C zigux phase11-validate`
 
-That shared packet is stronger than the older replay-only story: `scripts/zigux/validate-phase11.py` exists, `make -C zigux phase11-validate` is the live shared route, and the new aggregate manifest records the shared checker stack and proof fan-out without pretending it replaces the narrower HVC continuity inventory.
+That shared packet is stronger than the older replay-only story: `scripts/zigux/validate-phase11.py` exists, `make -C zigux phase11-validate` is the live shared route, and `scripts/zigux/check-phase11-shared-tooling-manifest.py` plus `zigux/tests/fixtures/phase11_shared_tooling_manifest.json` are already wired into that route's deterministic checker stack.
 
 ## Live Gap Versus The Roadmap
 
@@ -74,6 +75,6 @@ Keep the next deterministic-tooling step narrow:
 
 The next bounded follow-through can stay smaller:
 
-- wire `scripts/zigux/check-phase11-shared-tooling-manifest.py` into the shared `phase11-validate` route only after current-head rereads confirm the surrounding Phase 11 packet did not drift again
+- reread `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/README.md` against the already-wired shared tooling packet before broadening any shared reminder surfaces
 - keep the aggregate manifest limited to shared tooling surfaces and explicitly allowed proof-backed build shards
-- update broader reminder summaries only after that checker-backed surface has been reread together with the current shared Phase 11 packet
+- update broader reminder summaries only after that route-wired checker surface has been reread together with the current shared Phase 11 packet
