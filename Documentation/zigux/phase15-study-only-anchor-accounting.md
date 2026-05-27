@@ -20,7 +20,7 @@ Current `master` now carries a tighter Phase 15 governance packet through the fr
 
 The honest same-lane follow-up is therefore accounting, not expansion: keep the two study-only anchors explicit in one bounded note so future maintenance reads do not have to infer them indirectly from the roadmap, the aggregate scorecard count, the shared-summary packet, or the tests-root reminder packet.
 
-This refresh closes the note's dated-readback drift and keeps the study-only accounting aligned with the current 2026-05-24 handoff packet. Reviewers can now read it against the same current governance surfaces that already drive the shared-summary and tests-root reminder checks instead of reconciling it against an older study-only note by hand.
+This refresh closes the note's dated-readback drift and keeps the study-only accounting aligned with the current 2026-05-26 handoff packet. Reviewers can now read it against the same current governance surfaces that already drive the shared-summary and tests-root reminder checks instead of reconciling it against an older study-only note by hand.
 
 ## Roadmap Basis
 
@@ -37,7 +37,7 @@ This refresh closes the note's dated-readback drift and keeps the study-only acc
 - the current Phase 15 handoff-next-steps survey keeps the same two study-only anchors parked beside the existing governance packet and reopens only if a broader reminder surface drifts
 - the current Phase 15 shared-summary gap note and landed tests-root governance reminder keep docs-root, checklist, scripts-root, tests-root, and validator-first wording drift framed as truthfulness follow-through rather than study-only status-change evidence
 - the current `scripts/zigux/validate-phase15.py` maintenance gate is directly materialized beside the same packet, but it does not by itself change the study-only posture
-- this note's dated-readback marker now matches the current 2026-05-25 governance reread instead of lagging behind the already-refreshed 2026-05-24 handoff, readiness, parity, stay-in-C, shared-summary, and tests-root companions
+- this note's dated-readback marker now matches the current 2026-05-25 governance reread instead of lagging behind the already-refreshed 2026-05-26 handoff companion and the rest of the current 2026-05-25 governance packet
 - no Architecture Council approval is currently recorded for a deep-core status change
 - the current governance packet is still blocker-accounting and handoff truthfulness, not port-readiness
 
