@@ -74,6 +74,9 @@ GENKSYMS_LONE_DASH_REL = Path("zigux/tests/fixtures/genksyms_bridge/lone_dash_pa
 GENKSYMS_DASH_PREFIXED_REL = Path(
     "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json"
 )
+GENKSYMS_DASH_PREFIXED_SHORT_REL = Path(
+    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json"
+)
 GENKSYMS_PROCESS_OUTPUT_RELS = (
     Path("zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json"),
     Path("zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json"),
@@ -84,6 +87,7 @@ GENKSYMS_PROCESS_OUTPUT_RELS = (
     Path("zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json"),
     Path("zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json"),
     Path("zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json"),
+    Path("zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json"),
 )
 ARCHIVE_README_REL = Path("third_party/README.md")
 ARCHIVE_PAYLOAD_REL = Path("third_party/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")
@@ -155,6 +159,7 @@ REQUIRED_FILES = (
     GENKSYMS_POSITIONAL_REL,
     GENKSYMS_LONE_DASH_REL,
     GENKSYMS_DASH_PREFIXED_REL,
+    GENKSYMS_DASH_PREFIXED_SHORT_REL,
     *GENKSYMS_PROCESS_OUTPUT_RELS,
 )
 
@@ -200,7 +205,9 @@ REQUIRED_CLOSURE_MARKERS = (
     "`zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json`",
     "`zigux/tests/fixtures/genksyms_bridge/missing_long_dump_types_argument_expected.json`",
@@ -416,6 +423,7 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/positional_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_long_option_arguments_as_data_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/dash_prefixed_short_option_arguments_as_data_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/abbreviated_version_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/ambiguous_long_option_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/invalid_option_expected.json",
@@ -425,6 +433,7 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/too_many_reference_files_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/unsupported_long_option_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/unexpected_long_help_argument_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/abbreviated_unexpected_long_help_argument_expected.json",
 )
 
 EXPECTED_GENKSYMS_CASES = [
@@ -450,35 +459,36 @@ EXPECTED_GENKSYMS_CASES = [
         "expected_file": "quiet_overrides_warning_expected.json",
     },
     {
-        "name": "help",
-        "args": ["--help"],
-        "expected_file": "help_expected.json",
-    },
-    {
         "name": "explicit_option_terminator",
-        "args": ["--debug", "--", "--warn", "literal.symref"],
+        "args": ["-d", "leftover.c", "--", "--leftover", "positional"],
         "expected_file": "explicit_option_terminator_expected.json",
     },
     {
         "name": "positional_passthrough",
-        "args": ["input.symref", "output.symtypes"],
+        "args": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
         "expected_file": "positional_passthrough_expected.json",
     },
     {
         "name": "lone_dash_passthrough",
-        "args": ["-", "tail.symref"],
-        "expected_file": "lone_dash_passthrough_expected.json"},
+        "args": ["-", "-d"],
+        "expected_file": "lone_dash_passthrough_expected.json",
+    },
     {
         "name": "dash_prefixed_long_option_arguments_as_data",
-        "args": ["--reference", "--not-an-option.symref", "--dump-types", "--types-as-data.symtypes"],
+        "args": ["--reference", "--debug", "--dump-types", "--types"],
         "expected_file": "dash_prefixed_long_option_arguments_as_data_expected.json",
+    },
+    {
+        "name": "dash_prefixed_short_option_arguments_as_data",
+        "args": ["-r", "-d", "-T", "--symtypes"],
+        "expected_file": "dash_prefixed_short_option_arguments_as_data_expected.json",
     },
 ]
 
 EXPECTED_GENKSYMS_MANIFEST = {
     "tool": "scripts/zigux/genksyms.zig",
     "status": "closed",
-    "mode": "bounded bridge",
+    "mode": "bounded wrapper-first dual-implementation bridge",
     "fixture_root": "zigux/tests/fixtures/genksyms_bridge",
     "fixture_case_source": "zigux/tests/fixtures/genksyms_bridge/cases.json",
     "case_count": 10,
@@ -488,14 +498,13 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "long_options",
         "abbreviated_long_options",
         "quiet_overrides_warning",
-        "help",
         "explicit_option_terminator",
         "positional_passthrough",
         "lone_dash_passthrough",
         "dash_prefixed_long_option_arguments_as_data",
+        "dash_prefixed_short_option_arguments_as_data",
     ],
-    "option_packet": [
-        "help_expected.json",
+    "bridge_expected_packet": [
         "minimal_expected.json",
         "debug_reference_types_expected.json",
         "long_options_expected.json",
@@ -505,6 +514,14 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "positional_passthrough_expected.json",
         "lone_dash_passthrough_expected.json",
         "dash_prefixed_long_option_arguments_as_data_expected.json",
+        "dash_prefixed_short_option_arguments_as_data_expected.json",
+    ],
+    "help_packet": [
+        "help_expected.json",
+    ],
+    "standalone_proof_packet": [
+        "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
+        "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
     ],
     "process_output_packet": [
         "abbreviated_version_expected.json",
@@ -516,26 +533,24 @@ EXPECTED_GENKSYMS_MANIFEST = {
         "too_many_reference_files_expected.json",
         "unsupported_long_option_expected.json",
         "unexpected_long_help_argument_expected.json",
+        "abbreviated_unexpected_long_help_argument_expected.json",
     ],
     "helper_local_anchors": [
-        "bridge recognizes --help before required positional arguments",
-        "bridge keeps short options aligned with genksyms flag semantics",
-        "bridge keeps long options aligned with genksyms flag semantics",
-        "quiet keeps warning level explicit and wins over --warnings",
-        "bridge accepts unique long-option abbreviations",
-        "bridge rejects ambiguous long-option abbreviations",
-        "bridge rejects unsupported long options before positional parsing",
-        "bridge rejects missing dump-types argument after long option spelling",
-        "bridge rejects missing reference argument after long option spelling",
-        "bridge rejects unexpected positional argument after --help",
-        "bridge emits version output before invalid long-option failure",
-        "bridge emits version output before ambiguous long-option failure",
-        "bridge treats dash-prefixed values after --reference as positional data",
-        "bridge treats dash-prefixed values after --dump-types as positional data",
-        "bridge stops option parsing after explicit terminator",
-        "bridge preserves lone dash positional arguments as reference files",
-        "bridge preserves ordinary positional arguments after options",
-        "bridge rejects too many reference files once positional parsing stays active",
+        "genksyms bridge treats pure version requests as version command",
+        "genksyms bridge preserves repeated pure version invocations",
+        "genksyms bridge preserves empty inline long reference argument",
+        "genksyms bridge preserves empty inline abbreviated dump-types argument",
+        "parseArgs reports ambiguous abbreviated long options",
+        "genksyms bridge renders ambiguous long option failure like the fixture",
+        "genksyms bridge renders invalid short option failure like the fixture",
+        "genksyms bridge renders missing long option argument like the fixture",
+        "genksyms bridge renders missing short option argument like the fixture",
+        "genksyms bridge renders unexpected long option argument like the fixture",
+        "genksyms bridge appends usage after getopt-style parse failures",
+        "genksyms bridge leaves tool-local reference-limit failure message unchanged",
+        "genksyms bridge keeps dash-prefixed long option arguments as data",
+        "genksyms bridge keeps dash-prefixed short option arguments as data",
+        "genksyms bridge rejects more than sixteen reference files like the C harness",
     ],
 }
 
@@ -914,6 +929,10 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_self_test_root(root: Path) -> None:
+    archive_parts_manifest = resolve(root, ARCHIVE_PARTS_MANIFEST_REL)
+    if archive_parts_manifest.exists():
+        archive_parts_manifest.unlink()
+
     closure_lines = [
         "# Phase 2 Closure",
         "",
