@@ -168,13 +168,14 @@ Keep `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability
 
 ### `landlock/ruleset`
 
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `security/landlock/ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 
-Keep `Documentation/zigux/phase13-landlock-ruleset-slice.md` and `Documentation/zigux/phase13-landlock-ruleset-ownership.md` recorded as repo-reality gaps until they rematerialize on current `master`.
+Keep `Documentation/zigux/phase13-landlock-ruleset-slice.md` recorded as a repo-reality gap until it rematerializes on current `master`.
 
 ### `landlock/syscalls`
 
