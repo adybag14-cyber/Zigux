@@ -77,14 +77,15 @@ test "phase 15 governance-lane sequencing manifest records the current direct pa
     try std.testing.expectEqualStrings("current-master-readback-2026-05-25", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-governance-lane-sequencing.md", manifest.sequencing_note);
     try std.testing.expectEqualStrings("zigux/tests/phase15_readiness_gate_manifest.json", manifest.readiness_manifest);
-    try std.testing.expectEqual(@as(usize, 25), manifest.direct_packet_paths.len);
+    try std.testing.expectEqual(@as(usize, 26), manifest.direct_packet_paths.len);
     try std.testing.expectEqual(@as(usize, 0), manifest.still_missing_broader_paths.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.maintenance_replay_commands.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.maintenance_replay_commands.len);
 
     try expectSliceContains(manifest.direct_packet_paths, "Documentation/zigux/freeze-map.md");
     try expectSliceContains(manifest.direct_packet_paths, "Documentation/zigux/phase15-deep-core-blocker-survey.md");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_parity_scorecard.json");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_parity_scorecard.zig");
+    try expectSliceContains(manifest.direct_packet_paths, "scripts/zigux/check-phase15-architecture-council-packet.py");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_governance_lane_sequencing_manifest.json");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_governance_lane_sequencing.zig");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_handoff_next_steps_manifest.json");
@@ -98,6 +99,7 @@ test "phase 15 governance-lane sequencing manifest records the current direct pa
     try expectSliceNotContains(manifest.still_missing_broader_paths, "zigux/tests/phase15_build.zig");
     try expectSliceNotContains(manifest.still_missing_broader_paths, "scripts/zigux/validate-phase15.py");
     try expectSliceNotContains(manifest.still_missing_broader_paths, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
+    try expectSliceContains(manifest.maintenance_replay_commands, "python3 scripts/zigux/check-phase15-architecture-council-packet.py");
     try expectSliceContains(manifest.maintenance_replay_commands, "python3 scripts/zigux/check-phase15-handoff-note-alignment.py");
     try expectSliceContains(manifest.maintenance_replay_commands, "python3 scripts/zigux/validate-phase15.py");
     try expectSliceContains(manifest.maintenance_replay_commands, "zig build test --build-file zigux/tests/phase15_build.zig");
@@ -122,7 +124,8 @@ test "phase 15 governance-lane sequencing note names the current packet and curr
     try expectContains(sequencing_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(sequencing_note, manifest.surveyed_commit);
     try expectContains(sequencing_note, "the focused parity-scorecard machine-readable companion plus focused replay are landed");
-    try expectContains(sequencing_note, "the focused indefinite-C lane-owner companion is landed");
+    try expectContains(sequencing_note, "the dedicated Architecture Council packet checker `scripts/zigux/check-phase15-architecture-council-packet.py` is landed");
+    try expectContains(sequencing_note, "the focused indefinite-C lane-owner companion `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` is landed");
     try expectContains(sequencing_note, "`Documentation/zigux/phase15-deep-core-blocker-survey.md`");
     try expectContains(sequencing_note, "`zigux/tests/phase15_parity_scorecard.json`");
     try expectContains(sequencing_note, "`zigux/tests/phase15_parity_scorecard.zig`");
@@ -131,8 +134,10 @@ test "phase 15 governance-lane sequencing note names the current packet and curr
     try expectContains(sequencing_note, "`zigux/tests/phase15_handoff_next_steps.zig`");
     try expectContains(sequencing_note, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectContains(sequencing_note, "`zigux/tests/phase15_build.zig`");
+    try expectContains(sequencing_note, "`scripts/zigux/check-phase15-architecture-council-packet.py`");
     try expectContains(sequencing_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectContains(sequencing_note, "`scripts/zigux/validate-phase15.py`");
+    try expectContains(sequencing_note, "python3 scripts/zigux/check-phase15-architecture-council-packet.py");
     try expectContains(sequencing_note, "python3 scripts/zigux/check-phase15-handoff-note-alignment.py");
     try expectContains(sequencing_note, "python3 scripts/zigux/validate-phase15.py");
     try expectContains(sequencing_note, "zig build test --build-file zigux/tests/phase15_build.zig");
