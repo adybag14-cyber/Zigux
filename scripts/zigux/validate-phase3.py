@@ -89,6 +89,8 @@ REQUIRED_SOURCE_MARKERS = {
         'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
         'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
         'Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py")',
+        'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
+        'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
         '"PHASE3_ERRPTR_XARRAY_STARTER_PACKET=pass"',
         '"PHASE3_XARRAY_SLOT_STARTER_PACKET=pass"',
         '"validated zigux/tests/phase3_xarray_slot_dump.zig"',
@@ -97,6 +99,10 @@ REQUIRED_SOURCE_MARKERS = {
         '"validated scripts/zigux/generate-phase3-check-wrappers.py"',
         '"PHASE3_EXPORT_UAPI_C_HEADER_SMOKE=pass"',
         '"PHASE3_WRAPPER_TEMPLATES_CHECK=pass"',
+        '"PHASE3_BITMAP_CPUMASK_PACKET=pass"',
+        '"validated zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json"',
+        '"validated zigux/helpers/list_view.zig"',
+        '"validated zigux/tests/fixtures/phase3_list_hlist_manifest.json"',
     ),
     VALIDATE_PHASE3_SELFTEST_PATH: (
         'Path("scripts/zigux/validate-phase3.py")',
@@ -114,6 +120,8 @@ REQUIRED_SOURCE_MARKERS = {
         'Path("scripts/zigux/check-phase3-export-uapi-c-header-smoke.py")',
         'Path("scripts/zigux/check-phase3-selftest-surface.py")',
         'Path("scripts/zigux/run-phase3-checks.py")',
+        'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
+        'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
         '"PHASE3_ABI_MANIFEST_REPLAY_ROUTES_SELF_TEST=pass"',
         '"PHASE3_POLICY_DUMP_SELF_TEST=pass"',
         '"PHASE3_ERRPTR_XARRAY_STARTER_PACKET_SELF_TEST=pass"',
@@ -131,6 +139,10 @@ REQUIRED_SOURCE_MARKERS = {
         '"PHASE3_WRAPPER_TEMPLATES_CHECK_SELF_TEST_CASE_COUNT="',
         '"PHASE3_WRAPPER_SELF_TEST=pass"',
         '"PHASE3_WRAPPER_SELF_TEST_CASE_COUNT="',
+        '"PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST=pass"',
+        '"PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST_CASE_COUNT="',
+        '"PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST=pass"',
+        '"PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT="',
         '"PHASE3_VALIDATE_SELFTEST=pass"',
     ),
     TESTS_BUILD_PATH: (
@@ -712,6 +724,26 @@ def run_self_test() -> int:
                 'missing scripts/zigux/run-phase3-checks.py marker: "PHASE3_WRAPPER_TEMPLATES_CHECK=pass"',
             ),
             (
+                RUNNER_PATH,
+                'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
+            ),
+            (
+                RUNNER_PATH,
+                'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
+            ),
+            (
+                RUNNER_PATH,
+                '"PHASE3_BITMAP_CPUMASK_PACKET=pass"\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: "PHASE3_BITMAP_CPUMASK_PACKET=pass"',
+            ),
+            (
+                RUNNER_PATH,
+                '"validated zigux/tests/fixtures/phase3_list_hlist_manifest.json"\n',
+                'missing scripts/zigux/run-phase3-checks.py marker: "validated zigux/tests/fixtures/phase3_list_hlist_manifest.json"',
+            ),
+            (
                 VALIDATE_PHASE3_SELFTEST_PATH,
                 'Path("scripts/zigux/check-phase3-policy-dump.py")\n',
                 'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-policy-dump.py")',
@@ -785,6 +817,26 @@ def run_self_test() -> int:
                 VALIDATE_PHASE3_SELFTEST_PATH,
                 '"PHASE3_WRAPPER_SELF_TEST=pass"\n',
                 'missing scripts/zigux/validate_phase3_selftest.py marker: "PHASE3_WRAPPER_SELF_TEST=pass"',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                'Path("scripts/zigux/check-phase3-bitmap-cpumask.py")\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-bitmap-cpumask.py")',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                'Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: Path("scripts/zigux/check-phase3-list-hlist-starter-packet.py")',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                '"PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST=pass"\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: "PHASE3_BITMAP_CPUMASK_PACKET_SELF_TEST=pass"',
+            ),
+            (
+                VALIDATE_PHASE3_SELFTEST_PATH,
+                '"PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT="\n',
+                'missing scripts/zigux/validate_phase3_selftest.py marker: "PHASE3_LIST_HLIST_STARTER_PACKET_SELF_TEST_CASE_COUNT="',
             ),
             (
                 ABI_DUMP_PATH,
