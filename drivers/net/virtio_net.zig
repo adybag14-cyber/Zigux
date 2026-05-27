@@ -149,6 +149,31 @@ pub const ReceiveQueueRefillReservationPlan = struct {
     total_allocation_bytes: u32,
 };
 
+pub const ReceiveQueueRefillNotifyRequest = struct {
+    queue_was_empty: bool,
+    notifications_enabled: bool = true,
+    notify_after_descriptors: u16 = 0,
+};
+
+pub const ReceiveQueueRefillNotifyDecision = struct {
+    anchor: []const u8,
+    planned_queue_pairs: u16,
+    rx_queue_count: u16,
+    queue_was_empty: bool,
+    queue_became_non_empty: bool,
+    notifications_enabled: bool,
+    notify_after_descriptors: u16,
+    refill_count: u16,
+    descriptors_reserved: u16,
+    buffers_after_reservation: u16,
+    buffers_left_pending: u16,
+    descriptor_budget_exhausted: bool,
+    queue_will_be_full: bool,
+    refill_path: ReceiveQueueRefillPath,
+    reached_notify_threshold: bool,
+    should_notify: bool,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -378,6 +403,42 @@ pub const VirtioNetProbeLab = struct {
             .refill_path = batch.refill_path,
             .total_posted_bytes = try checkedMulU32(summary.requested_len, refill_count),
             .total_allocation_bytes = try checkedMulU32(summary.requested_alloc_len, refill_count),
+        };
+    }
+
+    pub fn decideReceiveQueueRefillNotify(
+        self: *Self,
+        reservation: ReceiveQueueRefillReservationPlan,
+        request: ReceiveQueueRefillNotifyRequest,
+    ) ReceiveQueueRefillNotifyDecision {
+        _ = self;
+        const notify_after_descriptors = if (request.notify_after_descriptors == 0)
+            reservation.descriptors_per_buffer
+        else
+            request.notify_after_descriptors;
+        const queue_became_non_empty = request.queue_was_empty and reservation.refill_count != 0;
+        const reached_notify_threshold = reservation.descriptors_reserved != 0 and
+            reservation.descriptors_reserved >= notify_after_descriptors;
+
+        return .{
+            .anchor = reservation.anchor,
+            .planned_queue_pairs = reservation.planned_queue_pairs,
+            .rx_queue_count = reservation.rx_queue_count,
+            .queue_was_empty = request.queue_was_empty,
+            .queue_became_non_empty = queue_became_non_empty,
+            .notifications_enabled = request.notifications_enabled,
+            .notify_after_descriptors = notify_after_descriptors,
+            .refill_count = reservation.refill_count,
+            .descriptors_reserved = reservation.descriptors_reserved,
+            .buffers_after_reservation = reservation.buffers_after_reservation,
+            .buffers_left_pending = reservation.buffers_left_pending,
+            .descriptor_budget_exhausted = reservation.descriptor_budget_exhausted,
+            .queue_will_be_full = reservation.queue_will_be_full,
+            .refill_path = reservation.refill_path,
+            .reached_notify_threshold = reached_notify_threshold,
+            .should_notify = request.notifications_enabled and
+                reservation.descriptors_reserved != 0 and
+                (queue_became_non_empty or reached_notify_threshold),
         };
     }
 
