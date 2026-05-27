@@ -59,6 +59,24 @@ pub const StringFormattingCycleSummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const FormattingBoundaryCase = struct {
+    iteration_count: i32,
+    selected_string: []const u8,
+    formatted_message: []const u8,
+    selected_iteration_message: []const u8,
+};
+
+pub const FormattingBoundaryContract = struct {
+    anchor: []const u8,
+    review_focus: []const SampleFocus,
+    preserves_initialized_stage: bool,
+    replay_runs_after_cycle: usize,
+    exact_iteration_fit_len: usize,
+    exact_selected_fit_len: usize,
+    exact_wrapped_selected_fit_len: usize,
+    cases: [random_strings.len]FormattingBoundaryCase,
+};
+
 pub const TraceEventsStringFormattingSample = struct {
     const Self = @This();
 
@@ -78,6 +96,55 @@ pub const TraceEventsStringFormattingSample = struct {
 
     pub fn stage(self: *const Self) SampleStage {
         return self.stage_state;
+    }
+
+    pub fn referencePattern() FormattingBoundaryContract {
+        return .{
+            .anchor = descriptor().anchor,
+            .review_focus = &.{
+                .string_selection,
+                .formatted_message,
+                .bounded_destination_discipline,
+                .non_allocating_runtime_safe,
+            },
+            .preserves_initialized_stage = true,
+            .replay_runs_after_cycle = 0,
+            .exact_iteration_fit_len = 7,
+            .exact_selected_fit_len = 12,
+            .exact_wrapped_selected_fit_len = 32,
+            .cases = .{
+                .{
+                    .iteration_count = 0,
+                    .selected_string = "Mother Goose",
+                    .formatted_message = "iter=0",
+                    .selected_iteration_message = "Mother Goose iter=0",
+                },
+                .{
+                    .iteration_count = 1,
+                    .selected_string = "Snoopy",
+                    .formatted_message = "iter=1",
+                    .selected_iteration_message = "Snoopy iter=1",
+                },
+                .{
+                    .iteration_count = 2,
+                    .selected_string = "Gandalf",
+                    .formatted_message = "iter=2",
+                    .selected_iteration_message = "Gandalf iter=2",
+                },
+                .{
+                    .iteration_count = 3,
+                    .selected_string = "Frodo",
+                    .formatted_message = "iter=3",
+                    .selected_iteration_message = "Frodo iter=3",
+                },
+                .{
+                    .iteration_count = 4,
+                    .selected_string = "One ring to rule them all",
+                    .formatted_message = "iter=4",
+                    .selected_iteration_message = "One ring to rule them all iter=4",
+                },
+            },
+        };
     }
 
     pub fn init(self: *Self) !void {
@@ -276,6 +343,31 @@ test "phase 5 trace-events formatting companion keeps the modulo-selected string
             current.selected_iteration_message.bytes[0..current.selected_iteration_message.len],
         );
     }
+}
+
+test "phase 5 trace-events formatting companion exports a stable reference pattern for focused replays" {
+    const contract = TraceEventsStringFormattingSample.referencePattern();
+    const expected_focus = [_]SampleFocus{
+        .string_selection,
+        .formatted_message,
+        .bounded_destination_discipline,
+        .non_allocating_runtime_safe,
+    };
+
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", contract.anchor);
+    try std.testing.expect(contract.preserves_initialized_stage);
+    try std.testing.expectEqual(@as(usize, 0), contract.replay_runs_after_cycle);
+    try std.testing.expectEqual(@as(usize, 7), contract.exact_iteration_fit_len);
+    try std.testing.expectEqual(@as(usize, 12), contract.exact_selected_fit_len);
+    try std.testing.expectEqual(@as(usize, 32), contract.exact_wrapped_selected_fit_len);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, contract.review_focus);
+    try std.testing.expectEqual(@as(i32, 4), contract.cases[4].iteration_count);
+    try std.testing.expectEqualStrings("One ring to rule them all", contract.cases[4].selected_string);
+    try std.testing.expectEqualStrings("iter=4", contract.cases[4].formatted_message);
+    try std.testing.expectEqualStrings(
+        "One ring to rule them all iter=4",
+        contract.cases[4].selected_iteration_message,
+    );
 }
 
 test "phase 5 trace-events formatting companion keeps lifecycle boundaries explicit" {
