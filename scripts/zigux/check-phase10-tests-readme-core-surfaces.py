@@ -32,6 +32,8 @@ COMPANION_REQUIRED_MARKERS = (
     "`zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`",
     "`zigux/tests/phase10_virtio_input_teardown_preflight.zig`",
     "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`",
+    "`drivers/virtio/virtio_mmio_apply_observation.zig`",
+    "`drivers/virtio/virtio_mmio_config_write_plan_freshness.zig`",
     "`zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`",
     "`zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`",
     "`scripts/zigux/validate-phase10.py`",
@@ -147,6 +149,8 @@ Keep the current bounded virtio closure packet explicit through the shared remin
 `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
 `zigux/tests/phase10_virtio_input_teardown_preflight.zig`
 `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`
+`drivers/virtio/virtio_mmio_apply_observation.zig`
+`drivers/virtio/virtio_mmio_config_write_plan_freshness.zig`
 `zigux/tests/phase10_virtio_mmio_apply_observation_replay.zig`
 `zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`
 `scripts/zigux/validate-phase10.py`
@@ -211,6 +215,20 @@ do not widen this scripts-root packet into queue execution parity, IRQ delivery,
         raise AssertionError("expected companion marker failure")
 
     try:
+        check_companion_text(good_companion.replace("`drivers/virtio/virtio_mmio_apply_observation.zig`\n", "", 1))
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("expected MMIO apply-observation companion marker failure")
+
+    try:
+        check_companion_text(good_companion.replace("`drivers/virtio/virtio_mmio_config_write_plan_freshness.zig`\n", "", 1))
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("expected MMIO plan-freshness companion marker failure")
+
+    try:
         check_tests_root_readme(good_tests_root.replace("`zigux/tests/build.phase10_virtio_mmio_apply_observation_replay.zig`\n", "", 1))
     except SystemExit:
         pass
@@ -225,7 +243,7 @@ do not widen this scripts-root packet into queue execution parity, IRQ delivery,
         raise AssertionError("expected scripts-root forbidden marker failure")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
