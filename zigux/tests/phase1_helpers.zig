@@ -86,6 +86,8 @@ const Fixture = struct {
     list_sort: struct {
         tri_sorted_keys: []const i32,
         tri_sorted_ordinals: []const usize,
+        bool_sorted_keys: []const i32,
+        bool_sorted_ordinals: []const usize,
     },
     bitmap: struct {
         weight: usize,
@@ -331,6 +333,40 @@ test "phase 1 helper ports match committed parity fixture" {
     }
     try std.testing.expectEqualSlices(i32, fixture.list_sort.tri_sorted_keys, sorted_keys[0..count]);
     try std.testing.expectEqualSlices(usize, fixture.list_sort.tri_sorted_ordinals, sorted_ordinals[0..count]);
+
+    var bool_head: list_sort.ListHead = .{};
+    bool_head.init();
+    var bool_entries = [_]ListSortReplayEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    const bool_cmp = struct {
+        fn less(_: ?*anyopaque, lhs: *const list_sort.ListHead, rhs: *const list_sort.ListHead) i32 {
+            const lhs_entry: *const ListSortReplayEntry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const ListSortReplayEntry = @fieldParentPtr("node", rhs);
+            return @intFromBool(lhs_entry.key > rhs_entry.key);
+        }
+    }.less;
+    for (&bool_entries) |*entry| {
+        list_sort.listAddTail(&entry.node, &bool_head);
+    }
+    list_sort.listSort(null, &bool_head, bool_cmp);
+
+    var bool_sorted_keys: [5]i32 = undefined;
+    var bool_sorted_ordinals: [5]usize = undefined;
+    var bool_count: usize = 0;
+    var bool_current = bool_head.next;
+    while (bool_current != &bool_head) : (bool_current = bool_current.?.next) {
+        const entry: *const ListSortReplayEntry = @fieldParentPtr("node", bool_current.?);
+        bool_sorted_keys[bool_count] = entry.key;
+        bool_sorted_ordinals[bool_count] = entry.ordinal;
+        bool_count += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.list_sort.bool_sorted_keys, bool_sorted_keys[0..bool_count]);
+    try std.testing.expectEqualSlices(usize, fixture.list_sort.bool_sorted_ordinals, bool_sorted_ordinals[0..bool_count]);
 
     const nbits = fixture.find_bit.bits_per_long * 2 + 8;
     const bitmap_a = [_]find_bit.Word{
