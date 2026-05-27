@@ -43,3 +43,27 @@ test "phase10 virtio mmio apply-observation replay keeps no-op and stale plans d
         apply_observation.summarizeConfigWriteApplyObservation(&device),
     );
 }
+
+test "phase10 virtio mmio apply-observation replay clears stale plans across config restaging" {
+    var device = try virtio_mmio.VirtioMmioLab.init(101, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0907);
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x08, 0x07, 0x06, 0x05 });
+    try std.testing.expectError(
+        error.ConfigWritePlanUnavailable,
+        apply_observation.summarizeConfigWriteApplyObservation(&device),
+    );
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0506_0709);
+    const refreshed = try apply_observation.summarizeConfigWriteApplyObservation(&device);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, refreshed.anchor);
+    try std.testing.expectEqual(@as(u32, 0x0506_0708), refreshed.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0506_0709), refreshed.planned_value);
+    try std.testing.expectEqual(@as(u4, 0b1111), refreshed.touched_byte_mask);
+    try std.testing.expectEqual(@as(u4, 0b0001), refreshed.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 4), apply_observation.touchedByteCount(refreshed));
+    try std.testing.expectEqual(@as(u3, 1), apply_observation.changedByteCount(refreshed));
+    try std.testing.expect(apply_observation.changedBytesStayWithinTouchedMask(refreshed));
+    try std.testing.expect(apply_observation.appliesByteChanges(refreshed));
+}
