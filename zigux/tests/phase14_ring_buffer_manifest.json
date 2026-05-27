@@ -25,7 +25,7 @@
   "study_only_governance": {
     "status_bucket": "study_only",
     "ready_next_gap": "",
-    "last_closed_followup": "phase14-ring-buffer-maintenance-handoff",
+    "last_closed_followup": "phase14-ring-buffer-resize-disabled-lifetime-followup",
     "blocked_gap": "phase14-ring-buffer-zig-port-blocker",
     "lane_reopen_scope": "same_packet_truthfulness_repairs_only",
     "why_now": "The surviving ring-buffer packet still lands its boundary checklist plus overwrite, wakeup, mapping, ioctl, remote-reader, reader-page, read-page, and tracefs reader-serialization audits. Current public raw-file readback still returns the dedicated survey companion, but the shared Phase 14 build shard does not currently return through this lane's exact readback path. The honest posture is therefore parked study-only governance maintained through the note-plus-manifest packet with replay wording narrowed to the returned survey companion plus shared-smoke manifest vocabulary rather than a parity claim."
@@ -102,6 +102,19 @@
         "tracing_buffers_splice_read"
       ],
       "rationale": "A mapped reader pins `resize_disabled`, blocks snapshot-style buffer swaps for mapped pages, keeps `rb_remove_pages()` teardown under the same page-lifetime contract, and forces tracefs splice reads onto the copying path, so the mapping limitations remain one shared C-owned contract rather than a wrapper-first seam."
+    },
+    {
+      "id": "resize-disabled-lifetime-boundary",
+      "summary": "Keep mapped-reader, iterator, and exported-page resize pinning in C while the survey records their shared lifetime gate.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "ring_buffer_map",
+        "ring_buffer_unmap",
+        "ring_buffer_read_start",
+        "ring_buffer_finish",
+        "ring_buffer_read_page"
+      ],
+      "rationale": "Mapped readers increment `resize_disabled`, iterator start pins the same counter until `ring_buffer_finish()` runs, and read-page extraction can force copy behavior while that shared lifetime gate is active, so Phase 14 should record one combined resize-disabled ownership boundary rather than imply wrapper-safe seams across those access modes."
     },
     {
       "id": "reader-page-consume-boundary",
@@ -227,6 +240,13 @@
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
       "why_now": "The lane now records a narrow read-page extraction audit around `ring_buffer_alloc_read_page()`, `ring_buffer_read_page()`, partial-copy versus page-swap behavior, and the `resize_disabled` handoff so exported-page reads stay explicit before any bridge candidate is entertained."
+    },
+    {
+      "id": "phase14-ring-buffer-resize-disabled-lifetime-followup",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "zigux/tests/phase14_ring_buffer_manifest.json",
+      "why_now": "The lane now records one narrow shared resize-disabled lifetime audit across mapped-reader entry and exit, iterator pinning, and exported-page extraction so future review passes stop treating those access modes as separable wrapper seams."
     },
     {
       "id": "phase14-ring-buffer-tracefs-reader-serialization-followup",
