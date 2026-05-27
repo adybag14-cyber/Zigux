@@ -29,9 +29,9 @@
   },
   "bitmap": {
     "weight": 3,
-    "scnprintf": "1-3,7,10-11",
+    "scnprintf": "1-3,66-67",
     "truncated_scnprintf_len": 7,
-    "truncated_scnprintf": "1-3,7,1",
+    "truncated_scnprintf": "1-3,66-",
     "terminator_only_scnprintf_len": 0,
     "terminator_only_nul": 0,
     "zero_length_scnprintf_len": 0,
