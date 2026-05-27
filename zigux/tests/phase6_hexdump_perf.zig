@@ -73,12 +73,26 @@ fn validatePerfMatrix() !void {
                 .big = "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.",
             },
         },
+        .{
+            .label = "12B-ascii-fallback",
+            .len = 12,
+            .rowsize = 99,
+            .groupsize = 3,
+            .ascii = true,
+            .reps = 20_000,
+            .max_slowdown_pct = 550,
+            .expected_text = fixtures.ExpectedText{
+                .little = "be 32 db 7b 0a 18 93 b2 70 ba c4 24              .2.{....p..$",
+                .big = "be 32 db 7b 0a 18 93 b2 70 ba c4 24              .2.{....p..$",
+            },
+        },
     };
 
     var saw_plain_g1 = false;
     var saw_ascii_g2 = false;
     var saw_ascii_g4 = false;
     var saw_ascii_g8 = false;
+    var saw_ascii_fallback = false;
 
     if (fixtures.perf_cases.len != expected.len) return error.HexdumpPerfMatrixMismatch;
 
@@ -165,6 +179,9 @@ fn validatePerfMatrix() !void {
         } else if (std.mem.eql(u8, case.label, "16B-ascii-g8")) {
             if (saw_ascii_g8) return error.HexdumpPerfMatrixMismatch;
             saw_ascii_g8 = true;
+        } else if (std.mem.eql(u8, case.label, "12B-ascii-fallback")) {
+            if (saw_ascii_fallback) return error.HexdumpPerfMatrixMismatch;
+            saw_ascii_fallback = true;
         } else {
             return error.HexdumpPerfMatrixMismatch;
         }
@@ -174,7 +191,7 @@ fn validatePerfMatrix() !void {
         }
     }
 
-    if (!saw_plain_g1 or !saw_ascii_g2 or !saw_ascii_g4 or !saw_ascii_g8) {
+    if (!saw_plain_g1 or !saw_ascii_g2 or !saw_ascii_g4 or !saw_ascii_g8 or !saw_ascii_fallback) {
         return error.HexdumpPerfMatrixMismatch;
     }
 }
