@@ -2,8 +2,8 @@
   "phase": "Phase 3",
   "lane": "helper-interop",
   "slug": "phase3-idr-slot",
-  "status": "starter_packet_present",
-  "scope": "helper-local idr slot starter packet built on xarray slot tagging rules",
+  "status": "starter_and_dump_packet_present",
+  "scope": "helper-local idr slot starter packet plus fixture-backed dump parity",
   "packet_files": [
     "Documentation/zigux/phase3-idr-slot-slice.md",
     "zigux/helpers/err_ptr.zig",
@@ -12,13 +12,22 @@
     "zigux/helpers/idr_slot_view.zig",
     "zigux/tests/phase3_idr_slot_starter_packet.zig",
     "zigux/tests/phase3_idr_slot_starter_packet_build.zig",
-    "scripts/zigux/check-phase3-idr-slot-starter-packet.py"
+    "scripts/zigux/check-phase3-idr-slot-starter-packet.py",
+    "zigux/tests/phase3_idr_slot_dump.zig",
+    "zigux/tests/phase3_idr_slot_dump_build.zig",
+    "zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c",
+    "zigux/tests/fixtures/phase3_idr_slot/expected.json",
+    "zigux/tests/fixtures/phase3_idr_slot_manifest.json",
+    "scripts/zigux/check-phase3-idr-slot.py"
   ],
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-idr-slot-starter-packet.py --repo-root .",
-    "zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig"
+    "zig build phase3-idr-slot-starter-packet-test --build-file zigux/tests/phase3_idr_slot_starter_packet_build.zig",
+    "python3 scripts/zigux/check-phase3-idr-slot.py --self-test",
+    "python3 scripts/zigux/check-phase3-idr-slot.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-idr-slot-dump --build-file zigux/tests/phase3_idr_slot_dump_build.zig"
   ],
   "repo_reality_gaps": [],
-  "next_safe_step": "keep any same-lane follow-through narrowed to shared Phase 3 survey alignment only if current master needs this helper-local starter packet reflected in the broader ABI packet"
+  "next_safe_step": "keep any same-lane follow-through narrowed to shared validator alignment or ida family follow-through after rereading current master"
 }
