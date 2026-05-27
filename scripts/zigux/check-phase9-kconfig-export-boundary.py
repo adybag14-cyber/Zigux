@@ -17,7 +17,7 @@ RUST_EXPORTS_PATH = pathlib.Path("rust/exports.c")
 
 NOTE_MARKERS = (
     "`scripts/zigux/kconfig/conf_bridge.zig` keeps the current mode and flag bridge for `syncconfig`, `defconfig`, and the bounded allconfig sentinel family",
-    "`scripts/zigux/kconfig/confdata_bridge.zig` keeps the current config-file parsing bridge for `CONFIG_` keys, unset markers, quoted strings, and line-normalization edge cases",
+    "`scripts/zigux/kconfig/confdata_bridge.zig` keeps the current config-file parsing bridge for `CONFIG_` keys, unset markers, quoted strings, line-normalization edge cases, and bounded symbol-export projections for `auto.conf` plus `autoconf.h`",
     "`zigux/kernel/export_shim.zig` keeps the current direct Phase 3 export-boundary surface through `ExportStatus`, boundary-header validation, and interop-policy validation",
     "`rust/exports.c` does not materialize on the trusted current-`master` direct-read path",
 )
@@ -34,6 +34,8 @@ CONFDATA_BRIDGE_MARKERS = (
     "fn truncateAtFirstNull(text: []const u8) []const u8 {",
     "fn parseUnsetSymbol(line: []const u8) ?[]const u8 {",
     "pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {",
+    "pub fn emitAutoConfExports(writer: anytype, summary: Summary) !void {",
+    "pub fn emitAutoconfHeaderExports(writer: anytype, summary: Summary) !void {",
 )
 
 EXPORT_SHIM_MARKERS = (
@@ -105,7 +107,7 @@ def write_sample_root(root: pathlib.Path) -> None:
         "# Phase 9 Kconfig And Export Boundary Evidence\n\n"
         "This note records the current cross-phase boundary that the Phase 9 runtime-pilot lanes should treat as supporting evidence only.\n\n"
         "- `scripts/zigux/kconfig/conf_bridge.zig` keeps the current mode and flag bridge for `syncconfig`, `defconfig`, and the bounded allconfig sentinel family.\n"
-        "- `scripts/zigux/kconfig/confdata_bridge.zig` keeps the current config-file parsing bridge for `CONFIG_` keys, unset markers, quoted strings, and line-normalization edge cases.\n"
+        "- `scripts/zigux/kconfig/confdata_bridge.zig` keeps the current config-file parsing bridge for `CONFIG_` keys, unset markers, quoted strings, line-normalization edge cases, and bounded symbol-export projections for `auto.conf` plus `autoconf.h`.\n"
         "- `zigux/kernel/export_shim.zig` keeps the current direct Phase 3 export-boundary surface through `ExportStatus`, boundary-header validation, and interop-policy validation.\n"
         "- `rust/exports.c` does not materialize on the trusted current-`master` direct-read path, so keep it as historical export-boundary vocabulary until direct rereads return it.\n",
         root,
@@ -135,6 +137,14 @@ def write_sample_root(root: pathlib.Path) -> None:
         "    _ = allocator;\n"
         "    _ = input;\n"
         "    return undefined;\n"
+        "}\n"
+        "pub fn emitAutoConfExports(writer: anytype, summary: Summary) !void {\n"
+        "    _ = writer;\n"
+        "    _ = summary;\n"
+        "}\n"
+        "pub fn emitAutoconfHeaderExports(writer: anytype, summary: Summary) !void {\n"
+        "    _ = writer;\n"
+        "    _ = summary;\n"
         "}\n",
         root,
     )
