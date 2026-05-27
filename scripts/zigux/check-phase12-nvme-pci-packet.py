@@ -15,6 +15,7 @@ CHECK_NAME = "PHASE12_NVME_PCI_PACKET"
 
 MANIFEST_PATH = "zigux/tests/phase12_nvme_pci_manifest.json"
 DIRECT_BUILD_PATH = "zigux/tests/phase12_nvme_pci_build.zig"
+SURVEY_BUILD_PATH = "zigux/tests/phase12_nvme_pci_survey_build.zig"
 DIRECT_REPLAY_PATH = "zigux/tests/phase12_nvme_pci.zig"
 VERIFIER_PATH = "drivers/nvme/host/pci_verify.zig"
 FALLBACK_MAP_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
@@ -145,6 +146,7 @@ EXTRA_REQUIRED_PATHS = (
     "drivers/nvme/host/pci.zig",
     VERIFIER_PATH,
     DIRECT_BUILD_PATH,
+    SURVEY_BUILD_PATH,
     DIRECT_REPLAY_PATH,
 )
 
@@ -153,7 +155,14 @@ TEXT_MARKERS = {
         "phase12_nvme_pci.zig",
         "phase12-nvme-pci-direct-tests",
         "phase12-nvme-pci-direct-test",
-        "Run the direct Phase 12 NVMe PCI replay in isolation",
+        "Run the direct Phase 12 NVMe PCI replay, helper-local wrapper proof, and driver-local verifier in isolation",
+    ),
+    SURVEY_BUILD_PATH: (
+        "phase12_nvme_pci_survey.zig",
+        "phase12-nvme-pci-survey-tests",
+        "run_tests.setCwd(b.path(\"../..\"));",
+        "phase12-nvme-pci-survey-test",
+        "Run the Phase 12 NVMe PCI survey gate tests in isolation",
     ),
     DIRECT_REPLAY_PATH: (
         "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit",
@@ -362,6 +371,7 @@ def write_fixture(root: Path) -> None:
     fixture_files = {
         MANIFEST_PATH: json.dumps(manifest, indent=2) + "\n",
         DIRECT_BUILD_PATH: "\n".join(TEXT_MARKERS[DIRECT_BUILD_PATH]) + "\n",
+        SURVEY_BUILD_PATH: "\n".join(TEXT_MARKERS[SURVEY_BUILD_PATH]) + "\n",
         DIRECT_REPLAY_PATH: "\n".join(TEXT_MARKERS[DIRECT_REPLAY_PATH]) + "\n",
         VERIFIER_PATH: "\n".join(TEXT_MARKERS[VERIFIER_PATH]) + "\n",
         FALLBACK_MAP_PATH: "\n".join(TEXT_MARKERS[FALLBACK_MAP_PATH]) + "\n",
@@ -456,6 +466,11 @@ def run_self_test() -> int:
         cases += 1
 
         write_fixture(root)
+        rewrite(root, SURVEY_BUILD_PATH, "phase12_nvme_pci_survey.zig\n")
+        expect_failure(root, SURVEY_BUILD_PATH)
+        cases += 1
+
+        write_fixture(root)
         rewrite(root, DIRECT_REPLAY_PATH, "phase12 nvme pci direct replay keeps stale recovery reservation debt explicit\n")
         expect_failure(root, DIRECT_REPLAY_PATH)
         cases += 1
@@ -498,6 +513,11 @@ def run_self_test() -> int:
         write_fixture(root)
         (root / DIRECT_BUILD_PATH).unlink()
         expect_failure(root, "phase12_nvme_pci_build.zig")
+        cases += 1
+
+        write_fixture(root)
+        (root / SURVEY_BUILD_PATH).unlink()
+        expect_failure(root, "phase12_nvme_pci_survey_build.zig")
         cases += 1
 
     print(f"{CHECK_NAME}_SELF_TEST=pass")
