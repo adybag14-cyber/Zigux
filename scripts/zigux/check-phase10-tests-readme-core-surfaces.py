@@ -11,10 +11,38 @@ import sys
 SURFACE_PATH = Path("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
 TESTS_ROOT_README_PATH = Path("zigux/tests/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 PHASE10_START = "## Phase 10 tests-root packet"
 PHASE10_END = "## Phase 11 tests-root packet"
 SCRIPTS_PHASE10_START = "## Phase 10"
 SCRIPTS_PHASE10_END = "## Phase 12"
+
+PHASE9_TRACE_PREDECESSOR_MARKER = (
+    "`samples/zigux/runtime_trace_events.zig`, "
+    "`samples/zigux/runtime_trace_events_unregistered_gate.zig`, "
+    "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, and "
+    "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig` explicit as the shipped trace-events runtime proof"
+)
+
+PHASE9_BITMAP_PREDECESSOR_MARKER = (
+    "the partial separate runtime bitmap reminder packet stays explicit in `samples/zigux/README.md`, "
+    "`Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md`"
+)
+
+PHASE9_KRETPROBE_PREDECESSOR_MARKER = (
+    "keep the returned family-local runtime kretprobe packet explicit through "
+    "`samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, "
+    "`samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig`, "
+    "`samples/zigux/runtime_kretprobe_registration_reentry_gate.zig`, "
+    "`zigux/tests/runtime_kretprobe_survey.zig`, `zigux/tests/runtime_kretprobe_module.zig`, "
+    "`zigux/tests/runtime_first_loadable_parity_behavior.zig`, and the bounded "
+    "`zigux/tests/phase9_build.zig` routes `phase9-runtime-kretprobe-sample-tests`, "
+    "`phase9-runtime-kretprobe-loader-tests`, "
+    "`phase9-runtime-kretprobe-initialized-snapshot-guard-tests`, "
+    "`phase9-runtime-kretprobe-registration-reentry-gate-tests`, "
+    "`phase9-runtime-kretprobe-survey-tests`, `phase9-runtime-kretprobe-module-tests`, "
+    "`phase9-runtime-kretprobe-tests`, and `phase9-first-loadable-runtime-module-parity-behavior-tests`"
+)
 
 
 COMPANION_REQUIRED_MARKERS = (
@@ -90,6 +118,12 @@ SCRIPTS_ROOT_FORBIDDEN_MARKERS = (
     "remain the narrower core-side repo-reality gaps on current `master`",
 )
 
+REVIEW_CHECKLIST_REQUIRED_MARKERS = (
+    PHASE9_TRACE_PREDECESSOR_MARKER,
+    PHASE9_BITMAP_PREDECESSOR_MARKER,
+    PHASE9_KRETPROBE_PREDECESSOR_MARKER,
+)
+
 
 def section(text: str, start_marker: str, end_marker: str) -> str:
     start = text.find(start_marker)
@@ -127,6 +161,10 @@ def check_scripts_readme(text: str) -> None:
     phase10 = section(text, SCRIPTS_PHASE10_START, SCRIPTS_PHASE10_END)
     require_markers(phase10, SCRIPTS_ROOT_REQUIRED_MARKERS, "scripts-readme")
     forbid_markers(phase10, SCRIPTS_ROOT_FORBIDDEN_MARKERS, "scripts-readme")
+
+
+def check_review_checklist(text: str) -> None:
+    require_markers(text, REVIEW_CHECKLIST_REQUIRED_MARKERS, "review-checklist")
 
 
 def run_self_test() -> int:
@@ -198,10 +236,16 @@ do not widen this scripts-root packet into queue execution parity, IRQ delivery,
 
 ## Phase 12
 """
+    good_review_checklist = f"""# Review checklist
+{PHASE9_TRACE_PREDECESSOR_MARKER}
+{PHASE9_BITMAP_PREDECESSOR_MARKER}
+{PHASE9_KRETPROBE_PREDECESSOR_MARKER}
+"""
 
     check_companion_text(good_companion)
     check_tests_root_readme(good_tests_root)
     check_scripts_readme(good_scripts)
+    check_review_checklist(good_review_checklist)
 
     try:
         check_companion_text(good_companion.replace("`scripts/zigux/check-phase10-core-packet.py`\n", "", 1))
@@ -224,8 +268,21 @@ do not widen this scripts-root packet into queue execution parity, IRQ delivery,
     else:
         raise AssertionError("expected scripts-root forbidden marker failure")
 
+    try:
+        check_review_checklist(
+            good_review_checklist.replace(
+                "runtime_kretprobe_registration_reentry_gate.zig",
+                "runtime_kretprobe_registration_reentry_gate_missing.zig",
+                1,
+            )
+        )
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("expected review-checklist marker failure")
+
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -235,6 +292,7 @@ def main() -> int:
     parser.add_argument("--source", type=Path, default=SURFACE_PATH)
     parser.add_argument("--tests-root-readme", type=Path, default=TESTS_ROOT_README_PATH)
     parser.add_argument("--scripts-readme", type=Path, default=SCRIPTS_README_PATH)
+    parser.add_argument("--review-checklist", type=Path, default=REVIEW_CHECKLIST_PATH)
     args = parser.parse_args()
 
     if args.self_test:
@@ -243,6 +301,7 @@ def main() -> int:
     check_companion_text(args.source.read_text(encoding="utf-8"))
     check_tests_root_readme(args.tests_root_readme.read_text(encoding="utf-8"))
     check_scripts_readme(args.scripts_readme.read_text(encoding="utf-8"))
+    check_review_checklist(args.review_checklist.read_text(encoding="utf-8"))
     print("PHASE10_TESTS_ROOT_COMPANION_CHECK=pass")
     return 0
 
