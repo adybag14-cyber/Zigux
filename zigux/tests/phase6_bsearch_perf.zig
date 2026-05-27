@@ -14,6 +14,11 @@ const PerfResult = struct {
     max_compare_budget: usize,
     witness_max_compare_calls: usize,
     witness_case_count: usize,
+    avg_range_compare_calls: f64,
+    max_range_compare_calls: usize,
+    max_range_compare_budget: usize,
+    range_witness_max_compare_calls: usize,
+    range_witness_case_count: usize,
 };
 
 const VariantStats = struct {
@@ -36,6 +41,18 @@ const ExpectedBounds = struct {
     upper: usize,
 };
 
+const DuplicateRangeCase = struct {
+    query: u32,
+    expect_hit: bool,
+};
+
+const duplicate_range_cases = [_]DuplicateRangeCase{
+    .{ .query = 21, .expect_hit = true },
+    .{ .query = 20, .expect_hit = false },
+    .{ .query = 22, .expect_hit = false },
+    .{ .query = 50, .expect_hit = false },
+};
+
 var compare_calls: usize = 0;
 
 pub fn main(init: std.process.Init) !void {
@@ -44,7 +61,7 @@ pub fn main(init: std.process.Init) !void {
     for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
-            "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={} witness_max_compare_calls={} witness_case_count={}\n",
+            "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={} witness_max_compare_calls={} witness_case_count={} avg_range_compare_calls={d:.2} max_range_compare_calls={} max_range_compare_budget={} range_witness_max_compare_calls={} range_witness_case_count={}\n",
             .{
                 case.label,
                 case.len,
@@ -55,6 +72,11 @@ pub fn main(init: std.process.Init) !void {
                 result.max_compare_budget,
                 result.witness_max_compare_calls,
                 result.witness_case_count,
+                result.avg_range_compare_calls,
+                result.max_range_compare_calls,
+                result.max_range_compare_budget,
+                result.range_witness_max_compare_calls,
+                result.range_witness_case_count,
             },
         );
     }
@@ -102,6 +124,10 @@ fn compareCountedOpaqueDescending(key: *const anyopaque, item: *const anyopaque)
 
 fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
+}
+
+fn maxSearchComparisons(item_count: usize) usize {
+    return if (item_count == 0) 0 else std.math.log2_int_ceil(usize, item_count) + 1;
 }
 
 fn expectedBounds(values: []const u32, query: u32, descending: bool) ExpectedBounds {
@@ -180,6 +206,28 @@ fn runTypedBoundVariants(values: []const u32, query: u32, descending: bool, comp
     }
 }
 
+fn runTypedEqualRangeVariants(values: []const u32, query: u32, descending: bool, compare: TypedComparator, stats: *VariantStats) !void {
+    const expected = expectedBounds(values, query, descending);
+
+    compare_calls = 0;
+    const range = bsearch.equalRangeIndex(u32, u32, &query, values, compare);
+    stats.record(compare_calls);
+    try std.testing.expectEqual(expected.lower, range.lower);
+    try std.testing.expectEqual(expected.upper, range.upper);
+
+    compare_calls = 0;
+    const view = bsearch.equalRange(u32, u32, &query, values, compare);
+    stats.record(compare_calls);
+    try std.testing.expectEqual(expected.upper - expected.lower, view.len);
+    try std.testing.expectEqual(@intFromPtr(values.ptr + expected.lower), @intFromPtr(view.ptr));
+
+    if (expected.lower != expected.upper) {
+        for (view) |value| {
+            try std.testing.expectEqual(query, value);
+        }
+    }
+}
+
 fn runRawVariants(values: []const u32, query: u32, expected_hit: bool, compare: RawComparator, stats: *VariantStats) !void {
     const base: [*]const u8 = @ptrCast(values.ptr);
 
@@ -243,6 +291,31 @@ fn runRawBoundVariants(values: []const u32, query: u32, descending: bool, compar
     }
 }
 
+fn runRawEqualRangeVariants(values: []const u32, query: u32, descending: bool, compare: RawComparator, stats: *VariantStats) !void {
+    const expected = expectedBounds(values, query, descending);
+    const base: [*]const u8 = @ptrCast(values.ptr);
+
+    compare_calls = 0;
+    const range = bsearch.bsearchEqualRangeIndex(&query, base, values.len, @sizeOf(u32), compare);
+    stats.record(compare_calls);
+    try std.testing.expectEqual(expected.lower, range.lower);
+    try std.testing.expectEqual(expected.upper, range.upper);
+
+    compare_calls = 0;
+    const bytes = bsearch.bsearchEqualRange(&query, base, values.len, @sizeOf(u32), compare);
+    stats.record(compare_calls);
+    try std.testing.expectEqual((expected.upper - expected.lower) * @sizeOf(u32), bytes.len);
+    try std.testing.expectEqual(@intFromPtr(base + (expected.lower * @sizeOf(u32))), @intFromPtr(bytes.ptr));
+
+    if (expected.lower != expected.upper) {
+        const typed_view: [*]const u32 = @ptrCast(@alignCast(bytes.ptr));
+        const values_view = typed_view[0 .. bytes.len / @sizeOf(u32)];
+        for (values_view) |value| {
+            try std.testing.expectEqual(query, value);
+        }
+    }
+}
+
 fn runWitnessCases(
     values: []const u32,
     queries: []const u32,
@@ -258,6 +331,25 @@ fn runWitnessCases(
         try runTypedBoundVariants(values, query, descending, typed_compare, &stats);
         try runRawVariants(values, query, expected_hit, raw_compare, &stats);
         try runRawBoundVariants(values, query, descending, raw_compare, &stats);
+    }
+
+    return .{
+        .max_compare_calls = stats.max_compare_calls,
+        .case_count = stats.case_count,
+    };
+}
+
+fn runDuplicateRangeWitnessCases(
+    values: []const u32,
+    descending: bool,
+    typed_compare: TypedComparator,
+    raw_compare: RawComparator,
+) !WitnessResult {
+    var stats = VariantStats{};
+
+    for (duplicate_range_cases) |case| {
+        try runTypedEqualRangeVariants(values, case.query, descending, typed_compare, &stats);
+        try runRawEqualRangeVariants(values, case.query, descending, raw_compare, &stats);
     }
 
     return .{
@@ -285,7 +377,11 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     }
     populateDescending(descending_values, ascending_values);
 
-    const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;
+    const max_compare_budget = maxSearchComparisons(case.len);
+    const max_range_compare_budget = @max(
+        maxSearchComparisons(fixtures.representative_duplicate_values.len) * 2,
+        maxSearchComparisons(fixtures.representative_descending_duplicate_values.len) * 2,
+    );
 
     var ascending_queries: [fixtures.query_count]u32 = undefined;
     var ascending_expected_hits: [fixtures.query_count]bool = undefined;
@@ -315,7 +411,24 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     );
     try std.testing.expect(descending_witness.max_compare_calls <= max_compare_budget);
 
+    const ascending_range_witness = try runDuplicateRangeWitnessCases(
+        fixtures.representative_duplicate_values[0..],
+        false,
+        compareCounted,
+        compareCountedOpaque,
+    );
+    try std.testing.expect(ascending_range_witness.max_compare_calls <= max_range_compare_budget);
+
+    const descending_range_witness = try runDuplicateRangeWitnessCases(
+        fixtures.representative_descending_duplicate_values[0..],
+        true,
+        compareCountedDescending,
+        compareCountedOpaqueDescending,
+    );
+    try std.testing.expect(descending_range_witness.max_compare_calls <= max_range_compare_budget);
+
     var perf_stats = VariantStats{};
+    var range_stats = VariantStats{};
     const started_at = benchTime(io);
 
     for (0..case.reps) |_| {
@@ -331,21 +444,60 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
             try runRawVariants(descending_values, query, expected_hit, compareCountedOpaqueDescending, &perf_stats);
             try runRawBoundVariants(descending_values, query, true, compareCountedOpaqueDescending, &perf_stats);
         }
+        for (duplicate_range_cases) |range_case| {
+            try runTypedEqualRangeVariants(
+                fixtures.representative_duplicate_values[0..],
+                range_case.query,
+                false,
+                compareCounted,
+                &range_stats,
+            );
+            try runRawEqualRangeVariants(
+                fixtures.representative_duplicate_values[0..],
+                range_case.query,
+                false,
+                compareCountedOpaque,
+                &range_stats,
+            );
+            try runTypedEqualRangeVariants(
+                fixtures.representative_descending_duplicate_values[0..],
+                range_case.query,
+                true,
+                compareCountedDescending,
+                &range_stats,
+            );
+            try runRawEqualRangeVariants(
+                fixtures.representative_descending_duplicate_values[0..],
+                range_case.query,
+                true,
+                compareCountedOpaqueDescending,
+                &range_stats,
+            );
+        }
     }
 
     const elapsed = benchTime(io) - started_at;
     const avg_compare_calls = @as(f64, @floatFromInt(perf_stats.total_compare_calls)) /
         @as(f64, @floatFromInt(perf_stats.case_count));
+    const avg_range_compare_calls = @as(f64, @floatFromInt(range_stats.total_compare_calls)) /
+        @as(f64, @floatFromInt(range_stats.case_count));
 
     try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));
     try std.testing.expect(perf_stats.max_compare_calls <= max_compare_budget);
+    try std.testing.expect(avg_range_compare_calls <= @as(f64, @floatFromInt(max_range_compare_budget)));
+    try std.testing.expect(range_stats.max_compare_calls <= max_range_compare_budget);
 
     return .{
-        .ns_per_lookup = @max(@as(u64, @intCast(@divFloor(elapsed, @as(i96, @intCast(perf_stats.case_count))))), 1),
+        .ns_per_lookup = @max(@as(u64, @intCast(@divFloor(elapsed, @as(i96, @intCast(perf_stats.case_count + range_stats.case_count))))), 1),
         .avg_compare_calls = avg_compare_calls,
         .max_compare_calls = perf_stats.max_compare_calls,
         .max_compare_budget = max_compare_budget,
         .witness_max_compare_calls = @max(ascending_witness.max_compare_calls, descending_witness.max_compare_calls),
         .witness_case_count = ascending_witness.case_count + descending_witness.case_count,
+        .avg_range_compare_calls = avg_range_compare_calls,
+        .max_range_compare_calls = range_stats.max_compare_calls,
+        .max_range_compare_budget = max_range_compare_budget,
+        .range_witness_max_compare_calls = @max(ascending_range_witness.max_compare_calls, descending_range_witness.max_compare_calls),
+        .range_witness_case_count = ascending_range_witness.case_count + descending_range_witness.case_count,
     };
 }
