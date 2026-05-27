@@ -123,8 +123,12 @@ REQUIRED_MARKERS = {
     ),
     LAYOUT_TEST_PATH: (
         'test "header-family binding keeps the bounded relay surface explicit" {',
+        'test "header-family status wrappers stay aligned with export shim validation" {',
+        'test "version binding relays centralized boundary header helpers without widening the boundary" {',
+        'test "export shim relays version compatibility without widening the boundary" {',
         'test "export shim relays starter boundary-header validation through the focused replay" {',
         'test "export shim relays starter dev_t validation and range checks through the focused replay" {',
+        'test "export shim reuses the canonical boundary header contract" {',
     ),
     LAYOUT_BUILD_PATH: (
         '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
@@ -246,6 +250,16 @@ def run_self_test() -> int:
                 BINDING_HEADER_FAMILY_PATH,
                 "pub fn validateDevTRangeStatus(start: DevTFields, end: DevTFields) ExportStatus {",
                 "expected header-family range-status marker removal to fail validation",
+            ),
+            (
+                LAYOUT_TEST_PATH,
+                'test "header-family status wrappers stay aligned with export shim validation" {',
+                "expected export/UAPI layout status-wrapper replay removal to fail validation",
+            ),
+            (
+                LAYOUT_TEST_PATH,
+                'test "export shim reuses the canonical boundary header contract" {',
+                "expected export/UAPI layout canonical-boundary replay removal to fail validation",
             ),
             (
                 MANIFEST_PATH,
