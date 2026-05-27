@@ -183,6 +183,16 @@ CHECK_COMMANDS = (
             "validated zigux/tests/fixtures/phase3_list_hlist_manifest.json",
         ),
     ),
+    (
+        Path("scripts/zigux/check-phase3-list-hlist.py"),
+        (),
+        (
+            "validated zigux/tests/phase3_list_hlist_dump.zig",
+            "validated zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
+            "validated zigux/tests/fixtures/phase3_list_hlist/expected.json",
+            "validated zigux/tests/fixtures/phase3_list_hlist_manifest.json",
+        ),
+    ),
 )
 
 SELF_TEST_MISSING_CASES = (
@@ -209,7 +219,8 @@ SELF_TEST_MISSING_CASES = (
     (20, "expected selftest-surface script omission was not reported"),
     (21, "expected abi manifest replay-routes script omission was not reported"),
     (22, "expected bitmap-cpumask script omission was not reported"),
-    (23, "expected list-hlist script omission was not reported"),
+    (23, "expected list-hlist starter script omission was not reported"),
+    (24, "expected full list-hlist script omission was not reported"),
 )
 
 
@@ -679,10 +690,47 @@ def run_self_test() -> int:
         ):
             return 1
 
+        if (
+            expect_missing_output_marker(
+                24,
+                0,
+                "expected missing full list-hlist dump output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                24,
+                1,
+                "expected missing full list-hlist c-harness output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                24,
+                2,
+                "expected missing full list-hlist expected-json output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+        if (
+            expect_missing_output_marker(
+                24,
+                3,
+                "expected missing full list-hlist manifest output marker to fail the runner",
+            )
+            != 0
+        ):
+            return 1
+
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 28}"
+            f"{len(SELF_TEST_MISSING_CASES) + 32}"
         )
         return 0
 
