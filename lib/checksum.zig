@@ -535,3 +535,66 @@ test "ipFastCsum stays aligned with compute across aligned IPv4 headers" {
         try std.testing.expectEqual(ipFastCsum(case.header), ipFastCsumIhl(case.header, ihl_words));
     }
 }
+
+test "snake_case checksum aliases stay aligned across incremental and parity-sensitive helpers" {
+    const seed: u32 = 0x1357_9bdf;
+    const fragment: u32 = 0x2468_ace0;
+    const payload = [_]u8{ 'p', 'h', 'a', 's', 'e', '6', '!' };
+    const ipv4_header = [_]u8{
+        0x45, 0x00, 0x00, 0x3c,
+        0x1c, 0x46, 0x40, 0x00,
+        0x40, 0x06, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x01,
+        0xc0, 0xa8, 0x00, 0xc7,
+    };
+    const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
+    const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
+    const v4_saddr: u32 = 0xc0a8_0001;
+    const v4_daddr: u32 = 0xc0a8_00c7;
+    const total_len_old: u16 = 0x003c;
+    const total_len_new: u16 = 0x0040;
+    const payload_partial = partial(&payload, 0);
+    const payload_diff = sub(total_len_new, total_len_old);
+
+    try std.testing.expectEqual(add(seed, fragment), csum_add(seed, fragment));
+    try std.testing.expectEqual(sub(seed, fragment), csum_sub(seed, fragment));
+    try std.testing.expectEqual(shift(fragment, 255), csum_shift(fragment, 255));
+    try std.testing.expectEqual(blockAdd(seed, fragment, 1), csum_block_add(seed, fragment, 1));
+    try std.testing.expectEqual(blockSub(seed, fragment, 1), csum_block_sub(seed, fragment, 1));
+    try std.testing.expectEqual(add16(0xfffe, 0x0003), csum16_add(0xfffe, 0x0003));
+    try std.testing.expectEqual(sub16(0xfffe, 0x0003), csum16_sub(0xfffe, 0x0003));
+    try std.testing.expectEqual(unfold(0xbeef), csum_unfold(0xbeef));
+    try std.testing.expectEqual(fold(seed), csum_fold(seed));
+    try std.testing.expectEqual(partial(&payload, seed), csum_partial(&payload, seed));
+    try std.testing.expectEqual(replace(seed, 0x0011_2233, 0x4455_6677), csum_replace(seed, 0x0011_2233, 0x4455_6677));
+    try std.testing.expectEqual(replaceByDiff(0xbeef, payload_diff), csum_replace_by_diff(0xbeef, payload_diff));
+    try std.testing.expectEqual(replace2(0xbeef, total_len_old, total_len_new), csum_replace2(0xbeef, total_len_old, total_len_new));
+    try std.testing.expectEqual(replace4(0xbeef, v4_saddr, v4_daddr), csum_replace4(0xbeef, v4_saddr, v4_daddr));
+    try std.testing.expectEqual(ipComputeCsum(&payload), ip_compute_csum(&payload));
+    try std.testing.expectEqual(ipFastCsum(&ipv4_header), ip_fast_csum(&ipv4_header));
+    try std.testing.expectEqual(ipFastCsumIhl(&ipv4_header, ipv4_header.len >> 2), ip_fast_csum_ihl(&ipv4_header, ipv4_header.len >> 2));
+    try std.testing.expectEqual(tcpUdpNofold(payload_partial, v4_saddr, v4_daddr, payload.len, 17), csum_tcpudp_nofold(payload_partial, v4_saddr, v4_daddr, payload.len, 17));
+    try std.testing.expectEqual(tcpUdpMagic(payload_partial, v4_saddr, v4_daddr, payload.len, 17), csum_tcpudp_magic(payload_partial, v4_saddr, v4_daddr, payload.len, 17));
+    try std.testing.expectEqual(tcpUdpV6Magic(payload_partial, &v6_saddr, &v6_daddr, payload.len, 58), csum_ipv6_magic(payload_partial, &v6_saddr, &v6_daddr, payload.len, 58));
+}
+
+pub const csum_add = add;
+pub const csum_sub = sub;
+pub const csum_shift = shift;
+pub const csum_block_add = blockAdd;
+pub const csum_block_sub = blockSub;
+pub const csum_replace = replace;
+pub const csum_replace_by_diff = replaceByDiff;
+pub const csum_replace2 = replace2;
+pub const csum_replace4 = replace4;
+pub const csum_unfold = unfold;
+pub const csum_fold = fold;
+pub const csum_partial = partial;
+pub const csum_tcpudp_nofold = tcpUdpNofold;
+pub const csum_tcpudp_magic = tcpUdpMagic;
+pub const csum_ipv6_magic = tcpUdpV6Magic;
+pub const csum16_add = add16;
+pub const csum16_sub = sub16;
+pub const ip_compute_csum = ipComputeCsum;
+pub const ip_fast_csum = ipFastCsum;
+pub const ip_fast_csum_ihl = ipFastCsumIhl;
