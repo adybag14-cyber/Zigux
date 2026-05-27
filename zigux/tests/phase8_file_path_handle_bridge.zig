@@ -37,6 +37,9 @@ test "phase 8 file-path-handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "helper-only `mapReuseObservationFromFdinfo()` handoff");
     try expectContains(note, "planning-only `resolveReusePinnedMapAttempt()` gating");
     try expectContains(note, "planning-only `planTokenPreparation()` gating");
+    try expectContains(note, "terminated-prefix");
+    try expectContains(note, "truncated-fixed-width");
+    try expectContains(note, "incomplete-fdinfo reuse planning");
     try expectContains(note, "no live bpffs opens");
     try expectContains(note, "no descriptor replacement, transfer, or close ownership semantics");
 }
@@ -132,10 +135,13 @@ test "phase 8 file-path-handle bridge helper source keeps planning-only bridge b
     try expectContains(helper_source, "pub fn isMapReuseCompatible(");
     try expectContains(helper_source, "pub fn resolveReusePinnedMapAttempt(");
     try expectContains(helper_source, "pub fn planTokenPreparation(");
+    try expectContains(helper_source, ".disposition = .incomplete_fdinfo_map_info");
     try expectContains(helper_source, ".disposition = .ready_for_reopen_attempt");
     try expectContains(helper_source, ".should_attempt_reopen = true");
     try expectContains(helper_source, ".disposition = .ready_for_token_open_attempt");
     try expectContains(helper_source, ".should_attempt_token_open = true");
+    try expectContains(helper_source, "terminated_prefix");
+    try expectContains(helper_source, "truncated_fixed_width");
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "bpf_obj_get(") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "F_DUPFD_CLOEXEC") == null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "std.posix.open") == null);
