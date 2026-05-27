@@ -153,3 +153,97 @@ test "phase12 virtio net syntax lab keeps throughput parity in compile-smoke ter
     try std.testing.expect(envelope.throughput_ready);
     try std.testing.expect(!envelope.runtime_execution_claimed);
 }
+
+test "phase12 virtio net syntax lab keeps no-control-queue recovery in compile-smoke review territory" {
+    var core = try virtio.VirtioCoreLab.init(0x1041, 2);
+    core.setStatusBits(virtio.status_acknowledge | virtio.status_driver);
+    core.noteFeaturesNegotiated();
+    _ = try core.selectQueue(0);
+
+    const lifecycle = core.lifecycleGuardSummary();
+    const refill = try receive_refill_replay.summarizeReceiveRefillReplay(.{
+        .reset_generation = 14,
+        .receive_queue_pairs_before_reset = 1,
+        .receive_queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 64,
+        .receive_buffers_after_restore = 64,
+        .descriptors_posted_after_restore = 64,
+        .control_queue_restored = false,
+        .requires_control_queue_restore = false,
+    });
+    const queue_resume_summary = try queue_resume.summarizeQueueResume(.{
+        .reset_generation = 14,
+        .receive_queue_pairs = 1,
+        .refill_replay_ready = refill.replay_ready,
+        .control_queue_restored = false,
+        .transmit_recycle_ready = true,
+        .probe_snapshot_replayed = false,
+        .requires_control_queue_restore = false,
+    });
+    const ownership = try post_reset_replay.summarizePostResetOwnership(.{
+        .reset_generation = 14,
+        .receive_queue_pairs = 1,
+        .control_queue_restored = false,
+        .receive_refill_replayed = refill.replay_ready,
+        .transmit_recycle_ready = true,
+        .probe_snapshot_replayed = false,
+        .requires_control_queue_restore = false,
+    });
+    const parity = try throughput_parity.summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 64,
+        .receive_buffers_after_restore = 64,
+        .receive_descriptors_reposted = true,
+        .recycled_transmit_descriptors = 0,
+        .transmit_queue_was_stopped = false,
+        .replay_checkpoint = .after_receive_refill,
+        .requires_control_queue_restore = false,
+    });
+    const envelope = CompileSmokeEnvelope{
+        .queue_registration_ready = lifecycle.queue_registration_ready,
+        .queue_resume_ready = queue_resume_summary.can_resume_queues,
+        .refill_replay_ready = refill.replay_ready,
+        .post_reset_driver_ready = ownership.queues_ready_for_driver_ownership,
+        .throughput_ready = parity.status == .parity_gate_ready,
+        .runtime_execution_claimed = false,
+    };
+
+    try std.testing.expect(lifecycle.queue_registration_ready);
+    try std.testing.expectEqual(
+        receive_refill_replay.ReceiveRefillReplayBlocker.none,
+        refill.blocker,
+    );
+    try std.testing.expect(refill.replay_ready);
+    try std.testing.expectEqual(
+        queue_resume.QueueResumeBlocker.probe_snapshot_replay,
+        queue_resume_summary.blocker,
+    );
+    try std.testing.expect(!queue_resume_summary.requires_control_queue_restore);
+    try std.testing.expect(!queue_resume_summary.can_resume_queues);
+    try std.testing.expectEqual(
+        post_reset_replay.PostResetReplayBlocker.probe_snapshot_replay,
+        ownership.blocker,
+    );
+    try std.testing.expectEqual(
+        post_reset_replay.QueueSubmissionOwner.recovery,
+        ownership.receive_submission_owner,
+    );
+    try std.testing.expectEqual(
+        post_reset_replay.QueueSubmissionOwner.recovery,
+        ownership.transmit_submission_owner,
+    );
+    try std.testing.expectEqual(
+        throughput_parity.ThroughputParityStatus.needs_post_reset_probe_replay,
+        parity.status,
+    );
+    try std.testing.expect(!parity.requires_control_queue_restore);
+    try std.testing.expect(parity.control_queue_restore_ready);
+    try std.testing.expect(parity.receive_refill_ready);
+    try std.testing.expect(parity.transmit_recycle_ready);
+    try std.testing.expect(parity.requires_post_reset_probe_replay);
+    try std.testing.expect(!envelope.queue_resume_ready);
+    try std.testing.expect(!envelope.post_reset_driver_ready);
+    try std.testing.expect(!envelope.throughput_ready);
+    try std.testing.expect(!envelope.runtime_execution_claimed);
+}
