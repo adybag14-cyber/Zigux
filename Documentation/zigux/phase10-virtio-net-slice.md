@@ -11,9 +11,10 @@ Current starter:
 - `VirtioNetProbeLab.summarizeReceiveQueueRefill()` now turns the last bounded mergeable-buffer plan into an explicit refill-path summary so the lab slice can distinguish fresh mergeable allocation from recycled-room reuse without widening into page ownership or receive completion
 - `VirtioNetProbeLab.planReceiveQueueRefillBatch()` now turns that same bounded refill summary into queue-slot and byte counts for one refill pass, including a clampable batch limit and a fail-closed overfill guard, without widening into DMA submission, kicks, or receive completion
 - `VirtioNetProbeLab.reserveReceiveQueueRefillDescriptors()` now clamps one refill pass against the descriptors currently available on the receive queue, yielding one bounded reservation plan with pending-buffer carryover while still stopping short of live descriptor writes, DMA submission, or queue kicks
+- `VirtioNetProbeLab.decideReceiveQueueRefillNotify()` now turns that bounded reservation plan into a queue-local notify decision that can trigger on empty-queue transitions or descriptor thresholds while still stopping short of live descriptor writes, DMA submission, or queue kicks
 
 Validation:
-- `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+- `zig build phase10-virtio-net-tests --build-file zigux/tests/phase10_build.zig --summary all`
 - the shared Phase 10 gate now includes `phase10-virtio-net-tests` beside the existing virtio core, ring, input, and survey checks
 
 Non-goals:
