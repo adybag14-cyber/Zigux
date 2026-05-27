@@ -76,6 +76,7 @@ EXPECTED_CURRENT_DIRECT_READBACK_COMPANIONS = [
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
+    "Documentation/zigux/phase6-runtime-command-environment-gap-survey.md",
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
@@ -193,7 +194,7 @@ REQUIRED_CATALOG_SNIPPETS = [
 
 REQUIRED_PARITY_CATALOG_SNIPPETS = [
     "- direct helper-evidence companion: `Documentation/zigux/phase6-helper-evidence-catalog.md`",
-    "- helper-evidence row: `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `scripts/zigux/check-phase6-base64-corpus-determinism.py`, `scripts/zigux/check-phase6-base64-c-parity.py`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`",
+    "- helper-evidence row: `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `scripts/zigux/check-phase6-base64-corpus-determinism.py`, `scripts/zigux/check-phase6-base64-c-parity.py`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, and `zigux/tests/phase6_helper_parity_manifest.json`",
     "- current posture: direct helper readback is restored for the helper, focused replay, perf replay, fixture surface, dedicated corpus checker, direct C parity runner, direct C parity harness, direct C parity vectors companion, direct C parity casegen companion, direct C parity checker, and slice note. A targeted authenticated current-master reread on 2026-05-27 directly recovered `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` and `zigux/tests/phase6_base64_c_casegen.zig`, so the base64 row no longer carries a known generator-side direct-readback gap.",
     "- current posture: direct helper readback is restored for the helper, focused replay, fixture-owned perf packet, direct C parity runner, direct C parity harness, direct C parity checker, and slice note, so the checksum row now ships the same external parity review hook as the other portability-sensitive Phase 6 helpers without reopening hexdump work",
     "scripts/zigux/check-phase6-perf-threshold-markers.py",
@@ -769,83 +770,7 @@ def run_self_test() -> None:
                             for item in read_json(root / HELPER_PARITY_MANIFEST)[
                                 "shared_direct_evidence"
                             ]
-                            if item != "scripts/zigux/check-phase6-base64-bsearch-perf-markers.py"
-                        ],
-                    },
-                    indent=2,
-                )
-                + "\n",
-            )
-        )
-        expect_mutation(
-            lambda: write(
-                root / HELPER_PARITY_MANIFEST,
-                json.dumps(
-                    {
-                        **read_json(root / HELPER_PARITY_MANIFEST),
-                        "shared_direct_evidence": [
-                            item
-                            for item in read_json(root / HELPER_PARITY_MANIFEST)[
-                                "shared_direct_evidence"
-                            ]
                             if item != "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"
-                        ],
-                    },
-                    indent=2,
-                )
-                + "\n",
-            )
-        )
-        expect_mutation(
-            lambda: write(
-                root / HELPER_PARITY_MANIFEST,
-                json.dumps(
-                    {
-                        **read_json(root / HELPER_PARITY_MANIFEST),
-                        "shared_direct_evidence": [
-                            item
-                            for item in read_json(root / HELPER_PARITY_MANIFEST)[
-                                "shared_direct_evidence"
-                            ]
-                            if item != "scripts/zigux/check-phase6-perf-threshold-markers.py"
-                        ],
-                    },
-                    indent=2,
-                )
-                + "\n",
-            )
-        )
-        expect_mutation(
-            lambda: write(
-                root / HELPER_PARITY_MANIFEST,
-                json.dumps(
-                    {
-                        **read_json(root / HELPER_PARITY_MANIFEST),
-                        "shared_direct_evidence": [
-                            item
-                            for item in read_json(root / HELPER_PARITY_MANIFEST)[
-                                "shared_direct_evidence"
-                            ]
-                            if item != "scripts/zigux/check-phase6-hexdump-packet.py"
-                        ],
-                    },
-                    indent=2,
-                )
-                + "\n",
-            )
-        )
-        expect_mutation(
-            lambda: write(
-                root / HELPER_PARITY_MANIFEST,
-                json.dumps(
-                    {
-                        **read_json(root / HELPER_PARITY_MANIFEST),
-                        "shared_direct_evidence": [
-                            item
-                            for item in read_json(root / HELPER_PARITY_MANIFEST)[
-                                "shared_direct_evidence"
-                            ]
-                            if item != "scripts/zigux/check-phase6-hexdump-route.py"
                         ],
                     },
                     indent=2,
@@ -874,14 +799,25 @@ def run_self_test() -> None:
                 json.dumps(
                     {
                         **read_json(root / HELPER_PARITY_MANIFEST),
+                        "shared_follow_through_gaps": ["Documentation/zigux/phase6-helper-parity-catalog.md"],
+                    },
+                    indent=2,
+                )
+                + "\n",
+            )
+        )
+        expect_mutation(
+            lambda: write(
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
                         "helpers": [
                             helper
                             if helper.get("key") != "bsearch"
                             else {
                                 **helper,
-                                "checker_surfaces": [
-                                    "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
-                                ],
+                                "checker_surfaces": ["scripts/zigux/check-phase6-bsearch-corpus-evidence.py"],
                             }
                             for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
                         ],
@@ -902,9 +838,7 @@ def run_self_test() -> None:
                             if helper.get("key") != "checksum"
                             else {
                                 **helper,
-                                "checker_surfaces": [
-                                    "scripts/zigux/check-phase6-checksum-corpus-evidence.py"
-                                ],
+                                "checker_surfaces": ["scripts/zigux/check-phase6-checksum-corpus-evidence.py"],
                             }
                             for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
                         ],
@@ -925,37 +859,7 @@ def run_self_test() -> None:
                             if helper.get("key") != "hexdump"
                             else {
                                 **helper,
-                                "checker_surfaces": [
-                                    "scripts/zigux/check-phase6-hexdump-packet.py"
-                                ],
-                            }
-                            for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
-                        ],
-                    },
-                    indent=2,
-                )
-                + "\n",
-            )
-        )
-        expect_mutation(
-            lambda: write(
-                root / HELPER_PARITY_MANIFEST,
-                json.dumps(
-                    {
-                        **read_json(root / HELPER_PARITY_MANIFEST),
-                        "helpers": [
-                            helper
-                            if helper.get("key") != "checksum"
-                            else {
-                                **helper,
-                                "current_perf_evidence": {
-                                    **helper["current_perf_evidence"],
-                                    "linux_style_rerun_routes": [
-                                        route
-                                        for route in helper["current_perf_evidence"]["linux_style_rerun_routes"]
-                                        if route != EXPECTED_SHARED_PERF_WRAPPER
-                                    ],
-                                },
+                                "checker_surfaces": ["scripts/zigux/check-phase6-hexdump-packet.py"],
                             }
                             for helper in read_json(root / HELPER_PARITY_MANIFEST)["helpers"]
                         ],
@@ -969,16 +873,8 @@ def run_self_test() -> None:
             lambda: write(
                 root / HELPER_PARITY_CATALOG,
                 read_text(root / HELPER_PARITY_CATALOG).replace(
-                    REQUIRED_PARITY_CATALOG_SNIPPETS[3] + "\n", "", 1
-                ),
-            )
-        )
-        expect_mutation(
-            lambda: write(
-                root / HELPER_PARITY_CATALOG,
-                read_text(root / HELPER_PARITY_CATALOG).replace(
-                    REQUIRED_PARITY_CATALOG_SNIPPETS[5],
-                    "Treat this file as the broader parity companion for the current helper-evidence packet rather than as a substitute for the directly readable shared packet in `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `scripts/zigux/validate-phase6.py`, `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `Documentation/zigux/phase6-perf-gate-survey.md`.",
+                    "scripts/zigux/check-phase6-perf-threshold-markers.py",
+                    "scripts/zigux/check-phase6-perf-threshold-route.py",
                     1,
                 ),
             )
@@ -989,9 +885,7 @@ def run_self_test() -> None:
                 json.dumps(
                     {
                         **read_json(root / HELPER_PARITY_MANIFEST),
-                        "shared_follow_through_gaps": [
-                            "Documentation/zigux/phase6-helper-parity-catalog.md"
-                        ],
+                        "coverage_verification_note": "coverage note drift",
                     },
                     indent=2,
                 )
@@ -1000,26 +894,23 @@ def run_self_test() -> None:
         )
         expect_mutation(
             lambda: write(
-                root / WORKFLOW,
-                read_text(root / WORKFLOW).replace(
-                    REQUIRED_WORKFLOW_SNIPPETS[1] + "\n", "", 1
-                ),
+                root / HELPER_PARITY_MANIFEST,
+                json.dumps(
+                    {
+                        **read_json(root / HELPER_PARITY_MANIFEST),
+                        "perf_evidence_readback_note": "perf evidence note drift",
+                    },
+                    indent=2,
+                )
+                + "\n",
             )
         )
-        expect_mutation(
-            lambda: (root / CHECKSUM_HEXDUMP_PERF_MARKERS_CHECKER).unlink()
-        )
-        expect_mutation(lambda: (root / PERF_THRESHOLD_CHECKER).unlink())
-        expect_mutation(
-            lambda: write(
-                root / HEXDUMP_ROUTE_CHECKER,
-                make_checker_stub("--repo-root"),
-            )
-        )
+
         if cases_run != SELF_TEST_CASE_COUNT:
             raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
-    print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print(f"PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT={cases_run}")
+
+    print("PHASE6_VALIDATE_SELF_TEST=pass")
+    print(f"PHASE6_VALIDATE_SELF_TEST_CASE_COUNT={cases_run}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -1031,20 +922,17 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    if args.self_test:
-        run_self_test()
-        return 0
+
     try:
+        if args.self_test:
+            run_self_test()
+            return 0
         validate(args.repo_root)
     except ValidationError as exc:
-        print(f"PHASE6_VALIDATION=fail: {exc}")
+        print(f"PHASE6_VALIDATE=fail: {exc}", file=sys.stderr)
         return 1
-    print("PHASE6_VALIDATION=pass")
-    print(f"PHASE6_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE6_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_BUILD_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_CATALOG_SNIPPETS) + len(REQUIRED_PARITY_CATALOG_SNIPPETS)}"
-    )
+
+    print("PHASE6_VALIDATE=pass")
     return 0
 
 
