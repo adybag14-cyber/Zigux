@@ -16,13 +16,14 @@ Current direct contents reads on `master` now rematerialize `drivers/tty/hvc/hvc
 - `NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.
 - `NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable without claiming that notifier teardown has become live runtime behavior.
 - `targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.
-- the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.
+- `targetless_dispatch_with_notifier_sanitized` keeps registered-but-targetless sysrq fallback visible without implying notifier callbacks can still fire after the target disappears.
+- the literal-fallback helpers keep the targetless sysrq path without notifier, the sanitized registered-but-targetless sysrq path, and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.
 
 ## Packet Relationship
 
 - `Documentation/zigux/phase11-hvc-console-survey.md` keeps the broader HVC packet vocabulary visible while the live current-head packet now reads through `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `scripts/zigux/check-phase11-build-inventory.py`, and the proof-backed adjunct files instead of treating the deeper verify helper as archival vocabulary.
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` keeps cleanup prerequisite failures, the targetless notifier no-unregister edge, and targetless sysrq dispatch reviewable at the shared packet level.
-- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` together with `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` keeps the targetless notifier no-unregister edge, the sanitized targetless-unregister request, and the targetless sysrq boundary tied to returned current-head evidence.
+- `scripts/zigux/check-phase11-hvc-targetless-unregister-witness.py` together with `zigux/tests/phase11_hvc_targetless_unregister_gap.zig` and `zigux/tests/phase11_hvc_targetless_unregister_gap_build.zig` keeps the targetless notifier no-unregister edge, the sanitized targetless-unregister request, the registered-but-targetless sysrq fallback edge, and the targetless sysrq boundary tied to returned current-head evidence.
 - current HVC current-head reads now keep those landed helper edges reviewable through both this note and `drivers/tty/hvc/hvc_console_verify.zig` itself, while deeper sysrq helpers or older manifest-side companions remain separate follow-up surfaces until they return directly.
 - this note narrows one current-head reminder surface so the detached-binding remove-handoff branch, notifier prerequisite failure edge, extra verify-helper failure-mode details, and the standalone targetless-unregister witness packet stay reviewable without forcing the broader survey note or validation matrix to carry every helper-local detail.
 
