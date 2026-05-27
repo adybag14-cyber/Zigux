@@ -71,12 +71,12 @@ test "phase 4 bitmap survey keeps the roadmap rollback gate and helper replay me
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.owner);
     try std.testing.expectEqualStrings("Shared Subsystems Pod", manifest.rollback_owner);
     try std.testing.expectEqualStrings("scripts/zigux/validate-phase4.py", manifest.shared_validator_path);
-    try std.testing.expectEqualStrings("e0240439445ea311a49f0d832398806d1bd49cbc", manifest.shared_validator_blob_sha);
+    try std.testing.expectEqualStrings("3c9adfacb72764275cf8135cbce97332c3ee45ed", manifest.shared_validator_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", manifest.shared_matrix_path);
-    try std.testing.expectEqualStrings("348984ebc5a7ac85433a11f87396117059eb34f1", manifest.shared_matrix_blob_sha);
+    try std.testing.expectEqualStrings("6f0881d99dca7f21ea5dd05560567f7d66bbad2f", manifest.shared_matrix_blob_sha);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.shared_gate_evidence_path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase4-gate-evidence.md", manifest.gate_evidence_path);
-    try std.testing.expectEqualStrings("815751ebd266a7c2cc52d9023046848007518234", manifest.gate_evidence_blob_sha);
+    try std.testing.expectEqualStrings("eb955b107d5116cfd8fb03aef5fca2b17121c23c", manifest.gate_evidence_blob_sha);
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff);
     try std.testing.expect(manifest.phase4_build_uses_bitmap_diff_survey);
