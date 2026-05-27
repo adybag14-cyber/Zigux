@@ -333,6 +333,51 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.flush();
 }
 
+const TestCapture = struct {
+    allocator: std.mem.Allocator,
+    list: std.ArrayList(u8),
+
+    fn init(allocator: std.mem.Allocator) !TestCapture {
+        return .{
+            .allocator = allocator,
+            .list = try std.ArrayList(u8).initCapacity(allocator, 256),
+        };
+    }
+
+    fn deinit(self: *TestCapture) void {
+        self.list.deinit(self.allocator);
+    }
+
+    fn writeAll(self: *TestCapture, bytes: []const u8) !void {
+        try self.list.appendSlice(self.allocator, bytes);
+    }
+
+    fn writeByte(self: *TestCapture, byte: u8) !void {
+        try self.list.append(self.allocator, byte);
+    }
+
+    fn print(self: *TestCapture, comptime fmt: []const u8, args: anytype) !void {
+        const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+        defer self.allocator.free(rendered);
+        try self.list.appendSlice(self.allocator, rendered);
+    }
+};
+
+fn expectEntry(summary: Summary, index: usize, name: []const u8, kind: EntryKind, value: []const u8) !void {
+    try std.testing.expectEqualStrings(name, summary.entries[index].name);
+    try std.testing.expectEqual(kind, summary.entries[index].kind);
+    try std.testing.expectEqualStrings(value, summary.entries[index].value);
+}
+
+fn parseAndExpectSingleEntry(allocator: std.mem.Allocator, input: []const u8, name: []const u8, kind: EntryKind, value: []const u8) !void {
+    var summary = try parseConfig(allocator, input);
+    defer deinitSummary(allocator, &summary);
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, if (kind == .unset) 0 else 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, if (kind == .unset) 1 else 0), summary.unset_count);
+    try expectEntry(summary, 0, name, kind, value);
+}
+
 test "confdata bridge parses bounded config states" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
@@ -348,44 +393,13 @@ test "confdata bridge parses bounded config states" {
     try std.testing.expectEqual(@as(usize, 4), summary.set_count);
     try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
     try std.testing.expectEqual(@as(usize, 5), summary.entries.len);
-    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
-    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("y", summary.entries[0].value);
-    try std.testing.expectEqualStrings("CONFIG_NAME", summary.entries[3].name);
-    try std.testing.expectEqual(EntryKind.string, summary.entries[3].kind);
-    try std.testing.expectEqualStrings("zigux", summary.entries[3].value);
+    try expectEntry(summary, 0, "CONFIG_ALPHA", .tristate, "y");
+    try expectEntry(summary, 3, "CONFIG_NAME", .string, "zigux");
     try std.testing.expectEqual(EntryKind.unset, summary.entries[4].kind);
 }
 
 test "confdata bridge emits bounded json output" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-
-        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
-            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
-            defer self.allocator.free(rendered);
-            try self.list.appendSlice(self.allocator, rendered);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
+    var capture = try TestCapture.init(std.testing.allocator);
     defer capture.deinit();
 
     try runConfdataBridge(std.testing.allocator,
@@ -396,6 +410,199 @@ test "confdata bridge emits bounded json output" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"set\":1") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"unset\":1") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"CONFIG_DEBUG\"") != null);
+}
+
+test "confdata bridge decodes escaped quoted strings" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_MESSAGE="zigux\"bridge\\"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try expectEntry(summary, 0, "CONFIG_MESSAGE", .string, "zigux\"bridge\\");
+}
+
+test "confdata bridge strips backslashes from escaped control sequences like upstream confdata" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ESCAPED="line\n\tend"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try expectEntry(summary, 0, "CONFIG_ESCAPED", .string, "linentend");
+}
+
+test "confdata bridge escapes low control bytes in json output" {
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try writeJsonEscaped(&capture, "\x01\x08\x0c");
+    try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
+}
+
+test "confdata bridge accepts CRLF config lines" {
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=y\r\n", "CONFIG_ALPHA", .tristate, "y");
+}
+
+test "confdata bridge preserves trailing carriage return on final unterminated value line" {
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\r", "CONFIG_ALPHA", .value, "value\r");
+}
+
+test "confdata bridge ignores unterminated unset comment with trailing carriage return" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator, "# CONFIG_DEBUG is not set\r");
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 0), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
+}
+
+test "confdata bridge ignores suffix bytes after an embedded NUL" {
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\x00suffix\n", "CONFIG_ALPHA", .value, "value");
+}
+
+test "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines" {
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=value\r\x00suffix\n", "CONFIG_ALPHA", .value, "value\r");
+}
+
+test "confdata bridge keeps explicit n assignments as tristate values" {
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=n\n", "CONFIG_ALPHA", .tristate, "n");
+}
+
+test "confdata bridge recognizes uppercase tristate assignments" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_Y=Y
+        \\CONFIG_M=M
+        \\CONFIG_N=N
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 3), summary.set_count);
+    try expectEntry(summary, 0, "CONFIG_Y", .tristate, "y");
+    try expectEntry(summary, 1, "CONFIG_M", .tristate, "m");
+    try expectEntry(summary, 2, "CONFIG_N", .tristate, "n");
+}
+
+test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\source "Kconfig"
+        \\NOT_CONFIG=y
+        \\CONFIG_ALPHA=m
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try expectEntry(summary, 0, "CONFIG_ALPHA", .tristate, "m");
+}
+
+test "confdata bridge ignores empty CONFIG symbol names" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator, "CONFIG_=y\n");
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 0), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+}
+
+test "confdata bridge ignores malformed unset comments with extra tokens" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator, "# CONFIG_DEBUG is not set today\n");
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
+}
+
+test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
+    try parseAndExpectSingleEntry(std.testing.allocator,
+        \\CONFIG_PATH="drivers\\"
+        \\
+    , "CONFIG_PATH", .string, "drivers\\");
+}
+
+test "confdata bridge ignores trailing suffix bytes after a closing quote like upstream confdata" {
+    try parseAndExpectSingleEntry(std.testing.allocator, "CONFIG_ALPHA=\"zigux\"suffix\n", "CONFIG_ALPHA", .string, "zigux");
+}
+
+test "confdata bridge ignores malformed quoted values like upstream confdata" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator, "CONFIG_ALPHA=\"zigux\n");
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 0), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 0), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+}
+
+test "confdata bridge emits no entries for empty CONFIG symbol names" {
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(std.testing.allocator, "CONFIG_=y\n", &capture);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"entries\":[]") != null);
+}
+
+test "confdata bridge keeps only the last assignment for duplicate symbols" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\CONFIG_ALPHA=m
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try expectEntry(summary, 0, "CONFIG_ALPHA", .tristate, "m");
+}
+
+test "confdata bridge keeps the prior duplicate value when a later quoted assignment is malformed" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA="stable"
+        \\CONFIG_ALPHA="broken
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try expectEntry(summary, 0, "CONFIG_ALPHA", .string, "stable");
+}
+
+test "confdata bridge emits the preserved duplicate state after later malformed quoted assignments" {
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(std.testing.allocator,
+        \\CONFIG_ALPHA="stable"
+        \\CONFIG_ALPHA="broken
+        \\
+    , &capture);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"CONFIG_ALPHA\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"value\":\"stable\"") != null);
+}
+
+test "confdata bridge keeps only the last state across unset and set transitions" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\# CONFIG_ALPHA is not set
+        \\CONFIG_ALPHA=m
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try expectEntry(summary, 0, "CONFIG_ALPHA", .tristate, "m");
 }
 
 test "confdata bridge keeps explicit empty assignments distinct from quoted empty strings" {
@@ -410,10 +617,62 @@ test "confdata bridge keeps explicit empty assignments distinct from quoted empt
     try std.testing.expectEqual(@as(usize, 2), summary.set_count);
     try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
     try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
-    try std.testing.expectEqualStrings("CONFIG_EMPTY", summary.entries[0].name);
-    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("", summary.entries[0].value);
-    try std.testing.expectEqualStrings("CONFIG_QUOTED_EMPTY", summary.entries[1].name);
-    try std.testing.expectEqual(EntryKind.string, summary.entries[1].kind);
-    try std.testing.expectEqualStrings("", summary.entries[1].value);
+    try expectEntry(summary, 0, "CONFIG_EMPTY", .value, "");
+    try expectEntry(summary, 1, "CONFIG_QUOTED_EMPTY", .string, "");
+}
+
+test "confdata bridge emits explicit empty assignments distinctly in json output" {
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(std.testing.allocator,
+        \\CONFIG_EMPTY=
+        \\CONFIG_QUOTED_EMPTY=""
+        \\
+    , &capture);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"name\":\"CONFIG_EMPTY\",\"kind\":\"value\",\"value\":\"\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"name\":\"CONFIG_QUOTED_EMPTY\",\"kind\":\"string\",\"value\":\"\"") != null);
+}
+
+test "confdata bridge escapes parsed string bytes in json output" {
+    var capture = try TestCapture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(std.testing.allocator,
+        \\CONFIG_ALPHA="zigux\"bridge\\"
+        \\
+    , &capture);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"value\":\"zigux\\\"bridge\\\\\"") != null);
+}
+
+test "confdata bridge releases appended entry ownership on index-allocation failure" {
+    const Harness = struct {
+        fn run(allocator: std.mem.Allocator) !void {
+            var summary = try parseConfig(allocator,
+                \\CONFIG_ALPHA=y
+                \\
+            );
+            defer deinitSummary(allocator, &summary);
+            try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+        }
+    };
+
+    try std.testing.checkAllAllocationFailures(std.testing.allocator, Harness.run, .{});
+}
+
+test "confdata bridge preserves duplicate unset ownership on allocation failure" {
+    const Harness = struct {
+        fn run(allocator: std.mem.Allocator) !void {
+            var summary = try parseConfig(allocator,
+                \\# CONFIG_DEBUG is not set
+                \\# CONFIG_DEBUG is not set
+                \\
+            );
+            defer deinitSummary(allocator, &summary);
+            try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+            try expectEntry(summary, 0, "CONFIG_DEBUG", .unset, "n");
+        }
+    };
+
+    try std.testing.checkAllAllocationFailures(std.testing.allocator, Harness.run, .{});
 }
