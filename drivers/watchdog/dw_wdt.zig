@@ -576,6 +576,36 @@ test "dw_wdt probe-failure cleanup keeps post-drvdata mmio unwind reviewable" {
     try std.testing.expect(summary.blocked_on_live_platform_cleanup);
 }
 
+test "dw_wdt probe-failure cleanup keeps register-device unwind reviewable after imported state handoff" {
+    const summary = probeFailureCleanupSummary(.{
+        .has_named_tclk = false,
+        .has_shared_clock = true,
+        .has_pclk = true,
+        .has_reset_control = true,
+        .has_pretimeout_irq = true,
+        .drvdata_published = true,
+        .timeout_programmed = false,
+        .imported_running = true,
+        .failure_stage = .register_device,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(ProbeFailureStage.register_device, summary.failure_stage);
+    try std.testing.expectEqual(RegistrationScaffoldState.import_running_state_then_register, summary.state);
+    try std.testing.expectEqual(TimerClockPath.unnamed_shared_fallback, summary.timer_clock_path);
+    try std.testing.expectEqual(ApbClockPath.optional_present, summary.apb_clock_path);
+    try std.testing.expectEqual(ProbeTimeoutOrigin.imported_running_counter, summary.probe_timeout_origin);
+    try std.testing.expect(summary.registration_requested);
+    try std.testing.expect(summary.drvdata_cleanup_reviewable);
+    try std.testing.expect(summary.timeout_cleanup_reviewable);
+    try std.testing.expect(summary.pretimeout_irq_release_reviewable);
+    try std.testing.expect(summary.reset_assert_requested);
+    try std.testing.expect(summary.timer_clock_disable_requested);
+    try std.testing.expect(summary.apb_clock_disable_requested);
+    try std.testing.expect(!summary.blocked_on_live_mmio_cleanup);
+    try std.testing.expect(summary.blocked_on_live_platform_cleanup);
+}
+
 test "dw_wdt remove teardown keeps imported-running unregister ownership reviewable" {
     const summary = removeTeardownSummary(.{
         .has_named_tclk = false,
