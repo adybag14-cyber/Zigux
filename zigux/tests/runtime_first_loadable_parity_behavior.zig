@@ -247,6 +247,109 @@ test "first-loadable runtime pilot families keep rejected repeat selftest and ex
     try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .exited, 1, 1, 1);
 }
 
+test "first-loadable runtime pilot families keep rejected repeat selftest stable after initialized direct activity" {
+    var atomic_module = RuntimeAtomic64Sample{};
+    var bitmap_module = RuntimeBitmapSample{};
+    var kretprobe_module = RuntimeKretprobeSample{};
+
+    try atomic_module.init(21);
+    try bitmap_module.initWithSetBits(&.{ 0, 64, 70 });
+    try kretprobe_module.init();
+
+    const atomic_update = try atomic_module.addCounter(6);
+    try std.testing.expectEqual(@as(i64, 21), atomic_update.previous);
+    try std.testing.expectEqual(@as(i64, 27), atomic_update.final);
+
+    try bitmap_module.setRange(9, 3);
+    try std.testing.expectEqual(@as(u32, 3), try bitmap_module.countSetBitsInRange(9, 3));
+
+    try kretprobe_module.registerProbe();
+    try kretprobe_module.recordEntry();
+    try kretprobe_module.recordReturn(13);
+    try kretprobe_module.unregisterProbe();
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .initialized, 1, 0, 0);
+
+    _ = try atomic_module.runSelftest();
+    _ = try bitmap_module.runSelftest();
+    _ = try kretprobe_module.runSelftest();
+
+    const before_rejected_selftest_atomic_summary = atomic_module.summary();
+    const before_rejected_selftest_bitmap_summary = bitmap_module.summary();
+    const before_rejected_selftest_kretprobe_snapshot = kretprobe_module.lifecycleSnapshot();
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .selftest_complete, 1, 1, 0);
+    try std.testing.expectEqual(@as(i64, 27), before_rejected_selftest_atomic_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(u32, 6), before_rejected_selftest_bitmap_summary.weight);
+    try std.testing.expectEqual(@as(usize, 2), before_rejected_selftest_kretprobe_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_rejected_selftest_kretprobe_snapshot.unregistration_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_rejected_selftest_kretprobe_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), before_rejected_selftest_kretprobe_snapshot.last_retval);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, atomic_module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, kretprobe_module.runSelftest());
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .selftest_complete, 1, 1, 0);
+    try std.testing.expectEqual(
+        before_rejected_selftest_atomic_summary.counter_snapshot,
+        atomic_module.summary().counter_snapshot,
+    );
+    try std.testing.expectEqual(
+        before_rejected_selftest_bitmap_summary.first_set,
+        bitmap_module.summary().first_set,
+    );
+    try std.testing.expectEqual(
+        before_rejected_selftest_bitmap_summary.weight,
+        bitmap_module.summary().weight,
+    );
+    try std.testing.expectEqual(
+        before_rejected_selftest_kretprobe_snapshot.completed_instances,
+        kretprobe_module.lifecycleSnapshot().completed_instances,
+    );
+    try std.testing.expectEqual(
+        before_rejected_selftest_kretprobe_snapshot.last_retval,
+        kretprobe_module.lifecycleSnapshot().last_retval,
+    );
+
+    try atomic_module.exit();
+    try bitmap_module.exit();
+    try kretprobe_module.exit();
+
+    const before_rejected_exit_selftest_atomic_summary = atomic_module.summary();
+    const before_rejected_exit_selftest_bitmap_summary = bitmap_module.summary();
+    const before_rejected_exit_selftest_kretprobe_snapshot = kretprobe_module.lifecycleSnapshot();
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .exited, 1, 1, 1);
+    try std.testing.expectEqual(@as(i64, 27), before_rejected_exit_selftest_atomic_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(u32, 6), before_rejected_exit_selftest_bitmap_summary.weight);
+    try std.testing.expectEqual(@as(usize, 2), before_rejected_exit_selftest_kretprobe_snapshot.registration_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_rejected_exit_selftest_kretprobe_snapshot.unregistration_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_rejected_exit_selftest_kretprobe_snapshot.completed_instances);
+    try std.testing.expectEqual(@as(?i32, 0), before_rejected_exit_selftest_kretprobe_snapshot.last_retval);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, atomic_module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, bitmap_module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, kretprobe_module.runSelftest());
+    try expectLifecycleCounts(&atomic_module, &bitmap_module, &kretprobe_module, .exited, 1, 1, 1);
+    try std.testing.expectEqual(
+        before_rejected_exit_selftest_atomic_summary.counter_snapshot,
+        atomic_module.summary().counter_snapshot,
+    );
+    try std.testing.expectEqual(
+        before_rejected_exit_selftest_bitmap_summary.first_set,
+        bitmap_module.summary().first_set,
+    );
+    try std.testing.expectEqual(
+        before_rejected_exit_selftest_bitmap_summary.weight,
+        bitmap_module.summary().weight,
+    );
+    try std.testing.expectEqual(
+        before_rejected_exit_selftest_kretprobe_snapshot.completed_instances,
+        kretprobe_module.lifecycleSnapshot().completed_instances,
+    );
+    try std.testing.expectEqual(
+        before_rejected_exit_selftest_kretprobe_snapshot.last_retval,
+        kretprobe_module.lifecycleSnapshot().last_retval,
+    );
+}
+
 test "first-loadable runtime pilot families keep rejected repeat init stable" {
     var atomic_module = RuntimeAtomic64Sample{};
     var bitmap_module = RuntimeBitmapSample{};
