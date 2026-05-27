@@ -1,0 +1,72 @@
+{
+  "lane_key": "P11-L15",
+  "phase": "Phase 11",
+  "packet_status": "current_hvc_layout_assertion_suite",
+  "scope": "Verify the current HVC ABI layout assertions and record the exact winsize, hv_ops, and exported helper surface evidence without widening into live tty lifecycle, notifier execution, khvcd work, or host-backed teardown.",
+  "validate_route": "zig build test --build-file zigux/tests/phase11_hvc_layout_assertion_suite_build.zig",
+  "proof_files": [
+    "drivers/tty/hvc/hvc_console.h",
+    "drivers/tty/hvc/hvc_console.zig",
+    "zigux/helpers/layout_assert.zig",
+    "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+    "zigux/tests/phase11_hvc_layout_assertion_suite_build.zig",
+    "zigux/tests/phase11_hvc_layout_assertion_manifest.json"
+  ],
+  "exact_evidence": [
+    {
+      "subject": "winsize",
+      "proof_anchor": "phase11 HVC exported helper proof keeps imported winsize layout tied to current module",
+      "header_anchor": "struct winsize",
+      "size": 8,
+      "align": 2,
+      "fields": [
+        { "name": "ws_row", "offset": 0, "type": "u16" },
+        { "name": "ws_col", "offset": 2, "type": "u16" },
+        { "name": "ws_xpixel", "offset": 4, "type": "u16" },
+        { "name": "ws_ypixel", "offset": 6, "type": "u16" }
+      ]
+    },
+    {
+      "subject": "hv_ops",
+      "proof_anchor": "phase11 hvc hv_ops layout proof keeps imported callback table layout tied to current module",
+      "header_anchor": "struct hv_ops",
+      "size": 72,
+      "align": 8,
+      "fields": [
+        { "name": "get_chars", "offset": 0, "type": "?*const fn (u32, [*]c_char, c_int) callconv(.c) c_int" },
+        { "name": "put_chars", "offset": 8, "type": "?*const fn (u32, [*]const c_char, c_int) callconv(.c) c_int" },
+        { "name": "flush", "offset": 16, "type": "?*const fn (u32, bool) callconv(.c) c_int" },
+        { "name": "notifier_add", "offset": 24, "type": "?*const fn (*HvcStruct, c_int) callconv(.c) c_int" },
+        { "name": "notifier_del", "offset": 32, "type": "?*const fn (*HvcStruct, c_int) callconv(.c) void" },
+        { "name": "notifier_hangup", "offset": 40, "type": "?*const fn (*HvcStruct, c_int) callconv(.c) void" },
+        { "name": "tiocmget", "offset": 48, "type": "?*const fn (*HvcStruct) callconv(.c) c_int" },
+        { "name": "tiocmset", "offset": 56, "type": "?*const fn (*HvcStruct, c_uint, c_uint) callconv(.c) c_int" },
+        { "name": "dtr_rts", "offset": 64, "type": "?*const fn (*HvcStruct, bool) callconv(.c) void" }
+      ]
+    },
+    {
+      "subject": "hvc_export_surface",
+      "proof_anchor": "phase11 HVC exported helper proof keeps the exported helper surface layout explicit",
+      "header_anchor": "hvc_console.h exported helper declarations",
+      "size": 72,
+      "align": 8,
+      "fields": [
+        { "name": "hvc_instantiate", "offset": 0, "type": "*const fn (u32, c_int, *const HvOpsLayout) callconv(.c) c_int" },
+        { "name": "hvc_alloc", "offset": 8, "type": "*const fn (u32, c_int, *const HvOpsLayout, c_int) callconv(.c) ?*HvcStruct" },
+        { "name": "hvc_remove", "offset": 16, "type": "*const fn (*HvcStruct) callconv(.c) void" },
+        { "name": "hvc_poll", "offset": 24, "type": "*const fn (*HvcStruct) callconv(.c) c_int" },
+        { "name": "hvc_kick", "offset": 32, "type": "*const fn () callconv(.c) void" },
+        { "name": "__hvc_resize", "offset": 40, "type": "*const fn (*HvcStruct, WinsizeLayout) callconv(.c) void" },
+        { "name": "notifier_add_irq", "offset": 48, "type": "*const fn (*HvcStruct, c_int) callconv(.c) c_int" },
+        { "name": "notifier_del_irq", "offset": 56, "type": "*const fn (*HvcStruct, c_int) callconv(.c) void" },
+        { "name": "notifier_hangup_irq", "offset": 64, "type": "*const fn (*HvcStruct, c_int) callconv(.c) void" }
+      ]
+    }
+  ],
+  "exact_current_checks": [
+    "zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_layout_assertion_suite_build.zig"
+  ]
+}
