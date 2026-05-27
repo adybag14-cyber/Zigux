@@ -21,15 +21,18 @@ REQUIRED_FILES = (
 NOTE_MARKERS = (
     "- support checker: `scripts/zigux/check-phase12-cross-compile-smoke.py`",
     "the active shared `virtio_net` compile-smoke packet is the six-file bundle in `zigux/tests/phase12_build.zig`",
-    "current `zigux/Makefile` directly exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, `make -C zigux phase12`, and `make -C zigux phase12-virtio-net-syntax-lab-test`",
+    "current `zigux/Makefile` directly exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, `make -C zigux phase12`, `make -C zigux phase12-virtio-net-syntax-lab-test`, and `make -C zigux phase12-virtio-net-throughput-parity-test`",
     "the isolated syntax-lab rerun handles are `zig build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all` and `make -C zigux phase12-virtio-net-syntax-lab-test`, so the companion stays reviewable without joining the shared packet",
-    "the shipped cross-compile checker now keeps that returned wrapper wording plus the isolated syntax-lab rerun hook fail-closed across this note and `zigux/Makefile`",
-    "repair just the isolated rerun hook around `zigux/tests/phase12_virtio_net_syntax_lab_build.zig`, `zigux/Makefile`, and this note instead of widening the shared packet",
+    "the dedicated throughput-parity rerun handles are `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-virtio-net-throughput-parity-test`, so the perf-focused replay stays reviewable without widening the shared packet",
+    "the shipped cross-compile checker now keeps that returned wrapper wording plus the isolated syntax-lab rerun hook and the dedicated throughput-parity rerun hook fail-closed across this note and `zigux/Makefile`",
+    "If only the isolated syntax-lab rerun hook or the dedicated throughput-parity rerun hook drifts, repair just that narrower rerun handle around `zigux/tests/phase12_virtio_net_syntax_lab_build.zig`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and this note instead of widening the shared packet.",
 )
 
 MAKEFILE_MARKERS = (
     "phase12-virtio-net-syntax-lab-test:",
     "$(ZIG) build test --build-file zigux/tests/phase12_virtio_net_syntax_lab_build.zig --summary all",
+    "phase12-virtio-net-throughput-parity-test:",
+    "$(ZIG) build phase12-virtio-net-throughput-parity --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12: phase12-validate phase12-smoke phase12-test",
 )
 
