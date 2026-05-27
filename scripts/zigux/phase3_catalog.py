@@ -206,6 +206,15 @@ EXPECTED_REPLAY_ROUTES = (
     "zig build phase3-list-hlist-starter-packet --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig",
 )
 
+FORBIDDEN_PACKET_FILES = (
+    "zigux/tests/phase3_abi_dump.zig",
+)
+
+FORBIDDEN_REPLAY_ROUTE_MARKERS = (
+    "phase3_abi_dump.zig",
+    "phase3_abi_dump_build.zig",
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -324,6 +333,14 @@ def validate_repo(repo_root: Path) -> list[str]:
     _append_duplicate_list_entry_issues("phase3_abi_manifest.json packet_files", packet_files, issues)
     _append_duplicate_list_entry_issues("phase3_abi_manifest.json replay_routes", replay_routes, issues)
 
+    for legacy_path in FORBIDDEN_PACKET_FILES:
+        if legacy_path in packet_files:
+            issues.append(f"forbidden stale packet file entry: {legacy_path}")
+    for route in replay_routes:
+        for legacy_marker in FORBIDDEN_REPLAY_ROUTE_MARKERS:
+            if legacy_marker in route:
+                issues.append(f"forbidden stale replay-route marker: {legacy_marker} in {route}")
+
     for relative_path in packet_files:
         if not (repo_root / relative_path).is_file():
             issues.append(f"missing repo file: {relative_path}")
@@ -437,8 +454,35 @@ def run_self_test() -> int:
             print("expected duplicate replay route was not reported")
             return 1
 
+        manifest_with_legacy_packet = _manifest_payload()
+        manifest_with_legacy_packet["packet_files"] = list(EXPECTED_PACKET_FILES) + [
+            FORBIDDEN_PACKET_FILES[0],
+        ]
+        _write(root / MANIFEST_PATH, json.dumps(manifest_with_legacy_packet, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_legacy_packet = f"forbidden stale packet file entry: {FORBIDDEN_PACKET_FILES[0]}"
+        if expected_legacy_packet not in issues:
+            print("PHASE3_CATALOG_SELF_TEST=fail")
+            print("expected stale dump packet-file drift was not reported")
+            return 1
+
+        manifest_with_legacy_route = _manifest_payload()
+        manifest_with_legacy_route["replay_routes"] = list(EXPECTED_REPLAY_ROUTES) + [
+            "zig build phase3-dump --build-file zigux/tests/phase3_abi_dump_build.zig",
+        ]
+        _write(root / MANIFEST_PATH, json.dumps(manifest_with_legacy_route, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_legacy_route = (
+            "forbidden stale replay-route marker: phase3_abi_dump_build.zig "
+            "in zig build phase3-dump --build-file zigux/tests/phase3_abi_dump_build.zig"
+        )
+        if expected_legacy_route not in issues:
+            print("PHASE3_CATALOG_SELF_TEST=fail")
+            print("expected stale dump replay-route drift was not reported")
+            return 1
+
     print("PHASE3_CATALOG_SELF_TEST=pass")
-    print("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
