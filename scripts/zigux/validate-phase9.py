@@ -137,13 +137,13 @@ EXPECTED_REPLAY_ROUTES = (
 )
 
 EXPECTED_GAPS = [
-    "blocked publication and install-root vocabulary remains historical rather than direct shipped proof",
+    "blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof",
 ]
 
 EXPECTED_NEXT_SAFE_STEP = (
     "tighten one shared reminder surface at a time where current master still undercounts "
-    "the blocked module-metadata and depmod bridge boundary before widening into runtime behavior "
-    "or build wiring"
+    "the blocked module-metadata and depmod bridge boundary before widening into runtime behavior, "
+    "build wiring, or install-root claims"
 )
 
 REQUIRED_OWNERSHIP_MARKERS = (
@@ -151,6 +151,7 @@ REQUIRED_OWNERSHIP_MARKERS = (
     "PHASE9_RUNTIME_PILOT_CATALOG=scripts/zigux/phase9_catalog.py",
     "PHASE9_RUNTIME_PILOT_CATALOG_SELFTEST=scripts/zigux/check-phase9-catalog-selftest.py",
     "PHASE9_RUNTIME_PILOT_VALIDATOR=scripts/zigux/validate-phase9.py",
+    "PHASE9_RUNTIME_PILOT_BLOCKED_DEPMOD_BRIDGE_SURVEY=Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
 )
 
 
