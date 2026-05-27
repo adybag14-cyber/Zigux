@@ -16,6 +16,9 @@ DEFAULT_ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else Path.cwd(
 MANIFEST_PATH = "zigux/tests/phase11_gpio_wdt_current_head_manifest.json"
 SURVEY_PATH = "Documentation/zigux/phase11-gpio-wdt-survey.md"
 MATRIX_PATH = "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md"
+MODULE_SLICE_PATH = "Documentation/zigux/phase11-gpio-wdt-module-slice.md"
+TEARDOWN_PATH = "Documentation/zigux/phase11-gpio-wdt-teardown-note.md"
+REMOVE_HANDOFF_PATH = "Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md"
 BUILD_PATH = "zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig"
 
 EXPECTED_CURRENT_HEAD_SURFACES = [
@@ -72,6 +75,36 @@ MATRIX_MARKERS = (
     "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
     "The dedicated current-head manifest checker now keeps the recovered manifest",
     "packet aligned through",
+)
+
+MODULE_SLICE_MARKERS = (
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
+    "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
+    "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
+    "machine-readable",
+    "dedicated fail-closed survey route",
+)
+
+TEARDOWN_MARKERS = (
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
+    "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
+    "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
+    "machine-readable inventory",
+    "direct truthfulness guard for the recovered current-head manifest packet",
+)
+
+REMOVE_HANDOFF_MARKERS = (
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
+    "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
+    "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
+    "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
+    "machine-readable",
+    "one dedicated fail-closed route",
 )
 
 BUILD_MARKERS = (
@@ -165,6 +198,9 @@ def validate(root: Path) -> None:
 
     require_markers(root, SURVEY_PATH, SURVEY_MARKERS)
     require_markers(root, MATRIX_PATH, MATRIX_MARKERS)
+    require_markers(root, MODULE_SLICE_PATH, MODULE_SLICE_MARKERS)
+    require_markers(root, TEARDOWN_PATH, TEARDOWN_MARKERS)
+    require_markers(root, REMOVE_HANDOFF_PATH, REMOVE_HANDOFF_MARKERS)
     require_markers(root, BUILD_PATH, BUILD_MARKERS)
 
 
@@ -216,6 +252,57 @@ def build_fixture(root: Path) -> None:
     )
     write_text(
         root,
+        MODULE_SLICE_PATH,
+        "\n".join(
+            [
+                "# module",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
+                "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
+                "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
+                "machine-readable",
+                "dedicated fail-closed survey route",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        TEARDOWN_PATH,
+        "\n".join(
+            [
+                "# teardown",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
+                "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
+                "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
+                "machine-readable inventory",
+                "direct truthfulness guard for the recovered current-head manifest packet",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        REMOVE_HANDOFF_PATH,
+        "\n".join(
+            [
+                "# remove",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest.json`",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey.zig`",
+                "`zigux/tests/phase11_gpio_wdt_current_head_manifest_survey_build.zig`",
+                "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py --self-test`",
+                "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`",
+                "machine-readable",
+                "one dedicated fail-closed route",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
+        root,
         BUILD_PATH,
         "\n".join(
             [
@@ -252,6 +339,9 @@ def run_self_test() -> int:
             (MANIFEST_PATH, '"lane_key": "P11-L04"', '"lane_key": "P11-L99"', "lane_key mismatch"),
             (MANIFEST_PATH, '"packet_kind": "current_head_driver_docs_and_proof_packet"', '"packet_kind": "drifted_packet"', "packet_kind mismatch"),
             (SURVEY_PATH, "`python3 scripts/zigux/check-phase11-gpio-current-head-manifest.py`", "", SURVEY_PATH),
+            (MODULE_SLICE_PATH, "dedicated fail-closed survey route", "", MODULE_SLICE_PATH),
+            (TEARDOWN_PATH, "direct truthfulness guard for the recovered current-head manifest packet", "", TEARDOWN_PATH),
+            (REMOVE_HANDOFF_PATH, "one dedicated fail-closed route", "", REMOVE_HANDOFF_PATH),
             (MATRIX_PATH, "The dedicated current-head manifest checker now keeps the recovered manifest packet aligned", "", MATRIX_PATH),
             (BUILD_PATH, 'Run the focused Phase 11 gpio watchdog current-head manifest survey', 'Run a different survey', BUILD_PATH),
         )
