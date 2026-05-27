@@ -33,6 +33,16 @@ TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 FALLBACK_CHANNEL = 'master'
 
 
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 def normalize_os(name: str) -> str:
     lowered = name.lower()
     if lowered.startswith('linux'):
@@ -63,11 +73,18 @@ def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | Non
     if not policy_path.exists():
         return None
     try:
-        payload = json.loads(policy_path.read_text(encoding='utf-8'))
+        payload = json.loads(
+            policy_path.read_text(encoding='utf-8'),
+            object_pairs_hook=DuplicateTrackingDict,
+        )
     except json.JSONDecodeError as exc:
         raise SystemExit(f'invalid toolchain policy JSON in {policy_path}: {exc.msg}') from exc
     if not isinstance(payload, dict):
         raise SystemExit(f'invalid toolchain policy payload in {policy_path}: expected object')
+    if isinstance(payload, DuplicateTrackingDict) and payload.duplicate_keys:
+        raise SystemExit(
+            f'duplicate toolchain policy keys in {policy_path}: ' + ', '.join(payload.duplicate_keys)
+        )
     return payload
 
 
@@ -90,6 +107,11 @@ def load_policy_archive_sha256(policy_path: Path, target_key: str) -> str | None
         return None
     if not isinstance(archive_sha256, dict):
         raise SystemExit(f'invalid archive_sha256 in {policy_path}')
+    if isinstance(archive_sha256, DuplicateTrackingDict) and archive_sha256.duplicate_keys:
+        raise SystemExit(
+            f'duplicate archive_sha256 targets in {policy_path}: '
+            + ', '.join(archive_sha256.duplicate_keys)
+        )
     digest = archive_sha256.get(target_key)
     if digest is None:
         return None
@@ -470,6 +492,26 @@ def run_self_test() -> int:
             assert 'invalid toolchain policy JSON' in str(exc)
         else:
             raise AssertionError('expected invalid JSON policy to fail')
+        policy_path.write_text(
+            '{"channel":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.90+abcdef"}\n',
+            encoding='utf-8',
+        )
+        try:
+            load_policy_channel(policy_path, '0.15.0')
+        except SystemExit as exc:
+            assert 'duplicate toolchain policy keys' in str(exc)
+        else:
+            raise AssertionError('expected duplicate policy keys to fail')
+        policy_path.write_text(
+            '{"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77","x86_64-linux":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}\n',
+            encoding='utf-8',
+        )
+        try:
+            load_policy_archive_sha256(policy_path, 'x86_64-linux')
+        except SystemExit as exc:
+            assert 'duplicate archive_sha256 targets' in str(exc)
+        else:
+            raise AssertionError('expected duplicate archive targets to fail')
 
     with tempfile.TemporaryDirectory(prefix='zigux_install_zig_sha_') as tmp_dir:
         archive_path = Path(tmp_dir) / 'archive.tar.xz'
@@ -734,7 +776,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=44')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=46')
     return 0
 
 
