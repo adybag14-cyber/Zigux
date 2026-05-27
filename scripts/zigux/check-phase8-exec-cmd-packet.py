@@ -70,6 +70,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "samePathIdentity()",
         "choosePwdCwdFromIdentities()",
         "stat-backed same-location proof",
+        "no retry scheduling, timer-backed backoff, timeout handling, or poll-loop ownership around deferred execution",
+        "no queue ownership, wakeup routing, worker-pool control, or scheduler-visible execution substrate",
+        "deferred-execution runtime, a broader task queue, or any workqueue-style execution substrate",
     ),
     EXEC_CMD_SEQUENCING: (
         "### 1. Exec-cmd lane",
@@ -140,6 +143,9 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         'try expectContains(slice_note, "deferred execution");',
         'try expectContains(slice_note, "queue ownership");',
         'try expectContains(slice_note, "kernel/workqueue.c remains a Phase 14 boundary-study target");',
+        'try expectContains(slice_note, "no retry scheduling, timer-backed backoff, timeout handling, or poll-loop ownership around deferred execution");',
+        'try expectContains(slice_note, "no queue ownership, wakeup routing, worker-pool control, or scheduler-visible execution substrate");',
+        'try expectContains(slice_note, "deferred-execution runtime, a broader task queue, or any workqueue-style execution substrate");',
         'const matched = try exec_cmd.setupPathWithPwd(',
         '"/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin",',
         'try std.testing.expectError(',
@@ -282,7 +288,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    args = parse_args()
+    args = parser.parse_args()
     if args.self_test:
         return run_self_test()
     return emit_result(validate_root(args.root))
