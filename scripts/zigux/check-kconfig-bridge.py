@@ -204,7 +204,7 @@ SAMPLE_CONFDATA_CASES = [
     {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 8
+EXPECTED_SELF_TEST_CASE_COUNT = 10
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
@@ -490,6 +490,20 @@ def run_self_test() -> int:
         manifest["allconfig_sentinel_packet"].append("alldefconfig_expected.json")
         write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
         assert any(code == "CONF_MANIFEST_ALLCONFIG_SENTINEL_PACKET_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["helper_local_allconfig_implicit_omission_modes"] = ["allmodconfig"]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "CONF_MANIFEST_HELPER_LOCAL_ALLCONFIG_IMPLICIT_OMISSION_MODES_MISMATCH" for code, _ in collect_manifest_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        manifest = json.loads(conf_manifest_path.read_text(encoding="utf-8"))
+        manifest["helper_local_allconfig_explicit_override_modes"] = ["allmodconfig", "allnoconfig"]
+        write_text(conf_manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "CONF_MANIFEST_HELPER_LOCAL_ALLCONFIG_EXPLICIT_OVERRIDE_MODES_MISMATCH" for code, _ in collect_manifest_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
