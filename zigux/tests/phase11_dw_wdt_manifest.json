@@ -13,8 +13,8 @@
     "preexisting_phase11_build_present": false,
     "preexisting_phase11_gpio_lane_present": true,
     "preexisting_phase11_bcm2835_lane_present": true,
-    "dw_wdt_zig_present": false,
-    "dw_wdt_test_present": false,
+    "dw_wdt_zig_present": true,
+    "dw_wdt_test_present": true,
     "dw_wdt_registration_scaffold_present": true,
     "dw_wdt_registration_order_present": true,
     "dw_wdt_slice_note_present": false,
@@ -51,14 +51,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "The direct DesignWare replay still keeps timeout selection, restart intent, registration-facing handoff outputs, and the direct restart summary companion reviewable around the landed starter once the current-head replay file rematerializes beside the smaller note packet."
+      "why_now": "The direct DesignWare replay keeps timeout selection, restart intent, registration-facing handoff outputs, and the direct restart summary companion reviewable inside the authenticated current-head packet now that the replay file itself rematerializes beside the smaller note packet."
     },
     {
       "id": "phase11-dw-wdt-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-slice.md",
-      "why_now": "The slice note keeps the current starter, the validation matrix, and the deferred platform-backed boundary explicit in one reviewable Phase 11 owner surface once the broader driver packet returns on the same contents bridge."
+      "why_now": "The slice note keeps the current starter, the validation matrix, and the deferred platform-backed boundary explicit in one reviewable Phase 11 owner surface once the broader reminder stack returns on the same contents bridge."
     },
     {
       "id": "phase11-dw-wdt-probe-summary",
@@ -121,7 +121,7 @@
       "status": "ready_next",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "With the PM handoff helper, direct restart summary, and returned verify helper parked in-tree, the next real gap is hardware-backed MMIO validation around suspend, resume, and platform-backed probe or remove execution, still without widening into unrelated driver behavior."
+      "why_now": "With the PM handoff helper, direct restart summary, returned verify helper, and direct replay all parked in-tree, the next real gap is hardware-backed MMIO validation around suspend, resume, and platform-backed probe or remove execution, still without widening into unrelated driver behavior."
     }
   ]
 }
