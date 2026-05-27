@@ -12,17 +12,17 @@ Do not present that helper packet as live fd installation, file-buffer handling,
 
 ## Current Repo Reality
 
-Current `master` now materializes the syscall helper starter plus the active helper-local packet plus the direct reviewability companion through:
+Current `master` now materializes the syscall helper starter plus the active helper-local packet plus the direct replay and direct reviewability companions through:
 - `security/landlock/syscalls.zig`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`
 - `scripts/zigux/check-phase13-landlock-syscalls-packet.py`
+- `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 
-Current `master` still does not materialize the direct replay or manifest companions through:
-- `zigux/tests/phase13_landlock_syscalls.zig`
+Current `master` still does not materialize the direct manifest or shared-build companions through:
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `zigux/tests/phase13_build.zig`
 
@@ -41,22 +41,23 @@ When contributors touch the syscall-facing Landlock packet, keep this note align
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey-gap.md`
 - `scripts/zigux/check-phase13-landlock-syscalls-packet.py`
+- `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 
-Keep contributor guidance anchored to the broader shipped reminder packet while the direct replay, manifest, and shared-build companions remain absent.
+Keep contributor guidance anchored to the broader shipped reminder packet while the direct manifest and shared-build companions remain absent.
 
 ## Governance Boundaries
 
 Use this note to keep these boundaries explicit:
 - syscall policy wording, review prompts, and reminder-surface ownership belong here
-- the helper-local packet plus the direct reviewability companion belong here today
-- direct replay and manifest ownership stay recorded as repo-reality gaps until those files return on `master`
+- the helper-local packet plus the direct replay and direct reviewability companions belong here today
+- direct manifest ownership stays recorded as a repo-reality gap until that file returns on `master`
 - future work should stay tied to descriptor-backed planning only instead of treating it as live syscall enforcement or as a claim that fd, file-buffer, credential, or domain ownership moved into Zigux
 
 ## Review Prompts
 
 If a change updates the Phase 13 Landlock syscalls packet, verify that:
-- the broad Phase 13 reminder surfaces keep this governance note explicit beside the survey, slice, checker, survey-gap breadcrumb, and direct reviewability companion
-- no wording here promotes the still-missing direct replay or manifest companions into shipped current-`master` evidence
+- the broad Phase 13 reminder surfaces keep this governance note explicit beside the survey, slice, checker, survey-gap breadcrumb, direct replay companion, and direct reviewability companion
+- no wording here promotes the still-missing direct manifest or shared-build companions into shipped current-`master` evidence
 - helper-owned wording stays limited to create-ruleset, ABI-version query, ERRATA query, ruleset-fd lookup, restrict-self, add-rule, ruleset-fd install, ruleset-fd stub, and release planning
-- note-versus-gap ownership stays explicit: this note owns the helper-local policy packet, while the remaining gaps stay `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and `zigux/tests/phase13_build.zig`
+- note-versus-gap ownership stays explicit: this note owns the helper-local policy packet, while the remaining gaps stay `zigux/tests/phase13_landlock_syscalls_manifest.json` and `zigux/tests/phase13_build.zig`
