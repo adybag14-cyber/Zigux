@@ -34,13 +34,16 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
     try expectContains(driver, ".targetless_no_unregister_edge = request.notifier_registered and !request.target_present and !request.unregister_requested,");
     try expectContains(driver, ".targetless_unregister_request_sanitized = request.notifier_registered and !request.target_present and request.unregister_requested,");
     try expectContains(driver, ".unregister_requested = request.unregister_requested and request.target_present and request.notifier_registered,");
-    try expectContains(driver, "test \\\"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\\\" {");
-    try expectContains(driver, "const targetless_sanitized = summarizeTargetlessNotifierEdge(.{");
-    try expectContains(driver, "try std.testing.expect(targetless_sanitized.targetless_unregister_request_sanitized);");
-    try expectContains(driver, "try std.testing.expect(!targetless_sanitized.unregister_requested);");
-    try expectContains(driver, "try std.testing.expect(targetless_sanitized.keeps_live_notifier_execution_out_of_scope);");
-    try expectContains(driver, "test \\\"phase11 hvc console keeps unregistered targeted notifier-unregister request sanitized\\\" {");
-    try expectContains(driver, "try std.testing.expect(!summary.unregister_requested);");
+
+    const verify_helper = try readRepoFile("drivers/tty/hvc/hvc_console_verify.zig");
+    defer std.testing.allocator.free(verify_helper);
+
+    try expectContains(verify_helper, "targetless_dispatch_with_notifier_sanitized: bool,");
+    try expectContains(verify_helper, "const targetless_dispatch_with_notifier_sanitized =");
+    try expectContains(verify_helper, "request.sysrq_requested and request.notifier_registered and !request.target_present;");
+    try expectContains(verify_helper, ".targetless_dispatch_with_notifier_sanitized = targetless_dispatch_with_notifier_sanitized,");
+    try expectContains(verify_helper, "test \"phase11 hvc verify helper keeps registered targetless sysrq fallback sanitized\" {");
+    try expectContains(verify_helper, "try std.testing.expect(summary.targetless_dispatch_with_notifier_sanitized);");
 
     const boundary = try readRepoFile("Documentation/zigux/phase11-hvc-verify-helper-boundary.md");
     defer std.testing.allocator.free(boundary);
@@ -48,7 +51,8 @@ test "phase11 hvc notifier witness records current-head targetless unregister sa
     try expectContains(boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge");
     try expectContains(boundary, "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable");
     try expectContains(boundary, "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.");
-    try expectContains(boundary, "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit");
+    try expectContains(boundary, "`targetless_dispatch_with_notifier_sanitized` keeps registered-but-targetless sysrq fallback visible");
+    try expectContains(boundary, "the literal-fallback helpers keep the targetless sysrq path without notifier, the sanitized registered-but-targetless sysrq path, and the non-kernel sysrq literal fallback explicit");
 
     const companion = try readRepoFile("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md");
     defer std.testing.allocator.free(companion);
