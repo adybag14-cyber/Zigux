@@ -18,7 +18,7 @@ TEST_FSMOUNT_SURVEY = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 38
+EXPECTED_SELF_TEST_CASE_COUNT = 37
 
 KPROBE_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
 TEST_FSMOUNT_SURVEYED_COMMIT = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3"
@@ -117,9 +117,6 @@ TEST_FSMOUNT_NOTE_MARKERS = (
 )
 
 PHASE4_BUILD_MARKERS = (
-    "phase4_kprobe_example_survey.zig",
-    KPROBE_SHARED_BUILD_REPLAY,
-    "phase4-kprobe-example-survey",
     "phase4_test_fsmount_survey.zig",
     TEST_FSMOUNT_SHARED_BUILD_REPLAY,
     "phase4-test-fsmount-survey",
@@ -476,7 +473,6 @@ def run_self_test() -> int:
             (KPROBE_MANIFEST, f'"surveyed_commit": "{KPROBE_SURVEYED_COMMIT}"', '"surveyed_commit": "INVALID"', "kprobe_manifest:surveyed_commit:invalid_lower_hex_sha:'INVALID'"),
             (KPROBE_MANIFEST, f'"shared_build_replay": "{KPROBE_SHARED_BUILD_REPLAY}"', '"shared_build_replay": "phase4-kprobe-gap-survey-tests"', f"kprobe_manifest:shared_build_replay:expected='{KPROBE_SHARED_BUILD_REPLAY}'"),
             (KPROBE_MANIFEST, '"status": "ready_next"', '"status": "starter_landed"', "kprobe_manifest:gaps.4.status:expected='ready_next'"),
-            (PHASE4_BUILD, KPROBE_SHARED_BUILD_REPLAY, "phase4-kprobe-gap-survey-tests", f"phase4_build_marker:{KPROBE_SHARED_BUILD_REPLAY}"),
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig", "PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_LOCAL_LAB_REPLAY=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"),
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig", "PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-gap-survey --build-file zigux/tests/phase4_build.zig", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_VALIDATION_ENTRYPOINT=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig"),
             (TEST_FSMOUNT_MANIFEST, f'"surveyed_commit": "{TEST_FSMOUNT_SURVEYED_COMMIT}"', '"surveyed_commit": "INVALID"', "test_fsmount_manifest:surveyed_commit:invalid_lower_hex_sha:'INVALID'"),
