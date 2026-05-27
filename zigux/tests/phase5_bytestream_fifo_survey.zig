@@ -55,8 +55,8 @@ test "phase 5 bytestream fifo manifest still records the bounded replay contract
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 19), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 20), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 }
 
@@ -101,6 +101,13 @@ test "phase 5 bytestream fifo manifest keeps queue-shape wording aligned" {
     try std.testing.expect(std.mem.indexOf(u8, writable_contract.expected, "tail_index=1, writable_count=8") != null);
     try std.testing.expect(std.mem.indexOf(u8, writable_contract.expected, "preview_is_non_destructive") != null);
     try std.testing.expect(std.mem.indexOf(u8, writable_contract.expected, "visible_windows_never_exceed_two") != null);
+
+    const checkpoint_lookup = findExactCheck(manifest, "window-contract-checkpoint-lookups") orelse return error.MissingExactCheck;
+    try std.testing.expect(std.mem.indexOf(u8, checkpoint_lookup.expected, "checkpointName()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checkpoint_lookup.expected, "visibleWindowForCheckpoint()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checkpoint_lookup.expected, "writableWindowForCheckpoint()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checkpoint_lookup.expected, "preview_after_skip_and_requeue") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checkpoint_lookup.expected, "partial_drain_after_wrap_refill") != null);
 
     const reinit = findExactCheck(manifest, "reinit-after-exit") orelse return error.MissingExactCheck;
     try std.testing.expect(std.mem.indexOf(u8, reinit.expected, "available() back at 32") != null);
@@ -148,6 +155,7 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
         "phase5_build.zig` route",
         "StorageBacking.embedded_fixed_buffer",
         "reviewContract().focus",
+        "`checkpointName()`, `visibleWindowForCheckpoint()`, and `writableWindowForCheckpoint()`",
         "keep remaining-capacity, rollover, occupancy, and queue-shape cues explicit through `runRemainingCapacityReplay()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`",
         "keep the direct `available()` helper explicit as the first remaining-capacity cue at cold, initialized, preview, wrapped, full, replay-complete, reset, and exited boundaries instead of leaving free-space review to derived queue-length math alone",
         "draining `\\\"hello\\\"` into a three-byte buffer yields `\\\"hel\\\"`",
@@ -214,6 +222,7 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
         "`samples/zigux/bytestream_fifo.zig` currently carries four in-file self-checks",
         "the fixed-buffer storage backing",
         "the ten-item `reviewContract().focus` order",
+        "`samples/zigux/bytestream_fifo_window_contract.zig` currently carries three direct companion checks",
         "`zigux/tests/phase5_bytestream_fifo.zig` currently carries five focused replay tests",
         "`zigux/tests/phase5_bytestream_fifo_survey.zig` currently carries five survey-packet checks",
         "`initial_string_copy_count = 5`, `first_drain_count = 5`, `second_drain_count = 2`, and `requeue_count = 2`",
@@ -224,6 +233,7 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
         "`occupancySummary()` keeps that preview state explicit at `queue_len = 10`, `available = 22`, and `wrapped = false`",
         "`writableSpanSummary()` keeps the same preview boundary explicit at `tail_index = 17`, `writable_count = 22`, `first_window_len = 15`, `second_window_len = 7`, and `wraps = true`",
         "`runRemainingCapacityReplay()` with `available_after_hello = 27` and `available_after_partial_drain = 8`",
+        "`checkpointName()`, `visibleWindowForCheckpoint()`, and `writableWindowForCheckpoint()` still line up with the same preview, wrapped-full, and partial-drain checkpoints",
         "short-drain `\\\"hel\\\"` / `\\\"lo\\\"` helper boundary",
         "invalid post-exit replay rejection",
     };
