@@ -132,6 +132,11 @@ static inline int zigux_uapi_facility_is_known(uint16_t facility)
     return zigux_facility_is_known(facility);
 }
 
+static inline int zigux_uapi_export_status_ok(struct zigux_export_status status)
+{
+    return zigux_export_status_ok(status);
+}
+
 static inline int zigux_uapi_export_status_has_known_facility(
     struct zigux_export_status status)
 {
