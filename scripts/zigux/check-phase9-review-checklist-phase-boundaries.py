@@ -186,6 +186,16 @@ CURRENT_PHASE9_MAKE_ROUTES = [
     "phase9-test",
 ]
 
+REQUIRED_PHASE9_MAKE_COMMANDS = {
+    "phase9-runtime-atomic64-test": "cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig --summary all",
+    "phase9-runtime-bitmap-test": "cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig --summary all",
+    "phase9-runtime-loader-shared-test": "cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig --summary all",
+    "phase9-runtime-loader-command-env-boundary-guard-test": "cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-loader-command-env-boundary-guard-tests --build-file zigux/tests/phase9_build.zig --summary all",
+    "phase9-runtime-trace-events-test": "cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-trace-events-tests --build-file zigux/tests/phase9_build.zig --summary all",
+    "phase9-runtime-kretprobe-test": "cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig --summary all",
+    "phase9-first-loadable-runtime-module-parity-test": "cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-behavior-tests --build-file zigux/tests/phase9_build.zig --summary all",
+}
+
 FORBIDDEN_PHASE9_MAKE_ROUTES = [
     "phase9",
     "phase9-validate",
@@ -231,6 +241,28 @@ def find_makefile_phase9_routes(text: str) -> list[str]:
     return routes
 
 
+def parse_makefile_commands(text: str) -> dict[str, list[str]]:
+    commands: dict[str, list[str]] = {}
+    current_route: str | None = None
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if raw_line.startswith("\t"):
+            if current_route is not None:
+                commands.setdefault(current_route, []).append(stripped)
+            continue
+        if not stripped or stripped.startswith("#") or stripped.startswith(".PHONY:"):
+            current_route = None
+            continue
+        if ":" not in raw_line:
+            current_route = None
+            continue
+        route = stripped.split(":", 1)[0]
+        current_route = route if route.startswith("phase9") else None
+        if current_route is not None:
+            commands.setdefault(current_route, [])
+    return commands
+
+
 def remove_makefile_route_definition(content: str, route: str) -> str:
     lines = content.splitlines()
     kept: list[str] = []
@@ -246,6 +278,32 @@ def remove_makefile_route_definition(content: str, route: str) -> str:
             skipping = False
         kept.append(line)
     return "\n".join(kept) + "\n"
+
+
+def replace_makefile_route_command(content: str, route: str, replacement_command: str) -> str:
+    lines = content.splitlines()
+    updated: list[str] = []
+    in_target = False
+    replaced = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith(f"{route}:"):
+            in_target = True
+            updated.append(line)
+            continue
+        if in_target:
+            if line.startswith("\t") and not replaced:
+                updated.append(f"\t{replacement_command}")
+                replaced = True
+                continue
+            if line.startswith("\t"):
+                updated.append(line)
+                continue
+            in_target = False
+        updated.append(line)
+    if not replaced:
+        raise ValueError(f"route command not found: {route}")
+    return "\n".join(updated) + "\n"
 
 
 def validate(root: Path) -> list[str]:
@@ -271,9 +329,13 @@ def validate(root: Path) -> list[str]:
 
     makefile = read_text(root, MAKEFILE_PATH)
     makefile_routes = find_makefile_phase9_routes(makefile)
+    makefile_commands = parse_makefile_commands(makefile)
     for route in CURRENT_PHASE9_MAKE_ROUTES:
         if route not in makefile_routes:
             failures.append(f"missing_phase9_route:{MAKEFILE_PATH}:{route}")
+    for route, expected_command in REQUIRED_PHASE9_MAKE_COMMANDS.items():
+        if route in makefile_commands and expected_command not in makefile_commands[route]:
+            failures.append(f"unexpected_phase9_route_command:{MAKEFILE_PATH}:{route}:{expected_command}")
     for route in FORBIDDEN_PHASE9_MAKE_ROUTES:
         if route in makefile_routes:
             failures.append(f"unexpected_phase9_route:{MAKEFILE_PATH}:{route}")
@@ -328,7 +390,7 @@ phase9-runtime-kretprobe-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig --summary all
 
 phase9-first-loadable-runtime-module-parity-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-survey-tests --build-file zigux/tests/phase9_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase9-first-loadable-runtime-module-parity-behavior-tests --build-file zigux/tests/phase9_build.zig --summary all
 
 phase9-test: phase9-runtime-atomic64-test phase9-runtime-bitmap-test phase9-runtime-loader-shared-test phase9-runtime-loader-command-env-boundary-guard-test phase9-runtime-trace-events-test phase9-runtime-kretprobe-test phase9-first-loadable-runtime-module-parity-test
 
@@ -384,6 +446,24 @@ def run_self_test() -> int:
             write_text(base / MAKEFILE_PATH, remove_makefile_route_definition(current, route))
             expect_failure(base, f"missing_phase9_route:{MAKEFILE_PATH}:{route}")
 
+        for route, expected_command in REQUIRED_PHASE9_MAKE_COMMANDS.items():
+            seed_fixture_tree(base)
+            current = read_text(base, MAKEFILE_PATH)
+            replacement = expected_command.replace(
+                "phase9-first-loadable-runtime-module-parity-behavior-tests",
+                "phase9-first-loadable-runtime-module-parity-survey-tests",
+            )
+            if replacement == expected_command:
+                replacement = "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase9_build.zig --summary all"
+            write_text(
+                base / MAKEFILE_PATH,
+                replace_makefile_route_command(current, route, replacement),
+            )
+            expect_failure(
+                base,
+                f"unexpected_phase9_route_command:{MAKEFILE_PATH}:{route}:{expected_command}",
+            )
+
         for route in FORBIDDEN_PHASE9_MAKE_ROUTES:
             seed_fixture_tree(base)
             current = read_text(base, MAKEFILE_PATH)
@@ -410,6 +490,10 @@ def run_self_test() -> int:
     print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_REQUIRED_MAKEFILE_ROUTE_COUNT="
         f"{len(CURRENT_PHASE9_MAKE_ROUTES)}"
+    )
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_REQUIRED_MAKEFILE_COMMAND_COUNT="
+        f"{len(REQUIRED_PHASE9_MAKE_COMMANDS)}"
     )
     print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT="
@@ -454,6 +538,10 @@ def main() -> int:
     print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_REQUIRED_MAKEFILE_ROUTE_COUNT="
         f"{len(CURRENT_PHASE9_MAKE_ROUTES)}"
+    )
+    print(
+        "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_REQUIRED_MAKEFILE_COMMAND_COUNT="
+        f"{len(REQUIRED_PHASE9_MAKE_COMMANDS)}"
     )
     print(
         "PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT="
