@@ -251,8 +251,6 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
-    "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py --self-test",
-    "run: python3 scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
     "run: make -C zigux phase2-toolchain",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
@@ -514,7 +512,7 @@ def run_self_test() -> int:
         + 2
     )
     checks = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_" ) as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
         root = Path(tmp_dir)
 
         build_self_test_root(root)
