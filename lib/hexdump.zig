@@ -126,14 +126,20 @@ pub fn hexDumpToBuffer(
     const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(buf.len, rowsize);
     const groupsize = normalizedGroupsize(len, groupsize_input);
+    const required = hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
 
     if (linebuf.len == 0) {
-        return hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
+        return required;
     }
 
     if (len == 0) {
         linebuf[0] = 0;
         return 0;
+    }
+
+    if (linebuf.len == 1) {
+        linebuf[0] = 0;
+        return required;
     }
 
     var writer = TruncatingWriter.init(linebuf);
@@ -595,6 +601,17 @@ test "hexDumpToBuffer reports full length when the caller buffer truncates" {
     try std.testing.expectEqual(@as(usize, 53), written);
     try std.testing.expectEqual(@as(u8, 0), line[line.len - 1]);
     try std.testing.expectEqualSlices(u8, "be 32 d", std.mem.sliceTo(line[0..], 0));
+}
+
+test "hexDumpToBuffer returns the full grouped length for a NUL-only buffer" {
+    var line = [_]u8{0xaa};
+
+    const required = hexDumpToBuffer(test_data_b[0..16], 16, 4, line[0..], true);
+    const alias_required = hex_dump_to_buffer(test_data_b[0..16], 16, 4, line[0..], true);
+
+    try std.testing.expectEqual(@as(usize, 53), required);
+    try std.testing.expectEqual(required, alias_required);
+    try std.testing.expectEqual(@as(u8, 0), line[0]);
 }
 
 test "hexDumpToBuffer keeps full grouped ASCII output when the caller buffer fits exactly" {
