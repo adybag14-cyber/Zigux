@@ -22,6 +22,8 @@
     "zigux/tests/phase3_policy_dump.zig",
     "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
+    "zigux/tests/phase3_policy_unsafe.zig",
+    "zigux/tests/phase3_policy_unsafe_build.zig",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/check-phase3-policy-dump.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -36,6 +38,8 @@
     "python3 scripts/zigux/check-phase3-policy-dump.py",
     "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     "make -C zigux phase3-policy-dump",
+    "zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+    "make -C zigux phase3-policy-unsafe-test",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "make -C zigux phase3"
