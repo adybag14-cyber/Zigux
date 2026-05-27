@@ -336,7 +336,6 @@ def run_self_test() -> int:
         cases += 1
         write_fixture(root)
 
-        (root / "scripts/zigux/check-phase10-ring-packet.py").writeText = None
         (root / "scripts/zigux/check-phase10-ring-packet.py").write_text(
             "#!/usr/bin/env python3\nraise SystemExit(1)\n",
             encoding="utf-8",
