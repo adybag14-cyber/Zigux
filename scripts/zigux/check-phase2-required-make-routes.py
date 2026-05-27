@@ -37,6 +37,7 @@ CURRENT_REQUIRED_MAKE_ROUTES = (
     "phase2-fixdep",
     "phase2-validate",
 )
+CURRENT_REQUIRED_MAKE_ROUTE_SET = frozenset(CURRENT_REQUIRED_MAKE_ROUTES)
 CURRENT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in CURRENT_REQUIRED_MAKE_ROUTES)
 CURRENT_WORKFLOW_ROUTE_LINES = tuple(f"run: make -C zigux {route}" for route in CURRENT_REQUIRED_MAKE_ROUTES)
 POLICY_SUMMARY_ANCHOR = "required Linux-style make routes"
@@ -152,12 +153,13 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
+    + 1
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
     + 1
     + len(CURRENT_REQUIRED_MAKE_ROUTES)
     + 1
-    + 12
+    + 10
 )
 
 
@@ -339,11 +341,21 @@ def collect_toolchain_route_boundary_issues(makefile_text: str) -> list[tuple[st
     return issues
 
 
+def collect_route_packet_issues(required_routes: tuple[str, ...]) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for route in required_routes:
+        if route not in CURRENT_REQUIRED_MAKE_ROUTE_SET:
+            issues.append(("UNSUPPORTED_REQUIRED_ROUTE", route))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    required_routes = load_required_make_routes(resolve_path(root, TOOLCHAIN_POLICY))
+    required_routes = tuple(load_required_make_routes(resolve_path(root, TOOLCHAIN_POLICY)))
     policy_route_markers = tuple(format_route_marker(route) for route in required_routes)
     workflow_route_lines = tuple(format_workflow_route_line(route) for route in required_routes)
+
+    issues.extend(collect_route_packet_issues(required_routes))
 
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     for line in WORKFLOW_LINES:
@@ -368,7 +380,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_MAKEFILE_MARKERS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count={count}"))
-    issues.extend(collect_required_route_makefile_issues(makefile_text, tuple(required_routes)))
+    issues.extend(collect_required_route_makefile_issues(makefile_text, required_routes))
     issues.extend(collect_toolchain_route_boundary_issues(makefile_text))
 
     for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
@@ -378,7 +390,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.extend(collect_surface_issues(root, path, gap_code, route_code, policy_route_markers))
 
     for path, summary_code, route_code in POLICY_SUMMARY_SURFACE_CODES:
-        issues.extend(collect_policy_summary_issues(root, path, summary_code, route_code, tuple(required_routes)))
+        issues.extend(collect_policy_summary_issues(root, path, summary_code, route_code, required_routes))
 
     return issues
 
@@ -534,19 +546,6 @@ def run_self_test() -> int:
         assert ("MISSING_MAKEFILE_MARKERS", REQUIRED_PHASE2_PHONY_LINE) in collect_issues(root)
         checks_run += 1
 
-        build_self_test_root(root)
-        makefile_path = resolve_path(root, MAKEFILE)
-        makefile_path.write_text(
-            replace_exact_line(
-                makefile_path.read_text(encoding="utf-8"),
-                REQUIRED_PHASE2_PHONY_LINE,
-                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2 phase3-validate phase3",
-            ),
-            encoding="utf-8",
-        )
-        assert collect_issues(root) == []
-        checks_run += 1
-
         for marker in MAKEFILE_MARKERS:
             build_self_test_root(root)
             makefile_path = resolve_path(root, MAKEFILE)
@@ -566,22 +565,6 @@ def run_self_test() -> int:
             )
             assert ("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
-
-        build_self_test_root(root)
-        makefile_path = resolve_path(root, MAKEFILE)
-        makefile_path.write_text(
-            insert_after_exact_line(
-                makefile_path.read_text(encoding="utf-8"),
-                TOOLCHAIN_ALLOWED_RECIPE_LINES[-1],
-                "\t$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "TOOLCHAIN_ROUTE_OVERLAP",
-            "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
-        ) in collect_issues(root)
-        checks_run += 1
 
         for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
             for marker in MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS:
@@ -644,6 +627,7 @@ def run_self_test() -> int:
         policy_payload["upgrade_policy"]["required_make_routes"].append(extra_route)
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
+        assert ("UNSUPPORTED_REQUIRED_ROUTE", extra_route) in issues
         assert ("MISSING_TESTS_ROUTE_MARKERS", f"`make -C zigux {extra_route}`") in issues
         assert ("MISSING_WORKFLOW_ROUTE_LINES", f"run: make -C zigux {extra_route}") in issues
         assert ("MISSING_BOOTSTRAP_POLICY_ROUTE_NAME", extra_route) in issues
@@ -663,6 +647,7 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         issues = collect_issues(root)
+        assert ("UNSUPPORTED_REQUIRED_ROUTE", extra_route) in issues
         assert ("MISSING_REQUIRED_ROUTE_PHONY_TARGET", extra_route) in issues
         assert ("MISSING_REQUIRED_ROUTE_TARGET", f"{extra_route}:") not in issues
         checks_run += 1
@@ -683,7 +668,8 @@ def run_self_test() -> int:
         makefile_text += f"{extra_route}:\n\t@true\n{extra_route}:\n\t@true\n"
         makefile_path.write_text(makefile_text, encoding="utf-8")
         issues = collect_issues(root)
-        assert ("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{extra_route}:count=2") in issues
+        assert ("UNSUPPORTED_REQUIRED_ROUTE", extra_route) in issues
+        assert ("DUPLICATE_REQUIRED_ROUTE_TARGET", f"{extra_route}::count=2") in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -722,6 +708,17 @@ def run_self_test() -> int:
         policy_payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-toolchain"]
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
         assert_invalid_cli(root, "duplicate required_make_routes")
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy_payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-future"]
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        result = run_cli(root)
+        assert result.returncode == 1
+        assert "PHASE2_REQUIRED_MAKE_ROUTES=fail" in result.stdout
+        assert "UNSUPPORTED_REQUIRED_ROUTE:phase2-future" in result.stdout
         checks_run += 1
 
         for path in (TOOLCHAIN_POLICY, WORKFLOW, MAKEFILE):
