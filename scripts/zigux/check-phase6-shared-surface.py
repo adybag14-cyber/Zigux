@@ -75,6 +75,7 @@ EXPECTED_ROADMAP_ANCHORS = [
     "lib/checksum.c",
     "lib/hexdump.c",
 ]
+EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_SHARED_REPLAY_INVENTORY = [
     "zig build phase6-base64-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-base64-test",
@@ -182,7 +183,7 @@ EXPECTED_PARITY_HELPER_DIRECT_C_PARITY = {
         "checker_surfaces": ["scripts/zigux/check-phase6-checksum-c-parity.py"],
     },
 }
-SELF_TEST_CASE_COUNT = 58
+SELF_TEST_CASE_COUNT = 60
 
 
 class ValidationError(RuntimeError):
@@ -254,6 +255,25 @@ def require_helper_fields(
                 )
 
 
+def require_helper_keys(packet_name: str, helpers: object, expected_keys: list[str]) -> None:
+    if not isinstance(helpers, list):
+        raise ValidationError(f"{packet_name} helpers missing")
+
+    helper_keys: list[str] = []
+    for helper in helpers:
+        if not isinstance(helper, dict):
+            raise ValidationError(f"{packet_name} helper entry malformed")
+        key = helper.get("key")
+        if not isinstance(key, str):
+            raise ValidationError(f"{packet_name} helper key missing")
+        helper_keys.append(key)
+
+    if helper_keys != expected_keys:
+        raise ValidationError(
+            f"{packet_name} helper key set drifted: {helper_keys}"
+        )
+
+
 def validate(repo_root: Path) -> None:
     evidence = read_json(repo_root / HELPER_EVIDENCE_MANIFEST_PATH)
     parity = read_json(repo_root / HELPER_PARITY_MANIFEST_PATH)
@@ -292,6 +312,16 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-parity roadmap anchors drift")
     if parity.get("shared_follow_through_gaps") != EXPECTED_PARITY_FOLLOW_THROUGH_GAPS:
         raise ValidationError("phase6 helper-parity follow-through gaps drift")
+    require_helper_keys(
+        "phase6 helper-evidence manifest",
+        evidence.get("helpers"),
+        EXPECTED_HELPER_KEYS,
+    )
+    require_helper_keys(
+        "phase6 helper-parity manifest",
+        parity.get("helpers"),
+        EXPECTED_HELPER_KEYS,
+    )
     require_helper_fields(
         "phase6 helper-evidence manifest",
         evidence.get("helpers"),
@@ -333,9 +363,11 @@ def scaffold_repo(root: Path) -> None:
     evidence_helpers = [
         {"key": key, **value} for key, value in EXPECTED_EVIDENCE_HELPER_DIRECT_C_PARITY.items()
     ]
+    evidence_helpers.append({"key": "hexdump"})
     parity_helpers = [
         {"key": key, **value} for key, value in EXPECTED_PARITY_HELPER_DIRECT_C_PARITY.items()
     ]
+    parity_helpers.append({"key": "hexdump"})
     write(
         root / HELPER_EVIDENCE_MANIFEST_PATH,
         json.dumps(
@@ -468,6 +500,8 @@ def run_self_test() -> None:
         cases_run += 1
         expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["checker_surfaces"].remove("scripts/zigux/check-phase6-checksum-c-parity.py")))
         cases_run += 1
+        expect_failure(root, root / HELPER_EVIDENCE_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"helpers": [helper for helper in data["helpers"] if helper["key"] != "hexdump"]})))
+        cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("Documentation/zigux/phase6-perf-gate-survey.md")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["shared_direct_evidence"].remove("scripts/zigux/check-phase6-shared-surface.py")))
@@ -511,6 +545,8 @@ def run_self_test() -> None:
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][1].pop("direct_c_parity_replay")))
         cases_run += 1
         expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data["helpers"][2]["checker_surfaces"].remove("scripts/zigux/check-phase6-checksum-c-parity.py")))
+        cases_run += 1
+        expect_failure(root, root / HELPER_PARITY_MANIFEST_PATH, lambda path: rewrite_json(path, lambda data: data.update({"helpers": [helper for helper in data["helpers"] if helper["key"] != "hexdump"]})))
         cases_run += 1
         expect_failure(root, root / VALIDATOR_PATH, lambda path: write(path, read_text(path).replace(REQUIRED_VALIDATOR_SNIPPETS[0] + "\n", "", 1)))
         cases_run += 1
