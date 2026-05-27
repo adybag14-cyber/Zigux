@@ -26,6 +26,7 @@ CATALOG_MARKERS = (
     'PHASE9_CATALOG_LANE = "P9-L11"',
     'MANIFEST_PATH = Path("zigux/tests/runtime_pilot_manifest.json")',
     'OWNERSHIP_MAP_PATH = Path("Documentation/zigux/phase9-runtime-pilot-ownership-map.md")',
+    '"blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof"',
     '"scripts/zigux/check-phase9-catalog-selftest.py"',
     '"scripts/zigux/validate-phase9.py"',
     '"python3 scripts/zigux/phase9_catalog.py --pretty"',
@@ -41,6 +42,7 @@ OWNERSHIP_MAP_MARKERS = (
     "PHASE9_RUNTIME_PILOT_SCRIPTS_ROOT=scripts/zigux/README.md",
     "PHASE9_RUNTIME_PILOT_SHARED_NOTE=Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
     "PHASE9_RUNTIME_PILOT_SHARED_BUILD=zigux/tests/phase9_build.zig",
+    "PHASE9_RUNTIME_PILOT_BLOCKED_DEPMOD_BRIDGE_SURVEY=Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
     "## Shared Owner Packet",
     "## Shared Runtime Loader Owner",
     "## Trace Events Family Owner",
@@ -60,6 +62,7 @@ MANIFEST_MARKERS = (
     '"phase": "Phase 9"',
     '"lane_key": "P9-L11"',
     '"ownership_map_path": "Documentation/zigux/phase9-runtime-pilot-ownership-map.md"',
+    '"blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof"',
     '"scripts/zigux/phase9_catalog.py"',
     '"scripts/zigux/validate-phase9.py"',
     '"zigux/tests/runtime_pilot_manifest.json"',
@@ -68,6 +71,7 @@ MANIFEST_MARKERS = (
 VALIDATOR_MARKERS = (
     "EXPECTED_PACKET_FILES = (",
     '"scripts/zigux/validate-phase9.py",',
+    '"blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof",',
     "EXPECTED_REPLAY_ROUTES = (",
     '"python3 scripts/zigux/validate-phase9.py",',
     "PHASE9_VALIDATE_SELF_TEST=pass",
@@ -144,9 +148,9 @@ def run_self_test() -> int:
             ),
             (
                 OWNERSHIP_MAP_PATH,
-                "## Shared Runtime Loader Owner",
-                "missing Documentation/zigux/phase9-runtime-pilot-ownership-map.md marker: ## Shared Runtime Loader Owner",
-                "expected missing ownership-map runtime-loader section was not reported",
+                "PHASE9_RUNTIME_PILOT_BLOCKED_DEPMOD_BRIDGE_SURVEY=Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+                "missing Documentation/zigux/phase9-runtime-pilot-ownership-map.md marker: PHASE9_RUNTIME_PILOT_BLOCKED_DEPMOD_BRIDGE_SURVEY=Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+                "expected missing ownership-map blocked depmod bridge marker was not reported",
             ),
             (
                 README_PATH,
@@ -156,9 +160,9 @@ def run_self_test() -> int:
             ),
             (
                 MANIFEST_PATH,
-                '"ownership_map_path": "Documentation/zigux/phase9-runtime-pilot-ownership-map.md"',
-                'missing zigux/tests/runtime_pilot_manifest.json marker: "ownership_map_path": "Documentation/zigux/phase9-runtime-pilot-ownership-map.md"',
-                "expected missing manifest ownership-map marker was not reported",
+                '"blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof"',
+                'missing zigux/tests/runtime_pilot_manifest.json marker: "blocked module-metadata, depmod bridge, and install-root publication vocabulary remains historical rather than direct shipped proof"',
+                "expected missing manifest blocked-boundary marker was not reported",
             ),
             (
                 VALIDATOR_PATH,
