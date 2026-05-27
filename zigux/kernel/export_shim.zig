@@ -114,6 +114,18 @@ pub fn statusIsOk(status: ExportStatus) bool {
     return abi.statusIsOk(status);
 }
 
+pub fn facilityFromInt(value: u16) ?Facility {
+    return abi.facilityFromInt(value);
+}
+
+pub fn facilityIsKnown(value: u16) bool {
+    return abi.facilityIsKnown(value);
+}
+
+pub fn statusHasKnownFacility(status: ExportStatus) bool {
+    return abi.statusHasKnownFacility(status);
+}
+
 pub fn deviceFieldsAreValid(fields: DevTFields) bool {
     return dev_t.validate(fields);
 }
@@ -436,18 +448,36 @@ test "export shim status helpers keep facility and error flags explicit" {
     const ok = okStatus(.helpers);
     const err = errorStatus(-12, .kernel);
     const non_error = errorStatus(7, .drivers);
+    const unknown_facility = ExportStatus{
+        .code = 0,
+        .facility = 9,
+        .flags = 0,
+    };
 
     try testing.expectEqual(@as(i32, 0), ok.code);
     try testing.expectEqual(@as(u16, @intFromEnum(Facility.helpers)), ok.facility);
     try testing.expectEqual(@as(u16, 0), ok.flags);
+    try testing.expect(statusHasKnownFacility(ok));
 
     try testing.expectEqual(@as(i32, -12), err.code);
     try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), err.facility);
     try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), err.flags);
+    try testing.expect(statusHasKnownFacility(err));
 
     try testing.expectEqual(@as(i32, 7), non_error.code);
     try testing.expectEqual(@as(u16, @intFromEnum(Facility.drivers)), non_error.facility);
     try testing.expectEqual(@as(u16, 0), non_error.flags);
+    try testing.expect(statusHasKnownFacility(non_error));
+
+    try testing.expectEqual(@as(?Facility, .helpers), facilityFromInt(ok.facility));
+    try testing.expectEqual(@as(?Facility, .kernel), facilityFromInt(err.facility));
+    try testing.expectEqual(@as(?Facility, .drivers), facilityFromInt(non_error.facility));
+    try testing.expect(facilityIsKnown(ok.facility));
+    try testing.expect(facilityIsKnown(err.facility));
+    try testing.expect(facilityIsKnown(non_error.facility));
+    try testing.expectEqual(@as(?Facility, null), facilityFromInt(unknown_facility.facility));
+    try testing.expect(!facilityIsKnown(unknown_facility.facility));
+    try testing.expect(!statusHasKnownFacility(unknown_facility));
 }
 
 test "export shim mirrors the exported status-ok flag contract" {
