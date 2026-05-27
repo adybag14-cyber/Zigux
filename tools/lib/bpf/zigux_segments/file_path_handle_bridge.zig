@@ -83,6 +83,7 @@ pub const ReusedMapNameSummary = struct {
 
 pub const ReusePinnedMapAttemptDisposition = enum {
     missing_map_name,
+    truncated_map_name,
     incomplete_fdinfo_map_info,
     ready_for_reopen_attempt,
 };
@@ -91,6 +92,7 @@ pub const ReusePinnedMapAttemptSummary = struct {
     disposition: ReusePinnedMapAttemptDisposition,
     should_attempt_reopen: bool,
     retained_name: ?[]const u8,
+    retained_name_disposition: ?ReusedMapNameDisposition,
     fdinfo_summary: FdinfoMapInfoSummary,
     reuse_observation: MapReuseObservation,
 };
@@ -371,6 +373,7 @@ pub fn resolveReusePinnedMapAttempt(
             .disposition = .missing_map_name,
             .should_attempt_reopen = false,
             .retained_name = null,
+            .retained_name_disposition = null,
             .fdinfo_summary = fdinfo_summary,
             .reuse_observation = reuse_observation,
         };
@@ -381,17 +384,30 @@ pub fn resolveReusePinnedMapAttempt(
             .disposition = .missing_map_name,
             .should_attempt_reopen = false,
             .retained_name = null,
+            .retained_name_disposition = null,
             .fdinfo_summary = fdinfo_summary,
             .reuse_observation = reuse_observation,
         },
         else => return err,
     };
 
+    if (retained_name.disposition == .truncated_fixed_width) {
+        return .{
+            .disposition = .truncated_map_name,
+            .should_attempt_reopen = false,
+            .retained_name = retained_name.name,
+            .retained_name_disposition = retained_name.disposition,
+            .fdinfo_summary = fdinfo_summary,
+            .reuse_observation = reuse_observation,
+        };
+    }
+
     if (!fdinfo_summary.has_complete_legacy_fields) {
         return .{
             .disposition = .incomplete_fdinfo_map_info,
             .should_attempt_reopen = false,
             .retained_name = retained_name.name,
+            .retained_name_disposition = retained_name.disposition,
             .fdinfo_summary = fdinfo_summary,
             .reuse_observation = reuse_observation,
         };
@@ -401,6 +417,7 @@ pub fn resolveReusePinnedMapAttempt(
         .disposition = .ready_for_reopen_attempt,
         .should_attempt_reopen = true,
         .retained_name = retained_name.name,
+        .retained_name_disposition = retained_name.disposition,
         .fdinfo_summary = fdinfo_summary,
         .reuse_observation = reuse_observation,
     };
@@ -568,6 +585,11 @@ test "phase8 file-path bridge keeps reuse observations and planning-only bridge 
         reuse_attempt.disposition,
     );
     try std.testing.expect(reuse_attempt.should_attempt_reopen);
+    try std.testing.expectEqualStrings("stats_map", reuse_attempt.retained_name.?);
+    try std.testing.expectEqual(
+        ReusedMapNameDisposition.exact_name,
+        reuse_attempt.retained_name_disposition.?,
+    );
 
     const token_plan = planTokenPreparation(reuse_attempt);
     try std.testing.expectEqual(
@@ -593,6 +615,7 @@ test "phase8 file-path bridge keeps missing-map-name reuse planning explicit" {
     );
     try std.testing.expect(!reuse_attempt.should_attempt_reopen);
     try std.testing.expectEqual(@as(?[]const u8, null), reuse_attempt.retained_name);
+    try std.testing.expectEqual(@as(?ReusedMapNameDisposition, null), reuse_attempt.retained_name_disposition);
     try std.testing.expect(reuse_attempt.fdinfo_summary.has_complete_legacy_fields);
 
     const token_plan = planTokenPreparation(reuse_attempt);
@@ -628,6 +651,7 @@ test "phase8 file-path bridge treats a leading NUL map name as missing" {
     );
     try std.testing.expect(!reuse_attempt.should_attempt_reopen);
     try std.testing.expectEqual(@as(?[]const u8, null), reuse_attempt.retained_name);
+    try std.testing.expectEqual(@as(?ReusedMapNameDisposition, null), reuse_attempt.retained_name_disposition);
 
     const token_plan = planTokenPreparation(reuse_attempt);
     try std.testing.expectEqual(
@@ -641,4 +665,59 @@ test "phase8 file-path bridge keeps reused-map name retention summaries stable" 
     const exact = try summarizeReusedMapName("stats_map\x00");
     try std.testing.expectEqual(ReusedMapNameDisposition.exact_name, exact.disposition);
     try std.testing.expectEqualStrings("stats_map", exact.name);
+
+    const terminated_prefix = try summarizeReusedMapName("stats_map\x00shadow");
+    try std.testing.expectEqual(
+        ReusedMapNameDisposition.terminated_prefix,
+        terminated_prefix.disposition,
+    );
+    try std.testing.expectEqualStrings("stats_map", terminated_prefix.name);
+
+    const truncated = try summarizeReusedMapName("stats_map_truncated");
+    try std.testing.expectEqual(
+        ReusedMapNameDisposition.truncated_fixed_width,
+        truncated.disposition,
+    );
+    try std.testing.expectEqualStrings("stats_map_truncated", truncated.name);
+}
+
+test "phase8 file-path bridge keeps truncated retained names off the reopen path" {
+    const parsed = try parseFdinfoMapInfo(
+        \\map_type: 14
+        \\key_size: 4
+        \\value_size: 8
+        \\max_entries: 16
+        \\map_flags: 0x80
+    );
+
+    const terminated_prefix_attempt = try resolveReusePinnedMapAttempt("stats_map\x00shadow", parsed);
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.ready_for_reopen_attempt,
+        terminated_prefix_attempt.disposition,
+    );
+    try std.testing.expect(terminated_prefix_attempt.should_attempt_reopen);
+    try std.testing.expectEqualStrings("stats_map", terminated_prefix_attempt.retained_name.?);
+    try std.testing.expectEqual(
+        ReusedMapNameDisposition.terminated_prefix,
+        terminated_prefix_attempt.retained_name_disposition.?,
+    );
+
+    const truncated_attempt = try resolveReusePinnedMapAttempt("stats_map_truncated", parsed);
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.truncated_map_name,
+        truncated_attempt.disposition,
+    );
+    try std.testing.expect(!truncated_attempt.should_attempt_reopen);
+    try std.testing.expectEqualStrings("stats_map_truncated", truncated_attempt.retained_name.?);
+    try std.testing.expectEqual(
+        ReusedMapNameDisposition.truncated_fixed_width,
+        truncated_attempt.retained_name_disposition.?,
+    );
+
+    const token_plan = planTokenPreparation(truncated_attempt);
+    try std.testing.expectEqual(
+        TokenPreparationDisposition.skip_token_open_attempt,
+        token_plan.disposition,
+    );
+    try std.testing.expect(!token_plan.should_attempt_token_open);
 }
