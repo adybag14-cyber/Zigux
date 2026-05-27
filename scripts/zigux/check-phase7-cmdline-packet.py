@@ -168,7 +168,7 @@ COUNTED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 60
+SELF_TEST_CASE_COUNT = 63
 
 
 def read_text(path: Path) -> str:
@@ -358,10 +358,10 @@ def run_self_test() -> None:
             ("scripts/zigux/check-phase7-cmdline-packet.py", "\\\"lib/cmdline.zig\\\",", ""),
             ("zigux/tests/phase7_cmdline.zig", "test \"phase 7 cmdline companion replays leading-plus fallback boundaries\" {", ""),
             ("lib/cmdline.zig", "test \"memparse saturates signed overflow instead of trapping\" {", ""),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = "P7-L08"', 'EXPECTED_MANIFEST_LANE_KEY = "P7-L07"'),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = "Phase 7"', 'EXPECTED_MANIFEST_PHASE = "Phase 8"'),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = "lib/cmdline.c"', 'EXPECTED_MANIFEST_ANCHOR = "lib/string_helpers.c"'),
-            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_checker_anchor"', 'EXPECTED_MANIFEST_STATE = "helper_slice_test_survey_manifest_anchor"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_LANE_KEY = \\\"P7-L08\\\"', 'EXPECTED_MANIFEST_LANE_KEY = \\\"P7-L07\\\"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_PHASE = \\\"Phase 7\\\"', 'EXPECTED_MANIFEST_PHASE = \\\"Phase 8\\\"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_ANCHOR = \\\"lib/cmdline.c\\\"', 'EXPECTED_MANIFEST_ANCHOR = \\\"lib/string_helpers.c\\\"'),
+            ("scripts/zigux/check-phase7-cmdline-packet.py", 'EXPECTED_MANIFEST_STATE = \\\"helper_slice_test_survey_manifest_checker_anchor\\\"', 'EXPECTED_MANIFEST_STATE = \\\"helper_slice_test_survey_manifest_anchor\\\"'),
         ]
 
         for rel, old, new in mutations:
@@ -399,6 +399,17 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         manifest = json.loads(read_text(manifest_path))
+        manifest["review_surfaces"] = "scripts/zigux/check-phase7-cmdline-packet.py"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_review_surfaces_type_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: review_surfaces",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
         manifest["ownership_focus"].remove(
             "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix"
         )
@@ -407,6 +418,28 @@ def run_self_test() -> None:
             "manifest_parse_option_ownership_guard",
             tmp_root,
             "zigux/tests/phase7_cmdline_manifest.json: ownership_focus: parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["covered_helpers"] = "parseOptionStr"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_covered_helpers_type_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: covered_helpers",
+        )
+        cases_run += 1
+        write_fixture_root(tmp_root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["ownership_focus"] = "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_missing_marker(
+            "manifest_ownership_focus_type_guard",
+            tmp_root,
+            "zigux/tests/phase7_cmdline_manifest.json: ownership_focus",
         )
         cases_run += 1
         write_fixture_root(tmp_root)
