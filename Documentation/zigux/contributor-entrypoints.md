@@ -78,7 +78,7 @@ When the change stays inside the developer-enablement lane, use this bounded loo
 Keep these current-master route boundaries explicit while refreshing contributor guidance:
 
 - `zigux/Makefile` is present, but Phase 13 still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`
-- Phase 12 does expose `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`, while `make -C zigux phase12-validate` remains reminder-only vocabulary
+- Phase 12 does expose `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12`
 - Phase 5 stays non-runtime; do not use sample guidance to imply runtime-loader, module-registration, procfs, sysfs, workqueue, or ring-buffer delivery claims
 - cross-phase sync notes are contributor-surface companions, not substitutes for helper-local owner maps or validator results
 
