@@ -23,6 +23,7 @@ test "phase13 devres descriptor records helper-first scatterlist planning" {
     try std.testing.expectEqualStrings("devres_scatterlist_helper", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_scatterlist_lifetime_planning);
+    try std.testing.expect(descriptor.provides_scatterlist_table_teardown_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
 }
@@ -32,11 +33,13 @@ test "phase13 devres scatterlist helper stays planning-only at the boundary" {
     defer std.testing.allocator.free(helper);
 
     try requireContains(helper, ".provides_scatterlist_lifetime_planning = true");
+    try requireContains(helper, ".provides_scatterlist_table_teardown_planning = true");
     try requireContains(helper, ".touches_live_dma = false");
     try requireContains(helper, ".touches_live_scatterlist = false");
     try requireContains(helper, "pub fn planManagedScatterlistMap");
     try requireContains(helper, "pub fn scatterlistReleaseMatches");
     try requireContains(helper, "pub fn planManagedScatterlistUnmap");
+    try requireContains(helper, "pub fn planManagedScatterlistTableTeardown");
     try requireAbsent(helper, "dma_map_sg(");
     try requireAbsent(helper, "dma_unmap_sg(");
     try requireAbsent(helper, "dma_map_sgtable(");
@@ -127,6 +130,67 @@ test "phase13 devres scatterlist unmap planning warns when release counts drift"
     try std.testing.expect(miss.warns_on_release_miss);
 }
 
+test "phase13 devres scatterlist table teardown becomes free-ready once mapped entries drain" {
+    const plan = devres_scatterlist.DevresScatterlistHelper.planManagedScatterlistTableTeardown(.{
+        .original_entries = 6,
+        .mapped_entries = 0,
+        .table_initialized = true,
+        .release_record_present = true,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+    try std.testing.expectEqual(@as(u32, 6), plan.original_entries);
+    try std.testing.expectEqual(@as(u32, 0), plan.mapped_entries);
+    try std.testing.expect(plan.table_initialized);
+    try std.testing.expect(plan.release_record_present);
+    try std.testing.expect(plan.free_table_ready);
+    try std.testing.expect(!plan.requires_unmap_before_free);
+    try std.testing.expect(!plan.warns_on_missing_release_record);
+    try std.testing.expect(!plan.warns_on_overmapped_release);
+}
+
+test "phase13 devres scatterlist table teardown requires unmap before free when mapped entries remain" {
+    const plan = devres_scatterlist.DevresScatterlistHelper.planManagedScatterlistTableTeardown(.{
+        .original_entries = 6,
+        .mapped_entries = 2,
+        .table_initialized = true,
+        .release_record_present = true,
+    });
+
+    try std.testing.expect(!plan.free_table_ready);
+    try std.testing.expect(plan.requires_unmap_before_free);
+    try std.testing.expect(!plan.warns_on_missing_release_record);
+    try std.testing.expect(!plan.warns_on_overmapped_release);
+}
+
+test "phase13 devres scatterlist table teardown warns when the release record is missing" {
+    const plan = devres_scatterlist.DevresScatterlistHelper.planManagedScatterlistTableTeardown(.{
+        .original_entries = 4,
+        .mapped_entries = 0,
+        .table_initialized = true,
+        .release_record_present = false,
+    });
+
+    try std.testing.expect(!plan.free_table_ready);
+    try std.testing.expect(!plan.requires_unmap_before_free);
+    try std.testing.expect(plan.warns_on_missing_release_record);
+    try std.testing.expect(!plan.warns_on_overmapped_release);
+}
+
+test "phase13 devres scatterlist table teardown warns on overmapped release drift" {
+    const plan = devres_scatterlist.DevresScatterlistHelper.planManagedScatterlistTableTeardown(.{
+        .original_entries = 3,
+        .mapped_entries = 5,
+        .table_initialized = true,
+        .release_record_present = true,
+    });
+
+    try std.testing.expect(!plan.free_table_ready);
+    try std.testing.expect(!plan.requires_unmap_before_free);
+    try std.testing.expect(!plan.warns_on_missing_release_record);
+    try std.testing.expect(plan.warns_on_overmapped_release);
+}
+
 test "phase13 devres scatterlist planner manifest records the dedicated helper-first packet" {
     const manifest = try readRepoFile(std.testing.allocator, "zigux/tests/phase13_devres_scatterlist_planner_manifest.json");
     defer std.testing.allocator.free(manifest);
@@ -146,6 +210,7 @@ test "phase13 devres scatterlist planner manifest records the dedicated helper-f
     try requireContains(manifest, "\"release_match_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
     try requireContains(manifest, "\"overmapped_request_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
     try requireContains(manifest, "\"warn_on_release_miss_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
+    try requireContains(manifest, "\"scatterlist_table_teardown_owner\": \"zigux/tests/phase13_devres_scatterlist.zig\"");
     try requireContains(manifest, "\"slice_note_owner\": \"Documentation/zigux/phase13-devres-scatterlist-slice.md\"");
     try requireContains(manifest, "\"build_shard_owner\": \"zigux/tests/phase13_devres_scatterlist_build.zig\"");
     try requireContains(manifest, "\"validation_guard\": \"scripts/zigux/check-phase13-devres-scatterlist-planner.py\"");
@@ -153,6 +218,10 @@ test "phase13 devres scatterlist planner manifest records the dedicated helper-f
     try requireContains(manifest, "planManagedScatterlistMap");
     try requireContains(manifest, "scatterlistReleaseMatches");
     try requireContains(manifest, "planManagedScatterlistUnmap");
+    try requireContains(manifest, "planManagedScatterlistTableTeardown");
+    try requireContains(manifest, "helper-first `sg_table` free eligibility stays reviewable");
+    try requireContains(manifest, "requires unmap-before-free planning");
+    try requireContains(manifest, "warn rather than claiming live `sg_table` lifecycle mutation");
     try requireContains(manifest, "impossible over-mapped scatterlist results free the release record");
     try requireContains(manifest, "warn-on-release-miss outcome");
     try requireContains(manifest, "phase13-devres-scatterlist-tests");
@@ -176,7 +245,11 @@ test "phase13 devres scatterlist planner note keeps the helper-first scatterlist
     try requireContains(note, "routes `planManagedScatterlistUnmap(...)` through exact original-entry and mapped-entry matching");
     try requireContains(note, "records whether a release-count mismatch surfaces a warn-on-release-miss outcome without claiming live unmap side effects");
     try requireContains(note, "exposes `scatterlistReleaseMatches(...)` as the helper-first exact-match check");
-    try requireContains(note, "`zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, impossible-overmapped-request, missing-release-record, exact-release-match, and warn-on-release-miss fixture coverage");
+    try requireContains(note, "routes `planManagedScatterlistTableTeardown(...)` through initialized-table, release-record, and mapped-count gating");
+    try requireContains(note, "records whether an initialized table becomes free-ready once mapped entries drain to zero and the release record is still present");
+    try requireContains(note, "records whether mapped scatterlist state still requires unmap-before-free planning instead of claiming live table teardown");
+    try requireContains(note, "records whether missing release records or over-mapped counts warn rather than claiming live `sg_table` lifecycle mutation");
+    try requireContains(note, "`zigux/tests/phase13_devres_scatterlist.zig` owns the retained-release-record, freed-release-record, impossible-overmapped-request, missing-release-record, exact-release-match, warn-on-release-miss, free-ready-teardown, unmap-before-free, and overmapped-teardown-warning fixture coverage");
     try requireContains(note, "`Documentation/zigux/phase13-devres-scatterlist-slice.md` keeps the helper-local scope and non-goals aligned with this planner note, the manifest, and the replay");
     try requireContains(note, "`zigux/tests/phase13_devres_scatterlist_build.zig` keeps the dedicated build shard aligned with the helper-first scatterlist replay");
     try requireContains(note, "`scripts/zigux/check-phase13-devres-scatterlist-planner.py` is the packet-local validation guard");
@@ -199,8 +272,11 @@ test "phase13 devres scatterlist slice and build shard stay packet-local" {
 
     try requireContains(slice, "helper-first scatterlist planner beside the existing `lib/devres.zig` and `lib/devres_dma_coherent.zig` packet");
     try requireContains(slice, "focused replay: `zigux/tests/phase13_devres_scatterlist.zig`");
+    try requireContains(slice, "provides_scatterlist_table_teardown_planning = true");
+    try requireContains(slice, "`planManagedScatterlistTableTeardown()` models helper-first `sg_table` teardown readiness");
     try requireContains(slice, "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution");
     try requireContains(slice, "no `struct scatterlist`, `sg_table`, or `sg_*` iteration helpers");
+    try requireContains(slice, "no live `sg_free_table()` lifecycle mutation or `sg_alloc_table()` ownership claims");
 
     const build = try readRepoFile(std.testing.allocator, "zigux/tests/phase13_devres_scatterlist_build.zig");
     defer std.testing.allocator.free(build);
@@ -232,6 +308,8 @@ test "phase13 devres scatterlist planner checker stays packet-local" {
     try requireContains(checker, "MANIFEST_PATH = Path(\"zigux/tests/phase13_devres_scatterlist_planner_manifest.json\")");
     try requireContains(checker, "REPLAY_PATH = Path(\"zigux/tests/phase13_devres_scatterlist.zig\")");
     try requireContains(checker, "BUILD_PATH = Path(\"zigux/tests/phase13_devres_scatterlist_build.zig\")");
+    try requireContains(checker, ".provides_scatterlist_table_teardown_planning = true");
+    try requireContains(checker, "pub fn planManagedScatterlistTableTeardown");
     try requireContains(checker, "PHASE13_DEVRES_SCATTERLIST_PLANNER_SELF_TEST=pass");
     try requireContains(checker, "PHASE13_DEVRES_SCATTERLIST_PLANNER=pass");
 }
