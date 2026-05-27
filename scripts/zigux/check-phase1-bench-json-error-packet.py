@@ -15,14 +15,12 @@ REQUIRED_MARKERS = (
     "        exc = payload",
     "        assert isinstance(exc, json.JSONDecodeError)",
     '        print("PHASE1_BENCH_CHECK=fail")',
+    '        print(f"PHASE1_BENCH_CHECK_REASON={kind}")',
+    '        print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}")',
     '        print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")',
     '        print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")',
     '        print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")',
     "        return 1",
-)
-
-FORBIDDEN_MARKERS = (
-    '        print(f"PHASE1_BENCH_CHECK_REASON=expectations_json_error")',
 )
 
 
@@ -58,12 +56,7 @@ def collect_failures(root: Path) -> list[str]:
         return [f"missing_file:{BENCH_CHECKER_REL.as_posix()}"]
 
     text = checker_path.read_text(encoding="utf-8")
-    failures = ordered_marker_failures(text, REQUIRED_MARKERS)
-    for marker in FORBIDDEN_MARKERS:
-        count = text.count(marker)
-        if count:
-            failures.append(f"forbidden_marker:{marker}:actual={count}")
-    return failures
+    return ordered_marker_failures(text, REQUIRED_MARKERS)
 
 
 def write_text(path: Path, text: str) -> None:
@@ -74,11 +67,13 @@ def write_text(path: Path, text: str) -> None:
 def sample_checker_text() -> str:
     return (
         "import json\n\n"
-        "def main(kind: str, payload: object) -> int:\n"
+        "def main(kind: str, payload: object, expectations_file: str) -> int:\n"
         '    if kind == "expectations_json_error":\n'
         "        exc = payload\n"
         "        assert isinstance(exc, json.JSONDecodeError)\n"
         '        print("PHASE1_BENCH_CHECK=fail")\n'
+        '        print(f"PHASE1_BENCH_CHECK_REASON={kind}")\n'
+        '        print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}")\n'
         '        print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")\n'
         '        print(f"EXPECTATIONS_JSON_LINE={exc.lineno}")\n'
         '        print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")\n'
@@ -115,17 +110,32 @@ def run_self_test() -> None:
         assert_case(not failures, "baseline pass", failures)
         case_count += 1
 
-        missing_error_text = sample_checker_text().replace(
-            '        print(f"EXPECTATIONS_JSON_ERROR={exc.msg}")\n', "", 1
+        missing_reason_text = sample_checker_text().replace(
+            '        print(f"PHASE1_BENCH_CHECK_REASON={kind}")\n', "", 1
         )
-        write_text(bench_checker_path(root), missing_error_text)
+        write_text(bench_checker_path(root), missing_reason_text)
         failures = collect_failures(root)
         assert_case(
             failures
             == [
-                'required_marker_count:        print(f"EXPECTATIONS_JSON_ERROR={exc.msg}"):expected=1:actual=0'
+                'required_marker_count:        print(f"PHASE1_BENCH_CHECK_REASON={kind}"):expected=1:actual=0'
             ],
-            "missing json error marker",
+            "missing reason marker",
+            failures,
+        )
+        case_count += 1
+
+        missing_expectations_text = sample_checker_text().replace(
+            '        print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}")\n', "", 1
+        )
+        write_text(bench_checker_path(root), missing_expectations_text)
+        failures = collect_failures(root)
+        assert_case(
+            failures
+            == [
+                'required_marker_count:        print(f"PHASE1_BENCH_EXPECTATIONS={expectations_file}"):expected=1:actual=0'
+            ],
+            "missing expectations marker",
             failures,
         )
         case_count += 1
@@ -140,26 +150,11 @@ def run_self_test() -> None:
         write_text(bench_checker_path(root), reordered_text)
         failures = collect_failures(root)
         assert_case(
-            failures == ['required_marker_order:        print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")'],
-            "marker order",
-            failures,
-        )
-        case_count += 1
-
-        forbidden_text = sample_checker_text().replace(
-            '        print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")\n',
-            '        print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")\n'
-            '        print(f"PHASE1_BENCH_CHECK_REASON=expectations_json_error")\n',
-            1,
-        )
-        write_text(bench_checker_path(root), forbidden_text)
-        failures = collect_failures(root)
-        assert_case(
             failures
             == [
-                'forbidden_marker:        print(f"PHASE1_BENCH_CHECK_REASON=expectations_json_error"):actual=1'
+                'required_marker_order:        print(f"EXPECTATIONS_JSON_COLUMN={exc.colno}")'
             ],
-            "forbidden reason marker",
+            "marker order",
             failures,
         )
         case_count += 1
