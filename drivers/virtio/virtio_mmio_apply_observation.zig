@@ -66,3 +66,32 @@ test "phase10 virtio mmio apply-observation wrapper keeps no-op and stale plans 
         summarizeConfigWriteApplyObservation(&device),
     );
 }
+
+test "phase10 virtio mmio apply-observation wrapper refreshes after stale generation instead of reusing an unavailable plan" {
+    var device = try virtio_mmio.VirtioMmioLab.init(101, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0407);
+    device.bumpConfigGeneration();
+    try std.testing.expectError(
+        error.ConfigWritePlanUnavailable,
+        summarizeConfigWriteApplyObservation(&device),
+    );
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x0203_0907);
+    const refreshed = try summarizeConfigWriteApplyObservation(&device);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, refreshed.anchor);
+    try std.testing.expectEqual(@as(u32, 4), refreshed.relative_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 4), refreshed.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 7), refreshed.relative_end_offset);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_window_bytes + 7), refreshed.absolute_end_offset);
+    try std.testing.expectEqual(@as(u32, 0x0203_0405), refreshed.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x0203_0907), refreshed.planned_value);
+    try std.testing.expectEqual(@as(u32, 1), refreshed.config_generation);
+    try std.testing.expectEqual(@as(u4, 0b1111), refreshed.touched_byte_mask);
+    try std.testing.expectEqual(@as(u4, 0b0011), refreshed.changed_byte_mask);
+    try std.testing.expectEqual(@as(u3, 4), touchedByteCount(refreshed));
+    try std.testing.expectEqual(@as(u3, 2), changedByteCount(refreshed));
+    try std.testing.expect(changedBytesStayWithinTouchedMask(refreshed));
+    try std.testing.expect(appliesByteChanges(refreshed));
+}
