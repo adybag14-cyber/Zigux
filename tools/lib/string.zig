@@ -367,6 +367,10 @@ fn cStringLen(buf: []const u8) usize {
     return buf.len;
 }
 
+fn asciiLower(ch: u8) u8 {
+    return std.ascii.toLower(ch);
+}
+
 pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {
     const lhs_len = sysfsStringLen(lhs);
     const rhs_len = sysfsStringLen(rhs);
@@ -455,6 +459,56 @@ pub fn strncmp(lhs: []const u8, rhs: []const u8, count: usize) i32 {
 
     const lhs_tail: u8 = if (lhs_len > idx) lhs[idx] else 0;
     const rhs_tail: u8 = if (rhs_len > idx) rhs[idx] else 0;
+    return @as(i32, lhs_tail) - @as(i32, rhs_tail);
+}
+
+pub fn strcasecmp(lhs: []const u8, rhs: []const u8) i32 {
+    const lhs_len = cStringLen(lhs);
+    const rhs_len = cStringLen(rhs);
+    const limit = @min(lhs_len, rhs_len);
+
+    var idx: usize = 0;
+    while (idx < limit) : (idx += 1) {
+        const lhs_ch = asciiLower(lhs[idx]);
+        const rhs_ch = asciiLower(rhs[idx]);
+        if (lhs_ch != rhs_ch) {
+            return @as(i32, lhs_ch) - @as(i32, rhs_ch);
+        }
+    }
+
+    if (lhs_len == rhs_len) {
+        return 0;
+    }
+
+    const lhs_tail: u8 = if (lhs_len > rhs_len) asciiLower(lhs[rhs_len]) else 0;
+    const rhs_tail: u8 = if (rhs_len > lhs_len) asciiLower(rhs[lhs_len]) else 0;
+    return @as(i32, lhs_tail) - @as(i32, rhs_tail);
+}
+
+pub fn strncasecmp(lhs: []const u8, rhs: []const u8, count: usize) i32 {
+    if (count == 0) {
+        return 0;
+    }
+
+    const lhs_len = cStringLen(lhs);
+    const rhs_len = cStringLen(rhs);
+    const limit = @min(count, @min(lhs_len, rhs_len));
+
+    var idx: usize = 0;
+    while (idx < limit) : (idx += 1) {
+        const lhs_ch = asciiLower(lhs[idx]);
+        const rhs_ch = asciiLower(rhs[idx]);
+        if (lhs_ch != rhs_ch) {
+            return @as(i32, lhs_ch) - @as(i32, rhs_ch);
+        }
+    }
+
+    if (limit == count) {
+        return 0;
+    }
+
+    const lhs_tail: u8 = if (lhs_len > idx) asciiLower(lhs[idx]) else 0;
+    const rhs_tail: u8 = if (rhs_len > idx) asciiLower(rhs[idx]) else 0;
     return @as(i32, lhs_tail) - @as(i32, rhs_tail);
 }
 
@@ -871,6 +925,32 @@ test "strncmp stops at embedded NULs and shorter prefixes" {
     try std.testing.expect(strncmp(&[_]u8{ 'a', 0, 'z' }, "ab", 3) < 0);
     try std.testing.expect(strncmp("ab", &[_]u8{ 'a', 0, 'z' }, 3) > 0);
     try std.testing.expect(strncmp("ab", "abc", 2) == 0);
+}
+
+test "strcasecmp ignores ASCII case and preserves lexical ordering" {
+    try std.testing.expect(strcasecmp("Kernel", "kernel") == 0);
+    try std.testing.expect(strcasecmp("abd", "ABC") > 0);
+    try std.testing.expect(strcasecmp("ABC", "abd") < 0);
+}
+
+test "strcasecmp stops at embedded NULs and length mismatches" {
+    try std.testing.expect(strcasecmp(&[_]u8{ 'A', 0, 'z' }, &[_]u8{ 'a', 0, 'x' }) == 0);
+    try std.testing.expect(strcasecmp(&[_]u8{ 'A', 0, 'z' }, "ab") < 0);
+    try std.testing.expect(strcasecmp("ab", &[_]u8{ 'A', 0, 'z' }) > 0);
+}
+
+test "strncasecmp honors the count limit before later mismatches" {
+    try std.testing.expect(strncasecmp("AbCdEf", "aBcXEf", 3) == 0);
+    try std.testing.expect(strncasecmp("AbCdEf", "aBcXEf", 4) < 0);
+    try std.testing.expect(strncasecmp("aBcXEf", "AbCdEf", 4) > 0);
+    try std.testing.expect(strncasecmp("abcdef", "ABCXYZ", 0) == 0);
+}
+
+test "strncasecmp stops at embedded NULs and shorter prefixes" {
+    try std.testing.expect(strncasecmp(&[_]u8{ 'A', 0, 'z' }, &[_]u8{ 'a', 0, 'x' }, 3) == 0);
+    try std.testing.expect(strncasecmp(&[_]u8{ 'A', 0, 'z' }, "ab", 3) < 0);
+    try std.testing.expect(strncasecmp("ab", &[_]u8{ 'A', 0, 'z' }, 3) > 0);
+    try std.testing.expect(strncasecmp("ab", "ABC", 2) == 0);
 }
 
 test "memdup and memchrInv preserve byte content" {
