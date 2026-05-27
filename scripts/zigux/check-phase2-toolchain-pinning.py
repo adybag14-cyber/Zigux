@@ -124,6 +124,8 @@ SURFACE_PATHS = (
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
+    "Documentation/zigux/README.md",
+    "zigux/Makefile",
     TOOL_MANIFEST,
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -169,6 +171,11 @@ MANIFEST_CHECKS = {
         "third_party/README.md",
         f"third_party/zig-{ARCHIVE_TARGET}-{ARCHIVE_CHANNEL}.tar.xz",
     ],
+    "artifact_support": [
+        "scripts/zigux/artifact_diff.py",
+        "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+        "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    ],
     "bootstrap_helpers": [
         "scripts/zigux/install-zig.py",
         "scripts/zigux/stage-pinned-zig-archive.py",
@@ -180,14 +187,60 @@ MANIFEST_CHECKS = {
         "scripts/zigux/genksyms_version_before_invalid_long_option_test.zig",
         "scripts/zigux/genksyms_version_before_ambiguous_long_option_test.zig",
     ],
-    "artifact_support": [
-        "scripts/zigux/artifact_diff.py",
+    "checkers": [
+        "scripts/zigux/check-zig-toolchain.py",
+        "scripts/zigux/check-lane05-local-first-archive-workflow.py",
+        "scripts/zigux/check-lane05-local-archive-readme.py",
+        "scripts/zigux/check-lane05-install-zig-archive-verification.py",
+        "scripts/zigux/check-lane05-stage-helper-contract.py",
+        "scripts/zigux/check-lane05-stage-helper-selftest.py",
+        "scripts/zigux/check-kconfig-bridge.py",
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        "scripts/zigux/check-phase2-kconfig-allconfig-helper-packet.py",
+        "scripts/zigux/check-phase2-genksyms-selftest-alignment.py",
+        "scripts/zigux/check-phase2-kbuild-routes.py",
+        "scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "scripts/zigux/check-phase2-cross.py",
+        "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "scripts/zigux/check-phase2-toolchain-pinning.py",
+        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+        "scripts/zigux/check-phase2-required-make-routes.py",
+        "scripts/zigux/check-phase2-docs-shared-reminder.py",
+        "scripts/zigux/check-phase2-bootstrap-workflow-routes.py",
+        "scripts/zigux/check-phase2-tool-manifest.py",
         "scripts/zigux/check-phase2-artifact-tools-manifest.py",
-        "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+        "scripts/zigux/check-genksyms-bridge.py",
+        "scripts/zigux/check-phase2-fixdep-gate.py",
+        "scripts/zigux/check-fixdep-diff.py",
+    ],
+    "closure_notes": [
+        "Documentation/zigux/phase2-closure.md",
+        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     ],
     "cross_route_support": [
         "scripts/zigux/check-phase2-cross.py",
         "zigux/tests/fixtures/phase2_cross_targets.json",
+    ],
+    "make_wrappers": [
+        "zigux/Makefile",
+        "make -C zigux phase2-toolchain",
+        "make -C zigux phase2-tools",
+        "make -C zigux phase2-kconfig",
+        "make -C zigux phase2-cross",
+        "make -C zigux phase2-genksyms",
+        "make -C zigux phase2-fixdep",
+        "make -C zigux phase2-validate",
+        "make -C zigux phase2",
+    ],
+    "policy": [
+        "scripts/zigux/zig-toolchain-policy.json",
+    ],
+    "review_surfaces": [
+        "Documentation/zigux/README.md",
+        "Documentation/zigux/phase2-closure.md",
+        "Documentation/zigux/review-checklist.md",
+        "scripts/zigux/README.md",
+        "zigux/tests/README.md",
     ],
     "validators": [
         "scripts/zigux/validate-phase2.py",
@@ -195,7 +248,7 @@ MANIFEST_CHECKS = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 123
+EXPECTED_SELF_TEST_CASE_COUNT = 126
 
 
 def read(path: Path) -> str:
@@ -430,6 +483,30 @@ def run_self_test() -> int:
         manifest["present_surfaces"]["bridge_helpers"].pop()
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         assert any(code == "TOOL_MANIFEST_BUCKET_MISMATCH" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        manifest_path = root / TOOL_MANIFEST
+        manifest = json.loads(read(manifest_path))
+        manifest["present_surfaces"]["checkers"].pop()
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "TOOL_MANIFEST_BUCKET_MISMATCH" and value.startswith("checkers:") for code, value in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        manifest_path = root / TOOL_MANIFEST
+        manifest = json.loads(read(manifest_path))
+        manifest["present_surfaces"]["make_wrappers"].pop()
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "TOOL_MANIFEST_BUCKET_MISMATCH" and value.startswith("make_wrappers:") for code, value in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        manifest_path = root / TOOL_MANIFEST
+        manifest = json.loads(read(manifest_path))
+        manifest["present_surfaces"]["review_surfaces"].pop()
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        assert any(code == "TOOL_MANIFEST_BUCKET_MISMATCH" and value.startswith("review_surfaces:") for code, value in collect_issues(root))
         checks += 1
 
         build_self_test_root(root)
