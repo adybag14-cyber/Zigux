@@ -335,6 +335,7 @@ REQUIRED_MANIFEST_REPLAY_ROUTES = (
     "make -C zigux phase3-low-level-wrappers",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-low-level-wrappers-test",
+    "zig build phase3-test --build-file zigux/tests/build.zig",
 )
 
 SELF_TEST_CASES = tuple(
@@ -579,7 +580,17 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         if "phase3_abi_manifest.json missing replay route: make -C zigux phase3-low-level-wrappers-test" not in issues:
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("expected missing low-level-wrapper Makefile test replay route was not reported")
+            print("expected missing focused low-level-wrapper replay route was not reported")
+            return 1
+
+        _populate_repo(root)
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].remove("zig build phase3-test --build-file zigux/tests/build.zig")
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        if "phase3_abi_manifest.json missing replay route: zig build phase3-test --build-file zigux/tests/build.zig" not in issues:
+            print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
+            print("expected missing shared tests-root replay route was not reported")
             return 1
 
         _populate_repo(root)
@@ -665,7 +676,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
-    print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + len(SELF_TEST_FIELD_CASES) + 14}")
+    print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + len(SELF_TEST_FIELD_CASES) + 15}")
     return 0
 
 
