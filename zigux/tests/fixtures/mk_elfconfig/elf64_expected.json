@@ -1,0 +1,5 @@
+{
+  "stdout": "#define KERNEL_ELFCLASS ELFCLASS64\n",
+  "stderr": "",
+  "exit_code": 0
+}
