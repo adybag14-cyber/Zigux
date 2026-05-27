@@ -161,7 +161,9 @@ EXPECTED_BUILD_WIRING_EVIDENCE = [
         ],
     },
 ]
-EXPECTED_REPO_GAPS: list[str] = []
+EXPECTED_REPO_GAPS = [
+    "shared `scripts/zigux/README.md` and `zigux/tests/README.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory"
+]
 
 REQUIRED_FILES = (
     VALIDATOR_PATH,
@@ -200,7 +202,7 @@ CATALOG_REQUIRED_SNIPPETS = [
     "- `zigux/tests/phase7_build.zig` keeps the shared `test` build step aggregating every helper, survey, sample-boundary, and format-boundary replay through the current `test_step.dependOn(...)` handoff list.",
     "- `zigux/Makefile` keeps the narrow `phase7-validate` foothold explicit while broader wrapper routes remain outside this packet.",
     "## Current repo-reality gaps",
-    "- none currently",
+    "- shared `scripts/zigux/README.md` and `zigux/tests/README.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory",
 ]
 
 VALIDATOR_REQUIRED_SNIPPETS = [
@@ -409,7 +411,7 @@ def run_self_test() -> None:
         mutations = [
             (CATALOG_PATH, "- `lib/rbtree.zig`", "- `tools/lib/rbtree.zig`"),
             (CATALOG_PATH, "- `scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py`", "- `scripts/zigux/check-phase7-string-helpers-sample-boundary-packet.py`"),
-            (CATALOG_PATH, "- none currently", "- `lib/rbtree.zig`"),
+            (CATALOG_PATH, "- shared `scripts/zigux/README.md` and `zigux/tests/README.md` Phase 7 reminder text still omits the shipped `scripts/zigux/check-phase7-cmdline-packet.py` guard from the shared packet inventory", "- none currently"),
             (MAKEFILE_PATH, "phase7-validate:", "phase7-verify:"),
             (MAKEFILE_PATH, "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py --self-test"),
             (BUILD_PATH, "../../lib/rbtree.zig", "../../tools/lib/rbtree.zig"),
