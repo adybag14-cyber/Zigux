@@ -18,6 +18,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+    "Documentation/zigux/phase4-measurability-gap-survey.md",
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
     "Documentation/zigux/phase4-validation-lane-sequencing.md",
@@ -154,15 +155,26 @@ REQUIRED_ARTIFACT_DOC_MARKERS = (
 
 REQUIRED_ARTIFACT_MATRIX_MARKERS = (
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+    "Documentation/zigux/phase4-measurability-gap-survey.md",
     "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
     "make -C zigux phase4-perf-baseline-survey",
 )
 
+REQUIRED_MEASURABILITY_GAP_MARKERS = (
+    "# Phase 4 Measurability Gap Survey",
+    "PHASE4_MEASURABILITY_GAP_REMAINING_PACKET_COUNT=3",
+    "`Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig`",
+    "`Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig`",
+    "`zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, and `scripts/zigux/check-phase4-perf-threshold-matrix.py`",
+    "`Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-reversible-delivery-evidence.md`, and `scripts/zigux/validate-phase4.py`",
+)
+
 SAMPLE_PHASE4_VALIDATION_MATRIX_LINES = [
     "# Phase 4 Validation Matrix",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+    "Documentation/zigux/phase4-measurability-gap-survey.md",
     "zigux/tests/phase4_perf_baseline_manifest.json",
     "zigux/tests/phase4_perf_baseline_survey.zig",
     "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
@@ -382,6 +394,13 @@ def collect_issues(root: Path, *, skip_zig_builds: bool = False) -> list[str]:
         if marker not in artifact_matrix_text:
             issues.append(f"artifact_matrix_marker_missing:{marker}")
 
+    measurability_gap_text = (root / "Documentation/zigux/phase4-measurability-gap-survey.md").read_text(
+        encoding="utf-8"
+    )
+    for marker in REQUIRED_MEASURABILITY_GAP_MARKERS:
+        if marker not in measurability_gap_text:
+            issues.append(f"measurability_gap_marker_missing:{marker}")
+
     for spec in CHECKS:
         if skip_zig_builds and is_zig_check(spec):
             continue
@@ -477,6 +496,13 @@ def build_sample_repo(root: Path) -> None:
 
 def write_matrix_fixture(root: Path) -> None:
     write_text(root / "Documentation/zigux/phase4-validation-matrix.md", "\n".join(SAMPLE_PHASE4_VALIDATION_MATRIX_LINES) + "\n")
+
+
+def write_measurability_gap_fixture(root: Path) -> None:
+    write_text(
+        root / "Documentation/zigux/phase4-measurability-gap-survey.md",
+        "\n".join(REQUIRED_MEASURABILITY_GAP_MARKERS) + "\n",
+    )
 
 def configure_workflow_route_stub(root: Path) -> None:
     build_stub_script(
@@ -626,6 +652,7 @@ def build_validator_fixture_root(root: Path, *, fail_build_file: str | None = No
     build_sample_repo(root)
     write_artifact_diff_fixture(root)
     write_matrix_fixture(root)
+    write_measurability_gap_fixture(root)
     configure_phase4_output_stubs(root)
     build_fake_zig(root / "zig", fail_build_file=fail_build_file)
 
@@ -669,6 +696,17 @@ def run_self_test() -> int:
         if "artifact_matrix_marker_missing:scripts/zigux/check-phase4-remaining-gap-matrix.py" not in collect_issues(root):
             print("PHASE4_VALIDATE_SELF_TEST=fail")
             print("artifact matrix marker case did not fail closed")
+            return 1
+        cases += 1
+
+        reset_fixture()
+        write_text(root / "Documentation/zigux/phase4-measurability-gap-survey.md", "# Phase 4 Measurability Gap Survey\n")
+        if (
+            "measurability_gap_marker_missing:PHASE4_MEASURABILITY_GAP_REMAINING_PACKET_COUNT=3"
+            not in collect_issues(root)
+        ):
+            print("PHASE4_VALIDATE_SELF_TEST=fail")
+            print("measurability gap marker case did not fail closed")
             return 1
         cases += 1
 
