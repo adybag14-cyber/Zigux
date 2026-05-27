@@ -21,6 +21,7 @@ BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 CHECKER_PATH = Path("scripts/zigux/check-phase7-shared-surface.py")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH = Path("scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py")
+CMDLINE_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-cmdline-packet.py")
 ARGV_SPLIT_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-argv-split-packet.py")
 STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-string-helpers-format-boundary-packet.py")
 RBTREE_PARITY_PACKET_CHECKER_PATH = Path("scripts/zigux/check-phase7-rbtree-parity.py")
@@ -143,6 +144,7 @@ REQUIRED_FILES = [
     CHECKER_PATH,
     BUILD_WIRING_CHECKER_PATH,
     MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH,
+    CMDLINE_PACKET_CHECKER_PATH,
     ARGV_SPLIT_PACKET_CHECKER_PATH,
     STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH,
     RBTREE_PARITY_PACKET_CHECKER_PATH,
@@ -156,7 +158,7 @@ REQUIRED_MAKEFILE_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
 ]
-SELF_TEST_CASE_COUNT = 24
+SELF_TEST_CASE_COUNT = 25
 
 
 class ValidationError(RuntimeError):
@@ -251,6 +253,7 @@ def validate(root: Path) -> None:
     run_checker_self_test(root, BUILD_WIRING_CHECKER_PATH)
     run_checker(root, BUILD_WIRING_CHECKER_PATH)
     run_checker(root, MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "--root")
+    run_checker(root, CMDLINE_PACKET_CHECKER_PATH)
     run_checker(root, ARGV_SPLIT_PACKET_CHECKER_PATH)
     run_checker(root, STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH)
     run_checker_self_test(root, RBTREE_PARITY_PACKET_CHECKER_PATH)
@@ -432,6 +435,7 @@ def scaffold_repo(root: Path) -> None:
     )
     for checker_path, success_marker, root_flag in [
         (CHECKER_PATH, "PHASE7_SHARED_SURFACE=pass", "--repo-root"),
+        (CMDLINE_PACKET_CHECKER_PATH, "PHASE7_CMDLINE_PACKET=pass", "--repo-root"),
         (ARGV_SPLIT_PACKET_CHECKER_PATH, "PHASE7_ARGV_SPLIT_PACKET=pass", "--repo-root"),
         (STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "PHASE7_STRING_HELPERS_FORMAT_BOUNDARY_PACKET=pass", "--repo-root"),
     ]:
@@ -576,6 +580,7 @@ def run_self_test() -> None:
             (CHECKER_PATH, "", True),
             (BUILD_WIRING_CHECKER_PATH, "", True),
             (MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_PATH, "", True),
+            (CMDLINE_PACKET_CHECKER_PATH, "", True),
             (ARGV_SPLIT_PACKET_CHECKER_PATH, "", True),
             (STRING_HELPERS_FORMAT_BOUNDARY_PACKET_CHECKER_PATH, "", True),
             (RBTREE_PARITY_PACKET_CHECKER_PATH, "", True),
