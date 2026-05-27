@@ -33,6 +33,12 @@ BITMAP_DIFF = Path("zigux/tests/bitmap_diff.zig")
 BITMAP_HELPER_REPLAY = Path("zigux/tests/phase4_bitmap_live_helper_replay.zig")
 ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
 ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
+KPROBE_GAP_DOC = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
+KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
+KPROBE_SURVEY = Path("zigux/tests/phase4_kprobe_example_survey.zig")
+TEST_FSMOUNT_GAP_DOC = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
+TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
+TEST_FSMOUNT_SURVEY = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 32
 EXPECTED_PIN_SELF_TEST_CASES = 20
@@ -79,6 +85,18 @@ ATOMIC64_DIRECT_PACKET = (
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
 )
 
+KPROBE_DIRECT_PACKET = (
+    "Documentation/zigux/phase4-kprobe-example-gap-survey.md",
+    "zigux/tests/phase4_kprobe_example_manifest.json",
+    "zigux/tests/phase4_kprobe_example_survey.zig",
+)
+
+TEST_FSMOUNT_DIRECT_PACKET = (
+    "Documentation/zigux/phase4-test-fsmount-gap-survey.md",
+    "zigux/tests/phase4_test_fsmount_manifest.json",
+    "zigux/tests/phase4_test_fsmount_survey.zig",
+)
+
 NOTE_REQ = (
     "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
     "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=32`",
@@ -86,6 +104,8 @@ NOTE_REQ = (
     "Current direct readback in this run confirmed this note, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-tests-readme-packet.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-perf-threshold-matrix.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
     PERF_PACKET_CHECKERS_LINE,
     "Current direct contents reads in this run also confirmed the roadmap-backed differential-gate pair `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`, together with the manifest-backed handoff packet `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, on current `master`.",
+    "Current direct contents reads in this run also confirmed the parked `kprobe_example` starter-gap packet `Documentation/zigux/phase4-kprobe-example-gap-survey.md`, `zigux/tests/phase4_kprobe_example_manifest.json`, and `zigux/tests/phase4_kprobe_example_survey.zig` on current `master`, so keep that reviewability-only survey packet explicit as adjacent reversible-delivery evidence rather than future landing-step wording.",
+    "Current direct contents reads in this run also confirmed the parked `test_fsmount` starter-gap packet `Documentation/zigux/phase4-test-fsmount-gap-survey.md`, `zigux/tests/phase4_test_fsmount_manifest.json`, and `zigux/tests/phase4_test_fsmount_survey.zig` on current `master`, so keep that reviewability-only survey packet explicit as adjacent reversible-delivery evidence rather than future landing-step wording.",
     "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff.",
     "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff:",
     "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`",
@@ -141,6 +161,12 @@ REQUIRED_FILES = (
     BITMAP_HELPER_REPLAY,
     ATOMIC64_MANIFEST,
     ATOMIC64_SURVEY,
+    KPROBE_GAP_DOC,
+    KPROBE_MANIFEST,
+    KPROBE_SURVEY,
+    TEST_FSMOUNT_GAP_DOC,
+    TEST_FSMOUNT_MANIFEST,
+    TEST_FSMOUNT_SURVEY,
 )
 
 
@@ -173,7 +199,13 @@ def check(root: Path) -> None:
         raise RuntimeError("missing required file: " + ", ".join(missing_files))
     require(
         read(root, NOTE),
-        NOTE_REQ + DIRECT_READBACK_PACKET + RECOVERED_NOTE_PACKET + REMAINING_GAP_PACKET + ATOMIC64_DIRECT_PACKET,
+        NOTE_REQ
+        + DIRECT_READBACK_PACKET
+        + RECOVERED_NOTE_PACKET
+        + REMAINING_GAP_PACKET
+        + ATOMIC64_DIRECT_PACKET
+        + KPROBE_DIRECT_PACKET
+        + TEST_FSMOUNT_DIRECT_PACKET,
         NOTE.as_posix(),
     )
     require(read(root, DOCS_README), DOCS_README_PHASE4_REQ, DOCS_README.as_posix())
@@ -196,18 +228,22 @@ def _baseline_note() -> str:
             PERF_PACKET_CHECKERS_LINE,
             "",
             NOTE_REQ[5],
+            NOTE_REQ[6],
+            NOTE_REQ[7],
             "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state. In this runtime authenticated contents reads now return `scripts/zigux/validate-phase4.py` directly, while the broader build and bitmap replay companions still remain unreadable on that same route.",
             "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=32` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=20` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
-            NOTE_REQ[6],
+            NOTE_REQ[8],
             "The recovered broader note pair therefore no longer overstates those validator-side and bitmap-side companions as absent current-head evidence.",
             "The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff: current-head proof for the docs-root reminder, the scripts-root reminder, the review checklist, the tests-root reminder, the repo-reality warning checker, the tests-readme packet checker, the reversible-delivery pin checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the atomic64 manifest-backed survey pair, and the dedicated local-only perf checker plus companion packet; archival anchor pin only for this note's self-reference; current-head direct-readback proof that `scripts/zigux/validate-phase4.py` is present again on `master`; public-raw current-tree proof that `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for that broader build-and-bitmap trio until exact authenticated blob capture stabilizes.",
-            NOTE_REQ[8],
+            NOTE_REQ[10],
             "Current direct contents reads for `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair and its manifest-backed handoff explicit as direct current-head evidence even while the broader Phase 4 companion set remains split between recovered note companions and exact-blob refresh debt.",
-            NOTE_REQ[9],
+            NOTE_REQ[11],
             *DIRECT_READBACK_PACKET,
             *RECOVERED_NOTE_PACKET,
             *REMAINING_GAP_PACKET,
             *ATOMIC64_DIRECT_PACKET,
+            *KPROBE_DIRECT_PACKET,
+            *TEST_FSMOUNT_DIRECT_PACKET,
         ]
     ) + "\n"
 
@@ -302,7 +338,6 @@ def run_self_test() -> int:
         )
         cases += _expect_failure(root, DOCS_README, DOCS_README_PHASE4_REQ[0], "docs drift")
         cases += _expect_failure(root, CHECKLIST, CHECKLIST_PHASE4_REQ[0], "checklist drift")
-        cases += _expect_failure(root, CHECKLIST, CHECKLIST_PHASE4_REQ[3], "checklist split drift")
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[0], "scripts drift")
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[1], "scripts checker drift")
         cases += _expect_failure(root, SCRIPTS_README, SCRIPTS_README_PHASE4_REQ[2], "scripts split drift")
