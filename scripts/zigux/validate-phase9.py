@@ -34,6 +34,7 @@ CHECKERS = (
     Path("scripts/zigux/check-phase9-trace-events-runtime-packet.py"),
     Path("scripts/zigux/check-phase9-trace-events-direct-summary.py"),
     Path("scripts/zigux/check-phase9-trace-events-summary-preservation.py"),
+    Path("scripts/zigux/check-phase9-kretprobe-runtime-packet.py"),
 )
 
 REQUIRED_FILES = (
@@ -74,6 +75,7 @@ EXPECTED_PACKET_FILES = (
     "scripts/zigux/check-phase9-trace-events-runtime-packet.py",
     "scripts/zigux/check-phase9-trace-events-direct-summary.py",
     "scripts/zigux/check-phase9-trace-events-summary-preservation.py",
+    "scripts/zigux/check-phase9-kretprobe-runtime-packet.py",
     "zigux/kernel/runtime_loader.zig",
     "zigux/kernel/runtime_loader_contract.zig",
     "zigux/kernel/runtime_loader_command_env_boundary_guard.zig",
@@ -128,6 +130,8 @@ EXPECTED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test",
     "python3 scripts/zigux/check-phase9-trace-events-direct-summary.py --self-test",
     "python3 scripts/zigux/check-phase9-trace-events-summary-preservation.py --self-test",
+    "python3 scripts/zigux/check-phase9-kretprobe-runtime-packet.py --self-test",
+    "python3 scripts/zigux/check-phase9-kretprobe-runtime-packet.py",
     "zig build phase9-runtime-atomic64-tests --build-file zigux/tests/phase9_build.zig",
     "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig",
     "zig build phase9-runtime-bitmap-tests --build-file zigux/tests/phase9_build.zig",
