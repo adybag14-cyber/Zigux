@@ -3,6 +3,12 @@ const std = @import("std");
 pub const linux_anchor = "samples/kfifo/bytestream-example.c";
 pub const fifo_capacity: usize = 32;
 
+pub const WindowCheckpoint = enum {
+    preview_after_skip_and_requeue,
+    wrapped_full_after_refill,
+    partial_drain_after_wrap_refill,
+};
+
 pub const VisibleWindow = struct {
     name: []const u8,
     head_index: usize,
@@ -34,10 +40,18 @@ pub const WindowContract = struct {
     writable_windows_never_exceed_two: bool,
 };
 
+pub fn checkpointName(checkpoint: WindowCheckpoint) []const u8 {
+    return switch (checkpoint) {
+        .preview_after_skip_and_requeue => "preview_after_skip_and_requeue",
+        .wrapped_full_after_refill => "wrapped_full_after_refill",
+        .partial_drain_after_wrap_refill => "partial_drain_after_wrap_refill",
+    };
+}
+
 pub fn referencePattern() WindowContract {
     const visible = [_]VisibleWindow{
         .{
-            .name = "preview_after_skip_and_requeue",
+            .name = checkpointName(.preview_after_skip_and_requeue),
             .head_index = 7,
             .tail_index = 17,
             .total_visible = 10,
@@ -46,7 +60,7 @@ pub fn referencePattern() WindowContract {
             .wraps = false,
         },
         .{
-            .name = "wrapped_full_after_refill",
+            .name = checkpointName(.wrapped_full_after_refill),
             .head_index = 4,
             .tail_index = 4,
             .total_visible = fifo_capacity,
@@ -55,7 +69,7 @@ pub fn referencePattern() WindowContract {
             .wraps = true,
         },
         .{
-            .name = "partial_drain_after_wrap_refill",
+            .name = checkpointName(.partial_drain_after_wrap_refill),
             .head_index = 9,
             .tail_index = 1,
             .total_visible = 24,
@@ -67,7 +81,7 @@ pub fn referencePattern() WindowContract {
 
     const writable = [_]WritableWindow{
         .{
-            .name = "preview_after_skip_and_requeue",
+            .name = checkpointName(.preview_after_skip_and_requeue),
             .tail_index = 17,
             .writable_count = 22,
             .first_window_len = 15,
@@ -75,7 +89,7 @@ pub fn referencePattern() WindowContract {
             .wraps = true,
         },
         .{
-            .name = "wrapped_full_after_refill",
+            .name = checkpointName(.wrapped_full_after_refill),
             .tail_index = 4,
             .writable_count = 0,
             .first_window_len = 0,
@@ -83,7 +97,7 @@ pub fn referencePattern() WindowContract {
             .wraps = false,
         },
         .{
-            .name = "partial_drain_after_wrap_refill",
+            .name = checkpointName(.partial_drain_after_wrap_refill),
             .tail_index = 1,
             .writable_count = 8,
             .first_window_len = 8,
@@ -103,6 +117,14 @@ pub fn referencePattern() WindowContract {
         .visible_windows_never_exceed_two = visibleWindowsNeverExceedTwo(visible),
         .writable_windows_never_exceed_two = writableWindowsNeverExceedTwo(writable),
     };
+}
+
+pub fn visibleWindowForCheckpoint(checkpoint: WindowCheckpoint) VisibleWindow {
+    return referencePattern().visible_windows[@intFromEnum(checkpoint)];
+}
+
+pub fn writableWindowForCheckpoint(checkpoint: WindowCheckpoint) WritableWindow {
+    return referencePattern().writable_windows[@intFromEnum(checkpoint)];
 }
 
 fn visibleWindowsNeverExceedTwo(windows: [3]VisibleWindow) bool {
@@ -183,4 +205,28 @@ test "bytestream fifo companion keeps wrapped visibility and writable-span shape
     try std.testing.expectEqual(@as(usize, 8), contract.writable_windows[2].first_window_len);
     try std.testing.expectEqual(@as(usize, 0), contract.writable_windows[2].second_window_len);
     try std.testing.expect(!contract.writable_windows[2].wraps);
+}
+
+test "bytestream fifo companion keeps checkpoint lookups aligned with the shipped window contract" {
+    const preview_visible = visibleWindowForCheckpoint(.preview_after_skip_and_requeue);
+    const wrapped_visible = visibleWindowForCheckpoint(.wrapped_full_after_refill);
+    const partial_visible = visibleWindowForCheckpoint(.partial_drain_after_wrap_refill);
+
+    try std.testing.expectEqualStrings(checkpointName(.preview_after_skip_and_requeue), preview_visible.name);
+    try std.testing.expectEqualStrings(checkpointName(.wrapped_full_after_refill), wrapped_visible.name);
+    try std.testing.expectEqualStrings(checkpointName(.partial_drain_after_wrap_refill), partial_visible.name);
+    try std.testing.expectEqual(@as(usize, 10), preview_visible.total_visible);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped_visible.total_visible);
+    try std.testing.expectEqual(@as(usize, 24), partial_visible.total_visible);
+
+    const preview_writable = writableWindowForCheckpoint(.preview_after_skip_and_requeue);
+    const wrapped_writable = writableWindowForCheckpoint(.wrapped_full_after_refill);
+    const partial_writable = writableWindowForCheckpoint(.partial_drain_after_wrap_refill);
+
+    try std.testing.expectEqualStrings(checkpointName(.preview_after_skip_and_requeue), preview_writable.name);
+    try std.testing.expectEqualStrings(checkpointName(.wrapped_full_after_refill), wrapped_writable.name);
+    try std.testing.expectEqualStrings(checkpointName(.partial_drain_after_wrap_refill), partial_writable.name);
+    try std.testing.expectEqual(@as(usize, 22), preview_writable.writable_count);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_writable.writable_count);
+    try std.testing.expectEqual(@as(usize, 8), partial_writable.writable_count);
 }
