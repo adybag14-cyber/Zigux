@@ -70,6 +70,8 @@ SURVEY_MARKERS = [
     "scripts/zigux/check-phase13-devres-current-packet.py",
     "landed `phase13-devres-current-packet-checker`",
     "Only rematerialize a helper-first non-posted or arch-memtype planner if `scripts/zigux/check-phase13-devres-current-packet.py`",
+    "one helper-local arch-WC release-record foothold",
+    "`.provides_arch_phys_wc_add_planning = true`, `planManagedArchPhysWcAdd(...)`",
 ]
 
 HELPER_MARKERS = [
@@ -80,6 +82,7 @@ HELPER_MARKERS = [
     ".provides_of_iomap_planning = true",
     ".provides_of_iomap_cleanup_handoff_planning = true",
     ".provides_iounmap_cleanup_planning = true",
+    ".provides_arch_phys_wc_add_planning = true",
     ".touches_live_dma = false",
     ".touches_live_scatterlist = false",
     ".touches_live_mmio = false",
@@ -88,6 +91,7 @@ HELPER_MARKERS = [
     "pub fn planDeviceTreeIomap(",
     "pub fn planDeviceTreeIomapCleanupHandoff(",
     "pub fn planManagedIounmapCleanup(",
+    "pub fn planManagedArchPhysWcAdd(",
 ]
 
 SCATTERLIST_HELPER_MARKERS = [
@@ -338,6 +342,18 @@ def run_self_test() -> int:
             validate(root),
             [f"{MMIO_PACKET_CHECKER_PATH.as_posix()}:missing_marker:PHASE13_DEVRES_MMIO_PACKET=pass"],
             "missing_mmio_checker_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
+            "\n".join(marker for marker in HELPER_MARKERS if marker != ".provides_arch_phys_wc_add_planning = true") + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["helper:missing_marker:.provides_arch_phys_wc_add_planning = true"],
+            "missing_arch_wc_helper_marker_failed",
         )
         case_count += 1
 
