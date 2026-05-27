@@ -60,6 +60,8 @@ MANIFEST_REQUIRED_MARKERS = [
     '"current_lane_posture": "blocked_maintenance"',
     '"productization_posture": "shared_packet_local_only"',
     '"shared_packet_local_validation": "make -C zigux phase14-validate"',
+    '"python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py --self-test"',
+    '"python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py"',
     '"phase14-workqueue-study-only-guardrail"',
     '"direct_bridge_local_trust_gate": "zig test zigux/tests/phase14_workqueue_reviewability.zig"',
     '"phase14-workqueue-live-execution-blocker"',
@@ -124,7 +126,11 @@ FIXTURE_MANIFEST = """{
   "anchor": "kernel/workqueue.c",
   "maintenance_handoff": {
     "current_lane_posture": "blocked_maintenance",
-    "productization_posture": "shared_packet_local_only"
+    "productization_posture": "shared_packet_local_only",
+    "productization_exact_checks": [
+      "python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py --self-test",
+      "python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py"
+    ]
   },
   "study_only_guardrail": {
     "guardrail_id": "phase14-workqueue-study-only-guardrail",
@@ -159,6 +165,8 @@ def run_self_test() -> int:
             (NOTE_PATH, RETURN_TO_BLOCKED_MARKERS[0], f"missing_note_marker:{RETURN_TO_BLOCKED_MARKERS[0]}"),
             (MANIFEST_PATH, '"phase14-workqueue-study-only-guardrail"', 'missing_manifest_marker:"phase14-workqueue-study-only-guardrail"'),
             (MANIFEST_PATH, '"shared_packet_local_validation": "make -C zigux phase14-validate"', 'missing_manifest_marker:"shared_packet_local_validation": "make -C zigux phase14-validate"'),
+            (MANIFEST_PATH, '"python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py --self-test"', 'missing_manifest_marker:"python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py --self-test"'),
+            (MANIFEST_PATH, '"python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py"', 'missing_manifest_marker:"python3 scripts/zigux/check-phase14-workqueue-study-only-guardrail.py"'),
         ]
         for rel_path, marker, expected in cases:
             write_text(base / NOTE_PATH, FIXTURE_NOTE)
@@ -176,7 +184,7 @@ def run_self_test() -> int:
             raise SystemExit(f"expected forbidden marker failure, got {failures!r}")
 
         print("PHASE14_WORKQUEUE_STUDY_ONLY_GUARDRAIL_SELF_TEST=pass")
-        print("PHASE14_WORKQUEUE_STUDY_ONLY_GUARDRAIL_SELF_TEST_CASE_COUNT=7")
+        print("PHASE14_WORKQUEUE_STUDY_ONLY_GUARDRAIL_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
