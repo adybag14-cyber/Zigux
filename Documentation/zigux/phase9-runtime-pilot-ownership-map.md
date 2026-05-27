@@ -101,6 +101,7 @@ These files are the returned family-local kretprobe packet and should not be pro
 - `samples/zigux/runtime_kretprobe_loader.zig`
 - `samples/zigux/runtime_kretprobe_initialized_snapshot_guard.zig`
 - `samples/zigux/runtime_kretprobe_registration_reentry_gate.zig`
+- `samples/zigux/runtime_kretprobe_reinit_reexit_guard.zig`
 - `zigux/tests/runtime_kretprobe_survey.zig`
 - `zigux/tests/runtime_kretprobe_module.zig`
 - `zigux/tests/runtime_first_loadable_parity_behavior.zig`
