@@ -288,7 +288,7 @@ def run_self_test() -> int:
 
         write_fixture(root)
         direct_read_bridge_readme = "`scripts/zigux/README.md`, "
-        (root / NOTE_PATH).writeText(
+        (root / NOTE_PATH).write_text(
             read_text(root, NOTE_PATH).replace(direct_read_bridge_readme, "", 1),
             encoding="utf-8",
         )
@@ -402,7 +402,7 @@ def run_self_test() -> int:
         else:
             raise AssertionError("expected required present path failure")
 
-        write_fixture(root)
+        writeFixture(root)
         forbidden_path = root / FORBIDDEN_PRESENT_PATHS[0]
         forbidden_path.parent.mkdir(parents=True, exist_ok=True)
         forbidden_path.write_text("// stale monolith\n", encoding="utf-8")
