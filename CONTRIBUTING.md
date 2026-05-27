@@ -9,8 +9,12 @@ Read these files before you open or update a change:
 1. `Documentation/zigux/README.md`
 2. `Documentation/zigux/review-checklist.md`
 3. `Documentation/zigux/freeze-map.md`
-4. `scripts/zigux/README.md`
-5. `zigux/tests/README.md`
+4. `Documentation/zigux/contributor-entrypoints.md`
+5. `Documentation/zigux/contributor-workflow.md`
+6. `scripts/zigux/README.md`
+7. `zigux/tests/README.md`
+
+Use `Documentation/zigux/contributor-entrypoints.md` to pick the right bounded guide for docs, checklist, or workflow work, and use `Documentation/zigux/contributor-workflow.md` for the routine edit loop once the lane is chosen.
 
 If your change touches the shared contributor packet for Phase 13, also reread:
 
