@@ -62,6 +62,18 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Self-test current Lane 05 archive parts packet checker
+        run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --self-test
+
+      - name: Check current Lane 05 archive parts packet
+        run: python3 scripts/zigux/check-lane05-archive-parts-packet.py --allow-missing
+
+      - name: Self-test current Lane 05 archive-parts bootstrap workflow checker
+        run: python3 scripts/zigux/check-lane05-archive-parts-bootstrap-workflow.py --self-test
+
+      - name: Check current Lane 05 archive-parts bootstrap workflow packet
+        run: python3 scripts/zigux/check-lane05-archive-parts-bootstrap-workflow.py
+
       - name: Setup pinned Zig toolchain
         run: |
           set -euxo pipefail
@@ -217,7 +229,6 @@ jobs:
 
       - name: Run current Phase 2 fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
-
       - name: Self-test current Lane 01 bootstrap charter checker
         run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test
       - name: Check current Lane 01 bootstrap charter packet
