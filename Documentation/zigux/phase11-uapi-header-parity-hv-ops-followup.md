@@ -1,28 +1,66 @@
 # Phase 11 UAPI Header Parity `hv_ops` Follow-up
 
 ## Status
-- `PHASE11_HV_OPS_FOLLOWUP_STATUS=shared_packet_gap_recorded`
-- lane: `P11-L08`
-- reviewed against current `master` on `2026-05-17`
-- scope: keep the shared Phase 11 header-parity packet honest about what is already machine-checked today and what still needs one bounded follow-up for `struct hv_ops`
+
+- `PHASE11_HV_OPS_FOLLOWUP_STATUS=adjacent_hv_ops_proof_returned_shared_replay_still_missing`
+- lane: `P11-L05`
+- reviewed against current `master` on `2026-05-27`
+- scope: keep the shared Phase 11 header-parity packet honest about the returned
+  `hv_ops` proof shard while preserving the boundary between adjacent proof
+  evidence and the still-missing shared replay family
 
 ## Current Repo Reality
-- `Documentation/zigux/phase11-uapi-header-parity-survey.md` and `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` both describe the shared packet as if `struct hv_ops` layout proof is already part of the landed shared replay.
-- `zigux/tests/phase11_uapi_header_parity_survey.zig` currently keeps the bounded `watchdog_info` and `winsize` layout proofs, the shared build-hook readback, and the exported `hvc_console.h` declaration checks explicit.
-- The same shared survey source still does not carry a matching in-route `struct hv_ops` callback-table layout proof even though `drivers/tty/hvc/hvc_console.h` exposes that public surface.
-- `zigux/tests/phase11_uapi_header_parity_manifest.json` still summarizes the shared packet around `watchdog_info`, `winsize`, and the exported HVC helper surface only.
-- Draft PR `#302` (`test(phase11): add hv_ops layout proof packet`) already carries a focused dedicated proof packet in `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` plus its own build file, but that proof is not yet part of the shared `phase11-uapi-header-parity-survey-tests` route on current `master`.
+
+- `Documentation/zigux/phase11-uapi-header-parity-survey.md` and
+  `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` now
+  frame `struct hv_ops` as adjacent proof-shard evidence rather than as a
+  restored shared replay route.
+- `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` and
+  `zigux/tests/phase11_hvc_hv_ops_layout_build.zig` keep the bounded
+  `struct hv_ops` size, alignment, and callback-table offsets directly readable
+  on current `master`.
+- `zigux/helpers/layout_assert.zig`, `drivers/tty/hvc/hvc_console.h`, and
+  `drivers/tty/hvc/hvc_console.zig` remain the returned substrate and direct
+  proof inputs for that `hv_ops` shard.
+- `scripts/zigux/check-phase11-header-boundary-packet.py` now fail-closes on
+  the survey, validation matrix, checker-coverage note, and this follow-up note
+  so the adjacent `hv_ops` packet stays aligned with current-head wording.
+- The same current-head packet still does not rematerialize
+  `zigux/tests/phase11_uapi_header_parity_manifest.json`,
+  `zigux/tests/phase11_uapi_header_parity_survey.zig`, or
+  `zigux/tests/phase11_build.zig`, so the shared manifest, survey source, and
+  build route remain absent on current `master`.
 
 ## Why This Note Exists
-The shared Phase 11 header packet is supposed to stay reviewable and bounded. Right now the easiest way for that packet to drift is for the shared note and validation matrix to imply that `hv_ops` is already covered in the same landed replay path when the live shared survey source does not yet prove it.
 
-This note records that gap directly so later rereads do not mistake dedicated proof work for shared-packet closure.
+The `hv_ops` gap changed shape.
+
+The live repo no longer needs a reminder that `hv_ops` proof is missing
+entirely. Instead it needs a smaller truthfulness note that distinguishes
+between:
+
+- the returned adjacent `hv_ops` proof shard that is directly readable today
+- the still-missing shared replay family that would be required to claim
+  restored cross-driver header-parity closure
+
+This note records that distinction directly so later rereads do not mistake the
+returned `hv_ops` proof shard for recovery of the older shared replay packet.
 
 ## Next Bounded Step
-- If the shared packet should truly own `hv_ops`, add one bounded `struct hv_ops` size, alignment, and callback-offset proof to `zigux/tests/phase11_uapi_header_parity_survey.zig`, then sync `zigux/tests/phase11_uapi_header_parity_manifest.json` and `scripts/zigux/check-phase11-header-boundary-packet.py` to fail closed on that new shared proof.
-- If the dedicated packet from PR `#302` should remain separate, then the shared note and validation matrix should be narrowed so they stop describing `hv_ops` as already landed inside the shared survey route.
+
+- If the shared packet should truly own `hv_ops`, re-land a directly readable
+  shared manifest, survey source, and build route, then sync this note together
+  with the survey, validation matrix, and header-boundary checker in one bounded
+  pass.
+- If the dedicated packet should remain separate, keep the shared note and
+  validation matrix bounded to adjacent proof-shard language and avoid claiming
+  that the older shared replay family has returned.
 
 ## Boundaries
-- This note does not claim notifier execution, khvcd worker behavior, tty registration, host-backed HVC transport, or watchdog-core integration.
-- This note does not merge or supersede the dedicated `P11-L13` proof branch.
-- The immediate job here is shared-packet truthfulness only.
+
+- This note does not claim notifier execution, khvcd worker behavior, tty
+  registration, host-backed HVC transport, or watchdog-core integration.
+- This note does not claim that the missing shared manifest, survey source, or
+  build route have returned.
+- The immediate job here is current-head truthfulness for the returned `hv_ops`
+  proof shard only.
