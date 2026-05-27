@@ -85,9 +85,17 @@ def load_text(path: Path) -> str:
     return read_bytes(path).decode("utf-8")
 
 
+def format_utf8_error(path: Path, *, side: str, exc: UnicodeDecodeError) -> str:
+    return f"{side}_UTF8_ERROR={path}:{exc.start}: {exc.reason}"
+
+
 def canonical_json_bytes(path: Path, *, side: str) -> tuple[bytes | None, str | None]:
     try:
-        value = json.loads(load_text(path))
+        text = load_text(path)
+    except UnicodeDecodeError as exc:
+        return None, format_utf8_error(path, side=side, exc=exc)
+    try:
+        value = json.loads(text)
     except json.JSONDecodeError as exc:
         return None, f"{side}_JSON_ERROR={path}:{exc.lineno}:{exc.colno}: {exc.msg}"
     return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"), None
@@ -197,6 +205,8 @@ def run_self_test() -> int:
         actual_json_mismatch = root / "actual-mismatch.json"
         invalid_expected_json = root / "invalid-expected.json"
         invalid_actual_json = root / "invalid-actual.json"
+        invalid_expected_utf8_json = root / "invalid-expected-utf8.json"
+        invalid_actual_utf8_json = root / "invalid-actual-utf8.json"
         blob_a = root / "blob-a.bin"
         blob_b = root / "blob-b.bin"
 
@@ -220,9 +230,16 @@ def run_self_test() -> int:
 
         invalid_expected_json.write_text('{"alpha": 1,\n', encoding="utf-8", newline="\n")
         invalid_actual_json.write_text('{"alpha": 1,\n', encoding="utf-8", newline="\n")
+        invalid_expected_utf8_json.write_bytes(b"\xff{\n")
+        invalid_actual_utf8_json.write_bytes(b"\xff{\n")
         assert_case(
             compare("json", invalid_expected_json, actual_json).extra_lines
             == [f"EXPECTED_JSON_ERROR={invalid_expected_json}:2:1: Expecting property name enclosed in double quotes"],
+            "json_invalid_expected",
+        )
+        assert_case(
+            compare("json", invalid_expected_utf8_json, actual_json).extra_lines
+            == [f"EXPECTED_UTF8_ERROR={invalid_expected_utf8_json}:0: invalid start byte"],
             "json_invalid_expected",
         )
         covered.append("json_invalid_expected")
@@ -232,11 +249,21 @@ def run_self_test() -> int:
             == [f"ACTUAL_JSON_ERROR={invalid_actual_json}:2:1: Expecting property name enclosed in double quotes"],
             "json_invalid_actual",
         )
+        assert_case(
+            compare("json", expected_json, invalid_actual_utf8_json).extra_lines
+            == [f"ACTUAL_UTF8_ERROR={invalid_actual_utf8_json}:0: invalid start byte"],
+            "json_invalid_actual",
+        )
         covered.append("json_invalid_actual")
 
         assert_case(
             compare("json", invalid_expected_json, invalid_actual_json).extra_lines
             == [f"EXPECTED_JSON_ERROR={invalid_expected_json}:2:1: Expecting property name enclosed in double quotes"],
+            "json_invalid_both",
+        )
+        assert_case(
+            compare("json", invalid_expected_utf8_json, invalid_actual_utf8_json).extra_lines
+            == [f"EXPECTED_UTF8_ERROR={invalid_expected_utf8_json}:0: invalid start byte"],
             "json_invalid_both",
         )
         covered.append("json_invalid_both")
