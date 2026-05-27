@@ -67,6 +67,7 @@
         "zigux/tests/phase10_virtio_core.zig",
         "zigux/tests/phase10_virtio_core_reset_queue.zig",
         "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+        "Documentation/zigux/phase10-virtio-core-survey.md",
         "zigux/tests/phase10_virtio_core_survey.zig",
         "zigux/tests/phase10_virtio_ring.zig",
         "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
