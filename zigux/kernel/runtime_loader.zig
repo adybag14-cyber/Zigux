@@ -41,6 +41,7 @@ const ApprovedPilotFamily = struct {
     exit_symbol: []const u8,
     module_metadata: ModuleMetadata,
     handoff_stage: HandoffStage,
+    allocator_handoff: AllocatorHandoff,
 };
 
 const approved_pilot_families = [_]ApprovedPilotFamily{
@@ -54,6 +55,7 @@ const approved_pilot_families = [_]ApprovedPilotFamily{
             .aliases = &.{"zigux:runtime-pilot:runtime_atomic64"},
         },
         .handoff_stage = .selftest_complete,
+        .allocator_handoff = .caller_provided,
     },
     .{
         .module_name = "runtime_bitmap",
@@ -65,6 +67,7 @@ const approved_pilot_families = [_]ApprovedPilotFamily{
             .aliases = &.{"zigux:runtime-pilot:runtime_bitmap"},
         },
         .handoff_stage = .initialized,
+        .allocator_handoff = .arena,
     },
     .{
         .module_name = "runtime_trace_events",
@@ -76,6 +79,7 @@ const approved_pilot_families = [_]ApprovedPilotFamily{
             .aliases = &.{"zigux:runtime-pilot:runtime_trace_events"},
         },
         .handoff_stage = .selftest_complete,
+        .allocator_handoff = .caller_provided,
     },
     .{
         .module_name = "runtime_kretprobe",
@@ -87,6 +91,7 @@ const approved_pilot_families = [_]ApprovedPilotFamily{
             .aliases = &.{"zigux:runtime-pilot:runtime_kretprobe"},
         },
         .handoff_stage = .initialized,
+        .allocator_handoff = .kernel_heap,
     },
 };
 
@@ -113,7 +118,8 @@ pub fn keepsApprovedPilotFamilyContract(plan: LoadPlan) bool {
 
 pub fn keepsApprovedPilotFamilyShape(plan: LoadPlan) bool {
     const family = approvedPilotFamilyFor(plan) orelse return false;
-    return plan.init_flow.handoff_stage == family.handoff_stage;
+    return plan.init_flow.handoff_stage == family.handoff_stage and
+        plan.allocator_handoff == family.allocator_handoff;
 }
 
 pub fn keepsApprovedPilotModuleMetadata(plan: LoadPlan) bool {
@@ -209,7 +215,7 @@ test "prepareRequest enforces the bounded runtime loader contract" {
     try std.testing.expect(keepsRequestStateAndPlanExplicit(request, .released_without_substrate, pending));
 }
 
-test "keepsApprovedPilotFamilyShape enforces family-specific handoff stage while allocator handoff stays explicit on the plan" {
+test "keepsApprovedPilotFamilyShape enforces family-specific allocator handoff and handoff stage together" {
     const bitmap_plan = LoadPlan{
         .module_name = "runtime_bitmap",
         .anchor = "lib/test_bitmap.c",
@@ -234,11 +240,11 @@ test "keepsApprovedPilotFamilyShape enforces family-specific handoff stage while
 
     var alternate_bitmap = bitmap_plan;
     alternate_bitmap.allocator_handoff = .caller_provided;
-    try std.testing.expect(keepsApprovedPilotFamilyShape(alternate_bitmap));
+    try std.testing.expect(!keepsApprovedPilotFamilyShape(alternate_bitmap));
 
     alternate_bitmap = bitmap_plan;
     alternate_bitmap.allocator_handoff = .kernel_heap;
-    try std.testing.expect(keepsApprovedPilotFamilyShape(alternate_bitmap));
+    try std.testing.expect(!keepsApprovedPilotFamilyShape(alternate_bitmap));
 
     var drifted_bitmap = bitmap_plan;
     drifted_bitmap.init_flow.handoff_stage = .selftest_complete;
@@ -269,12 +275,38 @@ test "keepsApprovedPilotFamilyShape enforces family-specific handoff stage while
 
     var alternate_trace_events = trace_events_plan;
     alternate_trace_events.allocator_handoff = .kernel_heap;
-    try std.testing.expect(keepsApprovedPilotFamilyShape(alternate_trace_events));
+    try std.testing.expect(!keepsApprovedPilotFamilyShape(alternate_trace_events));
 
     var drifted_trace_events = trace_events_plan;
     drifted_trace_events.init_flow.handoff_stage = .initialized;
     drifted_trace_events.init_flow.selftest_runs = 0;
     try std.testing.expect(!keepsApprovedPilotFamilyShape(drifted_trace_events));
+
+    const kretprobe_plan = LoadPlan{
+        .module_name = "runtime_kretprobe",
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .module_metadata = .{
+            .license = "GPL",
+            .aliases = &.{"zigux:runtime-pilot:runtime_kretprobe"},
+        },
+        .allocator_handoff = .kernel_heap,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(keepsApprovedPilotFamilyContract(kretprobe_plan));
+    try std.testing.expect(keepsApprovedPilotFamilyShape(kretprobe_plan));
+
+    var drifted_kretprobe = kretprobe_plan;
+    drifted_kretprobe.allocator_handoff = .arena;
+    try std.testing.expect(!keepsApprovedPilotFamilyShape(drifted_kretprobe));
 }
 
 test "prepareRequest keeps bounded module metadata and depmod alias records explicit" {
@@ -289,7 +321,7 @@ test "prepareRequest keeps bounded module metadata and depmod alias records expl
             .license = "GPL",
             .aliases = &.{"zigux:runtime-pilot:runtime_kretprobe"},
         },
-        .allocator_handoff = .arena,
+        .allocator_handoff = .kernel_heap,
         .init_flow = .{
             .handoff_stage = .initialized,
             .init_runs = 1,
@@ -358,6 +390,10 @@ test "prepareRequest rejects loader-not-required, pilot-family drift, pilot-fami
     try std.testing.expectError(error.InvalidPilotFamilyContract, prepareRequest(plan));
     plan.exit_symbol = "zigux_runtime_bitmap_exit";
 
+    plan.allocator_handoff = .caller_provided;
+    try std.testing.expectError(error.InvalidPilotFamilyShape, prepareRequest(plan));
+    plan.allocator_handoff = .arena;
+
     plan.init_flow.handoff_stage = .selftest_complete;
     plan.init_flow.selftest_runs = 1;
     try std.testing.expectError(error.InvalidPilotFamilyShape, prepareRequest(plan));
@@ -398,6 +434,10 @@ test "prepareRequest rejects loader-not-required, pilot-family drift, pilot-fami
             .exit_runs = 0,
         },
     };
+
+    trace_events_plan.allocator_handoff = .kernel_heap;
+    try std.testing.expectError(error.InvalidPilotFamilyShape, prepareRequest(trace_events_plan));
+    trace_events_plan.allocator_handoff = .caller_provided;
 
     trace_events_plan.init_flow.handoff_stage = .initialized;
     trace_events_plan.init_flow.selftest_runs = 0;
