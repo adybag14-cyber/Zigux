@@ -40,6 +40,9 @@ COMPLEX_DRIVER_CHECKER_PATH = (
     "scripts/zigux/check-phase12-complex-driver-lane-packet.py"
 )
 CROSS_COMPILE_CHECKER_PATH = "scripts/zigux/check-phase12-cross-compile-smoke.py"
+VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-virtio-scsi-rollback-coverage.py"
+)
 LIBBPF_SNAPSHOT_CHECKER_PATH = "scripts/zigux/check-phase12-libbpf-snapshot.py"
 LIBBPF_LANE_MARKER_CHECKER_PATH = (
     "scripts/zigux/check-phase12-libbpf-lane-marker.py"
@@ -59,6 +62,7 @@ CHECKER_PATHS = (
     RELEASE_READINESS_CHECKER_PATH,
     COMPLEX_DRIVER_CHECKER_PATH,
     CROSS_COMPILE_CHECKER_PATH,
+    VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
     LIBBPF_SNAPSHOT_CHECKER_PATH,
     LIBBPF_LANE_MARKER_CHECKER_PATH,
     LIBBPF_HEAVY_CONSUMER_CHECKER_PATH,
@@ -188,6 +192,7 @@ REQUIRED_MARKERS = {
     ],
     VALIDATOR_PATH: [
         BUILD_INVENTORY_CHECKER_PATH,
+        VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
         VIRTIO_NET_FALLBACK_PATH,
         "Validate the current Phase 12 shared PMO packet, fallback packet, current-master virtio_net fallback companion, scripts-root reminder, tests-root reminder, and returned wrapper contract.",
     ],
