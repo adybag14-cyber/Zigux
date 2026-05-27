@@ -562,6 +562,14 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
 }
 
+test "extractArgv0Path splits the wrapper directory from the command name" {
+    var extracted = (try extractArgv0Path(std.testing.allocator, "/tmp/wrappers/perf-record")).?;
+    defer extracted.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings("/tmp/wrappers", extracted.argv0_path.?);
+    try std.testing.expectEqualStrings("perf-record", extracted.command_name);
+}
+
 test "buildSearchPath normalizes relative exec roots and preserves an empty PATH tail" {
     const rendered = try buildSearchPath(
         std.testing.allocator,
@@ -753,4 +761,26 @@ test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
     try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
     try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
     try std.testing.expectEqual(@as(?[]u8, null), deferred.argv[4]);
+}
+
+test "buildDeferredExecvCall keeps the execv handoff prefixed and null terminated" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExecvCall(
+        std.testing.allocator,
+        config,
+        &.{ "record", "--stdio" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 4), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[2].?);
+    try std.testing.expectEqual(@as(?[]u8, null), deferred.argv[3]);
 }
