@@ -27,6 +27,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_ring_notification_data_module.addImport("virtio_ring", virtio_ring_module);
+    const virtio_ring_callback_enable_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_ring_callback_enable.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_ring_callback_enable_module.addImport("virtio_ring", virtio_ring_module);
     const virtio_ring_registration_summary_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_ring_registration_summary.zig"),
         .target = target,
@@ -155,6 +161,14 @@ pub fn build(b: *std.Build) void {
         phase10_virtio_ring_notification_data_wrapper_tests,
     );
 
+    const phase10_virtio_ring_callback_enable_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-callback-enable-tests",
+        .root_module = virtio_ring_callback_enable_module,
+    });
+    const run_phase10_virtio_ring_callback_enable_tests = b.addRunArtifact(
+        phase10_virtio_ring_callback_enable_tests,
+    );
+
     const phase10_virtio_ring_registration_summary_tests = b.addTest(.{
         .name = "phase10-virtio-ring-registration-summary-tests",
         .root_module = virtio_ring_registration_summary_module,
@@ -228,6 +242,9 @@ pub fn build(b: *std.Build) void {
         &run_phase10_virtio_ring_notification_data_wrapper_tests.step,
     );
     phase10_virtio_ring_queue_tests.dependOn(
+        &run_phase10_virtio_ring_callback_enable_tests.step,
+    );
+    phase10_virtio_ring_queue_tests.dependOn(
         &run_phase10_virtio_ring_registration_summary_tests.step,
     );
     phase10_virtio_ring_queue_tests.dependOn(
@@ -257,6 +274,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_registration_replay_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_notification_data_wrapper_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_callback_enable_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_registration_summary_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);
